@@ -47,6 +47,9 @@ class FortifyServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Disable Fortify's automatic route registration since we use custom routes
+        Fortify::ignoreRoutes();
+
         Fortify::createUsersUsing(CreateNewUser::class);
         Fortify::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
