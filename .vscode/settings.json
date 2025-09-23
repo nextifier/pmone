@@ -1,0 +1,245 @@
+{
+  // PHP & Laravel Configuration
+  "php.suggest.basic": false,
+  "php.suggest.basicShapes": false,
+  "php.validate.enable": false,
+
+  // Intelephense Configuration
+  "intelephense.diagnostics.undefinedTypes": false,
+    "intelephense.diagnostics.undefinedFunctions": false,
+    "intelephense.diagnostics.undefinedConstants": false,
+    "intelephense.diagnostics.undefinedClassConstants": false,
+    "intelephense.diagnostics.undefinedMethods": false,
+    "intelephense.diagnostics.undefinedProperties": false,
+    "intelephense.diagnostics.undefinedVariables": true,
+  "intelephense.format.enable": false,
+  "intelephense.completion.insertUseDeclaration": true,
+  "intelephense.completion.fullyQualifyGlobalConstantsAndFunctions": false,
+  "intelephense.files.maxSize": 5000000,
+  "intelephense.files.associations": [
+    "*.php",
+    "*.phtml",
+    "*.blade.php"
+  ],
+  "intelephense.files.exclude": [
+    "**/node_modules/**",
+    "**/vendor/**/{Tests,tests}/**",
+    "**/vendor/**/test/**",
+    "**/vendor/**/tests/**",
+    "**/storage/framework/views/**",
+    "**/bootstrap/cache/**"
+  ],
+  "intelephense.stubs": [
+    "apache",
+    "bcmath",
+    "bz2",
+    "calendar",
+    "com_dotnet",
+    "Core",
+    "ctype",
+    "curl",
+    "date",
+    "dba",
+    "dom",
+    "enchant",
+    "exif",
+    "FFI",
+    "fileinfo",
+    "filter",
+    "fpm",
+    "ftp",
+    "gd",
+    "gettext",
+    "gmp",
+    "hash",
+    "iconv",
+    "imap",
+    "intl",
+    "json",
+    "ldap",
+    "libxml",
+    "mbstring",
+    "meta",
+    "mysqli",
+    "oci8",
+    "odbc",
+    "openssl",
+    "pcntl",
+    "pcre",
+    "PDO",
+    "pdo_ibm",
+    "pdo_mysql",
+    "pdo_pgsql",
+    "pdo_sqlite",
+    "pgsql",
+    "Phar",
+    "posix",
+    "pspell",
+    "readline",
+    "Reflection",
+    "session",
+    "shmop",
+    "SimpleXML",
+    "snmp",
+    "soap",
+    "sockets",
+    "sodium",
+    "SPL",
+    "sqlite3",
+    "standard",
+    "superglobals",
+    "sysvmsg",
+    "sysvsem",
+    "sysvshm",
+    "tidy",
+    "tokenizer",
+    "xml",
+    "xmlreader",
+    "xmlrpc",
+    "xmlwriter",
+    "xsl",
+    "Zend OPcache",
+    "zip",
+    "zlib"
+  ],
+
+  // File associations for Laravel
+  "files.associations": {
+    "*.blade.php": "blade",
+    "*.env*": "dotenv",
+    "artisan": "php"
+  },
+
+  // Emmet configuration for Blade
+  "emmet.includeLanguages": {
+    "blade": "html"
+  },
+
+  // Laravel Pint formatter for PHP
+  "[php]": {
+    "editor.defaultFormatter": "open-southeners.laravel-pint",
+    "editor.formatOnSave": true
+  },
+
+  // Prettier formatter for frontend files
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+
+  // Auto save and format
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+
+  // Exclude unnecessary files from explorer
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/vendor": false,
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/bootstrap/cache": true,
+    "**/storage/app": true,
+    "**/storage/framework/cache": true,
+    "**/storage/framework/sessions": true,
+    "**/storage/framework/testing": true,
+    "**/storage/framework/views": true,
+    "**/storage/logs": true,
+    "**/frontend/.nuxt": true,
+    "**/frontend/.output": true,
+    "**/frontend/dist": true
+  },
+
+  // Search configuration
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/vendor": true,
+    "**/storage/framework": true,
+    "**/bootstrap/cache": true,
+    "**/*.log": true,
+    "**/frontend/.nuxt": true,
+    "**/frontend/.output": true,
+    "**/frontend/dist": true
+  },
+
+  // Terminal configuration
+  "terminal.integrated.cwd": "${workspaceFolder}",
+
+  // Git configuration
+  "git.ignoreLimitWarning": true,
+
+  // Tailwind CSS
+  "tailwindCSS.includeLanguages": {
+    "blade": "html",
+    "vue": "html"
+  },
+  "tailwindCSS.files.exclude": [
+    "**/.git/**",
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**"
+  ],
+
+  // Vue/Nuxt Configuration
+  "vetur.validation.template": false,
+  "vetur.validation.script": false,
+  "vetur.validation.style": false,
+
+  // Auto-close tags for Blade
+  "auto-close-tag.activationOnLanguage": [
+    "xml",
+    "php",
+    "blade",
+    "ejs",
+    "jinja",
+    "javascript",
+    "typescript",
+    "javascriptreact",
+    "typescriptreact",
+    "plaintext",
+    "markdown",
+    "vue",
+    "liquid",
+    "erb",
+    "lang-cfml",
+    "cfml",
+    "HTML (EEx)",
+    "HTML (Eex)",
+    "plist"
+  ],
+
+  // Bracket pair colorizer
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+
+  // Error lens configuration
+  "errorLens.enabledDiagnosticLevels": [
+    "error",
+    "warning"
+  ],
+
+  // Thunder Client configuration for API testing
+  "thunder-client.saveToWorkspace": true,
+
+  // Disable certain annoying features
+  "php.suggest.basic": false,
+  "editor.hover.delay": 300
+}

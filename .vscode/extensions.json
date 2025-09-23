@@ -1,0 +1,57 @@
+{
+  "recommendations": [
+    // PHP & Laravel Core Extensions
+    "bmewburn.vscode-intelephense-client",
+    "open-southeners.laravel-pint",
+    "shufo.vscode-blade-formatter",
+    "ryannaddy.laravel-artisan",
+    "codingyu.laravel-goto-view",
+    "amiralizadeh9480.laravel-extra-intellisense",
+
+    // Blade Template Engine
+    "cjhowe7.laravel-blade",
+    "austenc.laravel-blade-spacer",
+
+    // Database
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-pg",
+
+    // Git & Version Control
+    "eamodio.gitlens",
+    "donjayamanne.githistory",
+
+    // General Development
+    "formulahendry.auto-close-tag",
+    "formulahendry.auto-rename-tag",
+    "usernamehw.errorlens",
+    "oderwat.indent-rainbow",
+    "bradlc.vscode-tailwindcss",
+    "ms-vscode.vscode-json",
+
+    // API Testing
+    "rangav.vscode-thunder-client",
+
+    // Code Quality
+    "streetsidesoftware.code-spell-checker",
+    "esbenp.prettier-vscode",
+
+    // Productivity
+    "alefragnani.project-manager",
+    "ms-vscode.remote-repositories",
+    "ms-vscode-remote.remote-ssh",
+
+    // Environment & Config
+    "mikestead.dotenv",
+    "redhat.vscode-yaml",
+
+    // Optional but useful
+    "ms-vscode.atom-keybindings",
+    "pkief.material-icon-theme",
+    "zhuangtongfa.material-theme"
+  ],
+  "unwantedRecommendations": [
+    "felixfbecker.php-intellisense",
+    "felixfbecker.php-debug",
+    "devsense.phptools-vscode"
+  ]
+}
