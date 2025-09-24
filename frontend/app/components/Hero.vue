@@ -25,6 +25,8 @@
             Built {{ $dayjs(buildDate).fromNow() }}
           </div>
 
+          <span>Update Test</span>
+
           <pre v-if="$pwa" class="rounded-lg bg-gray-950 p-6 text-left text-sm text-gray-300">
           {{ $pwa }}
         </pre
