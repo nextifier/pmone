@@ -64,7 +64,6 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read int|null $roles_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Sanctum\PersonalAccessToken> $tokens
  * @property-read int|null $tokens_count
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User byStatus(string $status)
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
@@ -100,7 +99,6 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereVisibility($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutPermission($permissions)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutRole($roles, $guard = null)
- *
  * @mixin \Eloquent
  */
 class User extends Authenticatable implements HasMedia, MustVerifyEmail
@@ -224,6 +222,11 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
 
                 $model->username = $username;
             }
+        });
+
+        // Auto-cleanup media when user is deleted
+        static::deleting(function ($model) {
+            $model->clearMediaCollection();
         });
     }
 

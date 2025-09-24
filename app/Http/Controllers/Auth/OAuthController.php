@@ -186,11 +186,15 @@ class OAuthController extends Controller
         }
     }
 
+
     private function saveUserAvatar(User $user, string $avatarUrl): void
     {
         try {
             // Check if media library is available
             if (method_exists($user, 'addMediaFromUrl')) {
+                // Clear existing avatar first
+                $user->clearMediaCollection('profile_image');
+
                 $user->addMediaFromUrl($avatarUrl)
                     ->toMediaCollection('profile_image');
             }
