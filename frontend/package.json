@@ -12,6 +12,7 @@
     "@formkit/auto-animate": "^0.9.0",
     "@iconify-json/hugeicons": "^1.2.16",
     "@iconify-json/lucide": "^1.2.68",
+    "@iconify-json/material-symbols": "^1.2.38",
     "@iconify-json/ri": "^1.2.5",
     "@number-flow/vue": "^0.4.8",
     "@nuxt/devtools": "latest",
@@ -60,6 +61,7 @@
   },
   "overrides": {
     "vue": "latest",
-    "esm-env": "npm:esm-env-runtime@^0.1.1"
+    "esm-env": "npm:esm-env-runtime@^0.1.1",
+    "vite": "npm:rolldown-vite@latest"
   }
 }

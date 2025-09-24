@@ -1,7 +1,7 @@
 const isProduction = process.env.NODE_ENV === "production";
 
 const app = {
-  name: "PM ONe",
+  name: "PM One",
   shortName: "PM One",
   url: isProduction ? "https://pmone.id" : "http://localhost:3000",
   company: {
@@ -13,7 +13,7 @@ const app = {
 
 const settings = {
   ogImage: {
-    isDarkMode: false,
+    isDarkMode: true,
   },
   terms: {
     lastUpdate: "August 21, 2025",
