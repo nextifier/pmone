@@ -213,13 +213,13 @@ export default defineNuxtConfig({
     client: {
       installPrompt: true,
     },
-    devOptions: {
-      enabled: true,
-      suppressWarnings: true,
-      navigateFallback: "/",
-      navigateFallbackAllowlist: [/^\/$/],
-      type: "module",
-    },
+    // devOptions: {
+    //   enabled: true,
+    //   suppressWarnings: true,
+    //   navigateFallback: "/",
+    //   navigateFallbackAllowlist: [/^\/$/],
+    //   type: "module",
+    // },
   },
 
   // gtag: {
