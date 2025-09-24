@@ -49,6 +49,7 @@ export default defineNuxtConfig({
     "nuxt-gtag",
     "@formkit/auto-animate/nuxt",
     "nuxt-auth-sanctum",
+    "@vite-pwa/nuxt",
   ],
 
   sanctum: {
@@ -151,6 +152,76 @@ export default defineNuxtConfig({
     enabled: false,
   },
 
+  pwa: {
+    registerType: "autoUpdate",
+    registerWebManifestInRouteRules: true,
+    manifest: {
+      name: "PM One",
+      short_name: "PM One",
+      start_url: "/",
+      display: "standalone",
+      theme_color: "#09090b",
+      background_color: "#09090b",
+      description:
+        "Streamline your project management with PM One - a powerful, intuitive dashboard that helps you organize tasks, track progress, and collaborate seamlessly. Access your projects anywhere, anytime with our fast and reliable PWA experience.",
+
+      screenshots: [
+        {
+          src: "screenshots/desktop-1.png",
+          sizes: "1280x833",
+          type: "image/png",
+          form_factor: "wide",
+          label: "Desktop view of PM One",
+        },
+        {
+          src: "screenshots/mobile-1.png",
+          sizes: "400x842",
+          type: "image/png",
+          form_factor: "narrow",
+          label: "Mobile view of PM One",
+        },
+      ],
+      icons: [
+        {
+          src: "icons/icon-192x192.png",
+          sizes: "192x192",
+          type: "image/png",
+        },
+        {
+          src: "icons/icon-512x512.png",
+          sizes: "512x512",
+          type: "image/png",
+        },
+        {
+          src: "icons/icon-512x512.png",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "any",
+        },
+      ],
+    },
+    workbox: {
+      cleanupOutdatedCaches: true,
+      skipWaiting: true,
+      clientsClaim: true,
+      navigateFallback: null,
+      globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
+    },
+    injectManifest: {
+      globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
+    },
+    client: {
+      installPrompt: true,
+    },
+    devOptions: {
+      enabled: true,
+      suppressWarnings: true,
+      navigateFallback: "/",
+      navigateFallbackAllowlist: [/^\/$/],
+      type: "module",
+    },
+  },
+
   // gtag: {
   //   loadingStrategy: "defer",
   //   tags: [
@@ -159,15 +230,6 @@ export default defineNuxtConfig({
   //       enabled: true,
   //     },
   //   ],
-  // },
-
-  // gtm: {
-  //   defer: true,
-  //   id: "GTM-MPMTC993",
-  // },
-
-  // disqus: {
-  //   shortname: "pmone",
   // },
 
   compatibilityDate: "2025-09-16",

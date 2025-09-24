@@ -29,4 +29,5 @@ export default defineAppConfig({
   app: app,
   settings: settings,
   contact: contact,
+  buildDate: new Date().toISOString(),
 });

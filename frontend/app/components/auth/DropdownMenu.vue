@@ -38,19 +38,24 @@
 </template>
 
 <script setup>
-import { PopoverClose } from 'reka-ui'
-const { user, logout } = useSanctumAuth()
+import { PopoverClose } from "reka-ui";
+const { user, logout } = useSanctumAuth();
 
 const items = [
   {
-    label: 'Dashboard',
-    path: '/dashboard',
-    iconName: 'hugeicons:dashboard-circle'
+    label: "Go to home page",
+    path: "/",
+    iconName: "hugeicons:home-01",
   },
   {
-    label: 'Account',
-    path: '/settings/profile',
-    iconName: 'hugeicons:user'
-  }
-]
+    label: "Dashboard",
+    path: "/dashboard",
+    iconName: "hugeicons:dashboard-circle",
+  },
+  {
+    label: "Account",
+    path: "/settings/profile",
+    iconName: "hugeicons:user",
+  },
+];
 </script>
