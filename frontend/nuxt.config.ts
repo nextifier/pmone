@@ -8,14 +8,9 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      siteUrl:
-        process.env.NODE_ENV === "production"
-          ? "https://pmone.id"
-          : "http://localhost:3000",
+      siteUrl: process.env.NODE_ENV === "production" ? "https://pmone.id" : "http://localhost:3000",
       apiUrl:
-        process.env.NODE_ENV === "production"
-          ? "https://api.pmone.id"
-          : "http://localhost:8000",
+        process.env.NODE_ENV === "production" ? "https://api.pmone.id" : "http://localhost:8000",
     },
   },
 
@@ -58,9 +53,7 @@ export default defineNuxtConfig({
 
   sanctum: {
     baseUrl:
-      process.env.NODE_ENV === "production"
-        ? "https://api.pmone.id"
-        : "http://localhost:8000",
+      process.env.NODE_ENV === "production" ? "https://api.pmone.id" : "http://localhost:8000",
     mode: "cookie",
     userStateKey: "sanctum.user.identity",
     redirectIfAuthenticated: true,
@@ -126,8 +119,8 @@ export default defineNuxtConfig({
   },
 
   colorMode: {
-    preference: "light", //system, light, dark
-    fallback: "light",
+    preference: "dark", //system, light, dark
+    fallback: "dark",
     classSuffix: "",
     hid: "color-mode-script",
     globalName: "__COLOR_MODE__",
@@ -147,10 +140,7 @@ export default defineNuxtConfig({
 
   site: {
     name: "PM One",
-    url:
-      process.env.NODE_ENV === "production"
-        ? "https://pmone.id"
-        : "http://localhost:3000",
+    url: process.env.NODE_ENV === "production" ? "https://pmone.id" : "http://localhost:3000",
   },
 
   schemaOrg: {

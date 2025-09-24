@@ -74,7 +74,7 @@
           v-model="form.gender"
           :class="[
             'border-input placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
-            { 'border-destructive': errors?.gender }
+            { 'border-destructive': errors?.gender },
           ]"
         >
           <option value="">Select gender</option>
@@ -94,7 +94,7 @@
           rows="4"
           :class="[
             'border-input placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[60px] w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
-            { 'border-destructive': errors?.bio }
+            { 'border-destructive': errors?.bio },
           ]"
           placeholder="Tell us about yourself..."
         ></textarea>
@@ -110,7 +110,7 @@
           v-model="form.visibility"
           :class="[
             'border-input placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
-            { 'border-destructive': errors?.visibility }
+            { 'border-destructive': errors?.visibility },
           ]"
         >
           <option value="public">Public</option>
@@ -128,7 +128,7 @@
           :disabled="isSubmitting"
           class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center justify-center gap-x-1.5 rounded-lg px-4 py-3 text-sm font-semibold tracking-tight transition active:scale-98"
         >
-          <span>{{ isSubmitting ? 'Updating..' : 'Update Profile' }}</span>
+          <span>{{ isSubmitting ? "Updating.." : "Update Profile" }}</span>
 
           <LoadingSpinner v-if="isSubmitting" class="border-primary-foreground size-4" />
         </button>
@@ -146,99 +146,99 @@
 </template>
 
 <script setup>
-import { toast } from 'vue-sonner'
+import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ['sanctum:auth', 'sanctum-verified'],
-  layout: 'app'
-})
+  middleware: ["sanctum:auth", "sanctum-verified"],
+  layout: "app",
+});
 
-usePageMeta('settingsProfile')
+usePageMeta("settingsProfile");
 
-const sanctumFetch = useSanctumClient()
-const { user } = useSanctumAuth()
+const sanctumFetch = useSanctumClient();
+const { user } = useSanctumAuth();
 
 // Form state
 const form = reactive({
-  name: '',
-  username: '',
-  email: '',
-  phone: '',
-  birth_date: '',
-  gender: '',
-  bio: '',
-  visibility: 'public'
-})
+  name: "",
+  username: "",
+  email: "",
+  phone: "",
+  birth_date: "",
+  gender: "",
+  bio: "",
+  visibility: "public",
+});
 
-const message = ref()
-const errors = ref()
-const isSubmitting = ref(false)
+const message = ref();
+const errors = ref();
+const isSubmitting = ref(false);
 
 // Load current user data into form
 const loadUserData = () => {
   if (user.value) {
-    form.name = user.value.name || ''
-    form.username = user.value.username || ''
-    form.email = user.value.email || ''
-    form.phone = user.value.phone || ''
-    form.birth_date = user.value.birth_date || ''
-    form.gender = user.value.gender || ''
-    form.bio = user.value.bio || ''
-    form.visibility = user.value.visibility || 'public'
+    form.name = user.value.name || "";
+    form.username = user.value.username || "";
+    form.email = user.value.email || "";
+    form.phone = user.value.phone || "";
+    form.birth_date = user.value.birth_date || "";
+    form.gender = user.value.gender || "";
+    form.bio = user.value.bio || "";
+    form.visibility = user.value.visibility || "public";
   }
-}
+};
 
 // Load user data when component mounts
 onMounted(() => {
-  loadUserData()
-})
+  loadUserData();
+});
 
 // Watch for user changes and reload form data
 watch(
   user,
   () => {
-    loadUserData()
+    loadUserData();
   },
   { deep: true }
-)
+);
 
 // Submit handler
 const handleSubmit = async () => {
   try {
-    errors.value = null
-    isSubmitting.value = true
+    errors.value = null;
+    isSubmitting.value = true;
 
-    const response = await sanctumFetch('/api/user/profile/update', {
-      method: 'PUT',
-      body: form
-    })
+    const response = await sanctumFetch("/api/user/profile/update", {
+      method: "PUT",
+      body: form,
+    });
 
     // Show success message
-    toast.success(response?.message)
-    message.value = response?.message
+    toast.success(response?.message);
+    message.value = response?.message;
 
     // Update local user data with response
     if (response.data && user.value) {
-      Object.assign(user.value, response.data)
+      Object.assign(user.value, response.data);
     }
   } catch (error) {
     if (error.response?.status === 422) {
       // For validation errors, show the first validation error message
-      const validationErrors = error.response?._data.errors
+      const validationErrors = error.response?._data.errors;
       if (validationErrors) {
         // Get the first error message from the first field that has an error
-        const firstErrorField = Object.keys(validationErrors)[0]
-        const firstErrorMessage = validationErrors[firstErrorField][0]
-        toast.error(firstErrorMessage)
+        const firstErrorField = Object.keys(validationErrors)[0];
+        const firstErrorMessage = validationErrors[firstErrorField][0];
+        toast.error(firstErrorMessage);
       } else {
-        toast.error(error.response?._data.message)
+        toast.error(error.response?._data.message);
       }
-      errors.value = validationErrors
+      errors.value = validationErrors;
     } else {
-      toast.error('Failed to update profile. Please try again.')
+      toast.error("Failed to update profile. Please try again.");
     }
   } finally {
-    isSubmitting.value = false
+    isSubmitting.value = false;
   }
-}
+};
 </script>

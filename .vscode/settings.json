@@ -143,6 +143,10 @@
     "editor.formatOnSave": true
   },
 
+  // Prettier configuration
+  "prettier.semi": true,
+  "prettier.singleQuote": false,
+
   // Auto save and format
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
