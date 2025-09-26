@@ -85,6 +85,11 @@ class MagicLinkController extends Controller
         // Verify email if not already verified
         if (! $user->email_verified_at) {
             $user->markEmailAsVerified();
+
+            // Check if user email domain is @panoramamedia.co.id and only has user role
+            if (str_ends_with($user->email, '@panoramamedia.co.id') && $user->hasRole('user') && $user->roles->count() === 1) {
+                $user->syncRoles(['staff']);
+            }
         }
 
         // Login the user (for web session)
@@ -117,6 +122,11 @@ class MagicLinkController extends Controller
             // Assign default role if method exists
             if (method_exists($user, 'assignRole')) {
                 $user->assignRole('user');
+
+                // Check if user email domain is @panoramamedia.co.id and assign staff role
+                if (str_ends_with($user->email, '@panoramamedia.co.id')) {
+                    $user->syncRoles(['staff']);
+                }
             }
         }
 

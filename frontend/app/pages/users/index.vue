@@ -138,7 +138,7 @@
               </th>
             </tr>
           </thead>
-          <tbody class="divide-border divide-y text-sm tracking-tight" v-auto-animate>
+          <tbody class="divide-border divide-y text-sm tracking-tight">
             <tr
               v-for="user in users"
               :key="user.id"

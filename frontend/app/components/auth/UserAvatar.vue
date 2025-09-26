@@ -4,8 +4,8 @@
     class="border-border bg-muted text-foreground relative flex aspect-square items-center justify-center rounded-lg border text-center"
   >
     <img
-      v-if="user.profile_image?.sm"
-      :src="user.profile_image?.sm"
+      v-if="user.profile_image"
+      :src="user.profile_image?.sm ?? user.profile_image?.original"
       :alt="user?.name"
       class="pointer-events-none size-full rounded-lg object-cover select-none"
       width="100"
