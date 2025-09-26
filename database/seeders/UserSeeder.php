@@ -9,35 +9,21 @@ use Illuminate\Support\Str;
 
 class UserSeeder extends Seeder
 {
+    private const DEFAULT_TOTAL_ITEMS = 80;
     private const DEFAULT_PASSWORD = 'password';
     private const MASTER_USERNAME = 'super.admin';
     private const MASTER_EMAIL = 'master@pmone.id';
     private const AVATAR_COUNT = 144;
-    private const CHANCE_USER_HAVING_AVATAR = 60;
+    private const CHANCE_USER_HAVING_AVATAR = 80;
 
     public function run(): void
     {
-        // Get parameters from command line
-        $totalUsers = $this->command->option('total') ?? 100;
+        $totalUsers = $this->getOptionValue('total', self::DEFAULT_TOTAL_ITEMS);
+        $defaultCounts = $this->calculateDefaultRoleCounts($totalUsers);
 
-        // Smart auto-adjust defaults based on total users
-        if ($totalUsers <= 5) {
-            $defaultMasters = 1;
-            $defaultAdmins = min(1, $totalUsers - 1);
-            $defaultStaff = 0;
-        } elseif ($totalUsers <= 20) {
-            $defaultMasters = 1;
-            $defaultAdmins = min(3, $totalUsers - 1);
-            $defaultStaff = min(5, max(0, $totalUsers - 1 - $defaultAdmins));
-        } else {
-            $defaultMasters = 1;
-            $defaultAdmins = 5;
-            $defaultStaff = min(20, max(0, $totalUsers - 6));
-        }
-
-        $masterUsers = $this->command->option('masters') ?? $defaultMasters;
-        $adminUsers = $this->command->option('admins') ?? $defaultAdmins;
-        $staffUsers = $this->command->option('staff') ?? $defaultStaff;
+        $masterUsers = $this->getOptionValue('masters', $defaultCounts['masters']);
+        $adminUsers = $this->getOptionValue('admins', $defaultCounts['admins']);
+        $staffUsers = $this->getOptionValue('staff', $defaultCounts['staff']);
 
         $regularUsers = max(0, $totalUsers - $masterUsers - $adminUsers - $staffUsers);
 
@@ -342,5 +328,40 @@ class UserSeeder extends Seeder
             $masterEmail = $createdUsers['master'][0]->email ?? self::MASTER_EMAIL;
             $this->command->info("Main master user: $masterEmail");
         }
+    }
+
+    private function getOptionValue(string $optionName, int $defaultValue): int
+    {
+        if ($this->command->hasOption($optionName) && $this->command->option($optionName)) {
+            return (int) $this->command->option($optionName);
+        }
+
+        return $defaultValue;
+    }
+
+    private function calculateDefaultRoleCounts(int $totalUsers): array
+    {
+        if ($totalUsers <= 5) {
+            return [
+                'masters' => 1,
+                'admins' => min(1, $totalUsers - 1),
+                'staff' => 0,
+            ];
+        }
+
+        if ($totalUsers <= 20) {
+            $admins = min(3, $totalUsers - 1);
+            return [
+                'masters' => 1,
+                'admins' => $admins,
+                'staff' => min(5, max(0, $totalUsers - 1 - $admins)),
+            ];
+        }
+
+        return [
+            'masters' => 1,
+            'admins' => 5,
+            'staff' => min(20, max(0, $totalUsers - 6)),
+        ];
     }
 }
