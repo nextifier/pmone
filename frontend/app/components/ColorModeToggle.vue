@@ -64,14 +64,14 @@ const saveThemeToUserSettings = async (theme) => {
     const currentSettings = user.value.user_settings || {};
     const updatedSettings = {
       ...currentSettings,
-      theme: theme
+      theme: theme,
     };
 
-    await sanctumFetch('/api/user/profile/settings', {
-      method: 'PATCH',
+    await sanctumFetch("/api/user/settings", {
+      method: "PATCH",
       body: {
-        settings: updatedSettings
-      }
+        settings: updatedSettings,
+      },
     });
 
     // Update local user data
@@ -79,7 +79,7 @@ const saveThemeToUserSettings = async (theme) => {
       user.value.user_settings = updatedSettings;
     }
   } catch (error) {
-    console.error('Failed to save theme to user settings:', error);
+    console.error("Failed to save theme to user settings:", error);
     // Fail silently - localStorage will still work
   }
 };
@@ -105,11 +105,15 @@ onMounted(() => {
 });
 
 // Watch for user changes and reload theme preference
-watch(user, () => {
-  if (user.value) {
-    loadThemePreference();
-  }
-}, { deep: true });
+watch(
+  user,
+  () => {
+    if (user.value) {
+      loadThemePreference();
+    }
+  },
+  { deep: true }
+);
 
 defineShortcuts({
   meta_d: {

@@ -16,7 +16,7 @@
 
           <template #content>
             <span class="tracking-tight capitalize">
-              {{ user.roles.join(', ') }}
+              {{ user.roles.join(", ") }}
             </span>
           </template>
         </Tippy>
@@ -28,29 +28,29 @@
 
 <script setup>
 const props = defineProps({
-  user: Object
-})
+  user: Object,
+});
 
 const getRoleIcon = computed(() => {
-  if (!props.user?.roles?.length) return null
+  if (!props.user?.roles?.length) return null;
 
   // Priority order: master > admin > staff > writer > user
-  if (props.user.roles.includes('master')) {
-    return 'material-symbols:chess-king-2'
+  if (props.user.roles.includes("master")) {
+    return "material-symbols:chess-king-2";
   }
-  if (props.user.roles.includes('admin')) {
-    return 'material-symbols:chess-queen'
+  if (props.user.roles.includes("admin")) {
+    return "material-symbols:chess-queen";
   }
-  if (props.user.roles.includes('staff')) {
-    return 'material-symbols:chess'
+  if (props.user.roles.includes("staff")) {
+    return "material-symbols:chess";
   }
-  if (props.user.roles.includes('writer')) {
-    return 'material-symbols:chess-knight'
+  if (props.user.roles.includes("writer")) {
+    return "material-symbols:chess-knight";
   }
-  if (props.user.roles.includes('user')) {
-    return 'material-symbols:chess-pawn'
+  if (props.user.roles.includes("user")) {
+    return "material-symbols:chess-pawn";
   }
 
-  return null
-})
+  return null;
+});
 </script>

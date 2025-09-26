@@ -56,11 +56,6 @@ class RoleAndPermissionSeeder extends Seeder
             'users.view',
         ]);
 
-        $exhibitorRole = Role::firstOrCreate(['name' => 'exhibitor']);
-        $exhibitorRole->syncPermissions([
-            'users.view',
-        ]);
-
         $userRole = Role::firstOrCreate(['name' => 'user']);
         $userRole->syncPermissions([
             'users.view',

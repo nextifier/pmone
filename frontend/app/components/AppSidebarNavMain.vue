@@ -4,11 +4,7 @@
       navGroup.label
     }}</SidebarGroupLabel>
     <SidebarMenu>
-      <div
-        v-for="item in navGroup.items"
-        :key="item.label"
-        class="tracking-tight"
-      >
+      <div v-for="item in navGroup.items" :key="item.label" class="tracking-tight">
         <Collapsible
           v-if="item.items?.length"
           as-child
@@ -18,11 +14,7 @@
           <SidebarMenuItem>
             <CollapsibleTrigger as-child>
               <SidebarMenuButton :tooltip="item.label">
-                <Icon
-                  v-if="item.iconName"
-                  :name="item.iconName"
-                  class="!size-4.5 shrink-0"
-                />
+                <Icon v-if="item.iconName" :name="item.iconName" class="!size-4.5 shrink-0" />
                 <span>{{ item.label }}</span>
                 <ChevronRight
                   class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
@@ -31,15 +23,13 @@
             </CollapsibleTrigger>
             <CollapsibleContent>
               <SidebarMenuSub>
-                <SidebarMenuSubItem
-                  v-for="subItem in item.items"
-                  :key="subItem.label"
-                >
+                <SidebarMenuSubItem v-for="subItem in item.items" :key="subItem.label">
                   <SidebarMenuSubButton as-child>
                     <NuxtLink
                       :to="subItem.path"
                       :target="subItem.path.startsWith('http') ? '_blank' : ''"
                       @click="setOpenMobile(false)"
+                      activeClass="bg-muted"
                       >{{ subItem.label }}</NuxtLink
                     >
                   </SidebarMenuSubButton>
@@ -52,14 +42,14 @@
           v-else
           :to="item.path"
           :target="item.path.startsWith('http') ? '_blank' : ''"
-          @click="setOpenMobile(false)"
+          @click="
+            setOpenMobile(false);
+            $scrollToTopIfCurrentPageIs(item.path);
+          "
+          activeClass="*:bg-muted"
         >
           <SidebarMenuButton :tooltip="item.label">
-            <Icon
-              v-if="item.iconName"
-              :name="item.iconName"
-              class="!size-4.5 shrink-0"
-            />
+            <Icon v-if="item.iconName" :name="item.iconName" class="!size-4.5 shrink-0" />
             <span>{{ item.label }}</span>
           </SidebarMenuButton>
         </NuxtLink>
@@ -69,8 +59,8 @@
 </template>
 
 <script setup>
-import { ChevronRight } from "lucide-vue-next";
 import { useSidebar } from "@/components/ui/sidebar/utils";
+import { ChevronRight } from "lucide-vue-next";
 const { setOpenMobile } = useSidebar();
 
 defineProps({

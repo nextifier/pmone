@@ -29,7 +29,7 @@
         "spatie/laravel-query-builder": "^6.3"
     },
     "require-dev": {
-        "barryvdh/laravel-ide-helper": "^3.6",
+        "barryvdh/laravel-ide-helper": "*",
         "fakerphp/faker": "^1.23",
         "laravel/boost": "^1.1",
         "laravel/pail": "^1.2.2",

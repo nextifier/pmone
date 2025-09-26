@@ -2,43 +2,27 @@
 
 use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\UploadController;
-use App\Http\Resources\UserResource;
-use Illuminate\Http\Request;
+use App\Http\Controllers\MediaController;
 use Illuminate\Support\Facades\Route;
 
-// Public API routes
-Route::get('/health', function () {
-    return response()->json([
-        'status' => 'ok',
-        'timestamp' => now()->toISOString(),
-        'version' => config('app.version', '1.0.0'),
-    ]);
-});
-
 // Basic authenticated routes
-Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
-    $user = $request->user()->load(['roles', 'permissions', 'oauthProviders', 'media']);
-
-    return (new UserResource($user))->resolve();
-});
+Route::middleware(['auth:sanctum'])->get('/user', [UserController::class, 'profile']);
 
 // Protected API routes (authenticated + verified)
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
-    // File upload endpoints
-    Route::prefix('upload')->group(function () {
-        Route::post('/', [UploadController::class, 'upload']);
-        Route::post('/profile-image', [UploadController::class, 'uploadProfileImage']);
-        Route::post('/cover-image', [UploadController::class, 'uploadCoverImage']);
-        Route::delete('/media/{media}', [UploadController::class, 'deleteMedia']);
+    // Media endpoints
+    Route::prefix('media')->group(function () {
+        Route::post('/upload', [MediaController::class, 'upload']);
+        Route::post('/bulk-upload', [MediaController::class, 'bulkUpload']);
+        Route::delete('/bulk-delete', [MediaController::class, 'bulkDelete']);
+        Route::delete('/{media}', [MediaController::class, 'delete']);
     });
 
     // User management endpoints
     Route::prefix('user')->group(function () {
-        Route::get('/profile', [UserController::class, 'me']);
-        Route::put('/profile/update', [UserController::class, 'updateProfile']);
-        Route::patch('/profile/settings', [UserController::class, 'updateSettings']);
-        Route::patch('/profile/links', [UserController::class, 'updateLinks']);
+        Route::put('/profile', [UserController::class, 'updateProfile']);
+        Route::patch('/settings', [UserController::class, 'updateSettings']);
+        Route::patch('/links', [UserController::class, 'updateLinks']);
         Route::get('/password-status', [UserController::class, 'passwordStatus']);
         Route::put('/password', [UserController::class, 'updatePassword']);
     });

@@ -138,7 +138,7 @@
               </th>
             </tr>
           </thead>
-          <tbody class="divide-border divide-y text-sm tracking-tight">
+          <tbody class="divide-border divide-y text-sm tracking-tight" v-auto-animate>
             <tr
               v-for="user in users"
               :key="user.id"
@@ -153,7 +153,7 @@
               <!-- Role -->
               <td class="px-4 py-3">
                 <div v-if="user.roles && user.roles.length > 0" class="flex flex-wrap gap-1">
-                  <span class="text-sm tracking-tight capitalize">{{ user.roles.join(', ') }}</span>
+                  <span class="text-sm tracking-tight capitalize">{{ user.roles.join(", ") }}</span>
                 </div>
                 <span v-else class="text-muted-foreground text-sm">No role</span>
               </td>
@@ -165,7 +165,7 @@
                     :class="{
                       'bg-success': user.status === 'active',
                       'bg-destructive': user.status === 'inactive',
-                      'bg-warn': user.status === 'suspended'
+                      'bg-warn': user.status === 'suspended',
                     }"
                     class="size-2 shrink-0 rounded-full"
                   >
@@ -192,7 +192,7 @@
                   class="text-sm"
                   v-tippy="$dayjs(user.created_at).format('MMMM D, YYYY [at] h:mm A')"
                 >
-                  {{ $dayjs(user.created_at).format('MMM D, YYYY') }}
+                  {{ $dayjs(user.created_at).format("MMM D, YYYY") }}
                 </div>
               </td>
 
@@ -232,8 +232,8 @@
       <p class="text-muted-foreground">
         {{
           filters.status || filters.role || filters.search
-            ? 'Try adjusting your filters'
-            : 'No users available'
+            ? "Try adjusting your filters"
+            : "No users available"
         }}
       </p>
     </div>
@@ -269,170 +269,174 @@
 </template>
 
 <script setup>
-import { toast } from 'vue-sonner'
+import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ['sanctum:auth', 'staff-admin-master'],
-  layout: 'app'
-})
+  middleware: ["sanctum:auth", "staff-admin-master"],
+  layout: "app",
+});
 
-usePageMeta('users')
+defineOptions({
+  name: "users",
+});
 
-const { user: currentUser } = useSanctumAuth()
-const sanctumFetch = useSanctumClient()
-const { $dayjs } = useNuxtApp()
+usePageMeta("users");
+
+const { user: currentUser } = useSanctumAuth();
+const sanctumFetch = useSanctumClient();
+const { $dayjs } = useNuxtApp();
 
 // State
-const users = ref([])
-const roles = ref([])
+const users = ref([]);
+const roles = ref([]);
 const meta = ref({
   current_page: 1,
   last_page: 1,
   per_page: 15,
-  total: 0
-})
-const loading = ref(false)
-const error = ref(null)
+  total: 0,
+});
+const loading = ref(false);
+const error = ref(null);
 
 // Filters
 const filters = reactive({
-  status: '',
-  role: '',
-  search: '',
-  perPage: 15
-})
+  status: "",
+  role: "",
+  search: "",
+  perPage: 15,
+});
 
 // Permissions
 const canCreateUsers = computed(() => {
-  return currentUser.value?.roles?.some((role) => ['master', 'admin'].includes(role))
-})
+  return currentUser.value?.roles?.some((role) => ["master", "admin"].includes(role));
+});
 
 const canEditUsers = computed(() => {
-  return currentUser.value?.roles?.some((role) => ['master', 'admin'].includes(role))
-})
+  return currentUser.value?.roles?.some((role) => ["master", "admin"].includes(role));
+});
 
 const canDeleteUsers = computed(() => {
-  return currentUser.value?.roles?.some((role) => ['master', 'admin'].includes(role))
-})
+  return currentUser.value?.roles?.some((role) => ["master", "admin"].includes(role));
+});
 
 const isMaster = computed(() => {
-  return currentUser.value?.roles?.includes('master')
-})
+  return currentUser.value?.roles?.includes("master");
+});
 
 // Check if user can edit/delete specific user
 const canEditUser = (user) => {
-  if (!canEditUsers.value) return false
+  if (!canEditUsers.value) return false;
   // Admin cannot edit master users
-  if (user.roles?.includes('master') && !isMaster.value) return false
-  return true
-}
+  if (user.roles?.includes("master") && !isMaster.value) return false;
+  return true;
+};
 
 const canDeleteUser = (user) => {
-  if (!canDeleteUsers.value) return false
+  if (!canDeleteUsers.value) return false;
   // Admin cannot delete master users
-  if (user.roles?.includes('master') && !isMaster.value) return false
+  if (user.roles?.includes("master") && !isMaster.value) return false;
   // Cannot delete yourself
-  if (user.username === currentUser.value?.username) return false
-  return true
-}
+  if (user.username === currentUser.value?.username) return false;
+  return true;
+};
 
 // Debounced search
-let searchTimeout
+let searchTimeout;
 const debouncedSearch = () => {
-  clearTimeout(searchTimeout)
+  clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
-    loadUsers(1)
-  }, 500)
-}
+    loadUsers(1);
+  }, 500);
+};
 
 // Load users
 async function loadUsers(page = 1) {
-  loading.value = true
-  error.value = null
+  loading.value = true;
+  error.value = null;
 
   try {
     const params = new URLSearchParams({
       page: page.toString(),
-      per_page: filters.perPage.toString()
-    })
+      per_page: filters.perPage.toString(),
+    });
 
     if (filters.status) {
-      params.append('filter[status]', filters.status)
+      params.append("filter[status]", filters.status);
     }
 
     if (filters.search) {
-      params.append('filter[search]', filters.search)
+      params.append("filter[search]", filters.search);
     }
 
     if (filters.role) {
-      params.append('filter[role]', filters.role)
+      params.append("filter[role]", filters.role);
     }
 
     // Add sorting
-    params.append('sort', '-created_at')
+    params.append("sort", "-created_at");
 
-    const response = await sanctumFetch(`/api/users?${params.toString()}`)
+    const response = await sanctumFetch(`/api/users?${params.toString()}`);
 
     if (response.data) {
-      users.value = response.data
-      meta.value = response.meta
+      users.value = response.data;
+      meta.value = response.meta;
     }
   } catch (err) {
-    error.value = err.message || 'Failed to load users'
-    console.error('Error loading users:', err)
+    error.value = err.message || "Failed to load users";
+    console.error("Error loading users:", err);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 // Load roles
 async function loadRoles() {
   try {
-    const response = await sanctumFetch('/api/users/roles')
-    roles.value = response.data
+    const response = await sanctumFetch("/api/users/roles");
+    roles.value = response.data;
   } catch (err) {
-    console.error('Error loading roles:', err)
+    console.error("Error loading roles:", err);
   }
 }
 
 // Refresh users
 function refreshUsers() {
-  loadUsers(meta.value.current_page)
+  loadUsers(meta.value.current_page);
 }
 
 // Navigate to user detail
 function goToUserDetail(user) {
   if (canEditUser(user)) {
-    navigateTo(`/users/${user.username}/edit`)
+    navigateTo(`/users/${user.username}/edit`);
   }
 }
 
 // Confirm delete user
 async function confirmDeleteUser(user) {
   if (!confirm(`Are you sure you want to delete ${user.name}? This action cannot be undone.`)) {
-    return
+    return;
   }
 
   try {
     const response = await sanctumFetch(`/api/users/${user.username}`, {
-      method: 'DELETE'
-    })
+      method: "DELETE",
+    });
 
-    toast.success(response?.message)
+    toast.success(response?.message);
 
     // Reload users after deletion
-    await loadUsers(meta.value.current_page)
+    await loadUsers(meta.value.current_page);
 
     // Show success message (you might want to use a toast notification)
-    console.log('User deleted successfully')
+    console.log("User deleted successfully");
   } catch (err) {
-    error.value = err.message || 'Failed to delete user'
-    console.error('Error deleting user:', err)
+    error.value = err.message || "Failed to delete user";
+    console.error("Error deleting user:", err);
   }
 }
 
 // Load data on mount
 onMounted(async () => {
-  await Promise.all([loadUsers(), loadRoles()])
-})
+  await Promise.all([loadUsers(), loadRoles()]);
+});
 </script>

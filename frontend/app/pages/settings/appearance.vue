@@ -30,7 +30,7 @@
               :class="{
                 'ring-primary ring-offset-background ring-2 ring-offset-2':
                   selectedTheme === 'light',
-                'hover:border-muted-foreground': selectedTheme !== 'light'
+                'hover:border-muted-foreground': selectedTheme !== 'light',
               }"
             >
               <ColorModeThumbnailLight class="h-full w-full object-cover" />
@@ -39,7 +39,7 @@
               class="mt-2 text-center text-sm font-medium"
               :class="{
                 'text-primary': selectedTheme === 'light',
-                'text-muted-foreground/80': selectedTheme !== 'light'
+                'text-muted-foreground/80': selectedTheme !== 'light',
               }"
             >
               Light
@@ -60,7 +60,7 @@
               :class="{
                 'ring-primary ring-offset-background ring-2 ring-offset-2':
                   selectedTheme === 'dark',
-                'hover:border-muted-foreground': selectedTheme !== 'dark'
+                'hover:border-muted-foreground': selectedTheme !== 'dark',
               }"
             >
               <ColorModeThumbnailDark class="h-full w-full object-cover" />
@@ -69,7 +69,7 @@
               class="mt-2 text-center text-sm font-medium"
               :class="{
                 'text-primary': selectedTheme === 'dark',
-                'text-muted-foreground/80': selectedTheme !== 'dark'
+                'text-muted-foreground/80': selectedTheme !== 'dark',
               }"
             >
               Dark
@@ -90,7 +90,7 @@
               :class="{
                 'ring-primary ring-offset-background ring-2 ring-offset-2':
                   selectedTheme === 'system',
-                'hover:border-muted-foreground': selectedTheme !== 'system'
+                'hover:border-muted-foreground': selectedTheme !== 'system',
               }"
             >
               <ColorModeThumbnailSystem class="h-full w-full object-cover" />
@@ -99,7 +99,7 @@
               class="mt-2 text-center text-sm font-medium"
               :class="{
                 'text-primary': selectedTheme === 'system',
-                'text-muted-foreground/80': selectedTheme !== 'system'
+                'text-muted-foreground/80': selectedTheme !== 'system',
               }"
             >
               System
@@ -129,99 +129,99 @@
 import {
   ColorModeThumbnailDark,
   ColorModeThumbnailLight,
-  ColorModeThumbnailSystem
-} from '#components'
-import { toast } from 'vue-sonner'
+  ColorModeThumbnailSystem,
+} from "#components";
+import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ['sanctum:auth'],
-  layout: 'app'
-})
+  middleware: ["sanctum:auth"],
+  layout: "app",
+});
 
-usePageMeta('settingsAppearance')
+usePageMeta("settingsAppearance");
 
-const sanctumFetch = useSanctumClient()
-const { user } = useSanctumAuth()
-const colorMode = useColorMode()
-const nuxtApp = useNuxtApp()
+const sanctumFetch = useSanctumClient();
+const { user } = useSanctumAuth();
+const colorMode = useColorMode();
+const nuxtApp = useNuxtApp();
 
 // Reactive state
-const selectedTheme = ref('system')
-const isUpdating = ref(false)
-const lastUpdated = ref(false)
+const selectedTheme = ref("system");
+const isUpdating = ref(false);
+const lastUpdated = ref(false);
 
 // Load current theme preference from user settings
 const loadThemePreference = () => {
   if (user.value?.user_settings?.theme) {
-    selectedTheme.value = user.value.user_settings.theme
+    selectedTheme.value = user.value.user_settings.theme;
   } else {
     // If no user setting, use current color mode preference
-    selectedTheme.value = colorMode.preference || 'system'
+    selectedTheme.value = colorMode.preference || "system";
   }
-}
+};
 
 // Apply theme to color mode and update meta
 const applyTheme = (theme) => {
-  colorMode.preference = theme
+  colorMode.preference = theme;
   // Update meta theme color to match new theme
   nextTick(() => {
-    nuxtApp.$updateMetaThemeColor?.()
-  })
-}
+    nuxtApp.$updateMetaThemeColor?.();
+  });
+};
 
 // Update theme preference
 const updateTheme = async () => {
   try {
-    isUpdating.value = true
-    lastUpdated.value = false
+    isUpdating.value = true;
+    lastUpdated.value = false;
 
     // Get current user settings or initialize empty object
-    const currentSettings = user.value?.user_settings || {}
+    const currentSettings = user.value?.user_settings || {};
 
     // Update theme in user settings
     const updatedSettings = {
       ...currentSettings,
-      theme: selectedTheme.value
-    }
+      theme: selectedTheme.value,
+    };
 
     // Save to backend
-    const response = await sanctumFetch('/api/user/profile/settings', {
-      method: 'PATCH',
+    const response = await sanctumFetch("/api/user/settings", {
+      method: "PATCH",
       body: {
-        settings: updatedSettings
-      }
-    })
+        settings: updatedSettings,
+      },
+    });
 
     // Apply theme immediately
-    applyTheme(selectedTheme.value)
+    applyTheme(selectedTheme.value);
 
     // Update local user data if available
     if (user.value) {
-      user.value.user_settings = updatedSettings
+      user.value.user_settings = updatedSettings;
     }
 
     // Show success feedback
-    lastUpdated.value = true
+    lastUpdated.value = true;
   } catch (error) {
-    console.error('Failed to update theme:', error)
-    toast.error('Failed to save theme preference. Please try again.')
+    console.error("Failed to update theme:", error);
+    toast.error("Failed to save theme preference. Please try again.");
   } finally {
-    isUpdating.value = false
+    isUpdating.value = false;
   }
-}
+};
 
 // Load theme preference when component mounts
 onMounted(() => {
-  loadThemePreference()
-  applyTheme(selectedTheme.value)
-})
+  loadThemePreference();
+  applyTheme(selectedTheme.value);
+});
 
 // Watch for user changes and reload theme preference
 watch(
   user,
   () => {
-    loadThemePreference()
+    loadThemePreference();
   },
   { deep: true }
-)
+);
 </script>

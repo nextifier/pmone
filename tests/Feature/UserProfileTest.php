@@ -18,7 +18,7 @@ test('can update user profile', function () {
     ]);
 
     $response = $this->actingAs($user, 'sanctum')
-        ->putJson('/api/user/profile/update', [
+        ->putJson('/api/user/profile', [
             'name' => 'New Name',
             'username' => 'newusername',
             'email' => 'new@example.com',
@@ -63,7 +63,7 @@ test('validates required fields when updating profile', function () {
     ]);
 
     $response = $this->actingAs($user, 'sanctum')
-        ->putJson('/api/user/profile/update', [
+        ->putJson('/api/user/profile', [
             'name' => '',
             'username' => '',
             'email' => 'invalid-email',
@@ -106,7 +106,7 @@ test('allows user to keep their own username and email when updating', function 
     ]);
 
     $response = $this->actingAs($user, 'sanctum')
-        ->putJson('/api/user/profile/update', [
+        ->putJson('/api/user/profile', [
             'name' => 'Updated Name',
             'username' => 'testuser', // Same username
             'email' => 'test@example.com', // Same email

@@ -208,7 +208,7 @@ const handleSubmit = async () => {
     errors.value = null;
     isSubmitting.value = true;
 
-    const response = await sanctumFetch("/api/user/profile/update", {
+    const response = await sanctumFetch("/api/user/profile", {
       method: "PUT",
       body: form,
     });
@@ -241,4 +241,12 @@ const handleSubmit = async () => {
     isSubmitting.value = false;
   }
 };
+
+defineShortcuts({
+  meta_s: {
+    handler: () => {
+      handleSubmit();
+    },
+  },
+});
 </script>

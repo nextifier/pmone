@@ -74,7 +74,7 @@ class UserController extends Controller
     {
         $this->authorize('users.view');
 
-        $user->load(['roles', 'permissions', 'media']);
+        $user->load(['roles', 'media']);
 
         return response()->json([
             'data' => new UserResource($user),
@@ -95,7 +95,7 @@ class UserController extends Controller
             $roles = $request->input('roles', ['user']);
             $user->assignRole($roles);
 
-            $user->load(['roles', 'permissions', 'media']);
+            $user->load(['roles', 'media']);
 
             return response()->json([
                 'message' => 'User created successfully',
@@ -114,14 +114,11 @@ class UserController extends Controller
         }
     }
 
-    public function me(Request $request): JsonResponse
+    public function profile(Request $request): JsonResponse
     {
-        $user = $request->user();
-        $user->load(['roles', 'permissions', 'media']);
+        $user = $request->user()->load(['roles', 'permissions', 'oauthProviders', 'media']);
 
-        return response()->json([
-            'data' => new UserResource($user),
-        ]);
+        return response()->json(new UserResource($user));
     }
 
     public function update(UpdateUserRequest $request, User $user): JsonResponse
@@ -148,7 +145,7 @@ class UserController extends Controller
                 $user->syncRoles($request->input('roles'));
             }
 
-            $user->load(['roles', 'permissions', 'media']);
+            $user->load(['roles', 'media']);
 
             return response()->json([
                 'message' => 'User updated successfully',
@@ -329,7 +326,7 @@ class UserController extends Controller
         try {
             $user->update($validator->validated());
 
-            $user->load(['roles', 'permissions', 'media']);
+            $user->load(['roles', 'media']);
 
             return response()->json([
                 'message' => 'Profile updated successfully',

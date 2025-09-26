@@ -29,10 +29,10 @@ class CollectionBasedPathGenerator implements PathGenerator
             return "temp/{$media->collection_name}";
         }
 
-        // Structure: {collection}/{model_type}/{model_id}
+        // Structure: {model_type}/{collection}/{model_id}
         $modelType = $this->getCleanModelType($media->model_type);
 
-        return "{$media->collection_name}/{$modelType}/{$media->model_id}";
+        return "{$modelType}/{$media->collection_name}/{$media->model_id}";
     }
 
     protected function getCleanModelType(string $modelType): string

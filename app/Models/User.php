@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasMediaManager;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -13,100 +14,14 @@ use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Traits\HasRoles;
 
-/**
- * @property int $id
- * @property string|null $ulid
- * @property string $name
- * @property string $username
- * @property string $email
- * @property \Illuminate\Support\Carbon|null $email_verified_at
- * @property string|null $password
- * @property string|null $phone
- * @property \Illuminate\Support\Carbon|null $birth_date
- * @property string|null $gender
- * @property string|null $bio
- * @property array<array-key, mixed>|null $links
- * @property array<array-key, mixed>|null $user_settings
- * @property array<array-key, mixed>|null $more_details
- * @property string $status
- * @property string $visibility
- * @property \Illuminate\Support\Carbon|null $last_seen
- * @property string|null $remember_token
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property string|null $two_factor_secret
- * @property string|null $two_factor_recovery_codes
- * @property \Illuminate\Support\Carbon|null $two_factor_confirmed_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
- * @property-read int|null $activities_count
- * @property-read string|null $cover_image_large_url
- * @property-read string|null $cover_image_medium_url
- * @property-read string|null $cover_image_thumb_url
- * @property-read string|null $cover_image_url
- * @property-read string|null $profile_image_large_url
- * @property-read string|null $profile_image_medium_url
- * @property-read string|null $profile_image_thumb_url
- * @property-read string|null $profile_image_url
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MagicLink> $magicLinks
- * @property-read int|null $magic_links_count
- * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, Media> $media
- * @property-read int|null $media_count
- * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
- * @property-read int|null $notifications_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\OAuthProvider> $oauthProviders
- * @property-read int|null $oauth_providers_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Permission\Models\Permission> $permissions
- * @property-read int|null $permissions_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Permission\Models\Role> $roles
- * @property-read int|null $roles_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Sanctum\PersonalAccessToken> $tokens
- * @property-read int|null $tokens_count
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User active()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User byStatus(string $status)
- * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User permission($permissions, $without = false)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User public()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User role($roles, $guard = null, $without = false)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User verified()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereBio($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereBirthDate($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmail($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmailVerifiedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereGender($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLastSeen($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLinks($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereMoreDetails($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePassword($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePhone($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRememberToken($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereStatus($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTwoFactorConfirmedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTwoFactorRecoveryCodes($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTwoFactorSecret($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUlid($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUserSettings($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUsername($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereVisibility($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutPermission($permissions)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutRole($roles, $guard = null)
- * @mixin \Eloquent
- */
 class User extends Authenticatable implements HasMedia, MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens;
-
     use HasFactory;
+    use HasMediaManager;
     use HasRoles;
     use InteractsWithMedia;
     use LogsActivity;
@@ -230,6 +145,28 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         });
     }
 
+    /**
+     * Auto-verify user if they have privileged roles
+     */
+    public function autoVerifyIfPrivileged(): void
+    {
+        if ($this->hasVerifiedEmail()) {
+            return;
+        }
+
+        if ($this->hasRole(['master', 'admin'])) {
+            $this->markEmailAsVerified();
+
+            logger()->info('User auto-verified due to privileged role', [
+                'user_id' => $this->id,
+                'username' => $this->username,
+                'email' => $this->email,
+                'roles' => $this->getRoleNames()->toArray(),
+            ]);
+        }
+    }
+
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -249,93 +186,112 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('profile_image')
-            ->singleFile()
-            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
-
-        $this->addMediaCollection('cover_image')
-            ->singleFile()
-            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+        $this->registerDynamicMediaCollections();
     }
 
-    public function registerMediaConversions(?Media $media = null): void
+    public function registerMediaConversions($media = null): void
     {
-        $this->addMediaConversion('profile_thumb')
-            ->width(150)
-            ->height(150)
-            ->quality(80)
-            ->performOnCollections('profile_image');
-
-        $this->addMediaConversion('profile_medium')
-            ->width(300)
-            ->height(300)
-            ->quality(85)
-            ->performOnCollections('profile_image');
-
-        $this->addMediaConversion('profile_large')
-            ->width(600)
-            ->height(600)
-            ->quality(90)
-            ->performOnCollections('profile_image');
-
-        // Cover Image Conversions
-        $this->addMediaConversion('cover_thumb')
-            ->width(400)
+        // Profile Image Conversions (square)
+        $this->addMediaConversion('sm')
+            ->width(200)
             ->height(200)
-            ->quality(80)
-            ->performOnCollections('cover_image');
+            ->quality(85)
+            ->performOnCollections('profile_image');
 
-        $this->addMediaConversion('cover_medium')
-            ->width(800)
+        $this->addMediaConversion('md')
+            ->width(400)
             ->height(400)
+            ->quality(90)
+            ->performOnCollections('profile_image');
+
+        $this->addMediaConversion('lg')
+            ->width(800)
+            ->height(800)
+            ->quality(90)
+            ->performOnCollections('profile_image');
+
+        $this->addMediaConversion('xl')
+            ->width(1080)
+            ->height(1080)
+            ->quality(95)
+            ->performOnCollections('profile_image');
+
+        // Cover Image Conversions (maintain aspect ratio)
+        $this->addMediaConversion('sm')
+            ->width(400)
             ->quality(85)
             ->performOnCollections('cover_image');
 
-        $this->addMediaConversion('cover_large')
-            ->width(1200)
-            ->height(600)
+        $this->addMediaConversion('md')
+            ->width(800)
             ->quality(90)
+            ->performOnCollections('cover_image');
+
+        $this->addMediaConversion('lg')
+            ->width(1200)
+            ->quality(90)
+            ->performOnCollections('cover_image');
+
+        $this->addMediaConversion('xl')
+            ->width(1600)
+            ->quality(95)
             ->performOnCollections('cover_image');
     }
 
-    public function getProfileImageUrlAttribute(): ?string
+    public function getMediaCollections(): array
     {
-        return $this->getFirstMediaUrl('profile_image');
+        return [
+            'profile_image' => [
+                'single_file' => true,
+                'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
+            ],
+            'cover_image' => [
+                'single_file' => true,
+                'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
+            ],
+        ];
     }
 
-    public function getProfileImageThumbUrlAttribute(): ?string
+    protected function getMediaConversionsConfig(): array
     {
-        return $this->getFirstMediaUrl('profile_image', 'profile_thumb');
-    }
-
-    public function getProfileImageMediumUrlAttribute(): ?string
-    {
-        return $this->getFirstMediaUrl('profile_image', 'profile_medium');
-    }
-
-    public function getProfileImageLargeUrlAttribute(): ?string
-    {
-        return $this->getFirstMediaUrl('profile_image', 'profile_large');
-    }
-
-    public function getCoverImageUrlAttribute(): ?string
-    {
-        return $this->getFirstMediaUrl('cover_image');
-    }
-
-    public function getCoverImageThumbUrlAttribute(): ?string
-    {
-        return $this->getFirstMediaUrl('cover_image', 'cover_thumb');
-    }
-
-    public function getCoverImageMediumUrlAttribute(): ?string
-    {
-        return $this->getFirstMediaUrl('cover_image', 'cover_medium');
-    }
-
-    public function getCoverImageLargeUrlAttribute(): ?string
-    {
-        return $this->getFirstMediaUrl('cover_image', 'cover_large');
+        return [
+            'profile_sm' => [
+                'width' => 150,
+                'height' => 150,
+                'quality' => 80,
+                'collections' => ['profile_image'],
+            ],
+            'profile_md' => [
+                'width' => 300,
+                'height' => 300,
+                'quality' => 85,
+                'collections' => ['profile_image'],
+            ],
+            'profile_lg' => [
+                'width' => 600,
+                'height' => 600,
+                'quality' => 90,
+                'collections' => ['profile_image'],
+            ],
+            'cover_sm' => [
+                'width' => 400,
+                'height' => 200,
+                'quality' => 80,
+                'collections' => ['cover_image'],
+            ],
+            'cover_md' => [
+                'width' => 800,
+                'height' => 400,
+                'quality' => 85,
+                'collections' => ['cover_image'],
+            ],
+            'cover_lg' => [
+                'width' => 1200,
+                'height' => 600,
+                'quality' => 90,
+                'collections' => ['cover_image'],
+            ],
+        ];
     }
 
     public function scopeActive($query)
@@ -370,7 +326,7 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         $this->update(['last_seen' => now()]);
     }
 
-    public function markAsLoggedIn(?string $ipAddress = null): void
+    public function markAsLoggedIn(): void
     {
         $this->update([
             'last_seen' => now(),

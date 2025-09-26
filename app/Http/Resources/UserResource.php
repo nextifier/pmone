@@ -36,26 +36,16 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at->toISOString(),
             'updated_at' => $this->updated_at->toISOString(),
 
-            // Profile Image - only generate URLs if media exists
+            // Profile Image
             'profile_image' => $this->when(
                 $this->hasMedia('profile_image'),
-                [
-                    'url' => $this->profile_image_url,
-                    'thumb_url' => $this->profile_image_thumb_url,
-                    'medium_url' => $this->profile_image_medium_url,
-                    'large_url' => $this->profile_image_large_url,
-                ]
+                $this->getMediaUrls('profile_image')
             ),
 
-            // Cover Image - only generate URLs if media exists
+            // Cover Image
             'cover_image' => $this->when(
                 $this->hasMedia('cover_image'),
-                [
-                    'url' => $this->cover_image_url,
-                    'thumb_url' => $this->cover_image_thumb_url,
-                    'medium_url' => $this->cover_image_medium_url,
-                    'large_url' => $this->cover_image_large_url,
-                ]
+                $this->getMediaUrls('cover_image')
             ),
 
             // Roles and permissions - optimized to avoid duplicate queries

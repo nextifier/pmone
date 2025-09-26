@@ -1,7 +1,7 @@
 <template>
   <section id="hero">
     <div class="container">
-      <div class="min-h-screen-offset flex flex-col items-center justify-center text-center">
+      <div class="flex flex-col items-center justify-center pt-24 text-center">
         <h1
           class="text-primary text-5xl !leading-[1.2] font-semibold tracking-tighter text-balance sm:text-6xl"
         >
@@ -19,6 +19,8 @@
             >Get started</nuxt-link
           >
         </div>
+
+        <LogoWithGuidelines class="mt-10 w-full" />
       </div>
     </div>
   </section>

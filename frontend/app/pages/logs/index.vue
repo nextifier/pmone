@@ -144,7 +144,7 @@
 
               <!-- Causer -->
               <td class="px-4 py-3">
-                <div class="text-sm">{{ log.causer_name || 'System' }}</div>
+                <div class="text-sm">{{ log.causer_name || "System" }}</div>
                 <div v-if="log.causer_id" class="text-muted-foreground text-xs">
                   ID: {{ log.causer_id }}
                 </div>
@@ -167,7 +167,7 @@
                   {{ log.time_ago }}
                 </div>
                 <div class="text-muted-foreground text-xs">
-                  {{ $dayjs(log.formatted_time).format('MMM D, HH:mm') }}
+                  {{ $dayjs(log.formatted_time).format("MMM D, HH:mm") }}
                 </div>
               </td>
 
@@ -203,8 +203,8 @@
       <p class="text-muted-foreground">
         {{
           filters.logName || filters.event || filters.search
-            ? 'Try adjusting your filters'
-            : 'No log entries available'
+            ? "Try adjusting your filters"
+            : "No log entries available"
         }}
       </p>
     </div>
@@ -241,138 +241,142 @@
 
 <script setup>
 definePageMeta({
-  middleware: ['sanctum:auth', 'admin-master'],
-  layout: 'app'
-})
+  middleware: ["sanctum:auth", "admin-master"],
+  layout: "app",
+});
 
-usePageMeta('logs')
+defineOptions({
+  name: "logs",
+});
 
-const { user } = useSanctumAuth()
-const sanctumFetch = useSanctumClient()
-const { $dayjs } = useNuxtApp()
+usePageMeta("logs");
+
+const { user } = useSanctumAuth();
+const sanctumFetch = useSanctumClient();
+const { $dayjs } = useNuxtApp();
 
 // State
-const logs = ref([])
+const logs = ref([]);
 const meta = ref({
   current_page: 1,
   last_page: 1,
   per_page: 50,
-  total: 0
-})
-const logNames = ref([])
-const events = ref([])
-const loading = ref(false)
-const clearing = ref(false)
-const error = ref(null)
+  total: 0,
+});
+const logNames = ref([]);
+const events = ref([]);
+const loading = ref(false);
+const clearing = ref(false);
+const error = ref(null);
 
 // Filters
 const filters = reactive({
-  logName: '',
-  event: '',
-  search: '',
-  perPage: 50
-})
+  logName: "",
+  event: "",
+  search: "",
+  perPage: 50,
+});
 
 // Debounced search
-let searchTimeout
+let searchTimeout;
 const debouncedSearch = () => {
-  clearTimeout(searchTimeout)
+  clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
-    loadLogs(1)
-  }, 500)
-}
+    loadLogs(1);
+  }, 500);
+};
 
 // Load logs
 async function loadLogs(page = 1) {
-  loading.value = true
-  error.value = null
+  loading.value = true;
+  error.value = null;
 
   try {
     const params = new URLSearchParams({
       page: page.toString(),
-      per_page: filters.perPage.toString()
-    })
+      per_page: filters.perPage.toString(),
+    });
 
     if (filters.logName) {
-      params.append('log_name', filters.logName)
+      params.append("log_name", filters.logName);
     }
 
     if (filters.event) {
-      params.append('event', filters.event)
+      params.append("event", filters.event);
     }
 
     if (filters.search) {
-      params.append('search', filters.search)
+      params.append("search", filters.search);
     }
 
-    const response = await sanctumFetch(`/api/logs?${params.toString()}`)
+    const response = await sanctumFetch(`/api/logs?${params.toString()}`);
 
     if (response.data) {
-      logs.value = response.data
-      meta.value = response.meta
+      logs.value = response.data;
+      meta.value = response.meta;
     }
   } catch (err) {
-    error.value = err.message || 'Failed to load logs'
-    console.error('Error loading logs:', err)
+    error.value = err.message || "Failed to load logs";
+    console.error("Error loading logs:", err);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 // Load log names
 async function loadLogNames() {
   try {
-    const response = await sanctumFetch('/api/logs/log-names')
-    logNames.value = response.data
+    const response = await sanctumFetch("/api/logs/log-names");
+    logNames.value = response.data;
   } catch (err) {
-    console.error('Error loading log names:', err)
+    console.error("Error loading log names:", err);
   }
 }
 
 // Load events
 async function loadEvents() {
   try {
-    const response = await sanctumFetch('/api/logs/events')
-    events.value = response.data
+    const response = await sanctumFetch("/api/logs/events");
+    events.value = response.data;
   } catch (err) {
-    console.error('Error loading events:', err)
+    console.error("Error loading events:", err);
   }
 }
 
 // Refresh logs
 function refreshLogs() {
-  loadLogs(meta.value.current_page)
+  loadLogs(meta.value.current_page);
 }
 
 // Clear logs (master only)
 async function clearLogs() {
-  if (!confirm('Are you sure you want to clear all logs? This action cannot be undone.')) {
-    return
+  if (!confirm("Are you sure you want to clear all logs? This action cannot be undone.")) {
+    return;
   }
 
-  clearing.value = true
-  error.value = null
+  clearing.value = true;
+  error.value = null;
 
   try {
-    await sanctumFetch('/api/logs/clear', {
-      method: 'DELETE'
-    })
+    await sanctumFetch("/api/logs/clear", {
+      method: "DELETE",
+    });
 
     // Reload logs after clearing
-    await loadLogs(1)
+    await loadLogs(1);
 
     // Show success message (you might want to use a toast notification)
-    console.log('Logs cleared successfully')
+    console.log("Logs cleared successfully");
   } catch (err) {
-    error.value = err.message || 'Failed to clear logs'
-    console.error('Error clearing logs:', err)
+    error.value = err.message || "Failed to clear logs";
+    console.error("Error clearing logs:", err);
   } finally {
-    clearing.value = false
+    clearing.value = false;
   }
 }
 
 // Load data on mount
 onMounted(async () => {
-  await Promise.all([loadLogs(), loadLogNames(), loadEvents()])
-})
+  await Promise.all([loadLogs(), loadLogNames(), loadEvents()]);
+});
 </script>

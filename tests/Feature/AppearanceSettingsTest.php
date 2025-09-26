@@ -12,7 +12,7 @@ test('can update theme settings', function () {
     ]);
 
     $response = $this->actingAs($user, 'sanctum')
-        ->patchJson('/api/user/profile/settings', [
+        ->patchJson('/api/user/settings', [
             'settings' => [
                 'theme' => 'dark',
             ],
@@ -34,7 +34,7 @@ test('can set system theme preference', function () {
     ]);
 
     $response = $this->actingAs($user, 'sanctum')
-        ->patchJson('/api/user/profile/settings', [
+        ->patchJson('/api/user/settings', [
             'settings' => [
                 'theme' => 'system',
                 'language' => 'en',

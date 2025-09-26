@@ -13,19 +13,11 @@
       </div>
       <div
         class="relative !leading-none"
-        :class="[
-          mode.value === colorMode.value
-            ? 'text-primary'
-            : 'text-muted-foreground',
-        ]"
+        :class="[mode.value === colorMode.value ? 'text-primary' : 'text-muted-foreground']"
       >
-        <span class="text-xs tracking-tight transition sm:text-sm">{{
-          mode.label
-        }}</span>
+        <span class="text-xs tracking-tight transition sm:text-sm">{{ mode.label }}</span>
 
-        <div
-          class="absolute top-1/2 right-0 translate-x-full -translate-y-1/2 pt-0.5 pl-0.75"
-        >
+        <div class="absolute top-1/2 right-0 translate-x-full -translate-y-1/2 pt-0.5 pl-0.75">
           <Transition
             enter-from-class="opacity-0 scale-90 translate-y-4"
             enter-active-class="transition-all duration-300 ease-out"
@@ -47,7 +39,7 @@
 </template>
 
 <script setup>
-import { ColorModeThumbnailLight, ColorModeThumbnailDark } from "#components";
+import { ColorModeThumbnailDark, ColorModeThumbnailLight } from "#components";
 
 const colorMode = useColorMode();
 const nuxtApp = useNuxtApp();
@@ -77,14 +69,14 @@ const saveThemeToUserSettings = async (theme) => {
     const currentSettings = user.value.user_settings || {};
     const updatedSettings = {
       ...currentSettings,
-      theme: theme
+      theme: theme,
     };
 
-    await sanctumFetch('/api/user/profile/settings', {
-      method: 'PATCH',
+    await sanctumFetch("/api/user/settings", {
+      method: "PATCH",
       body: {
-        settings: updatedSettings
-      }
+        settings: updatedSettings,
+      },
     });
 
     // Update local user data
@@ -92,7 +84,7 @@ const saveThemeToUserSettings = async (theme) => {
       user.value.user_settings = updatedSettings;
     }
   } catch (error) {
-    console.error('Failed to save theme to user settings:', error);
+    console.error("Failed to save theme to user settings:", error);
     // Fail silently - localStorage will still work
   }
 };
@@ -121,9 +113,13 @@ onMounted(() => {
 });
 
 // Watch for user changes and reload theme preference
-watch(user, () => {
-  if (user.value) {
-    loadThemePreference();
-  }
-}, { deep: true });
+watch(
+  user,
+  () => {
+    if (user.value) {
+      loadThemePreference();
+    }
+  },
+  { deep: true }
+);
 </script>
