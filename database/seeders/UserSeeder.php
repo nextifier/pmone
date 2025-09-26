@@ -97,17 +97,7 @@ class UserSeeder extends Seeder
 
     private function createUser(string $role, bool $isMainMaster = false): User
     {
-        // Try to use Faker if available, otherwise use fallback
-        try {
-            $faker = \Faker\Factory::create('id_ID');
-        } catch (\Exception) {
-            // Use Laravel's built-in fake() helper as fallback
-            if (function_exists('fake')) {
-                $faker = fake('id_ID');
-            } else {
-                throw new \Exception("Faker is not available. Please install fakerphp/faker or run: composer install --dev");
-            }
-        }
+        $faker = fake('id_ID');
 
         // Special data for main master user
         if ($isMainMaster) {
@@ -222,7 +212,7 @@ class UserSeeder extends Seeder
         return $username;
     }
 
-    private function generateUserLinks(\Faker\Generator $faker, string $name, string $username): array
+    private function generateUserLinks($faker, string $name, string $username): array
     {
         $links = [];
         $linkOptions = [
@@ -243,7 +233,7 @@ class UserSeeder extends Seeder
         return $links;
     }
 
-    private function attachRandomProfileImage(User $user, \Faker\Generator $faker): void
+    private function attachRandomProfileImage(User $user, $faker): void
     {
         if ($faker->boolean(self::CHANCE_USER_HAVING_AVATAR)) {
             $avatarNumber = $faker->numberBetween(1, self::AVATAR_COUNT);
@@ -258,7 +248,7 @@ class UserSeeder extends Seeder
         }
     }
 
-    private function shouldAutoVerify(string $role, \Faker\Generator $faker): bool
+    private function shouldAutoVerify(string $role, $faker): bool
     {
         // Master and Admin users are always verified
         if (in_array($role, ['master', 'admin'])) {
@@ -274,7 +264,7 @@ class UserSeeder extends Seeder
         return $faker->boolean(85);
     }
 
-    private function getRoleSpecificData(string $role, \Faker\Generator $faker): array
+    private function getRoleSpecificData(string $role, $faker): array
     {
         switch ($role) {
             case 'master':
