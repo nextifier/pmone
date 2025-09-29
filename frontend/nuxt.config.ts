@@ -1,4 +1,7 @@
 import tailwindcss from "@tailwindcss/vite";
+import process from "node:process";
+
+const sw = process.env.SW === "true";
 
 export default defineNuxtConfig({
   devtools: {
@@ -50,6 +53,11 @@ export default defineNuxtConfig({
     "@formkit/auto-animate/nuxt",
     "nuxt-auth-sanctum",
     "@vite-pwa/nuxt",
+    (_, nuxt) => {
+      nuxt.hook("pwa:beforeBuildServiceWorker", (options) => {
+        console.log("pwa:beforeBuildServiceWorker: ", options.base);
+      });
+    },
   ],
 
   sanctum: {
@@ -153,6 +161,9 @@ export default defineNuxtConfig({
   },
 
   pwa: {
+    strategies: sw ? "injectManifest" : "generateSW",
+    srcDir: sw ? "service-worker" : undefined,
+    filename: sw ? "sw.ts" : undefined,
     registerType: "autoUpdate",
     registerWebManifestInRouteRules: true,
     manifest: {
@@ -200,26 +211,21 @@ export default defineNuxtConfig({
         },
       ],
     },
-    // Disable all caching - PWA for install capability only
-    disable: false,
-    strategies: "generateSW",
     workbox: {
-      runtimeCaching: [], // No runtime caching
-      skipWaiting: true,
-      clientsClaim: true,
-      cleanupOutdatedCaches: true,
-      mode: "production",
-      navigateFallback: null, // No page caching
-      // Disable all default patterns
-      additionalManifestEntries: undefined,
-      dontCacheBustURLsMatching: undefined,
-      manifestTransforms: [],
+      globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
+    },
+    injectManifest: {
+      globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
     },
     client: {
       installPrompt: true,
     },
     devOptions: {
-      enabled: false,
+      enabled: true,
+      suppressWarnings: true,
+      navigateFallback: "/",
+      navigateFallbackAllowlist: [/^\/$/],
+      type: "module",
     },
   },
 
