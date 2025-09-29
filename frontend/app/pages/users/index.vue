@@ -1,275 +1,405 @@
 <template>
-  <div class="mx-auto max-w-7xl space-y-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-x-2.5">
-        <Icon name="hugeicons:user-group" class="size-5 sm:size-6" />
-        <h1 class="page-title">User Management</h1>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <button
-          @click="refreshUsers"
-          :disabled="loading"
-          class="border-border hover:bg-muted flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-sm tracking-tight transition active:scale-98 disabled:opacity-50"
-        >
-          <Icon name="hugeicons:reload" class="size-4" :class="{ 'animate-spin': loading }" />
-          Refresh
-        </button>
-
-        <NuxtLink
-          v-if="canCreateUsers"
-          to="/users/create"
-          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition active:scale-98"
-        >
-          <Icon name="hugeicons:user-add-01" class="size-4" />
-          Create User
-        </NuxtLink>
-      </div>
+  <div class="mx-auto max-w-3xl space-y-6">
+    <div class="flex items-center gap-x-2.5">
+      <Icon name="hugeicons:user-group" class="size-5 sm:size-6" />
+      <h1 class="page-title">User Management</h1>
     </div>
 
-    <!-- Filters -->
-    <div class="mt-4 flex flex-wrap items-center gap-4">
-      <div class="flex items-center gap-2">
-        <label class="text-sm font-medium">Status:</label>
-        <select
-          v-model="filters.status"
-          @change="loadUsers(1)"
-          class="bg-background rounded border px-2 py-1 text-sm"
-        >
-          <option value="">All</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-          <option value="suspended">Suspended</option>
-        </select>
+    <div v-if="error" class="flex flex-col items-start gap-y-3 rounded-lg">
+      <div class="text-destructive flex items-center gap-x-2">
+        <Icon name="hugeicons:alert-circle" class="size-5" />
+        <span class="font-medium tracking-tight">Error loading users</span>
       </div>
-
-      <div class="flex items-center gap-2">
-        <label class="text-sm font-medium">Role:</label>
-        <select
-          v-model="filters.role"
-          @change="loadUsers(1)"
-          class="bg-background rounded border px-2 py-1 text-sm"
-        >
-          <option value="">All</option>
-          <option v-for="role in roles" :key="role.id" :value="role.name">
-            {{ role.name }}
-          </option>
-        </select>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <label class="text-sm font-medium">Search:</label>
-        <input
-          v-model="filters.search"
-          @input="debouncedSearch"
-          placeholder="Search by name, email, or username..."
-          class="bg-background w-64 rounded border px-2 py-1 text-sm"
-        />
-      </div>
-
-      <div class="flex items-center gap-2">
-        <label class="text-sm font-medium">Per page:</label>
-        <select
-          v-model="filters.perPage"
-          @change="loadUsers(1)"
-          class="bg-background rounded border px-2 py-1 text-sm"
-        >
-          <option value="15">15</option>
-          <option value="25">25</option>
-          <option value="50">50</option>
-          <option value="100">100</option>
-        </select>
-      </div>
+      <p class="text-sm tracking-tight">
+        {{ error?.message || "An error occurred while fetching users." }}
+      </p>
+      <button
+        class="border-border hover:bg-primary hover:text-primary-foreground flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm tracking-tight transition active:scale-98"
+        @click="refresh"
+      >
+        <Icon name="lucide:refresh-cw" class="size-4 shrink-0" />
+        <span>Try again</span>
+      </button>
     </div>
 
-    <!-- Error message -->
-    <div
-      v-if="error"
-      class="border-destructive bg-destructive/10 text-destructive rounded-lg border p-4"
-    >
-      {{ error }}
-    </div>
+    <div v-else class="grid gap-y-4">
+      <div class="flex flex-col gap-3">
+        <div class="flex gap-1 sm:gap-2.5">
+          <div class="relative grow">
+            <input
+              ref="searchInputEl"
+              type="text"
+              class="input-base peer h-10 px-9 py-2 text-sm tracking-tight"
+              :class="Boolean(table.getColumn('name')?.getFilterValue()) && 'pe-9'"
+              :value="table.getColumn('name')?.getFilterValue() ?? ''"
+              @input="(event) => table.getColumn('name')?.setFilterValue(event.target.value)"
+              placeholder="Search name, email, or username"
+            />
 
-    <!-- Loading skeleton -->
-    <div v-if="loading && users.length === 0" class="space-y-3">
-      <div v-for="i in 5" :key="i" class="animate-pulse rounded-lg border p-4">
-        <div class="bg-muted mb-2 h-4 w-1/4 rounded"></div>
-        <div class="bg-muted h-3 w-3/4 rounded"></div>
-      </div>
-    </div>
+            <Icon
+              name="lucide:search"
+              class="text-muted-foreground/80 absolute top-1/2 left-3 size-4 -translate-y-1/2 peer-disabled:opacity-50"
+            />
 
-    <!-- Users table -->
-    <div v-else-if="users.length > 0" class="overflow-hidden rounded-lg border">
-      <div class="overflow-x-auto">
-        <table class="w-full table-auto">
-          <thead class="bg-muted/50 border-b">
-            <tr>
-              <th
-                class="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase"
-              >
-                User
-              </th>
-              <th
-                class="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase"
-              >
-                Role
-              </th>
-              <th
-                class="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase"
-              >
-                Status
-              </th>
-              <th
-                class="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase"
-              >
-                Last Seen
-              </th>
-              <th
-                class="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase"
-              >
-                Created
-              </th>
-              <th
-                v-if="canEditUsers || canDeleteUsers"
-                class="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase"
-              >
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-border divide-y text-sm tracking-tight">
-            <tr
-              v-for="user in users"
-              :key="user.id"
-              :class="canEditUser(user) ? 'hover:bg-muted/50 cursor-pointer' : 'cursor-default'"
-              @click="goToUserDetail(user)"
+            <span
+              id="shortcut-key"
+              class="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 items-center justify-center gap-x-0.5 transition peer-placeholder-shown:flex peer-focus-within:hidden"
             >
-              <!-- User info -->
-              <td class="px-4 py-3">
-                <AuthUserInfo :user="user" />
-              </td>
+              <kbd class="keyboard-symbol">{{ metaSymbol }} K</kbd>
+            </span>
 
-              <!-- Role -->
-              <td class="px-4 py-3">
-                <div v-if="user.roles && user.roles.length > 0" class="flex flex-wrap gap-1">
-                  <span class="text-sm tracking-tight capitalize">{{ user.roles.join(", ") }}</span>
-                </div>
-                <span v-else class="text-muted-foreground text-sm">No role</span>
-              </td>
+            <button
+              v-if="Boolean(table.getColumn('name')?.getFilterValue())"
+              class="bg-muted hover:bg-border absolute top-1/2 right-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full transition-colors peer-placeholder-shown:hidden"
+              aria-label="Clear filter"
+              @click="
+                () => {
+                  table.getColumn('name')?.setFilterValue('');
+                }
+              "
+            >
+              <Icon name="lucide:x" class="size-3 shrink-0" />
+            </button>
+          </div>
 
-              <!-- Status -->
-              <td class="px-4 py-3">
-                <div class="flex items-center gap-x-1.5">
-                  <span
-                    :class="{
-                      'bg-success': user.status === 'active',
-                      'bg-destructive': user.status === 'inactive',
-                      'bg-warn': user.status === 'suspended',
-                    }"
-                    class="size-2 shrink-0 rounded-full"
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                class="hover:bg-muted flex items-center justify-center gap-x-1 rounded-md border p-2 text-sm tracking-tight active:scale-98"
+              >
+                <Icon
+                  name="lucide:list-filter"
+                  class="size-4 shrink-0"
+                  :size="16"
+                  aria-hidden="true"
+                />
+                <span class="hidden sm:flex">Filter</span>
+                <span
+                  v-if="selectedStatuses.length > 0"
+                  class="bg-background text-muted-foreground/70 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
+                >
+                  {{ selectedStatuses.length }}
+                </span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent class="w-auto min-w-36 p-3" align="start">
+              <div class="space-y-3">
+                <div class="text-muted-foreground text-xs font-medium">Status</div>
+                <div class="space-y-3">
+                  <div
+                    v-for="(value, i) in uniqueStatusValues"
+                    :key="value"
+                    class="flex items-center gap-2"
                   >
-                  </span>
-                  <span class="text-sm tracking-tight capitalize">
-                    {{ user.status }}
-                  </span>
-                </div>
-              </td>
-
-              <!-- Last seen -->
-              <td class="px-4 py-3">
-                <div v-if="user.last_seen" class="text-sm">
-                  <div v-tippy="$dayjs(user.last_seen).format('MMMM D, YYYY [at] h:mm A')">
-                    {{ $dayjs(user.last_seen).fromNow() }}
+                    <Checkbox
+                      :id="`status-${i}`"
+                      :model-value="selectedStatuses.includes(value)"
+                      @update:model-value="(checked) => handleStatusChange(!!checked, value)"
+                    />
+                    <Label :for="`status-${i}`" class="flex grow justify-between gap-2 font-normal">
+                      {{ value }}
+                      <span class="text-muted-foreground ms-2 text-xs">
+                        {{ statusCounts.get(value) }}
+                      </span>
+                    </Label>
                   </div>
                 </div>
-                <span v-else class="text-muted-foreground text-sm">Never</span>
-              </td>
+              </div>
+            </PopoverContent>
+          </Popover>
 
-              <!-- Created -->
-              <td class="px-4 py-3">
-                <div
-                  class="text-sm"
-                  v-tippy="$dayjs(user.created_at).format('MMMM D, YYYY [at] h:mm A')"
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                class="hover:bg-muted flex items-center justify-center gap-x-1 rounded-md border p-2 text-sm tracking-tight active:scale-98"
+              >
+                <Icon name="lucide:columns-3-cog" class="size-4 shrink-0" />
+                <span class="hidden sm:flex">Columns</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel class="text-muted-foreground text-xs">
+                Toggle columns
+              </DropdownMenuLabel>
+              <DropdownMenuCheckboxItem
+                v-for="column in table.getAllColumns().filter((column) => column.getCanHide())"
+                :key="column.id"
+                class="capitalize"
+                :model-value="column.getIsVisible()"
+                @update:model-value="(value) => column.toggleVisibility(!!value)"
+                @select="(event) => event.preventDefault()"
+              >
+                {{ column.id }}
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <div class="flex w-full items-center justify-between gap-3">
+          <AlertDialog v-if="table.getSelectedRowModel().rows.length > 0">
+            <AlertDialogTrigger asChild>
+              <Button variant="outline">
+                <LucideTrash class="-ms-1 opacity-60" :size="16" aria-hidden="true" />
+                Delete
+                <span
+                  class="bg-background text-muted-foreground/70 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
                 >
-                  {{ $dayjs(user.created_at).format("MMM D, YYYY") }}
+                  {{ table.getSelectedRowModel().rows.length }}
+                </span>
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <div class="flex flex-col gap-2 max-sm:items-center sm:flex-row sm:gap-4">
+                <div
+                  class="flex size-9 shrink-0 items-center justify-center rounded-full border"
+                  aria-hidden="true"
+                >
+                  <LucideCircleAlert class="opacity-80" :size="16" />
                 </div>
-              </td>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete
+                    {{ table.getSelectedRowModel().rows.length }} selected
+                    {{ table.getSelectedRowModel().rows.length === 1 ? "row" : "rows" }}.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+              </div>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction @click="handleDeleteRows"> Delete </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <div v-else></div>
 
-              <!-- Actions -->
-              <td v-if="canEditUsers || canDeleteUsers" class="px-4 py-3">
-                <div class="flex items-center gap-2">
-                  <NuxtLink
-                    v-if="canEditUser(user)"
-                    :to="`/users/${user.username}/edit`"
-                    @click.stop
-                    class="hover:bg-accent rounded p-1.5 text-sm transition"
-                    v-tippy="'Edit user'"
-                  >
-                    <Icon name="hugeicons:edit-02" class="size-4" />
-                  </NuxtLink>
+          <div class="flex gap-3">
+            <Button variant="outline" @click="refresh" title="Refresh data">
+              <LucideRefreshCw class="-ms-1 opacity-60" :size="16" aria-hidden="true" />
+              Refresh
+            </Button>
 
-                  <button
-                    v-if="canDeleteUser(user)"
-                    @click.stop="confirmDeleteUser(user)"
-                    class="hover:bg-destructive/10 text-destructive rounded p-1.5 text-sm transition"
-                    v-tippy="'Delete user'"
-                  >
-                    <Icon name="hugeicons:delete-02" class="size-4" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Empty state -->
-    <div v-else-if="!loading" class="py-12 text-center">
-      <Icon name="hugeicons:user-group" class="text-muted-foreground mx-auto mb-4 size-12" />
-      <h3 class="mb-2 text-lg font-medium">No users found</h3>
-      <p class="text-muted-foreground">
-        {{
-          filters.status || filters.role || filters.search
-            ? "Try adjusting your filters"
-            : "No users available"
-        }}
-      </p>
-    </div>
-
-    <!-- Pagination -->
-    <div v-if="meta.total > 0" class="flex items-center justify-between border-t pt-4">
-      <div class="text-muted-foreground text-sm">
-        Showing {{ (meta.current_page - 1) * meta.per_page + 1 }} to
-        {{ Math.min(meta.current_page * meta.per_page, meta.total) }} of {{ meta.total }} results
+            <NuxtLink
+              to="/users/create"
+              class="hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm tracking-tight active:scale-98"
+            >
+              <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
+              <span>Add user</span>
+            </NuxtLink>
+          </div>
+        </div>
       </div>
 
-      <div class="flex items-center gap-2">
-        <button
-          @click="loadUsers(meta.current_page - 1)"
-          :disabled="meta.current_page <= 1 || loading"
-          class="hover:bg-accent rounded border px-3 py-1 text-sm disabled:opacity-50"
-        >
-          Previous
-        </button>
+      <div class="bg-background overflow-hidden rounded-md border">
+        <Table class="table-fixed">
+          <TableHeader>
+            <TableRow
+              v-for="headerGroup in table.getHeaderGroups()"
+              :key="headerGroup.id"
+              class="hover:bg-transparent"
+            >
+              <TableHead
+                v-for="header in headerGroup.headers"
+                :key="header.id"
+                :style="{ width: `${header.getSize()}px` }"
+                class="h-11"
+              >
+                <template v-if="!header.isPlaceholder">
+                  <div
+                    v-if="header.column.getCanSort()"
+                    class="flex h-full cursor-pointer items-center justify-between gap-2 select-none"
+                    @click="header.column.getToggleSortingHandler()?.($event)"
+                    @keydown="
+                      (e) => {
+                        if (header.column.getCanSort() && (e.key === 'Enter' || e.key === ' ')) {
+                          e.preventDefault();
+                          header.column.getToggleSortingHandler()?.(e);
+                        }
+                      }
+                    "
+                    tabindex="0"
+                  >
+                    <FlexRender
+                      :render="header.column.columnDef.header"
+                      :props="header.getContext()"
+                    />
+                    <LucideChevronUp
+                      v-if="header.column.getIsSorted() === 'asc'"
+                      class="shrink-0 opacity-60"
+                      :size="16"
+                      aria-hidden="true"
+                    />
+                    <LucideChevronDown
+                      v-else-if="header.column.getIsSorted() === 'desc'"
+                      class="shrink-0 opacity-60"
+                      :size="16"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <FlexRender
+                    v-else
+                    :render="header.column.columnDef.header"
+                    :props="header.getContext()"
+                  />
+                </template>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <template v-if="table.getRowModel().rows?.length">
+              <TableRow
+                v-for="row in table.getRowModel().rows"
+                :key="row.id"
+                :data-state="row.getIsSelected() && 'selected'"
+              >
+                <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id" class="last:py-0">
+                  <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+                </TableCell>
+              </TableRow>
+            </template>
+            <TableRow v-else>
+              <TableCell :colspan="columns.length" class="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
 
-        <span class="text-sm"> Page {{ meta.current_page }} of {{ meta.last_page }} </span>
+      <div class="flex items-center justify-between gap-8">
+        <div class="flex items-center gap-3">
+          <Label class="max-sm:sr-only">Rows per page</Label>
+          <Select
+            :model-value="table.getState().pagination.pageSize.toString()"
+            @update:model-value="(value) => table.setPageSize(Number(value))"
+          >
+            <SelectTrigger class="w-fit whitespace-nowrap">
+              <SelectValue placeholder="Select number of results" />
+            </SelectTrigger>
+            <SelectContent
+              class="[&_*[role=option]]:ps-2 [&_*[role=option]]:pe-8 [&_*[role=option]>span]:start-auto [&_*[role=option]>span]:end-2"
+            >
+              <SelectItem
+                v-for="pageSize in [10, 15, 25, 50]"
+                :key="pageSize"
+                :value="pageSize.toString()"
+              >
+                {{ pageSize }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div class="text-muted-foreground flex grow justify-end text-sm whitespace-nowrap">
+          <p class="text-muted-foreground text-sm whitespace-nowrap" aria-live="polite">
+            <span class="text-foreground">
+              {{ (meta.current_page - 1) * meta.per_page + 1 }}-{{
+                Math.min(meta.current_page * meta.per_page, meta.total)
+              }}
+            </span>
+            of
+            <span class="text-foreground">
+              {{ meta.total }}
+            </span>
+          </p>
+        </div>
 
-        <button
-          @click="loadUsers(meta.current_page + 1)"
-          :disabled="meta.current_page >= meta.last_page || loading"
-          class="hover:bg-accent rounded border px-3 py-1 text-sm disabled:opacity-50"
-        >
-          Next
-        </button>
+        <div>
+          <Pagination
+            :default-page="meta.current_page"
+            :items-per-page="meta.per_page"
+            :total="meta.total"
+          >
+            <PaginationContent>
+              <PaginationFirst asChild>
+                <Button
+                  variant="outline"
+                  class="size-9"
+                  @click="table.firstPage"
+                  :disabled="meta.current_page <= 1"
+                >
+                  <LucideChevronFirst :size="16" aria-hidden="true" />
+                </Button>
+              </PaginationFirst>
+              <PaginationPrevious asChild>
+                <Button
+                  variant="outline"
+                  class="size-9"
+                  @click="table.previousPage"
+                  :disabled="meta.current_page <= 1"
+                >
+                  <LucideChevronLeft :size="16" aria-hidden="true" />
+                </Button>
+              </PaginationPrevious>
+              <PaginationNext asChild>
+                <Button
+                  variant="outline"
+                  class="size-9"
+                  @click="table.nextPage"
+                  :disabled="meta.current_page >= meta.last_page"
+                >
+                  <LucideChevronRight :size="16" aria-hidden="true" />
+                </Button>
+              </PaginationNext>
+              <PaginationLast asChild>
+                <Button
+                  variant="outline"
+                  class="size-9"
+                  @click="() => table.setPageIndex(meta.last_page - 1)"
+                  :disabled="meta.current_page >= meta.last_page"
+                >
+                  <LucideChevronLast :size="16" aria-hidden="true" />
+                </Button>
+              </PaginationLast>
+            </PaginationContent>
+          </Pagination>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { toast } from "vue-sonner";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import {
+  Ellipsis,
+  LucideChevronDown,
+  LucideChevronFirst,
+  LucideChevronLast,
+  LucideChevronLeft,
+  LucideChevronRight,
+  LucideChevronUp,
+  LucideCircleAlert,
+  LucideRefreshCw,
+  LucideTrash,
+} from "lucide-vue-next";
+
+import { valueUpdater } from "@/components/ui/table/utils";
+
+import {
+  FlexRender,
+  getCoreRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useVueTable,
+} from "@tanstack/vue-table";
 
 definePageMeta({
   middleware: ["sanctum:auth", "staff-admin-master"],
@@ -282,161 +412,337 @@ defineOptions({
 
 usePageMeta("users");
 
-const { user: currentUser } = useSanctumAuth();
-const sanctumFetch = useSanctumClient();
 const { $dayjs } = useNuxtApp();
 
-// State
-const users = ref([]);
-const roles = ref([]);
-const meta = ref({
-  current_page: 1,
-  last_page: 1,
-  per_page: 15,
-  total: 0,
-});
-const loading = ref(false);
-const error = ref(null);
-
-// Filters
-const filters = reactive({
-  status: "",
-  role: "",
-  search: "",
-  perPage: 15,
-});
-
-// Permissions
-const canCreateUsers = computed(() => {
-  return currentUser.value?.roles?.some((role) => ["master", "admin"].includes(role));
-});
-
-const canEditUsers = computed(() => {
-  return currentUser.value?.roles?.some((role) => ["master", "admin"].includes(role));
-});
-
-const canDeleteUsers = computed(() => {
-  return currentUser.value?.roles?.some((role) => ["master", "admin"].includes(role));
-});
-
-const isMaster = computed(() => {
-  return currentUser.value?.roles?.includes("master");
-});
-
-// Check if user can edit/delete specific user
-const canEditUser = (user) => {
-  if (!canEditUsers.value) return false;
-  // Admin cannot edit master users
-  if (user.roles?.includes("master") && !isMaster.value) return false;
-  return true;
+// Custom filter function for multi-column searching
+const multiColumnFilterFn = (row, _columnId, filterValue) => {
+  const searchableRowContent =
+    `${row.original.name || ""} ${row.original.email || ""} ${row.original.username || ""}`.toLowerCase();
+  const searchTerm = (filterValue ?? "").toLowerCase();
+  return searchableRowContent.includes(searchTerm);
 };
 
-const canDeleteUser = (user) => {
-  if (!canDeleteUsers.value) return false;
-  // Admin cannot delete master users
-  if (user.roles?.includes("master") && !isMaster.value) return false;
-  // Cannot delete yourself
-  if (user.username === currentUser.value?.username) return false;
-  return true;
+const statusFilterFn = (row, _columnId, filterValue) => {
+  if (!filterValue?.length) return true;
+  const status = row.getValue("status");
+  return filterValue.includes(status);
 };
 
-// Debounced search
-let searchTimeout;
-const debouncedSearch = () => {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => {
-    loadUsers(1);
-  }, 500);
+// Define pagination state first
+const rowSelection = ref({});
+const columnFilters = ref([]);
+const columnVisibility = ref({});
+const pagination = ref({
+  pageIndex: 0,
+  pageSize: 15,
+});
+
+// Reactive query parameters that will trigger refetch when changed
+const queryParams = reactive({
+  page: pagination.value.pageIndex + 1, // Laravel uses 1-based page indexing
+  per_page: pagination.value.pageSize,
+});
+
+// Initial fetch with server-side pagination
+const {
+  data: response,
+  error,
+  refresh,
+} = await useSanctumFetch(
+  "/api/users",
+  {
+    method: "GET",
+    query: queryParams, // Use reactive query params
+  },
+  "fetch-users"
+);
+
+// Update pagination and refresh data
+const updatePagination = async (pageIndex, pageSize) => {
+  queryParams.page = pageIndex + 1;
+  queryParams.per_page = pageSize;
+  await refresh();
 };
 
-// Load users
-async function loadUsers(page = 1) {
-  loading.value = true;
-  error.value = null;
+// Extract users data and meta from response
+const data = computed(() => response.value?.data || []);
+const meta = computed(
+  () =>
+    response.value?.meta || {
+      current_page: 1,
+      last_page: 1,
+      per_page: 15,
+      total: 0,
+    }
+);
+
+const sorting = ref([
+  {
+    id: "name",
+    desc: false,
+  },
+]);
+
+const columns = [
+  {
+    id: "select",
+    header: ({ table }) =>
+      h(Checkbox, {
+        modelValue:
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate"),
+        "onUpdate:modelValue": (value) => table.toggleAllPageRowsSelected(!!value),
+        "aria-label": "Select all",
+      }),
+    cell: ({ row }) =>
+      h(Checkbox, {
+        modelValue: row.getIsSelected(),
+        "onUpdate:modelValue": (value) => row.toggleSelected(!!value),
+        "aria-label": "Select row",
+      }),
+    size: 28,
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    header: "Name",
+    accessorKey: "name",
+    cell: ({ row }) => h("div", { class: "font-medium" }, row.getValue("name")),
+    size: 180,
+    filterFn: multiColumnFilterFn,
+    enableHiding: false,
+    sortUndefined: "last",
+    sortDescFirst: false,
+  },
+  {
+    header: "Username",
+    accessorKey: "username",
+    cell: ({ row }) => h("div", { class: "text-muted-foreground" }, `@${row.getValue("username")}`),
+    size: 140,
+    sortUndefined: "last",
+    sortDescFirst: false,
+  },
+  {
+    header: "Email",
+    accessorKey: "email",
+    size: 220,
+    sortUndefined: "last",
+    sortDescFirst: false,
+  },
+  {
+    header: "Status",
+    accessorKey: "status",
+    cell: ({ row }) => {
+      const status = row.getValue("status");
+      return h(
+        Badge,
+        {
+          variant: status === "active" ? "default" : "secondary",
+          class: status === "inactive" ? "bg-muted-foreground/60 text-primary-foreground" : "",
+        },
+        () => status?.charAt(0)?.toUpperCase() + status?.slice(1)
+      );
+    },
+    size: 100,
+    filterFn: statusFilterFn,
+    sortUndefined: "last",
+    sortDescFirst: false,
+  },
+  {
+    header: "Roles",
+    accessorKey: "roles",
+    cell: ({ row }) => {
+      const roles = row.getValue("roles") || [];
+      return h(
+        "div",
+        { class: "flex gap-1 flex-wrap" },
+        roles.map((role) => h(Badge, { variant: "outline", key: role }, () => role))
+      );
+    },
+    size: 140,
+    enableSorting: false,
+    sortUndefined: "last",
+    sortDescFirst: false,
+  },
+  {
+    header: "Joined",
+    accessorKey: "created_at",
+    cell: ({ row }) => {
+      const date = row.getValue("created_at");
+      return h(
+        "div",
+        { class: "text-sm text-muted-foreground" },
+        $dayjs(date).format("MMM D, YYYY")
+      );
+    },
+    size: 100,
+    sortUndefined: "last",
+    sortDescFirst: false,
+  },
+  {
+    id: "actions",
+    header: () => h("span", { class: "sr-only" }, "Actions"),
+    cell: ({ row }) => h(RowActions, { row }),
+    size: 60,
+    enableHiding: false,
+  },
+];
+
+const table = useVueTable({
+  get data() {
+    return data.value || [];
+  },
+  get columns() {
+    return columns;
+  },
+  getCoreRowModel: getCoreRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+  manualPagination: true, // Tell table that data is already paginated by server
+  pageCount: -1, // We'll handle pagination manually with backend meta
+  autoResetPageIndex: false, // Don't reset page index when data changes
+  getFilteredRowModel: getFilteredRowModel(),
+  getFacetedUniqueValues: getFacetedUniqueValues(),
+  state: {
+    get rowSelection() {
+      return rowSelection.value;
+    },
+    get pagination() {
+      return pagination.value;
+    },
+    get sorting() {
+      return sorting.value;
+    },
+    get columnFilters() {
+      return columnFilters.value;
+    },
+    get columnVisibility() {
+      return columnVisibility.value;
+    },
+  },
+  onSortingChange: (updater) => valueUpdater(updater, sorting),
+  onPaginationChange: (updater) => {
+    const newPagination = typeof updater === "function" ? updater(pagination.value) : updater;
+    pagination.value = newPagination;
+    updatePagination(newPagination.pageIndex, newPagination.pageSize);
+  },
+  onColumnFiltersChange: (updater) => valueUpdater(updater, columnFilters),
+  onColumnVisibilityChange: (updater) => valueUpdater(updater, columnVisibility),
+  onRowSelectionChange: (updater) => valueUpdater(updater, rowSelection),
+  enableSortingRemoval: false,
+});
+
+// Status filter computed properties
+const uniqueStatusValues = computed(() => {
+  const statusColumn = table.getColumn("status");
+  return statusColumn ? Array.from(statusColumn.getFacetedUniqueValues().keys()).sort() : [];
+});
+
+const statusCounts = computed(() => {
+  const statusColumn = table.getColumn("status");
+  return statusColumn ? statusColumn.getFacetedUniqueValues() : new Map();
+});
+
+const selectedStatuses = computed(() => table.getColumn("status")?.getFilterValue() ?? []);
+
+const handleStatusChange = (checked, value) => {
+  const current = table.getColumn("status")?.getFilterValue() ?? [];
+  const updated = checked ? [...current, value] : current.filter((item) => item !== value);
+
+  table.getColumn("status")?.setFilterValue(updated.length ? updated : undefined);
+};
+
+const handleDeleteRows = async () => {
+  const userIds = table.getSelectedRowModel().rows.map((row) => row.original.id);
 
   try {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      per_page: filters.perPage.toString(),
-    });
+    await Promise.all(
+      userIds.map((id) => useSanctumFetch(`/api/users/${id}`, { method: "DELETE" }))
+    );
+    await refresh();
+    table.resetRowSelection();
+  } catch (error) {
+    console.error("Failed to delete users:", error);
+  }
+};
 
-    if (filters.status) {
-      params.append("filter[status]", filters.status);
+// RowActions component
+const RowActions = () => {
+  return h(
+    DropdownMenu,
+    {},
+    {
+      trigger: () =>
+        h(DropdownMenuTrigger, { asChild: true }, () =>
+          h("div", { class: "flex justify-end" }, [
+            h(
+              Button,
+              {
+                size: "icon",
+                variant: "ghost",
+                class: "shadow-none",
+                "aria-label": "Edit item",
+              },
+              () => h(Ellipsis, { size: 16, "aria-hidden": "true" })
+            ),
+          ])
+        ),
+      default: () =>
+        h(DropdownMenuContent, { align: "end" }, () => [
+          h(DropdownMenuGroup, {}, () => [
+            h(DropdownMenuItem, {}, () => [
+              h("span", {}, "Edit"),
+              h(DropdownMenuShortcut, {}, "⌘E"),
+            ]),
+            h(DropdownMenuItem, {}, () => [
+              h("span", {}, "Duplicate"),
+              h(DropdownMenuShortcut, {}, "⌘D"),
+            ]),
+          ]),
+          h(DropdownMenuSeparator),
+          h(DropdownMenuGroup, {}, () => [
+            h(DropdownMenuItem, {}, () => [
+              h("span", {}, "Archive"),
+              h(DropdownMenuShortcut, {}, "⌘A"),
+            ]),
+            h(
+              DropdownMenuSub,
+              {},
+              {
+                trigger: () => h(DropdownMenuSubTrigger, {}, () => "More"),
+                content: () =>
+                  h(DropdownMenuPortal, {}, () =>
+                    h(DropdownMenuSubContent, {}, () => [
+                      h(DropdownMenuItem, {}, () => "Move to project"),
+                      h(DropdownMenuItem, {}, () => "Move to folder"),
+                      h(DropdownMenuSeparator),
+                      h(DropdownMenuItem, {}, () => "Advanced options"),
+                    ])
+                  ),
+              }
+            ),
+          ]),
+          h(DropdownMenuSeparator),
+          h(DropdownMenuGroup, {}, () => [
+            h(DropdownMenuItem, {}, () => "Share"),
+            h(DropdownMenuItem, {}, () => "Add to favorites"),
+          ]),
+          h(DropdownMenuSeparator),
+          h(DropdownMenuItem, { class: "text-destructive focus:text-destructive" }, () => [
+            h("span", {}, "Delete"),
+            h(DropdownMenuShortcut, {}, "⌘⌫"),
+          ]),
+        ]),
     }
+  );
+};
 
-    if (filters.search) {
-      params.append("filter[search]", filters.search);
-    }
-
-    if (filters.role) {
-      params.append("filter[role]", filters.role);
-    }
-
-    // Add sorting
-    params.append("sort", "-created_at");
-
-    const response = await sanctumFetch(`/api/users?${params.toString()}`);
-
-    if (response.data) {
-      users.value = response.data;
-      meta.value = response.meta;
-    }
-  } catch (err) {
-    error.value = err.message || "Failed to load users";
-    console.error("Error loading users:", err);
-  } finally {
-    loading.value = false;
-  }
-}
-
-// Load roles
-async function loadRoles() {
-  try {
-    const response = await sanctumFetch("/api/users/roles");
-    roles.value = response.data;
-  } catch (err) {
-    console.error("Error loading roles:", err);
-  }
-}
-
-// Refresh users
-function refreshUsers() {
-  loadUsers(meta.value.current_page);
-}
-
-// Navigate to user detail
-function goToUserDetail(user) {
-  if (canEditUser(user)) {
-    navigateTo(`/users/${user.username}/edit`);
-  }
-}
-
-// Confirm delete user
-async function confirmDeleteUser(user) {
-  if (!confirm(`Are you sure you want to delete ${user.name}? This action cannot be undone.`)) {
-    return;
-  }
-
-  try {
-    const response = await sanctumFetch(`/api/users/${user.username}`, {
-      method: "DELETE",
-    });
-
-    toast.success(response?.message);
-
-    // Reload users after deletion
-    await loadUsers(meta.value.current_page);
-
-    // Show success message (you might want to use a toast notification)
-    console.log("User deleted successfully");
-  } catch (err) {
-    error.value = err.message || "Failed to delete user";
-    console.error("Error deleting user:", err);
-  }
-}
-
-// Load data on mount
-onMounted(async () => {
-  await Promise.all([loadUsers(), loadRoles()]);
+const searchInputEl = ref();
+const { metaSymbol } = useShortcuts();
+defineShortcuts({
+  meta_k: {
+    handler: async () => {
+      searchInputEl.value?.focus();
+    },
+  },
 });
 </script>
