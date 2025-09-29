@@ -5,9 +5,9 @@ export default defineNuxtPlugin((nuxtApp) => {
        * Melakukan scroll ke atas jika path yang diberikan sama dengan path halaman saat ini.
        * @param {string} path - Path URL untuk dibandingkan (misal: '/news').
        */
-      scrollToTopIfCurrentPageIs: (path) => {
+      scrollToTopIfCurrentPageIs: (path, route = useRoute()) => {
         // Gunakan useRoute().path untuk perbandingan yang andal
-        if (useRoute().path === path) {
+        if (route.path === path) {
           window.scrollTo({
             top: 0,
             behavior: "smooth",

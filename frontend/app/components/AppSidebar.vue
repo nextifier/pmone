@@ -30,100 +30,101 @@
 </template>
 
 <script setup>
-import { useSidebar } from '@/components/ui/sidebar/utils'
-const { setOpenMobile } = useSidebar()
+import { useSidebar } from "@/components/ui/sidebar/utils";
+const { setOpenMobile } = useSidebar();
 
 const props = defineProps({
   collapsible: {
     type: String,
-    default: 'icon'
-  }
-})
+    default: "icon",
+  },
+});
 
-const { user } = useSanctumAuth()
+const { user } = useSanctumAuth();
 
 const navMainGroups = computed(() => {
   const groups = [
     {
-      label: 'Platform',
+      label: "Platform",
       items: [
         {
-          label: 'Dashboard',
-          path: '/dashboard',
-          iconName: 'hugeicons:dashboard-circle'
+          label: "Dashboard",
+          path: "/dashboard",
+          iconName: "hugeicons:dashboard-circle",
         },
         {
-          label: 'Inbox',
-          path: '/inbox',
-          iconName: 'hugeicons:mail-open-love'
+          label: "Inbox",
+          path: "/inbox",
+          iconName: "hugeicons:mail-open-love",
         },
         {
-          label: 'Projects',
-          path: '/projects',
-          iconName: 'hugeicons:layers-01'
+          label: "Projects",
+          path: "/projects",
+          iconName: "hugeicons:layers-01",
         },
         {
-          label: 'Posts',
-          path: '/posts',
-          iconName: 'hugeicons:task-edit-01'
+          label: "Posts",
+          path: "/posts",
+          iconName: "hugeicons:task-edit-01",
         },
         {
-          label: 'Reports',
-          path: '/reports',
-          iconName: 'hugeicons:analysis-text-link'
-        }
-      ]
-    }
-  ]
+          label: "Reports",
+          path: "/reports",
+          iconName: "hugeicons:analysis-text-link",
+        },
+      ],
+    },
+  ];
 
   // Admin section - filter based on user permissions
-  const adminItems = []
+  const adminItems = [];
 
-  // Users management - all authenticated users can view
-  adminItems.push({
-    label: 'Users',
-    path: '/users',
-    iconName: 'hugeicons:user-group'
-  })
+  if (user.value?.roles?.some((role) => ["master", "admin", "staff"].includes(role))) {
+    adminItems.push({
+      label: "Users",
+      path: "/users",
+      iconName: "hugeicons:user-group",
+    });
+  }
 
   // Activity Logs - only master and admin
-  if (user.value?.roles?.some(role => ['master', 'admin'].includes(role))) {
+  if (user.value?.roles?.some((role) => ["master", "admin"].includes(role))) {
     adminItems.push({
-      label: 'Activity Logs',
-      path: '/logs',
-      iconName: 'hugeicons:activity-03'
-    })
+      label: "Activity Logs",
+      path: "/logs",
+      iconName: "hugeicons:activity-03",
+    });
   }
 
   // Settings - always available
   adminItems.push({
-    label: 'Settings',
-    path: '/settings',
-    iconName: 'hugeicons:settings-01',
+    label: "Settings",
+    path: "/settings",
+    iconName: "hugeicons:settings-01",
     isActive: true,
     items: [
       {
-        label: 'Profile',
-        path: '/settings/profile'
+        label: "Profile",
+        path: "/settings/profile",
       },
       {
-        label: 'Password',
-        path: '/settings/password'
+        label: "Password",
+        path: "/settings/password",
       },
       {
-        label: 'Appearance',
-        path: '/settings/appearance'
-      }
-    ]
-  })
+        label: "Appearance",
+        path: "/settings/appearance",
+      },
+    ],
+  });
 
   if (adminItems.length > 0) {
     groups.push({
-      label: 'Admin',
-      items: adminItems
-    })
+      label: "Admin",
+      items: adminItems,
+    });
   }
 
-  return groups
-})
+  return groups;
+});
 </script>
