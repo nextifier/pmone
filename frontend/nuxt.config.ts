@@ -162,7 +162,7 @@ export default defineNuxtConfig({
 
   pwa: {
     strategies: sw ? "injectManifest" : "generateSW",
-    srcDir: sw ? "service-worker" : undefined,
+    srcDir: sw ? "public" : undefined,
     filename: sw ? "sw.ts" : undefined,
     registerType: "autoUpdate",
     registerWebManifestInRouteRules: true,
