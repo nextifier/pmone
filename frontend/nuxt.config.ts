@@ -202,15 +202,24 @@ export default defineNuxtConfig({
     },
     // Disable all caching - PWA for install capability only
     disable: false,
-    strategies: "injectManifest",
-    srcDir: "public",
-    filename: "sw.js",
-    injectManifest: {
-      globPatterns: [], // No files to cache
-      globIgnores: ["**/*"], // Ignore all files
+    strategies: "generateSW",
+    workbox: {
+      runtimeCaching: [], // No runtime caching
+      skipWaiting: true,
+      clientsClaim: true,
+      cleanupOutdatedCaches: true,
+      mode: "production",
+      navigateFallback: null, // No page caching
+      // Disable all default patterns
+      additionalManifestEntries: undefined,
+      dontCacheBustURLsMatching: undefined,
+      manifestTransforms: [],
     },
     client: {
       installPrompt: true,
+    },
+    devOptions: {
+      enabled: false,
     },
   },
 
