@@ -200,26 +200,18 @@ export default defineNuxtConfig({
         },
       ],
     },
-    workbox: {
-      cleanupOutdatedCaches: true,
-      skipWaiting: true,
-      clientsClaim: true,
-      navigateFallback: null,
-      globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
-    },
+    // Disable all caching - PWA for install capability only
+    disable: false,
+    strategies: "injectManifest",
+    srcDir: "public",
+    filename: "sw.js",
     injectManifest: {
-      globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
+      globPatterns: [], // No files to cache
+      globIgnores: ["**/*"], // Ignore all files
     },
     client: {
       installPrompt: true,
     },
-    // devOptions: {
-    //   enabled: true,
-    //   suppressWarnings: true,
-    //   navigateFallback: "/",
-    //   navigateFallbackAllowlist: [/^\/$/],
-    //   type: "module",
-    // },
   },
 
   // gtag: {

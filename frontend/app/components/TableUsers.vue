@@ -1,380 +1,3 @@
-<script setup>
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
-} from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationFirst,
-  PaginationLast,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-
-import { valueUpdater } from "@/components/ui/table/utils";
-
-import {
-  FlexRender,
-  getCoreRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useVueTable,
-} from "@tanstack/vue-table";
-import {
-  Ellipsis,
-  LucideChevronDown,
-  LucideChevronFirst,
-  LucideChevronLast,
-  LucideChevronLeft,
-  LucideChevronRight,
-  LucideChevronUp,
-  LucideCircleAlert,
-  LucideCircleX,
-  LucideColumns3,
-  LucideFilter,
-  LucideListFilter,
-  LucidePlus,
-  LucideTrash,
-} from "lucide-vue-next";
-
-import { computed, h, onMounted, ref } from "vue";
-
-// Custom filter function for multi-column searching
-const multiColumnFilterFn = (row, columnId, filterValue) => {
-  const searchableRowContent = `${row.original.name} ${row.original.email}`.toLowerCase();
-  const searchTerm = (filterValue ?? "").toLowerCase();
-  return searchableRowContent.includes(searchTerm);
-};
-
-const statusFilterFn = (row, columnId, filterValue) => {
-  if (!filterValue?.length) return true;
-  const status = row.getValue(columnId);
-  return filterValue.includes(status);
-};
-
-const data = ref([]);
-const rowSelection = ref({});
-const columnFilters = ref([]);
-const columnVisibility = ref({});
-const pagination = ref({
-  pageIndex: 0,
-  pageSize: 10,
-});
-const sorting = ref([
-  {
-    id: "name",
-    desc: false,
-  },
-]);
-
-const columns = [
-  {
-    id: "select",
-    header: ({ table }) =>
-      h(Checkbox, {
-        modelValue:
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate"),
-        "onUpdate:modelValue": (value) =>
-          table.toggleAllPageRowsSelected(!!value),
-        "aria-label": "Select all",
-      }),
-    cell: ({ row }) =>
-      h(Checkbox, {
-        modelValue: row.getIsSelected(),
-        "onUpdate:modelValue": (value) => row.toggleSelected(!!value),
-        "aria-label": "Select row",
-      }),
-    size: 28,
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    header: "Name",
-    accessorKey: "name",
-    cell: ({ row }) => h("div", { class: "font-medium" }, row.getValue("name")),
-    size: 180,
-    filterFn: multiColumnFilterFn,
-    enableHiding: false,
-    sortUndefined: "last",
-    sortDescFirst: false,
-  },
-  {
-    header: "Email",
-    accessorKey: "email",
-    size: 220,
-    sortUndefined: "last",
-    sortDescFirst: false,
-  },
-  {
-    header: "Location",
-    accessorKey: "location",
-    cell: ({ row }) =>
-      h("div", {}, [
-        h("span", { class: "text-lg leading-none" }, row.original.flag),
-        " ",
-        row.getValue("location"),
-      ]),
-    size: 180,
-    sortUndefined: "last",
-    sortDescFirst: false,
-  },
-  {
-    header: "Status",
-    accessorKey: "status",
-    cell: ({ row }) =>
-      h(
-        Badge,
-        {
-          class:
-            row.getValue("status") === "Inactive"
-              ? "bg-muted-foreground/60 text-primary-foreground"
-              : "",
-        },
-        () => row.getValue("status")
-      ),
-    size: 100,
-    filterFn: statusFilterFn,
-    sortUndefined: "last",
-    sortDescFirst: false,
-  },
-  {
-    header: "Performance",
-    accessorKey: "performance",
-    sortUndefined: "last",
-    sortDescFirst: false,
-  },
-  {
-    header: "Balance",
-    accessorKey: "balance",
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("balance"));
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount);
-      return formatted;
-    },
-    size: 120,
-    sortUndefined: "last",
-    sortDescFirst: false,
-  },
-  {
-    id: "actions",
-    header: () => h("span", { class: "sr-only" }, "Actions"),
-    cell: ({ row }) => h(RowActions, { row }),
-    size: 60,
-    enableHiding: false,
-  },
-];
-
-onMounted(async () => {
-  try {
-    const res = await $fetch("/api/users");
-    data.value = res;
-  } catch (error) {
-    console.error("Failed to fetch data:", error);
-  }
-});
-
-const table = useVueTable({
-  get data() {
-    return data.value;
-  },
-  get columns() {
-    return columns;
-  },
-  getCoreRowModel: getCoreRowModel(),
-  getSortedRowModel: getSortedRowModel(),
-  getPaginationRowModel: getPaginationRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
-  getFacetedUniqueValues: getFacetedUniqueValues(),
-  state: {
-    get rowSelection() {
-      return rowSelection.value;
-    },
-    get pagination() {
-      return pagination.value;
-    },
-    get sorting() {
-      return sorting.value;
-    },
-    get columnFilters() {
-      return columnFilters.value;
-    },
-    get columnVisibility() {
-      return columnVisibility.value;
-    },
-  },
-  onSortingChange: (updater) => valueUpdater(updater, sorting),
-  onPaginationChange: (updater) => valueUpdater(updater, pagination),
-  onColumnFiltersChange: (updater) => valueUpdater(updater, columnFilters),
-  onColumnVisibilityChange: (updater) => valueUpdater(updater, columnVisibility),
-  onRowSelectionChange: (updater) => valueUpdater(updater, rowSelection),
-  enableSortingRemoval: false,
-});
-
-// Get unique status values
-const uniqueStatusValues = computed(() => {
-  const statusColumn = table.getColumn("status");
-  if (!statusColumn) return [];
-  const values = Array.from(statusColumn.getFacetedUniqueValues().keys());
-  return values.sort();
-});
-
-// Get counts for each status
-const statusCounts = computed(() => {
-  const statusColumn = table.getColumn("status");
-  if (!statusColumn) return new Map();
-  return statusColumn.getFacetedUniqueValues();
-});
-
-const selectedStatuses = computed(() => {
-  const filterValue = table.getColumn("status")?.getFilterValue();
-  return filterValue ?? [];
-});
-
-const handleStatusChange = (checked, value) => {
-  const filterValue = table.getColumn("status")?.getFilterValue();
-  const newFilterValue = filterValue ? [...filterValue] : [];
-
-  if (checked) {
-    newFilterValue.push(value);
-  } else {
-    const index = newFilterValue.indexOf(value);
-    if (index > -1) {
-      newFilterValue.splice(index, 1);
-    }
-  }
-
-  table.getColumn("status")?.setFilterValue(newFilterValue.length ? newFilterValue : undefined);
-};
-
-const handleDeleteRows = () => {
-  const selectedRows = table.getSelectedRowModel().rows;
-  const updatedData = data.value.filter(
-    (item) => !selectedRows.some((row) => row.original.id === item.id)
-  );
-  data.value = updatedData;
-  table.resetRowSelection();
-};
-
-// RowActions component
-const RowActions = ({ row }) => {
-  return h(
-    DropdownMenu,
-    {},
-    {
-      trigger: () =>
-        h(DropdownMenuTrigger, { asChild: true }, () =>
-          h("div", { class: "flex justify-end" }, [
-            h(
-              Button,
-              {
-                size: "icon",
-                variant: "ghost",
-                class: "shadow-none",
-                "aria-label": "Edit item",
-              },
-              () => h(Ellipsis, { size: 16, "aria-hidden": "true" })
-            ),
-          ])
-        ),
-      default: () =>
-        h(DropdownMenuContent, { align: "end" }, [
-          h(DropdownMenuGroup, {}, [
-            h(DropdownMenuItem, {}, [h("span", {}, "Edit"), h(DropdownMenuShortcut, {}, "⌘E")]),
-            h(DropdownMenuItem, {}, [
-              h("span", {}, "Duplicate"),
-              h(DropdownMenuShortcut, {}, "⌘D"),
-            ]),
-          ]),
-          h(DropdownMenuSeparator),
-          h(DropdownMenuGroup, {}, [
-            h(DropdownMenuItem, {}, [h("span", {}, "Archive"), h(DropdownMenuShortcut, {}, "⌘A")]),
-            h(
-              DropdownMenuSub,
-              {},
-              {
-                trigger: () => h(DropdownMenuSubTrigger, {}, "More"),
-                content: () =>
-                  h(DropdownMenuPortal, {}, () =>
-                    h(DropdownMenuSubContent, {}, [
-                      h(DropdownMenuItem, {}, "Move to project"),
-                      h(DropdownMenuItem, {}, "Move to folder"),
-                      h(DropdownMenuSeparator),
-                      h(DropdownMenuItem, {}, "Advanced options"),
-                    ])
-                  ),
-              }
-            ),
-          ]),
-          h(DropdownMenuSeparator),
-          h(DropdownMenuGroup, {}, [
-            h(DropdownMenuItem, {}, "Share"),
-            h(DropdownMenuItem, {}, "Add to favorites"),
-          ]),
-          h(DropdownMenuSeparator),
-          h(DropdownMenuItem, { class: "text-destructive focus:text-destructive" }, [
-            h("span", {}, "Delete"),
-            h(DropdownMenuShortcut, {}, "⌘⌫"),
-          ]),
-        ]),
-    }
-  );
-};
-</script>
-
 <template>
   <div class="space-y-4">
     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -383,7 +6,7 @@ const RowActions = ({ row }) => {
           <Input
             class="peer min-w-60 ps-9"
             :class="Boolean(table.getColumn('name')?.getFilterValue()) && 'pe-9'"
-            :model-value="(table.getColumn('name')?.getFilterValue() ?? '')"
+            :model-value="table.getColumn('name')?.getFilterValue() ?? ''"
             @update:model-value="(value) => table.getColumn('name')?.setFilterValue(value)"
             placeholder="Filter by name or email..."
             type="text"
@@ -432,9 +55,7 @@ const RowActions = ({ row }) => {
                   <Checkbox
                     :id="`status-${i}`"
                     :model-value="selectedStatuses.includes(value)"
-                    @update:model-value="
-                      (checked) => handleStatusChange(!!checked, value)
-                    "
+                    @update:model-value="(checked) => handleStatusChange(!!checked, value)"
                   />
                   <Label :for="`status-${i}`" class="flex grow justify-between gap-2 font-normal">
                     {{ value }}
@@ -698,3 +319,375 @@ const RowActions = ({ row }) => {
     </p>
   </div>
 </template>
+
+<script setup>
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationFirst,
+  PaginationLast,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+import { valueUpdater } from "@/components/ui/table/utils";
+
+import {
+  FlexRender,
+  getCoreRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useVueTable,
+} from "@tanstack/vue-table";
+import {
+  Ellipsis,
+  LucideChevronDown,
+  LucideChevronFirst,
+  LucideChevronLast,
+  LucideChevronLeft,
+  LucideChevronRight,
+  LucideChevronUp,
+  LucideCircleAlert,
+  LucideCircleX,
+  LucideColumns3,
+  LucideFilter,
+  LucideListFilter,
+  LucidePlus,
+  LucideTrash,
+} from "lucide-vue-next";
+
+import { computed, h, onMounted, ref } from "vue";
+
+// Custom filter function for multi-column searching
+const multiColumnFilterFn = (row, columnId, filterValue) => {
+  const searchableRowContent = `${row.original.name} ${row.original.email}`.toLowerCase();
+  const searchTerm = (filterValue ?? "").toLowerCase();
+  return searchableRowContent.includes(searchTerm);
+};
+
+const statusFilterFn = (row, columnId, filterValue) => {
+  if (!filterValue?.length) return true;
+  const status = row.getValue(columnId);
+  return filterValue.includes(status);
+};
+
+const data = ref([]);
+const rowSelection = ref({});
+const columnFilters = ref([]);
+const columnVisibility = ref({});
+const pagination = ref({
+  pageIndex: 0,
+  pageSize: 10,
+});
+const sorting = ref([
+  {
+    id: "name",
+    desc: false,
+  },
+]);
+
+const columns = [
+  {
+    id: "select",
+    header: ({ table }) =>
+      h(Checkbox, {
+        modelValue:
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate"),
+        "onUpdate:modelValue": (value) => table.toggleAllPageRowsSelected(!!value),
+        "aria-label": "Select all",
+      }),
+    cell: ({ row }) =>
+      h(Checkbox, {
+        modelValue: row.getIsSelected(),
+        "onUpdate:modelValue": (value) => row.toggleSelected(!!value),
+        "aria-label": "Select row",
+      }),
+    size: 28,
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    header: "Name",
+    accessorKey: "name",
+    cell: ({ row }) => h("div", { class: "font-medium" }, row.getValue("name")),
+    size: 180,
+    filterFn: multiColumnFilterFn,
+    enableHiding: false,
+    sortUndefined: "last",
+    sortDescFirst: false,
+  },
+  {
+    header: "Email",
+    accessorKey: "email",
+    size: 220,
+    sortUndefined: "last",
+    sortDescFirst: false,
+  },
+  {
+    header: "Location",
+    accessorKey: "location",
+    cell: ({ row }) =>
+      h("div", {}, [
+        h("span", { class: "text-lg leading-none" }, row.original.flag),
+        " ",
+        row.getValue("location"),
+      ]),
+    size: 180,
+    sortUndefined: "last",
+    sortDescFirst: false,
+  },
+  {
+    header: "Status",
+    accessorKey: "status",
+    cell: ({ row }) =>
+      h(
+        Badge,
+        {
+          class:
+            row.getValue("status") === "Inactive"
+              ? "bg-muted-foreground/60 text-primary-foreground"
+              : "",
+        },
+        () => row.getValue("status")
+      ),
+    size: 100,
+    filterFn: statusFilterFn,
+    sortUndefined: "last",
+    sortDescFirst: false,
+  },
+  {
+    header: "Performance",
+    accessorKey: "performance",
+    sortUndefined: "last",
+    sortDescFirst: false,
+  },
+  {
+    header: "Balance",
+    accessorKey: "balance",
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue("balance"));
+      const formatted = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }).format(amount);
+      return formatted;
+    },
+    size: 120,
+    sortUndefined: "last",
+    sortDescFirst: false,
+  },
+  {
+    id: "actions",
+    header: () => h("span", { class: "sr-only" }, "Actions"),
+    cell: ({ row }) => h(RowActions, { row }),
+    size: 60,
+    enableHiding: false,
+  },
+];
+
+onMounted(async () => {
+  try {
+    const res = await $fetch("/api/users");
+    data.value = res;
+  } catch (error) {
+    console.error("Failed to fetch data:", error);
+  }
+});
+
+const table = useVueTable({
+  get data() {
+    return data.value;
+  },
+  get columns() {
+    return columns;
+  },
+  getCoreRowModel: getCoreRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  getFacetedUniqueValues: getFacetedUniqueValues(),
+  state: {
+    get rowSelection() {
+      return rowSelection.value;
+    },
+    get pagination() {
+      return pagination.value;
+    },
+    get sorting() {
+      return sorting.value;
+    },
+    get columnFilters() {
+      return columnFilters.value;
+    },
+    get columnVisibility() {
+      return columnVisibility.value;
+    },
+  },
+  onSortingChange: (updater) => valueUpdater(updater, sorting),
+  onPaginationChange: (updater) => valueUpdater(updater, pagination),
+  onColumnFiltersChange: (updater) => valueUpdater(updater, columnFilters),
+  onColumnVisibilityChange: (updater) => valueUpdater(updater, columnVisibility),
+  onRowSelectionChange: (updater) => valueUpdater(updater, rowSelection),
+  enableSortingRemoval: false,
+});
+
+// Get unique status values
+const uniqueStatusValues = computed(() => {
+  const statusColumn = table.getColumn("status");
+  if (!statusColumn) return [];
+  const values = Array.from(statusColumn.getFacetedUniqueValues().keys());
+  return values.sort();
+});
+
+// Get counts for each status
+const statusCounts = computed(() => {
+  const statusColumn = table.getColumn("status");
+  if (!statusColumn) return new Map();
+  return statusColumn.getFacetedUniqueValues();
+});
+
+const selectedStatuses = computed(() => {
+  const filterValue = table.getColumn("status")?.getFilterValue();
+  return filterValue ?? [];
+});
+
+const handleStatusChange = (checked, value) => {
+  const filterValue = table.getColumn("status")?.getFilterValue();
+  const newFilterValue = filterValue ? [...filterValue] : [];
+
+  if (checked) {
+    newFilterValue.push(value);
+  } else {
+    const index = newFilterValue.indexOf(value);
+    if (index > -1) {
+      newFilterValue.splice(index, 1);
+    }
+  }
+
+  table.getColumn("status")?.setFilterValue(newFilterValue.length ? newFilterValue : undefined);
+};
+
+const handleDeleteRows = () => {
+  const selectedRows = table.getSelectedRowModel().rows;
+  const updatedData = data.value.filter(
+    (item) => !selectedRows.some((row) => row.original.id === item.id)
+  );
+  data.value = updatedData;
+  table.resetRowSelection();
+};
+
+// RowActions component
+const RowActions = ({ row }) => {
+  return h(
+    DropdownMenu,
+    {},
+    {
+      trigger: () =>
+        h(DropdownMenuTrigger, { asChild: true }, () =>
+          h("div", { class: "flex justify-end" }, [
+            h(
+              Button,
+              {
+                size: "icon",
+                variant: "ghost",
+                class: "shadow-none",
+                "aria-label": "Edit item",
+              },
+              () => h(Ellipsis, { size: 16, "aria-hidden": "true" })
+            ),
+          ])
+        ),
+      default: () =>
+        h(DropdownMenuContent, { align: "end" }, [
+          h(DropdownMenuGroup, {}, [
+            h(DropdownMenuItem, {}, [h("span", {}, "Edit"), h(DropdownMenuShortcut, {}, "⌘E")]),
+            h(DropdownMenuItem, {}, [
+              h("span", {}, "Duplicate"),
+              h(DropdownMenuShortcut, {}, "⌘D"),
+            ]),
+          ]),
+          h(DropdownMenuSeparator),
+          h(DropdownMenuGroup, {}, [
+            h(DropdownMenuItem, {}, [h("span", {}, "Archive"), h(DropdownMenuShortcut, {}, "⌘A")]),
+            h(
+              DropdownMenuSub,
+              {},
+              {
+                trigger: () => h(DropdownMenuSubTrigger, {}, "More"),
+                content: () =>
+                  h(DropdownMenuPortal, {}, () =>
+                    h(DropdownMenuSubContent, {}, [
+                      h(DropdownMenuItem, {}, "Move to project"),
+                      h(DropdownMenuItem, {}, "Move to folder"),
+                      h(DropdownMenuSeparator),
+                      h(DropdownMenuItem, {}, "Advanced options"),
+                    ])
+                  ),
+              }
+            ),
+          ]),
+          h(DropdownMenuSeparator),
+          h(DropdownMenuGroup, {}, [
+            h(DropdownMenuItem, {}, "Share"),
+            h(DropdownMenuItem, {}, "Add to favorites"),
+          ]),
+          h(DropdownMenuSeparator),
+          h(DropdownMenuItem, { class: "text-destructive focus:text-destructive" }, [
+            h("span", {}, "Delete"),
+            h(DropdownMenuShortcut, {}, "⌘⌫"),
+          ]),
+        ]),
+    }
+  );
+};
+</script>
