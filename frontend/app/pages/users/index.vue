@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-3xl space-y-6">
+  <div class="mx-auto max-w-4xl space-y-6">
     <div class="flex items-center gap-x-2.5">
       <Icon name="hugeicons:user-group" class="size-5 sm:size-6" />
       <h1 class="page-title">User Management</h1>
@@ -14,7 +14,7 @@
         {{ error?.message || "An error occurred while fetching users." }}
       </p>
       <button
-        class="border-border hover:bg-primary hover:text-primary-foreground flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm tracking-tight transition active:scale-98"
+        class="border-border hover:bg-primary hover:text-primary-foreground flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm tracking-tight active:scale-98"
         @click="refresh"
       >
         <Icon name="lucide:refresh-cw" class="size-4 shrink-0" />
@@ -23,14 +23,13 @@
     </div>
 
     <div v-else class="grid gap-y-4">
-      <div class="flex flex-col gap-3">
-        <div class="flex gap-1 sm:gap-2.5">
-          <div class="relative grow">
+      <div class="flex flex-col gap-y-3">
+        <div class="flex h-9 gap-x-1 sm:gap-x-2">
+          <div class="relative h-full grow">
             <input
               ref="searchInputEl"
               type="text"
-              class="input-base peer h-10 px-9 py-2 text-sm tracking-tight"
-              :class="Boolean(table.getColumn('name')?.getFilterValue()) && 'pe-9'"
+              class="input-base peer h-full px-9 py-1 text-sm tracking-tight"
               :value="table.getColumn('name')?.getFilterValue() ?? ''"
               @input="(event) => table.getColumn('name')?.setFilterValue(event.target.value)"
               placeholder="Search name, email, or username"
@@ -43,14 +42,14 @@
 
             <span
               id="shortcut-key"
-              class="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 items-center justify-center gap-x-0.5 transition peer-placeholder-shown:flex peer-focus-within:hidden"
+              class="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 items-center justify-center gap-x-0.5 peer-placeholder-shown:flex peer-focus-within:hidden"
             >
               <kbd class="keyboard-symbol">{{ metaSymbol }} K</kbd>
             </span>
 
             <button
               v-if="Boolean(table.getColumn('name')?.getFilterValue())"
-              class="bg-muted hover:bg-border absolute top-1/2 right-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full transition-colors peer-placeholder-shown:hidden"
+              class="bg-muted hover:bg-border absolute top-1/2 right-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full peer-placeholder-shown:hidden"
               aria-label="Clear filter"
               @click="
                 () => {
@@ -65,7 +64,7 @@
           <Popover>
             <PopoverTrigger asChild>
               <button
-                class="hover:bg-muted flex items-center justify-center gap-x-1 rounded-md border p-2 text-sm tracking-tight active:scale-98"
+                class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
               >
                 <Icon
                   name="lucide:list-filter"
@@ -111,7 +110,7 @@
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                class="hover:bg-muted flex items-center justify-center gap-x-1 rounded-md border p-2 text-sm tracking-tight active:scale-98"
+                class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
               >
                 <Icon name="lucide:columns-3-cog" class="size-4 shrink-0" />
                 <span class="hidden sm:flex">Columns</span>
@@ -135,49 +134,63 @@
           </DropdownMenu>
         </div>
 
-        <div class="flex w-full items-center justify-between gap-3">
-          <AlertDialog v-if="table.getSelectedRowModel().rows.length > 0">
-            <AlertDialogTrigger asChild>
-              <Button variant="outline">
-                <LucideTrash class="-ms-1 opacity-60" :size="16" aria-hidden="true" />
-                Delete
+        <div class="flex h-9 w-full items-center justify-between gap-x-1 sm:gap-x-2">
+          <DialogResponsive v-if="table.getSelectedRowModel().rows.length > 0" class="h-full">
+            <template #trigger="{ open }">
+              <button
+                class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
+                @click="open()"
+              >
+                <Icon name="lucide:trash" class="size-4 shrink-0" />
+                <span class="text-sm tracking-tight">Delete</span>
                 <span
-                  class="bg-background text-muted-foreground/70 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
+                  class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
                 >
                   {{ table.getSelectedRowModel().rows.length }}
                 </span>
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <div class="flex flex-col gap-2 max-sm:items-center sm:flex-row sm:gap-4">
-                <div
-                  class="flex size-9 shrink-0 items-center justify-center rounded-full border"
-                  aria-hidden="true"
-                >
-                  <LucideCircleAlert class="opacity-80" :size="16" />
-                </div>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete
-                    {{ table.getSelectedRowModel().rows.length }} selected
-                    {{ table.getSelectedRowModel().rows.length === 1 ? "row" : "rows" }}.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-              </div>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction @click="handleDeleteRows"> Delete </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-          <div v-else></div>
+              </button>
+            </template>
 
-          <div class="flex gap-3">
-            <Button variant="outline" @click="refresh" title="Refresh data">
-              <LucideRefreshCw class="-ms-1 opacity-60" :size="16" aria-hidden="true" />
-              Refresh
-            </Button>
+            <template #default="{ data }">
+              <div class="px-4 pb-6 md:px-6 md:py-5">
+                <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+                <p class="text-body mt-1.5 text-sm tracking-tight">
+                  This action can't be undone. This will permanently delete
+                  {{ table.getSelectedRowModel().rows.length }} selected
+                  {{ table.getSelectedRowModel().rows.length === 1 ? "row" : "rows" }}.
+                </p>
+
+                <div class="mt-3 flex justify-end gap-2">
+                  <button
+                    class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    @click="handleDeleteRows"
+                    class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </template>
+          </DialogResponsive>
+
+          <div class="ml-auto flex h-full gap-x-1 sm:gap-x-2">
+            <button
+              class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+              @click="refresh"
+              v-tippy="'Refresh data'"
+            >
+              <Icon
+                name="lucide:refresh-cw"
+                class="size-4 shrink-0"
+                :class="pending ? 'animate-spin' : ''"
+              />
+              <span class="hidden sm:flex">Refresh</span>
+            </button>
 
             <NuxtLink
               to="/users/create"
@@ -190,7 +203,7 @@
         </div>
       </div>
 
-      <div class="bg-background overflow-hidden rounded-md border">
+      <div class="overflow-hidden rounded-md border">
         <Table class="table-fixed">
           <TableHeader>
             <TableRow
@@ -266,21 +279,21 @@
         </Table>
       </div>
 
-      <div class="flex items-center justify-between gap-8">
-        <div class="flex items-center gap-3">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
           <Label class="max-sm:sr-only">Rows per page</Label>
           <Select
             :model-value="table.getState().pagination.pageSize.toString()"
             @update:model-value="(value) => table.setPageSize(Number(value))"
           >
-            <SelectTrigger class="w-fit whitespace-nowrap">
-              <SelectValue placeholder="Select number of results" />
+            <SelectTrigger class="w-fit whitespace-nowrap" size="sm">
+              <SelectValue />
             </SelectTrigger>
             <SelectContent
               class="[&_*[role=option]]:ps-2 [&_*[role=option]]:pe-8 [&_*[role=option]>span]:start-auto [&_*[role=option]>span]:end-2"
             >
               <SelectItem
-                v-for="pageSize in [10, 15, 25, 50]"
+                v-for="pageSize in [10, 20, 50, 100]"
                 :key="pageSize"
                 :value="pageSize.toString()"
               >
@@ -289,8 +302,14 @@
             </SelectContent>
           </Select>
         </div>
-        <div class="text-muted-foreground flex grow justify-end text-sm whitespace-nowrap">
-          <p class="text-muted-foreground text-sm whitespace-nowrap" aria-live="polite">
+
+        <div class="flex grow items-center justify-end gap-x-2.5 whitespace-nowrap sm:gap-x-3">
+          <div
+            v-if="pending"
+            class="size-4 animate-spin rounded-full border border-current border-r-transparent"
+          ></div>
+
+          <p class="text-muted-foreground text-xs whitespace-nowrap sm:text-sm">
             <span class="text-foreground">
               {{ (meta.current_page - 1) * meta.per_page + 1 }}-{{
                 Math.min(meta.current_page * meta.per_page, meta.total)
@@ -301,57 +320,53 @@
               {{ meta.total }}
             </span>
           </p>
-        </div>
 
-        <div>
-          <Pagination
-            :default-page="meta.current_page"
-            :items-per-page="meta.per_page"
-            :total="meta.total"
-          >
-            <PaginationContent>
-              <PaginationFirst asChild>
-                <Button
-                  variant="outline"
-                  class="size-9"
-                  @click="table.firstPage"
-                  :disabled="meta.current_page <= 1"
-                >
-                  <LucideChevronFirst :size="16" aria-hidden="true" />
-                </Button>
-              </PaginationFirst>
-              <PaginationPrevious asChild>
-                <Button
-                  variant="outline"
-                  class="size-9"
-                  @click="table.previousPage"
-                  :disabled="meta.current_page <= 1"
-                >
-                  <LucideChevronLeft :size="16" aria-hidden="true" />
-                </Button>
-              </PaginationPrevious>
-              <PaginationNext asChild>
-                <Button
-                  variant="outline"
-                  class="size-9"
-                  @click="table.nextPage"
-                  :disabled="meta.current_page >= meta.last_page"
-                >
-                  <LucideChevronRight :size="16" aria-hidden="true" />
-                </Button>
-              </PaginationNext>
-              <PaginationLast asChild>
-                <Button
-                  variant="outline"
-                  class="size-9"
-                  @click="() => table.setPageIndex(meta.last_page - 1)"
-                  :disabled="meta.current_page >= meta.last_page"
-                >
-                  <LucideChevronLast :size="16" aria-hidden="true" />
-                </Button>
-              </PaginationLast>
-            </PaginationContent>
-          </Pagination>
+          <div>
+            <Pagination
+              :default-page="meta.current_page"
+              :items-per-page="meta.per_page"
+              :total="meta.total"
+            >
+              <PaginationContent>
+                <PaginationFirst asChild>
+                  <button
+                    class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                    @click="table.firstPage"
+                    :disabled="meta.current_page <= 1"
+                  >
+                    <Icon name="lucide:chevron-first" class="size-4 shrink-0" />
+                  </button>
+                </PaginationFirst>
+                <PaginationPrevious asChild>
+                  <button
+                    class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                    @click="table.previousPage"
+                    :disabled="meta.current_page <= 1"
+                  >
+                    <Icon name="lucide:chevron-left" class="size-4 shrink-0" />
+                  </button>
+                </PaginationPrevious>
+                <PaginationNext asChild>
+                  <button
+                    class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                    @click="table.nextPage"
+                    :disabled="meta.current_page >= meta.last_page"
+                  >
+                    <Icon name="lucide:chevron-right" class="size-4 shrink-0" />
+                  </button>
+                </PaginationNext>
+                <PaginationLast asChild>
+                  <button
+                    class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                    @click="() => table.setPageIndex(meta.last_page - 1)"
+                    :disabled="meta.current_page >= meta.last_page"
+                  >
+                    <Icon name="lucide:chevron-last" class="size-4 shrink-0" />
+                  </button>
+                </PaginationLast>
+              </PaginationContent>
+            </Pagination>
+          </div>
         </div>
       </div>
     </div>
@@ -377,18 +392,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import {
-  Ellipsis,
-  LucideChevronDown,
-  LucideChevronFirst,
-  LucideChevronLast,
-  LucideChevronLeft,
-  LucideChevronRight,
-  LucideChevronUp,
-  LucideCircleAlert,
-  LucideRefreshCw,
-  LucideTrash,
-} from "lucide-vue-next";
+import { Ellipsis, LucideChevronDown, LucideChevronUp } from "lucide-vue-next";
 
 import { valueUpdater } from "@/components/ui/table/utils";
 
@@ -434,7 +438,7 @@ const columnFilters = ref([]);
 const columnVisibility = ref({});
 const pagination = ref({
   pageIndex: 0,
-  pageSize: 15,
+  pageSize: 20,
 });
 
 // Reactive query parameters that will trigger refetch when changed
@@ -446,6 +450,7 @@ const queryParams = reactive({
 // Initial fetch with server-side pagination
 const {
   data: response,
+  pending,
   error,
   refresh,
 } = await useSanctumFetch(
@@ -471,7 +476,7 @@ const meta = computed(
     response.value?.meta || {
       current_page: 1,
       last_page: 1,
-      per_page: 15,
+      per_page: 20,
       total: 0,
     }
 );
