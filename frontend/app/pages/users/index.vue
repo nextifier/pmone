@@ -5,427 +5,128 @@
       <h1 class="page-title">User Management</h1>
     </div>
 
-    <div v-if="error" class="flex flex-col items-start gap-y-3 rounded-lg">
-      <div class="text-destructive flex items-center gap-x-2">
-        <Icon name="hugeicons:alert-circle" class="size-5" />
-        <span class="font-medium tracking-tight">Error loading users</span>
-      </div>
-      <p class="text-sm tracking-tight">
-        {{ error?.message || "An error occurred while fetching users." }}
-      </p>
-      <button
-        class="border-border hover:bg-primary hover:text-primary-foreground flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm tracking-tight active:scale-98"
-        @click="refresh"
-      >
-        <Icon name="lucide:refresh-cw" class="size-4 shrink-0" />
-        <span>Try again</span>
-      </button>
-    </div>
-
-    <div v-else class="grid gap-y-4">
-      <!-- Search and Filters -->
-      <div class="flex flex-col gap-y-3">
-        <div class="flex h-9 gap-x-1 sm:gap-x-2">
-          <!-- Search Input -->
-          <div class="relative h-full grow">
-            <input
-              ref="searchInputEl"
-              type="text"
-              class="input-base peer h-full px-9 py-1 text-sm tracking-tight"
-              :value="table.getColumn('name')?.getFilterValue() ?? ''"
-              @input="(event) => table.getColumn('name')?.setFilterValue(event.target.value)"
-              placeholder="Search name, email, or username"
-            />
-            <Icon
-              name="lucide:search"
-              class="text-muted-foreground/80 absolute top-1/2 left-3 size-4 -translate-y-1/2 peer-disabled:opacity-50"
-            />
-            <span
-              id="shortcut-key"
-              class="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 items-center justify-center gap-x-0.5 peer-placeholder-shown:flex peer-focus-within:hidden"
-            >
-              <kbd class="keyboard-symbol">{{ metaSymbol }} K</kbd>
-            </span>
+    <TableData
+      :data="data"
+      :columns="columns"
+      :meta="meta"
+      :pending="pending"
+      :error="error"
+      model="users"
+      search-column="name"
+      search-placeholder="Search name, email, or username"
+      error-title="Error loading users"
+      empty-message="No users found."
+      :initial-pagination="pagination"
+      :initial-sorting="sorting"
+      :initial-column-filters="columnFilters"
+      @update:pagination="pagination = $event"
+      @update:sorting="sorting = $event"
+      @update:column-filters="columnFilters = $event"
+      @refresh="refresh"
+    >
+      <template #filters="{ table }">
+        <!-- Filter Popover -->
+        <Popover>
+          <PopoverTrigger asChild>
             <button
-              v-if="Boolean(table.getColumn('name')?.getFilterValue())"
-              class="bg-muted hover:bg-border absolute top-1/2 right-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full peer-placeholder-shown:hidden"
-              aria-label="Clear filter"
-              @click="table.getColumn('name')?.setFilterValue('')"
+              class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
             >
-              <Icon name="lucide:x" class="size-3 shrink-0" />
+              <Icon name="lucide:list-filter" class="size-4 shrink-0" />
+              <span class="hidden sm:flex">Filter</span>
+              <span
+                v-if="totalActiveFilters > 0"
+                class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
+              >
+                {{ totalActiveFilters }}
+              </span>
             </button>
-          </div>
-
-          <!-- Filter Popover -->
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
-              >
-                <Icon name="lucide:list-filter" class="size-4 shrink-0" />
-                <span class="hidden sm:flex">Filter</span>
-                <span
-                  v-if="totalActiveFilters > 0"
-                  class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
-                >
-                  {{ totalActiveFilters }}
-                </span>
-              </button>
-            </PopoverTrigger>
-            <PopoverContent class="w-auto min-w-48 p-3" align="start">
-              <div class="space-y-4">
-                <FilterSection
-                  title="Status"
-                  :options="['active', 'inactive']"
-                  :selected="selectedStatuses"
-                  @change="handleFilterChange('status', $event)"
-                />
-                <div class="border-t" />
-                <FilterSection
-                  title="Roles"
-                  :options="['master', 'admin', 'staff', 'writer', 'user']"
-                  :selected="selectedRoles"
-                  @change="handleFilterChange('roles', $event)"
-                />
-                <div class="border-t" />
-                <FilterSection
-                  title="Verified"
-                  :options="[
-                    { label: 'Verified', value: 'true' },
-                    { label: 'Unverified', value: 'false' },
-                  ]"
-                  :selected="selectedVerified"
-                  @change="handleFilterChange('email_verified_at', $event)"
-                />
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          <!-- Column Toggle -->
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
-              >
-                <Icon name="lucide:columns-3" class="size-4 shrink-0" />
-                <span class="hidden sm:flex">Columns</span>
-              </button>
-            </PopoverTrigger>
-            <PopoverContent class="w-auto min-w-36 p-3" align="end">
-              <div class="space-y-3">
-                <div class="text-muted-foreground text-xs font-medium">Toggle columns</div>
-                <div class="space-y-3">
-                  <div
-                    v-for="column in table.getAllColumns().filter((column) => column.getCanHide())"
-                    :key="column.id"
-                    class="flex items-center gap-2"
-                  >
-                    <Checkbox
-                      :id="`column-${column.id}`"
-                      :model-value="column.getIsVisible()"
-                      @update:model-value="(value) => column.toggleVisibility(!!value)"
-                    />
-                    <Label
-                      :for="`column-${column.id}`"
-                      class="grow font-normal tracking-tight capitalize"
-                    >
-                      {{ column.columnDef.header }}
-                    </Label>
-                  </div>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex h-9 w-full items-center justify-between gap-x-1 sm:gap-x-2">
-          <DialogResponsive
-            v-if="table.getSelectedRowModel().rows.length > 0"
-            v-model:open="deleteDialogOpen"
-            class="h-full"
-          >
-            <template #trigger="{ open }">
-              <button
-                class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
-                @click="open()"
-              >
-                <Icon name="lucide:trash" class="size-4 shrink-0" />
-                <span class="text-sm tracking-tight">Delete</span>
-                <span
-                  class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
-                >
-                  {{ table.getSelectedRowModel().rows.length }}
-                </span>
-              </button>
-            </template>
-            <template #default>
-              <div class="px-4 pb-6 md:px-6 md:py-5">
-                <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
-                <p class="text-body mt-1.5 text-sm tracking-tight">
-                  This action can't be undone. This will permanently delete
-                  {{ table.getSelectedRowModel().rows.length }} selected
-                  {{ table.getSelectedRowModel().rows.length === 1 ? "row" : "rows" }}.
-                </p>
-                <div class="mt-3 flex justify-end gap-2">
-                  <button
-                    class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-                    @click="deleteDialogOpen = false"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    @click="handleDeleteRows"
-                    class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </template>
-          </DialogResponsive>
-
-          <div class="ml-auto flex h-full gap-x-1 sm:gap-x-2">
-            <button
-              v-if="table.getState().columnFilters.length > 0"
-              class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
-              @click="table.resetColumnFilters()"
-            >
-              <Icon name="lucide:x" class="size-4 shrink-0" />
-              <span class="hidden sm:flex">Clear filters</span>
-            </button>
-            <button
-              class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
-              @click="refresh"
-            >
-              <Icon
-                name="lucide:refresh-cw"
-                class="size-4 shrink-0"
-                :class="pending ? 'animate-spin' : ''"
+          </PopoverTrigger>
+          <PopoverContent class="w-auto min-w-48 p-3" align="start">
+            <div class="space-y-4">
+              <FilterSection
+                title="Status"
+                :options="['active', 'inactive']"
+                :selected="selectedStatuses"
+                @change="handleFilterChange('status', $event)"
               />
-              <span class="hidden sm:flex">Refresh</span>
-            </button>
-            <NuxtLink
-              to="/users/create"
-              class="hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm tracking-tight active:scale-98"
-            >
-              <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
-              <span>Add user</span>
-            </NuxtLink>
-          </div>
-        </div>
-      </div>
+              <div class="border-t" />
+              <FilterSection
+                title="Roles"
+                :options="['master', 'admin', 'staff', 'writer', 'user']"
+                :selected="selectedRoles"
+                @change="handleFilterChange('roles', $event)"
+              />
+              <div class="border-t" />
+              <FilterSection
+                title="Verified"
+                :options="[
+                  { label: 'Verified', value: 'true' },
+                  { label: 'Unverified', value: 'false' },
+                ]"
+                :selected="selectedVerified"
+                @change="handleFilterChange('email_verified_at', $event)"
+              />
+            </div>
+          </PopoverContent>
+        </Popover>
+      </template>
 
-      <!-- Table -->
-      <div class="overflow-hidden rounded-md border">
-        <Table class="table-fixed">
-          <TableHeader>
-            <TableRow
-              v-for="headerGroup in table.getHeaderGroups()"
-              :key="headerGroup.id"
-              class="tracking-tight hover:bg-transparent"
-            >
-              <TableHead
-                v-for="header in headerGroup.headers"
-                :key="header.id"
-                :style="{ width: `${header.getSize()}px` }"
-                class="h-11"
-              >
-                <template v-if="!header.isPlaceholder">
-                  <div
-                    v-if="header.column.getCanSort()"
-                    class="flex h-full cursor-pointer items-center justify-between gap-2 select-none"
-                    @click="header.column.getToggleSortingHandler()?.($event)"
-                    @keydown="
-                      (e) => {
-                        if (header.column.getCanSort() && (e.key === 'Enter' || e.key === ' ')) {
-                          e.preventDefault();
-                          header.column.getToggleSortingHandler()?.(e);
-                        }
-                      }
-                    "
-                    tabindex="0"
-                  >
-                    <FlexRender
-                      :render="header.column.columnDef.header"
-                      :props="header.getContext()"
-                    />
-                    <Icon
-                      v-if="header.column.getIsSorted() === 'asc'"
-                      name="lucide:chevron-up"
-                      class="size-4 shrink-0 opacity-60"
-                    />
-                    <Icon
-                      v-else-if="header.column.getIsSorted() === 'desc'"
-                      name="lucide:chevron-down"
-                      class="size-4 shrink-0 opacity-60"
-                    />
-                  </div>
-                  <FlexRender
-                    v-else
-                    :render="header.column.columnDef.header"
-                    :props="header.getContext()"
-                  />
-                </template>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody v-if="table.getRowModel().rows?.length">
-            <TableRow
-              v-for="row in table.getRowModel().rows"
-              :key="row.id"
-              :data-state="row.getIsSelected() && 'selected'"
-            >
-              <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id" class="last:py-0">
-                <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-
-        <!-- Empty State -->
-        <div
-          v-if="!table.getRowModel().rows?.length"
-          class="mx-auto flex w-full max-w-md flex-col items-center gap-4 py-6 text-center"
+      <template #actions="{ selectedRows }">
+        <DialogResponsive
+          v-if="selectedRows.length > 0"
+          v-model:open="deleteDialogOpen"
+          class="h-full"
         >
-          <div
-            class="*:bg-background/80 *:squircle text-muted-foreground flex items-center -space-x-2 *:rounded-lg *:border *:p-3 *:backdrop-blur-sm [&_svg]:size-5"
-          >
-            <div class="translate-y-1.5 -rotate-6">
-              <Icon name="hugeicons:file-empty-01" />
-            </div>
-            <div>
-              <Icon name="hugeicons:search-remove" />
-            </div>
-            <div class="translate-y-1.5 rotate-6">
-              <Icon name="hugeicons:user" />
-            </div>
-          </div>
-          <div class="flex flex-col gap-y-1.5">
-            <h6 class="text-lg font-semibold tracking-tight">No data found</h6>
-            <p class="text-muted-foreground text-sm">
-              It looks like there's no data in this page. You can create a new one or clear the
-              filters.
-            </p>
-          </div>
-          <div class="flex items-center gap-2">
-            <NuxtLink
-              to="/users/create"
-              class="hover:bg-primary/80 bg-primary text-primary-foreground flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm font-medium tracking-tight active:scale-98"
-            >
-              <Icon name="lucide:plus" class="size-4 shrink-0" />
-              <span>Create new</span>
-            </NuxtLink>
+          <template #trigger="{ open }">
             <button
-              class="border-border hover:bg-muted text-primary flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm font-medium tracking-tight active:scale-98"
-              @click="table.resetColumnFilters()"
+              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
+              @click="open()"
             >
-              <Icon name="lucide:x" class="size-4 shrink-0" />
-              <span>Clear filters</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pagination -->
-      <div v-if="table.getRowModel().rows?.length" class="flex items-center justify-between gap-4">
-        <div class="flex items-center gap-2">
-          <Label class="max-sm:sr-only">Rows per page</Label>
-          <Select
-            :model-value="table.getState().pagination.pageSize.toString()"
-            @update:model-value="(value) => table.setPageSize(Number(value))"
-          >
-            <SelectTrigger class="w-fit whitespace-nowrap" size="sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent
-              class="[&_*[role=option]]:ps-2 [&_*[role=option]]:pe-8 [&_*[role=option]>span]:start-auto [&_*[role=option]>span]:end-2"
-            >
-              <SelectItem
-                v-for="pageSize in [10, 20, 50, 100]"
-                :key="pageSize"
-                :value="pageSize.toString()"
+              <Icon name="lucide:trash" class="size-4 shrink-0" />
+              <span class="text-sm tracking-tight">Delete</span>
+              <span
+                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
               >
-                {{ pageSize }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div class="flex grow items-center justify-end gap-x-2.5 whitespace-nowrap sm:gap-x-3">
-          <div
-            v-if="pending"
-            class="size-4 animate-spin rounded-full border border-current border-r-transparent"
-          ></div>
-          <p class="text-muted-foreground text-xs whitespace-nowrap sm:text-sm">
-            <span class="text-foreground">
-              {{ (meta.current_page - 1) * meta.per_page + 1 }}-{{
-                Math.min(meta.current_page * meta.per_page, meta.total)
-              }}
-            </span>
-            of
-            <span class="text-foreground">
-              {{ meta.total }}
-            </span>
-          </p>
-          <Pagination
-            :default-page="meta.current_page"
-            :items-per-page="meta.per_page"
-            :total="meta.total"
-          >
-            <PaginationContent>
-              <PaginationFirst asChild>
+                {{ selectedRows.length }}
+              </span>
+            </button>
+          </template>
+          <template #default>
+            <div class="px-4 pb-6 md:px-6 md:py-5">
+              <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+              <p class="text-body mt-1.5 text-sm tracking-tight">
+                This action can't be undone. This will permanently delete
+                {{ selectedRows.length }} selected {{ selectedRows.length === 1 ? "row" : "rows" }}.
+              </p>
+              <div class="mt-3 flex justify-end gap-2">
                 <button
-                  class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                  @click="table.firstPage"
-                  :disabled="meta.current_page <= 1"
+                  class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  @click="deleteDialogOpen = false"
                 >
-                  <Icon name="lucide:chevron-first" class="size-4 shrink-0" />
+                  Cancel
                 </button>
-              </PaginationFirst>
-              <PaginationPrevious asChild>
                 <button
-                  class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                  @click="table.previousPage"
-                  :disabled="meta.current_page <= 1"
+                  @click="handleDeleteRows(selectedRows)"
+                  class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
                 >
-                  <Icon name="lucide:chevron-left" class="size-4 shrink-0" />
+                  Delete
                 </button>
-              </PaginationPrevious>
-              <PaginationNext asChild>
-                <button
-                  class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                  @click="table.nextPage"
-                  :disabled="meta.current_page >= meta.last_page"
-                >
-                  <Icon name="lucide:chevron-right" class="size-4 shrink-0" />
-                </button>
-              </PaginationNext>
-              <PaginationLast asChild>
-                <button
-                  class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                  @click="() => table.setPageIndex(meta.last_page - 1)"
-                  :disabled="meta.current_page >= meta.last_page"
-                >
-                  <Icon name="lucide:chevron-last" class="size-4 shrink-0" />
-                </button>
-              </PaginationLast>
-            </PaginationContent>
-          </Pagination>
-        </div>
-      </div>
-    </div>
+              </div>
+            </div>
+          </template>
+        </DialogResponsive>
+      </template>
+    </TableData>
   </div>
 </template>
 
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
+import TableData from "@/components/TableData.vue";
 import AuthUserInfo from "@/components/auth/UserInfo.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { valueUpdater } from "@/components/ui/table/utils";
-import { FlexRender, getCoreRowModel, useVueTable } from "@tanstack/vue-table";
 import { PopoverClose } from "reka-ui";
 import { resolveDirective, withDirectives } from "vue";
 
@@ -443,9 +144,7 @@ usePageMeta("users");
 const { $dayjs } = useNuxtApp();
 
 // Table state
-const rowSelection = ref({});
 const columnFilters = ref([]);
-const columnVisibility = ref({});
 const pagination = ref({ pageIndex: 0, pageSize: 20 });
 const sorting = ref([{ id: "created_at", desc: true }]);
 
@@ -615,47 +314,9 @@ const columns = [
   },
 ];
 
-// Table instance
-const table = useVueTable({
-  get data() {
-    return data.value || [];
-  },
-  get columns() {
-    return columns;
-  },
-  getCoreRowModel: getCoreRowModel(),
-  manualPagination: true,
-  manualSorting: true,
-  manualFiltering: true,
-  pageCount: meta.value.last_page,
-  autoResetPageIndex: false,
-  state: {
-    get rowSelection() {
-      return rowSelection.value;
-    },
-    get pagination() {
-      return pagination.value;
-    },
-    get sorting() {
-      return sorting.value;
-    },
-    get columnFilters() {
-      return columnFilters.value;
-    },
-    get columnVisibility() {
-      return columnVisibility.value;
-    },
-  },
-  onSortingChange: (updater) => valueUpdater(updater, sorting),
-  onPaginationChange: (updater) => valueUpdater(updater, pagination),
-  onColumnFiltersChange: (updater) => valueUpdater(updater, columnFilters),
-  onColumnVisibilityChange: (updater) => valueUpdater(updater, columnVisibility),
-  onRowSelectionChange: (updater) => valueUpdater(updater, rowSelection),
-  enableSortingRemoval: false,
-});
-
-// Filter helpers
-const getFilterValue = (columnId) => table.getColumn(columnId)?.getFilterValue() ?? [];
+// Filter helpers - using columnFilters ref directly
+const getFilterValue = (columnId) =>
+  columnFilters.value.find((f) => f.id === columnId)?.value ?? [];
 const selectedStatuses = computed(() => getFilterValue("status"));
 const selectedRoles = computed(() => getFilterValue("roles"));
 const selectedVerified = computed(() => getFilterValue("email_verified_at"));
@@ -666,19 +327,31 @@ const totalActiveFilters = computed(
 const handleFilterChange = (columnId, { checked, value }) => {
   const current = getFilterValue(columnId);
   const updated = checked ? [...current, value] : current.filter((item) => item !== value);
-  table.getColumn(columnId)?.setFilterValue(updated.length ? updated : undefined);
+
+  // Update columnFilters directly
+  const existingIndex = columnFilters.value.findIndex((f) => f.id === columnId);
+  if (updated.length) {
+    if (existingIndex >= 0) {
+      columnFilters.value[existingIndex].value = updated;
+    } else {
+      columnFilters.value.push({ id: columnId, value: updated });
+    }
+  } else {
+    if (existingIndex >= 0) {
+      columnFilters.value.splice(existingIndex, 1);
+    }
+  }
 };
 
 // Delete handlers
 const deleteDialogOpen = ref(false);
-const handleDeleteRows = async () => {
-  const userIds = table.getSelectedRowModel().rows.map((row) => row.original.id);
+const handleDeleteRows = async (selectedRows) => {
+  const userIds = selectedRows.map((row) => row.original.id);
   try {
     await Promise.all(
       userIds.map((id) => useSanctumFetch(`/api/users/${id}`, { method: "DELETE" }))
     );
     await refresh();
-    table.resetRowSelection();
     deleteDialogOpen.value = false;
   } catch (error) {
     console.error("Failed to delete users:", error);
@@ -867,15 +540,6 @@ const FilterSection = defineComponent({
           })
         ),
       ]);
-  },
-});
-
-// Search keyboard shortcut
-const searchInputEl = ref();
-const { metaSymbol } = useShortcuts();
-defineShortcuts({
-  meta_k: {
-    handler: () => searchInputEl.value?.focus(),
   },
 });
 </script>
