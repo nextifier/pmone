@@ -64,7 +64,7 @@
           <Popover>
             <PopoverTrigger asChild>
               <button
-                class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+                class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
               >
                 <Icon
                   name="lucide:list-filter"
@@ -75,7 +75,7 @@
                 <span class="hidden sm:flex">Filter</span>
                 <span
                   v-if="selectedStatuses.length > 0"
-                  class="bg-background text-muted-foreground/70 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
+                  class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
                 >
                   {{ selectedStatuses.length }}
                 </span>
@@ -95,7 +95,10 @@
                       :model-value="selectedStatuses.includes(value)"
                       @update:model-value="(checked) => handleStatusChange(!!checked, value)"
                     />
-                    <Label :for="`status-${i}`" class="flex grow justify-between gap-2 font-normal">
+                    <Label
+                      :for="`status-${i}`"
+                      class="flex grow justify-between gap-2 font-normal tracking-tight capitalize"
+                    >
                       {{ value }}
                       <span class="text-muted-foreground ms-2 text-xs">
                         {{ statusCounts.get(value) }}
@@ -107,35 +110,48 @@
             </PopoverContent>
           </Popover>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          <Popover>
+            <PopoverTrigger asChild>
               <button
                 class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
               >
                 <Icon name="lucide:columns-3" class="size-4 shrink-0" />
                 <span class="hidden sm:flex">Columns</span>
               </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel class="text-muted-foreground text-xs">
-                Toggle columns
-              </DropdownMenuLabel>
-              <DropdownMenuCheckboxItem
-                v-for="column in table.getAllColumns().filter((column) => column.getCanHide())"
-                :key="column.id"
-                class="capitalize"
-                :model-value="column.getIsVisible()"
-                @update:model-value="(value) => column.toggleVisibility(!!value)"
-                @select="(event) => event.preventDefault()"
-              >
-                {{ column.id }}
-              </DropdownMenuCheckboxItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </PopoverTrigger>
+            <PopoverContent class="w-auto min-w-36 p-3" align="end">
+              <div class="space-y-3">
+                <div class="text-muted-foreground text-xs font-medium">Toggle columns</div>
+                <div class="space-y-3">
+                  <div
+                    v-for="column in table.getAllColumns().filter((column) => column.getCanHide())"
+                    :key="column.id"
+                    class="flex items-center gap-2"
+                  >
+                    <Checkbox
+                      :id="`column-${column.id}`"
+                      :model-value="column.getIsVisible()"
+                      @update:model-value="(value) => column.toggleVisibility(!!value)"
+                    />
+                    <Label
+                      :for="`column-${column.id}`"
+                      class="grow font-normal tracking-tight capitalize"
+                    >
+                      {{ column.id }}
+                    </Label>
+                  </div>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div class="flex h-9 w-full items-center justify-between gap-x-1 sm:gap-x-2">
-          <DialogResponsive v-if="table.getSelectedRowModel().rows.length > 0" class="h-full">
+          <DialogResponsive
+            v-if="table.getSelectedRowModel().rows.length > 0"
+            v-model:open="deleteDialogOpen"
+            class="h-full"
+          >
             <template #trigger="{ open }">
               <button
                 class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
@@ -163,6 +179,7 @@
                 <div class="mt-3 flex justify-end gap-2">
                   <button
                     class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                    @click="deleteDialogOpen = false"
                   >
                     Cancel
                   </button>
@@ -180,9 +197,17 @@
 
           <div class="ml-auto flex h-full gap-x-1 sm:gap-x-2">
             <button
+              v-if="table.getState().columnFilters.length > 0"
+              class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+              @click="table.resetColumnFilters()"
+            >
+              <Icon name="lucide:x" class="size-4 shrink-0" />
+              <span class="hidden sm:flex">Clear filters</span>
+            </button>
+
+            <button
               class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
               @click="refresh"
-              v-tippy="'Refresh data'"
             >
               <Icon
                 name="lucide:refresh-cw"
@@ -258,25 +283,60 @@
               </TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            <template v-if="table.getRowModel().rows?.length">
-              <TableRow
-                v-for="row in table.getRowModel().rows"
-                :key="row.id"
-                :data-state="row.getIsSelected() && 'selected'"
-              >
-                <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id" class="last:py-0">
-                  <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
-                </TableCell>
-              </TableRow>
-            </template>
-            <TableRow v-else>
-              <TableCell :colspan="columns.length" class="h-24 text-center">
-                No results.
+          <TableBody v-if="table.getRowModel().rows?.length">
+            <TableRow
+              v-for="row in table.getRowModel().rows"
+              :key="row.id"
+              :data-state="row.getIsSelected() && 'selected'"
+            >
+              <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id" class="last:py-0">
+                <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
               </TableCell>
             </TableRow>
           </TableBody>
         </Table>
+
+        <div
+          v-if="!table.getRowModel().rows?.length"
+          class="mx-auto flex w-full max-w-md flex-col items-center gap-4 py-6 text-center"
+        >
+          <div
+            class="*:bg-background/80 *:squircle text-muted-foreground flex items-center -space-x-2 *:rounded-lg *:border *:p-3 *:backdrop-blur-sm [&_svg]:size-5"
+          >
+            <div class="translate-y-1.5 -rotate-6">
+              <Icon name="hugeicons:file-empty-01" />
+            </div>
+            <div>
+              <Icon name="hugeicons:search-remove" />
+            </div>
+            <div class="translate-y-1.5 rotate-6">
+              <Icon name="hugeicons:user" />
+            </div>
+          </div>
+          <div class="flex flex-col gap-y-1.5">
+            <h6 class="text-lg font-semibold tracking-tight">No data found</h6>
+            <p class="text-muted-foreground text-sm">
+              It looks like there's no data in this page. You can create a new one or clear the
+              filters.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <NuxtLink
+              to="/users/create"
+              class="hover:bg-primary/80 bg-primary text-primary-foreground flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm font-medium tracking-tight active:scale-98"
+            >
+              <Icon name="lucide:plus" class="size-4 shrink-0" />
+              <span>Create new</span>
+            </NuxtLink>
+            <button
+              class="border-border hover:bg-muted text-primary flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm font-medium tracking-tight active:scale-98"
+              @click="table.resetColumnFilters()"
+            >
+              <Icon name="lucide:x" class="size-4 shrink-0" />
+              <span>Clear filters</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="flex items-center justify-between gap-4">
@@ -378,11 +438,9 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
@@ -656,6 +714,8 @@ const handleStatusChange = (checked, value) => {
   table.getColumn("status")?.setFilterValue(updated.length ? updated : undefined);
 };
 
+const deleteDialogOpen = ref(false);
+
 const handleDeleteRows = async () => {
   const userIds = table.getSelectedRowModel().rows.map((row) => row.original.id);
 
@@ -665,6 +725,7 @@ const handleDeleteRows = async () => {
     );
     await refresh();
     table.resetRowSelection();
+    deleteDialogOpen.value = false;
   } catch (error) {
     console.error("Failed to delete users:", error);
   }

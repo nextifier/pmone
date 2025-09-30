@@ -137,6 +137,18 @@ provide("dialogControls", {
   close,
 });
 
+// Focus management for drawer to fix aria-hidden warning
+watch(isOpen, (newValue) => {
+  if (newValue && !isDesktop.value) {
+    // When drawer opens on mobile, blur the active element
+    nextTick(() => {
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    });
+  }
+});
+
 const drawerContentBody = ref(null);
 const drawerContentBodyYPosition = ref(0);
 const drawerContentBodyIsAtTop = ref(true);
