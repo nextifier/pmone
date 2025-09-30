@@ -26,24 +26,24 @@ class UserController extends Controller
 
         $query = User::query()->with(['roles']);
 
-        // Handle status filter
-        if ($request->has('filter.status') && $request->input('filter.status')) {
-            $query->where('status', $request->input('filter.status'));
+        // Handle status filter (dots are converted to underscores by Nuxt/Nitro)
+        if ($request->has('filter_status') && $request->input('filter_status')) {
+            $query->where('status', $request->input('filter_status'));
         }
 
-        // Handle search filter
-        if ($request->has('filter.search') && $request->input('filter.search')) {
-            $searchTerm = $request->input('filter.search');
+        // Handle search filter (dots are converted to underscores by Nuxt/Nitro)
+        if ($request->has('filter_search') && $request->input('filter_search')) {
+            $searchTerm = $request->input('filter_search');
             $query->where(function ($q) use ($searchTerm) {
-                $q->where('name', 'like', "%{$searchTerm}%")
-                    ->orWhere('email', 'like', "%{$searchTerm}%")
-                    ->orWhere('username', 'like', "%{$searchTerm}%");
+                $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
+                    ->orWhereRaw('LOWER(email) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
+                    ->orWhereRaw('LOWER(username) LIKE ?', ['%' . strtolower($searchTerm) . '%']);
             });
         }
 
-        // Handle role filter
-        if ($request->has('filter.role') && $request->input('filter.role')) {
-            $roleName = $request->input('filter.role');
+        // Handle role filter (dots are converted to underscores by Nuxt/Nitro)
+        if ($request->has('filter_role') && $request->input('filter_role')) {
+            $roleName = $request->input('filter_role');
             $query->whereHas('roles', function ($q) use ($roleName) {
                 $q->where('name', $roleName);
             });
@@ -51,10 +51,22 @@ class UserController extends Controller
 
         // Handle sorting
         $sortField = $request->input('sort', '-created_at');
+
+        // Extract direction and field
+        $direction = 'asc';
+        $field = $sortField;
         if (str_starts_with($sortField, '-')) {
-            $query->orderBy(substr($sortField, 1), 'desc');
+            $direction = 'desc';
+            $field = substr($sortField, 1);
+        }
+
+        // Only sort by actual database columns, not relationships
+        $allowedSortFields = ['name', 'email', 'username', 'status', 'created_at', 'updated_at'];
+        if (in_array($field, $allowedSortFields)) {
+            $query->orderBy($field, $direction);
         } else {
-            $query->orderBy($sortField, 'asc');
+            // Default to created_at if invalid field
+            $query->orderBy('created_at', 'desc');
         }
 
         $users = $query->paginate($request->input('per_page', 15));

@@ -332,7 +332,7 @@
         </div>
       </div>
 
-      <div class="flex items-center justify-between gap-4">
+      <div v-if="table.getRowModel().rows?.length" class="flex items-center justify-between gap-4">
         <div class="flex items-center gap-2">
           <Label class="max-sm:sr-only">Rows per page</Label>
           <Select
@@ -432,14 +432,7 @@ import AuthUserInfo from "@/components/auth/UserInfo.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { valueUpdater } from "@/components/ui/table/utils";
-import {
-  FlexRender,
-  getCoreRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useVueTable,
-} from "@tanstack/vue-table";
+import { FlexRender, getCoreRowModel, useVueTable } from "@tanstack/vue-table";
 import { PopoverClose } from "reka-ui";
 
 definePageMeta({
@@ -455,20 +448,6 @@ usePageMeta("users");
 
 const { $dayjs } = useNuxtApp();
 
-// Custom filter function for multi-column searching
-const multiColumnFilterFn = (row, _columnId, filterValue) => {
-  const searchableRowContent =
-    `${row.original.name || ""} ${row.original.email || ""} ${row.original.username || ""}`.toLowerCase();
-  const searchTerm = (filterValue ?? "").toLowerCase();
-  return searchableRowContent.includes(searchTerm);
-};
-
-const statusFilterFn = (row, _columnId, filterValue) => {
-  if (!filterValue?.length) return true;
-  const status = row.getValue("status");
-  return filterValue.includes(status);
-};
-
 // Define pagination state first
 const rowSelection = ref({});
 const columnFilters = ref([]);
@@ -478,33 +457,103 @@ const pagination = ref({
   pageSize: 20,
 });
 
-// Reactive query parameters that will trigger refetch when changed
-const queryParams = reactive({
-  page: pagination.value.pageIndex + 1, // Laravel uses 1-based page indexing
-  per_page: pagination.value.pageSize,
-});
-
-// Initial fetch with server-side pagination
-const {
-  data: response,
-  pending,
-  error,
-  refresh,
-} = await useSanctumFetch(
-  "/api/users",
+const sorting = ref([
   {
-    method: "GET",
-    query: queryParams, // Use reactive query params
+    id: "name",
+    desc: false,
   },
-  "fetch-users"
-);
+]);
+
+// Reactive state for users data
+const response = ref(null);
+const pending = ref(false);
+const error = ref(null);
+
+// Function to fetch users
+const fetchUsers = async () => {
+  pending.value = true;
+  error.value = null;
+
+  try {
+    const client = useSanctumClient();
+
+    // Extract filters from columnFilters
+    const nameFilter = columnFilters.value.find((f) => f.id === "name");
+    const statusFilter = columnFilters.value.find((f) => f.id === "status");
+
+    const query = {
+      page: pagination.value.pageIndex + 1,
+      per_page: pagination.value.pageSize,
+    };
+
+    // Add search filter with correct format: filter.search
+    if (nameFilter?.value) {
+      query["filter.search"] = nameFilter.value;
+    }
+
+    // Add status filter with correct format: filter.status
+    const statusValue = statusFilter?.value;
+    if (statusValue && Array.isArray(statusValue) && statusValue.length > 0) {
+      // Backend expects single status value, not array
+      query["filter.status"] = statusValue[0];
+    }
+
+    // Add sorting with correct format: sort=-created_at or sort=name
+    const sortField = sorting.value[0]?.id || "created_at";
+    const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
+    query.sort = sortDirection === "desc" ? `-${sortField}` : sortField;
+
+    // IMPORTANT: useSanctumClient already has baseUrl configured, just need to ensure /api prefix
+    const result = await client("/api/users", {
+      query,
+    });
+
+    response.value = result;
+  } catch (e) {
+    error.value = e;
+    console.error("❌ Error fetching users:", e);
+  } finally {
+    pending.value = false;
+  }
+};
+
+// Initial fetch
+await fetchUsers();
+
+// Manual refresh function
+const refresh = async () => {
+  await fetchUsers();
+};
 
 // Update pagination and refresh data
 const updatePagination = async (pageIndex, pageSize) => {
-  queryParams.page = pageIndex + 1;
-  queryParams.per_page = pageSize;
-  await refresh();
+  pagination.value.pageIndex = pageIndex;
+  pagination.value.pageSize = pageSize;
+  await fetchUsers();
 };
+
+// Debounced fetch for search input
+const debouncedFetchUsers = useDebounceFn(async () => {
+  pagination.value.pageIndex = 0;
+  await fetchUsers();
+}, 300); // 300ms debounce
+
+watch(
+  columnFilters,
+  () => {
+    debouncedFetchUsers();
+  },
+  { deep: true }
+);
+
+// Watch for sorting changes
+watch(
+  sorting,
+  async () => {
+    await fetchUsers();
+  },
+  { deep: true }
+);
 
 // Extract users data and meta from response
 const data = computed(() => response.value?.data || []);
@@ -517,13 +566,6 @@ const meta = computed(
       total: 0,
     }
 );
-
-const sorting = ref([
-  {
-    id: "name",
-    desc: false,
-  },
-]);
 
 const columns = [
   {
@@ -551,46 +593,26 @@ const columns = [
     accessorKey: "name",
     cell: ({ row }) => h(AuthUserInfo, { user: row.original }),
     size: 280,
-    filterFn: multiColumnFilterFn,
     enableHiding: false,
-    sortUndefined: "last",
-    sortDescFirst: false,
   },
   {
     header: "Status",
     accessorKey: "status",
     cell: ({ row }) => {
       const status = row.getValue("status");
-      return h(
-        "div",
-        { class: "text-sm tracking-tight capitalize" },
-        status
-      );
+      return h("div", { class: "text-sm tracking-tight capitalize" }, status);
     },
     size: 100,
-    filterFn: statusFilterFn,
-    sortUndefined: "last",
-    sortDescFirst: false,
   },
   {
     header: "Roles",
     accessorKey: "roles",
     cell: ({ row }) => {
       const roles = row.getValue("roles") || [];
-      return h(
-        "div",
-        { class: "text-sm tracking-tight capitalize" },
-        roles.join(", ")
-      );
-    },
-    sortingFn: (rowA, rowB) => {
-      const rolesA = rowA.getValue("roles") || [];
-      const rolesB = rowB.getValue("roles") || [];
-      return rolesA.join(", ").localeCompare(rolesB.join(", "));
+      return h("div", { class: "text-sm tracking-tight capitalize" }, roles.join(", "));
     },
     size: 140,
-    sortUndefined: "last",
-    sortDescFirst: false,
+    enableSorting: false, // Roles is a relationship, can't sort by it
   },
   {
     header: "Joined",
@@ -604,8 +626,6 @@ const columns = [
       );
     },
     size: 100,
-    sortUndefined: "last",
-    sortDescFirst: false,
   },
   {
     id: "actions",
@@ -624,12 +644,11 @@ const table = useVueTable({
     return columns;
   },
   getCoreRowModel: getCoreRowModel(),
-  getSortedRowModel: getSortedRowModel(),
-  manualPagination: true, // Tell table that data is already paginated by server
-  pageCount: -1, // We'll handle pagination manually with backend meta
-  autoResetPageIndex: false, // Don't reset page index when data changes
-  getFilteredRowModel: getFilteredRowModel(),
-  getFacetedUniqueValues: getFacetedUniqueValues(),
+  manualPagination: true, // Server-side pagination
+  manualSorting: true, // Server-side sorting
+  manualFiltering: true, // Server-side filtering
+  pageCount: meta.value.last_page, // Use server's page count
+  autoResetPageIndex: false,
   state: {
     get rowSelection() {
       return rowSelection.value;
@@ -659,15 +678,13 @@ const table = useVueTable({
   enableSortingRemoval: false,
 });
 
-// Status filter computed properties
-const uniqueStatusValues = computed(() => {
-  const statusColumn = table.getColumn("status");
-  return statusColumn ? Array.from(statusColumn.getFacetedUniqueValues().keys()).sort() : [];
-});
+// Status filter - hardcoded since we know the possible values
+const uniqueStatusValues = computed(() => ["active", "inactive"]);
 
 const statusCounts = computed(() => {
-  const statusColumn = table.getColumn("status");
-  return statusColumn ? statusColumn.getFacetedUniqueValues() : new Map();
+  // For server-side filtering, we don't have accurate counts per status
+  // You would need to fetch this from backend if needed
+  return new Map();
 });
 
 const selectedStatuses = computed(() => table.getColumn("status")?.getFilterValue() ?? []);
