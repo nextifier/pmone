@@ -66,12 +66,7 @@
               <button
                 class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
               >
-                <Icon
-                  name="lucide:list-filter"
-                  class="size-4 shrink-0"
-                  :size="16"
-                  aria-hidden="true"
-                />
+                <Icon name="lucide:list-filter" class="size-4 shrink-0" :size="16" />
                 <span class="hidden sm:flex">Filter</span>
                 <span
                   v-if="selectedStatuses.length > 0"
@@ -261,17 +256,15 @@
                       :render="header.column.columnDef.header"
                       :props="header.getContext()"
                     />
-                    <LucideChevronUp
+                    <Icon
                       v-if="header.column.getIsSorted() === 'asc'"
-                      class="shrink-0 opacity-60"
-                      :size="16"
-                      aria-hidden="true"
+                      name="lucide:chevron-up"
+                      class="size-4 shrink-0 opacity-60"
                     />
-                    <LucideChevronDown
+                    <Icon
                       v-else-if="header.column.getIsSorted() === 'desc'"
-                      class="shrink-0 opacity-60"
-                      :size="16"
-                      aria-hidden="true"
+                      name="lucide:chevron-down"
+                      class="size-4 shrink-0 opacity-60"
                     />
                   </div>
                   <FlexRender
@@ -434,26 +427,11 @@
 </template>
 
 <script setup>
-import { Badge } from "@/components/ui/badge";
+import DialogResponsive from "@/components/DialogResponsive.vue";
+import AuthUserInfo from "@/components/auth/UserInfo.vue";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-import { Ellipsis, LucideChevronDown, LucideChevronUp } from "lucide-vue-next";
-
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { valueUpdater } from "@/components/ui/table/utils";
-
 import {
   FlexRender,
   getCoreRowModel,
@@ -462,6 +440,7 @@ import {
   getSortedRowModel,
   useVueTable,
 } from "@tanstack/vue-table";
+import { PopoverClose } from "reka-ui";
 
 definePageMeta({
   middleware: ["sanctum:auth", "staff-admin-master"],
@@ -570,25 +549,10 @@ const columns = [
   {
     header: "Name",
     accessorKey: "name",
-    cell: ({ row }) => h("div", { class: "font-medium" }, row.getValue("name")),
-    size: 180,
+    cell: ({ row }) => h(AuthUserInfo, { user: row.original }),
+    size: 280,
     filterFn: multiColumnFilterFn,
     enableHiding: false,
-    sortUndefined: "last",
-    sortDescFirst: false,
-  },
-  {
-    header: "Username",
-    accessorKey: "username",
-    cell: ({ row }) => h("div", { class: "text-muted-foreground" }, `@${row.getValue("username")}`),
-    size: 140,
-    sortUndefined: "last",
-    sortDescFirst: false,
-  },
-  {
-    header: "Email",
-    accessorKey: "email",
-    size: 220,
     sortUndefined: "last",
     sortDescFirst: false,
   },
@@ -598,12 +562,9 @@ const columns = [
     cell: ({ row }) => {
       const status = row.getValue("status");
       return h(
-        Badge,
-        {
-          variant: status === "active" ? "default" : "secondary",
-          class: status === "inactive" ? "bg-muted-foreground/60 text-primary-foreground" : "",
-        },
-        () => status?.charAt(0)?.toUpperCase() + status?.slice(1)
+        "div",
+        { class: "text-sm tracking-tight capitalize" },
+        status
       );
     },
     size: 100,
@@ -618,12 +579,16 @@ const columns = [
       const roles = row.getValue("roles") || [];
       return h(
         "div",
-        { class: "flex gap-1 flex-wrap" },
-        roles.map((role) => h(Badge, { variant: "outline", key: role }, () => role))
+        { class: "text-sm tracking-tight capitalize" },
+        roles.join(", ")
       );
     },
+    sortingFn: (rowA, rowB) => {
+      const rolesA = rowA.getValue("roles") || [];
+      const rolesB = rowB.getValue("roles") || [];
+      return rolesA.join(", ").localeCompare(rolesB.join(", "));
+    },
     size: 140,
-    enableSorting: false,
     sortUndefined: "last",
     sortDescFirst: false,
   },
@@ -645,7 +610,7 @@ const columns = [
   {
     id: "actions",
     header: () => h("span", { class: "sr-only" }, "Actions"),
-    cell: ({ row }) => h(RowActions, { row }),
+    cell: ({ row }) => h(RowActions, { userId: row.original.id, username: row.original.username }),
     size: 60,
     enableHiding: false,
   },
@@ -731,76 +696,168 @@ const handleDeleteRows = async () => {
   }
 };
 
-// RowActions component
-const RowActions = () => {
-  return h(
-    DropdownMenu,
-    {},
-    {
-      trigger: () =>
-        h(DropdownMenuTrigger, { asChild: true }, () =>
-          h("div", { class: "flex justify-end" }, [
-            h(
-              Button,
-              {
-                size: "icon",
-                variant: "ghost",
-                class: "shadow-none",
-                "aria-label": "Edit item",
-              },
-              () => h(Ellipsis, { size: 16, "aria-hidden": "true" })
-            ),
-          ])
-        ),
-      default: () =>
-        h(DropdownMenuContent, { align: "end" }, () => [
-          h(DropdownMenuGroup, {}, () => [
-            h(DropdownMenuItem, {}, () => [
-              h("span", {}, "Edit"),
-              h(DropdownMenuShortcut, {}, "⌘E"),
-            ]),
-            h(DropdownMenuItem, {}, () => [
-              h("span", {}, "Duplicate"),
-              h(DropdownMenuShortcut, {}, "⌘D"),
-            ]),
-          ]),
-          h(DropdownMenuSeparator),
-          h(DropdownMenuGroup, {}, () => [
-            h(DropdownMenuItem, {}, () => [
-              h("span", {}, "Archive"),
-              h(DropdownMenuShortcut, {}, "⌘A"),
-            ]),
-            h(
-              DropdownMenuSub,
-              {},
-              {
-                trigger: () => h(DropdownMenuSubTrigger, {}, () => "More"),
-                content: () =>
-                  h(DropdownMenuPortal, {}, () =>
-                    h(DropdownMenuSubContent, {}, () => [
-                      h(DropdownMenuItem, {}, () => "Move to project"),
-                      h(DropdownMenuItem, {}, () => "Move to folder"),
-                      h(DropdownMenuSeparator),
-                      h(DropdownMenuItem, {}, () => "Advanced options"),
-                    ])
-                  ),
-              }
-            ),
-          ]),
-          h(DropdownMenuSeparator),
-          h(DropdownMenuGroup, {}, () => [
-            h(DropdownMenuItem, {}, () => "Share"),
-            h(DropdownMenuItem, {}, () => "Add to favorites"),
-          ]),
-          h(DropdownMenuSeparator),
-          h(DropdownMenuItem, { class: "text-destructive focus:text-destructive" }, () => [
-            h("span", {}, "Delete"),
-            h(DropdownMenuShortcut, {}, "⌘⌫"),
-          ]),
-        ]),
-    }
-  );
+const handleDeleteSingleRow = async (userId) => {
+  try {
+    await useSanctumFetch(`/api/users/${userId}`, { method: "DELETE" });
+    await refresh();
+  } catch (error) {
+    console.error("Failed to delete user:", error);
+  }
 };
+
+// RowActions component
+const RowActions = defineComponent({
+  props: {
+    userId: {
+      type: Number,
+      required: true,
+    },
+    username: {
+      type: String,
+      required: true,
+    },
+  },
+  setup(props) {
+    const dialogOpen = ref(false);
+
+    const onDeleteConfirm = async () => {
+      await handleDeleteSingleRow(props.userId);
+      dialogOpen.value = false;
+    };
+
+    const onDeleteClick = () => {
+      dialogOpen.value = true;
+    };
+
+    return () =>
+      h("div", { class: "flex justify-end" }, [
+        h(
+          Popover,
+          {},
+          {
+            default: () => [
+              h(
+                PopoverTrigger,
+                { asChild: true },
+                {
+                  default: () =>
+                    h(
+                      "button",
+                      {
+                        class:
+                          "hover:bg-muted data-[state=open]:bg-muted inline-flex size-8 items-center justify-center rounded-md",
+                      },
+                      [h(resolveComponent("Icon"), { name: "lucide:ellipsis", class: "size-4" })]
+                    ),
+                }
+              ),
+              h(
+                PopoverContent,
+                { align: "end", class: "w-40 p-1" },
+                {
+                  default: () =>
+                    h("div", { class: "flex flex-col" }, [
+                      h(
+                        PopoverClose,
+                        { asChild: true },
+                        {
+                          default: () =>
+                            h(
+                              resolveComponent("NuxtLink"),
+                              {
+                                to: `/users/${props.username}/edit`,
+                                class:
+                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                              },
+                              {
+                                default: () => [
+                                  h(resolveComponent("Icon"), {
+                                    name: "lucide:pencil-line",
+                                    class: "size-4 shrink-0",
+                                  }),
+                                  h("span", {}, "Edit"),
+                                ],
+                              }
+                            ),
+                        }
+                      ),
+                      h(
+                        PopoverClose,
+                        { asChild: true },
+                        {
+                          default: () =>
+                            h(
+                              "button",
+                              {
+                                class:
+                                  "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                onClick: onDeleteClick,
+                              },
+                              [
+                                h(resolveComponent("Icon"), {
+                                  name: "lucide:trash",
+                                  class: "size-4 shrink-0",
+                                }),
+                                h("span", {}, "Delete"),
+                              ]
+                            ),
+                        }
+                      ),
+                    ]),
+                }
+              ),
+            ],
+          }
+        ),
+        h(
+          DialogResponsive,
+          {
+            open: dialogOpen.value,
+            "onUpdate:open": (value) => {
+              dialogOpen.value = value;
+            },
+          },
+          {
+            default: () =>
+              h("div", { class: "px-4 pb-6 md:px-6 md:py-5" }, [
+                h(
+                  "div",
+                  { class: "text-primary text-lg font-semibold tracking-tight" },
+                  "Are you sure?"
+                ),
+                h(
+                  "p",
+                  { class: "text-body mt-1.5 text-sm tracking-tight" },
+                  "This action can't be undone. This will permanently delete this user."
+                ),
+                h("div", { class: "mt-3 flex justify-end gap-2" }, [
+                  h(
+                    "button",
+                    {
+                      class:
+                        "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                      onClick: () => {
+                        dialogOpen.value = false;
+                      },
+                    },
+                    "Cancel"
+                  ),
+                  h(
+                    "button",
+                    {
+                      class:
+                        "bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                      onClick: onDeleteConfirm,
+                    },
+                    "Delete"
+                  ),
+                ]),
+              ]),
+          }
+        ),
+      ]);
+  },
+});
 
 const searchInputEl = ref();
 const { metaSymbol } = useShortcuts();
