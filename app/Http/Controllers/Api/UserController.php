@@ -26,69 +26,8 @@ class UserController extends Controller
 
         $query = User::query()->with(['roles']);
 
-        // Handle status filter (dots are converted to underscores by Nuxt/Nitro)
-        if ($request->has('filter_status') && $request->input('filter_status')) {
-            $statuses = explode(',', $request->input('filter_status'));
-            $query->whereIn('status', $statuses);
-        }
-
-        // Handle search filter (dots are converted to underscores by Nuxt/Nitro)
-        if ($request->has('filter_search') && $request->input('filter_search')) {
-            $searchTerm = $request->input('filter_search');
-            $query->where(function ($q) use ($searchTerm) {
-                $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
-                    ->orWhereRaw('LOWER(email) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
-                    ->orWhereRaw('LOWER(username) LIKE ?', ['%' . strtolower($searchTerm) . '%']);
-            });
-        }
-
-        // Handle role filter (dots are converted to underscores by Nuxt/Nitro)
-        if ($request->has('filter_role') && $request->input('filter_role')) {
-            $roles = explode(',', $request->input('filter_role'));
-            $query->whereHas('roles', function ($q) use ($roles) {
-                $q->whereIn('name', $roles);
-            });
-        }
-
-        // Handle verified filter (dots are converted to underscores by Nuxt/Nitro)
-        if ($request->has('filter_verified') && $request->input('filter_verified')) {
-            $verifiedStatuses = explode(',', $request->input('filter_verified'));
-            $query->where(function ($q) use ($verifiedStatuses) {
-                foreach ($verifiedStatuses as $status) {
-                    if ($status === 'true') {
-                        $q->orWhereNotNull('email_verified_at');
-                    } elseif ($status === 'false') {
-                        $q->orWhereNull('email_verified_at');
-                    }
-                }
-            });
-        }
-
-        // Handle sorting
-        $sortField = $request->input('sort', '-created_at');
-
-        // Extract direction and field
-        $direction = 'asc';
-        $field = $sortField;
-        if (str_starts_with($sortField, '-')) {
-            $direction = 'desc';
-            $field = substr($sortField, 1);
-        }
-
-        // Handle sorting by roles (relationship)
-        if ($field === 'roles') {
-            $query->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
-                ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
-                ->select('users.*')
-                ->groupBy('users.id')
-                ->orderByRaw("MIN(roles.name) {$direction}");
-        } elseif (in_array($field, ['name', 'email', 'username', 'status', 'email_verified_at', 'created_at', 'updated_at'])) {
-            // Sort by actual database columns
-            $query->orderBy($field, $direction);
-        } else {
-            // Default to created_at if invalid field
-            $query->orderBy('created_at', 'desc');
-        }
+        $this->applyFilters($query, $request);
+        $this->applySorting($query, $request);
 
         $users = $query->paginate($request->input('per_page', 15));
 
@@ -101,6 +40,61 @@ class UserController extends Controller
                 'total' => $users->total(),
             ],
         ]);
+    }
+
+    private function applyFilters($query, Request $request): void
+    {
+        // Search filter
+        if ($searchTerm = $request->input('filter_search')) {
+            $query->where(function ($q) use ($searchTerm) {
+                $searchTerm = strtolower($searchTerm);
+                $q->whereRaw('LOWER(name) LIKE ?', ["%{$searchTerm}%"])
+                    ->orWhereRaw('LOWER(email) LIKE ?', ["%{$searchTerm}%"])
+                    ->orWhereRaw('LOWER(username) LIKE ?', ["%{$searchTerm}%"]);
+            });
+        }
+
+        // Status filter
+        if ($statuses = $request->input('filter_status')) {
+            $query->whereIn('status', explode(',', $statuses));
+        }
+
+        // Role filter
+        if ($roles = $request->input('filter_role')) {
+            $query->whereHas('roles', fn($q) => $q->whereIn('name', explode(',', $roles)));
+        }
+
+        // Verified filter
+        if ($verifiedStatuses = $request->input('filter_verified')) {
+            $query->where(function ($q) use ($verifiedStatuses) {
+                $statuses = explode(',', $verifiedStatuses);
+                if (in_array('true', $statuses)) {
+                    $q->orWhereNotNull('email_verified_at');
+                }
+                if (in_array('false', $statuses)) {
+                    $q->orWhereNull('email_verified_at');
+                }
+            });
+        }
+    }
+
+    private function applySorting($query, Request $request): void
+    {
+        $sortField = $request->input('sort', '-created_at');
+        $direction = str_starts_with($sortField, '-') ? 'desc' : 'asc';
+        $field = ltrim($sortField, '-');
+
+        if ($field === 'roles') {
+            $query->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+                ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                ->select('users.*')
+                ->groupBy('users.id')
+                ->orderByRaw("MIN(roles.name) {$direction}");
+        } elseif (in_array($field, ['name', 'email', 'username', 'status', 'email_verified_at', 'created_at', 'updated_at'])) {
+            $query->orderBy($field, $direction);
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
     }
 
     public function show(User $user): JsonResponse

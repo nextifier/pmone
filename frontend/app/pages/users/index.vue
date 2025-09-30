@@ -23,8 +23,10 @@
     </div>
 
     <div v-else class="grid gap-y-4">
+      <!-- Search and Filters -->
       <div class="flex flex-col gap-y-3">
         <div class="flex h-9 gap-x-1 sm:gap-x-2">
+          <!-- Search Input -->
           <div class="relative h-full grow">
             <input
               ref="searchInputEl"
@@ -34,39 +36,33 @@
               @input="(event) => table.getColumn('name')?.setFilterValue(event.target.value)"
               placeholder="Search name, email, or username"
             />
-
             <Icon
               name="lucide:search"
               class="text-muted-foreground/80 absolute top-1/2 left-3 size-4 -translate-y-1/2 peer-disabled:opacity-50"
             />
-
             <span
               id="shortcut-key"
               class="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 items-center justify-center gap-x-0.5 peer-placeholder-shown:flex peer-focus-within:hidden"
             >
               <kbd class="keyboard-symbol">{{ metaSymbol }} K</kbd>
             </span>
-
             <button
               v-if="Boolean(table.getColumn('name')?.getFilterValue())"
               class="bg-muted hover:bg-border absolute top-1/2 right-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full peer-placeholder-shown:hidden"
               aria-label="Clear filter"
-              @click="
-                () => {
-                  table.getColumn('name')?.setFilterValue('');
-                }
-              "
+              @click="table.getColumn('name')?.setFilterValue('')"
             >
               <Icon name="lucide:x" class="size-3 shrink-0" />
             </button>
           </div>
 
+          <!-- Filter Popover -->
           <Popover>
             <PopoverTrigger asChild>
               <button
                 class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
               >
-                <Icon name="lucide:list-filter" class="size-4 shrink-0" :size="16" />
+                <Icon name="lucide:list-filter" class="size-4 shrink-0" />
                 <span class="hidden sm:flex">Filter</span>
                 <span
                   v-if="totalActiveFilters > 0"
@@ -78,94 +74,34 @@
             </PopoverTrigger>
             <PopoverContent class="w-auto min-w-48 p-3" align="start">
               <div class="space-y-4">
-                <!-- Status Filter -->
-                <div class="space-y-2">
-                  <div class="text-muted-foreground text-xs font-medium">Status</div>
-                  <div class="space-y-2">
-                    <div
-                      v-for="(value, i) in uniqueStatusValues"
-                      :key="value"
-                      class="flex items-center gap-2"
-                    >
-                      <Checkbox
-                        :id="`status-${i}`"
-                        :model-value="selectedStatuses.includes(value)"
-                        @update:model-value="(checked) => handleStatusChange(!!checked, value)"
-                      />
-                      <Label
-                        :for="`status-${i}`"
-                        class="grow cursor-pointer font-normal tracking-tight capitalize"
-                      >
-                        {{ value }}
-                      </Label>
-                    </div>
-                  </div>
-                </div>
-
+                <FilterSection
+                  title="Status"
+                  :options="['active', 'inactive']"
+                  :selected="selectedStatuses"
+                  @change="handleFilterChange('status', $event)"
+                />
                 <div class="border-t" />
-
-                <!-- Roles Filter -->
-                <div class="space-y-2">
-                  <div class="text-muted-foreground text-xs font-medium">Roles</div>
-                  <div class="space-y-2">
-                    <div
-                      v-for="(role, i) in uniqueRoleValues"
-                      :key="role"
-                      class="flex items-center gap-2"
-                    >
-                      <Checkbox
-                        :id="`role-${i}`"
-                        :model-value="selectedRoles.includes(role)"
-                        @update:model-value="(checked) => handleRoleChange(!!checked, role)"
-                      />
-                      <Label
-                        :for="`role-${i}`"
-                        class="grow cursor-pointer font-normal tracking-tight capitalize"
-                      >
-                        {{ role }}
-                      </Label>
-                    </div>
-                  </div>
-                </div>
-
+                <FilterSection
+                  title="Roles"
+                  :options="['master', 'admin', 'staff', 'writer', 'user']"
+                  :selected="selectedRoles"
+                  @change="handleFilterChange('roles', $event)"
+                />
                 <div class="border-t" />
-
-                <!-- Verified Filter -->
-                <div class="space-y-2">
-                  <div class="text-muted-foreground text-xs font-medium">Verified</div>
-                  <div class="space-y-2">
-                    <div class="flex items-center gap-2">
-                      <Checkbox
-                        id="verified-true"
-                        :model-value="selectedVerified.includes('true')"
-                        @update:model-value="(checked) => handleVerifiedChange(!!checked, 'true')"
-                      />
-                      <Label
-                        for="verified-true"
-                        class="grow cursor-pointer font-normal tracking-tight"
-                      >
-                        Verified
-                      </Label>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <Checkbox
-                        id="verified-false"
-                        :model-value="selectedVerified.includes('false')"
-                        @update:model-value="(checked) => handleVerifiedChange(!!checked, 'false')"
-                      />
-                      <Label
-                        for="verified-false"
-                        class="grow cursor-pointer font-normal tracking-tight"
-                      >
-                        Unverified
-                      </Label>
-                    </div>
-                  </div>
-                </div>
+                <FilterSection
+                  title="Verified"
+                  :options="[
+                    { label: 'Verified', value: 'true' },
+                    { label: 'Unverified', value: 'false' },
+                  ]"
+                  :selected="selectedVerified"
+                  @change="handleFilterChange('email_verified_at', $event)"
+                />
               </div>
             </PopoverContent>
           </Popover>
 
+          <!-- Column Toggle -->
           <Popover>
             <PopoverTrigger asChild>
               <button
@@ -202,6 +138,7 @@
           </Popover>
         </div>
 
+        <!-- Action Buttons -->
         <div class="flex h-9 w-full items-center justify-between gap-x-1 sm:gap-x-2">
           <DialogResponsive
             v-if="table.getSelectedRowModel().rows.length > 0"
@@ -222,8 +159,7 @@
                 </span>
               </button>
             </template>
-
-            <template #default="{ data }">
+            <template #default>
               <div class="px-4 pb-6 md:px-6 md:py-5">
                 <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
                 <p class="text-body mt-1.5 text-sm tracking-tight">
@@ -231,7 +167,6 @@
                   {{ table.getSelectedRowModel().rows.length }} selected
                   {{ table.getSelectedRowModel().rows.length === 1 ? "row" : "rows" }}.
                 </p>
-
                 <div class="mt-3 flex justify-end gap-2">
                   <button
                     class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
@@ -239,7 +174,6 @@
                   >
                     Cancel
                   </button>
-
                   <button
                     @click="handleDeleteRows"
                     class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
@@ -260,7 +194,6 @@
               <Icon name="lucide:x" class="size-4 shrink-0" />
               <span class="hidden sm:flex">Clear filters</span>
             </button>
-
             <button
               class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
               @click="refresh"
@@ -272,7 +205,6 @@
               />
               <span class="hidden sm:flex">Refresh</span>
             </button>
-
             <NuxtLink
               to="/users/create"
               class="hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm tracking-tight active:scale-98"
@@ -284,6 +216,7 @@
         </div>
       </div>
 
+      <!-- Table -->
       <div class="overflow-hidden rounded-md border">
         <Table class="table-fixed">
           <TableHeader>
@@ -350,6 +283,7 @@
           </TableBody>
         </Table>
 
+        <!-- Empty State -->
         <div
           v-if="!table.getRowModel().rows?.length"
           class="mx-auto flex w-full max-w-md flex-col items-center gap-4 py-6 text-center"
@@ -393,6 +327,7 @@
         </div>
       </div>
 
+      <!-- Pagination -->
       <div v-if="table.getRowModel().rows?.length" class="flex items-center justify-between gap-4">
         <div class="flex items-center gap-2">
           <Label class="max-sm:sr-only">Rows per page</Label>
@@ -422,7 +357,6 @@
             v-if="pending"
             class="size-4 animate-spin rounded-full border border-current border-r-transparent"
           ></div>
-
           <p class="text-muted-foreground text-xs whitespace-nowrap sm:text-sm">
             <span class="text-foreground">
               {{ (meta.current_page - 1) * meta.per_page + 1 }}-{{
@@ -434,53 +368,50 @@
               {{ meta.total }}
             </span>
           </p>
-
-          <div>
-            <Pagination
-              :default-page="meta.current_page"
-              :items-per-page="meta.per_page"
-              :total="meta.total"
-            >
-              <PaginationContent>
-                <PaginationFirst asChild>
-                  <button
-                    class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                    @click="table.firstPage"
-                    :disabled="meta.current_page <= 1"
-                  >
-                    <Icon name="lucide:chevron-first" class="size-4 shrink-0" />
-                  </button>
-                </PaginationFirst>
-                <PaginationPrevious asChild>
-                  <button
-                    class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                    @click="table.previousPage"
-                    :disabled="meta.current_page <= 1"
-                  >
-                    <Icon name="lucide:chevron-left" class="size-4 shrink-0" />
-                  </button>
-                </PaginationPrevious>
-                <PaginationNext asChild>
-                  <button
-                    class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                    @click="table.nextPage"
-                    :disabled="meta.current_page >= meta.last_page"
-                  >
-                    <Icon name="lucide:chevron-right" class="size-4 shrink-0" />
-                  </button>
-                </PaginationNext>
-                <PaginationLast asChild>
-                  <button
-                    class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                    @click="() => table.setPageIndex(meta.last_page - 1)"
-                    :disabled="meta.current_page >= meta.last_page"
-                  >
-                    <Icon name="lucide:chevron-last" class="size-4 shrink-0" />
-                  </button>
-                </PaginationLast>
-              </PaginationContent>
-            </Pagination>
-          </div>
+          <Pagination
+            :default-page="meta.current_page"
+            :items-per-page="meta.per_page"
+            :total="meta.total"
+          >
+            <PaginationContent>
+              <PaginationFirst asChild>
+                <button
+                  class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                  @click="table.firstPage"
+                  :disabled="meta.current_page <= 1"
+                >
+                  <Icon name="lucide:chevron-first" class="size-4 shrink-0" />
+                </button>
+              </PaginationFirst>
+              <PaginationPrevious asChild>
+                <button
+                  class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                  @click="table.previousPage"
+                  :disabled="meta.current_page <= 1"
+                >
+                  <Icon name="lucide:chevron-left" class="size-4 shrink-0" />
+                </button>
+              </PaginationPrevious>
+              <PaginationNext asChild>
+                <button
+                  class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                  @click="table.nextPage"
+                  :disabled="meta.current_page >= meta.last_page"
+                >
+                  <Icon name="lucide:chevron-right" class="size-4 shrink-0" />
+                </button>
+              </PaginationNext>
+              <PaginationLast asChild>
+                <button
+                  class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                  @click="() => table.setPageIndex(meta.last_page - 1)"
+                  :disabled="meta.current_page >= meta.last_page"
+                >
+                  <Icon name="lucide:chevron-last" class="size-4 shrink-0" />
+                </button>
+              </PaginationLast>
+            </PaginationContent>
+          </Pagination>
         </div>
       </div>
     </div>
@@ -491,6 +422,7 @@
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import AuthUserInfo from "@/components/auth/UserInfo.vue";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { valueUpdater } from "@/components/ui/table/utils";
 import { FlexRender, getCoreRowModel, useVueTable } from "@tanstack/vue-table";
@@ -510,68 +442,42 @@ usePageMeta("users");
 
 const { $dayjs } = useNuxtApp();
 
-// Define pagination state first
+// Table state
 const rowSelection = ref({});
 const columnFilters = ref([]);
 const columnVisibility = ref({});
-const pagination = ref({
-  pageIndex: 0,
-  pageSize: 20,
-});
+const pagination = ref({ pageIndex: 0, pageSize: 20 });
+const sorting = ref([{ id: "created_at", desc: true }]);
 
-const sorting = ref([
-  {
-    id: "created_at",
-    desc: true,
-  },
-]);
-
-// Reactive data
+// Data state
 const data = ref([]);
-const meta = ref({
-  current_page: 1,
-  last_page: 1,
-  per_page: 20,
-  total: 0,
-});
+const meta = ref({ current_page: 1, last_page: 1, per_page: 20, total: 0 });
 const pending = ref(false);
 const error = ref(null);
 
-// Build query parameters function
+// Build query params
 const buildQueryParams = () => {
-  const nameFilter = columnFilters.value.find((f) => f.id === "name");
-  const statusFilter = columnFilters.value.find((f) => f.id === "status");
-  const roleFilter = columnFilters.value.find((f) => f.id === "roles");
-  const verifiedFilter = columnFilters.value.find((f) => f.id === "email_verified_at");
-
   const params = new URLSearchParams();
   params.append("page", pagination.value.pageIndex + 1);
   params.append("per_page", pagination.value.pageSize);
 
-  // Add search filter
-  if (nameFilter?.value) {
-    params.append("filter.search", nameFilter.value);
-  }
+  // Filters
+  const filters = {
+    name: "filter.search",
+    status: "filter.status",
+    roles: "filter.role",
+    email_verified_at: "filter.verified",
+  };
 
-  // Add status filter
-  const statusValue = statusFilter?.value;
-  if (statusValue && Array.isArray(statusValue) && statusValue.length > 0) {
-    params.append("filter.status", statusValue.join(","));
-  }
+  Object.entries(filters).forEach(([columnId, paramKey]) => {
+    const filter = columnFilters.value.find((f) => f.id === columnId);
+    if (filter?.value) {
+      const value = Array.isArray(filter.value) ? filter.value.join(",") : filter.value;
+      params.append(paramKey, value);
+    }
+  });
 
-  // Add role filter
-  const roleValue = roleFilter?.value;
-  if (roleValue && Array.isArray(roleValue) && roleValue.length > 0) {
-    params.append("filter.role", roleValue.join(","));
-  }
-
-  // Add verified filter
-  const verifiedValue = verifiedFilter?.value;
-  if (verifiedValue && Array.isArray(verifiedValue) && verifiedValue.length > 0) {
-    params.append("filter.verified", verifiedValue.join(","));
-  }
-
-  // Add sorting
+  // Sorting
   const sortField = sorting.value[0]?.id || "created_at";
   const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
   params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
@@ -579,16 +485,13 @@ const buildQueryParams = () => {
   return params.toString();
 };
 
-// Fetch users function
+// Fetch users
 const fetchUsers = async () => {
   try {
     pending.value = true;
     error.value = null;
-
-    const queryString = buildQueryParams();
     const client = useSanctumClient();
-    const response = await client(`/api/users?${queryString}`);
-
+    const response = await client(`/api/users?${buildQueryParams()}`);
     data.value = response.data;
     meta.value = response.meta;
   } catch (err) {
@@ -599,33 +502,24 @@ const fetchUsers = async () => {
   }
 };
 
-// Initial fetch
 await fetchUsers();
 
 // Debounced fetch for search
-const debouncedFetch = useDebounceFn(() => {
-  fetchUsers();
-}, 300);
+const debouncedFetch = useDebounceFn(fetchUsers, 300);
 
-// Watch for changes in filters and sorting
+// Watch for changes
 watch(
   [columnFilters, sorting, pagination],
   () => {
-    const nameFilter = columnFilters.value.find((f) => f.id === "name");
-
-    // If only name filter changed (search), use debounced fetch
-    if (nameFilter) {
-      debouncedFetch();
-    } else {
-      // For other filters and sorting, fetch immediately
-      fetchUsers();
-    }
+    const hasNameFilter = columnFilters.value.some((f) => f.id === "name");
+    hasNameFilter ? debouncedFetch() : fetchUsers();
   },
   { deep: true }
 );
 
-const refresh = () => fetchUsers();
+const refresh = fetchUsers;
 
+// Table columns
 const columns = [
   {
     id: "select",
@@ -670,19 +564,15 @@ const columns = [
     cell: ({ row }) => {
       const emailVerifiedAt = row.getValue("email_verified_at");
       const isVerified = !!emailVerifiedAt;
-
       const icon = h(resolveComponent("Icon"), {
         name: "material-symbols:verified",
         class: isVerified ? "text-info size-4.5 shrink-0" : "text-primary/25 size-4.5 shrink-0",
       });
-
-      if (isVerified) {
-        return withDirectives(h("div", { class: "flex items-center" }, icon), [
-          [resolveDirective("tippy"), $dayjs(emailVerifiedAt).format("MMMM D, YYYY [at] h:mm A")],
-        ]);
-      }
-
-      return h("div", { class: "flex items-center" }, icon);
+      return isVerified
+        ? withDirectives(h("div", { class: "flex items-center" }, icon), [
+            [resolveDirective("tippy"), $dayjs(emailVerifiedAt).format("MMMM D, YYYY [at] h:mm A")],
+          ])
+        : h("div", { class: "flex items-center" }, icon);
     },
     size: 80,
     enableSorting: true,
@@ -692,26 +582,15 @@ const columns = [
     accessorKey: "status",
     cell: ({ row }) => {
       const status = row.getValue("status");
-      return h(
-        "div",
-        {
-          class: "flex items-center gap-x-1.5 capitalize text-sm tracking-tight",
-        },
-        [
-          h("span", {
-            class: [
-              "rounded-full size-2",
-              {
-                "bg-success": status.toLowerCase() === "active",
-                "bg-destructive": status.toLowerCase() === "inactive",
-                "bg-warning": status.toLowerCase() === "pending",
-              },
-            ],
-          }),
-
-          status,
-        ]
-      );
+      const statusColors = {
+        active: "bg-success",
+        inactive: "bg-destructive",
+        pending: "bg-warning",
+      };
+      return h("div", { class: "flex items-center gap-x-1.5 capitalize text-sm tracking-tight" }, [
+        h("span", { class: ["rounded-full size-2", statusColors[status.toLowerCase()]] }),
+        status,
+      ]);
     },
     size: 80,
   },
@@ -736,6 +615,7 @@ const columns = [
   },
 ];
 
+// Table instance
 const table = useVueTable({
   get data() {
     return data.value || [];
@@ -744,10 +624,10 @@ const table = useVueTable({
     return columns;
   },
   getCoreRowModel: getCoreRowModel(),
-  manualPagination: true, // Server-side pagination
-  manualSorting: true, // Server-side sorting
-  manualFiltering: true, // Server-side filtering
-  pageCount: meta.value.last_page, // Use server's page count
+  manualPagination: true,
+  manualSorting: true,
+  manualFiltering: true,
+  pageCount: meta.value.last_page,
   autoResetPageIndex: false,
   state: {
     get rowSelection() {
@@ -774,43 +654,25 @@ const table = useVueTable({
   enableSortingRemoval: false,
 });
 
-// Filter values - hardcoded since we know the possible values
-const uniqueStatusValues = computed(() => ["active", "inactive"]);
-const uniqueRoleValues = computed(() => ["master", "admin", "staff", "writer", "user"]);
-
-const selectedStatuses = computed(() => table.getColumn("status")?.getFilterValue() ?? []);
-const selectedRoles = computed(() => table.getColumn("roles")?.getFilterValue() ?? []);
-const selectedVerified = computed(
-  () => table.getColumn("email_verified_at")?.getFilterValue() ?? []
+// Filter helpers
+const getFilterValue = (columnId) => table.getColumn(columnId)?.getFilterValue() ?? [];
+const selectedStatuses = computed(() => getFilterValue("status"));
+const selectedRoles = computed(() => getFilterValue("roles"));
+const selectedVerified = computed(() => getFilterValue("email_verified_at"));
+const totalActiveFilters = computed(
+  () => selectedStatuses.value.length + selectedRoles.value.length + selectedVerified.value.length
 );
 
-const totalActiveFilters = computed(() => {
-  return selectedStatuses.value.length + selectedRoles.value.length + selectedVerified.value.length;
-});
-
-const handleStatusChange = (checked, value) => {
-  const current = table.getColumn("status")?.getFilterValue() ?? [];
+const handleFilterChange = (columnId, { checked, value }) => {
+  const current = getFilterValue(columnId);
   const updated = checked ? [...current, value] : current.filter((item) => item !== value);
-  table.getColumn("status")?.setFilterValue(updated.length ? updated : undefined);
+  table.getColumn(columnId)?.setFilterValue(updated.length ? updated : undefined);
 };
 
-const handleRoleChange = (checked, value) => {
-  const current = table.getColumn("roles")?.getFilterValue() ?? [];
-  const updated = checked ? [...current, value] : current.filter((item) => item !== value);
-  table.getColumn("roles")?.setFilterValue(updated.length ? updated : undefined);
-};
-
-const handleVerifiedChange = (checked, value) => {
-  const current = table.getColumn("email_verified_at")?.getFilterValue() ?? [];
-  const updated = checked ? [...current, value] : current.filter((item) => item !== value);
-  table.getColumn("email_verified_at")?.setFilterValue(updated.length ? updated : undefined);
-};
-
+// Delete handlers
 const deleteDialogOpen = ref(false);
-
 const handleDeleteRows = async () => {
   const userIds = table.getSelectedRowModel().rows.map((row) => row.original.id);
-
   try {
     await Promise.all(
       userIds.map((id) => useSanctumFetch(`/api/users/${id}`, { method: "DELETE" }))
@@ -832,30 +694,14 @@ const handleDeleteSingleRow = async (userId) => {
   }
 };
 
-// RowActions component
+// Row Actions Component
 const RowActions = defineComponent({
   props: {
-    userId: {
-      type: Number,
-      required: true,
-    },
-    username: {
-      type: String,
-      required: true,
-    },
+    userId: { type: Number, required: true },
+    username: { type: String, required: true },
   },
   setup(props) {
     const dialogOpen = ref(false);
-
-    const onDeleteConfirm = async () => {
-      await handleDeleteSingleRow(props.userId);
-      dialogOpen.value = false;
-    };
-
-    const onDeleteClick = () => {
-      dialogOpen.value = true;
-    };
-
     return () =>
       h("div", { class: "flex justify-end" }, [
         h(
@@ -918,7 +764,7 @@ const RowActions = defineComponent({
                               {
                                 class:
                                   "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                onClick: onDeleteClick,
+                                onClick: () => (dialogOpen.value = true),
                               },
                               [
                                 h(resolveComponent("Icon"), {
@@ -940,9 +786,7 @@ const RowActions = defineComponent({
           DialogResponsive,
           {
             open: dialogOpen.value,
-            "onUpdate:open": (value) => {
-              dialogOpen.value = value;
-            },
+            "onUpdate:open": (value) => (dialogOpen.value = value),
           },
           {
             default: () =>
@@ -963,9 +807,7 @@ const RowActions = defineComponent({
                     {
                       class:
                         "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
-                      onClick: () => {
-                        dialogOpen.value = false;
-                      },
+                      onClick: () => (dialogOpen.value = false),
                     },
                     "Cancel"
                   ),
@@ -974,7 +816,10 @@ const RowActions = defineComponent({
                     {
                       class:
                         "bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
-                      onClick: onDeleteConfirm,
+                      onClick: async () => {
+                        await handleDeleteSingleRow(props.userId);
+                        dialogOpen.value = false;
+                      },
                     },
                     "Delete"
                   ),
@@ -986,13 +831,51 @@ const RowActions = defineComponent({
   },
 });
 
+// Filter Section Component
+const FilterSection = defineComponent({
+  props: {
+    title: String,
+    options: Array,
+    selected: Array,
+  },
+  emits: ["change"],
+  setup(props, { emit }) {
+    return () =>
+      h("div", { class: "space-y-2" }, [
+        h("div", { class: "text-muted-foreground text-xs font-medium" }, props.title),
+        h(
+          "div",
+          { class: "space-y-2" },
+          props.options.map((option, i) => {
+            const value = typeof option === "string" ? option : option.value;
+            const label = typeof option === "string" ? option : option.label;
+            return h("div", { key: value, class: "flex items-center gap-2" }, [
+              h(Checkbox, {
+                id: `${props.title}-${i}`,
+                modelValue: props.selected.includes(value),
+                "onUpdate:modelValue": (checked) => emit("change", { checked: !!checked, value }),
+              }),
+              h(
+                Label,
+                {
+                  for: `${props.title}-${i}`,
+                  class: "grow cursor-pointer font-normal tracking-tight capitalize",
+                },
+                { default: () => label }
+              ),
+            ]);
+          })
+        ),
+      ]);
+  },
+});
+
+// Search keyboard shortcut
 const searchInputEl = ref();
 const { metaSymbol } = useShortcuts();
 defineShortcuts({
   meta_k: {
-    handler: async () => {
-      searchInputEl.value?.focus();
-    },
+    handler: () => searchInputEl.value?.focus(),
   },
 });
 </script>
