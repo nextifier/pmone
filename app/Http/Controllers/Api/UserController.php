@@ -28,7 +28,8 @@ class UserController extends Controller
 
         // Handle status filter (dots are converted to underscores by Nuxt/Nitro)
         if ($request->has('filter_status') && $request->input('filter_status')) {
-            $query->where('status', $request->input('filter_status'));
+            $statuses = explode(',', $request->input('filter_status'));
+            $query->whereIn('status', $statuses);
         }
 
         // Handle search filter (dots are converted to underscores by Nuxt/Nitro)
@@ -43,9 +44,23 @@ class UserController extends Controller
 
         // Handle role filter (dots are converted to underscores by Nuxt/Nitro)
         if ($request->has('filter_role') && $request->input('filter_role')) {
-            $roleName = $request->input('filter_role');
-            $query->whereHas('roles', function ($q) use ($roleName) {
-                $q->where('name', $roleName);
+            $roles = explode(',', $request->input('filter_role'));
+            $query->whereHas('roles', function ($q) use ($roles) {
+                $q->whereIn('name', $roles);
+            });
+        }
+
+        // Handle verified filter (dots are converted to underscores by Nuxt/Nitro)
+        if ($request->has('filter_verified') && $request->input('filter_verified')) {
+            $verifiedStatuses = explode(',', $request->input('filter_verified'));
+            $query->where(function ($q) use ($verifiedStatuses) {
+                foreach ($verifiedStatuses as $status) {
+                    if ($status === 'true') {
+                        $q->orWhereNotNull('email_verified_at');
+                    } elseif ($status === 'false') {
+                        $q->orWhereNull('email_verified_at');
+                    }
+                }
             });
         }
 
@@ -60,9 +75,15 @@ class UserController extends Controller
             $field = substr($sortField, 1);
         }
 
-        // Only sort by actual database columns, not relationships
-        $allowedSortFields = ['name', 'email', 'username', 'status', 'created_at', 'updated_at'];
-        if (in_array($field, $allowedSortFields)) {
+        // Handle sorting by roles (relationship)
+        if ($field === 'roles') {
+            $query->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+                ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                ->select('users.*')
+                ->groupBy('users.id')
+                ->orderByRaw("MIN(roles.name) {$direction}");
+        } elseif (in_array($field, ['name', 'email', 'username', 'status', 'email_verified_at', 'created_at', 'updated_at'])) {
+            // Sort by actual database columns
             $query->orderBy($field, $direction);
         } else {
             // Default to created_at if invalid field

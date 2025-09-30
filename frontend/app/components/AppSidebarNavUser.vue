@@ -7,7 +7,7 @@
             size="lg"
             class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           >
-            <AuthUserInfo :user="user" />
+            <AuthUserInfo :user="user" :showVerifyIcon="true" :showRoleIcon="true" />
             <ChevronsUpDown class="ml-auto size-4" />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
@@ -43,9 +43,9 @@
 </template>
 
 <script setup>
-import { useSidebar } from '@/components/ui/sidebar'
-import { ChevronsUpDown } from 'lucide-vue-next'
+import { useSidebar } from "@/components/ui/sidebar";
+import { ChevronsUpDown } from "lucide-vue-next";
 
-const { isMobile, setOpenMobile } = useSidebar()
-const { user, logout } = useSanctumAuth()
+const { isMobile, setOpenMobile } = useSidebar();
+const { user, logout } = useSanctumAuth();
 </script>

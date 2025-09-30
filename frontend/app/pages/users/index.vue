@@ -69,36 +69,97 @@
                 <Icon name="lucide:list-filter" class="size-4 shrink-0" :size="16" />
                 <span class="hidden sm:flex">Filter</span>
                 <span
-                  v-if="selectedStatuses.length > 0"
+                  v-if="totalActiveFilters > 0"
                   class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
                 >
-                  {{ selectedStatuses.length }}
+                  {{ totalActiveFilters }}
                 </span>
               </button>
             </PopoverTrigger>
-            <PopoverContent class="w-auto min-w-36 p-3" align="start">
-              <div class="space-y-3">
-                <div class="text-muted-foreground text-xs font-medium">Status</div>
-                <div class="space-y-3">
-                  <div
-                    v-for="(value, i) in uniqueStatusValues"
-                    :key="value"
-                    class="flex items-center gap-2"
-                  >
-                    <Checkbox
-                      :id="`status-${i}`"
-                      :model-value="selectedStatuses.includes(value)"
-                      @update:model-value="(checked) => handleStatusChange(!!checked, value)"
-                    />
-                    <Label
-                      :for="`status-${i}`"
-                      class="flex grow justify-between gap-2 font-normal tracking-tight capitalize"
+            <PopoverContent class="w-auto min-w-48 p-3" align="start">
+              <div class="space-y-4">
+                <!-- Status Filter -->
+                <div class="space-y-2">
+                  <div class="text-muted-foreground text-xs font-medium">Status</div>
+                  <div class="space-y-2">
+                    <div
+                      v-for="(value, i) in uniqueStatusValues"
+                      :key="value"
+                      class="flex items-center gap-2"
                     >
-                      {{ value }}
-                      <span class="text-muted-foreground ms-2 text-xs">
-                        {{ statusCounts.get(value) }}
-                      </span>
-                    </Label>
+                      <Checkbox
+                        :id="`status-${i}`"
+                        :model-value="selectedStatuses.includes(value)"
+                        @update:model-value="(checked) => handleStatusChange(!!checked, value)"
+                      />
+                      <Label
+                        :for="`status-${i}`"
+                        class="grow cursor-pointer font-normal tracking-tight capitalize"
+                      >
+                        {{ value }}
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="border-t" />
+
+                <!-- Roles Filter -->
+                <div class="space-y-2">
+                  <div class="text-muted-foreground text-xs font-medium">Roles</div>
+                  <div class="space-y-2">
+                    <div
+                      v-for="(role, i) in uniqueRoleValues"
+                      :key="role"
+                      class="flex items-center gap-2"
+                    >
+                      <Checkbox
+                        :id="`role-${i}`"
+                        :model-value="selectedRoles.includes(role)"
+                        @update:model-value="(checked) => handleRoleChange(!!checked, role)"
+                      />
+                      <Label
+                        :for="`role-${i}`"
+                        class="grow cursor-pointer font-normal tracking-tight capitalize"
+                      >
+                        {{ role }}
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="border-t" />
+
+                <!-- Verified Filter -->
+                <div class="space-y-2">
+                  <div class="text-muted-foreground text-xs font-medium">Verified</div>
+                  <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                      <Checkbox
+                        id="verified-true"
+                        :model-value="selectedVerified.includes('true')"
+                        @update:model-value="(checked) => handleVerifiedChange(!!checked, 'true')"
+                      />
+                      <Label
+                        for="verified-true"
+                        class="grow cursor-pointer font-normal tracking-tight"
+                      >
+                        Verified
+                      </Label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <Checkbox
+                        id="verified-false"
+                        :model-value="selectedVerified.includes('false')"
+                        @update:model-value="(checked) => handleVerifiedChange(!!checked, 'false')"
+                      />
+                      <Label
+                        for="verified-false"
+                        class="grow cursor-pointer font-normal tracking-tight"
+                      >
+                        Unverified
+                      </Label>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -132,7 +193,7 @@
                       :for="`column-${column.id}`"
                       class="grow font-normal tracking-tight capitalize"
                     >
-                      {{ column.id }}
+                      {{ column.columnDef.header }}
                     </Label>
                   </div>
                 </div>
@@ -229,7 +290,7 @@
             <TableRow
               v-for="headerGroup in table.getHeaderGroups()"
               :key="headerGroup.id"
-              class="hover:bg-transparent"
+              class="tracking-tight hover:bg-transparent"
             >
               <TableHead
                 v-for="header in headerGroup.headers"
@@ -434,6 +495,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { valueUpdater } from "@/components/ui/table/utils";
 import { FlexRender, getCoreRowModel, useVueTable } from "@tanstack/vue-table";
 import { PopoverClose } from "reka-ui";
+import { resolveDirective, withDirectives } from "vue";
 
 definePageMeta({
   middleware: ["sanctum:auth", "staff-admin-master"],
@@ -459,59 +521,79 @@ const pagination = ref({
 
 const sorting = ref([
   {
-    id: "name",
-    desc: false,
+    id: "created_at",
+    desc: true,
   },
 ]);
 
-// Reactive state for users data
-const response = ref(null);
+// Reactive data
+const data = ref([]);
+const meta = ref({
+  current_page: 1,
+  last_page: 1,
+  per_page: 20,
+  total: 0,
+});
 const pending = ref(false);
 const error = ref(null);
 
-// Function to fetch users
+// Build query parameters function
+const buildQueryParams = () => {
+  const nameFilter = columnFilters.value.find((f) => f.id === "name");
+  const statusFilter = columnFilters.value.find((f) => f.id === "status");
+  const roleFilter = columnFilters.value.find((f) => f.id === "roles");
+  const verifiedFilter = columnFilters.value.find((f) => f.id === "email_verified_at");
+
+  const params = new URLSearchParams();
+  params.append("page", pagination.value.pageIndex + 1);
+  params.append("per_page", pagination.value.pageSize);
+
+  // Add search filter
+  if (nameFilter?.value) {
+    params.append("filter.search", nameFilter.value);
+  }
+
+  // Add status filter
+  const statusValue = statusFilter?.value;
+  if (statusValue && Array.isArray(statusValue) && statusValue.length > 0) {
+    params.append("filter.status", statusValue.join(","));
+  }
+
+  // Add role filter
+  const roleValue = roleFilter?.value;
+  if (roleValue && Array.isArray(roleValue) && roleValue.length > 0) {
+    params.append("filter.role", roleValue.join(","));
+  }
+
+  // Add verified filter
+  const verifiedValue = verifiedFilter?.value;
+  if (verifiedValue && Array.isArray(verifiedValue) && verifiedValue.length > 0) {
+    params.append("filter.verified", verifiedValue.join(","));
+  }
+
+  // Add sorting
+  const sortField = sorting.value[0]?.id || "created_at";
+  const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
+  params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
+
+  return params.toString();
+};
+
+// Fetch users function
 const fetchUsers = async () => {
-  pending.value = true;
-  error.value = null;
-
   try {
+    pending.value = true;
+    error.value = null;
+
+    const queryString = buildQueryParams();
     const client = useSanctumClient();
+    const response = await client(`/api/users?${queryString}`);
 
-    // Extract filters from columnFilters
-    const nameFilter = columnFilters.value.find((f) => f.id === "name");
-    const statusFilter = columnFilters.value.find((f) => f.id === "status");
-
-    const query = {
-      page: pagination.value.pageIndex + 1,
-      per_page: pagination.value.pageSize,
-    };
-
-    // Add search filter with correct format: filter.search
-    if (nameFilter?.value) {
-      query["filter.search"] = nameFilter.value;
-    }
-
-    // Add status filter with correct format: filter.status
-    const statusValue = statusFilter?.value;
-    if (statusValue && Array.isArray(statusValue) && statusValue.length > 0) {
-      // Backend expects single status value, not array
-      query["filter.status"] = statusValue[0];
-    }
-
-    // Add sorting with correct format: sort=-created_at or sort=name
-    const sortField = sorting.value[0]?.id || "created_at";
-    const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
-    query.sort = sortDirection === "desc" ? `-${sortField}` : sortField;
-
-    // IMPORTANT: useSanctumClient already has baseUrl configured, just need to ensure /api prefix
-    const result = await client("/api/users", {
-      query,
-    });
-
-    response.value = result;
-  } catch (e) {
-    error.value = e;
-    console.error("❌ Error fetching users:", e);
+    data.value = response.data;
+    meta.value = response.meta;
+  } catch (err) {
+    error.value = err;
+    console.error("Failed to fetch users:", err);
   } finally {
     pending.value = false;
   }
@@ -520,52 +602,29 @@ const fetchUsers = async () => {
 // Initial fetch
 await fetchUsers();
 
-// Manual refresh function
-const refresh = async () => {
-  await fetchUsers();
-};
+// Debounced fetch for search
+const debouncedFetch = useDebounceFn(() => {
+  fetchUsers();
+}, 300);
 
-// Update pagination and refresh data
-const updatePagination = async (pageIndex, pageSize) => {
-  pagination.value.pageIndex = pageIndex;
-  pagination.value.pageSize = pageSize;
-  await fetchUsers();
-};
-
-// Debounced fetch for search input
-const debouncedFetchUsers = useDebounceFn(async () => {
-  pagination.value.pageIndex = 0;
-  await fetchUsers();
-}, 300); // 300ms debounce
-
+// Watch for changes in filters and sorting
 watch(
-  columnFilters,
+  [columnFilters, sorting, pagination],
   () => {
-    debouncedFetchUsers();
-  },
-  { deep: true }
-);
+    const nameFilter = columnFilters.value.find((f) => f.id === "name");
 
-// Watch for sorting changes
-watch(
-  sorting,
-  async () => {
-    await fetchUsers();
-  },
-  { deep: true }
-);
-
-// Extract users data and meta from response
-const data = computed(() => response.value?.data || []);
-const meta = computed(
-  () =>
-    response.value?.meta || {
-      current_page: 1,
-      last_page: 1,
-      per_page: 20,
-      total: 0,
+    // If only name filter changed (search), use debounced fetch
+    if (nameFilter) {
+      debouncedFetch();
+    } else {
+      // For other filters and sorting, fetch immediately
+      fetchUsers();
     }
+  },
+  { deep: true }
 );
+
+const refresh = () => fetchUsers();
 
 const columns = [
   {
@@ -596,33 +655,74 @@ const columns = [
     enableHiding: false,
   },
   {
-    header: "Status",
-    accessorKey: "status",
-    cell: ({ row }) => {
-      const status = row.getValue("status");
-      return h("div", { class: "text-sm tracking-tight capitalize" }, status);
-    },
-    size: 100,
-  },
-  {
     header: "Roles",
     accessorKey: "roles",
     cell: ({ row }) => {
       const roles = row.getValue("roles") || [];
       return h("div", { class: "text-sm tracking-tight capitalize" }, roles.join(", "));
     },
-    size: 140,
-    enableSorting: false, // Roles is a relationship, can't sort by it
+    size: 80,
+    enableSorting: true,
   },
   {
-    header: "Joined",
+    header: "Verified",
+    accessorKey: "email_verified_at",
+    cell: ({ row }) => {
+      const emailVerifiedAt = row.getValue("email_verified_at");
+      const isVerified = !!emailVerifiedAt;
+
+      const icon = h(resolveComponent("Icon"), {
+        name: "material-symbols:verified",
+        class: isVerified ? "text-info size-4.5 shrink-0" : "text-primary/25 size-4.5 shrink-0",
+      });
+
+      if (isVerified) {
+        return withDirectives(h("div", { class: "flex items-center" }, icon), [
+          [resolveDirective("tippy"), $dayjs(emailVerifiedAt).format("MMMM D, YYYY [at] h:mm A")],
+        ]);
+      }
+
+      return h("div", { class: "flex items-center" }, icon);
+    },
+    size: 80,
+    enableSorting: true,
+  },
+  {
+    header: "Status",
+    accessorKey: "status",
+    cell: ({ row }) => {
+      const status = row.getValue("status");
+      return h(
+        "div",
+        {
+          class: "flex items-center gap-x-1.5 capitalize text-sm tracking-tight",
+        },
+        [
+          h("span", {
+            class: [
+              "rounded-full size-2",
+              {
+                "bg-success": status.toLowerCase() === "active",
+                "bg-destructive": status.toLowerCase() === "inactive",
+                "bg-warning": status.toLowerCase() === "pending",
+              },
+            ],
+          }),
+
+          status,
+        ]
+      );
+    },
+    size: 80,
+  },
+  {
+    header: "Created",
     accessorKey: "created_at",
     cell: ({ row }) => {
       const date = row.getValue("created_at");
-      return h(
-        "div",
-        { class: "text-sm text-muted-foreground" },
-        $dayjs(date).format("MMM D, YYYY")
+      return withDirectives(
+        h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $dayjs(date).fromNow()),
+        [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
       );
     },
     size: 100,
@@ -667,33 +767,43 @@ const table = useVueTable({
     },
   },
   onSortingChange: (updater) => valueUpdater(updater, sorting),
-  onPaginationChange: (updater) => {
-    const newPagination = typeof updater === "function" ? updater(pagination.value) : updater;
-    pagination.value = newPagination;
-    updatePagination(newPagination.pageIndex, newPagination.pageSize);
-  },
+  onPaginationChange: (updater) => valueUpdater(updater, pagination),
   onColumnFiltersChange: (updater) => valueUpdater(updater, columnFilters),
   onColumnVisibilityChange: (updater) => valueUpdater(updater, columnVisibility),
   onRowSelectionChange: (updater) => valueUpdater(updater, rowSelection),
   enableSortingRemoval: false,
 });
 
-// Status filter - hardcoded since we know the possible values
+// Filter values - hardcoded since we know the possible values
 const uniqueStatusValues = computed(() => ["active", "inactive"]);
-
-const statusCounts = computed(() => {
-  // For server-side filtering, we don't have accurate counts per status
-  // You would need to fetch this from backend if needed
-  return new Map();
-});
+const uniqueRoleValues = computed(() => ["master", "admin", "staff", "writer", "user"]);
 
 const selectedStatuses = computed(() => table.getColumn("status")?.getFilterValue() ?? []);
+const selectedRoles = computed(() => table.getColumn("roles")?.getFilterValue() ?? []);
+const selectedVerified = computed(
+  () => table.getColumn("email_verified_at")?.getFilterValue() ?? []
+);
+
+const totalActiveFilters = computed(() => {
+  return selectedStatuses.value.length + selectedRoles.value.length + selectedVerified.value.length;
+});
 
 const handleStatusChange = (checked, value) => {
   const current = table.getColumn("status")?.getFilterValue() ?? [];
   const updated = checked ? [...current, value] : current.filter((item) => item !== value);
-
   table.getColumn("status")?.setFilterValue(updated.length ? updated : undefined);
+};
+
+const handleRoleChange = (checked, value) => {
+  const current = table.getColumn("roles")?.getFilterValue() ?? [];
+  const updated = checked ? [...current, value] : current.filter((item) => item !== value);
+  table.getColumn("roles")?.setFilterValue(updated.length ? updated : undefined);
+};
+
+const handleVerifiedChange = (checked, value) => {
+  const current = table.getColumn("email_verified_at")?.getFilterValue() ?? [];
+  const updated = checked ? [...current, value] : current.filter((item) => item !== value);
+  table.getColumn("email_verified_at")?.setFilterValue(updated.length ? updated : undefined);
 };
 
 const deleteDialogOpen = ref(false);

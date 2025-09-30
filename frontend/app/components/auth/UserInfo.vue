@@ -7,11 +7,11 @@
       >
         <span class="shrink truncate">{{ user?.name }}</span>
         <Icon
-          v-if="user.email_verified_at"
+          v-if="showVerifyIcon && user.email_verified_at"
           name="material-symbols:verified"
           class="text-info size-3.5 shrink-0"
         />
-        <Tippy>
+        <Tippy v-if="showRoleIcon">
           <Icon v-if="getRoleIcon" :name="getRoleIcon" class="text-foreground size-3.5 shrink-0" />
 
           <template #content>
@@ -29,6 +29,14 @@
 <script setup>
 const props = defineProps({
   user: Object,
+  showVerifyIcon: {
+    type: Boolean,
+    default: false,
+  },
+  showRoleIcon: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const getRoleIcon = computed(() => {
