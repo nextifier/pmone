@@ -28,20 +28,20 @@
               type="text"
               :placeholder="searchPlaceholder || 'Search...'"
               class="peer placeholder:text-muted-foreground h-full w-full rounded-md border bg-transparent py-1.5 ps-9 pr-10 text-sm tracking-tight focus:outline-hidden"
-              :value="table.getColumn(searchColumn)?.getFilterValue() ?? ''"
-              @input="table.getColumn(searchColumn)?.setFilterValue($event.target.value)"
+              :value="searchValue"
+              @input="handleSearchInput"
             />
             <span
-              v-if="!Boolean(table.getColumn(searchColumn)?.getFilterValue())"
+              v-if="!searchValue"
               class="text-muted-foreground/60 pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 items-center gap-x-1 text-xs font-medium peer-placeholder-shown:flex"
             >
               <kbd class="keyboard-symbol">{{ metaSymbol }} K</kbd>
             </span>
             <button
-              v-if="Boolean(table.getColumn(searchColumn)?.getFilterValue())"
+              v-if="searchValue"
               class="bg-muted hover:bg-border absolute top-1/2 right-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full peer-placeholder-shown:hidden"
               aria-label="Clear search"
-              @click="table.getColumn(searchColumn)?.setFilterValue('')"
+              @click="clearSearch"
             >
               <Icon name="lucide:x" class="size-3 shrink-0" />
             </button>
@@ -260,7 +260,22 @@
       >
         <div class="text-muted-foreground text-sm tracking-tight">
           <template v-if="table.getSelectedRowModel().rows.length > 0">
-            {{ table.getSelectedRowModel().rows.length }} of {{ meta.total }} row(s) selected.
+            {{ table.getSelectedRowModel().rows.length }} of
+            {{ clientOnly ? data.length : meta.total }} row(s) selected.
+          </template>
+          <template v-else-if="clientOnly">
+            Showing
+            {{
+              table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1
+            }}
+            to
+            {{
+              Math.min(
+                (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+                table.getFilteredRowModel().rows.length
+              )
+            }}
+            of {{ table.getFilteredRowModel().rows.length }} results.
           </template>
           <template v-else>
             Showing {{ (meta.current_page - 1) * meta.per_page + 1 }} to
@@ -288,16 +303,18 @@
             </Select>
           </div>
           <Pagination
-            :default-page="meta.current_page"
-            :items-per-page="meta.per_page"
-            :total="meta.total"
+            :default-page="
+              clientOnly ? table.getState().pagination.pageIndex + 1 : meta.current_page
+            "
+            :items-per-page="clientOnly ? table.getState().pagination.pageSize : meta.per_page"
+            :total="clientOnly ? table.getFilteredRowModel().rows.length : meta.total"
           >
             <PaginationContent>
               <PaginationFirst asChild>
                 <button
                   class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
                   @click="() => table.setPageIndex(0)"
-                  :disabled="meta.current_page <= 1"
+                  :disabled="clientOnly ? !table.getCanPreviousPage() : meta.current_page <= 1"
                 >
                   <Icon name="lucide:chevron-first" class="size-4 shrink-0" />
                 </button>
@@ -306,7 +323,7 @@
                 <button
                   class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
                   @click="() => table.previousPage()"
-                  :disabled="meta.current_page <= 1"
+                  :disabled="clientOnly ? !table.getCanPreviousPage() : meta.current_page <= 1"
                 >
                   <Icon name="lucide:chevron-left" class="size-4 shrink-0" />
                 </button>
@@ -315,7 +332,9 @@
                 <button
                   class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
                   @click="() => table.nextPage()"
-                  :disabled="meta.current_page >= meta.last_page"
+                  :disabled="
+                    clientOnly ? !table.getCanNextPage() : meta.current_page >= meta.last_page
+                  "
                 >
                   <Icon name="lucide:chevron-right" class="size-4 shrink-0" />
                 </button>
@@ -323,8 +342,13 @@
               <PaginationLast asChild>
                 <button
                   class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                  @click="() => table.setPageIndex(meta.last_page - 1)"
-                  :disabled="meta.current_page >= meta.last_page"
+                  @click="
+                    () =>
+                      table.setPageIndex(clientOnly ? table.getPageCount() - 1 : meta.last_page - 1)
+                  "
+                  :disabled="
+                    clientOnly ? !table.getCanNextPage() : meta.current_page >= meta.last_page
+                  "
                 >
                   <Icon name="lucide:chevron-last" class="size-4 shrink-0" />
                 </button>
@@ -357,7 +381,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { valueUpdater } from "@/components/ui/table/utils";
-import { FlexRender, getCoreRowModel, useVueTable } from "@tanstack/vue-table";
+import {
+  FlexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useVueTable,
+} from "@tanstack/vue-table";
 
 const props = defineProps({
   // Data
@@ -385,8 +416,10 @@ const props = defineProps({
     type: String,
     required: true,
   },
-
-  // Configuration
+  clientOnly: {
+    type: Boolean,
+    default: true,
+  },
   searchable: {
     type: Boolean,
     default: true,
@@ -433,7 +466,7 @@ const props = defineProps({
   },
   initialPagination: {
     type: Object,
-    default: () => ({ pageIndex: 0, pageSize: 20 }),
+    default: () => ({ pageIndex: 0, pageSize: 10 }),
   },
   initialSorting: {
     type: Array,
@@ -473,10 +506,13 @@ const table = useVueTable({
     return props.columns;
   },
   getCoreRowModel: getCoreRowModel(),
-  manualPagination: true,
-  manualSorting: true,
-  manualFiltering: true,
-  pageCount: props.meta.last_page,
+  getFilteredRowModel: props.clientOnly ? getFilteredRowModel() : undefined,
+  getSortedRowModel: props.clientOnly ? getSortedRowModel() : undefined,
+  getPaginationRowModel: props.clientOnly ? getPaginationRowModel() : undefined,
+  manualPagination: !props.clientOnly,
+  manualSorting: !props.clientOnly,
+  manualFiltering: !props.clientOnly,
+  pageCount: props.clientOnly ? undefined : props.meta.last_page,
   autoResetPageIndex: false,
   state: {
     get rowSelection() {
@@ -505,12 +541,52 @@ const table = useVueTable({
 
 // Handle page size change
 const handlePageSizeChange = (value) => {
-  table.setPageSize(Number(value));
+  const newPageSize = Number(value);
+  const currentPageSize = pagination.value.pageSize;
+
+  // Only update if page size actually changed
+  if (currentPageSize !== newPageSize) {
+    // Update pagination state atomically - reset to page 1 when page size changes
+    pagination.value = {
+      pageIndex: 0,
+      pageSize: newPageSize
+    };
+  }
 };
 
-// Search keyboard shortcut
+// Search with debounce
 const searchInputEl = ref();
+const searchValue = ref("");
 const { metaSymbol } = useShortcuts();
+
+// Initialize search value from initial filters
+onMounted(() => {
+  const initialSearchFilter = props.initialColumnFilters.find(
+    (f) => f.id === props.searchColumn
+  );
+  if (initialSearchFilter?.value) {
+    searchValue.value = initialSearchFilter.value;
+  }
+});
+
+// Debounced search handler
+const debouncedSearch = useDebounceFn((value) => {
+  table.getColumn(props.searchColumn)?.setFilterValue(value || undefined);
+  // Reset to first page when search changes
+  table.setPageIndex(0);
+}, 300);
+
+const handleSearchInput = (event) => {
+  searchValue.value = event.target.value;
+  debouncedSearch(event.target.value);
+};
+
+const clearSearch = () => {
+  searchValue.value = "";
+  table.getColumn(props.searchColumn)?.setFilterValue(undefined);
+  // Reset to first page when search is cleared
+  table.setPageIndex(0);
+};
 
 defineShortcuts({
   meta_k: {

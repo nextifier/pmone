@@ -6,6 +6,8 @@
     </div>
 
     <TableData
+      :clientOnly="clientOnly"
+      ref="tableRef"
       :data="data"
       :columns="columns"
       :meta="meta"
@@ -145,41 +147,50 @@ const { $dayjs } = useNuxtApp();
 
 // Table state
 const columnFilters = ref([]);
-const pagination = ref({ pageIndex: 0, pageSize: 20 });
+const pagination = ref({ pageIndex: 0, pageSize: 10 });
 const sorting = ref([{ id: "created_at", desc: true }]);
 
 // Data state
 const data = ref([]);
-const meta = ref({ current_page: 1, last_page: 1, per_page: 20, total: 0 });
+const meta = ref({ current_page: 1, last_page: 1, per_page: 10, total: 0 });
 const pending = ref(false);
 const error = ref(null);
+
+// Client-only mode flag (true = client-side pagination, false = server-side)
+const clientOnly = ref(true);
 
 // Build query params
 const buildQueryParams = () => {
   const params = new URLSearchParams();
-  params.append("page", pagination.value.pageIndex + 1);
-  params.append("per_page", pagination.value.pageSize);
 
-  // Filters
-  const filters = {
-    name: "filter.search",
-    status: "filter.status",
-    roles: "filter.role",
-    email_verified_at: "filter.verified",
-  };
+  if (clientOnly.value) {
+    params.append("client_only", "true");
+  } else {
+    // Server-side mode: add pagination, filters, and sorting
+    params.append("page", pagination.value.pageIndex + 1);
+    params.append("per_page", pagination.value.pageSize);
 
-  Object.entries(filters).forEach(([columnId, paramKey]) => {
-    const filter = columnFilters.value.find((f) => f.id === columnId);
-    if (filter?.value) {
-      const value = Array.isArray(filter.value) ? filter.value.join(",") : filter.value;
-      params.append(paramKey, value);
-    }
-  });
+    // Filters
+    const filters = {
+      name: "filter.search",
+      status: "filter.status",
+      roles: "filter.role",
+      email_verified_at: "filter.verified",
+    };
 
-  // Sorting
-  const sortField = sorting.value[0]?.id || "created_at";
-  const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
-  params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
+    Object.entries(filters).forEach(([columnId, paramKey]) => {
+      const filter = columnFilters.value.find((f) => f.id === columnId);
+      if (filter?.value) {
+        const value = Array.isArray(filter.value) ? filter.value.join(",") : filter.value;
+        params.append(paramKey, value);
+      }
+    });
+
+    // Sorting
+    const sortField = sorting.value[0]?.id || "created_at";
+    const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
+    params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
+  }
 
   return params.toString();
 };
@@ -203,15 +214,16 @@ const fetchUsers = async () => {
 
 await fetchUsers();
 
-// Debounced fetch for search
+// Watchers for server-side mode only
 const debouncedFetch = useDebounceFn(fetchUsers, 300);
 
-// Watch for changes
 watch(
   [columnFilters, sorting, pagination],
   () => {
-    const hasNameFilter = columnFilters.value.some((f) => f.id === "name");
-    hasNameFilter ? debouncedFetch() : fetchUsers();
+    if (!clientOnly.value) {
+      const hasNameFilter = columnFilters.value.some((f) => f.id === "name");
+      hasNameFilter ? debouncedFetch() : fetchUsers();
+    }
   },
   { deep: true }
 );
@@ -246,6 +258,15 @@ const columns = [
     cell: ({ row }) => h(AuthUserInfo, { user: row.original }),
     size: 280,
     enableHiding: false,
+    filterFn: (row, columnId, filterValue) => {
+      const searchValue = filterValue.toLowerCase();
+      const name = row.original.name?.toLowerCase() || "";
+      const email = row.original.email?.toLowerCase() || "";
+      const username = row.original.username?.toLowerCase() || "";
+      return (
+        name.includes(searchValue) || email.includes(searchValue) || username.includes(searchValue)
+      );
+    },
   },
   {
     header: "Roles",
@@ -256,6 +277,11 @@ const columns = [
     },
     size: 80,
     enableSorting: true,
+    filterFn: (row, columnId, filterValue) => {
+      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+      const userRoles = row.getValue(columnId) || [];
+      return filterValue.some((role) => userRoles.includes(role));
+    },
   },
   {
     header: "Verified",
@@ -275,6 +301,15 @@ const columns = [
     },
     size: 80,
     enableSorting: true,
+    filterFn: (row, columnId, filterValue) => {
+      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+      const isVerified = !!row.getValue(columnId);
+      return filterValue.some((value) => {
+        if (value === "true") return isVerified;
+        if (value === "false") return !isVerified;
+        return false;
+      });
+    },
   },
   {
     header: "Status",
@@ -292,6 +327,11 @@ const columns = [
       ]);
     },
     size: 80,
+    filterFn: (row, columnId, filterValue) => {
+      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+      const status = row.getValue(columnId);
+      return filterValue.includes(status);
+    },
   },
   {
     header: "Created",
@@ -314,9 +354,17 @@ const columns = [
   },
 ];
 
-// Filter helpers - using columnFilters ref directly
-const getFilterValue = (columnId) =>
-  columnFilters.value.find((f) => f.id === columnId)?.value ?? [];
+// Table ref
+const tableRef = ref();
+
+// Filter helpers - handle both client and server mode
+const getFilterValue = (columnId) => {
+  if (clientOnly.value && tableRef.value?.table) {
+    return tableRef.value.table.getColumn(columnId)?.getFilterValue() ?? [];
+  }
+  return columnFilters.value.find((f) => f.id === columnId)?.value ?? [];
+};
+
 const selectedStatuses = computed(() => getFilterValue("status"));
 const selectedRoles = computed(() => getFilterValue("roles"));
 const selectedVerified = computed(() => getFilterValue("email_verified_at"));
@@ -325,21 +373,36 @@ const totalActiveFilters = computed(
 );
 
 const handleFilterChange = (columnId, { checked, value }) => {
-  const current = getFilterValue(columnId);
-  const updated = checked ? [...current, value] : current.filter((item) => item !== value);
+  if (clientOnly.value && tableRef.value?.table) {
+    // Client-side mode: use table instance
+    const column = tableRef.value.table.getColumn(columnId);
+    if (!column) return;
 
-  // Update columnFilters directly
-  const existingIndex = columnFilters.value.findIndex((f) => f.id === columnId);
-  if (updated.length) {
-    if (existingIndex >= 0) {
-      columnFilters.value[existingIndex].value = updated;
-    } else {
-      columnFilters.value.push({ id: columnId, value: updated });
-    }
+    const current = column.getFilterValue() ?? [];
+    const updated = checked ? [...current, value] : current.filter((item) => item !== value);
+
+    column.setFilterValue(updated.length > 0 ? updated : undefined);
+    // Reset to first page when filter changes
+    tableRef.value.table.setPageIndex(0);
   } else {
-    if (existingIndex >= 0) {
-      columnFilters.value.splice(existingIndex, 1);
+    // Server-side mode: update columnFilters ref
+    const current = getFilterValue(columnId);
+    const updated = checked ? [...current, value] : current.filter((item) => item !== value);
+
+    const existingIndex = columnFilters.value.findIndex((f) => f.id === columnId);
+    if (updated.length) {
+      if (existingIndex >= 0) {
+        columnFilters.value[existingIndex].value = updated;
+      } else {
+        columnFilters.value.push({ id: columnId, value: updated });
+      }
+    } else {
+      if (existingIndex >= 0) {
+        columnFilters.value.splice(existingIndex, 1);
+      }
     }
+    // Reset to first page when filter changes (server-side)
+    pagination.value.pageIndex = 0;
   }
 };
 

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Http\Resources\UserIndexResource;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -25,14 +26,33 @@ class UserController extends Controller
         $this->authorize('users.view');
 
         $query = User::query()->with(['roles']);
+        $clientOnly = $request->boolean('client_only', false);
 
-        $this->applyFilters($query, $request);
-        $this->applySorting($query, $request);
+        // Apply filters and sorting only if not client-only mode
+        if (! $clientOnly) {
+            $this->applyFilters($query, $request);
+            $this->applySorting($query, $request);
+        }
+
+        // Paginate only if not client-only mode
+        if ($clientOnly) {
+            $users = $query->get();
+
+            return response()->json([
+                'data' => UserIndexResource::collection($users),
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => $users->count(),
+                    'total' => $users->count(),
+                ],
+            ]);
+        }
 
         $users = $query->paginate($request->input('per_page', 15));
 
         return response()->json([
-            'data' => UserResource::collection($users->items()),
+            'data' => UserIndexResource::collection($users->items()),
             'meta' => [
                 'current_page' => $users->currentPage(),
                 'last_page' => $users->lastPage(),
@@ -61,7 +81,7 @@ class UserController extends Controller
 
         // Role filter
         if ($roles = $request->input('filter_role')) {
-            $query->whereHas('roles', fn($q) => $q->whereIn('name', explode(',', $roles)));
+            $query->whereHas('roles', fn ($q) => $q->whereIn('name', explode(',', $roles)));
         }
 
         // Verified filter
