@@ -95,7 +95,7 @@
           <div class="ml-auto flex h-full gap-x-1 sm:gap-x-2">
             <!-- Clear Filters Button -->
             <button
-              v-if="table.getState().columnFilters.length > 0"
+              v-if="hasActiveFilters"
               class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
               @click="table.resetColumnFilters()"
             >
@@ -211,7 +211,7 @@
 
         <!-- Empty State -->
         <div
-          v-if="!table.getRowModel().rows?.length"
+          v-if="!hasRows"
           class="mx-auto flex w-full max-w-md flex-col items-center gap-4 py-10 text-center"
         >
           <div
@@ -255,36 +255,19 @@
 
       <!-- Pagination -->
       <div
-        v-if="table.getRowModel().rows?.length"
+        v-if="hasRows"
         class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center"
       >
         <div class="flex items-center justify-between gap-x-4">
           <div class="text-muted-foreground text-sm tracking-tight">
-            <template v-if="table.getSelectedRowModel().rows.length > 0">
-              {{ table.getSelectedRowModel().rows.length }} of
-              {{ clientOnly ? data.length : meta.total }} row<template
-                v-if="table.getSelectedRowModel().rows.length > 1"
-                >s</template
-              >
+            <template v-if="hasSelectedRows">
+              {{ selectedRowsCount }} of
+              {{ totalItems }} row<template v-if="selectedRowsCount > 1">s</template>
               selected.
             </template>
-            <template v-else-if="clientOnly">
-              Showing
-              {{ table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1 }}
-              to
-              {{
-                Math.min(
-                  (table.getState().pagination.pageIndex + 1) *
-                    table.getState().pagination.pageSize,
-                  table.getFilteredRowModel().rows.length
-                )
-              }}
-              of {{ table.getFilteredRowModel().rows.length }} results.
-            </template>
             <template v-else>
-              Showing {{ (meta.current_page - 1) * meta.per_page + 1 }} to
-              {{ Math.min(meta.current_page * meta.per_page, meta.total) }} of
-              {{ meta.total }} results.
+              Showing {{ paginationInfo.from }} to {{ paginationInfo.to }} of
+              {{ paginationInfo.total }} results.
             </template>
           </div>
 
@@ -315,18 +298,16 @@
 
           <div>
             <Pagination
-              :default-page="
-                clientOnly ? table.getState().pagination.pageIndex + 1 : meta.current_page
-              "
-              :items-per-page="clientOnly ? table.getState().pagination.pageSize : meta.per_page"
-              :total="clientOnly ? table.getFilteredRowModel().rows.length : meta.total"
+              :default-page="currentPage"
+              :items-per-page="itemsPerPage"
+              :total="totalItems"
             >
               <PaginationContent>
                 <PaginationFirst asChild>
                   <button
                     class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
                     @click="() => table.setPageIndex(0)"
-                    :disabled="clientOnly ? !table.getCanPreviousPage() : meta.current_page <= 1"
+                    :disabled="!canGoPrevious"
                   >
                     <Icon name="lucide:chevron-first" class="size-4 shrink-0" />
                   </button>
@@ -335,7 +316,7 @@
                   <button
                     class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
                     @click="() => table.previousPage()"
-                    :disabled="clientOnly ? !table.getCanPreviousPage() : meta.current_page <= 1"
+                    :disabled="!canGoPrevious"
                   >
                     <Icon name="lucide:chevron-left" class="size-4 shrink-0" />
                   </button>
@@ -344,9 +325,7 @@
                   <button
                     class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
                     @click="() => table.nextPage()"
-                    :disabled="
-                      clientOnly ? !table.getCanNextPage() : meta.current_page >= meta.last_page
-                    "
+                    :disabled="!canGoNext"
                   >
                     <Icon name="lucide:chevron-right" class="size-4 shrink-0" />
                   </button>
@@ -354,15 +333,8 @@
                 <PaginationLast asChild>
                   <button
                     class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                    @click="
-                      () =>
-                        table.setPageIndex(
-                          clientOnly ? table.getPageCount() - 1 : meta.last_page - 1
-                        )
-                    "
-                    :disabled="
-                      clientOnly ? !table.getCanNextPage() : meta.current_page >= meta.last_page
-                    "
+                    @click="() => table.setPageIndex(lastPageIndex)"
+                    :disabled="!canGoNext"
                   >
                     <Icon name="lucide:chevron-last" class="size-4 shrink-0" />
                   </button>
@@ -605,6 +577,57 @@ defineShortcuts({
     },
   },
 });
+
+// Computed properties for better readability
+const isClientSidePagination = computed(() => props.clientOnly);
+const hasRows = computed(() => table.getRowModel().rows?.length > 0);
+const hasActiveFilters = computed(() => table.getState().columnFilters.length > 0);
+const selectedRowsCount = computed(() => table.getSelectedRowModel().rows.length);
+const hasSelectedRows = computed(() => selectedRowsCount.value > 0);
+
+const paginationInfo = computed(() => {
+  if (isClientSidePagination.value) {
+    const pageIndex = table.getState().pagination.pageIndex;
+    const pageSize = table.getState().pagination.pageSize;
+    const totalRows = table.getFilteredRowModel().rows.length;
+
+    return {
+      from: pageIndex * pageSize + 1,
+      to: Math.min((pageIndex + 1) * pageSize, totalRows),
+      total: totalRows,
+    };
+  } else {
+    return {
+      from: (props.meta.current_page - 1) * props.meta.per_page + 1,
+      to: Math.min(props.meta.current_page * props.meta.per_page, props.meta.total),
+      total: props.meta.total,
+    };
+  }
+});
+
+const canGoPrevious = computed(() =>
+  isClientSidePagination.value ? table.getCanPreviousPage() : props.meta.current_page > 1
+);
+
+const canGoNext = computed(() =>
+  isClientSidePagination.value ? table.getCanNextPage() : props.meta.current_page < props.meta.last_page
+);
+
+const lastPageIndex = computed(() =>
+  isClientSidePagination.value ? table.getPageCount() - 1 : props.meta.last_page - 1
+);
+
+const currentPage = computed(() =>
+  isClientSidePagination.value ? table.getState().pagination.pageIndex + 1 : props.meta.current_page
+);
+
+const itemsPerPage = computed(() =>
+  isClientSidePagination.value ? table.getState().pagination.pageSize : props.meta.per_page
+);
+
+const totalItems = computed(() =>
+  isClientSidePagination.value ? table.getFilteredRowModel().rows.length : props.meta.total
+);
 
 // Expose table instance for parent
 defineExpose({

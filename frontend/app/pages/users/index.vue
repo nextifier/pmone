@@ -93,7 +93,7 @@
             </button>
           </template>
           <template #default>
-            <div class="px-4 pb-6 md:px-6 md:py-5">
+            <div class="px-4 pb-10 md:px-6 md:py-5">
               <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This action can't be undone. This will permanently delete
@@ -156,7 +156,7 @@ const pending = ref(false);
 const error = ref(null);
 
 // Client-only mode flag (true = client-side pagination, false = server-side)
-const clientOnly = ref(false);
+const clientOnly = ref(true);
 
 // Build query params
 const buildQueryParams = () => {
@@ -525,7 +525,7 @@ const RowActions = defineComponent({
           },
           {
             default: () =>
-              h("div", { class: "px-4 pb-6 md:px-6 md:py-5" }, [
+              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
                 h(
                   "div",
                   { class: "text-primary text-lg font-semibold tracking-tight" },
