@@ -1,8 +1,8 @@
 <template>
-  <div class="mx-auto max-w-2xl space-y-6">
-    <!-- Header -->
-    <div class="flex items-center gap-x-2.5">
-      <Icon name="hugeicons:user-add-01" class="size-5 sm:size-6" />
+  <div class="mx-auto max-w-md space-y-6">
+    <div class="flex items-center gap-x-4">
+      <BackButton :showLabel="false" destination="/users" />
+
       <h1 class="page-title">Create New User</h1>
     </div>
 
@@ -22,233 +22,193 @@
       {{ success }}
     </div>
 
-    <!-- Form -->
-    <div class="bg-card rounded-lg border p-6">
-      <form @submit.prevent="createUser" class="space-y-6">
-        <!-- Basic Information -->
-        <div class="space-y-4">
-          <h3 class="text-lg font-medium">Basic Information</h3>
+    <form @submit.prevent="createUser" class="grid gap-y-6">
+      <div class="grid gap-y-4 rounded-lg sm:border sm:p-6">
+        <h3 class="text-muted-foreground text-sm font-medium tracking-tight">
+          Personal Information
+        </h3>
 
-          <div class="grid gap-4 sm:grid-cols-2">
-            <!-- Name -->
-            <div class="space-y-2">
-              <Label for="name">Full Name *</Label>
-              <Input
-                id="name"
-                v-model="form.name"
-                type="text"
-                required
-                placeholder="Enter full name"
-              />
-              <p v-if="errors.name" class="text-destructive text-sm">{{ errors.name[0] }}</p>
-            </div>
-
-            <!-- Username -->
-            <div class="space-y-2">
-              <Label for="username">Username</Label>
-              <Input
-                id="username"
-                v-model="form.username"
-                type="text"
-                placeholder="Will be auto-generated if left empty"
-              />
-              <p v-if="errors.username" class="text-destructive text-sm">
-                {{ errors.username[0] }}
-              </p>
-            </div>
-          </div>
-
-          <div class="grid gap-4 sm:grid-cols-2">
-            <!-- Email -->
-            <div class="space-y-2">
-              <Label for="email">Email Address *</Label>
-              <Input
-                id="email"
-                v-model="form.email"
-                type="email"
-                required
-                placeholder="Enter email address"
-              />
-              <p v-if="errors.email" class="text-destructive text-sm">{{ errors.email[0] }}</p>
-            </div>
-
-            <!-- Phone -->
-            <div class="space-y-2">
-              <Label for="phone">Phone Number</Label>
-              <Input id="phone" v-model="form.phone" type="tel" placeholder="Enter phone number" />
-              <p v-if="errors.phone" class="text-destructive text-sm">{{ errors.phone[0] }}</p>
-            </div>
-          </div>
-
-          <!-- Password -->
-          <div class="space-y-2">
-            <Label for="password">Password *</Label>
-            <Input
-              id="password"
-              v-model="form.password"
-              type="password"
-              required
-              placeholder="Enter password (minimum 8 characters)"
-              minlength="8"
-            />
-            <p v-if="errors.password" class="text-destructive text-sm">{{ errors.password[0] }}</p>
-          </div>
-
-          <div class="grid gap-4 sm:grid-cols-2">
-            <!-- Birth Date -->
-            <div class="space-y-2">
-              <Label for="birth_date">Birth Date</Label>
-              <Popover>
-                <PopoverTrigger as-child>
-                  <Button
-                    variant="outline"
-                    :class="
-                      cn(
-                        'w-[280px] justify-start text-left font-normal',
-                        !form.birth_date && 'text-muted-foreground'
-                      )
-                    "
-                  >
-                    <CalendarIcon class="mr-2 h-4 w-4" />
-                    {{
-                      form.birth_date
-                        ? df.format(form.birth_date.toDate(getLocalTimeZone()))
-                        : "Pick a date"
-                    }}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent class="w-auto p-0">
-                  <Calendar v-model="form.birth_date" initial-focus />
-                </PopoverContent>
-              </Popover>
-
-              <p v-if="errors.birth_date" class="text-destructive text-sm">
-                {{ errors.birth_date[0] }}
-              </p>
-            </div>
-
-            <!-- Gender -->
-            <div class="space-y-2">
-              <Label for="gender">Gender</Label>
-              <Select v-model="form.gender">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              <p v-if="errors.gender" class="text-destructive text-sm">{{ errors.gender[0] }}</p>
-            </div>
-          </div>
-
-          <!-- Bio -->
-          <div class="space-y-2">
-            <Label for="bio">Bio</Label>
-            <Textarea
-              id="bio"
-              v-model="form.bio"
-              rows="3"
-              placeholder="Enter user bio (optional)"
-              maxlength="1000"
-            />
-            <p v-if="errors.bio" class="text-destructive text-sm">{{ errors.bio[0] }}</p>
-          </div>
+        <div class="space-y-2">
+          <Label for="name">Full Name *</Label>
+          <Input id="name" v-model="form.name" type="text" required placeholder="Enter full name" />
+          <p v-if="errors.name" class="text-destructive text-sm">{{ errors.name[0] }}</p>
         </div>
 
-        <!-- Account Settings -->
-        <div class="space-y-4 border-t pt-6">
-          <h3 class="text-lg font-medium">Account Settings</h3>
+        <div class="space-y-2">
+          <Label for="username">Username</Label>
+          <Input
+            id="username"
+            v-model="form.username"
+            type="text"
+            placeholder="Will be auto-generated if left empty"
+          />
+          <p v-if="errors.username" class="text-destructive text-sm">
+            {{ errors.username[0] }}
+          </p>
+        </div>
 
-          <div class="grid gap-4 sm:grid-cols-2">
-            <!-- Status -->
-            <div class="space-y-2">
-              <Label for="status">Status</Label>
-              <Select v-model="form.status">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="suspended">Suspended</SelectItem>
-                </SelectContent>
-              </Select>
-              <p v-if="errors.status" class="text-destructive text-sm">{{ errors.status[0] }}</p>
-            </div>
+        <div class="space-y-2">
+          <Label for="email">Email Address *</Label>
+          <Input
+            id="email"
+            v-model="form.email"
+            type="email"
+            required
+            placeholder="Enter email address"
+          />
+          <p v-if="errors.email" class="text-destructive text-sm">{{ errors.email[0] }}</p>
+        </div>
 
-            <!-- Visibility -->
-            <div class="space-y-2">
-              <Label for="visibility">Profile Visibility</Label>
-              <Select v-model="form.visibility">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select visibility" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="public">Public</SelectItem>
-                  <SelectItem value="private">Private</SelectItem>
-                </SelectContent>
-              </Select>
-              <p v-if="errors.visibility" class="text-destructive text-sm">
-                {{ errors.visibility[0] }}
-              </p>
-            </div>
-          </div>
+        <div class="space-y-2">
+          <Label for="phone">Phone Number</Label>
+          <Input id="phone" v-model="form.phone" type="tel" placeholder="Enter phone number" />
+          <p v-if="errors.phone" class="text-destructive text-sm">{{ errors.phone[0] }}</p>
+        </div>
 
-          <!-- Roles -->
+        <div class="space-y-2">
+          <Label for="password">Password *</Label>
+          <Input
+            id="password"
+            v-model="form.password"
+            type="password"
+            required
+            placeholder="Enter password (minimum 8 characters)"
+            minlength="8"
+          />
+          <p v-if="errors.password" class="text-destructive text-sm">{{ errors.password[0] }}</p>
+        </div>
+
+        <div class="space-y-2">
+          <Label for="birth_date">Birth Date</Label>
+          <Popover>
+            <PopoverTrigger as-child>
+              <Button
+                variant="outline"
+                :class="
+                  cn(
+                    'w-[280px] justify-start text-left font-normal',
+                    !form.birth_date && 'text-muted-foreground'
+                  )
+                "
+              >
+                <CalendarIcon class="mr-2 h-4 w-4" />
+                {{
+                  form.birth_date
+                    ? df.format(form.birth_date.toDate(getLocalTimeZone()))
+                    : "Pick a date"
+                }}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent class="w-auto p-0">
+              <Calendar v-model="form.birth_date" initial-focus />
+            </PopoverContent>
+          </Popover>
+
+          <p v-if="errors.birth_date" class="text-destructive text-sm">
+            {{ errors.birth_date[0] }}
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <Label for="gender">Gender</Label>
+          <Select v-model="form.gender">
+            <SelectTrigger>
+              <SelectValue placeholder="Select gender" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="male">Male</SelectItem>
+              <SelectItem value="female">Female</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+          <p v-if="errors.gender" class="text-destructive text-sm">{{ errors.gender[0] }}</p>
+        </div>
+
+        <div class="space-y-2">
+          <Label for="bio">Bio</Label>
+          <Textarea
+            id="bio"
+            v-model="form.bio"
+            rows="3"
+            placeholder="Enter user bio (optional)"
+            maxlength="1000"
+          />
+          <p v-if="errors.bio" class="text-destructive text-sm">{{ errors.bio[0] }}</p>
+        </div>
+      </div>
+
+      <div class="grid gap-y-4 rounded-lg sm:border sm:p-6">
+        <h3 class="text-muted-foreground text-sm font-medium tracking-tight">Account Settings</h3>
+
+        <div class="space-y-2">
+          <Label for="status">Status</Label>
+          <Select v-model="form.status">
+            <SelectTrigger>
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+              <SelectItem value="suspended">Suspended</SelectItem>
+            </SelectContent>
+          </Select>
+          <p v-if="errors.status" class="text-destructive text-sm">{{ errors.status[0] }}</p>
+        </div>
+
+        <div class="space-y-2">
+          <Label for="visibility">Profile Visibility</Label>
+          <Select v-model="form.visibility">
+            <SelectTrigger>
+              <SelectValue placeholder="Select visibility" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="public">Public</SelectItem>
+              <SelectItem value="private">Private</SelectItem>
+            </SelectContent>
+          </Select>
+          <p v-if="errors.visibility" class="text-destructive text-sm">
+            {{ errors.visibility[0] }}
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <Label>Roles</Label>
           <div class="space-y-2">
-            <Label>Roles</Label>
-            <div class="space-y-2">
-              <div v-for="role in roles" :key="role.id" class="flex items-center gap-2">
-                <Checkbox
-                  :id="`role-${role.id}`"
-                  :checked="form.roles.includes(role.name)"
-                  @update:checked="toggleRole(role.name)"
-                />
-                <Label :for="`role-${role.id}`" class="cursor-pointer font-normal capitalize">
-                  {{ role.name }}
-                </Label>
-              </div>
+            <div v-for="role in roles" :key="role.id" class="flex items-center gap-2">
+              <Checkbox
+                :id="`role-${role.id}`"
+                :checked="form.roles.includes(role.name)"
+                @update:checked="toggleRole(role.name)"
+              />
+              <Label :for="`role-${role.id}`" class="cursor-pointer font-normal capitalize">
+                {{ role.name }}
+              </Label>
             </div>
-            <p v-if="errors.roles" class="text-destructive text-sm">{{ errors.roles[0] }}</p>
           </div>
+          <p v-if="errors.roles" class="text-destructive text-sm">{{ errors.roles[0] }}</p>
         </div>
+      </div>
 
-        <!-- Form Actions -->
-        <div class="flex justify-between border-t pt-6">
-          <NuxtLink
-            to="/users"
-            class="border-border hover:bg-muted inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition"
-          >
-            <Icon name="hugeicons:arrow-left-02" class="size-4" />
-            Back to Users
-          </NuxtLink>
+      <div class="flex justify-end gap-x-3">
+        <button
+          type="button"
+          @click="resetForm"
+          class="border-border text-primary hover:bg-muted flex items-center gap-x-1.5 rounded-lg border px-4 py-2 text-sm font-semibold tracking-tighter transition disabled:opacity-50"
+        >
+          <Icon name="hugeicons:refresh" class="size-4" />
+          Reset
+        </button>
 
-          <div class="flex gap-3">
-            <button
-              type="button"
-              @click="resetForm"
-              class="border-border hover:bg-muted inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition"
-            >
-              <Icon name="hugeicons:refresh" class="size-4" />
-              Reset
-            </button>
-
-            <button
-              type="submit"
-              :disabled="loading"
-              class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition disabled:opacity-50"
-            >
-              <Icon name="hugeicons:loading-01" v-if="loading" class="size-4 animate-spin" />
-              <Icon name="hugeicons:user-add-01" v-else class="size-4" />
-              {{ loading ? "Creating..." : "Create User" }}
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
+        <button
+          type="submit"
+          :disabled="loading"
+          class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-semibold tracking-tighter transition disabled:opacity-50"
+        >
+          <Spinner v-if="loading" />
+          {{ loading ? "Creating.." : "Create User" }}
+        </button>
+      </div>
+    </form>
   </div>
 </template>
 

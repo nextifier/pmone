@@ -1,19 +1,19 @@
 <template>
-  <!-- 
+  <!--
     Gunakan scoped slot untuk "mengirim" fungsi goBack ke parent.
     Ini memberikan fleksibilitas penuh pada parent untuk mendesain UI-nya.
   -->
   <slot :goBack="goBack">
-    <!-- 
-      TEMPLATE DEFAULT: 
+    <!--
+      TEMPLATE DEFAULT:
       Ini akan ditampilkan jika parent tidak menyediakan slot kustom.
     -->
     <button
       @click="goBack"
-      class="text-primary lg:hover:bg-muted flex items-center justify-center gap-x-1 rounded-full border p-3 transition active:scale-98 lg:border-0"
+      class="text-primary lg:hover:bg-muted border-border flex items-center justify-center gap-x-1 rounded-full border p-3 transition active:scale-98"
     >
       <Icon name="lucide:arrow-left" class="size-4 shrink-0" />
-      <span class="hidden text-sm tracking-tight lg:block">Back</span>
+      <span v-if="showLabel" class="hidden text-sm tracking-tight lg:block">Back</span>
     </button>
   </slot>
 </template>
@@ -27,6 +27,10 @@ const props = defineProps({
   destination: {
     type: String,
     default: null,
+  },
+  showLabel: {
+    type: Boolean,
+    default: true,
   },
 });
 
