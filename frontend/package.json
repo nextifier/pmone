@@ -14,6 +14,7 @@
     "@iconify-json/lucide": "^1.2.68",
     "@iconify-json/material-symbols": "^1.2.38",
     "@iconify-json/ri": "^1.2.5",
+    "@internationalized/date": "^3.10.0",
     "@number-flow/vue": "^0.4.8",
     "@nuxt/devtools": "latest",
     "@nuxt/fonts": "^0.11.4",

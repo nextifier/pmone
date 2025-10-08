@@ -32,6 +32,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/', [UserController::class, 'index']);
         Route::post('/', [UserController::class, 'store'])->middleware('can:users.create');
         Route::get('/roles', [UserController::class, 'getRoles']);
+        Route::delete('/bulk', [UserController::class, 'bulkDestroy'])->middleware('can:users.delete');
         Route::get('/{user}', [UserController::class, 'show']);
         Route::put('/{user}', [UserController::class, 'update'])->middleware('can:users.edit');
         Route::delete('/{user}', [UserController::class, 'destroy'])->middleware('can:users.delete');

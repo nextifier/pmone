@@ -245,6 +245,75 @@ class UserController extends Controller
         }
     }
 
+    public function bulkDestroy(Request $request): JsonResponse
+    {
+        $this->authorize('users.delete');
+
+        $validator = Validator::make($request->all(), [
+            'ids' => ['required', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $userIds = $request->input('ids');
+            $currentUser = $request->user();
+            $deletedCount = 0;
+            $errors = [];
+
+            foreach ($userIds as $userId) {
+                $user = User::find($userId);
+
+                if (! $user) {
+                    continue;
+                }
+
+                // Prevent admin from deleting master users
+                if ($user->hasRole('master') && ! $currentUser->hasRole('master')) {
+                    $errors[] = "Cannot delete master user: {$user->name}";
+
+                    continue;
+                }
+
+                // Prevent self-deletion
+                if ($user->id === $currentUser->id) {
+                    $errors[] = 'Cannot delete your own account';
+
+                    continue;
+                }
+
+                $user->delete();
+                $deletedCount++;
+            }
+
+            $message = $deletedCount > 0
+                ? "Successfully deleted {$deletedCount} user(s)"
+                : 'No users were deleted';
+
+            return response()->json([
+                'message' => $message,
+                'deleted_count' => $deletedCount,
+                'errors' => $errors,
+            ], $deletedCount > 0 ? 200 : 400);
+        } catch (\Exception $e) {
+            logger()->error('Bulk user deletion failed', [
+                'error' => $e->getMessage(),
+                'user_ids' => $request->input('ids'),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to delete users',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function showByUsername(User $user): JsonResponse
     {
         // Check if user profile is public or if current user has permission

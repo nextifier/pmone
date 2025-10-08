@@ -130,6 +130,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PopoverClose } from "reka-ui";
 import { resolveDirective, withDirectives } from "vue";
+import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: ["sanctum:auth", "staff-admin-master"],
@@ -347,7 +348,7 @@ const columns = [
   {
     id: "actions",
     header: () => h("span", { class: "sr-only" }, "Actions"),
-    cell: ({ row }) => h(RowActions, { userId: row.original.id, username: row.original.username }),
+    cell: ({ row }) => h(RowActions, { username: row.original.username }),
     size: 60,
     enableHiding: false,
   },
@@ -410,29 +411,50 @@ const deleteDialogOpen = ref(false);
 const handleDeleteRows = async (selectedRows) => {
   const userIds = selectedRows.map((row) => row.original.id);
   try {
-    await Promise.all(
-      userIds.map((id) => useSanctumFetch(`/api/users/${id}`, { method: "DELETE" }))
-    );
+    const client = useSanctumClient();
+    const response = await client("/api/users/bulk", {
+      method: "DELETE",
+      body: { ids: userIds },
+    });
     await refresh();
     deleteDialogOpen.value = false;
+    if (tableRef.value?.table) {
+      tableRef.value.table.resetRowSelection();
+    }
+
+    // Show success toast
+    toast.success(response.message || "Users deleted successfully", {
+      description: response.errors?.length > 0
+        ? `${response.deleted_count} deleted, ${response.errors.length} failed`
+        : `${response.deleted_count} user(s) deleted`,
+    });
   } catch (error) {
     console.error("Failed to delete users:", error);
+    toast.error("Failed to delete users", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
   }
 };
 
-const handleDeleteSingleRow = async (userId) => {
+const handleDeleteSingleRow = async (username) => {
   try {
-    await useSanctumFetch(`/api/users/${userId}`, { method: "DELETE" });
+    const client = useSanctumClient();
+    const response = await client(`/api/users/${username}`, { method: "DELETE" });
     await refresh();
+
+    // Show success toast
+    toast.success(response.message || "User deleted successfully");
   } catch (error) {
     console.error("Failed to delete user:", error);
+    toast.error("Failed to delete user", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
   }
 };
 
 // Row Actions Component
 const RowActions = defineComponent({
   props: {
-    userId: { type: Number, required: true },
     username: { type: String, required: true },
   },
   setup(props) {
@@ -552,7 +574,7 @@ const RowActions = defineComponent({
                       class:
                         "bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
                       onClick: async () => {
-                        await handleDeleteSingleRow(props.userId);
+                        await handleDeleteSingleRow(props.username);
                         dialogOpen.value = false;
                       },
                     },

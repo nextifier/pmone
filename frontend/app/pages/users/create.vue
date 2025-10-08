@@ -31,34 +31,28 @@
 
           <div class="grid gap-4 sm:grid-cols-2">
             <!-- Name -->
-            <div>
-              <label for="name" class="text-foreground mb-2 block text-sm font-medium">
-                Full Name *
-              </label>
-              <input
+            <div class="space-y-2">
+              <Label for="name">Full Name *</Label>
+              <Input
                 id="name"
                 v-model="form.name"
                 type="text"
                 required
-                class="bg-background border-border focus:border-primary focus:ring-primary w-full rounded-md border px-3 py-2 text-sm transition"
                 placeholder="Enter full name"
               />
-              <p v-if="errors.name" class="text-destructive mt-1 text-xs">{{ errors.name[0] }}</p>
+              <p v-if="errors.name" class="text-destructive text-sm">{{ errors.name[0] }}</p>
             </div>
 
             <!-- Username -->
-            <div>
-              <label for="username" class="text-foreground mb-2 block text-sm font-medium">
-                Username
-              </label>
-              <input
+            <div class="space-y-2">
+              <Label for="username">Username</Label>
+              <Input
                 id="username"
                 v-model="form.username"
                 type="text"
-                class="bg-background border-border focus:border-primary focus:ring-primary w-full rounded-md border px-3 py-2 text-sm transition"
                 placeholder="Will be auto-generated if left empty"
               />
-              <p v-if="errors.username" class="text-destructive mt-1 text-xs">
+              <p v-if="errors.username" class="text-destructive text-sm">
                 {{ errors.username[0] }}
               </p>
             </div>
@@ -66,107 +60,101 @@
 
           <div class="grid gap-4 sm:grid-cols-2">
             <!-- Email -->
-            <div>
-              <label for="email" class="text-foreground mb-2 block text-sm font-medium">
-                Email Address *
-              </label>
-              <input
+            <div class="space-y-2">
+              <Label for="email">Email Address *</Label>
+              <Input
                 id="email"
                 v-model="form.email"
                 type="email"
                 required
-                class="bg-background border-border focus:border-primary focus:ring-primary w-full rounded-md border px-3 py-2 text-sm transition"
                 placeholder="Enter email address"
               />
-              <p v-if="errors.email" class="text-destructive mt-1 text-xs">{{ errors.email[0] }}</p>
+              <p v-if="errors.email" class="text-destructive text-sm">{{ errors.email[0] }}</p>
             </div>
 
             <!-- Phone -->
-            <div>
-              <label for="phone" class="text-foreground mb-2 block text-sm font-medium">
-                Phone Number
-              </label>
-              <input
-                id="phone"
-                v-model="form.phone"
-                type="tel"
-                class="bg-background border-border focus:border-primary focus:ring-primary w-full rounded-md border px-3 py-2 text-sm transition"
-                placeholder="Enter phone number"
-              />
-              <p v-if="errors.phone" class="text-destructive mt-1 text-xs">{{ errors.phone[0] }}</p>
+            <div class="space-y-2">
+              <Label for="phone">Phone Number</Label>
+              <Input id="phone" v-model="form.phone" type="tel" placeholder="Enter phone number" />
+              <p v-if="errors.phone" class="text-destructive text-sm">{{ errors.phone[0] }}</p>
             </div>
           </div>
 
           <!-- Password -->
-          <div>
-            <label for="password" class="text-foreground mb-2 block text-sm font-medium">
-              Password *
-            </label>
-            <input
+          <div class="space-y-2">
+            <Label for="password">Password *</Label>
+            <Input
               id="password"
               v-model="form.password"
               type="password"
               required
-              class="bg-background border-border focus:border-primary focus:ring-primary w-full rounded-md border px-3 py-2 text-sm transition"
               placeholder="Enter password (minimum 8 characters)"
               minlength="8"
             />
-            <p v-if="errors.password" class="text-destructive mt-1 text-xs">
-              {{ errors.password[0] }}
-            </p>
+            <p v-if="errors.password" class="text-destructive text-sm">{{ errors.password[0] }}</p>
           </div>
 
           <div class="grid gap-4 sm:grid-cols-2">
             <!-- Birth Date -->
-            <div>
-              <label for="birth_date" class="text-foreground mb-2 block text-sm font-medium">
-                Birth Date
-              </label>
-              <input
-                id="birth_date"
-                v-model="form.birth_date"
-                type="date"
-                :max="maxBirthDate"
-                class="bg-background border-border focus:border-primary focus:ring-primary w-full rounded-md border px-3 py-2 text-sm transition"
-              />
-              <p v-if="errors.birth_date" class="text-destructive mt-1 text-xs">
+            <div class="space-y-2">
+              <Label for="birth_date">Birth Date</Label>
+              <Popover>
+                <PopoverTrigger as-child>
+                  <Button
+                    variant="outline"
+                    :class="
+                      cn(
+                        'w-[280px] justify-start text-left font-normal',
+                        !form.birth_date && 'text-muted-foreground'
+                      )
+                    "
+                  >
+                    <CalendarIcon class="mr-2 h-4 w-4" />
+                    {{
+                      form.birth_date
+                        ? df.format(form.birth_date.toDate(getLocalTimeZone()))
+                        : "Pick a date"
+                    }}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent class="w-auto p-0">
+                  <Calendar v-model="form.birth_date" initial-focus />
+                </PopoverContent>
+              </Popover>
+
+              <p v-if="errors.birth_date" class="text-destructive text-sm">
                 {{ errors.birth_date[0] }}
               </p>
             </div>
 
             <!-- Gender -->
-            <div>
-              <label for="gender" class="text-foreground mb-2 block text-sm font-medium">
-                Gender
-              </label>
-              <select
-                id="gender"
-                v-model="form.gender"
-                class="bg-background border-border focus:border-primary focus:ring-primary w-full rounded-md border px-3 py-2 text-sm transition"
-              >
-                <option value="">Select gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
-              <p v-if="errors.gender" class="text-destructive mt-1 text-xs">
-                {{ errors.gender[0] }}
-              </p>
+            <div class="space-y-2">
+              <Label for="gender">Gender</Label>
+              <Select v-model="form.gender">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              <p v-if="errors.gender" class="text-destructive text-sm">{{ errors.gender[0] }}</p>
             </div>
           </div>
 
           <!-- Bio -->
-          <div>
-            <label for="bio" class="text-foreground mb-2 block text-sm font-medium"> Bio </label>
-            <textarea
+          <div class="space-y-2">
+            <Label for="bio">Bio</Label>
+            <Textarea
               id="bio"
               v-model="form.bio"
               rows="3"
-              class="bg-background border-border focus:border-primary focus:ring-primary w-full rounded-md border px-3 py-2 text-sm transition"
               placeholder="Enter user bio (optional)"
               maxlength="1000"
-            ></textarea>
-            <p v-if="errors.bio" class="text-destructive mt-1 text-xs">{{ errors.bio[0] }}</p>
+            />
+            <p v-if="errors.bio" class="text-destructive text-sm">{{ errors.bio[0] }}</p>
           </div>
         </div>
 
@@ -176,64 +164,55 @@
 
           <div class="grid gap-4 sm:grid-cols-2">
             <!-- Status -->
-            <div>
-              <label for="status" class="text-foreground mb-2 block text-sm font-medium">
-                Status
-              </label>
-              <select
-                id="status"
-                v-model="form.status"
-                class="bg-background border-border focus:border-primary focus:ring-primary w-full rounded-md border px-3 py-2 text-sm transition"
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="suspended">Suspended</option>
-              </select>
-              <p v-if="errors.status" class="text-destructive mt-1 text-xs">
-                {{ errors.status[0] }}
-              </p>
+            <div class="space-y-2">
+              <Label for="status">Status</Label>
+              <Select v-model="form.status">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="suspended">Suspended</SelectItem>
+                </SelectContent>
+              </Select>
+              <p v-if="errors.status" class="text-destructive text-sm">{{ errors.status[0] }}</p>
             </div>
 
             <!-- Visibility -->
-            <div>
-              <label for="visibility" class="text-foreground mb-2 block text-sm font-medium">
-                Profile Visibility
-              </label>
-              <select
-                id="visibility"
-                v-model="form.visibility"
-                class="bg-background border-border focus:border-primary focus:ring-primary w-full rounded-md border px-3 py-2 text-sm transition"
-              >
-                <option value="public">Public</option>
-                <option value="private">Private</option>
-              </select>
-              <p v-if="errors.visibility" class="text-destructive mt-1 text-xs">
+            <div class="space-y-2">
+              <Label for="visibility">Profile Visibility</Label>
+              <Select v-model="form.visibility">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select visibility" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="private">Private</SelectItem>
+                </SelectContent>
+              </Select>
+              <p v-if="errors.visibility" class="text-destructive text-sm">
                 {{ errors.visibility[0] }}
               </p>
             </div>
           </div>
 
           <!-- Roles -->
-          <div>
-            <label class="text-foreground mb-2 block text-sm font-medium"> Roles </label>
+          <div class="space-y-2">
+            <Label>Roles</Label>
             <div class="space-y-2">
-              <div v-for="role in roles" :key="role.id" class="flex items-center">
-                <input
+              <div v-for="role in roles" :key="role.id" class="flex items-center gap-2">
+                <Checkbox
                   :id="`role-${role.id}`"
-                  v-model="form.roles"
-                  :value="role.name"
-                  type="checkbox"
-                  class="border-border text-primary focus:ring-primary h-4 w-4 rounded transition"
+                  :checked="form.roles.includes(role.name)"
+                  @update:checked="toggleRole(role.name)"
                 />
-                <label
-                  :for="`role-${role.id}`"
-                  class="text-foreground ml-2 cursor-pointer text-sm font-medium capitalize"
-                >
+                <Label :for="`role-${role.id}`" class="cursor-pointer font-normal capitalize">
                   {{ role.name }}
-                </label>
+                </Label>
               </div>
             </div>
-            <p v-if="errors.roles" class="text-destructive mt-1 text-xs">{{ errors.roles[0] }}</p>
+            <p v-if="errors.roles" class="text-destructive text-sm">{{ errors.roles[0] }}</p>
           </div>
         </div>
 
@@ -264,7 +243,7 @@
             >
               <Icon name="hugeicons:loading-01" v-if="loading" class="size-4 animate-spin" />
               <Icon name="hugeicons:user-add-01" v-else class="size-4" />
-              {{ loading ? 'Creating...' : 'Create User' }}
+              {{ loading ? "Creating..." : "Create User" }}
             </button>
           </div>
         </div>
@@ -274,131 +253,166 @@
 </template>
 
 <script setup>
-definePageMeta({
-  middleware: ['sanctum:auth', 'admin-master'],
-  layout: 'app'
-})
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
-const title = 'Create New User'
-const description = ''
-const route = useRoute()
+import { DateFormatter, getLocalTimeZone } from "@internationalized/date";
+import { CalendarIcon } from "lucide-vue-next";
+
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { ref } from "vue";
+
+const df = new DateFormatter("en-US", {
+  dateStyle: "long",
+});
+
+definePageMeta({
+  middleware: ["sanctum:auth", "admin-master"],
+  layout: "app",
+});
+
+const title = "Create New User";
+const description = "";
+const route = useRoute();
 
 useSeoMeta({
-  titleTemplate: '%s · %siteName',
+  titleTemplate: "%s · %siteName",
   title: title,
   ogTitle: title,
   description: description,
   ogDescription: description,
   ogUrl: useAppConfig().app.url + route.fullPath,
-  twitterCard: 'summary_large_image'
-})
+  twitterCard: "summary_large_image",
+});
 
-const sanctumFetch = useSanctumClient()
-const { $dayjs } = useNuxtApp()
+const sanctumFetch = useSanctumClient();
+const { $dayjs } = useNuxtApp();
 
 // State
-const loading = ref(false)
-const error = ref(null)
-const success = ref(null)
-const errors = ref({})
-const roles = ref([])
+const loading = ref(false);
+const error = ref(null);
+const success = ref(null);
+const errors = ref({});
+const roles = ref([]);
 
 // Form data
 const form = reactive({
-  name: '',
-  username: '',
-  email: '',
-  password: '',
-  phone: '',
-  birth_date: '',
-  gender: '',
-  bio: '',
-  status: 'active',
-  visibility: 'public',
-  roles: ['user'] // Default to user role
-})
+  name: "",
+  username: "",
+  email: "",
+  password: "",
+  phone: "",
+  birth_date: "",
+  gender: "",
+  bio: "",
+  status: "active",
+  visibility: "public",
+  roles: ["user"], // Default to user role
+});
 
 // Computed
 const maxBirthDate = computed(() => {
-  return $dayjs().subtract(1, 'day').format('YYYY-MM-DD')
-})
+  return $dayjs().subtract(1, "day").format("YYYY-MM-DD");
+});
+
+// Toggle role selection
+function toggleRole(roleName) {
+  const index = form.roles.indexOf(roleName);
+  if (index > -1) {
+    form.roles.splice(index, 1);
+  } else {
+    form.roles.push(roleName);
+  }
+}
 
 // Load roles
 async function loadRoles() {
   try {
-    const response = await sanctumFetch('/api/users/roles')
-    roles.value = response.data
+    const response = await sanctumFetch("/api/users/roles");
+    roles.value = response.data;
   } catch (err) {
-    console.error('Error loading roles:', err)
+    console.error("Error loading roles:", err);
   }
 }
 
 // Create user
 async function createUser() {
-  loading.value = true
-  error.value = null
-  success.value = null
-  errors.value = {}
+  loading.value = true;
+  error.value = null;
+  success.value = null;
+  errors.value = {};
 
   try {
     // Prepare form data
-    const userData = { ...form }
+    const userData = { ...form };
 
     // Remove empty values
     Object.keys(userData).forEach((key) => {
-      if (userData[key] === '' || userData[key] === null) {
-        delete userData[key]
+      if (userData[key] === "" || userData[key] === null) {
+        delete userData[key];
       }
-    })
+    });
 
-    const response = await sanctumFetch('/api/users', {
-      method: 'POST',
-      body: userData
-    })
+    const response = await sanctumFetch("/api/users", {
+      method: "POST",
+      body: userData,
+    });
 
     if (response.data) {
-      success.value = `User "${response.data.name}" created successfully!`
+      success.value = `User "${response.data.name}" created successfully!`;
 
       // Reset form after successful creation
       setTimeout(() => {
-        navigateTo('/users')
-      }, 2000)
+        navigateTo("/users");
+      }, 2000);
     }
   } catch (err) {
     if (err.response?.status === 422 && err.response?._data?.errors) {
-      errors.value = err.response._data.errors
-      error.value = 'Please fix the validation errors below.'
+      errors.value = err.response._data.errors;
+      error.value = "Please fix the validation errors below.";
     } else {
-      error.value = err.message || 'Failed to create user'
+      error.value = err.message || "Failed to create user";
     }
-    console.error('Error creating user:', err)
+    console.error("Error creating user:", err);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 // Reset form
 function resetForm() {
   Object.assign(form, {
-    name: '',
-    username: '',
-    email: '',
-    password: '',
-    phone: '',
-    birth_date: '',
-    gender: '',
-    bio: '',
-    status: 'active',
-    visibility: 'public',
-    roles: ['user']
-  })
-  errors.value = {}
-  error.value = null
-  success.value = null
+    name: "",
+    username: "",
+    email: "",
+    password: "",
+    phone: "",
+    birth_date: "",
+    gender: "",
+    bio: "",
+    status: "active",
+    visibility: "public",
+    roles: ["user"],
+  });
+  errors.value = {};
+  error.value = null;
+  success.value = null;
 }
 
 // Load data on mount
 onMounted(async () => {
-  await loadRoles()
-})
+  await loadRoles();
+});
 </script>
