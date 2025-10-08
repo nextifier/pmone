@@ -23,25 +23,26 @@
     </div>
 
     <form @submit.prevent="createUser" class="grid gap-y-6">
-      <div class="grid gap-y-4 rounded-lg sm:border sm:p-6">
+      <div class="grid gap-y-5 rounded-lg sm:border sm:p-5">
         <h3 class="text-muted-foreground text-sm font-medium tracking-tight">
           Personal Information
         </h3>
 
         <div class="space-y-2">
           <Label for="name">Full Name *</Label>
-          <Input id="name" v-model="form.name" type="text" required placeholder="Enter full name" />
+          <Input id="name" v-model="form.name" type="text" required />
           <p v-if="errors.name" class="text-destructive text-sm">{{ errors.name[0] }}</p>
         </div>
 
         <div class="space-y-2">
-          <Label for="username">Username</Label>
-          <Input
-            id="username"
-            v-model="form.username"
-            type="text"
-            placeholder="Will be auto-generated if left empty"
-          />
+          <div class="flex items-center justify-between gap-x-2">
+            <Label for="username">Username</Label>
+            <p class="text-muted-foreground line-clamp-1 text-xs">
+              Will be auto-generated if left empty.
+            </p>
+          </div>
+          <Input id="username" v-model="form.username" type="text" />
+
           <p v-if="errors.username" class="text-destructive text-sm">
             {{ errors.username[0] }}
           </p>
@@ -49,32 +50,23 @@
 
         <div class="space-y-2">
           <Label for="email">Email Address *</Label>
-          <Input
-            id="email"
-            v-model="form.email"
-            type="email"
-            required
-            placeholder="Enter email address"
-          />
+          <Input id="email" v-model="form.email" type="email" required />
           <p v-if="errors.email" class="text-destructive text-sm">{{ errors.email[0] }}</p>
         </div>
 
         <div class="space-y-2">
           <Label for="phone">Phone Number</Label>
-          <Input id="phone" v-model="form.phone" type="tel" placeholder="Enter phone number" />
+          <Input id="phone" v-model="form.phone" type="tel" />
           <p v-if="errors.phone" class="text-destructive text-sm">{{ errors.phone[0] }}</p>
         </div>
 
         <div class="space-y-2">
-          <Label for="password">Password *</Label>
-          <Input
-            id="password"
-            v-model="form.password"
-            type="password"
-            required
-            placeholder="Enter password (minimum 8 characters)"
-            minlength="8"
-          />
+          <div class="flex items-center justify-between gap-x-2">
+            <Label for="password">Password *</Label>
+            <p class="text-muted-foreground text-xs">Minimum 8 characters.</p>
+          </div>
+          <Input id="password" v-model="form.password" type="password" required minlength="8" />
+
           <p v-if="errors.password" class="text-destructive text-sm">{{ errors.password[0] }}</p>
         </div>
 
@@ -86,7 +78,7 @@
                 variant="outline"
                 :class="
                   cn(
-                    'w-[280px] justify-start text-left font-normal',
+                    'w-full justify-start text-left font-normal',
                     !form.birth_date && 'text-muted-foreground'
                   )
                 "
@@ -112,13 +104,12 @@
         <div class="space-y-2">
           <Label for="gender">Gender</Label>
           <Select v-model="form.gender">
-            <SelectTrigger>
-              <SelectValue placeholder="Select gender" />
+            <SelectTrigger class="w-full">
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="male">Male</SelectItem>
               <SelectItem value="female">Female</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
           <p v-if="errors.gender" class="text-destructive text-sm">{{ errors.gender[0] }}</p>
@@ -126,49 +117,45 @@
 
         <div class="space-y-2">
           <Label for="bio">Bio</Label>
-          <Textarea
-            id="bio"
-            v-model="form.bio"
-            rows="3"
-            placeholder="Enter user bio (optional)"
-            maxlength="1000"
-          />
+          <Textarea id="bio" v-model="form.bio" rows="5" maxlength="1000" />
           <p v-if="errors.bio" class="text-destructive text-sm">{{ errors.bio[0] }}</p>
         </div>
       </div>
 
-      <div class="grid gap-y-4 rounded-lg sm:border sm:p-6">
+      <div class="grid gap-y-5 rounded-lg sm:border sm:p-5">
         <h3 class="text-muted-foreground text-sm font-medium tracking-tight">Account Settings</h3>
 
-        <div class="space-y-2">
-          <Label for="status">Status</Label>
-          <Select v-model="form.status">
-            <SelectTrigger>
-              <SelectValue placeholder="Select status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="suspended">Suspended</SelectItem>
-            </SelectContent>
-          </Select>
-          <p v-if="errors.status" class="text-destructive text-sm">{{ errors.status[0] }}</p>
-        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-2">
+            <Label for="status">Status</Label>
+            <Select v-model="form.status">
+              <SelectTrigger class="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="suspended">Suspended</SelectItem>
+              </SelectContent>
+            </Select>
+            <p v-if="errors.status" class="text-destructive text-sm">{{ errors.status[0] }}</p>
+          </div>
 
-        <div class="space-y-2">
-          <Label for="visibility">Profile Visibility</Label>
-          <Select v-model="form.visibility">
-            <SelectTrigger>
-              <SelectValue placeholder="Select visibility" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="public">Public</SelectItem>
-              <SelectItem value="private">Private</SelectItem>
-            </SelectContent>
-          </Select>
-          <p v-if="errors.visibility" class="text-destructive text-sm">
-            {{ errors.visibility[0] }}
-          </p>
+          <div class="space-y-2">
+            <Label for="visibility">Profile Visibility</Label>
+            <Select v-model="form.visibility">
+              <SelectTrigger class="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="public">Public</SelectItem>
+                <SelectItem value="private">Private</SelectItem>
+              </SelectContent>
+            </Select>
+            <p v-if="errors.visibility" class="text-destructive text-sm">
+              {{ errors.visibility[0] }}
+            </p>
+          </div>
         </div>
 
         <div class="space-y-2">

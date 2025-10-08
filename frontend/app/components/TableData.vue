@@ -117,6 +117,7 @@
             </button>
 
             <NuxtLink
+              v-if="showAddButton"
               :to="`/${props.model}/create`"
               class="hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm tracking-tight active:scale-98"
             >
@@ -420,6 +421,10 @@ const props = defineProps({
     default: null,
   },
   columnToggle: {
+    type: Boolean,
+    default: true,
+  },
+  showAddButton: {
     type: Boolean,
     default: true,
   },
