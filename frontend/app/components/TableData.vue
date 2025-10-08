@@ -258,41 +258,51 @@
         v-if="table.getRowModel().rows?.length"
         class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center"
       >
-        <div class="text-muted-foreground text-sm tracking-tight">
-          <template v-if="table.getSelectedRowModel().rows.length > 0">
-            {{ table.getSelectedRowModel().rows.length }} of
-            {{ clientOnly ? data.length : meta.total }} row(s) selected.
-          </template>
-          <template v-else-if="clientOnly">
-            Showing
-            {{
-              table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1
-            }}
-            to
-            {{
-              Math.min(
-                (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-                table.getFilteredRowModel().rows.length
-              )
-            }}
-            of {{ table.getFilteredRowModel().rows.length }} results.
-          </template>
-          <template v-else>
-            Showing {{ (meta.current_page - 1) * meta.per_page + 1 }} to
-            {{ Math.min(meta.current_page * meta.per_page, meta.total) }} of
-            {{ meta.total }} results.
-          </template>
+        <div class="flex items-center justify-between gap-x-4">
+          <div class="text-muted-foreground text-sm tracking-tight">
+            <template v-if="table.getSelectedRowModel().rows.length > 0">
+              {{ table.getSelectedRowModel().rows.length }} of
+              {{ clientOnly ? data.length : meta.total }} row<template
+                v-if="table.getSelectedRowModel().rows.length > 1"
+                >s</template
+              >
+              selected.
+            </template>
+            <template v-else-if="clientOnly">
+              Showing
+              {{ table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1 }}
+              to
+              {{
+                Math.min(
+                  (table.getState().pagination.pageIndex + 1) *
+                    table.getState().pagination.pageSize,
+                  table.getFilteredRowModel().rows.length
+                )
+              }}
+              of {{ table.getFilteredRowModel().rows.length }} results.
+            </template>
+            <template v-else>
+              Showing {{ (meta.current_page - 1) * meta.per_page + 1 }} to
+              {{ Math.min(meta.current_page * meta.per_page, meta.total) }} of
+              {{ meta.total }} results.
+            </template>
+          </div>
+
+          <Spinner v-if="pending" />
         </div>
-        <div class="flex items-center gap-x-6 sm:gap-x-8">
+
+        <div class="flex items-center justify-between gap-x-4">
           <div class="flex items-center gap-x-2">
-            <p class="text-muted-foreground text-sm tracking-tight whitespace-nowrap">
+            <p
+              class="text-muted-foreground hidden text-sm tracking-tight whitespace-nowrap sm:block"
+            >
               Rows per page
             </p>
             <Select
               :model-value="`${table.getState().pagination.pageSize}`"
               @update:model-value="handlePageSizeChange"
             >
-              <SelectTrigger class="h-8 w-[72px]">
+              <SelectTrigger size="sm">
                 <SelectValue :placeholder="`${table.getState().pagination.pageSize}`" />
               </SelectTrigger>
               <SelectContent side="top">
@@ -302,59 +312,64 @@
               </SelectContent>
             </Select>
           </div>
-          <Pagination
-            :default-page="
-              clientOnly ? table.getState().pagination.pageIndex + 1 : meta.current_page
-            "
-            :items-per-page="clientOnly ? table.getState().pagination.pageSize : meta.per_page"
-            :total="clientOnly ? table.getFilteredRowModel().rows.length : meta.total"
-          >
-            <PaginationContent>
-              <PaginationFirst asChild>
-                <button
-                  class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                  @click="() => table.setPageIndex(0)"
-                  :disabled="clientOnly ? !table.getCanPreviousPage() : meta.current_page <= 1"
-                >
-                  <Icon name="lucide:chevron-first" class="size-4 shrink-0" />
-                </button>
-              </PaginationFirst>
-              <PaginationPrevious asChild>
-                <button
-                  class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                  @click="() => table.previousPage()"
-                  :disabled="clientOnly ? !table.getCanPreviousPage() : meta.current_page <= 1"
-                >
-                  <Icon name="lucide:chevron-left" class="size-4 shrink-0" />
-                </button>
-              </PaginationPrevious>
-              <PaginationNext asChild>
-                <button
-                  class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                  @click="() => table.nextPage()"
-                  :disabled="
-                    clientOnly ? !table.getCanNextPage() : meta.current_page >= meta.last_page
-                  "
-                >
-                  <Icon name="lucide:chevron-right" class="size-4 shrink-0" />
-                </button>
-              </PaginationNext>
-              <PaginationLast asChild>
-                <button
-                  class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                  @click="
-                    () =>
-                      table.setPageIndex(clientOnly ? table.getPageCount() - 1 : meta.last_page - 1)
-                  "
-                  :disabled="
-                    clientOnly ? !table.getCanNextPage() : meta.current_page >= meta.last_page
-                  "
-                >
-                  <Icon name="lucide:chevron-last" class="size-4 shrink-0" />
-                </button>
-              </PaginationLast>
-            </PaginationContent>
-          </Pagination>
+
+          <div>
+            <Pagination
+              :default-page="
+                clientOnly ? table.getState().pagination.pageIndex + 1 : meta.current_page
+              "
+              :items-per-page="clientOnly ? table.getState().pagination.pageSize : meta.per_page"
+              :total="clientOnly ? table.getFilteredRowModel().rows.length : meta.total"
+            >
+              <PaginationContent>
+                <PaginationFirst asChild>
+                  <button
+                    class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                    @click="() => table.setPageIndex(0)"
+                    :disabled="clientOnly ? !table.getCanPreviousPage() : meta.current_page <= 1"
+                  >
+                    <Icon name="lucide:chevron-first" class="size-4 shrink-0" />
+                  </button>
+                </PaginationFirst>
+                <PaginationPrevious asChild>
+                  <button
+                    class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                    @click="() => table.previousPage()"
+                    :disabled="clientOnly ? !table.getCanPreviousPage() : meta.current_page <= 1"
+                  >
+                    <Icon name="lucide:chevron-left" class="size-4 shrink-0" />
+                  </button>
+                </PaginationPrevious>
+                <PaginationNext asChild>
+                  <button
+                    class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                    @click="() => table.nextPage()"
+                    :disabled="
+                      clientOnly ? !table.getCanNextPage() : meta.current_page >= meta.last_page
+                    "
+                  >
+                    <Icon name="lucide:chevron-right" class="size-4 shrink-0" />
+                  </button>
+                </PaginationNext>
+                <PaginationLast asChild>
+                  <button
+                    class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                    @click="
+                      () =>
+                        table.setPageIndex(
+                          clientOnly ? table.getPageCount() - 1 : meta.last_page - 1
+                        )
+                    "
+                    :disabled="
+                      clientOnly ? !table.getCanNextPage() : meta.current_page >= meta.last_page
+                    "
+                  >
+                    <Icon name="lucide:chevron-last" class="size-4 shrink-0" />
+                  </button>
+                </PaginationLast>
+              </PaginationContent>
+            </Pagination>
+          </div>
         </div>
       </div>
     </div>
@@ -443,10 +458,6 @@ const props = defineProps({
 
   // Messages
   errorTitle: {
-    type: String,
-    default: null,
-  },
-  emptyMessage: {
     type: String,
     default: null,
   },
@@ -549,7 +560,7 @@ const handlePageSizeChange = (value) => {
     // Update pagination state atomically - reset to page 1 when page size changes
     pagination.value = {
       pageIndex: 0,
-      pageSize: newPageSize
+      pageSize: newPageSize,
     };
   }
 };
@@ -561,9 +572,7 @@ const { metaSymbol } = useShortcuts();
 
 // Initialize search value from initial filters
 onMounted(() => {
-  const initialSearchFilter = props.initialColumnFilters.find(
-    (f) => f.id === props.searchColumn
-  );
+  const initialSearchFilter = props.initialColumnFilters.find((f) => f.id === props.searchColumn);
   if (initialSearchFilter?.value) {
     searchValue.value = initialSearchFilter.value;
   }
@@ -574,7 +583,7 @@ const debouncedSearch = useDebounceFn((value) => {
   table.getColumn(props.searchColumn)?.setFilterValue(value || undefined);
   // Reset to first page when search changes
   table.setPageIndex(0);
-}, 300);
+}, 0);
 
 const handleSearchInput = (event) => {
   searchValue.value = event.target.value;

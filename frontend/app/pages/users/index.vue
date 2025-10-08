@@ -17,7 +17,6 @@
       search-column="name"
       search-placeholder="Search name, email, or username"
       error-title="Error loading users"
-      empty-message="No users found."
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
@@ -157,7 +156,7 @@ const pending = ref(false);
 const error = ref(null);
 
 // Client-only mode flag (true = client-side pagination, false = server-side)
-const clientOnly = ref(true);
+const clientOnly = ref(false);
 
 // Build query params
 const buildQueryParams = () => {
