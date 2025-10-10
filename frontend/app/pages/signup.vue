@@ -110,7 +110,7 @@
             <button
               type="submit"
               :disabled="loading"
-              class="bg-primary text-primary-foreground hover:bg-primary/80 flex h-10 items-center justify-center gap-x-2 rounded-lg px-8 py-2 text-sm font-semibold tracking-tight transition active:scale-95"
+              class="bg-primary text-primary-foreground hover:bg-primary/80 flex h-10 items-center justify-center gap-x-2 rounded-lg px-8 py-2 text-sm font-semibold tracking-tight ring-2 ring-offset-2 transition active:scale-95"
             >
               <span>Sign up</span>
               <LoadingSpinner v-if="loading" class="border-primary-foreground h-4" />
@@ -137,96 +137,96 @@
 </template>
 
 <script setup>
-import { toast } from 'vue-sonner'
+import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ['sanctum:guest']
-})
+  middleware: ["sanctum:guest"],
+});
 
-usePageMeta('signup')
+usePageMeta("signup");
 
-const loading = ref(false)
-const showPassword = ref(false)
-const showPasswordConfirmation = ref(false)
-const enablePasswordConfirmation = ref(false)
+const loading = ref(false);
+const showPassword = ref(false);
+const showPasswordConfirmation = ref(false);
+const enablePasswordConfirmation = ref(false);
 const form = reactive({
-  name: '',
-  email: '',
-  password: '',
-  password_confirmation: ''
-})
+  name: "",
+  email: "",
+  password: "",
+  password_confirmation: "",
+});
 
-const sanctumConfig = useSanctumConfig()
-const sanctumFetch = useSanctumClient()
-const { refreshIdentity } = useSanctumAuth()
+const sanctumConfig = useSanctumConfig();
+const sanctumFetch = useSanctumClient();
+const { refreshIdentity } = useSanctumAuth();
 
-const errors = ref()
+const errors = ref();
 
 const submit = async () => {
   try {
-    loading.value = true
-    errors.value = null
+    loading.value = true;
+    errors.value = null;
 
-    await sanctumFetch('/register', {
-      method: 'POST',
+    await sanctumFetch("/register", {
+      method: "POST",
       body: {
         name: form.name,
         email: form.email,
         password: form.password,
         password_confirmation: enablePasswordConfirmation.value
           ? form.password_confirmation
-          : form.password
-      }
-    })
+          : form.password,
+      },
+    });
 
-    await refreshIdentity()
+    await refreshIdentity();
 
-    navigateTo(sanctumConfig.redirect.onGuestOnly || '/')
+    navigateTo(sanctumConfig.redirect.onGuestOnly || "/");
   } catch (error) {
     if (error.response?.status === 422) {
-      toast.error(error.response?._data.message)
-      errors.value = error.response?._data.errors
+      toast.error(error.response?._data.message);
+      errors.value = error.response?._data.errors;
     }
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const toggleShowPassword = () => {
-  showPassword.value = !showPassword.value
+  showPassword.value = !showPassword.value;
 
-  let el = document.querySelector('#password')
-  el.focus()
+  let el = document.querySelector("#password");
+  el.focus();
 
   // Move cursor to the end of input after focusing
   setTimeout(() => {
-    if (typeof el.selectionStart == 'number') {
-      el.selectionStart = el.selectionEnd = el.value.length
-    } else if (typeof el.createTextRange != 'undefined') {
-      el.focus()
-      var range = el.createTextRange()
-      range.collapse(false)
-      range.select()
+    if (typeof el.selectionStart == "number") {
+      el.selectionStart = el.selectionEnd = el.value.length;
+    } else if (typeof el.createTextRange != "undefined") {
+      el.focus();
+      var range = el.createTextRange();
+      range.collapse(false);
+      range.select();
     }
-  }, 0)
-}
+  }, 0);
+};
 
 const toggleShowPasswordConfirmation = () => {
-  showPasswordConfirmation.value = !showPasswordConfirmation.value
+  showPasswordConfirmation.value = !showPasswordConfirmation.value;
 
-  let el = document.querySelector('#password_confirmation')
-  el.focus()
+  let el = document.querySelector("#password_confirmation");
+  el.focus();
 
   // Move cursor to the end of input after focusing
   setTimeout(() => {
-    if (typeof el.selectionStart == 'number') {
-      el.selectionStart = el.selectionEnd = el.value.length
-    } else if (typeof el.createTextRange != 'undefined') {
-      el.focus()
-      var range = el.createTextRange()
-      range.collapse(false)
-      range.select()
+    if (typeof el.selectionStart == "number") {
+      el.selectionStart = el.selectionEnd = el.value.length;
+    } else if (typeof el.createTextRange != "undefined") {
+      el.focus();
+      var range = el.createTextRange();
+      range.collapse(false);
+      range.select();
     }
-  }, 0)
-}
+  }, 0);
+};
 </script>

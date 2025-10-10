@@ -31,7 +31,7 @@
             <button
               type="submit"
               :disabled="loading || resetEmailSent"
-              class="bg-primary text-primary-foreground hover:bg-primary/80 flex h-10 items-center justify-center gap-x-2 rounded-lg px-8 py-2 text-sm font-semibold tracking-tight transition active:scale-95"
+              class="bg-primary text-primary-foreground hover:bg-primary/80 flex h-10 items-center justify-center gap-x-2 rounded-lg px-8 py-2 text-sm font-semibold tracking-tight ring-2 ring-offset-2 transition active:scale-95"
             >
               <span>Send password reset link</span>
               <LoadingSpinner v-if="loading" class="border-primary-foreground h-4" />
@@ -72,47 +72,47 @@
 </template>
 
 <script setup>
-import { toast } from 'vue-sonner'
+import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ['sanctum:guest']
-})
+  middleware: ["sanctum:guest"],
+});
 
-usePageMeta('forgotPassword')
+usePageMeta("forgotPassword");
 
-const loading = ref(false)
+const loading = ref(false);
 
 const form = reactive({
-  email: ''
-})
+  email: "",
+});
 
-const resetEmailSent = ref(false)
-const status = ref()
+const resetEmailSent = ref(false);
+const status = ref();
 
-const sanctumFetch = useSanctumClient()
+const sanctumFetch = useSanctumClient();
 
-const errors = ref()
+const errors = ref();
 
 const submit = async () => {
   try {
-    loading.value = true
-    errors.value = null
+    loading.value = true;
+    errors.value = null;
 
-    const response = await sanctumFetch('/forgot-password', {
-      method: 'POST',
-      body: form
-    })
+    const response = await sanctumFetch("/forgot-password", {
+      method: "POST",
+      body: form,
+    });
 
-    toast(response?.message)
+    toast(response?.message);
 
-    resetEmailSent.value = true
+    resetEmailSent.value = true;
   } catch (error) {
     if (error.response?.status === 422) {
-      toast.error(error.response?._data.message)
-      errors.value = error.response?._data.errors
+      toast.error(error.response?._data.message);
+      errors.value = error.response?._data.errors;
     }
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 </script>

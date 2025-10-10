@@ -75,7 +75,7 @@
             <button
               type="submit"
               :disabled="loading"
-              class="bg-primary text-primary-foreground hover:bg-primary/80 flex h-10 items-center justify-center gap-x-2 rounded-lg px-8 py-2 text-sm font-semibold tracking-tight transition active:scale-95"
+              class="bg-primary text-primary-foreground hover:bg-primary/80 flex h-10 items-center justify-center gap-x-2 rounded-lg px-8 py-2 text-sm font-semibold tracking-tight ring-2 ring-offset-2 transition active:scale-95"
             >
               <span>Log in</span>
               <LoadingSpinner v-if="loading" class="border-primary-foreground h-4" />
@@ -102,56 +102,56 @@
 </template>
 
 <script setup>
-import { toast } from 'vue-sonner'
+import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ['sanctum:guest']
-})
+  middleware: ["sanctum:guest"],
+});
 
-usePageMeta('login')
+usePageMeta("login");
 
-const loading = ref(false)
-const showPassword = ref(false)
+const loading = ref(false);
+const showPassword = ref(false);
 const form = reactive({
-  email: '',
-  password: '',
-  remember: true
-})
+  email: "",
+  password: "",
+  remember: true,
+});
 
-const { login } = useSanctumAuth()
-const errors = ref()
+const { login } = useSanctumAuth();
+const errors = ref();
 
 const submit = async () => {
   try {
-    loading.value = true
-    errors.value = null
-    await login(form)
+    loading.value = true;
+    errors.value = null;
+    await login(form);
   } catch (error) {
     if (error.response?.status === 422) {
-      toast.error(error.response?._data.message)
-      errors.value = error.response?._data.errors
+      toast.error(error.response?._data.message);
+      errors.value = error.response?._data.errors;
     }
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const toggleShowPassword = () => {
-  showPassword.value = !showPassword.value
+  showPassword.value = !showPassword.value;
 
-  let el = document.querySelector('#password')
-  el.focus()
+  let el = document.querySelector("#password");
+  el.focus();
 
   // Move cursor to the end of input after focusing
   setTimeout(() => {
-    if (typeof el.selectionStart == 'number') {
-      el.selectionStart = el.selectionEnd = el.value.length
-    } else if (typeof el.createTextRange != 'undefined') {
-      el.focus()
-      var range = el.createTextRange()
-      range.collapse(false)
-      range.select()
+    if (typeof el.selectionStart == "number") {
+      el.selectionStart = el.selectionEnd = el.value.length;
+    } else if (typeof el.createTextRange != "undefined") {
+      el.focus();
+      var range = el.createTextRange();
+      range.collapse(false);
+      range.select();
     }
-  }, 0)
-}
+  }, 0);
+};
 </script>

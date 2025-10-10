@@ -96,7 +96,7 @@
             <button
               type="submit"
               :disabled="loading"
-              class="bg-primary text-primary-foreground hover:bg-primary/80 flex h-10 items-center justify-center gap-x-2 rounded-lg px-8 py-2 text-sm font-semibold tracking-tight transition active:scale-95"
+              class="bg-primary text-primary-foreground hover:bg-primary/80 flex h-10 items-center justify-center gap-x-2 rounded-lg px-8 py-2 text-sm font-semibold tracking-tight ring-2 ring-offset-2 transition active:scale-95"
             >
               <span>Reset password</span>
               <LoadingSpinner v-if="loading" class="border-primary-foreground h-4" />
@@ -109,85 +109,85 @@
 </template>
 
 <script setup>
-import { toast } from 'vue-sonner'
+import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ['sanctum:guest']
-})
+  middleware: ["sanctum:guest"],
+});
 
-usePageMeta('resetPassword')
+usePageMeta("resetPassword");
 
-const loading = ref(false)
-const showPassword = ref(false)
-const showPasswordConfirmation = ref(false)
-const route = useRoute()
+const loading = ref(false);
+const showPassword = ref(false);
+const showPasswordConfirmation = ref(false);
+const route = useRoute();
 const form = reactive({
   email: route.query.email,
-  password: '',
-  password_confirmation: '',
-  token: route.query.token
-})
+  password: "",
+  password_confirmation: "",
+  token: route.query.token,
+});
 
-const sanctumFetch = useSanctumClient()
+const sanctumFetch = useSanctumClient();
 
-const errors = ref()
+const errors = ref();
 
 const submit = async () => {
   try {
-    loading.value = true
-    errors.value = null
+    loading.value = true;
+    errors.value = null;
 
-    const response = await sanctumFetch('/reset-password', {
-      method: 'POST',
-      body: form
-    })
+    const response = await sanctumFetch("/reset-password", {
+      method: "POST",
+      body: form,
+    });
 
-    await navigateTo({ path: '/login', query: { reset: 'true' } })
+    await navigateTo({ path: "/login", query: { reset: "true" } });
   } catch (error) {
     if (error.response?.status === 422) {
-      toast.error(error.response?._data.message)
-      errors.value = error.response?._data.errors
+      toast.error(error.response?._data.message);
+      errors.value = error.response?._data.errors;
     }
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const toggleShowPassword = () => {
-  showPassword.value = !showPassword.value
+  showPassword.value = !showPassword.value;
 
-  let el = document.querySelector('#password')
-  el.focus()
+  let el = document.querySelector("#password");
+  el.focus();
 
   // Move cursor to the end of input after focusing
   setTimeout(() => {
-    if (typeof el.selectionStart == 'number') {
-      el.selectionStart = el.selectionEnd = el.value.length
-    } else if (typeof el.createTextRange != 'undefined') {
-      el.focus()
-      var range = el.createTextRange()
-      range.collapse(false)
-      range.select()
+    if (typeof el.selectionStart == "number") {
+      el.selectionStart = el.selectionEnd = el.value.length;
+    } else if (typeof el.createTextRange != "undefined") {
+      el.focus();
+      var range = el.createTextRange();
+      range.collapse(false);
+      range.select();
     }
-  }, 0)
-}
+  }, 0);
+};
 
 const toggleShowPasswordConfirmation = () => {
-  showPasswordConfirmation.value = !showPasswordConfirmation.value
+  showPasswordConfirmation.value = !showPasswordConfirmation.value;
 
-  let el = document.querySelector('#password_confirmation')
-  el.focus()
+  let el = document.querySelector("#password_confirmation");
+  el.focus();
 
   // Move cursor to the end of input after focusing
   setTimeout(() => {
-    if (typeof el.selectionStart == 'number') {
-      el.selectionStart = el.selectionEnd = el.value.length
-    } else if (typeof el.createTextRange != 'undefined') {
-      el.focus()
-      var range = el.createTextRange()
-      range.collapse(false)
-      range.select()
+    if (typeof el.selectionStart == "number") {
+      el.selectionStart = el.selectionEnd = el.value.length;
+    } else if (typeof el.createTextRange != "undefined") {
+      el.focus();
+      var range = el.createTextRange();
+      range.collapse(false);
+      range.select();
     }
-  }, 0)
-}
+  }, 0);
+};
 </script>

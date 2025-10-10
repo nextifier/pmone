@@ -25,7 +25,7 @@
             type="button"
             @click="sendEmailNotification"
             :disabled="loading || verificationEmailSent"
-            class="bg-primary text-primary-foreground hover:bg-primary/80 flex h-10 items-center justify-center gap-x-2 rounded-lg px-6 py-2 text-sm font-semibold tracking-tight transition active:scale-95"
+            class="bg-primary text-primary-foreground hover:bg-primary/80 flex h-10 items-center justify-center gap-x-2 rounded-lg px-6 py-2 text-sm font-semibold tracking-tight ring-2 ring-offset-2 transition active:scale-95"
           >
             <span>Resend verification email</span>
             <LoadingSpinner v-if="loading" class="border-primary-foreground h-4" />
@@ -51,46 +51,46 @@
 </template>
 
 <script setup>
-import { toast } from 'vue-sonner'
+import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ['sanctum:auth'],
-  layout: 'app'
-})
+  middleware: ["sanctum:auth"],
+  layout: "app",
+});
 
-usePageMeta('verifyEmail')
+usePageMeta("verifyEmail");
 
-const verificationEmailSent = ref(false)
-const successMessage = ref('')
-const errorMessage = ref('')
-const loading = ref(false)
+const verificationEmailSent = ref(false);
+const successMessage = ref("");
+const errorMessage = ref("");
+const loading = ref(false);
 
-const sanctumFetch = useSanctumClient()
+const sanctumFetch = useSanctumClient();
 
 // const errors = ref();
 
 const sendEmailNotification = async () => {
   try {
-    loading.value = true
-    successMessage.value = ''
-    errorMessage.value = ''
+    loading.value = true;
+    successMessage.value = "";
+    errorMessage.value = "";
 
-    const response = await sanctumFetch.raw('/email/verification-notification', { method: 'POST' })
+    const response = await sanctumFetch.raw("/email/verification-notification", { method: "POST" });
 
-    if (response.type === 'opaqueredirect') {
-      await navigateTo(response.headers.get('Location'))
+    if (response.type === "opaqueredirect") {
+      await navigateTo(response.headers.get("Location"));
     }
 
-    successMessage.value = 'Done! Check your inbox for the verification email.'
-    toast.success(successMessage.value)
-    verificationEmailSent.value = true
+    successMessage.value = "Done! Check your inbox for the verification email.";
+    toast.success(successMessage.value);
+    verificationEmailSent.value = true;
   } catch {
-    errorMessage.value = 'Failed to send the verification email. Please try again.'
-    toast.error(errorMessage.value)
+    errorMessage.value = "Failed to send the verification email. Please try again.";
+    toast.error(errorMessage.value);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 //   const submit = async () => {
 //     try {
