@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @plugin '@tailwindcss/typography';
 
@@ -16,8 +16,8 @@
   --breakpoint-3xl: 1600px;
 
   --font-sans:
-    PlusJakartaSans, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol', 'Noto Color Emoji';
+    PlusJakartaSans, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
 
   /* Slate */
   /* --color-gray-50: oklch(0.984 0.003 247.858);
@@ -333,20 +333,20 @@
       /* Necessary for variable fonts that use optical sizing */
       &.text-fit {
         --captured-length2: var(--font-size);
-        font-variation-settings: 'opsz' tan(atan2(var(--captured-length2), 1px));
+        font-variation-settings: "opsz" tan(atan2(var(--captured-length2), 1px));
       }
     }
   }
 }
 
 @property --captured-length {
-  syntax: '<length>';
+  syntax: "<length>";
   initial-value: 0px;
   inherits: true;
 }
 
 @property --captured-length2 {
-  syntax: '<length>';
+  syntax: "<length>";
   initial-value: 0px;
   inherits: true;
 }
@@ -368,7 +368,7 @@
 .input-base,
 .input-group input,
 .input-group textarea {
-  @apply border-border bg-background text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex w-full rounded-md border text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50;
+  @apply border-border bg-background text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex w-full rounded-md border text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50;
 }
 
 .input-group {
@@ -390,7 +390,7 @@
   ::before,
   ::backdrop,
   ::file-selector-button {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring;
     -webkit-tap-highlight-color: transparent;
     font-kerning: none;
     text-rendering: optimizeSpeed;
@@ -402,7 +402,7 @@
   }
 
   button:not(:disabled),
-  [role='button']:not(:disabled) {
+  [role="button"]:not(:disabled) {
     cursor: pointer;
   }
 
@@ -417,13 +417,12 @@
   a,
   button,
   .focusable {
-    @apply ring-offset-background focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50;
+    @apply ring-offset-background focus-visible:ring-ring focus-visible:ring focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   input:-webkit-autofill {
     -webkit-box-shadow: 0 0 0 100px var(--color-background) inset !important;
     -webkit-text-fill-color: var(--foreground) !important;
-    @apply !rounded-md;
   }
 
   label {
@@ -551,25 +550,25 @@
 }
 
 @property --left-fade {
-  syntax: '<length>';
+  syntax: "<length>";
   inherits: false;
   initial-value: 0;
 }
 
 @property --right-fade {
-  syntax: '<length>';
+  syntax: "<length>";
   inherits: false;
   initial-value: 0;
 }
 
 @property --top-fade {
-  syntax: '<length>';
+  syntax: "<length>";
   inherits: false;
   initial-value: 0;
 }
 
 @property --bottom-fade {
-  syntax: '<length>';
+  syntax: "<length>";
   inherits: false;
   initial-value: 0;
 }

@@ -11,7 +11,7 @@
         <PopoverTrigger as-child>
           <Button
             variant="outline"
-            class="border-border flex h-full gap-1 rounded-s-lg rounded-e-none border border-e-0 px-3"
+            class="border-border flex h-9 gap-1 rounded-s-lg rounded-e-none border border-e-0 px-3"
           >
             <FlagComponent :country="inputValue" />
             <ChevronsUpDown class="h-4 w-4 opacity-50" />
@@ -38,9 +38,7 @@
                 >
                   <FlagComponent :country="option?.iso2" />
                   <span class="flex-1 text-sm">{{ option.name }}</span>
-                  <span class="text-foreground/50 text-sm">{{
-                    option.dialCode
-                  }}</span>
+                  <span class="text-foreground/50 text-sm">{{ option.dialCode }}</span>
                 </CommandItem>
               </CommandGroup>
             </CommandList>
@@ -63,8 +61,8 @@
 </template>
 
 <script lang="ts" setup>
-import PhoneInput from "base-vue-phone-input";
 import { useFocus } from "@vueuse/core";
+import PhoneInput from "base-vue-phone-input";
 import { ChevronsUpDown } from "lucide-vue-next";
 const open = ref(false);
 const phoneInput = ref(null);

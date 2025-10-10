@@ -23,7 +23,7 @@
     </div>
 
     <form @submit.prevent="createUser" class="grid gap-y-6">
-      <div class="grid gap-y-5 rounded-lg sm:border sm:p-5">
+      <div class="space-y-5">
         <h3 class="text-muted-foreground text-sm font-medium tracking-tight">
           Personal Information
         </h3>
@@ -37,7 +37,7 @@
         <div class="space-y-2">
           <div class="flex items-center justify-between gap-x-2">
             <Label for="username">Username</Label>
-            <p class="text-muted-foreground line-clamp-1 text-xs">
+            <p class="text-muted-foreground line-clamp-1 text-xs tracking-tight">
               Will be auto-generated if left empty.
             </p>
           </div>
@@ -56,14 +56,15 @@
 
         <div class="space-y-2">
           <Label for="phone">Phone Number</Label>
-          <Input id="phone" v-model="form.phone" type="tel" />
+          <!-- <Input id="phone" v-model="form.phone" type="tel" /> -->
+          <PhoneInputField v-model="form.phone" id="phone" />
           <p v-if="errors.phone" class="text-destructive text-sm">{{ errors.phone[0] }}</p>
         </div>
 
         <div class="space-y-2">
           <div class="flex items-center justify-between gap-x-2">
             <Label for="password">Password *</Label>
-            <p class="text-muted-foreground text-xs">Minimum 8 characters.</p>
+            <p class="text-muted-foreground text-xs tracking-tight">Minimum 8 characters.</p>
           </div>
           <Input id="password" v-model="form.password" type="password" required minlength="8" />
 
@@ -122,7 +123,7 @@
         </div>
       </div>
 
-      <div class="grid gap-y-5 rounded-lg sm:border sm:p-5">
+      <div class="space-y-5">
         <h3 class="text-muted-foreground text-sm font-medium tracking-tight">Account Settings</h3>
 
         <div class="grid grid-cols-2 gap-3">
