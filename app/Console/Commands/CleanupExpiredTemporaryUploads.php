@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class CleanupExpiredTemporaryUploads extends Command
@@ -52,32 +53,55 @@ class CleanupExpiredTemporaryUploads extends Command
                 continue;
             }
 
-            // Get the last modified time of the directory
-            $lastModified = $disk->lastModified($directory);
-            $directoryTime = Carbon::createFromTimestamp($lastModified);
+            $metadataPath = "{$directory}/metadata.json";
 
-            // If directory is older than expiry time, delete it
-            if ($directoryTime->lt($expiryTime)) {
-                // Calculate size before deletion
-                $files = $disk->allFiles($directory);
-                foreach ($files as $file) {
-                    $totalSize += $disk->size($file);
-                }
-
-                // Delete the directory
+            // Delete directories without metadata (corrupted)
+            if (! $disk->exists($metadataPath)) {
+                $this->line("Deleting corrupted directory (no metadata): {$folderName}");
                 $disk->deleteDirectory($directory);
                 $deletedCount++;
 
-                $this->line("Deleted: {$folderName} (modified: {$directoryTime->diffForHumans()})");
+                continue;
+            }
+
+            // Read metadata
+            $metadata = json_decode($disk->get($metadataPath), true);
+
+            // Check if uploaded_at exists and is older than expiry time
+            if (isset($metadata['uploaded_at'])) {
+                $uploadedAt = Carbon::parse($metadata['uploaded_at']);
+
+                if ($uploadedAt->lt($expiryTime)) {
+                    // Calculate size before deletion
+                    $files = $disk->allFiles($directory);
+                    foreach ($files as $file) {
+                        $totalSize += $disk->size($file);
+                    }
+
+                    // Delete the directory
+                    $disk->deleteDirectory($directory);
+                    $deletedCount++;
+
+                    $this->line("Deleted: {$folderName} (uploaded: {$uploadedAt->diffForHumans()})");
+                }
             }
         }
 
         $formattedSize = $this->formatBytes($totalSize);
 
         if ($deletedCount > 0) {
-            $this->info("Successfully deleted {$deletedCount} expired temporary upload(s), freed {$formattedSize}.");
+            $message = "Successfully deleted {$deletedCount} expired temporary upload(s), freed {$formattedSize}.";
+            $this->info($message);
+            Log::info('Temporary uploads cleanup completed', [
+                'deleted_count' => $deletedCount,
+                'freed_size' => $formattedSize,
+                'hours_threshold' => $hours,
+            ]);
         } else {
             $this->info('No expired temporary uploads found.');
+            Log::debug('Temporary uploads cleanup: no expired files found', [
+                'hours_threshold' => $hours,
+            ]);
         }
 
         return Command::SUCCESS;
