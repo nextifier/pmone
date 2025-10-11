@@ -40,6 +40,8 @@ class UpdateUserRequest extends FormRequest
                     $fail('Only master users can assign the master role.');
                 }
             }],
+            'tmp_profile_image' => ['nullable', 'string', 'regex:/^tmp-[a-zA-Z0-9._]+$/'],
+            'tmp_cover_image' => ['nullable', 'string', 'regex:/^tmp-[a-zA-Z0-9._]+$/'],
         ];
     }
 

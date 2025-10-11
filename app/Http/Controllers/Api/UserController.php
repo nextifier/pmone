@@ -142,6 +142,12 @@ class UserController extends Controller
             $roles = $request->input('roles', ['user']);
             $user->assignRole($roles);
 
+            // Handle profile image upload from temporary storage
+            $this->handleTemporaryUpload($request, $user, 'tmp_profile_image', 'profile_image');
+
+            // Handle cover image upload from temporary storage
+            $this->handleTemporaryUpload($request, $user, 'tmp_cover_image', 'cover_image');
+
             $user->load(['roles', 'media']);
 
             return response()->json([
@@ -151,7 +157,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             logger()->error('User creation failed', [
                 'error' => $e->getMessage(),
-                'data' => $request->all(),
+                'data' => $request->except(['password', 'tmp_upload_folder']),
             ]);
 
             return response()->json([
@@ -191,6 +197,12 @@ class UserController extends Controller
             if ($request->has('roles')) {
                 $user->syncRoles($request->input('roles'));
             }
+
+            // Handle profile image upload from temporary storage
+            $this->handleTemporaryUpload($request, $user, 'tmp_profile_image', 'profile_image');
+
+            // Handle cover image upload from temporary storage
+            $this->handleTemporaryUpload($request, $user, 'tmp_cover_image', 'cover_image');
 
             $user->load(['roles', 'media']);
 
@@ -525,5 +537,58 @@ class UserController extends Controller
         return response()->json([
             'data' => $roles,
         ]);
+    }
+
+    /**
+     * Handle temporary file upload and move to media collection.
+     */
+    private function handleTemporaryUpload(Request $request, User $user, string $fieldName, string $collection): void
+    {
+        // If field is not present, do nothing (keep existing media)
+        if (! $request->has($fieldName)) {
+            return;
+        }
+
+        $value = $request->input($fieldName);
+
+        // If value is null/empty, remove existing media from this collection
+        if (! $value) {
+            $user->clearMediaCollection($collection);
+
+            return;
+        }
+
+        // If value doesn't start with 'tmp-', it's an existing media URL, skip
+        if (! \Illuminate\Support\Str::startsWith($value, 'tmp-')) {
+            return;
+        }
+
+        // Handle new upload from temporary storage
+        $metadataPath = "tmp/uploads/{$value}/metadata.json";
+
+        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+            return;
+        }
+
+        $metadata = json_decode(
+            \Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath),
+            true
+        );
+
+        $filePath = "tmp/uploads/{$value}/{$metadata['original_name']}";
+
+        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($filePath)) {
+            return;
+        }
+
+        // Clear existing media in this collection first
+        $user->clearMediaCollection($collection);
+
+        // Add new media
+        $user->addMedia(\Illuminate\Support\Facades\Storage::disk('local')->path($filePath))
+            ->toMediaCollection($collection);
+
+        // Clean up temporary files
+        \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
     }
 }

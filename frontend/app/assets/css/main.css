@@ -113,8 +113,8 @@
     --muted: var(--color-gray-100);
     --muted-foreground: var(--color-gray-600);
 
-    --accent: var(--color-primary);
-    --accent-foreground: var(--color-primary-foreground);
+    --accent: var(--color-muted);
+    --accent-foreground: var(--color-foreground);
 
     --card: var(--color-white);
     --card-foreground: var(--color-gray-700);
@@ -196,8 +196,8 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
 
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--muted);
+  --color-accent-foreground: var(--foreground);
 
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -420,9 +420,8 @@
     @apply ring-offset-background focus-visible:ring-ring focus-visible:ring focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50;
   }
 
-  input:-webkit-autofill {
-    -webkit-box-shadow: 0 0 0 100px var(--color-background) inset !important;
-    -webkit-text-fill-color: var(--foreground) !important;
+  input {
+    @apply autofill:!shadow-[0_0_0_100px_var(--color-background)_inset] autofill:![-webkit-text-fill-color:var(--color-foreground)];
   }
 
   label {
@@ -730,3 +729,23 @@ img.pswp__img {
     );
   background-blend-mode: color, overlay, normal;
 } */
+
+.filepond--root {
+  font-family: inherit;
+
+  & .filepond--drop-label {
+    @apply text-muted-foreground !min-h-20 cursor-pointer;
+  }
+
+  & .filepond--label-action {
+    @apply text-foreground;
+  }
+
+  & .filepond--panel-root {
+    @apply bg-background border-border hover:bg-muted rounded-md border;
+  }
+
+  & .filepond--credits {
+    @apply hidden;
+  }
+}

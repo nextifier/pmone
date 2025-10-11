@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\LogController;
+use App\Http\Controllers\Api\TemporaryUploadController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\MediaController;
 use Illuminate\Support\Facades\Route;
@@ -10,6 +11,14 @@ Route::middleware(['auth:sanctum'])->get('/user', [UserController::class, 'profi
 
 // Protected API routes (authenticated + verified)
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    // Temporary upload endpoints (for FilePond)
+    Route::prefix('tmp-upload')->group(function () {
+        Route::post('/', [TemporaryUploadController::class, 'upload']);
+        Route::delete('/', [TemporaryUploadController::class, 'revert']);
+        Route::get('/load', [TemporaryUploadController::class, 'load']);
+        Route::get('/metadata', [TemporaryUploadController::class, 'metadata']);
+    });
+
     // Media endpoints
     Route::prefix('media')->group(function () {
         Route::post('/upload', [MediaController::class, 'upload']);

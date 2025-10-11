@@ -21,6 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\UpdateLastSeen::class,
         ]);
     })
+    ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule): void {
+        // Cleanup temporary uploads older than 24 hours, run hourly
+        $schedule->job(\App\Jobs\CleanupTemporaryUploads::class)->hourly();
+    })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

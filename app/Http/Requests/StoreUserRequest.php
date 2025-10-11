@@ -23,7 +23,7 @@ class StoreUserRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'username' => ['sometimes', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._]+$/', 'unique:users,username'],
+            'username' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._]+$/', 'unique:users,username'],
             'email' => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
             'phone' => ['nullable', 'string', 'max:20'],
@@ -38,6 +38,8 @@ class StoreUserRequest extends FormRequest
                     $fail('Only master users can assign the master role.');
                 }
             }],
+            'tmp_profile_image' => ['nullable', 'string', 'regex:/^tmp-[a-zA-Z0-9._]+$/'],
+            'tmp_cover_image' => ['nullable', 'string', 'regex:/^tmp-[a-zA-Z0-9._]+$/'],
         ];
     }
 
@@ -62,6 +64,9 @@ class StoreUserRequest extends FormRequest
             'status.in' => 'Please select a valid status.',
             'visibility.in' => 'Please select a valid visibility option.',
             'roles.*.exists' => 'One or more selected roles do not exist.',
+            'profile_image.image' => 'The file must be an image.',
+            'profile_image.mimes' => 'Profile image must be a file of type: jpeg, png, jpg, webp.',
+            'profile_image.max' => 'Profile image must not exceed 5MB.',
         ];
     }
 }
