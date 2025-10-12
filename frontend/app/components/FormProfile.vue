@@ -197,26 +197,21 @@
         <Label>Roles</Label>
         <div class="space-y-2">
           <div v-for="role in roles" :key="role.id" class="flex items-center gap-2">
-            <input
-              type="checkbox"
+            <Checkbox
               :id="`role-${role.id}`"
               :checked="form.roles.includes(role.name)"
-              @change="(e) => {
-                console.log('Checkbox change fired', { roleName: role.name, checked: e.target.checked, currentRoles: form.roles });
-                if (e.target.checked) {
+              @update:checked="(checked) => {
+                if (checked) {
                   if (!form.roles.includes(role.name)) {
                     form.roles.push(role.name);
-                    console.log('Added role, form.roles now:', form.roles);
                   }
                 } else {
                   const index = form.roles.indexOf(role.name);
                   if (index > -1) {
                     form.roles.splice(index, 1);
-                    console.log('Removed role, form.roles now:', form.roles);
                   }
                 }
               }"
-              class="size-4 rounded border-border"
             />
             <Label :for="`role-${role.id}`" class="cursor-pointer font-normal capitalize">
               {{ role.name }}

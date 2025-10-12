@@ -7,7 +7,7 @@
         <h1 class="page-title">Edit User</h1>
       </div>
 
-      <div v-if="user && canDeleteThisUser" class="flex items-center gap-2">
+      <!-- <div v-if="user && canDeleteThisUser" class="flex items-center gap-2">
         <button
           @click="confirmDeleteUser"
           :disabled="deleting"
@@ -17,7 +17,7 @@
           <Icon name="hugeicons:delete-02" v-else class="size-4" />
           {{ deleting ? "Deleting..." : "Delete User" }}
         </button>
-      </div>
+      </div> -->
     </div>
 
     <!-- Loading state -->
@@ -178,11 +178,11 @@ async function loadUser() {
     const response = await sanctumFetch(`/api/users/${route.params.username}`);
 
     if (response.data) {
-      console.log('API response.data:', response.data);
-      console.log('API response.data.roles:', response.data.roles);
+      console.log("API response.data:", response.data);
+      console.log("API response.data.roles:", response.data.roles);
       user.value = response.data;
-      console.log('user.value after assignment:', user.value);
-      console.log('user.value.roles after assignment:', user.value.roles);
+      console.log("user.value after assignment:", user.value);
+      console.log("user.value.roles after assignment:", user.value.roles);
     }
   } catch (err) {
     if (err.response?.status === 404) {
