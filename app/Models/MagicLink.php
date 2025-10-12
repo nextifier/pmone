@@ -6,6 +6,32 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
+/**
+ * @property int $id
+ * @property string $email
+ * @property string $token
+ * @property \Illuminate\Support\Carbon $expires_at
+ * @property \Illuminate\Support\Carbon|null $used_at
+ * @property string|null $ip_address
+ * @property string|null $user_agent
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink forEmail(string $email)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink valid()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink whereExpiresAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink whereIpAddress($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink whereToken($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink whereUsedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink whereUserAgent($value)
+ * @mixin \Eloquent
+ */
 class MagicLink extends Model
 {
     use HasFactory;
