@@ -178,11 +178,7 @@ async function loadUser() {
     const response = await sanctumFetch(`/api/users/${route.params.username}`);
 
     if (response.data) {
-      console.log("API response.data:", response.data);
-      console.log("API response.data.roles:", response.data.roles);
       user.value = response.data;
-      console.log("user.value after assignment:", user.value);
-      console.log("user.value.roles after assignment:", user.value.roles);
     }
   } catch (err) {
     if (err.response?.status === 404) {
