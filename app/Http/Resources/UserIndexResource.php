@@ -26,6 +26,29 @@ class UserIndexResource extends JsonResource
 
             // Roles - optimized to avoid duplicate queries
             'roles' => $this->whenLoaded('roles', fn () => $this->roles->pluck('name')),
+
+            // Tracking fields
+            'created_by' => $this->created_by,
+            'updated_by' => $this->updated_by,
+            'deleted_by' => $this->deleted_by,
+            'deleted_at' => $this->deleted_at?->toISOString(),
+
+            // Relationships
+            'creator' => $this->whenLoaded('creator', fn () => [
+                'id' => $this->creator->id,
+                'name' => $this->creator->name,
+                'username' => $this->creator->username,
+            ]),
+            'updater' => $this->whenLoaded('updater', fn () => [
+                'id' => $this->updater->id,
+                'name' => $this->updater->name,
+                'username' => $this->updater->username,
+            ]),
+            'deleter' => $this->whenLoaded('deleter', fn () => [
+                'id' => $this->deleter->id,
+                'name' => $this->deleter->name,
+                'username' => $this->deleter->username,
+            ]),
         ];
     }
 }

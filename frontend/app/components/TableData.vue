@@ -230,13 +230,11 @@
           </div>
           <div class="flex flex-col gap-y-1.5">
             <h6 class="text-lg font-semibold tracking-tight">No data found</h6>
-            <p class="text-muted-foreground text-sm">
-              It looks like there's no data in this page. You can create a new one or clear the
-              filters.
-            </p>
+            <p class="text-muted-foreground text-sm">It looks like there's no data in this page.</p>
           </div>
           <div class="flex items-center gap-2">
             <NuxtLink
+              v-if="props.showAddButton"
               :to="`/${props.model}/create`"
               class="hover:bg-primary/80 bg-primary text-primary-foreground flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm font-medium tracking-tight active:scale-98"
             >
@@ -244,6 +242,7 @@
               <span>Create new</span>
             </NuxtLink>
             <button
+              v-if="hasActiveFilters"
               class="border-border hover:bg-muted text-primary flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm font-medium tracking-tight active:scale-98"
               @click="table.resetColumnFilters()"
             >
@@ -255,15 +254,13 @@
       </div>
 
       <!-- Pagination -->
-      <div
-        v-if="hasRows"
-        class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center"
-      >
+      <div v-if="hasRows" class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div class="flex items-center justify-between gap-x-4">
           <div class="text-muted-foreground text-sm tracking-tight">
             <template v-if="hasSelectedRows">
-              {{ selectedRowsCount }} of
-              {{ totalItems }} row<template v-if="selectedRowsCount > 1">s</template>
+              {{ selectedRowsCount }} of {{ totalItems }} row<template v-if="selectedRowsCount > 1"
+                >s</template
+              >
               selected.
             </template>
             <template v-else>
@@ -615,7 +612,9 @@ const canGoPrevious = computed(() =>
 );
 
 const canGoNext = computed(() =>
-  isClientSidePagination.value ? table.getCanNextPage() : props.meta.current_page < props.meta.last_page
+  isClientSidePagination.value
+    ? table.getCanNextPage()
+    : props.meta.current_page < props.meta.last_page
 );
 
 const lastPageIndex = computed(() =>

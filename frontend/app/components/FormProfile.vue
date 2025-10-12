@@ -117,7 +117,28 @@
 
       <div class="space-y-2">
         <Label for="gender">Gender</Label>
-        <Select v-model="form.gender">
+
+        <RadioGroup class="flex flex-wrap gap-2" v-model="form.gender">
+          <div
+            class="border-input has-data-[state=checked]:border-primary/50 relative flex flex-col items-start gap-4 rounded-md border p-3 shadow-xs outline-none"
+          >
+            <div class="flex items-center gap-2">
+              <RadioGroupItem id="male" value="male" class="after:absolute after:inset-0" />
+              <Label for="male">Male</Label>
+            </div>
+          </div>
+
+          <div
+            class="border-border has-data-[state=checked]:border-primary/50 relative flex flex-col items-start gap-4 rounded-md border p-3 shadow-xs outline-none"
+          >
+            <div class="flex items-center gap-2">
+              <RadioGroupItem id="female" value="female" class="after:absolute after:inset-0" />
+              <Label for="male">Female</Label>
+            </div>
+          </div>
+        </RadioGroup>
+
+        <!-- <Select v-model="form.gender">
           <SelectTrigger class="w-full">
             <SelectValue />
           </SelectTrigger>
@@ -125,7 +146,7 @@
             <SelectItem value="male">Male</SelectItem>
             <SelectItem value="female">Female</SelectItem>
           </SelectContent>
-        </Select>
+        </Select> -->
         <p v-if="errors.gender" class="text-destructive text-sm">{{ errors.gender[0] }}</p>
       </div>
 
@@ -176,10 +197,26 @@
         <Label>Roles</Label>
         <div class="space-y-2">
           <div v-for="role in roles" :key="role.id" class="flex items-center gap-2">
-            <Checkbox
+            <input
+              type="checkbox"
               :id="`role-${role.id}`"
               :checked="form.roles.includes(role.name)"
-              @update:checked="toggleRole(role.name)"
+              @change="(e) => {
+                console.log('Checkbox change fired', { roleName: role.name, checked: e.target.checked, currentRoles: form.roles });
+                if (e.target.checked) {
+                  if (!form.roles.includes(role.name)) {
+                    form.roles.push(role.name);
+                    console.log('Added role, form.roles now:', form.roles);
+                  }
+                } else {
+                  const index = form.roles.indexOf(role.name);
+                  if (index > -1) {
+                    form.roles.splice(index, 1);
+                    console.log('Removed role, form.roles now:', form.roles);
+                  }
+                }
+              }"
+              class="size-4 rounded border-border"
             />
             <Label :for="`role-${role.id}`" class="cursor-pointer font-normal capitalize">
               {{ role.name }}
@@ -340,6 +377,9 @@ function toggleRole(roleName) {
 async function populateForm(data) {
   if (!data || Object.keys(data).length === 0) return;
 
+  console.log('FormProfile populateForm called with data:', data);
+  console.log('FormProfile data.roles:', data.roles);
+
   form.name = data.name || "";
   form.username = data.username || "";
   form.email = data.email || "";
@@ -348,7 +388,19 @@ async function populateForm(data) {
   form.bio = data.bio || "";
   form.status = data.status || "active";
   form.visibility = data.visibility || "public";
-  form.roles = data.roles || [];
+
+  // Clear roles array first, then populate with new values
+  form.roles.splice(0, form.roles.length);
+  console.log('FormProfile form.roles after clear:', form.roles);
+
+  if (Array.isArray(data.roles)) {
+    const roleNames = data.roles.map((role) => (typeof role === "string" ? role : role.name));
+    console.log('FormProfile roleNames to push:', roleNames);
+    form.roles.push(...roleNames);
+    console.log('FormProfile form.roles after push:', form.roles);
+  } else {
+    console.log('FormProfile data.roles is NOT an array:', typeof data.roles);
+  }
 
   // Handle birth_date
   if (data.birth_date) {

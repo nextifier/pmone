@@ -70,6 +70,10 @@ export const useContentStore = defineStore("content", {
         title: `Users`,
         description: ``,
       },
+      userTrash: {
+        title: `User Trash`,
+        description: ``,
+      },
       logs: {
         title: `Activity Logs`,
         description: ``,

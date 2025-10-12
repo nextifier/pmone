@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-2xl space-y-6">
+  <div class="mx-auto max-w-md space-y-6">
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-x-2.5">
@@ -178,7 +178,11 @@ async function loadUser() {
     const response = await sanctumFetch(`/api/users/${route.params.username}`);
 
     if (response.data) {
+      console.log('API response.data:', response.data);
+      console.log('API response.data.roles:', response.data.roles);
       user.value = response.data;
+      console.log('user.value after assignment:', user.value);
+      console.log('user.value.roles after assignment:', user.value.roles);
     }
   } catch (err) {
     if (err.response?.status === 404) {

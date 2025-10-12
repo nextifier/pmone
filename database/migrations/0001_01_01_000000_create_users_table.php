@@ -31,6 +31,10 @@ return new class extends Migration
             $table->timestamp('last_seen')->nullable();
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
+            $table->foreignId('created_by')->nullable()->constrained('users');
+            $table->foreignId('updated_by')->nullable()->constrained('users');
+            $table->foreignId('deleted_by')->nullable()->constrained('users');
 
             $table->index(['email', 'status']);
             $table->index('last_seen');

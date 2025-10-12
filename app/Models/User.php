@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Traits\HasMediaManager;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -26,6 +28,7 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     use InteractsWithMedia;
     use LogsActivity;
     use Notifiable;
+    use SoftDeletes;
     use TwoFactorAuthenticatable;
 
     /**
@@ -137,11 +140,31 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
 
                 $model->username = $username;
             }
+
+            // Set created_by
+            if (auth()->check()) {
+                $model->created_by = auth()->id();
+            }
         });
 
-        // Auto-cleanup media when user is deleted
+        static::updating(function ($model) {
+            // Set updated_by
+            if (auth()->check()) {
+                $model->updated_by = auth()->id();
+            }
+        });
+
         static::deleting(function ($model) {
-            $model->clearMediaCollection();
+            // Set deleted_by for soft deletes
+            if ($model->isForceDeleting() === false && auth()->check()) {
+                $model->deleted_by = auth()->id();
+                $model->saveQuietly();
+            }
+
+            // Auto-cleanup media when user is force deleted
+            if ($model->isForceDeleting()) {
+                $model->clearMediaCollection();
+            }
         });
     }
 
@@ -368,5 +391,20 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         $links = $this->links ?? [];
         unset($links[$type]);
         $this->update(['links' => $links]);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function deleter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 }

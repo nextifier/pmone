@@ -2,17 +2,16 @@
   <div class="mx-auto max-w-4xl space-y-6">
     <div class="flex items-center justify-between gap-x-2.5">
       <div class="flex items-center gap-x-2.5">
-        <Icon name="hugeicons:user-group" class="size-5 sm:size-6" />
-        <h1 class="page-title">User Management</h1>
+        <Icon name="hugeicons:delete-01" class="size-5 sm:size-6" />
+        <h1 class="page-title">User Trash</h1>
       </div>
 
       <nuxt-link
-        v-if="user?.roles?.includes('master')"
-        to="/users/trash"
+        to="/users"
         class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
       >
-        <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
-        <span>Trash</span>
+        <Icon name="hugeicons:user-group" class="size-4 shrink-0" />
+        <span>All Users</span>
       </nuxt-link>
     </div>
 
@@ -24,10 +23,11 @@
       :meta="meta"
       :pending="pending"
       :error="error"
-      model="users"
+      model="users-trash"
       search-column="name"
+      :show-add-button="false"
       search-placeholder="Search name, email, or username"
-      error-title="Error loading users"
+      error-title="Error loading trashed users"
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
@@ -86,7 +86,7 @@
       <template #actions="{ selectedRows }">
         <DialogResponsive
           v-if="selectedRows.length > 0"
-          v-model:open="deleteDialogOpen"
+          v-model:open="restoreDialogOpen"
           class="h-full"
         >
           <template #trigger="{ open }">
@@ -94,8 +94,8 @@
               class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
               @click="open()"
             >
-              <Icon name="lucide:trash" class="size-4 shrink-0" />
-              <span class="text-sm tracking-tight">Delete</span>
+              <Icon name="hugeicons:undo-02" class="size-4 shrink-0" />
+              <span class="text-sm tracking-tight">Restore</span>
               <span
                 class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
               >
@@ -105,10 +105,57 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+              <div class="text-primary text-lg font-semibold tracking-tight">Restore users?</div>
+              <p class="text-body mt-1.5 text-sm tracking-tight">
+                This will restore {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "user" : "users" }}.
+              </p>
+              <div class="mt-3 flex justify-end gap-2">
+                <button
+                  class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  @click="restoreDialogOpen = false"
+                >
+                  Cancel
+                </button>
+                <button
+                  @click="handleRestoreRows(selectedRows)"
+                  class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                >
+                  Restore
+                </button>
+              </div>
+            </div>
+          </template>
+        </DialogResponsive>
+
+        <DialogResponsive
+          v-if="selectedRows.length > 0"
+          v-model:open="deleteDialogOpen"
+          class="h-full"
+        >
+          <template #trigger="{ open }">
+            <button
+              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
+              @click="open()"
+            >
+              <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
+              <span class="text-sm tracking-tight">Delete Permanently</span>
+              <span
+                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
+              >
+                {{ selectedRows.length }}
+              </span>
+            </button>
+          </template>
+          <template #default>
+            <div class="px-4 pb-10 md:px-6 md:py-5">
+              <div class="text-primary text-lg font-semibold tracking-tight">
+                Are you absolutely sure?
+              </div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This action can't be undone. This will permanently delete
-                {{ selectedRows.length }} selected {{ selectedRows.length === 1 ? "row" : "rows" }}.
+                {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "user" : "users" }}.
               </p>
               <div class="mt-3 flex justify-end gap-2">
                 <button
@@ -119,9 +166,9 @@
                 </button>
                 <button
                   @click="handleDeleteRows(selectedRows)"
-                  class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  class="bg-destructive text-destructive-foreground hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
                 >
-                  Delete
+                  Delete Permanently
                 </button>
               </div>
             </div>
@@ -144,24 +191,22 @@ import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth", "staff-admin-master"],
+  middleware: ["sanctum:auth", "master"],
   layout: "app",
 });
 
 defineOptions({
-  name: "users",
+  name: "users-trash",
 });
 
-usePageMeta("users");
-
-const { user } = useSanctumAuth();
+usePageMeta("userTrash");
 
 const { $dayjs } = useNuxtApp();
 
 // Table state
 const columnFilters = ref([]);
 const pagination = ref({ pageIndex: 0, pageSize: 10 });
-const sorting = ref([{ id: "created_at", desc: true }]);
+const sorting = ref([{ id: "deleted_at", desc: true }]);
 
 // Data state
 const data = ref([]);
@@ -200,7 +245,7 @@ const buildQueryParams = () => {
     });
 
     // Sorting
-    const sortField = sorting.value[0]?.id || "created_at";
+    const sortField = sorting.value[0]?.id || "deleted_at";
     const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
     params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
   }
@@ -208,18 +253,18 @@ const buildQueryParams = () => {
   return params.toString();
 };
 
-// Fetch users
+// Fetch trashed users
 const fetchUsers = async () => {
   try {
     pending.value = true;
     error.value = null;
     const client = useSanctumClient();
-    const response = await client(`/api/users?${buildQueryParams()}`);
+    const response = await client(`/api/users/trash?${buildQueryParams()}`);
     data.value = response.data;
     meta.value = response.meta;
   } catch (err) {
     error.value = err;
-    console.error("Failed to fetch users:", err);
+    console.error("Failed to fetch trashed users:", err);
   } finally {
     pending.value = false;
   }
@@ -347,10 +392,22 @@ const columns = [
     },
   },
   {
-    header: "Created",
-    accessorKey: "created_at",
+    header: "Deleted By",
+    accessorKey: "deleter",
     cell: ({ row }) => {
-      const date = row.getValue("created_at");
+      const deleter = row.getValue("deleter");
+      if (!deleter) {
+        return h("div", { class: "text-sm text-muted-foreground tracking-tight" }, "-");
+      }
+      return h("div", { class: "text-sm tracking-tight" }, deleter.name);
+    },
+    size: 120,
+  },
+  {
+    header: "Deleted At",
+    accessorKey: "deleted_at",
+    cell: ({ row }) => {
+      const date = row.getValue("deleted_at");
       return withDirectives(
         h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $dayjs(date).fromNow()),
         [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
@@ -361,7 +418,7 @@ const columns = [
   {
     id: "actions",
     header: () => h("span", { class: "sr-only" }, "Actions"),
-    cell: ({ row }) => h(RowActions, { username: row.original.username }),
+    cell: ({ row }) => h(RowActions, { userId: row.original.id }),
     size: 60,
     enableHiding: false,
   },
@@ -419,13 +476,60 @@ const handleFilterChange = (columnId, { checked, value }) => {
   }
 };
 
+// Restore handlers
+const restoreDialogOpen = ref(false);
+const handleRestoreRows = async (selectedRows) => {
+  const userIds = selectedRows.map((row) => row.original.id);
+  try {
+    const client = useSanctumClient();
+    const response = await client("/api/users/trash/restore/bulk", {
+      method: "POST",
+      body: { ids: userIds },
+    });
+    await refresh();
+    restoreDialogOpen.value = false;
+    if (tableRef.value?.table) {
+      tableRef.value.table.resetRowSelection();
+    }
+
+    // Show success toast
+    toast.success(response.message || "Users restored successfully", {
+      description:
+        response.errors?.length > 0
+          ? `${response.restored_count} restored, ${response.errors.length} failed`
+          : `${response.restored_count} user(s) restored`,
+    });
+  } catch (error) {
+    console.error("Failed to restore users:", error);
+    toast.error("Failed to restore users", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  }
+};
+
+const handleRestoreSingleRow = async (userId) => {
+  try {
+    const client = useSanctumClient();
+    const response = await client(`/api/users/trash/${userId}/restore`, { method: "POST" });
+    await refresh();
+
+    // Show success toast
+    toast.success(response.message || "User restored successfully");
+  } catch (error) {
+    console.error("Failed to restore user:", error);
+    toast.error("Failed to restore user", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  }
+};
+
 // Delete handlers
 const deleteDialogOpen = ref(false);
 const handleDeleteRows = async (selectedRows) => {
   const userIds = selectedRows.map((row) => row.original.id);
   try {
     const client = useSanctumClient();
-    const response = await client("/api/users/bulk", {
+    const response = await client("/api/users/trash/bulk", {
       method: "DELETE",
       body: { ids: userIds },
     });
@@ -436,31 +540,31 @@ const handleDeleteRows = async (selectedRows) => {
     }
 
     // Show success toast
-    toast.success(response.message || "Users deleted successfully", {
+    toast.success(response.message || "Users permanently deleted", {
       description:
         response.errors?.length > 0
           ? `${response.deleted_count} deleted, ${response.errors.length} failed`
-          : `${response.deleted_count} user(s) deleted`,
+          : `${response.deleted_count} user(s) permanently deleted`,
     });
   } catch (error) {
-    console.error("Failed to delete users:", error);
-    toast.error("Failed to delete users", {
+    console.error("Failed to permanently delete users:", error);
+    toast.error("Failed to permanently delete users", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
   }
 };
 
-const handleDeleteSingleRow = async (username) => {
+const handleDeleteSingleRow = async (userId) => {
   try {
     const client = useSanctumClient();
-    const response = await client(`/api/users/${username}`, { method: "DELETE" });
+    const response = await client(`/api/users/trash/${userId}`, { method: "DELETE" });
     await refresh();
 
     // Show success toast
-    toast.success(response.message || "User deleted successfully");
+    toast.success(response.message || "User permanently deleted");
   } catch (error) {
-    console.error("Failed to delete user:", error);
-    toast.error("Failed to delete user", {
+    console.error("Failed to permanently delete user:", error);
+    toast.error("Failed to permanently delete user", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
   }
@@ -469,10 +573,11 @@ const handleDeleteSingleRow = async (username) => {
 // Row Actions Component
 const RowActions = defineComponent({
   props: {
-    username: { type: String, required: true },
+    userId: { type: Number, required: true },
   },
   setup(props) {
-    const dialogOpen = ref(false);
+    const restoreDialogOpen = ref(false);
+    const deleteDialogOpen = ref(false);
     return () =>
       h("div", { class: "flex justify-end" }, [
         h(
@@ -507,21 +612,19 @@ const RowActions = defineComponent({
                         {
                           default: () =>
                             h(
-                              resolveComponent("NuxtLink"),
+                              "button",
                               {
-                                to: `/users/${props.username}/edit`,
                                 class:
                                   "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                onClick: () => (restoreDialogOpen.value = true),
                               },
-                              {
-                                default: () => [
-                                  h(resolveComponent("Icon"), {
-                                    name: "lucide:pencil-line",
-                                    class: "size-4 shrink-0",
-                                  }),
-                                  h("span", {}, "Edit"),
-                                ],
-                              }
+                              [
+                                h(resolveComponent("Icon"), {
+                                  name: "lucide:undo-2",
+                                  class: "size-4 shrink-0",
+                                }),
+                                h("span", {}, "Restore"),
+                              ]
                             ),
                         }
                       ),
@@ -535,7 +638,7 @@ const RowActions = defineComponent({
                               {
                                 class:
                                   "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                onClick: () => (dialogOpen.value = true),
+                                onClick: () => (deleteDialogOpen.value = true),
                               },
                               [
                                 h(resolveComponent("Icon"), {
@@ -556,8 +659,8 @@ const RowActions = defineComponent({
         h(
           DialogResponsive,
           {
-            open: dialogOpen.value,
-            "onUpdate:open": (value) => (dialogOpen.value = value),
+            open: restoreDialogOpen.value,
+            "onUpdate:open": (value) => (restoreDialogOpen.value = value),
           },
           {
             default: () =>
@@ -565,7 +668,52 @@ const RowActions = defineComponent({
                 h(
                   "div",
                   { class: "text-primary text-lg font-semibold tracking-tight" },
-                  "Are you sure?"
+                  "Restore user?"
+                ),
+                h(
+                  "p",
+                  { class: "text-body mt-1.5 text-sm tracking-tight" },
+                  "This will restore this user."
+                ),
+                h("div", { class: "mt-3 flex justify-end gap-2" }, [
+                  h(
+                    "button",
+                    {
+                      class:
+                        "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                      onClick: () => (restoreDialogOpen.value = false),
+                    },
+                    "Cancel"
+                  ),
+                  h(
+                    "button",
+                    {
+                      class:
+                        "bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                      onClick: async () => {
+                        await handleRestoreSingleRow(props.userId);
+                        restoreDialogOpen.value = false;
+                      },
+                    },
+                    "Restore"
+                  ),
+                ]),
+              ]),
+          }
+        ),
+        h(
+          DialogResponsive,
+          {
+            open: deleteDialogOpen.value,
+            "onUpdate:open": (value) => (deleteDialogOpen.value = value),
+          },
+          {
+            default: () =>
+              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
+                h(
+                  "div",
+                  { class: "text-primary text-lg font-semibold tracking-tight" },
+                  "Are you absolutely sure?"
                 ),
                 h(
                   "p",
@@ -578,7 +726,7 @@ const RowActions = defineComponent({
                     {
                       class:
                         "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
-                      onClick: () => (dialogOpen.value = false),
+                      onClick: () => (deleteDialogOpen.value = false),
                     },
                     "Cancel"
                   ),
@@ -586,13 +734,13 @@ const RowActions = defineComponent({
                     "button",
                     {
                       class:
-                        "bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                        "bg-destructive text-destructive-foreground hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
                       onClick: async () => {
-                        await handleDeleteSingleRow(props.username);
-                        dialogOpen.value = false;
+                        await handleDeleteSingleRow(props.userId);
+                        deleteDialogOpen.value = false;
                       },
                     },
-                    "Delete"
+                    "Delete Permanently"
                   ),
                 ]),
               ]),

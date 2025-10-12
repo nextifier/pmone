@@ -2,8 +2,8 @@
   "name": "nuxt-app",
   "private": true,
   "scripts": {
-    "build": "NODE_OPTIONS='--max-old-space-size=4096' nuxt build",
-    "dev": "NODE_OPTIONS='--max-old-space-size=4096' nuxt dev",
+    "build": "nuxt build",
+    "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
@@ -69,7 +69,6 @@
   },
   "overrides": {
     "vue": "latest",
-    "esm-env": "npm:esm-env-runtime@^0.1.1",
-    "vite": "npm:rolldown-vite@latest"
+    "esm-env": "npm:esm-env-runtime@^0.1.1"
   }
 }

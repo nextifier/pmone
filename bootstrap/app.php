@@ -22,9 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule): void {
-        // Cleanup temporary uploads older than 1 minute, run every 2 minutes (FOR TESTING)
-        // TODO: Change back to: ->hourly() and --hours=1 after testing
-        $schedule->command('uploads:cleanup-temp --hours=0.016')->everyTwoMinutes();
+        // Cleanup temporary uploads older than 1 hour, run hourly
+        $schedule->command('uploads:cleanup-temp --hours=1')->hourly();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -25,7 +25,48 @@ class UserController extends Controller
     {
         $this->authorize('users.view');
 
-        $query = User::query()->with(['roles']);
+        $query = User::query()->with(['roles', 'creator', 'updater']);
+        $clientOnly = $request->boolean('client_only', false);
+
+        // Apply filters and sorting only if not client-only mode
+        if (! $clientOnly) {
+            $this->applyFilters($query, $request);
+            $this->applySorting($query, $request);
+        }
+
+        // Paginate only if not client-only mode
+        if ($clientOnly) {
+            $users = $query->get();
+
+            return response()->json([
+                'data' => UserIndexResource::collection($users),
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => $users->count(),
+                    'total' => $users->count(),
+                ],
+            ]);
+        }
+
+        $users = $query->paginate($request->input('per_page', 15));
+
+        return response()->json([
+            'data' => UserIndexResource::collection($users->items()),
+            'meta' => [
+                'current_page' => $users->currentPage(),
+                'last_page' => $users->lastPage(),
+                'per_page' => $users->perPage(),
+                'total' => $users->total(),
+            ],
+        ]);
+    }
+
+    public function trash(Request $request): JsonResponse
+    {
+        $this->authorize('users.view');
+
+        $query = User::onlyTrashed()->with(['roles', 'deleter']);
         $clientOnly = $request->boolean('client_only', false);
 
         // Apply filters and sorting only if not client-only mode
@@ -590,5 +631,193 @@ class UserController extends Controller
 
         // Clean up temporary files
         \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
+    }
+
+    public function restore(Request $request, int $id): JsonResponse
+    {
+        $this->authorize('users.delete');
+
+        try {
+            $user = User::onlyTrashed()->findOrFail($id);
+
+            // Prevent admin from restoring master users
+            if ($user->hasRole('master') && ! $request->user()->hasRole('master')) {
+                return response()->json([
+                    'message' => 'Only master users can restore other master users.',
+                ], 403);
+            }
+
+            $user->restore();
+
+            return response()->json([
+                'message' => 'User restored successfully',
+            ]);
+        } catch (\Exception $e) {
+            logger()->error('User restoration failed', [
+                'error' => $e->getMessage(),
+                'user_id' => $id,
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to restore user',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function bulkRestore(Request $request): JsonResponse
+    {
+        $this->authorize('users.delete');
+
+        $validator = Validator::make($request->all(), [
+            'ids' => ['required', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['required', 'integer'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $userIds = $request->input('ids');
+            $currentUser = $request->user();
+            $restoredCount = 0;
+            $errors = [];
+
+            foreach ($userIds as $userId) {
+                $user = User::onlyTrashed()->find($userId);
+
+                if (! $user) {
+                    continue;
+                }
+
+                // Prevent admin from restoring master users
+                if ($user->hasRole('master') && ! $currentUser->hasRole('master')) {
+                    $errors[] = "Cannot restore master user: {$user->name}";
+
+                    continue;
+                }
+
+                $user->restore();
+                $restoredCount++;
+            }
+
+            $message = $restoredCount > 0
+                ? "Successfully restored {$restoredCount} user(s)"
+                : 'No users were restored';
+
+            return response()->json([
+                'message' => $message,
+                'restored_count' => $restoredCount,
+                'errors' => $errors,
+            ], $restoredCount > 0 ? 200 : 400);
+        } catch (\Exception $e) {
+            logger()->error('Bulk user restoration failed', [
+                'error' => $e->getMessage(),
+                'user_ids' => $request->input('ids'),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to restore users',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function forceDestroy(Request $request, int $id): JsonResponse
+    {
+        $this->authorize('users.delete');
+
+        try {
+            $user = User::onlyTrashed()->findOrFail($id);
+
+            // Prevent admin from permanently deleting master users
+            if ($user->hasRole('master') && ! $request->user()->hasRole('master')) {
+                return response()->json([
+                    'message' => 'Only master users can permanently delete other master users.',
+                ], 403);
+            }
+
+            $user->forceDelete();
+
+            return response()->json([
+                'message' => 'User permanently deleted successfully',
+            ]);
+        } catch (\Exception $e) {
+            logger()->error('User permanent deletion failed', [
+                'error' => $e->getMessage(),
+                'user_id' => $id,
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to permanently delete user',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function bulkForceDestroy(Request $request): JsonResponse
+    {
+        $this->authorize('users.delete');
+
+        $validator = Validator::make($request->all(), [
+            'ids' => ['required', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['required', 'integer'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $userIds = $request->input('ids');
+            $currentUser = $request->user();
+            $deletedCount = 0;
+            $errors = [];
+
+            foreach ($userIds as $userId) {
+                $user = User::onlyTrashed()->find($userId);
+
+                if (! $user) {
+                    continue;
+                }
+
+                // Prevent admin from permanently deleting master users
+                if ($user->hasRole('master') && ! $currentUser->hasRole('master')) {
+                    $errors[] = "Cannot permanently delete master user: {$user->name}";
+
+                    continue;
+                }
+
+                $user->forceDelete();
+                $deletedCount++;
+            }
+
+            $message = $deletedCount > 0
+                ? "Successfully permanently deleted {$deletedCount} user(s)"
+                : 'No users were permanently deleted';
+
+            return response()->json([
+                'message' => $message,
+                'deleted_count' => $deletedCount,
+                'errors' => $errors,
+            ], $deletedCount > 0 ? 200 : 400);
+        } catch (\Exception $e) {
+            logger()->error('Bulk user permanent deletion failed', [
+                'error' => $e->getMessage(),
+                'user_ids' => $request->input('ids'),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to permanently delete users',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
