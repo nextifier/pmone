@@ -1,25 +1,9 @@
 <template>
-  <div class="mx-auto max-w-md space-y-6">
-    <div class="flex items-center gap-x-4">
-      <BackButton :showLabel="false" destination="/users" />
+  <div class="mx-auto max-w-md space-y-8">
+    <div class="flex flex-col items-start gap-y-5">
+      <BackButton destination="/users" />
 
       <h1 class="page-title">Create New User</h1>
-    </div>
-
-    <!-- Error message -->
-    <div
-      v-if="error"
-      class="border-destructive bg-destructive/10 text-destructive rounded-lg border p-4"
-    >
-      {{ error }}
-    </div>
-
-    <!-- Success message -->
-    <div
-      v-if="success"
-      class="rounded-lg border border-green-500 bg-green-100 p-4 text-green-800 dark:bg-green-900 dark:text-green-300"
-    >
-      {{ success }}
     </div>
 
     <FormProfile

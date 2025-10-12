@@ -1,118 +1,65 @@
 <template>
   <div class="mx-auto max-w-md space-y-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-x-2.5">
-        <Icon name="hugeicons:edit-user-02" class="size-5 sm:size-6" />
-        <h1 class="page-title">Edit User</h1>
-      </div>
+    <div class="flex flex-col items-start gap-y-5">
+      <BackButton destination="/users" />
 
-      <!-- <div v-if="user && canDeleteThisUser" class="flex items-center gap-2">
-        <button
-          @click="confirmDeleteUser"
-          :disabled="deleting"
-          class="border-destructive bg-destructive/10 text-destructive hover:bg-destructive/20 flex items-center gap-2 rounded-lg border px-3 py-2 text-sm disabled:opacity-50"
-        >
-          <Icon name="hugeicons:loading-01" v-if="deleting" class="size-4 animate-spin" />
-          <Icon name="hugeicons:delete-02" v-else class="size-4" />
-          {{ deleting ? "Deleting..." : "Delete User" }}
-        </button>
-      </div> -->
+      <h1 class="page-title">Edit User</h1>
     </div>
 
-    <!-- Loading state -->
-    <div v-if="initialLoading" class="space-y-4">
-      <div class="animate-pulse rounded-lg border p-6">
-        <div class="bg-muted mb-4 h-6 w-1/3 rounded"></div>
-        <div class="space-y-3">
-          <div class="bg-muted h-4 w-full rounded"></div>
-          <div class="bg-muted h-4 w-2/3 rounded"></div>
-        </div>
-      </div>
-    </div>
+    <FormProfile
+      :initial-data="user"
+      :roles="roles"
+      :loading="loading"
+      :errors="errors"
+      :is-create="false"
+      :show-password="canEditUsers"
+      :show-account-settings="canEditUsers"
+      :show-roles="canEditUsers"
+      :show-images="true"
+      :show-reset="true"
+      submit-text="Update User"
+      submit-loading-text="Updating.."
+      @submit="updateUser"
+      @reset="resetForm"
+    />
 
-    <!-- Error message -->
-    <div
-      v-if="error"
-      class="border-destructive bg-destructive/10 text-destructive rounded-lg border p-4"
-    >
-      {{ error }}
-    </div>
+    <div v-if="user" class="mt-20 space-y-4">
+      <h6 class="text-muted-foreground text-sm font-medium tracking-tight">Account Information</h6>
 
-    <!-- Success message -->
-    <div
-      v-if="success"
-      class="rounded-lg border border-green-500 bg-green-100 p-4 text-green-800 dark:bg-green-900 dark:text-green-300"
-    >
-      {{ success }}
-    </div>
+      <div
+        class="border-border text-foreground w-full overflow-x-scroll rounded-xl border p-4 text-sm tracking-tight"
+      >
+        <div class="flex flex-col gap-y-2">
+          <div class="inline-flex gap-x-1.5">
+            <span class="text-muted-foreground">User ID:</span>
+            <span>{{ user.id }}</span>
+          </div>
 
-    <!-- Form -->
-    <div v-if="user && !initialLoading">
-      <FormProfile
-        :initial-data="user"
-        :roles="roles"
-        :loading="loading"
-        :errors="errors"
-        :is-create="false"
-        :show-password="canEditUsers"
-        :show-account-settings="canEditUsers"
-        :show-roles="canEditUsers"
-        :show-images="true"
-        :show-reset="true"
-        submit-text="Update User"
-        submit-loading-text="Updating.."
-        @submit="updateUser"
-        @reset="resetForm"
-      />
+          <div class="inline-flex gap-x-1.5">
+            <span class="text-muted-foreground">ULID:</span>
+            <span>{{ user.ulid }}</span>
+          </div>
 
-      <!-- User Info (read-only) -->
-      <div class="mt-6 space-y-4 rounded-lg border p-6">
-        <h3 class="text-lg font-medium">Account Information</h3>
+          <div class="inline-flex gap-x-1.5">
+            <span class="text-muted-foreground">Created:</span>
+            <span>{{ $dayjs(user.created_at).format("MMM D, YYYY [at] h:mm A") }}</span>
+          </div>
 
-        <div class="bg-muted/50 rounded-lg p-4 text-sm">
-          <div class="grid gap-2 sm:grid-cols-2">
-            <div>
-              <span class="text-muted-foreground">User ID:</span>
-              <span class="ml-2 font-mono">{{ user.id }}</span>
-            </div>
-            <div>
-              <span class="text-muted-foreground">ULID:</span>
-              <span class="ml-2 font-mono text-xs">{{ user.ulid }}</span>
-            </div>
-            <div>
-              <span class="text-muted-foreground">Created:</span>
-              <span class="ml-2">{{
-                $dayjs(user.created_at).format("MMM D, YYYY [at] h:mm A")
-              }}</span>
-            </div>
-            <div>
-              <span class="text-muted-foreground">Last Seen:</span>
-              <span class="ml-2">{{
-                user.last_seen ? $dayjs(user.last_seen).fromNow() : "Never"
-              }}</span>
-            </div>
+          <div class="inline-flex gap-x-1.5">
+            <span class="text-muted-foreground">Last Seen:</span>
+            <span>{{ user.last_seen ? $dayjs(user.last_seen).fromNow() : "Never" }}</span>
           </div>
         </div>
       </div>
 
-      <!-- Back Button -->
-      <div class="mt-6 flex justify-start">
-        <NuxtLink
-          to="/users"
-          class="border-border hover:bg-muted inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition"
-        >
-          <Icon name="hugeicons:arrow-left-02" class="size-4" />
-          Back to Users
-        </NuxtLink>
+      <div class="border-border text-foreground w-full overflow-x-scroll rounded-xl border p-4">
+        <pre class="text-foreground/80 text-sm !leading-[1.5]">{{ user }}</pre>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import FormProfile from "@/components/FormProfile.vue";
-
 definePageMeta({
   middleware: ["sanctum:auth", "admin-master"],
   layout: "app",
