@@ -5,13 +5,43 @@
       <div v-if="showImages" class="space-y-5">
         <div class="space-y-2">
           <Label>Profile Image</Label>
+
           <InputFile
-            v-model="profileImageFiles"
+            v-if="showInputFile.profile_image"
+            v-model="imageFiles.profile_image"
             :accepted-file-types="['image/jpeg', 'image/png', 'image/jpg', 'image/webp']"
-            max-file-size="5MB"
             :allow-multiple="false"
             :max-files="1"
+            class="mt-3"
           />
+
+          <div v-else class="squircle relative isolate aspect-square max-w-40">
+            <NuxtImg
+              :src="initialData?.profile_image?.md"
+              alt=""
+              class="border-border size-full rounded-lg border object-cover"
+              loading="lazy"
+            />
+
+            <button
+              type="button"
+              @click="handleDeleteImage('profile_image')"
+              class="absolute top-1 right-1 flex size-9 items-center justify-center rounded-full bg-black/40 text-white shadow-sm ring ring-white/20 backdrop-blur-sm transition hover:bg-black"
+            >
+              <Icon name="hugeicons:delete-01" class="size-4" />
+            </button>
+          </div>
+
+          <button
+            v-if="deleteFlags.profile_image && initialData?.profile_image"
+            type="button"
+            @click="handleUndoDeleteImage('profile_image')"
+            class="text-primary hover:text-primary/80 mx-auto flex items-center gap-1.5 text-sm font-medium tracking-tight transition"
+          >
+            <Icon name="hugeicons:undo-02" class="size-4" />
+            Undo Delete
+          </button>
+
           <p v-if="errors.tmp_profile_image" class="text-destructive text-sm">
             {{ errors.tmp_profile_image[0] }}
           </p>
@@ -19,13 +49,43 @@
 
         <div class="space-y-2">
           <Label>Cover Image</Label>
+
           <InputFile
-            v-model="coverImageFiles"
+            v-if="showInputFile.cover_image"
+            v-model="imageFiles.cover_image"
             :accepted-file-types="['image/jpeg', 'image/png', 'image/jpg', 'image/webp']"
-            max-file-size="5MB"
             :allow-multiple="false"
             :max-files="1"
+            class="mt-3"
           />
+
+          <div v-else class="relative isolate">
+            <NuxtImg
+              :src="initialData?.cover_image?.md"
+              alt=""
+              class="border-border size-full rounded-lg border object-cover"
+              loading="lazy"
+            />
+
+            <button
+              type="button"
+              @click="handleDeleteImage('cover_image')"
+              class="absolute top-1 right-1 flex size-9 items-center justify-center rounded-full bg-black/40 text-white shadow-sm ring ring-white/20 backdrop-blur-sm transition hover:bg-black"
+            >
+              <Icon name="hugeicons:delete-01" class="size-4" />
+            </button>
+          </div>
+
+          <button
+            v-if="deleteFlags.cover_image && initialData?.cover_image"
+            type="button"
+            @click="handleUndoDeleteImage('cover_image')"
+            class="text-primary hover:text-primary/80 mx-auto flex items-center gap-1.5 text-sm font-medium tracking-tight transition"
+          >
+            <Icon name="hugeicons:undo-02" class="size-4" />
+            Undo Delete
+          </button>
+
           <p v-if="errors.tmp_cover_image" class="text-destructive text-sm">
             {{ errors.tmp_cover_image[0] }}
           </p>
@@ -137,20 +197,11 @@
           >
             <div class="flex items-center gap-2">
               <RadioGroupItem id="female" value="female" class="after:absolute after:inset-0" />
-              <Label for="male">Female</Label>
+              <Label for="female">Female</Label>
             </div>
           </div>
         </RadioGroup>
 
-        <!-- <Select v-model="form.gender">
-          <SelectTrigger class="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="male">Male</SelectItem>
-            <SelectItem value="female">Female</SelectItem>
-          </SelectContent>
-        </Select> -->
         <p v-if="errors.gender" class="text-destructive text-sm">{{ errors.gender[0] }}</p>
       </div>
 
@@ -215,7 +266,7 @@
       </div>
     </div>
 
-    <div v-else class="space-y-2">
+    <div v-if="!showAccountSettings" class="space-y-2">
       <Label for="visibility">Profile Visibility</Label>
       <Select v-model="form.visibility">
         <SelectTrigger class="w-full">
@@ -245,6 +296,8 @@
       </button>
     </div>
   </form>
+
+  <div></div>
 </template>
 
 <script setup>
@@ -305,10 +358,6 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
-  showReset: {
-    type: Boolean,
-    default: true,
-  },
   submitText: {
     type: String,
     default: "Submit",
@@ -321,9 +370,22 @@ const props = defineProps({
 
 const emit = defineEmits(["submit", "reset"]);
 
+const deleteFlags = ref({
+  profile_image: false,
+  cover_image: false,
+});
+
 // Uploaded files
-const profileImageFiles = ref([]);
-const coverImageFiles = ref([]);
+const imageFiles = ref({
+  profile_image: [],
+  cover_image: [],
+});
+
+// Computed: Show input file when no existing image OR user clicked delete
+const showInputFile = computed(() => ({
+  profile_image: !props.initialData?.profile_image || deleteFlags.value.profile_image,
+  cover_image: !props.initialData?.cover_image || deleteFlags.value.cover_image,
+}));
 
 // Form data
 const form = reactive({
@@ -389,9 +451,11 @@ async function populateForm(data) {
     form.birth_date = "";
   }
 
-  // Clear file uploads in edit mode
-  profileImageFiles.value = [];
-  coverImageFiles.value = [];
+  // Clear file uploads and reset delete flags
+  imageFiles.value.profile_image = [];
+  imageFiles.value.cover_image = [];
+  deleteFlags.value.profile_image = false;
+  deleteFlags.value.cover_image = false;
 }
 
 // Watch for initialData changes
@@ -402,6 +466,18 @@ watch(
   },
   { immediate: true, deep: true }
 );
+
+// Generic handler for deleting images
+function handleDeleteImage(type) {
+  deleteFlags.value[type] = true;
+  imageFiles.value[type] = [];
+}
+
+// Generic handler for undoing image deletion
+function handleUndoDeleteImage(type) {
+  deleteFlags.value[type] = false;
+  imageFiles.value[type] = [];
+}
 
 // Handle submit
 function handleSubmit() {
@@ -414,28 +490,25 @@ function handleSubmit() {
 
   // Add file uploads if images are shown
   if (props.showImages) {
-    // Only include tmp_profile_image if there's a new upload (starts with 'tmp-')
-    // or if user removed the image (empty array)
-    const profileValue = profileImageFiles.value?.[0];
-    if (!profileValue) {
-      // User removed image
-      payload.tmp_profile_image = null;
-    } else if (profileValue.startsWith("tmp-")) {
+    // Handle profile image
+    const profileValue = imageFiles.value.profile_image?.[0];
+    if (profileValue && profileValue.startsWith("tmp-")) {
       // User uploaded new image
       payload.tmp_profile_image = profileValue;
+    } else if (deleteFlags.value.profile_image && !profileValue) {
+      // User clicked delete and didn't upload new image
+      payload.delete_profile_image = true;
     }
-    // If profileValue is URL (existing image), don't include in payload
 
-    // Same for cover image
-    const coverValue = coverImageFiles.value?.[0];
-    if (!coverValue) {
-      // User removed image
-      payload.tmp_cover_image = null;
-    } else if (coverValue.startsWith("tmp-")) {
+    // Handle cover image
+    const coverValue = imageFiles.value.cover_image?.[0];
+    if (coverValue && coverValue.startsWith("tmp-")) {
       // User uploaded new image
       payload.tmp_cover_image = coverValue;
+    } else if (deleteFlags.value.cover_image && !coverValue) {
+      // User clicked delete and didn't upload new image
+      payload.delete_cover_image = true;
     }
-    // If coverValue is URL (existing image), don't include in payload
   }
 
   // Remove password if empty and not creating
@@ -446,19 +519,10 @@ function handleSubmit() {
   emit("submit", payload);
 }
 
-// Handle reset
-function handleReset() {
-  populateForm(props.initialData);
-  profileImageFiles.value = [];
-  coverImageFiles.value = [];
-  emit("reset");
-}
-
 // Expose form data and methods
 defineExpose({
   form,
-  profileImageFiles,
-  coverImageFiles,
+  imageFiles,
   handleSubmit,
 });
 

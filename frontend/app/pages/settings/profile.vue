@@ -28,7 +28,6 @@
       :show-account-settings="false"
       :show-roles="false"
       :show-images="true"
-      :show-reset="false"
       submit-text="Update Profile"
       submit-loading-text="Updating.."
       @submit="handleSubmit"

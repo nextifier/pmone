@@ -171,41 +171,77 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request): JsonResponse
     {
-        try {
-            $userData = $request->validated();
-            $userData['password'] = Hash::make($userData['password']);
-            $userData['status'] = $userData['status'] ?? 'active';
-            $userData['visibility'] = $userData['visibility'] ?? 'public';
+        $maxRetries = 3;
+        $attempt = 0;
 
-            $user = User::create($userData);
+        while ($attempt < $maxRetries) {
+            try {
+                $userData = $request->validated();
+                $userData['password'] = Hash::make($userData['password']);
+                $userData['status'] = $userData['status'] ?? 'active';
+                $userData['visibility'] = $userData['visibility'] ?? 'public';
 
-            // Assign roles if provided, otherwise assign 'user' role
-            $roles = $request->input('roles', ['user']);
-            $user->assignRole($roles);
+                $user = User::create($userData);
 
-            // Handle profile image upload from temporary storage
-            $this->handleTemporaryUpload($request, $user, 'tmp_profile_image', 'profile_image');
+                // Assign roles if provided, otherwise assign 'user' role
+                $roles = $request->input('roles', ['user']);
+                $user->assignRole($roles);
 
-            // Handle cover image upload from temporary storage
-            $this->handleTemporaryUpload($request, $user, 'tmp_cover_image', 'cover_image');
+                // Handle profile image upload from temporary storage
+                $this->handleTemporaryUpload($request, $user, 'tmp_profile_image', 'profile_image');
 
-            $user->load(['roles', 'media']);
+                // Handle cover image upload from temporary storage
+                $this->handleTemporaryUpload($request, $user, 'tmp_cover_image', 'cover_image');
 
-            return response()->json([
-                'message' => 'User created successfully',
-                'data' => new UserResource($user),
-            ], 201);
-        } catch (\Exception $e) {
-            logger()->error('User creation failed', [
-                'error' => $e->getMessage(),
-                'data' => $request->except(['password', 'tmp_upload_folder']),
-            ]);
+                $user->load(['roles', 'media']);
 
-            return response()->json([
-                'message' => 'Failed to create user',
-                'error' => $e->getMessage(),
-            ], 500);
+                return response()->json([
+                    'message' => 'User created successfully',
+                    'data' => new UserResource($user),
+                ], 201);
+            } catch (\Illuminate\Database\QueryException $e) {
+                // Check if it's a duplicate username error (PostgreSQL error code 23505)
+                if ($e->getCode() === '23505' && str_contains($e->getMessage(), 'users_username_unique')) {
+                    $attempt++;
+
+                    if ($attempt >= $maxRetries) {
+                        logger()->error('User creation failed after retries - duplicate username', [
+                            'error' => $e->getMessage(),
+                            'data' => $request->except(['password', 'tmp_upload_folder']),
+                            'attempts' => $attempt,
+                        ]);
+
+                        return response()->json([
+                            'message' => 'Failed to create user. Please try with a different username or let the system generate one.',
+                            'error' => 'The generated username is already taken. Please try again.',
+                        ], 422);
+                    }
+
+                    // Wait a short moment before retry to reduce collision chance
+                    usleep(50000 * $attempt); // 50ms, 100ms, 150ms
+
+                    continue;
+                }
+
+                // Re-throw if it's not a duplicate username error
+                throw $e;
+            } catch (\Exception $e) {
+                logger()->error('User creation failed', [
+                    'error' => $e->getMessage(),
+                    'data' => $request->except(['password', 'tmp_upload_folder']),
+                ]);
+
+                return response()->json([
+                    'message' => 'Failed to create user',
+                    'error' => $e->getMessage(),
+                ], 500);
+            }
         }
+
+        // This should never be reached, but just in case
+        return response()->json([
+            'message' => 'Failed to create user after multiple attempts',
+        ], 500);
     }
 
     public function profile(Request $request): JsonResponse
@@ -483,6 +519,10 @@ class UserController extends Controller
             'gender' => ['nullable', 'in:male,female,other'],
             'bio' => ['nullable', 'string', 'max:1000'],
             'visibility' => ['sometimes', 'in:public,private'],
+            'tmp_profile_image' => ['nullable', 'string'],
+            'tmp_cover_image' => ['nullable', 'string'],
+            'delete_profile_image' => ['nullable', 'boolean'],
+            'delete_cover_image' => ['nullable', 'boolean'],
         ]);
 
         if ($validator->fails()) {
@@ -494,6 +534,12 @@ class UserController extends Controller
 
         try {
             $user->update($validator->validated());
+
+            // Handle profile image upload from temporary storage
+            $this->handleTemporaryUpload($request, $user, 'tmp_profile_image', 'profile_image');
+
+            // Handle cover image upload from temporary storage
+            $this->handleTemporaryUpload($request, $user, 'tmp_cover_image', 'cover_image');
 
             $user->load(['roles', 'media']);
 
@@ -585,6 +631,14 @@ class UserController extends Controller
      */
     private function handleTemporaryUpload(Request $request, User $user, string $fieldName, string $collection): void
     {
+        // Check for delete flag first
+        $deleteFieldName = 'delete_'.str_replace('tmp_', '', $fieldName);
+        if ($request->has($deleteFieldName) && $request->input($deleteFieldName) === true) {
+            $user->clearMediaCollection($collection);
+
+            return;
+        }
+
         // If field is not present, do nothing (keep existing media)
         if (! $request->has($fieldName)) {
             return;
@@ -592,10 +646,8 @@ class UserController extends Controller
 
         $value = $request->input($fieldName);
 
-        // If value is null/empty, remove existing media from this collection
+        // If value is null/empty, skip (already handled by delete flag above)
         if (! $value) {
-            $user->clearMediaCollection($collection);
-
             return;
         }
 

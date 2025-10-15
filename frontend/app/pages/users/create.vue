@@ -15,11 +15,9 @@
       :show-account-settings="true"
       :show-roles="true"
       :show-images="true"
-      :show-reset="true"
       submit-text="Create User"
       submit-loading-text="Creating.."
       @submit="createUser"
-      @reset="resetForm"
     />
   </div>
 </template>
@@ -99,13 +97,6 @@ async function createUser(payload) {
   } finally {
     loading.value = false;
   }
-}
-
-// Reset form
-function resetForm() {
-  errors.value = {};
-  error.value = null;
-  success.value = null;
 }
 
 // Load data on mount

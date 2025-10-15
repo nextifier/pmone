@@ -65,6 +65,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Sanctum\PersonalAccessToken> $tokens
  * @property-read int|null $tokens_count
  * @property-read User|null $updater
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User byStatus(string $status)
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
@@ -107,12 +108,14 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutPermission($permissions)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutRole($roles, $guard = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class User extends Authenticatable implements HasMedia, MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens;
+
     use HasFactory;
     use HasMediaManager;
     use HasRoles;
@@ -223,17 +226,23 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
 
                 $username = $baseUsername;
                 $counter = 1;
+                $maxAttempts = 10; // Reduced from 1000 to prevent performance issues
 
                 // Ensure username is unique (retry with numeric suffix if taken)
                 while (static::where('username', $username)->exists()) {
-                    $username = $baseUsername.$counter;
-                    $counter++;
-
-                    // Safety limit to prevent infinite loop
-                    if ($counter > 1000) {
-                        $username = $baseUsername.Str::random(4);
+                    if ($counter > $maxAttempts) {
+                        // After max attempts, use a random suffix to guarantee uniqueness
+                        $username = $baseUsername.'_'.strtolower(Str::random(6));
                         break;
                     }
+
+                    $username = $baseUsername.$counter;
+                    $counter++;
+                }
+
+                // Final check: if still exists (rare race condition), add timestamp
+                if (static::where('username', $username)->exists()) {
+                    $username = $baseUsername.'_'.time();
                 }
 
                 $model->username = $username;
@@ -286,7 +295,6 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
             ]);
         }
     }
-
 
     public function getActivitylogOptions(): LogOptions
     {

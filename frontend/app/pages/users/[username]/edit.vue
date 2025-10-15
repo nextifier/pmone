@@ -31,42 +31,31 @@
       submit-text="Update User"
       submit-loading-text="Updating.."
       @submit="updateUser"
-      @reset="resetForm"
     />
 
-    <!-- <div v-if="user" class="mt-20 space-y-4">
-      <h6 class="text-muted-foreground text-sm font-medium tracking-tight">Account Information</h6>
-
-      <div
-        class="border-border text-foreground w-full overflow-x-scroll rounded-xl border p-4 text-sm tracking-tight"
+    <div
+      v-if="user"
+      class="*:bg-muted text-muted-foreground mt-20 flex flex-wrap gap-x-2 gap-y-2.5 text-sm tracking-tight *:rounded-md *:px-2 *:py-1"
+    >
+      <span
+        >ID: <span class="text-foreground">{{ user.id }}</span></span
       >
-        <div class="flex flex-col gap-y-2">
-          <div class="inline-flex gap-x-1.5">
-            <span class="text-muted-foreground">User ID:</span>
-            <span>{{ user.id }}</span>
-          </div>
-
-          <div class="inline-flex gap-x-1.5">
-            <span class="text-muted-foreground">ULID:</span>
-            <span>{{ user.ulid }}</span>
-          </div>
-
-          <div class="inline-flex gap-x-1.5">
-            <span class="text-muted-foreground">Created:</span>
-            <span>{{ $dayjs(user.created_at).format("MMM D, YYYY [at] h:mm A") }}</span>
-          </div>
-
-          <div class="inline-flex gap-x-1.5">
-            <span class="text-muted-foreground">Last Seen:</span>
-            <span>{{ user.last_seen ? $dayjs(user.last_seen).fromNow() : "Never" }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="border-border text-foreground w-full overflow-x-scroll rounded-xl border p-4">
-        <pre class="text-foreground/80 text-sm !leading-[1.5]">{{ user }}</pre>
-      </div>
-    </div> -->
+      <span
+        >ULID: <span class="text-foreground">{{ user.ulid }}</span></span
+      >
+      <span
+        >Created:
+        <span class="text-foreground">{{
+          $dayjs(user.created_at).format("MMM D, YYYY [at] h:mm A")
+        }}</span></span
+      >
+      <span
+        >Last seen:
+        <span class="text-foreground">{{
+          user.last_seen ? $dayjs(user.last_seen).fromNow() : "Never"
+        }}</span></span
+      >
+    </div>
   </div>
 </template>
 
@@ -229,13 +218,6 @@ async function updateUser(payload) {
   } finally {
     loading.value = false;
   }
-}
-
-// Reset form
-function resetForm() {
-  errors.value = {};
-  error.value = null;
-  success.value = null;
 }
 
 // Confirm delete user

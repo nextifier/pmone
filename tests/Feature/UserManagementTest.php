@@ -1,13 +1,13 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
 
-beforeEach(function () {
-    // Run migrations for permissions
-    $this->artisan('migrate');
+uses(RefreshDatabase::class);
 
-    // Run the role and permission seeder
+beforeEach(function () {
+    // Seed roles (RefreshDatabase already handles migration)
     $this->artisan('db:seed', ['--class' => 'RoleAndPermissionSeeder']);
 });
 
