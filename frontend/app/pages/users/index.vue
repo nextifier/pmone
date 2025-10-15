@@ -1,19 +1,37 @@
 <template>
   <div class="mx-auto max-w-4xl space-y-6">
-    <div class="flex items-center justify-between gap-x-2.5">
-      <div class="flex items-center gap-x-2.5">
+    <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
+      <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:user-group" class="size-5 sm:size-6" />
         <h1 class="page-title">User Management</h1>
       </div>
 
-      <nuxt-link
-        v-if="user?.roles?.includes('master')"
-        to="/users/trash"
-        class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-      >
-        <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
-        <span>Trash</span>
-      </nuxt-link>
+      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+        <button
+          v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+        >
+          <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
+          <span>Import</span>
+        </button>
+
+        <button
+          v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+        >
+          <Icon name="hugeicons:file-export" class="size-4 shrink-0" />
+          <span>Export</span>
+        </button>
+
+        <nuxt-link
+          v-if="user?.roles?.includes('master')"
+          to="/users/trash"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+        >
+          <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
+          <span>Trash</span>
+        </nuxt-link>
+      </div>
     </div>
 
     <TableData
@@ -273,7 +291,17 @@ const columns = [
   {
     header: "Name",
     accessorKey: "name",
-    cell: ({ row }) => h(AuthUserInfo, { user: row.original }),
+    cell: ({ row }) =>
+      h(
+        resolveComponent("NuxtLink"),
+        {
+          to: `/users/${row.original.username}/edit`,
+          class: "block hover:opacity-80 transition-opacity",
+        },
+        {
+          default: () => h(AuthUserInfo, { user: row.original }),
+        }
+      ),
     size: 280,
     enableHiding: false,
     filterFn: (row, columnId, filterValue) => {

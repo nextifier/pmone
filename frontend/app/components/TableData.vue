@@ -26,8 +26,8 @@
             <input
               ref="searchInputEl"
               type="text"
-              :placeholder="searchPlaceholder || 'Search...'"
-              class="peer placeholder:text-muted-foreground h-full w-full rounded-md border bg-transparent py-1.5 ps-9 pr-10 text-sm tracking-tight focus:outline-hidden"
+              :placeholder="searchPlaceholder || 'Search..'"
+              class="peer placeholder:text-muted-foreground h-full w-full rounded-md border bg-transparent px-9 py-1.5 text-sm tracking-tight focus:outline-hidden"
               :value="searchValue"
               @input="handleSearchInput"
             />
