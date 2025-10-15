@@ -16,7 +16,7 @@
           />
 
           <div v-else class="squircle relative isolate aspect-square max-w-40">
-            <NuxtImg
+            <img
               :src="initialData?.profile_image?.md"
               alt=""
               class="border-border size-full rounded-lg border object-cover"
@@ -26,7 +26,7 @@
             <button
               type="button"
               @click="handleDeleteImage('profile_image')"
-              class="absolute top-1 right-1 flex size-9 items-center justify-center rounded-full bg-black/40 text-white shadow-sm ring ring-white/20 backdrop-blur-sm transition hover:bg-black"
+              class="absolute top-1.5 right-1.5 flex size-8 items-center justify-center rounded-full bg-black/40 text-white shadow-sm ring ring-white/20 backdrop-blur-sm transition hover:bg-black"
             >
               <Icon name="hugeicons:delete-01" class="size-4" />
             </button>
@@ -60,8 +60,8 @@
           />
 
           <div v-else class="relative isolate">
-            <NuxtImg
-              :src="initialData?.cover_image?.md"
+            <img
+              :src="initialData?.cover_image?.sm"
               alt=""
               class="border-border size-full rounded-lg border object-cover"
               loading="lazy"
@@ -70,7 +70,7 @@
             <button
               type="button"
               @click="handleDeleteImage('cover_image')"
-              class="absolute top-1 right-1 flex size-9 items-center justify-center rounded-full bg-black/40 text-white shadow-sm ring ring-white/20 backdrop-blur-sm transition hover:bg-black"
+              class="absolute top-1.5 right-1.5 flex size-8 items-center justify-center rounded-full bg-black/40 text-white shadow-sm ring ring-white/20 backdrop-blur-sm transition hover:bg-black"
             >
               <Icon name="hugeicons:delete-01" class="size-4" />
             </button>
