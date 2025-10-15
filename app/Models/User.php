@@ -189,17 +189,14 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     }
 
     /**
-     * Set the user's username (generate from name if not provided).
+     * Set the user's username (normalize to lowercase if provided).
      */
     public function setUsernameAttribute(?string $value): void
     {
         if ($value) {
             $this->attributes['username'] = strtolower(trim($value));
-        } else {
-            // Generate username from name by replacing spaces with dots
-            $username = strtolower(str_replace(' ', '.', trim($this->name)));
-            $this->attributes['username'] = $username;
         }
+        // Don't auto-generate here - let boot() handle it with uniqueness check
     }
 
     public function getRouteKeyName()
@@ -219,14 +216,24 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
 
             // Generate username from name if not provided
             if (empty($model->username) && ! empty($model->name)) {
-                $baseUsername = strtolower(str_replace(' ', '.', trim($model->name)));
+                // First lowercase, then remove spaces and special characters
+                $cleaned = strtolower(trim($model->name));
+                $cleaned = str_replace(' ', '', $cleaned);
+                $baseUsername = preg_replace('/[^a-z0-9._]/', '', $cleaned);
+
                 $username = $baseUsername;
                 $counter = 1;
 
-                // Ensure username is unique
+                // Ensure username is unique (retry with numeric suffix if taken)
                 while (static::where('username', $username)->exists()) {
-                    $username = $baseUsername.'.'.$counter;
+                    $username = $baseUsername.$counter;
                     $counter++;
+
+                    // Safety limit to prevent infinite loop
+                    if ($counter > 1000) {
+                        $username = $baseUsername.Str::random(4);
+                        break;
+                    }
                 }
 
                 $model->username = $username;

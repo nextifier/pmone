@@ -1,12 +1,24 @@
 <template>
   <div class="mx-auto max-w-md space-y-6">
-    <div class="flex flex-col items-start gap-y-5">
-      <BackButton destination="/users" />
+    <div class="flex flex-col gap-y-6">
+      <div class="flex w-full items-center justify-between">
+        <BackButton destination="/users" />
+
+        <button
+          @click="formProfileRef?.handleSubmit()"
+          :disabled="loading"
+          class="text-primary-foreground hover:bg-primary/80 bg-primary flex items-center justify-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
+        >
+          <Spinner v-if="loading" />
+          <span>Save</span>
+        </button>
+      </div>
 
       <h1 class="page-title">Edit User</h1>
     </div>
 
     <FormProfile
+      ref="formProfileRef"
       :initial-data="user"
       :roles="roles"
       :loading="loading"
@@ -16,14 +28,13 @@
       :show-account-settings="canEditUsers"
       :show-roles="canEditUsers"
       :show-images="true"
-      :show-reset="true"
       submit-text="Update User"
       submit-loading-text="Updating.."
       @submit="updateUser"
       @reset="resetForm"
     />
 
-    <div v-if="user" class="mt-20 space-y-4">
+    <!-- <div v-if="user" class="mt-20 space-y-4">
       <h6 class="text-muted-foreground text-sm font-medium tracking-tight">Account Information</h6>
 
       <div
@@ -55,11 +66,13 @@
       <div class="border-border text-foreground w-full overflow-x-scroll rounded-xl border p-4">
         <pre class="text-foreground/80 text-sm !leading-[1.5]">{{ user }}</pre>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
 <script setup>
+import { toast } from "vue-sonner";
+
 definePageMeta({
   middleware: ["sanctum:auth", "admin-master"],
   layout: "app",
@@ -69,6 +82,10 @@ const route = useRoute();
 const { user: currentUser } = useSanctumAuth();
 const sanctumFetch = useSanctumClient();
 const { $dayjs } = useNuxtApp();
+const { metaSymbol } = useShortcuts();
+
+// Refs
+const formProfileRef = ref(null);
 
 // State
 const user = ref(null);
@@ -193,20 +210,20 @@ async function updateUser(payload) {
     });
 
     if (response.data) {
-      user.value = response.data;
-      success.value = "User updated successfully!";
+      toast.success("User updated successfully!");
 
-      // Refresh user data
-      setTimeout(() => {
-        loadUser();
-      }, 1000);
+      // Navigate to users list
+      navigateTo("/users");
     }
   } catch (err) {
     if (err.response?.status === 422 && err.response?._data?.errors) {
       errors.value = err.response._data.errors;
-      error.value = "Please fix the validation errors below.";
+      const firstErrorField = Object.keys(err.response._data.errors)[0];
+      const firstErrorMessage = err.response._data.errors[firstErrorField][0];
+      toast.error(firstErrorMessage || "Please fix the validation errors.");
     } else {
-      error.value = err.message || "Failed to update user";
+      const errorMessage = err.response?._data?.message || err.message || "Failed to update user";
+      toast.error(errorMessage);
     }
     console.error("Error updating user:", err);
   } finally {

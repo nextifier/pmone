@@ -227,6 +227,11 @@ const fetchUsers = async () => {
 
 await fetchUsers();
 
+// Refresh data when navigating back to this page
+onActivated(() => {
+  fetchUsers();
+});
+
 // Watchers for server-side mode only
 const debouncedFetch = useDebounceFn(fetchUsers, 300);
 

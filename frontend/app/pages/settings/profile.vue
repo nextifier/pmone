@@ -1,20 +1,25 @@
 <template>
   <div class="mx-auto max-w-md space-y-6">
-    <div class="flex items-center gap-x-2.5">
-      <Icon name="hugeicons:edit-user-02" class="size-5 sm:size-6" />
-      <h1 class="page-title">Edit Profile</h1>
-    </div>
+    <div class="flex flex-col gap-y-6">
+      <div class="flex w-full items-center justify-between">
+        <div class="flex items-center gap-x-2.5">
+          <Icon name="hugeicons:edit-user-02" class="size-5 sm:size-6" />
+          <h1 class="page-title">Edit Profile</h1>
+        </div>
 
-    <!-- Success message -->
-    <div
-      v-if="message"
-      class="flex items-center gap-x-1.5 rounded-lg border border-green-500 bg-green-100 p-4 text-sm tracking-tight text-green-700 dark:bg-green-900 dark:text-green-500"
-    >
-      <Icon name="lucide:check" class="size-4" />
-      <span>{{ message }}</span>
+        <button
+          @click="formProfileRef?.handleSubmit()"
+          :disabled="isSubmitting"
+          class="text-primary-foreground hover:bg-primary/80 bg-primary flex items-center justify-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
+        >
+          <Spinner v-if="isSubmitting" />
+          <span>Save</span>
+        </button>
+      </div>
     </div>
 
     <FormProfile
+      ref="formProfileRef"
       :initial-data="userData"
       :loading="isSubmitting"
       :errors="errors"
@@ -33,7 +38,6 @@
 
 <script setup>
 import { toast } from "vue-sonner";
-import FormProfile from "@/components/FormProfile.vue";
 
 definePageMeta({
   middleware: ["sanctum:auth", "sanctum-verified"],
@@ -45,9 +49,12 @@ usePageMeta("settingsProfile");
 const sanctumFetch = useSanctumClient();
 const { user } = useSanctumAuth();
 
+// Refs
+const formProfileRef = ref(null);
+
+// State
 const userData = ref(null);
-const message = ref();
-const errors = ref();
+const errors = ref({});
 const isSubmitting = ref(false);
 
 // Fetch user data with media on mount
@@ -63,7 +70,7 @@ onMounted(async () => {
 // Submit handler
 const handleSubmit = async (payload) => {
   try {
-    errors.value = null;
+    errors.value = {};
     isSubmitting.value = true;
 
     const response = await sanctumFetch("/api/user/profile", {
@@ -72,8 +79,7 @@ const handleSubmit = async (payload) => {
     });
 
     // Show success message
-    toast.success(response?.message);
-    message.value = response?.message;
+    toast.success(response?.message || "Profile updated successfully!");
 
     // Update local user data with response
     if (response.data) {
@@ -82,32 +88,22 @@ const handleSubmit = async (payload) => {
         Object.assign(user.value, response.data);
       }
     }
+
+    // Stay on the same page (no navigation)
   } catch (error) {
-    if (error.response?.status === 422) {
-      // For validation errors, show the first validation error message
-      const validationErrors = error.response?._data.errors;
-      if (validationErrors) {
-        // Get the first error message from the first field that has an error
-        const firstErrorField = Object.keys(validationErrors)[0];
-        const firstErrorMessage = validationErrors[firstErrorField][0];
-        toast.error(firstErrorMessage);
-      } else {
-        toast.error(error.response?._data.message);
-      }
-      errors.value = validationErrors;
+    if (error.response?.status === 422 && error.response?._data?.errors) {
+      errors.value = error.response._data.errors;
+      const firstErrorField = Object.keys(error.response._data.errors)[0];
+      const firstErrorMessage = error.response._data.errors[firstErrorField][0];
+      toast.error(firstErrorMessage || "Please fix the validation errors.");
     } else {
-      toast.error("Failed to update profile. Please try again.");
+      const errorMessage =
+        error.response?._data?.message || error.message || "Failed to update profile";
+      toast.error(errorMessage);
     }
+    console.error("Error updating profile:", error);
   } finally {
     isSubmitting.value = false;
   }
 };
-
-defineShortcuts({
-  meta_s: {
-    handler: () => {
-      handleSubmit();
-    },
-  },
-});
 </script>

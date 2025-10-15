@@ -25,6 +25,7 @@
 </template>
 
 <script setup>
+import { toast } from "vue-sonner";
 import FormProfile from "@/components/FormProfile.vue";
 
 definePageMeta({
@@ -79,19 +80,20 @@ async function createUser(payload) {
     });
 
     if (response.data) {
-      success.value = `User "${response.data.name}" created successfully!`;
+      toast.success(`User "${response.data.name}" created successfully!`);
 
-      // Reset form after successful creation
-      setTimeout(() => {
-        navigateTo("/users");
-      }, 2000);
+      // Navigate to users list
+      navigateTo("/users");
     }
   } catch (err) {
     if (err.response?.status === 422 && err.response?._data?.errors) {
       errors.value = err.response._data.errors;
-      error.value = "Please fix the validation errors below.";
+      const firstErrorField = Object.keys(err.response._data.errors)[0];
+      const firstErrorMessage = err.response._data.errors[firstErrorField][0];
+      toast.error(firstErrorMessage || "Please fix the validation errors.");
     } else {
-      error.value = err.message || "Failed to create user";
+      const errorMessage = err.response?._data?.message || err.message || "Failed to create user";
+      toast.error(errorMessage);
     }
     console.error("Error creating user:", err);
   } finally {

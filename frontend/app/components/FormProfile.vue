@@ -1,5 +1,5 @@
 <template>
-  <form @submit.prevent="handleSubmit" autocomplete="off" class="grid gap-y-6">
+  <form @submit.prevent="handleSubmit" class="grid gap-y-6">
     <div class="space-y-5">
       <!-- Profile and Cover Images -->
       <div v-if="showImages" class="space-y-5">
@@ -101,12 +101,16 @@
               {{
                 form.birth_date
                   ? df.format(form.birth_date.toDate(getLocalTimeZone()))
-                  : "Pick a date"
+                  : "Pick your birth date"
               }}
             </Button>
           </PopoverTrigger>
           <PopoverContent class="w-auto p-0">
-            <Calendar v-model="form.birth_date" initial-focus />
+            <CalendarMonthYearSelect
+              v-model="form.birth_date"
+              :disable-future-dates="true"
+              initial-focus
+            />
           </PopoverContent>
         </Popover>
 
@@ -120,7 +124,7 @@
 
         <RadioGroup class="flex flex-wrap gap-2" v-model="form.gender">
           <div
-            class="border-input has-data-[state=checked]:border-primary/50 relative flex flex-col items-start gap-4 rounded-md border p-3 shadow-xs outline-none"
+            class="border-border has-data-[state=checked]:border-primary/50 relative flex flex-col items-start gap-4 rounded-md border p-2 shadow-xs outline-none"
           >
             <div class="flex items-center gap-2">
               <RadioGroupItem id="male" value="male" class="after:absolute after:inset-0" />
@@ -129,7 +133,7 @@
           </div>
 
           <div
-            class="border-border has-data-[state=checked]:border-primary/50 relative flex flex-col items-start gap-4 rounded-md border p-3 shadow-xs outline-none"
+            class="border-border has-data-[state=checked]:border-primary/50 relative flex flex-col items-start gap-4 rounded-md border p-2 shadow-xs outline-none"
           >
             <div class="flex items-center gap-2">
               <RadioGroupItem id="female" value="female" class="after:absolute after:inset-0" />
@@ -152,7 +156,7 @@
 
       <div class="space-y-2">
         <Label for="bio">Bio</Label>
-        <Textarea id="bio" v-model="form.bio" rows="5" maxlength="1000" />
+        <Textarea id="bio" v-model="form.bio" maxlength="1000" />
         <p v-if="errors.bio" class="text-destructive text-sm">{{ errors.bio[0] }}</p>
       </div>
     </div>
@@ -232,16 +236,6 @@
 
     <div class="flex justify-end gap-x-3">
       <button
-        v-if="showReset"
-        type="button"
-        @click="handleReset"
-        class="border-border text-primary hover:bg-muted flex items-center gap-x-1.5 rounded-lg border px-4 py-2 text-sm font-semibold tracking-tighter transition disabled:opacity-50"
-      >
-        <Icon name="hugeicons:refresh" class="size-4" />
-        Reset
-      </button>
-
-      <button
         type="submit"
         :disabled="loading"
         class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-semibold tracking-tighter transition disabled:opacity-50"
@@ -255,7 +249,6 @@
 
 <script setup>
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -350,7 +343,7 @@ const form = reactive({
 // Toggle role selection
 function toggleRole(roleName, checked) {
   const index = form.roles.indexOf(roleName);
-  const isChecked = checked === true || checked === 'indeterminate';
+  const isChecked = checked === true || checked === "indeterminate";
 
   if (isChecked) {
     if (index === -1) {
@@ -415,7 +408,7 @@ function handleSubmit() {
   const payload = {
     ...form,
     birth_date: form.birth_date
-      ? form.birth_date.toDate(getLocalTimeZone()).toISOString().split("T")[0]
+      ? `${form.birth_date.year}-${String(form.birth_date.month).padStart(2, "0")}-${String(form.birth_date.day).padStart(2, "0")}`
       : null,
   };
 
@@ -461,10 +454,19 @@ function handleReset() {
   emit("reset");
 }
 
-// Expose form data
+// Expose form data and methods
 defineExpose({
   form,
   profileImageFiles,
   coverImageFiles,
+  handleSubmit,
+});
+
+defineShortcuts({
+  meta_s: {
+    handler: () => {
+      handleSubmit();
+    },
+  },
 });
 </script>

@@ -97,7 +97,7 @@
     --foreground: var(--color-gray-950);
     --body: var(--color-gray-700);
     --border: var(--color-gray-200);
-    --input: var(--color-gray-100);
+    --input: var(--color-gray-200);
     --ring: var(--color-black);
     --info: var(--color-blue-600);
     --warn: var(--color-yellow-400);
@@ -139,7 +139,7 @@
     --foreground: var(--color-gray-50);
     --body: var(--color-gray-300);
     --border: var(--color-gray-800);
-    --input: var(--color-gray-900);
+    --input: var(--color-gray-800);
     --ring: var(--color-white);
     --info: var(--color-blue-500);
     --warn: var(--color-yellow-400);
