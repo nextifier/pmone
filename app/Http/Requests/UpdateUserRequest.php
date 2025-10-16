@@ -32,6 +32,9 @@ class UpdateUserRequest extends FormRequest
             'birth_date' => ['nullable', 'date', 'before:today'],
             'gender' => ['nullable', 'in:male,female,other'],
             'bio' => ['nullable', 'string', 'max:1000'],
+            'links' => ['nullable', 'array'],
+            'links.*.label' => ['required', 'string', 'max:100'],
+            'links.*.url' => ['required', 'url', 'max:500'],
             'status' => ['sometimes', 'string', 'in:active,inactive,suspended'],
             'visibility' => ['sometimes', 'in:public,private'],
             'roles' => ['sometimes', 'array'],
@@ -63,6 +66,11 @@ class UpdateUserRequest extends FormRequest
             'status.in' => 'Please select a valid status.',
             'visibility.in' => 'Please select a valid visibility option.',
             'roles.*.exists' => 'One or more selected roles do not exist.',
+            'links.*.label.required' => 'Link label is required.',
+            'links.*.label.max' => 'Link label must not exceed 100 characters.',
+            'links.*.url.required' => 'Link URL is required.',
+            'links.*.url.url' => 'Please enter a valid URL.',
+            'links.*.url.max' => 'Link URL must not exceed 500 characters.',
         ];
     }
 }

@@ -7,6 +7,7 @@
           <Label>Profile Image</Label>
 
           <InputFile
+            ref="profileImageInputRef"
             v-if="showInputFile.profile_image"
             v-model="imageFiles.profile_image"
             :accepted-file-types="['image/jpeg', 'image/png', 'image/jpg', 'image/webp']"
@@ -51,6 +52,7 @@
           <Label>Cover Image</Label>
 
           <InputFile
+            ref="coverImageInputRef"
             v-if="showInputFile.cover_image"
             v-model="imageFiles.cover_image"
             :accepted-file-types="['image/jpeg', 'image/png', 'image/jpg', 'image/webp']"
@@ -210,6 +212,70 @@
         <Textarea id="bio" v-model="form.bio" maxlength="1000" />
         <p v-if="errors.bio" class="text-destructive text-sm">{{ errors.bio[0] }}</p>
       </div>
+
+      <div class="space-y-3">
+        <h3 class="text-muted-foreground text-sm font-medium tracking-tight">Links</h3>
+
+        <div v-for="(link, index) in form.links" :key="index" class="flex items-center gap-1.5">
+          <div class="min-w-42">
+            <Select
+              v-model="link.label"
+              @update:model-value="(value) => handleLabelChange(index, value)"
+            >
+              <div v-if="link.isCustomLabel" class="relative">
+                <Input
+                  v-model="link.label"
+                  type="text"
+                  placeholder="Enter custom label"
+                  class="pr-7"
+                />
+                <SelectTrigger class="absolute top-0 right-0 h-full w-9 border-0 bg-transparent">
+                  <Icon
+                    name="hugeicons:chevron-down"
+                    class="absolute top-1/2 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2"
+                  />
+                </SelectTrigger>
+              </div>
+              <SelectTrigger v-else class="w-full">
+                <SelectValue placeholder="Select label" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Website">Website</SelectItem>
+                <SelectItem value="Instagram">Instagram</SelectItem>
+                <SelectItem value="Facebook">Facebook</SelectItem>
+                <SelectItem value="X">X</SelectItem>
+                <SelectItem value="TikTok">TikTok</SelectItem>
+                <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                <SelectItem value="YouTube">YouTube</SelectItem>
+                <SelectItem value="Custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Input v-model="link.url" type="url" placeholder="Enter URL" class="grow" />
+
+          <button
+            type="button"
+            @click="removeLink(index)"
+            class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+            :disabled="form.links.length === 1"
+            :class="{ 'cursor-not-allowed opacity-50': form.links.length === 1 }"
+          >
+            <Icon name="hugeicons:delete-01" class="size-4" />
+          </button>
+        </div>
+
+        <button
+          type="button"
+          @click="addLink"
+          class="text-primary hover:text-primary/80 transitionp flex items-center gap-x-1 py-1 text-sm font-medium tracking-tight"
+        >
+          <Icon name="hugeicons:add-01" class="size-4" />
+          Add Link
+        </button>
+
+        <p v-if="errors.links" class="text-destructive text-sm">{{ errors.links[0] }}</p>
+      </div>
     </div>
 
     <div v-if="showAccountSettings" class="space-y-5">
@@ -316,6 +382,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { DateFormatter, getLocalTimeZone } from "@internationalized/date";
+import { toast } from "vue-sonner";
 
 const df = new DateFormatter("en-US", {
   dateStyle: "long",
@@ -381,6 +448,10 @@ const imageFiles = ref({
   cover_image: [],
 });
 
+// Refs for InputFile components
+const profileImageInputRef = ref(null);
+const coverImageInputRef = ref(null);
+
 // Computed: Show input file when no existing image OR user clicked delete
 const showInputFile = computed(() => ({
   profile_image: !props.initialData?.profile_image || deleteFlags.value.profile_image,
@@ -400,6 +471,7 @@ const form = reactive({
   status: "active",
   visibility: "public",
   roles: [],
+  links: [{ label: "", url: "", isCustomLabel: false }],
 });
 
 // Toggle role selection
@@ -415,6 +487,29 @@ function toggleRole(roleName, checked) {
     if (index > -1) {
       form.roles.splice(index, 1);
     }
+  }
+}
+
+// Add new link
+function addLink() {
+  form.links.push({ label: "", url: "", isCustomLabel: false });
+}
+
+// Remove link
+function removeLink(index) {
+  if (form.links.length > 1) {
+    form.links.splice(index, 1);
+  }
+}
+
+// Handle label change
+function handleLabelChange(index, value) {
+  if (value === "Custom") {
+    form.links[index].isCustomLabel = true;
+    form.links[index].label = "";
+  } else {
+    form.links[index].isCustomLabel = false;
+    form.links[index].label = value;
   }
 }
 
@@ -437,6 +532,32 @@ async function populateForm(data) {
   if (Array.isArray(data.roles)) {
     const roleNames = data.roles.map((role) => (typeof role === "string" ? role : role.name));
     form.roles.push(...roleNames);
+  }
+
+  // Handle links
+  form.links.splice(0, form.links.length);
+
+  if (Array.isArray(data.links) && data.links.length > 0) {
+    const predefinedLabels = [
+      "Website",
+      "Instagram",
+      "Facebook",
+      "X",
+      "TikTok",
+      "LinkedIn",
+      "YouTube",
+    ];
+
+    const formattedLinks = data.links.map((link) => ({
+      label: link.label || "",
+      url: link.url || "",
+      isCustomLabel: !predefinedLabels.includes(link.label),
+    }));
+
+    form.links.push(...formattedLinks);
+  } else {
+    // Default: one empty link
+    form.links.push({ label: "", url: "", isCustomLabel: false });
   }
 
   // Handle birth_date
@@ -486,13 +607,46 @@ function handleUndoDeleteImage(type) {
   imageFiles.value[type] = [];
 }
 
+// Check if any files are currently uploading
+function hasFilesUploading() {
+  const refs = [profileImageInputRef.value, coverImageInputRef.value];
+
+  for (const inputRef of refs) {
+    if (inputRef?.pond) {
+      const files = inputRef.pond.getFiles();
+      // Check if any file is in uploading state (status 3 = PROCESSING)
+      const isUploading = files.some(file => file.status === 3);
+      if (isUploading) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 // Handle submit
 function handleSubmit() {
+  // Check if any files are still uploading
+  if (hasFilesUploading()) {
+    toast.error("Please wait until all files are uploaded");
+    return;
+  }
+  // Filter out empty links (both label and url are empty)
+  const filteredLinks = form.links.filter((link) => link.label || link.url);
+
+  // Map links to only include label and url (remove isCustomLabel flag)
+  const formattedLinks = filteredLinks.map((link) => ({
+    label: link.label,
+    url: link.url,
+  }));
+
   const payload = {
     ...form,
     birth_date: form.birth_date
       ? `${form.birth_date.year}-${String(form.birth_date.month).padStart(2, "0")}-${String(form.birth_date.day).padStart(2, "0")}`
       : null,
+    links: formattedLinks,
   };
 
   // Add file uploads if images are shown

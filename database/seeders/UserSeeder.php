@@ -10,10 +10,15 @@ use Illuminate\Support\Str;
 class UserSeeder extends Seeder
 {
     private const DEFAULT_TOTAL_ITEMS = 80;
+
     private const DEFAULT_PASSWORD = 'password';
+
     private const MASTER_USERNAME = 'super.admin';
+
     private const MASTER_EMAIL = 'master@pmone.id';
+
     private const AVATAR_COUNT = 144;
+
     private const CHANCE_USER_HAVING_AVATAR = 80;
 
     public function run(): void
@@ -41,7 +46,7 @@ class UserSeeder extends Seeder
             'master' => $masterUsers,
             'admin' => $adminUsers,
             'staff' => $staffUsers,
-            'user' => $regularUsers
+            'user' => $regularUsers,
         ];
 
         foreach ($roles as $role => $count) {
@@ -59,7 +64,7 @@ class UserSeeder extends Seeder
 
     private function createUsersForRole(string $role, int $count): array
     {
-        $this->command->info("Creating " . ucfirst($role) . " Users...");
+        $this->command->info('Creating '.ucfirst($role).' Users...');
         $bar = $this->command->getOutput()->createProgressBar($count);
         $users = [];
 
@@ -89,18 +94,19 @@ class UserSeeder extends Seeder
         if ($isMainMaster) {
             // Check if master user already exists
             $existingMaster = User::where('username', self::MASTER_USERNAME)
-                                 ->orWhere('email', self::MASTER_EMAIL)
-                                 ->first();
+                ->orWhere('email', self::MASTER_EMAIL)
+                ->first();
 
             if ($existingMaster) {
                 // Ensure master role is assigned
-                if (!$existingMaster->hasRole('master')) {
+                if (! $existingMaster->hasRole('master')) {
                     $existingMaster->assignRole('master');
                 }
                 // Add profile image if not exists
-                if (!$existingMaster->hasMedia('profile_image')) {
+                if (! $existingMaster->hasMedia('profile_image')) {
                     $this->attachRandomProfileImage($existingMaster, $faker);
                 }
+
                 return $existingMaster;
             }
 
@@ -116,9 +122,9 @@ class UserSeeder extends Seeder
                 'gender' => 'male',
                 'bio' => 'Master administrator of PM One platform. Responsible for overall system management and strategic decisions.',
                 'links' => [
-                    'website' => 'https://panoramamedia.co.id',
-                    'linkedin' => 'https://linkedin.com/in/super-admin',
-                    'twitter' => 'https://twitter.com/pmone_admin',
+                    ['label' => 'Website', 'url' => 'https://panoramamedia.co.id'],
+                    ['label' => 'LinkedIn', 'url' => 'https://linkedin.com/in/super-admin'],
+                    ['label' => 'X', 'url' => 'https://twitter.com/pmone_admin'],
                 ],
                 'user_settings' => [
                     'theme' => 'dark',
@@ -164,7 +170,7 @@ class UserSeeder extends Seeder
             'birth_date' => $faker->boolean(60) ? $faker->date('Y-m-d', '-18 years') : null,
             'gender' => $faker->boolean(80) ? $faker->randomElement($genders) : null,
             'bio' => $faker->boolean(40) ? $faker->realText($faker->numberBetween(50, 200)) : null,
-            'links' => !empty($links) ? $links : null,
+            'links' => ! empty($links) ? $links : null,
             'user_settings' => [
                 'theme' => $faker->randomElement($themes),
                 'language' => $faker->randomElement($languages),
@@ -191,7 +197,7 @@ class UserSeeder extends Seeder
         $counter = 1;
 
         while (User::where('username', $username)->exists()) {
-            $username = $baseUsername . '.' . $counter;
+            $username = $baseUsername.'.'.$counter;
             $counter++;
         }
 
@@ -202,17 +208,20 @@ class UserSeeder extends Seeder
     {
         $links = [];
         $linkOptions = [
-            'website' => [30, $faker->url()],
-            'linkedin' => [50, 'https://linkedin.com/in/' . Str::slug($name)],
-            'instagram' => [40, 'https://instagram.com/' . $username],
-            'twitter' => [25, 'https://twitter.com/' . $username],
-            'github' => [20, 'https://github.com/' . $username],
-            'youtube' => [15, 'https://youtube.com/@' . $username],
+            ['label' => 'Website', 'chance' => 30, 'url' => $faker->url()],
+            ['label' => 'LinkedIn', 'chance' => 50, 'url' => 'https://linkedin.com/in/'.Str::slug($name)],
+            ['label' => 'Instagram', 'chance' => 40, 'url' => 'https://instagram.com/'.$username],
+            ['label' => 'X', 'chance' => 25, 'url' => 'https://twitter.com/'.$username],
+            ['label' => 'GitHub', 'chance' => 20, 'url' => 'https://github.com/'.$username],
+            ['label' => 'YouTube', 'chance' => 15, 'url' => 'https://youtube.com/@'.$username],
         ];
 
-        foreach ($linkOptions as $type => [$chance, $url]) {
-            if ($faker->boolean($chance)) {
-                $links[$type] = $url;
+        foreach ($linkOptions as $linkOption) {
+            if ($faker->boolean($linkOption['chance'])) {
+                $links[] = [
+                    'label' => $linkOption['label'],
+                    'url' => $linkOption['url'],
+                ];
             }
         }
 
@@ -226,7 +235,7 @@ class UserSeeder extends Seeder
             $avatarPath = public_path("dummy-avatars/avatar-{$avatarNumber}.jpg");
 
             // Copy to temp file to avoid moving original
-            $tempPath = tempnam(sys_get_temp_dir(), 'avatar_') . '.jpg';
+            $tempPath = tempnam(sys_get_temp_dir(), 'avatar_').'.jpg';
             copy($avatarPath, $tempPath);
 
             $user->addMedia($tempPath)
@@ -271,7 +280,7 @@ class UserSeeder extends Seeder
                     'access_level' => 'administrative',
                     'responsibilities' => $faker->randomElements([
                         'User Management', 'Event Coordination', 'Content Management',
-                        'Reporting', 'Vendor Relations', 'Quality Control'
+                        'Reporting', 'Vendor Relations', 'Quality Control',
                     ], $faker->numberBetween(2, 4)),
                 ];
 
@@ -285,7 +294,7 @@ class UserSeeder extends Seeder
                     'access_level' => 'operational',
                     'responsibilities' => $faker->randomElements([
                         'Event Support', 'Customer Service', 'Data Entry',
-                        'Logistics Support', 'Technical Support', 'Documentation'
+                        'Logistics Support', 'Technical Support', 'Documentation',
                     ], $faker->numberBetween(1, 3)),
                 ];
 
@@ -294,12 +303,12 @@ class UserSeeder extends Seeder
                     'user_type' => $faker->randomElement(['exhibitor', 'visitor', 'partner', 'vendor']),
                     'industry' => $faker->randomElement([
                         'Technology', 'Healthcare', 'Education', 'Retail', 'Manufacturing',
-                        'Finance', 'Real Estate', 'Food & Beverage', 'Automotive', 'Tourism'
+                        'Finance', 'Real Estate', 'Food & Beverage', 'Automotive', 'Tourism',
                     ]),
                     'company_size' => $faker->randomElement(['1-10', '11-50', '51-200', '201-1000', '1000+']),
                     'interests' => $faker->randomElements([
                         'Networking', 'Business Development', 'Innovation', 'Technology Trends',
-                        'Market Research', 'Partnership Opportunities', 'Product Showcase'
+                        'Market Research', 'Partnership Opportunities', 'Product Showcase',
                     ], $faker->numberBetween(1, 4)),
                 ];
         }
@@ -316,13 +325,13 @@ class UserSeeder extends Seeder
                 return [
                     ucfirst($role),
                     $count,
-                    $sampleEmails . ($count > 3 ? '...' : '')
+                    $sampleEmails.($count > 3 ? '...' : ''),
                 ];
             })->values()->toArray()
         );
 
         $this->command->newLine();
-        $this->command->info('Default password for all users: "' . self::DEFAULT_PASSWORD . '"');
+        $this->command->info('Default password for all users: "'.self::DEFAULT_PASSWORD.'"');
 
         if (isset($createdUsers['master'])) {
             $masterEmail = $createdUsers['master'][0]->email ?? self::MASTER_EMAIL;
@@ -351,6 +360,7 @@ class UserSeeder extends Seeder
 
         if ($totalUsers <= 20) {
             $admins = min(3, $totalUsers - 1);
+
             return [
                 'masters' => 1,
                 'admins' => $admins,
