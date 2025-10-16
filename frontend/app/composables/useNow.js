@@ -1,24 +1,18 @@
-const now = ref(new Date());
-
-let interval;
-let activeInstances = 0;
+import { ref } from 'vue';
+import { useIntervalFn } from '@vueuse/core';
 
 export function useNow() {
-  onMounted(() => {
-    if (activeInstances === 0) {
-      interval = setInterval(() => {
-        now.value = new Date();
-      }, 1000);
-    }
-    activeInstances++;
-  });
+  const now = ref(new Date());
 
-  onUnmounted(() => {
-    activeInstances--;
-    if (activeInstances === 0) {
-      clearInterval(interval);
-    }
-  });
+  // Use VueUse's useIntervalFn which automatically handles cleanup
+  const { pause, resume, isActive } = useIntervalFn(() => {
+    now.value = new Date();
+  }, 1000, { immediate: true });
 
-  return { now };
+  return {
+    now,
+    pause,
+    resume,
+    isActive
+  };
 }

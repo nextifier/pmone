@@ -17,7 +17,7 @@
 
           <div v-else class="squircle relative isolate aspect-square max-w-40">
             <img
-              :src="initialData?.profile_image?.md"
+              :src="initialData?.profile_image?.sm"
               alt=""
               class="border-border size-full rounded-lg border object-cover"
               loading="lazy"
@@ -458,14 +458,21 @@ async function populateForm(data) {
   deleteFlags.value.cover_image = false;
 }
 
-// Watch for initialData changes
-watch(
+// Watch for initialData changes - avoid deep watch on large objects
+const stopWatcher = watch(
   () => props.initialData,
   (newData) => {
     populateForm(newData);
   },
-  { immediate: true, deep: true }
+  { immediate: true }
 );
+
+// Cleanup watcher on unmount
+onUnmounted(() => {
+  if (stopWatcher && typeof stopWatcher === "function") {
+    stopWatcher();
+  }
+});
 
 // Generic handler for deleting images
 function handleDeleteImage(type) {

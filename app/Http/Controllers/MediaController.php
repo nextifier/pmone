@@ -384,6 +384,7 @@ class MediaController extends Controller
                             'filename' => $media->file_name,
                             'error' => 'Unauthorized to delete this media',
                         ];
+
                         continue;
                     }
 
@@ -516,8 +517,8 @@ class MediaController extends Controller
         if ($file->getSize() > ($maxSize * 1024)) { // Convert KB to bytes
             return response()->json([
                 'message' => 'File size exceeds limit',
-                'max_size' => $maxSize . 'KB',
-                'file_size' => round($file->getSize() / 1024, 2) . 'KB',
+                'max_size' => $maxSize.'KB',
+                'file_size' => round($file->getSize() / 1024, 2).'KB',
             ], 422);
         }
 
@@ -531,6 +532,7 @@ class MediaController extends Controller
     {
         if (method_exists($model, 'getMediaCollections')) {
             $collections = $model->getMediaCollections();
+
             return $collections[$collection] ?? null;
         }
 
@@ -576,7 +578,7 @@ class MediaController extends Controller
         $name = Str::slug($pathInfo['filename']);
         $extension = $pathInfo['extension'] ?? '';
 
-        return $name . ($extension ? '.' . $extension : '');
+        return $name.($extension ? '.'.$extension : '');
     }
 
     /**
@@ -593,7 +595,7 @@ class MediaController extends Controller
         // For example, check if user owns the model or has specific permissions
         if (method_exists($model, 'user_id') && property_exists($model, 'user_id')) {
             if ($model->user_id !== auth()->id()) {
-                return auth()->user()->can('manage.' . class_basename($model));
+                return auth()->user()->can('manage.'.class_basename($model));
             }
         }
 
@@ -626,6 +628,7 @@ class MediaController extends Controller
     protected function isSingleFileCollection($model, string $collection): bool
     {
         $config = $this->getCollectionConfig($model, $collection);
+
         return $config['single_file'] ?? true;
     }
 
@@ -660,11 +663,13 @@ class MediaController extends Controller
 
             // Get conversion URLs based on collection type
             if ($collection === 'profile_image') {
+                $conversions['lqip'] = $media->getUrl('lqip');
                 $conversions['sm'] = $media->getUrl('sm');
                 $conversions['md'] = $media->getUrl('md');
                 $conversions['lg'] = $media->getUrl('lg');
                 $conversions['xl'] = $media->getUrl('xl');
             } elseif ($collection === 'cover_image') {
+                $conversions['lqip'] = $media->getUrl('lqip');
                 $conversions['sm'] = $media->getUrl('sm');
                 $conversions['md'] = $media->getUrl('md');
                 $conversions['lg'] = $media->getUrl('lg');
@@ -683,14 +688,14 @@ class MediaController extends Controller
     protected function formatFileSize(int $bytes): string
     {
         if ($bytes >= 1073741824) {
-            return number_format($bytes / 1073741824, 2) . ' GB';
+            return number_format($bytes / 1073741824, 2).' GB';
         } elseif ($bytes >= 1048576) {
-            return number_format($bytes / 1048576, 2) . ' MB';
+            return number_format($bytes / 1048576, 2).' MB';
         } elseif ($bytes >= 1024) {
-            return number_format($bytes / 1024, 2) . ' KB';
+            return number_format($bytes / 1024, 2).' KB';
         }
 
-        return $bytes . ' bytes';
+        return $bytes.' bytes';
     }
 
     /**
@@ -851,6 +856,7 @@ class MediaController extends Controller
     protected function isFFProbeAvailable(): bool
     {
         $output = shell_exec('which ffprobe 2>/dev/null');
+
         return ! empty($output);
     }
 

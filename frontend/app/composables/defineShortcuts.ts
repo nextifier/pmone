@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import type { ComputedRef, WatchSource } from 'vue'
 import { logicAnd, logicNot } from '@vueuse/math'
 import { useEventListener, useDebounceFn } from '@vueuse/core'
@@ -160,5 +160,15 @@ export const defineShortcuts = (config: ShortcutsConfig, options: ShortcutsOptio
     return shortcut as Shortcut
   }).filter(Boolean) as Shortcut[]
 
-  useEventListener('keydown', onKeyDown)
+  // Setup event listener with automatic cleanup on component unmount
+  const cleanup = useEventListener('keydown', onKeyDown)
+
+  // Ensure cleanup happens on component unmount
+  onUnmounted(() => {
+    if (cleanup && typeof cleanup === 'function') {
+      cleanup()
+    }
+    // Clear shortcuts array
+    shortcuts.length = 0
+  })
 }

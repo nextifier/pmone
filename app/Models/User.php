@@ -320,12 +320,20 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
 
     public function registerMediaConversions($media = null): void
     {
-        // Profile Image Conversions (square)
+        $this->addMediaConversion('lqip')
+            ->width(20)
+            ->height(20)
+            ->quality(10)
+            ->blur(10)
+            ->performOnCollections('profile_image')
+            ->nonQueued();
+
         $this->addMediaConversion('sm')
             ->width(200)
             ->height(200)
             ->quality(85)
-            ->performOnCollections('profile_image');
+            ->performOnCollections('profile_image')
+            ->nonQueued();
 
         $this->addMediaConversion('md')
             ->width(400)
@@ -345,11 +353,19 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
             ->quality(95)
             ->performOnCollections('profile_image');
 
-        // Cover Image Conversions (maintain aspect ratio)
+        $this->addMediaConversion('lqip')
+            ->width(20)
+            ->height(20)
+            ->quality(10)
+            ->blur(10)
+            ->performOnCollections('cover_image')
+            ->nonQueued();
+
         $this->addMediaConversion('sm')
             ->width(400)
             ->quality(85)
-            ->performOnCollections('cover_image');
+            ->performOnCollections('cover_image')
+            ->nonQueued();
 
         $this->addMediaConversion('md')
             ->width(800)
@@ -377,48 +393,6 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
             'cover_image' => [
                 'single_file' => true,
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
-            ],
-        ];
-    }
-
-    protected function getMediaConversionsConfig(): array
-    {
-        return [
-            'profile_sm' => [
-                'width' => 150,
-                'height' => 150,
-                'quality' => 80,
-                'collections' => ['profile_image'],
-            ],
-            'profile_md' => [
-                'width' => 300,
-                'height' => 300,
-                'quality' => 85,
-                'collections' => ['profile_image'],
-            ],
-            'profile_lg' => [
-                'width' => 600,
-                'height' => 600,
-                'quality' => 90,
-                'collections' => ['profile_image'],
-            ],
-            'cover_sm' => [
-                'width' => 400,
-                'height' => 200,
-                'quality' => 80,
-                'collections' => ['cover_image'],
-            ],
-            'cover_md' => [
-                'width' => 800,
-                'height' => 400,
-                'quality' => 85,
-                'collections' => ['cover_image'],
-            ],
-            'cover_lg' => [
-                'width' => 1200,
-                'height' => 600,
-                'quality' => 90,
-                'collections' => ['cover_image'],
             ],
         ];
     }

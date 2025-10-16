@@ -5,7 +5,7 @@
   >
     <img
       v-if="user.profile_image"
-      :src="user.profile_image?.sm ?? user.profile_image?.original"
+      :src="user.profile_image?.sm"
       :alt="user?.name"
       class="pointer-events-none size-full rounded-lg object-cover select-none"
       width="100"

@@ -35,6 +35,15 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    server: {
+      hmr: {
+        timeout: 60000, // Increase HMR timeout to 60 seconds
+      },
+      // Increase header timeout to prevent timeout errors
+      headers: {
+        'Keep-Alive': 'timeout=600'
+      }
+    }
   },
 
   modules: [

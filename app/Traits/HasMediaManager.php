@@ -34,11 +34,13 @@ trait HasMediaManager
 
         // Add conversions based on collection type
         if ($collection === 'profile_image') {
+            $urls['lqip'] = $media->getUrl('lqip');
             $urls['sm'] = $media->getUrl('sm');
             $urls['md'] = $media->getUrl('md');
             $urls['lg'] = $media->getUrl('lg');
             $urls['xl'] = $media->getUrl('xl');
         } elseif ($collection === 'cover_image') {
+            $urls['lqip'] = $media->getUrl('lqip');
             $urls['sm'] = $media->getUrl('sm');
             $urls['md'] = $media->getUrl('md');
             $urls['lg'] = $media->getUrl('lg');
