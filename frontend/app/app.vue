@@ -1,14 +1,10 @@
 <template>
   <Html>
     <Body class="bg-background text-foreground font-sans text-sm antialiased sm:text-base">
-      <!-- <NuxtPwaManifest /> -->
+      <NuxtPwaManifest />
       <NuxtLoadingIndicator :color="false" class="bg-accent" />
       <NuxtLayout>
-        <NuxtPage
-          :keepalive="{
-            include: ['users', 'logs'],
-          }"
-        />
+        <NuxtPage />
       </NuxtLayout>
       <Toaster class="pointer-events-auto" />
     </Body>
