@@ -3,7 +3,7 @@
     <div class="space-y-5">
       <!-- Profile and Cover Images -->
       <div v-if="showImages" class="space-y-5">
-        <ImageUploadField
+        <InputFileImage
           ref="profileImageInputRef"
           label="Profile Image"
           v-model="imageFiles.profile_image"
@@ -13,7 +13,7 @@
           container-class="squircle relative isolate aspect-square max-w-40"
         />
 
-        <ImageUploadField
+        <InputFileImage
           ref="coverImageInputRef"
           label="Cover Image"
           v-model="imageFiles.cover_image"
