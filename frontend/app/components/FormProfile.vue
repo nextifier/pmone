@@ -3,95 +3,24 @@
     <div class="space-y-5">
       <!-- Profile and Cover Images -->
       <div v-if="showImages" class="space-y-5">
-        <div class="space-y-2">
-          <Label>Profile Image</Label>
+        <ImageUploadField
+          ref="profileImageInputRef"
+          label="Profile Image"
+          v-model="imageFiles.profile_image"
+          :initial-image="initialData?.profile_image"
+          v-model:delete-flag="deleteFlags.profile_image"
+          :errors="errors.tmp_profile_image"
+          container-class="squircle relative isolate aspect-square max-w-40"
+        />
 
-          <InputFile
-            ref="profileImageInputRef"
-            v-if="showInputFile.profile_image"
-            v-model="imageFiles.profile_image"
-            :accepted-file-types="['image/jpeg', 'image/png', 'image/jpg', 'image/webp']"
-            :allow-multiple="false"
-            :max-files="1"
-            class="mt-3"
-          />
-
-          <div v-else class="squircle relative isolate aspect-square max-w-40">
-            <img
-              :src="initialData?.profile_image?.sm"
-              alt=""
-              class="border-border size-full rounded-lg border object-cover"
-              loading="lazy"
-            />
-
-            <button
-              type="button"
-              @click="handleDeleteImage('profile_image')"
-              class="absolute top-1.5 right-1.5 flex size-8 items-center justify-center rounded-full bg-black/40 text-white shadow-sm ring ring-white/20 backdrop-blur-sm transition hover:bg-black"
-            >
-              <Icon name="hugeicons:delete-01" class="size-4" />
-            </button>
-          </div>
-
-          <button
-            v-if="deleteFlags.profile_image && initialData?.profile_image"
-            type="button"
-            @click="handleUndoDeleteImage('profile_image')"
-            class="text-primary hover:text-primary/80 mx-auto flex items-center gap-1.5 text-sm font-medium tracking-tight transition"
-          >
-            <Icon name="hugeicons:undo-02" class="size-4" />
-            Undo Delete
-          </button>
-
-          <p v-if="errors.tmp_profile_image" class="text-destructive text-sm">
-            {{ errors.tmp_profile_image[0] }}
-          </p>
-        </div>
-
-        <div class="space-y-2">
-          <Label>Cover Image</Label>
-
-          <InputFile
-            ref="coverImageInputRef"
-            v-if="showInputFile.cover_image"
-            v-model="imageFiles.cover_image"
-            :accepted-file-types="['image/jpeg', 'image/png', 'image/jpg', 'image/webp']"
-            :allow-multiple="false"
-            :max-files="1"
-            class="mt-3"
-          />
-
-          <div v-else class="relative isolate">
-            <img
-              :src="initialData?.cover_image?.sm"
-              alt=""
-              class="border-border size-full rounded-lg border object-cover"
-              loading="lazy"
-            />
-
-            <button
-              type="button"
-              @click="handleDeleteImage('cover_image')"
-              class="absolute top-1.5 right-1.5 flex size-8 items-center justify-center rounded-full bg-black/40 text-white shadow-sm ring ring-white/20 backdrop-blur-sm transition hover:bg-black"
-            >
-              <Icon name="hugeicons:delete-01" class="size-4" />
-            </button>
-          </div>
-
-          <button
-            v-if="deleteFlags.cover_image && initialData?.cover_image"
-            type="button"
-            @click="handleUndoDeleteImage('cover_image')"
-            class="text-primary hover:text-primary/80 mx-auto flex items-center gap-1.5 text-sm font-medium tracking-tight transition"
-          >
-            <Icon name="hugeicons:undo-02" class="size-4" />
-            Undo Delete
-          </button>
-
-          <p v-if="errors.tmp_cover_image" class="text-destructive text-sm">
-            {{ errors.tmp_cover_image[0] }}
-          </p>
-        </div>
+        <ImageUploadField
+          ref="coverImageInputRef"
+          label="Cover Image"
+          v-model="imageFiles.cover_image"
+          :initial-image="initialData?.cover_image"
+          v-model:delete-flag="deleteFlags.cover_image"
+          :errors="errors.tmp_cover_image"
+        />
       </div>
 
       <h3 class="text-muted-foreground text-sm font-medium tracking-tight">Personal Information</h3>
@@ -99,7 +28,7 @@
       <div class="space-y-2">
         <Label for="name">Full Name *</Label>
         <Input id="name" v-model="form.name" type="text" required />
-        <p v-if="errors.name" class="text-destructive text-sm">{{ errors.name[0] }}</p>
+        <InputErrorMessage :errors="errors.name" />
       </div>
 
       <div class="space-y-2">
@@ -110,22 +39,19 @@
           </p>
         </div>
         <Input id="username" v-model="form.username" type="text" :required="!isCreate" />
-
-        <p v-if="errors.username" class="text-destructive text-sm">
-          {{ errors.username[0] }}
-        </p>
+        <InputErrorMessage :errors="errors.username" />
       </div>
 
       <div class="space-y-2">
         <Label for="email">Email Address *</Label>
         <Input id="email" v-model="form.email" type="email" required />
-        <p v-if="errors.email" class="text-destructive text-sm">{{ errors.email[0] }}</p>
+        <InputErrorMessage :errors="errors.email" />
       </div>
 
       <div class="space-y-2">
         <Label for="phone">Phone Number</Label>
         <InputPhone v-model="form.phone" id="phone" />
-        <p v-if="errors.phone" class="text-destructive text-sm">{{ errors.phone[0] }}</p>
+        <InputErrorMessage :errors="errors.phone" />
       </div>
 
       <div v-if="showPassword" class="space-y-2">
@@ -142,8 +68,7 @@
           :required="isCreate"
           minlength="8"
         />
-
-        <p v-if="errors.password" class="text-destructive text-sm">{{ errors.password[0] }}</p>
+        <InputErrorMessage :errors="errors.password" />
       </div>
 
       <div class="space-y-2">
@@ -175,10 +100,7 @@
             />
           </PopoverContent>
         </Popover>
-
-        <p v-if="errors.birth_date" class="text-destructive text-sm">
-          {{ errors.birth_date[0] }}
-        </p>
+        <InputErrorMessage :errors="errors.birth_date" />
       </div>
 
       <div class="space-y-2">
@@ -203,14 +125,13 @@
             </div>
           </div>
         </RadioGroup>
-
-        <p v-if="errors.gender" class="text-destructive text-sm">{{ errors.gender[0] }}</p>
+        <InputErrorMessage :errors="errors.gender" />
       </div>
 
       <div class="space-y-2">
         <Label for="bio">Bio</Label>
         <Textarea id="bio" v-model="form.bio" maxlength="1000" />
-        <p v-if="errors.bio" class="text-destructive text-sm">{{ errors.bio[0] }}</p>
+        <InputErrorMessage :errors="errors.bio" />
       </div>
 
       <div class="space-y-3">
@@ -238,13 +159,9 @@
                   <SelectValue placeholder="Select label" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Website">Website</SelectItem>
-                  <SelectItem value="Instagram">Instagram</SelectItem>
-                  <SelectItem value="Facebook">Facebook</SelectItem>
-                  <SelectItem value="X">X</SelectItem>
-                  <SelectItem value="TikTok">TikTok</SelectItem>
-                  <SelectItem value="LinkedIn">LinkedIn</SelectItem>
-                  <SelectItem value="YouTube">YouTube</SelectItem>
+                  <SelectItem v-for="label in PREDEFINED_LABELS" :key="label" :value="label">
+                    {{ label }}
+                  </SelectItem>
                   <SelectItem value="Custom">Custom</SelectItem>
                 </SelectContent>
               </Select>
@@ -265,13 +182,12 @@
         <button
           type="button"
           @click="addLink"
-          class="text-primary hover:text-primary/80 transitionp flex items-center gap-x-1 py-1 text-sm font-medium tracking-tight"
+          class="text-primary hover:text-primary/80 flex items-center gap-x-1 py-1 text-sm font-medium tracking-tight transition"
         >
           <Icon name="hugeicons:add-01" class="size-4" />
           Add Link
         </button>
-
-        <p v-if="errors.links" class="text-destructive text-sm">{{ errors.links[0] }}</p>
+        <InputErrorMessage :errors="errors.links" />
       </div>
     </div>
 
@@ -291,24 +207,10 @@
               <SelectItem value="suspended">Suspended</SelectItem>
             </SelectContent>
           </Select>
-          <p v-if="errors.status" class="text-destructive text-sm">{{ errors.status[0] }}</p>
+          <InputErrorMessage :errors="errors.status" />
         </div>
 
-        <div class="space-y-2">
-          <Label for="visibility">Profile Visibility</Label>
-          <Select v-model="form.visibility">
-            <SelectTrigger class="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="public">Public</SelectItem>
-              <SelectItem value="private">Private</SelectItem>
-            </SelectContent>
-          </Select>
-          <p v-if="errors.visibility" class="text-destructive text-sm">
-            {{ errors.visibility[0] }}
-          </p>
-        </div>
+        <ProfileVisibilityField v-model="form.visibility" :errors="errors.visibility" />
       </div>
 
       <div v-if="showRoles" class="space-y-2">
@@ -325,28 +227,16 @@
             </Label>
           </div>
         </div>
-        <p v-if="errors.roles" class="text-destructive text-sm">{{ errors.roles[0] }}</p>
+        <InputErrorMessage :errors="errors.roles" />
       </div>
     </div>
 
-    <div v-if="!showAccountSettings" class="space-y-2">
-      <Label for="visibility">Profile Visibility</Label>
-      <Select v-model="form.visibility">
-        <SelectTrigger class="w-full">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="public">Public</SelectItem>
-          <SelectItem value="private">Private</SelectItem>
-        </SelectContent>
-      </Select>
-      <p v-if="errors.visibility" class="text-destructive text-sm">
-        {{ errors.visibility[0] }}
-      </p>
-      <p class="text-muted-foreground text-xs">
-        Public profiles can be viewed by anyone. Private profiles are only visible to you.
-      </p>
-    </div>
+    <ProfileVisibilityField
+      v-if="!showAccountSettings"
+      v-model="form.visibility"
+      :errors="errors.visibility"
+      show-description
+    />
 
     <div class="flex justify-end gap-x-3">
       <button
@@ -359,8 +249,6 @@
       </button>
     </div>
   </form>
-
-  <div></div>
 </template>
 
 <script setup>
@@ -381,9 +269,46 @@ import { cn } from "@/lib/utils";
 import { DateFormatter, getLocalTimeZone } from "@internationalized/date";
 import { toast } from "vue-sonner";
 
+// Constants
+const PREDEFINED_LABELS = [
+  "Website",
+  "Instagram",
+  "Facebook",
+  "X",
+  "TikTok",
+  "LinkedIn",
+  "YouTube",
+];
+const FILE_STATUS = {
+  PROCESSING: 3,
+};
+
 const df = new DateFormatter("en-US", {
   dateStyle: "long",
 });
+
+// Helper functions
+function createEmptyForm() {
+  return {
+    name: "",
+    username: "",
+    email: "",
+    password: "",
+    phone: "",
+    birth_date: "",
+    gender: "",
+    bio: "",
+    status: "active",
+    visibility: "public",
+    roles: [],
+    links: [],
+  };
+}
+
+function formatBirthDate(date) {
+  if (!date) return null;
+  return `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`;
+}
 
 const props = defineProps({
   initialData: {
@@ -432,7 +357,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["submit", "reset"]);
+const emit = defineEmits(["submit"]);
 
 const deleteFlags = ref({
   profile_image: false,
@@ -449,27 +374,8 @@ const imageFiles = ref({
 const profileImageInputRef = ref(null);
 const coverImageInputRef = ref(null);
 
-// Computed: Show input file when no existing image OR user clicked delete
-const showInputFile = computed(() => ({
-  profile_image: !props.initialData?.profile_image || deleteFlags.value.profile_image,
-  cover_image: !props.initialData?.cover_image || deleteFlags.value.cover_image,
-}));
-
 // Form data
-const form = reactive({
-  name: "",
-  username: "",
-  email: "",
-  password: "",
-  phone: "",
-  birth_date: "",
-  gender: "",
-  bio: "",
-  status: "active",
-  visibility: "public",
-  roles: [],
-  links: [],
-});
+const form = reactive(createEmptyForm());
 
 // Toggle role selection
 function toggleRole(roleName, checked) {
@@ -533,20 +439,10 @@ async function populateForm(data) {
   form.links.splice(0, form.links.length);
 
   if (Array.isArray(data.links) && data.links.length > 0) {
-    const predefinedLabels = [
-      "Website",
-      "Instagram",
-      "Facebook",
-      "X",
-      "TikTok",
-      "LinkedIn",
-      "YouTube",
-    ];
-
     const formattedLinks = data.links.map((link) => ({
       label: link.label || "",
       url: link.url || "",
-      isCustomLabel: !predefinedLabels.includes(link.label),
+      isCustomLabel: !PREDEFINED_LABELS.includes(link.label),
     }));
 
     form.links.push(...formattedLinks);
@@ -571,8 +467,8 @@ async function populateForm(data) {
   deleteFlags.value.cover_image = false;
 }
 
-// Watch for initialData changes - avoid deep watch on large objects
-const stopWatcher = watch(
+// Watch for initialData changes
+watch(
   () => props.initialData,
   (newData) => {
     populateForm(newData);
@@ -580,41 +476,11 @@ const stopWatcher = watch(
   { immediate: true }
 );
 
-// Cleanup watcher on unmount
-onUnmounted(() => {
-  if (stopWatcher && typeof stopWatcher === "function") {
-    stopWatcher();
-  }
-});
-
-// Generic handler for deleting images
-function handleDeleteImage(type) {
-  deleteFlags.value[type] = true;
-  imageFiles.value[type] = [];
-}
-
-// Generic handler for undoing image deletion
-function handleUndoDeleteImage(type) {
-  deleteFlags.value[type] = false;
-  imageFiles.value[type] = [];
-}
-
 // Check if any files are currently uploading
 function hasFilesUploading() {
-  const refs = [profileImageInputRef.value, coverImageInputRef.value];
-
-  for (const inputRef of refs) {
-    if (inputRef?.pond) {
-      const files = inputRef.pond.getFiles();
-      // Check if any file is in uploading state (status 3 = PROCESSING)
-      const isUploading = files.some((file) => file.status === 3);
-      if (isUploading) {
-        return true;
-      }
-    }
-  }
-
-  return false;
+  return [profileImageInputRef, coverImageInputRef].some((ref) =>
+    ref.value?.pond?.getFiles().some((file) => file.status === FILE_STATUS.PROCESSING)
+  );
 }
 
 // Handle submit
@@ -635,9 +501,7 @@ function handleSubmit() {
 
   const payload = {
     ...form,
-    birth_date: form.birth_date
-      ? `${form.birth_date.year}-${String(form.birth_date.month).padStart(2, "0")}-${String(form.birth_date.day).padStart(2, "0")}`
-      : null,
+    birth_date: formatBirthDate(form.birth_date),
     links: formattedLinks,
   };
 

@@ -10,7 +10,7 @@
     -->
     <button
       @click="goBack"
-      class="text-primary hover:bg-border bg-muted flex items-center justify-center gap-x-1 rounded-lg px-3 py-1.5 text-sm tracking-tight transition active:scale-98"
+      class="text-primary/80 hover:text-primary flex items-center justify-center gap-x-1 text-sm tracking-tight transition active:scale-98"
     >
       <Icon name="lucide:arrow-left" class="size-4 shrink-0" />
       <span v-if="showLabel">Back</span>
