@@ -280,15 +280,18 @@
               Rows per page
             </p>
             <Select
-              :model-value="`${table.getState().pagination.pageSize}`"
+              :model-value="currentPageSizeValue"
               @update:model-value="handlePageSizeChange"
             >
               <SelectTrigger size="sm">
-                <SelectValue :placeholder="`${table.getState().pagination.pageSize}`" />
+                <SelectValue :placeholder="currentPageSizeDisplay" />
               </SelectTrigger>
               <SelectContent side="top">
                 <SelectItem v-for="pageSize in pageSizes" :key="pageSize" :value="`${pageSize}`">
                   {{ pageSize }}
+                </SelectItem>
+                <SelectItem value="all">
+                  All
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -526,7 +529,8 @@ const table = useVueTable({
 
 // Handle page size change
 const handlePageSizeChange = (value) => {
-  const newPageSize = Number(value);
+  // If "all" is selected, set page size to total items
+  const newPageSize = value === 'all' ? totalItems.value : Number(value);
   const currentPageSize = pagination.value.pageSize;
 
   // Only update if page size actually changed
@@ -632,6 +636,17 @@ const itemsPerPage = computed(() =>
 const totalItems = computed(() =>
   isClientSidePagination.value ? table.getFilteredRowModel().rows.length : props.meta.total
 );
+
+const currentPageSizeValue = computed(() => {
+  const pageSize = table.getState().pagination.pageSize;
+  // Check if current page size equals total items (which means "All" is selected)
+  return pageSize === totalItems.value ? 'all' : `${pageSize}`;
+});
+
+const currentPageSizeDisplay = computed(() => {
+  const pageSize = table.getState().pagination.pageSize;
+  return pageSize === totalItems.value ? 'All' : `${pageSize}`;
+});
 
 // Expose table instance for parent
 defineExpose({

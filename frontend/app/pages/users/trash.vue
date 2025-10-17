@@ -191,7 +191,7 @@ import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth", "master"],
+  middleware: ["sanctum:auth", "admin-master"],
   layout: "app",
 });
 

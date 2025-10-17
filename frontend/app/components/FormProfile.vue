@@ -216,53 +216,50 @@
       <div class="space-y-3">
         <h3 class="text-muted-foreground text-sm font-medium tracking-tight">Links</h3>
 
-        <div v-for="(link, index) in form.links" :key="index" class="flex items-center gap-1.5">
-          <div class="min-w-42">
-            <Select
-              v-model="link.label"
-              @update:model-value="(value) => handleLabelChange(index, value)"
-            >
-              <div v-if="link.isCustomLabel" class="relative">
-                <Input
-                  v-model="link.label"
-                  type="text"
-                  placeholder="Enter custom label"
-                  class="pr-7"
-                />
-                <SelectTrigger class="absolute top-0 right-0 h-full w-9 border-0 bg-transparent">
-                  <Icon
-                    name="hugeicons:chevron-down"
-                    class="absolute top-1/2 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2"
+        <div v-if="form.links.length > 0" class="space-y-2">
+          <div v-for="(link, index) in form.links" :key="index" class="flex items-center gap-1.5">
+            <div class="min-w-42">
+              <Select
+                v-model="link.label"
+                @update:model-value="(value) => handleLabelChange(index, value)"
+              >
+                <div v-if="link.isCustomLabel" class="relative">
+                  <Input
+                    v-model="link.label"
+                    type="text"
+                    placeholder="Enter custom label"
+                    class="pr-7"
                   />
+                  <SelectTrigger
+                    class="absolute top-0 right-0 flex size-8 items-center justify-center border-transparent bg-transparent !p-0 [&_svg]:!m-0"
+                  />
+                </div>
+                <SelectTrigger v-else class="w-full">
+                  <SelectValue placeholder="Select label" />
                 </SelectTrigger>
-              </div>
-              <SelectTrigger v-else class="w-full">
-                <SelectValue placeholder="Select label" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Website">Website</SelectItem>
-                <SelectItem value="Instagram">Instagram</SelectItem>
-                <SelectItem value="Facebook">Facebook</SelectItem>
-                <SelectItem value="X">X</SelectItem>
-                <SelectItem value="TikTok">TikTok</SelectItem>
-                <SelectItem value="LinkedIn">LinkedIn</SelectItem>
-                <SelectItem value="YouTube">YouTube</SelectItem>
-                <SelectItem value="Custom">Custom</SelectItem>
-              </SelectContent>
-            </Select>
+                <SelectContent>
+                  <SelectItem value="Website">Website</SelectItem>
+                  <SelectItem value="Instagram">Instagram</SelectItem>
+                  <SelectItem value="Facebook">Facebook</SelectItem>
+                  <SelectItem value="X">X</SelectItem>
+                  <SelectItem value="TikTok">TikTok</SelectItem>
+                  <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                  <SelectItem value="YouTube">YouTube</SelectItem>
+                  <SelectItem value="Custom">Custom</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Input v-model="link.url" type="url" placeholder="Enter URL" class="grow" />
+
+            <button
+              type="button"
+              @click="removeLink(index)"
+              class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+            >
+              <Icon name="hugeicons:delete-01" class="size-4" />
+            </button>
           </div>
-
-          <Input v-model="link.url" type="url" placeholder="Enter URL" class="grow" />
-
-          <button
-            type="button"
-            @click="removeLink(index)"
-            class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
-            :disabled="form.links.length === 1"
-            :class="{ 'cursor-not-allowed opacity-50': form.links.length === 1 }"
-          >
-            <Icon name="hugeicons:delete-01" class="size-4" />
-          </button>
         </div>
 
         <button
@@ -471,7 +468,7 @@ const form = reactive({
   status: "active",
   visibility: "public",
   roles: [],
-  links: [{ label: "", url: "", isCustomLabel: false }],
+  links: [],
 });
 
 // Toggle role selection
@@ -497,9 +494,7 @@ function addLink() {
 
 // Remove link
 function removeLink(index) {
-  if (form.links.length > 1) {
-    form.links.splice(index, 1);
-  }
+  form.links.splice(index, 1);
 }
 
 // Handle label change
@@ -555,9 +550,6 @@ async function populateForm(data) {
     }));
 
     form.links.push(...formattedLinks);
-  } else {
-    // Default: one empty link
-    form.links.push({ label: "", url: "", isCustomLabel: false });
   }
 
   // Handle birth_date
@@ -615,7 +607,7 @@ function hasFilesUploading() {
     if (inputRef?.pond) {
       const files = inputRef.pond.getFiles();
       // Check if any file is in uploading state (status 3 = PROCESSING)
-      const isUploading = files.some(file => file.status === 3);
+      const isUploading = files.some((file) => file.status === 3);
       if (isUploading) {
         return true;
       }

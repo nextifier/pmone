@@ -24,7 +24,7 @@
         </button>
 
         <nuxt-link
-          v-if="user?.roles?.includes('master')"
+          v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
           to="/users/trash"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
