@@ -17,10 +17,13 @@
 
         <button
           v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+          @click="handleExport"
+          :disabled="exportPending"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Icon name="hugeicons:file-export" class="size-4 shrink-0" />
-          <span>Export</span>
+          <Spinner v-if="exportPending" class="size-4 shrink-0" />
+          <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
+          <span>Export {{ columnFilters?.length ? "selected" : "all" }}</span>
         </button>
 
         <nuxt-link
@@ -449,6 +452,93 @@ const handleFilterChange = (columnId, { checked, value }) => {
     }
     // Reset to first page when filter changes (server-side)
     pagination.value.pageIndex = 0;
+  }
+};
+
+// Export handler
+const exportPending = ref(false);
+const handleExport = async () => {
+  try {
+    exportPending.value = true;
+
+    // Build query params
+    const params = new URLSearchParams();
+
+    // Get current filters and sorting from table instance (for client-only mode) or refs (for server mode)
+    let currentFilters = {};
+    let currentSorting = [];
+
+    if (clientOnly.value && tableRef.value?.table) {
+      // Client-only mode: get filters from table instance
+      const nameFilter = tableRef.value.table.getColumn("name")?.getFilterValue();
+      const statusFilter = tableRef.value.table.getColumn("status")?.getFilterValue();
+      const rolesFilter = tableRef.value.table.getColumn("roles")?.getFilterValue();
+      const verifiedFilter = tableRef.value.table.getColumn("email_verified_at")?.getFilterValue();
+
+      if (nameFilter) currentFilters.name = nameFilter;
+      if (statusFilter) currentFilters.status = statusFilter;
+      if (rolesFilter) currentFilters.roles = rolesFilter;
+      if (verifiedFilter) currentFilters.email_verified_at = verifiedFilter;
+
+      // Get sorting from table state
+      currentSorting = tableRef.value.table.getState().sorting;
+    } else {
+      // Server mode: use refs
+      columnFilters.value.forEach((filter) => {
+        currentFilters[filter.id] = filter.value;
+      });
+      currentSorting = sorting.value;
+    }
+
+    // Add filters to params
+    const filterMapping = {
+      name: "filter.search",
+      status: "filter.status",
+      roles: "filter.role",
+      email_verified_at: "filter.verified",
+    };
+
+    Object.entries(currentFilters).forEach(([columnId, value]) => {
+      const paramKey = filterMapping[columnId];
+      if (paramKey && value) {
+        const paramValue = Array.isArray(value) ? value.join(",") : value;
+        params.append(paramKey, paramValue);
+      }
+    });
+
+    // Add sorting
+    const sortField = currentSorting[0]?.id || "created_at";
+    const sortDirection = currentSorting[0]?.desc ? "desc" : "asc";
+    params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
+
+    const client = useSanctumClient();
+
+    // Fetch the file as blob
+    const response = await client(`/api/users/export?${params.toString()}`, {
+      responseType: "blob",
+    });
+
+    // Create a download link and trigger download
+    const blob = new Blob([response], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `users_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    toast.success("Users exported successfully");
+  } catch (error) {
+    console.error("Failed to export users:", error);
+    toast.error("Failed to export users", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    exportPending.value = false;
   }
 };
 

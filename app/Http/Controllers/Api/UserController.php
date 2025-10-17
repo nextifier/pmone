@@ -4,6 +4,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exports\UsersExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
@@ -15,7 +16,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Permission\Models\Role;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class UserController extends Controller
 {
@@ -633,6 +636,37 @@ class UserController extends Controller
         return response()->json([
             'data' => $roles,
         ]);
+    }
+
+    public function export(Request $request): BinaryFileResponse
+    {
+        $this->authorize('users.view');
+
+        // Get filters and sorting from request
+        // Note: Laravel converts dots in query params to underscores
+        $filters = [];
+        if ($search = $request->input('filter_search')) {
+            $filters['search'] = $search;
+        }
+        if ($status = $request->input('filter_status')) {
+            $filters['status'] = $status;
+        }
+        if ($role = $request->input('filter_role')) {
+            $filters['role'] = $role;
+        }
+        if ($verified = $request->input('filter_verified')) {
+            $filters['verified'] = $verified;
+        }
+
+        $sort = $request->input('sort', '-created_at');
+
+        // Create the export with filters and sorting
+        $export = new UsersExport($filters, $sort);
+
+        // Generate filename with timestamp
+        $filename = 'users_'.now()->format('Y-m-d_His').'.xlsx';
+
+        return Excel::download($export, $filename);
     }
 
     /**
