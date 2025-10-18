@@ -14,6 +14,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Permission\Traits\HasRoles;
@@ -354,31 +355,30 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
             ->performOnCollections('profile_image');
 
         $this->addMediaConversion('lqip')
-            ->width(20)
-            ->height(20)
+            ->fit(Fit::Crop, 60, 20)
             ->quality(10)
             ->blur(10)
             ->performOnCollections('cover_image')
             ->nonQueued();
 
         $this->addMediaConversion('sm')
-            ->width(400)
+            ->fit(Fit::Crop, 450, 150)
             ->quality(85)
             ->performOnCollections('cover_image')
             ->nonQueued();
 
         $this->addMediaConversion('md')
-            ->width(800)
+            ->fit(Fit::Crop, 900, 300)
             ->quality(90)
             ->performOnCollections('cover_image');
 
         $this->addMediaConversion('lg')
-            ->width(1200)
+            ->fit(Fit::Crop, 1200, 400)
             ->quality(90)
             ->performOnCollections('cover_image');
 
         $this->addMediaConversion('xl')
-            ->width(1600)
+            ->fit(Fit::Crop, 1500, 500)
             ->quality(95)
             ->performOnCollections('cover_image');
     }

@@ -1,7 +1,5 @@
 <template>
   <div class="space-y-2">
-    <Label>{{ label }}</Label>
-
     <InputFile
       ref="inputFileRef"
       v-if="showInput"
@@ -20,7 +18,11 @@
         loading="lazy"
       />
 
-      <button type="button" @click="handleDelete" :class="DELETE_BUTTON_CLASS">
+      <button
+        type="button"
+        @click="handleDelete"
+        class="absolute top-1.5 right-1.5 flex size-8 items-center justify-center rounded-full bg-black/40 text-white shadow-sm ring ring-white/20 backdrop-blur-sm transition hover:bg-black"
+      >
         <Icon name="hugeicons:delete-01" class="size-4" />
       </button>
     </div>
@@ -34,25 +36,13 @@
       <Icon name="hugeicons:undo-02" class="size-4" />
       Undo Delete
     </button>
-
-    <InputErrorMessage :errors="errors" />
   </div>
 </template>
 
 <script setup>
-import { Label } from "@/components/ui/label";
-
-const DELETE_BUTTON_CLASS =
-  "absolute top-1.5 right-1.5 flex size-8 items-center justify-center rounded-full bg-black/40 text-white shadow-sm ring ring-white/20 backdrop-blur-sm transition hover:bg-black";
-
-// Ref to InputFile component
 const inputFileRef = ref(null);
 
 const props = defineProps({
-  label: {
-    type: String,
-    required: true,
-  },
   modelValue: {
     type: Array,
     default: () => [],
@@ -64,10 +54,6 @@ const props = defineProps({
   deleteFlag: {
     type: Boolean,
     default: false,
-  },
-  errors: {
-    type: Array,
-    default: null,
   },
   containerClass: {
     type: String,
