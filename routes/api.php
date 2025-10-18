@@ -42,6 +42,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::post('/', [UserController::class, 'store'])->middleware('can:users.create');
         Route::get('/roles', [UserController::class, 'getRoles']);
         Route::get('/export', [UserController::class, 'export']);
+        Route::get('/import/template', [UserController::class, 'downloadTemplate'])->middleware('can:users.create');
+        Route::post('/import', [UserController::class, 'import'])->middleware('can:users.create');
         Route::delete('/bulk', [UserController::class, 'bulkDestroy'])->middleware('can:users.delete');
         Route::get('/trash', [UserController::class, 'trash']);
         Route::post('/trash/restore/bulk', [UserController::class, 'bulkRestore'])->middleware('can:users.delete');

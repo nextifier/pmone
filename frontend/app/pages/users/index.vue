@@ -7,13 +7,17 @@
       </div>
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <button
-          v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
-          <span>Import</span>
-        </button>
+        <ImportDialog v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))" @imported="refresh">
+          <template #trigger="{ open }">
+            <button
+              @click="open()"
+              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+            >
+              <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
+              <span>Import</span>
+            </button>
+          </template>
+        </ImportDialog>
 
         <button
           v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
@@ -155,6 +159,7 @@
 
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
+import ImportDialog from "@/components/users/ImportDialog.vue";
 import TableData from "@/components/TableData.vue";
 import AuthUserInfo from "@/components/auth/UserInfo.vue";
 import { Checkbox } from "@/components/ui/checkbox";

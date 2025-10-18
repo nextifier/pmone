@@ -5,11 +5,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Exports\UsersExport;
+use App\Exports\UsersTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\UserIndexResource;
 use App\Http\Resources\UserResource;
+use App\Imports\UsersImport;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
@@ -667,6 +669,104 @@ class UserController extends Controller
         $filename = 'users_'.now()->format('Y-m-d_His').'.xlsx';
 
         return Excel::download($export, $filename);
+    }
+
+    public function downloadTemplate(): BinaryFileResponse
+    {
+        $this->authorize('users.create');
+
+        $filename = 'users_import_template.xlsx';
+
+        return Excel::download(new UsersTemplateExport, $filename);
+    }
+
+    public function import(Request $request): JsonResponse
+    {
+        $this->authorize('users.create');
+
+        $validator = Validator::make($request->all(), [
+            'file' => ['required', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $tempFolder = null;
+
+        try {
+            $tempFolder = $request->input('file');
+
+            // Get file path from temporary storage
+            $metadataPath = "tmp/uploads/{$tempFolder}/metadata.json";
+
+            if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+                return response()->json([
+                    'message' => 'File not found',
+                ], 404);
+            }
+
+            $metadata = json_decode(
+                \Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath),
+                true
+            );
+
+            $filePath = "tmp/uploads/{$tempFolder}/{$metadata['original_name']}";
+
+            if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($filePath)) {
+                return response()->json([
+                    'message' => 'File not found',
+                ], 404);
+            }
+
+            // Import users
+            $import = new UsersImport;
+            Excel::import($import, \Illuminate\Support\Facades\Storage::disk('local')->path($filePath));
+
+            // Get import results
+            $failures = $import->getFailures();
+            $importedCount = $import->getImportedCount();
+            $errorMessages = [];
+
+            foreach ($failures as $failure) {
+                $errorMessages[] = [
+                    'row' => $failure->row(),
+                    'attribute' => $failure->attribute(),
+                    'errors' => $failure->errors(),
+                    'values' => $failure->values(),
+                ];
+            }
+
+            if (count($errorMessages) > 0) {
+                return response()->json([
+                    'message' => 'Import completed with errors',
+                    'errors' => $errorMessages,
+                    'imported_count' => $importedCount,
+                ], 422);
+            }
+
+            return response()->json([
+                'message' => 'Users imported successfully',
+                'imported_count' => $importedCount,
+            ]);
+        } catch (\Exception $e) {
+            logger()->error('User import failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to import users',
+                'error' => $e->getMessage(),
+            ], 500);
+        } finally {
+            // Always clean up temporary files
+            if ($tempFolder) {
+                \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
+            }
+        }
     }
 
     /**
