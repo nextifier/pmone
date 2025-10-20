@@ -9,6 +9,102 @@
       </div>
     </div>
 
+    <div class="flex flex-wrap gap-2">
+      <button
+        class="bg-muted rounded-lg border px-2 py-1 text-sm font-medium tracking-tight active:scale-98"
+        @click="
+          toast('Users imported successfully', {
+            description:
+              'You can focus on the toast area by pressing ⌥/alt + T. You can override it by providing an array of event.code values for each key.',
+          })
+        "
+      >
+        Toast Normal
+      </button>
+
+      <button
+        class="bg-muted rounded-lg border px-2 py-1 text-sm font-medium tracking-tight active:scale-98"
+        @click="
+          toast.success('Users imported successfully', {
+            description:
+              'You can focus on the toast area by pressing ⌥/alt + T. You can override it by providing an array of event.code values for each key.',
+          })
+        "
+      >
+        Toast Success
+      </button>
+
+      <button
+        class="bg-muted rounded-lg border px-2 py-1 text-sm font-medium tracking-tight active:scale-98"
+        @click="toast.success('Users imported successfully', {})"
+      >
+        Toast Success (no description)
+      </button>
+
+      <button
+        class="bg-muted rounded-lg border px-2 py-1 text-sm font-medium tracking-tight active:scale-98"
+        @click="
+          toast.info('Users imported successfully', {
+            description:
+              'You can focus on the toast area by pressing ⌥/alt + T. You can override it by providing an array of event.code values for each key.',
+          })
+        "
+      >
+        Toast Info
+      </button>
+
+      <button
+        class="bg-muted rounded-lg border px-2 py-1 text-sm font-medium tracking-tight active:scale-98"
+        @click="
+          toast.warning('Users imported successfully', {
+            description:
+              'You can focus on the toast area by pressing ⌥/alt + T. You can override it by providing an array of event.code values for each key.',
+          })
+        "
+      >
+        Toast Warning
+      </button>
+
+      <button
+        class="bg-muted rounded-lg border px-2 py-1 text-sm font-medium tracking-tight active:scale-98"
+        @click="
+          toast.error('Users imported successfully', {
+            description:
+              'You can focus on the toast area by pressing ⌥/alt + T. You can override it by providing an array of event.code values for each key.',
+          })
+        "
+      >
+        Toast Error
+      </button>
+
+      <button
+        class="bg-muted rounded-lg border px-2 py-1 text-sm font-medium tracking-tight active:scale-98"
+        @click="
+          toast.loading('Users imported successfully', {
+            description:
+              'You can focus on the toast area by pressing ⌥/alt + T. You can override it by providing an array of event.code values for each key.',
+          })
+        "
+      >
+        Toast Loading
+      </button>
+
+      <button
+        class="bg-muted rounded-lg border px-2 py-1 text-sm font-medium tracking-tight active:scale-98"
+        @click="
+          toast('Event has been created', {
+            description: 'Sunday, December 03, 2023 at 9:00 AM',
+            action: {
+              label: 'Undo',
+              onClick: () => console.log('Undo'),
+            },
+          })
+        "
+      >
+        Toast with Action
+      </button>
+    </div>
+
     <div class="border-border text-foreground w-full overflow-x-scroll rounded-xl border p-4">
       <pre class="text-foreground/80 text-sm !leading-[1.5]">{{ user }}</pre>
     </div>
@@ -25,11 +121,13 @@
 
 <script setup>
 definePageMeta({
-  middleware: ['sanctum:auth'],
-  layout: 'app'
-})
+  middleware: ["sanctum:auth"],
+  layout: "app",
+});
 
-usePageMeta('dashboard')
+usePageMeta("dashboard");
 
-const { user, isAuthenticated } = useSanctumAuth()
+const { user, isAuthenticated } = useSanctumAuth();
+
+import { toast } from "vue-sonner";
 </script>

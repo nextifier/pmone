@@ -9,9 +9,33 @@ const props = defineProps<ToasterProps>();
     class="toaster group tracking-tight"
     v-bind="props"
     :style="{
-      '--normal-bg': 'var(--foreground)',
-      '--normal-text': 'var(--background)',
-      '--normal-border': 'transparent',
+      '--normal-bg': 'var(--popover)',
+      '--normal-text': 'var(--popover-foreground)',
+      '--normal-border': 'var(--border)',
     }"
-  />
+  >
+    <template #info-icon>
+      <slot name="info-icon">
+        <Icon name="lucide:info" />
+      </slot>
+    </template>
+
+    <template #success-icon>
+      <slot name="success-icon">
+        <Icon name="lucide:circle-check-big" />
+      </slot>
+    </template>
+
+    <template #warning-icon>
+      <slot name="warning-icon">
+        <Icon name="lucide:triangle-alert" />
+      </slot>
+    </template>
+
+    <template #error-icon>
+      <slot name="error-icon">
+        <Icon name="lucide:octagon-x" />
+      </slot>
+    </template>
+  </Sonner>
 </template>
