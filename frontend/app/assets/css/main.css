@@ -177,7 +177,7 @@
     --card: var(--color-gray-950);
     --card-foreground: var(--color-gray-300);
 
-    --popover: var(--color-gray-900);
+    --popover: var(--color-gray-950);
     --popover-foreground: var(--color-gray-300);
 
     --sidebar: var(--color-gray-950);
@@ -775,7 +775,7 @@ img.pswp__img {
 }
 
 [data-sonner-toast][data-styled="true"] {
-  @apply !bg-popover !border-foreground/10 !items-start !gap-x-2 !rounded-xl !border;
+  @apply !border-foreground/10 !items-start !gap-x-2 !rounded-xl !border !bg-white dark:!bg-gray-900;
 
   & [data-title] {
     @apply !text-foreground !text-sm !font-semibold !tracking-tighter;
