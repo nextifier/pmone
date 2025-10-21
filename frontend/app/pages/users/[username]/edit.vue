@@ -1,61 +1,72 @@
 <template>
-  <div class="mx-auto max-w-md space-y-6">
-    <div class="flex flex-col gap-y-6">
-      <div class="flex w-full items-center justify-between">
-        <BackButton destination="/users" />
+  <div class="mx-auto max-w-md space-y-9">
+    <template v-if="user">
+      <div class="flex flex-col gap-y-6">
+        <div class="flex w-full items-center justify-between">
+          <BackButton destination="/users" />
 
-        <button
-          @click="formProfileRef?.handleSubmit()"
-          :disabled="loading"
-          class="text-primary-foreground hover:bg-primary/80 bg-primary flex items-center justify-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
-        >
-          <Spinner v-if="loading" />
-          <span>Save</span>
-        </button>
+          <button
+            @click="formProfileRef?.handleSubmit()"
+            :disabled="loading"
+            class="text-primary-foreground hover:bg-primary/80 bg-primary flex items-center justify-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
+          >
+            <Spinner v-if="loading" />
+            <span>Save</span>
+          </button>
+        </div>
+
+        <h1 class="page-title">Edit User</h1>
       </div>
 
-      <h1 class="page-title">Edit User</h1>
-    </div>
+      <FormProfile
+        ref="formProfileRef"
+        :initial-data="user"
+        :roles="roles"
+        :loading="loading"
+        :errors="errors"
+        :is-create="false"
+        :show-password="canEditUsers"
+        :show-account-settings="canEditUsers"
+        :show-roles="canEditUsers"
+        :show-images="true"
+        submit-text="Update User"
+        submit-loading-text="Updating.."
+        @submit="updateUser"
+      />
 
-    <FormProfile
-      ref="formProfileRef"
-      :initial-data="user"
-      :roles="roles"
-      :loading="loading"
-      :errors="errors"
-      :is-create="false"
-      :show-password="canEditUsers"
-      :show-account-settings="canEditUsers"
-      :show-roles="canEditUsers"
-      :show-images="true"
-      submit-text="Update User"
-      submit-loading-text="Updating.."
-      @submit="updateUser"
-    />
+      <div
+        v-if="user"
+        class="*:bg-muted text-muted-foreground mt-20 flex flex-wrap gap-x-2 gap-y-2.5 text-sm tracking-tight *:rounded-md *:px-2 *:py-1"
+      >
+        <span
+          >ID: <span class="text-foreground">{{ user.id }}</span></span
+        >
+        <span
+          >ULID: <span class="text-foreground">{{ user.ulid }}</span></span
+        >
+        <span
+          >Created:
+          <span class="text-foreground">{{
+            $dayjs(user.created_at).format("MMM D, YYYY [at] h:mm A")
+          }}</span></span
+        >
+        <span
+          >Last seen:
+          <span class="text-foreground">{{
+            user.last_seen ? $dayjs(user.last_seen).fromNow() : "Never"
+          }}</span></span
+        >
+      </div>
+    </template>
 
-    <div
-      v-if="user"
-      class="*:bg-muted text-muted-foreground mt-20 flex flex-wrap gap-x-2 gap-y-2.5 text-sm tracking-tight *:rounded-md *:px-2 *:py-1"
-    >
-      <span
-        >ID: <span class="text-foreground">{{ user.id }}</span></span
-      >
-      <span
-        >ULID: <span class="text-foreground">{{ user.ulid }}</span></span
-      >
-      <span
-        >Created:
-        <span class="text-foreground">{{
-          $dayjs(user.created_at).format("MMM D, YYYY [at] h:mm A")
-        }}</span></span
-      >
-      <span
-        >Last seen:
-        <span class="text-foreground">{{
-          user.last_seen ? $dayjs(user.last_seen).fromNow() : "Never"
-        }}</span></span
-      >
-    </div>
+    <template v-else>
+      <div class="min-h-screen-offset flex w-full items-center justify-center">
+        <div class="flex items-center gap-1.5">
+          <Spinner class="size-4 shrink-0" />
+          <span class="tracking-tight">Loading</span>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 

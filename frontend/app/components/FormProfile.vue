@@ -1,29 +1,27 @@
 <template>
   <form @submit.prevent="handleSubmit" class="grid gap-y-6">
     <div class="space-y-5">
-      <div v-if="showImages" class="space-y-5">
-        <div class="input-group">
-          <Label>Profile Image</Label>
-          <InputFileImage
-            ref="profileImageInputRef"
-            v-model="imageFiles.profile_image"
-            :initial-image="initialData?.profile_image"
-            v-model:delete-flag="deleteFlags.profile_image"
-            container-class="squircle relative isolate aspect-square max-w-40"
-          />
-          <InputErrorMessage :errors="errors.tmp_profile_image" />
-        </div>
+      <div class="space-y-4">
+        <Label>Profile Image</Label>
+        <InputFileImage
+          ref="profileImageInputRef"
+          v-model="imageFiles.profile_image"
+          :initial-image="initialData?.profile_image"
+          v-model:delete-flag="deleteFlags.profile_image"
+          container-class="squircle relative isolate aspect-square max-w-40"
+        />
+        <InputErrorMessage :errors="errors.tmp_profile_image" />
+      </div>
 
-        <div class="input-group">
-          <Label>Cover Image</Label>
-          <InputFileImage
-            ref="coverImageInputRef"
-            v-model="imageFiles.cover_image"
-            :initial-image="initialData?.cover_image"
-            v-model:delete-flag="deleteFlags.cover_image"
-          />
-          <InputErrorMessage :errors="errors.tmp_cover_image" />
-        </div>
+      <div class="space-y-4">
+        <Label>Cover Image</Label>
+        <InputFileImage
+          ref="coverImageInputRef"
+          v-model="imageFiles.cover_image"
+          :initial-image="initialData?.cover_image"
+          v-model:delete-flag="deleteFlags.cover_image"
+        />
+        <InputErrorMessage :errors="errors.tmp_cover_image" />
       </div>
 
       <h3 class="text-muted-foreground text-sm font-medium tracking-tight">Personal Information</h3>

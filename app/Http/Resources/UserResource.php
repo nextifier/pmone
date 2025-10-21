@@ -35,31 +35,21 @@ class UserResource extends JsonResource
             'last_seen' => $this->last_seen?->toISOString(),
             'created_at' => $this->created_at->toISOString(),
             'updated_at' => $this->updated_at->toISOString(),
-
-            // Profile Image
             'profile_image' => $this->when(
                 $this->hasMedia('profile_image'),
                 $this->getMediaUrls('profile_image')
             ),
-
-            // Cover Image
             'cover_image' => $this->when(
                 $this->hasMedia('cover_image'),
                 $this->getMediaUrls('cover_image')
             ),
-
-            // Roles and permissions - optimized to avoid duplicate queries
             'roles' => $this->whenLoaded('roles', fn () => $this->roles->pluck('name')),
             'permissions' => $this->when(
                 $this->relationLoaded('permissions') || $this->relationLoaded('roles'),
                 fn () => $this->getAllPermissions()->pluck('name')
             ),
-
-            // Two factor authentication
             'two_factor_enabled' => ! is_null($this->two_factor_secret),
             'two_factor_confirmed' => ! is_null($this->two_factor_confirmed_at),
-
-            // OAuth providers
             'oauth_providers' => $this->whenLoaded(
                 'oauthProviders',
                 fn () => $this->oauthProviders->pluck('provider')

@@ -182,10 +182,10 @@
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import TableData from "@/components/TableData.vue";
-import AuthUserInfo from "@/components/auth/UserInfo.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import UserProfile from "@/components/user/Profile.vue";
 import { PopoverClose } from "reka-ui";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
@@ -313,7 +313,7 @@ const columns = [
   {
     header: "Name",
     accessorKey: "name",
-    cell: ({ row }) => h(AuthUserInfo, { user: row.original }),
+    cell: ({ row }) => h(UserProfile, { user: row.original }),
     size: 280,
     enableHiding: false,
     filterFn: (row, columnId, filterValue) => {

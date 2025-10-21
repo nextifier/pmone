@@ -1,6 +1,6 @@
 <template>
   <div v-if="user" class="flex items-center gap-x-1.5 tracking-tight">
-    <AuthUserAvatar :user="user" class="size-8" />
+    <Avatar :model="user" class="size-8" />
     <div class="grid flex-1 text-left text-sm leading-tight">
       <span
         class="text-foreground inline-flex items-center gap-x-[3px] truncate align-middle font-medium"
@@ -21,7 +21,9 @@
           </template>
         </Tippy>
       </span>
-      <span class="truncate text-xs">{{ user.email }}</span>
+      <span v-if="user?.email" class="text-muted-foreground truncate text-xs">{{
+        user.email
+      }}</span>
     </div>
   </div>
 </template>

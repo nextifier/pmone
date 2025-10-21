@@ -7,7 +7,7 @@
             size="lg"
             class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           >
-            <AuthUserInfo :user="user" :showVerifyIcon="true" :showRoleIcon="true" />
+            <UserProfile :user="user" :showVerifyIcon="true" :showRoleIcon="true" />
             <ChevronsUpDown class="ml-auto size-4" />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
@@ -19,7 +19,7 @@
         >
           <DropdownMenuLabel class="p-0 font-normal">
             <NuxtLink to="/settings/profile" @click="setOpenMobile(false)">
-              <AuthUserInfo :user="user" class="px-1 py-1.5" />
+              <UserProfile :user="user" class="px-1 py-1.5" />
             </NuxtLink>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />

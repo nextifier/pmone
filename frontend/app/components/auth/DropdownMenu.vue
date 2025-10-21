@@ -2,12 +2,12 @@
   <Popover>
     <PopoverTrigger as-child>
       <button class="rounded-full">
-        <AuthUserAvatar :user="user" class="size-8" :showIndicator="true" />
+        <Avatar :model="user" class="size-8" :showIndicator="true" />
       </button>
     </PopoverTrigger>
     <PopoverContent class="flex w-56 flex-col gap-y-1 rounded-lg px-0 py-1" align="end">
       <NuxtLink to="/settings/profile" class="px-1.5 py-1">
-        <AuthUserInfo :user="user" :showVerifyIcon="true" :showRoleIcon="true" />
+        <UserProfile :user="user" :showVerifyIcon="true" :showRoleIcon="true" />
       </NuxtLink>
 
       <span class="border-border my-0 h-px w-full border-t"></span>

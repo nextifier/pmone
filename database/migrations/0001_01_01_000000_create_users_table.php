@@ -23,7 +23,6 @@ return new class extends Migration
             $table->date('birth_date')->nullable();
             $table->enum('gender', ['male', 'female', 'other'])->nullable();
             $table->text('bio')->nullable();
-            $table->json('links')->nullable();
             $table->json('user_settings')->nullable();
             $table->json('more_details')->nullable();
             $table->string('status')->default('active');

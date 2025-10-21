@@ -24,6 +24,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule): void {
         // Cleanup temporary uploads older than 1 hour, run hourly
         $schedule->command('uploads:cleanup-temp --hours=1')->hourly();
+
+        // Cleanup tracking data older than 3 years, run daily at 2 AM
+        $schedule->command('tracking:cleanup')->dailyAt('02:00');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

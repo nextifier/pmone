@@ -121,11 +121,6 @@ class UserSeeder extends Seeder
                 'birth_date' => '1990-01-15',
                 'gender' => 'male',
                 'bio' => 'Master administrator of PM One platform. Responsible for overall system management and strategic decisions.',
-                'links' => [
-                    ['label' => 'Website', 'url' => 'https://panoramamedia.co.id'],
-                    ['label' => 'LinkedIn', 'url' => 'https://linkedin.com/in/super-admin'],
-                    ['label' => 'X', 'url' => 'https://twitter.com/pmone_admin'],
-                ],
                 'user_settings' => [
                     'theme' => 'dark',
                     'language' => 'id',
@@ -156,9 +151,6 @@ class UserSeeder extends Seeder
         // Role-specific data
         $roleSpecificData = $this->getRoleSpecificData($role, $faker);
 
-        // Generate optional links
-        $links = $this->generateUserLinks($faker, $name, $username);
-
         $user = User::create([
             'ulid' => (string) Str::ulid(),
             'name' => $name,
@@ -170,7 +162,6 @@ class UserSeeder extends Seeder
             'birth_date' => $faker->boolean(60) ? $faker->date('Y-m-d', '-18 years') : null,
             'gender' => $faker->boolean(80) ? $faker->randomElement($genders) : null,
             'bio' => $faker->boolean(40) ? $faker->realText($faker->numberBetween(50, 200)) : null,
-            'links' => ! empty($links) ? $links : null,
             'user_settings' => [
                 'theme' => $faker->randomElement($themes),
                 'language' => $faker->randomElement($languages),
@@ -204,35 +195,11 @@ class UserSeeder extends Seeder
         return $username;
     }
 
-    private function generateUserLinks($faker, string $name, string $username): array
-    {
-        $links = [];
-        $linkOptions = [
-            ['label' => 'Website', 'chance' => 30, 'url' => $faker->url()],
-            ['label' => 'LinkedIn', 'chance' => 50, 'url' => 'https://linkedin.com/in/'.Str::slug($name)],
-            ['label' => 'Instagram', 'chance' => 40, 'url' => 'https://instagram.com/'.$username],
-            ['label' => 'X', 'chance' => 25, 'url' => 'https://twitter.com/'.$username],
-            ['label' => 'GitHub', 'chance' => 20, 'url' => 'https://github.com/'.$username],
-            ['label' => 'YouTube', 'chance' => 15, 'url' => 'https://youtube.com/@'.$username],
-        ];
-
-        foreach ($linkOptions as $linkOption) {
-            if ($faker->boolean($linkOption['chance'])) {
-                $links[] = [
-                    'label' => $linkOption['label'],
-                    'url' => $linkOption['url'],
-                ];
-            }
-        }
-
-        return $links;
-    }
-
     private function attachRandomProfileImage(User $user, $faker): void
     {
         if ($faker->boolean(self::CHANCE_USER_HAVING_AVATAR)) {
             $avatarNumber = $faker->numberBetween(1, self::AVATAR_COUNT);
-            $avatarPath = public_path("dummy-avatars/avatar-{$avatarNumber}.jpg");
+            $avatarPath = public_path("dummy/users/avatar-{$avatarNumber}.jpg");
 
             // Copy to temp file to avoid moving original
             $tempPath = tempnam(sys_get_temp_dir(), 'avatar_').'.jpg';

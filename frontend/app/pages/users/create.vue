@@ -1,6 +1,6 @@
 <template>
-  <div class="mx-auto max-w-md space-y-8">
-    <div class="flex flex-col items-start gap-y-5">
+  <div class="mx-auto max-w-md space-y-9">
+    <div class="flex flex-col items-start gap-y-6">
       <BackButton destination="/users" />
 
       <h1 class="page-title">Create New User</h1>
@@ -23,8 +23,8 @@
 </template>
 
 <script setup>
-import { toast } from "vue-sonner";
 import FormProfile from "@/components/FormProfile.vue";
+import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: ["sanctum:auth", "admin-master"],

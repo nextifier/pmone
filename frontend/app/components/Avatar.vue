@@ -1,12 +1,12 @@
 <template>
   <div
-    v-if="user"
+    v-if="model"
     class="border-border bg-muted text-foreground relative flex aspect-square items-center justify-center rounded-lg border text-center"
   >
     <img
-      v-if="user.profile_image"
-      :src="user.profile_image?.sm"
-      :alt="user?.name"
+      v-if="model?.profile_image"
+      :src="model?.profile_image?.sm"
+      :alt="model?.name"
       class="pointer-events-none size-full rounded-lg object-cover select-none"
       width="100"
       height="100"
@@ -14,7 +14,7 @@
       referrerPolicy="no-referrer"
     />
     <div v-else>
-      <span class="text-sm tracking-wide">{{ initial }}</span>
+      <span class="initial text-sm tracking-wide">{{ initial }}</span>
     </div>
 
     <span
@@ -26,15 +26,19 @@
 
 <script setup>
 const props = defineProps({
-  user: Object,
+  model: Object,
   showIndicator: {
     type: Boolean,
     default: false,
   },
+  size: {
+    type: String,
+    default: "sm", // Available: 'sm', 'md', 'lg', 'xl', 'original'
+  },
 });
 
 const initial = computed(() => {
-  let names = props?.user?.name?.split(" "),
+  let names = props?.model?.name?.split(" "),
     initials = names[0].substring(0, 1).toUpperCase();
   if (names.length == 1) {
     initials += names[0].substring(1, 2).toUpperCase();
@@ -44,5 +48,3 @@ const initial = computed(() => {
   return initials;
 });
 </script>
-
-<style></style>

@@ -1,37 +1,48 @@
 <template>
   <div class="mx-auto max-w-md space-y-6">
-    <div class="flex flex-col gap-y-6">
-      <div class="flex w-full items-center justify-between">
-        <div class="flex items-center gap-x-2.5">
-          <Icon name="hugeicons:edit-user-02" class="size-5 sm:size-6" />
-          <h1 class="page-title">Edit Profile</h1>
+    <template v-if="userData">
+      <div class="flex flex-col gap-y-6">
+        <div class="flex w-full items-center justify-between">
+          <div class="flex items-center gap-x-2.5">
+            <Icon name="hugeicons:edit-user-02" class="size-5 sm:size-6" />
+            <h1 class="page-title">Edit Profile</h1>
+          </div>
+
+          <button
+            @click="formProfileRef?.handleSubmit()"
+            :disabled="isSubmitting"
+            class="text-primary-foreground hover:bg-primary/80 bg-primary flex items-center justify-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
+          >
+            <Spinner v-if="isSubmitting" />
+            <span>Save</span>
+          </button>
         </div>
-
-        <button
-          @click="formProfileRef?.handleSubmit()"
-          :disabled="isSubmitting"
-          class="text-primary-foreground hover:bg-primary/80 bg-primary flex items-center justify-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
-        >
-          <Spinner v-if="isSubmitting" />
-          <span>Save</span>
-        </button>
       </div>
-    </div>
 
-    <FormProfile
-      ref="formProfileRef"
-      :initial-data="userData"
-      :loading="isSubmitting"
-      :errors="errors"
-      :is-create="false"
-      :show-password="false"
-      :show-account-settings="false"
-      :show-roles="false"
-      :show-images="true"
-      submit-text="Update Profile"
-      submit-loading-text="Updating.."
-      @submit="handleSubmit"
-    />
+      <FormProfile
+        ref="formProfileRef"
+        :initial-data="userData"
+        :loading="isSubmitting"
+        :errors="errors"
+        :is-create="false"
+        :show-password="false"
+        :show-account-settings="false"
+        :show-roles="false"
+        :show-images="true"
+        submit-text="Update Profile"
+        submit-loading-text="Updating.."
+        @submit="handleSubmit"
+      />
+    </template>
+
+    <template v-else>
+      <div class="min-h-screen-offset flex w-full items-center justify-center">
+        <div class="flex items-center gap-1.5">
+          <Spinner class="size-4 shrink-0" />
+          <span class="tracking-tight">Loading</span>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 

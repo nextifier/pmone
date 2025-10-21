@@ -7,7 +7,10 @@
       </div>
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <ImportDialog v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))" @imported="refresh">
+        <ImportDialog
+          v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
+          @imported="refresh"
+        >
           <template #trigger="{ open }">
             <button
               @click="open()"
@@ -159,12 +162,12 @@
 
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
-import ImportDialog from "@/components/users/ImportDialog.vue";
 import TableData from "@/components/TableData.vue";
-import AuthUserInfo from "@/components/auth/UserInfo.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import ImportDialog from "@/components/user/ImportDialog.vue";
+import UserProfile from "@/components/user/Profile.vue";
 import { PopoverClose } from "reka-ui";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
@@ -302,7 +305,7 @@ const columns = [
           class: "block hover:opacity-80 transition-opacity",
         },
         {
-          default: () => h(AuthUserInfo, { user: row.original }),
+          default: () => h(UserProfile, { user: row.original }),
         }
       ),
     size: 280,

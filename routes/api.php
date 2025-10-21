@@ -1,7 +1,11 @@
 <?php
 
+use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\LogController;
+use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TemporaryUploadController;
+use App\Http\Controllers\Api\TrackingController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\MediaController;
 use Illuminate\Support\Facades\Route;
@@ -55,6 +59,22 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/{user}', [UserController::class, 'destroy'])->middleware('can:users.delete');
     });
 
+    // Project management endpoints
+    Route::prefix('projects')->group(function () {
+        Route::get('/', [ProjectController::class, 'index'])->name('projects.index');
+        Route::post('/', [ProjectController::class, 'store'])->name('projects.store');
+        Route::get('/eligible-members', [ProjectController::class, 'getEligibleMembers'])->name('projects.eligible-members');
+        Route::delete('/bulk', [ProjectController::class, 'bulkDestroy'])->name('projects.bulk-destroy');
+        Route::get('/trash', [ProjectController::class, 'trash'])->name('projects.trash');
+        Route::post('/trash/restore/bulk', [ProjectController::class, 'bulkRestore'])->name('projects.bulk-restore');
+        Route::post('/trash/{id}/restore', [ProjectController::class, 'restore'])->name('projects.restore');
+        Route::delete('/trash/bulk', [ProjectController::class, 'bulkForceDestroy'])->name('projects.bulk-force-destroy');
+        Route::delete('/trash/{id}', [ProjectController::class, 'forceDestroy'])->name('projects.force-destroy');
+        Route::get('/{username}', [ProjectController::class, 'show'])->name('projects.show');
+        Route::put('/{username}', [ProjectController::class, 'update'])->name('projects.update');
+        Route::delete('/{username}', [ProjectController::class, 'destroy'])->name('projects.destroy');
+    });
+
     // Log management endpoints (master and admin only)
     Route::prefix('logs')->group(function () {
         Route::get('/', [LogController::class, 'index']);
@@ -68,4 +88,20 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 Route::prefix('user')->group(function () {
     Route::get('/{user:username}', [UserController::class, 'showByUsername'])
         ->middleware('throttle:api');
+});
+
+// Profile routes (public)
+Route::get('/@{username}', [ProfileController::class, 'getUserProfile'])->middleware('throttle:api');
+Route::get('/p/{username}', [ProfileController::class, 'getProjectProfile'])->middleware('throttle:api');
+Route::get('/{slug}', [ProfileController::class, 'resolveShortLink'])->middleware('throttle:api');
+
+// Tracking routes (public - can track anonymous visitors)
+Route::post('/track/click', [TrackingController::class, 'trackLinkClick'])->middleware('throttle:api');
+
+// Analytics routes (authenticated)
+Route::middleware(['auth:sanctum'])->prefix('analytics')->group(function () {
+    Route::get('/visits', [AnalyticsController::class, 'getVisits']);
+    Route::get('/clicks', [AnalyticsController::class, 'getClicks']);
+    Route::get('/summary', [AnalyticsController::class, 'getSummary']);
+    Route::get('/activity-log', [AnalyticsController::class, 'getActivityLog']);
 });

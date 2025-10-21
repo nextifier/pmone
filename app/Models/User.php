@@ -6,6 +6,9 @@ use App\Traits\HasMediaManager;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -31,7 +34,6 @@ use Spatie\Permission\Traits\HasRoles;
  * @property \Illuminate\Support\Carbon|null $birth_date
  * @property string|null $gender
  * @property string|null $bio
- * @property array<array-key, mixed>|null $links
  * @property array<array-key, mixed>|null $user_settings
  * @property array<array-key, mixed>|null $more_details
  * @property string $status
@@ -89,7 +91,6 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereGender($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLastSeen($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLinks($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereMoreDetails($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePassword($value)
@@ -140,7 +141,6 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         'birth_date',
         'gender',
         'bio',
-        'links',
         'user_settings',
         'more_details',
         'status',
@@ -168,7 +168,6 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
         'birth_date' => 'date',
-        'links' => 'array',
         'user_settings' => 'array',
         'more_details' => 'array',
         'last_seen' => 'datetime',
@@ -454,23 +453,31 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         $this->update(['user_settings' => $settings]);
     }
 
-    public function getLink(string $type): ?string
+    public function projects(): BelongsToMany
     {
-        return data_get($this->links, $type);
+        return $this->belongsToMany(Project::class)
+            ->withTimestamps();
     }
 
-    public function setLink(string $type, string $url): void
+    public function links(): MorphMany
     {
-        $links = $this->links ?? [];
-        $links[$type] = $url;
-        $this->update(['links' => $links]);
+        return $this->morphMany(Link::class, 'linkable')
+            ->orderBy('order');
     }
 
-    public function removeLink(string $type): void
+    public function shortLinks(): HasMany
     {
-        $links = $this->links ?? [];
-        unset($links[$type]);
-        $this->update(['links' => $links]);
+        return $this->hasMany(ShortLink::class);
+    }
+
+    public function visits(): MorphMany
+    {
+        return $this->morphMany(Visit::class, 'visitable');
+    }
+
+    public function visitsMade(): HasMany
+    {
+        return $this->hasMany(Visit::class, 'visitor_id');
     }
 
     public function creator(): BelongsTo
