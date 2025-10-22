@@ -1,6 +1,5 @@
 <template>
   <div class="mx-auto max-w-xl space-y-6">
-    <!-- Header -->
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:layers-01" class="size-5 sm:size-6" />
@@ -45,31 +44,29 @@
       </div>
     </div>
 
-    <!-- Search and Filters -->
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div class="relative flex-1">
-        <Icon
-          name="lucide:search"
-          class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-        />
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search projects"
-          class="placeholder:text-muted-foreground h-9 w-full rounded-md border bg-transparent px-9 py-1.5 text-sm tracking-tight focus:outline-hidden"
-        />
-        <button
-          v-if="searchQuery"
-          @click="searchQuery = ''"
-          class="bg-muted hover:bg-border absolute top-1/2 right-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full"
-          aria-label="Clear search"
-        >
-          <Icon name="lucide:x" class="size-3 shrink-0" />
-        </button>
-      </div>
+    <div class="grid gap-y-3">
+      <div class="flex gap-x-2">
+        <div class="relative grow">
+          <Icon
+            name="lucide:search"
+            class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+          />
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search projects"
+            class="placeholder:text-muted-foreground h-9 w-full rounded-md border bg-transparent px-9 py-1.5 text-sm tracking-tight focus:outline-hidden"
+          />
+          <button
+            v-if="searchQuery"
+            @click="searchQuery = ''"
+            class="bg-muted hover:bg-border absolute top-1/2 right-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full"
+            aria-label="Clear search"
+          >
+            <Icon name="lucide:x" class="size-3 shrink-0" />
+          </button>
+        </div>
 
-      <div class="flex gap-2">
-        <!-- Status Filter -->
         <Popover>
           <PopoverTrigger asChild>
             <button
@@ -110,32 +107,31 @@
             </div>
           </PopoverContent>
         </Popover>
+      </div>
 
-        <!-- Refresh Button -->
+      <div class="flex h-9 justify-end gap-x-2">
         <button
           @click="refresh"
           :disabled="pending"
-          class="hover:bg-muted flex h-9 items-center gap-x-1.5 rounded-md border px-3 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+          class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
         >
           <Icon
             name="lucide:refresh-cw"
             class="size-4 shrink-0"
             :class="pending ? 'animate-spin' : ''"
           />
-          <span class="hidden sm:inline">Refresh</span>
+          <span class="hidden sm:flex">Refresh</span>
         </button>
-      </div>
-    </div>
 
-    <div class="flex justify-end">
-      <NuxtLink
-        v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
-        to="/projects/create"
-        class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
-      >
-        <Icon name="lucide:plus" class="size-4 shrink-0" />
-        <span>Add Project</span>
-      </NuxtLink>
+        <NuxtLink
+          v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
+          to="/projects/create"
+          class="hover:bg-primary/80 text-primary-foreground bg-primary flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
+        >
+          <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
+          <span>Add Project</span>
+        </NuxtLink>
+      </div>
     </div>
 
     <!-- Error State -->

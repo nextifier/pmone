@@ -119,7 +119,7 @@
             <NuxtLink
               v-if="showAddButton"
               :to="`/${props.model}/create`"
-              class="hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm tracking-tight active:scale-98"
+              class="hover:bg-primary/80 text-primary-foreground bg-primary flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
             >
               <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
               <span>Add {{ props.model.slice(0, -1) }}</span>
@@ -279,10 +279,7 @@
             >
               Rows per page
             </p>
-            <Select
-              :model-value="currentPageSizeValue"
-              @update:model-value="handlePageSizeChange"
-            >
+            <Select :model-value="currentPageSizeValue" @update:model-value="handlePageSizeChange">
               <SelectTrigger size="sm">
                 <SelectValue :placeholder="currentPageSizeDisplay" />
               </SelectTrigger>
@@ -290,9 +287,7 @@
                 <SelectItem v-for="pageSize in pageSizes" :key="pageSize" :value="`${pageSize}`">
                   {{ pageSize }}
                 </SelectItem>
-                <SelectItem value="all">
-                  All
-                </SelectItem>
+                <SelectItem value="all"> All </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -530,7 +525,7 @@ const table = useVueTable({
 // Handle page size change
 const handlePageSizeChange = (value) => {
   // If "all" is selected, set page size to total items
-  const newPageSize = value === 'all' ? totalItems.value : Number(value);
+  const newPageSize = value === "all" ? totalItems.value : Number(value);
   const currentPageSize = pagination.value.pageSize;
 
   // Only update if page size actually changed
@@ -640,12 +635,12 @@ const totalItems = computed(() =>
 const currentPageSizeValue = computed(() => {
   const pageSize = table.getState().pagination.pageSize;
   // Check if current page size equals total items (which means "All" is selected)
-  return pageSize === totalItems.value ? 'all' : `${pageSize}`;
+  return pageSize === totalItems.value ? "all" : `${pageSize}`;
 });
 
 const currentPageSizeDisplay = computed(() => {
   const pageSize = table.getState().pagination.pageSize;
-  return pageSize === totalItems.value ? 'All' : `${pageSize}`;
+  return pageSize === totalItems.value ? "All" : `${pageSize}`;
 });
 
 // Expose table instance for parent
