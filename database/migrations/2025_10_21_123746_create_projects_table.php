@@ -23,6 +23,7 @@ return new class extends Migration
             $table->enum('visibility', ['public', 'private', 'members_only'])->default('public');
             $table->string('email')->nullable();
             $table->json('phone')->nullable();
+            $table->integer('order_column')->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->foreignId('created_by')->nullable()->constrained('users');

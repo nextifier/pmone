@@ -53,6 +53,8 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read int|null $activities_count
  * @property-read User|null $creator
  * @property-read User|null $deleter
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Link> $links
+ * @property-read int|null $links_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MagicLink> $magicLinks
  * @property-read int|null $magic_links_count
  * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
@@ -63,11 +65,19 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read int|null $oauth_providers_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Permission\Models\Permission> $permissions
  * @property-read int|null $permissions_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Project> $projects
+ * @property-read int|null $projects_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Permission\Models\Role> $roles
  * @property-read int|null $roles_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ShortLink> $shortLinks
+ * @property-read int|null $short_links_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Sanctum\PersonalAccessToken> $tokens
  * @property-read int|null $tokens_count
  * @property-read User|null $updater
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
+ * @property-read int|null $visits_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visitsMade
+ * @property-read int|null $visits_made_count
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User byStatus(string $status)

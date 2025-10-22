@@ -24,7 +24,11 @@ class ProjectResource extends JsonResource
                 'email' => $this->email,
                 'status' => $this->status,
                 'visibility' => $this->visibility,
-                'profile_image' => $this->getMediaUrls('profile_image'),
+                'order_column' => $this->order_column,
+                'profile_image' => $this->when(
+                    $this->hasMedia('profile_image'),
+                    $this->getMediaUrls('profile_image')
+                ),
                 'members_count' => $this->whenLoaded('members', fn () => $this->members->count()),
                 'created_at' => $this->created_at,
                 'updated_at' => $this->updated_at,
@@ -61,34 +65,6 @@ class ProjectResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
-        ];
-    }
-
-    /**
-     * Get all media URLs including conversions for a collection
-     */
-    private function getMediaUrls(string $collection): array
-    {
-        $media = $this->getFirstMedia($collection);
-
-        if (! $media) {
-            return [
-                'original' => null,
-                'lqip' => null,
-                'sm' => null,
-                'md' => null,
-                'lg' => null,
-                'xl' => null,
-            ];
-        }
-
-        return [
-            'original' => $media->getUrl(),
-            'lqip' => $media->getUrl('lqip'),
-            'sm' => $media->getUrl('sm'),
-            'md' => $media->getUrl('md'),
-            'lg' => $media->getUrl('lg'),
-            'xl' => $media->getUrl('xl'),
         ];
     }
 }

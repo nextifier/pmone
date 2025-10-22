@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="model"
-    class="border-border bg-muted text-foreground relative flex aspect-square items-center justify-center rounded-lg border text-center"
+    class="border-border bg-muted text-foreground relative flex aspect-square shrink-0 items-center justify-center rounded-lg border text-center"
   >
     <img
       v-if="model?.profile_image"

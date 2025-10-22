@@ -34,12 +34,12 @@
 
       <div class="space-y-2">
         <div class="flex items-center justify-between gap-x-2">
-          <Label for="username">Username *</Label>
+          <Label for="username">Username</Label>
           <p class="text-muted-foreground line-clamp-1 text-xs tracking-tight">
-            This will be used in the project URL
+            {{ isCreate ? "Will be auto-generated if left empty." : "" }}
           </p>
         </div>
-        <Input id="username" v-model="form.username" type="text" required />
+        <Input id="username" v-model="form.username" type="text" :required="!isCreate" />
         <InputErrorMessage :errors="errors.username" />
       </div>
 
@@ -70,6 +70,62 @@
           placeholder="Search members..."
         />
         <InputErrorMessage :errors="errors.member_ids" />
+      </div>
+
+      <div class="space-y-3">
+        <h3 class="text-muted-foreground text-sm font-medium tracking-tight">Links</h3>
+
+        <div v-if="form.links.length > 0" class="space-y-2">
+          <div v-for="(link, index) in form.links" :key="index" class="flex items-center gap-1.5">
+            <div class="min-w-42">
+              <Select
+                v-model="link.label"
+                @update:model-value="(value) => handleLabelChange(index, value)"
+              >
+                <div v-if="link.isCustomLabel" class="relative">
+                  <Input
+                    v-model="link.label"
+                    type="text"
+                    placeholder="Enter custom label"
+                    class="pr-7"
+                  />
+                  <SelectTrigger
+                    class="absolute top-0 right-0 flex size-8 items-center justify-center border-transparent bg-transparent !p-0 [&_svg]:!m-0"
+                  />
+                </div>
+                <SelectTrigger v-else class="w-full">
+                  <SelectValue placeholder="Select label" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="label in PREDEFINED_LABELS" :key="label" :value="label">
+                    {{ label }}
+                  </SelectItem>
+                  <SelectItem value="Custom">Custom</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Input v-model="link.url" type="url" placeholder="Enter URL" class="grow" />
+
+            <button
+              type="button"
+              @click="removeLink(index)"
+              class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+            >
+              <Icon name="hugeicons:delete-01" class="size-4" />
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          @click="addLink"
+          class="text-primary hover:text-primary/80 flex items-center gap-x-1 py-1 text-sm font-medium tracking-tight transition"
+        >
+          <Icon name="hugeicons:add-01" class="size-4" />
+          Add Link
+        </button>
+        <InputErrorMessage :errors="errors.links" />
       </div>
 
       <div class="grid grid-cols-2 gap-3">
@@ -116,10 +172,6 @@
       </button>
     </div>
   </form>
-
-  <div class="border-border text-foreground w-full overflow-x-scroll rounded-xl border p-4">
-    <pre class="text-foreground/80 text-sm !leading-[1.5]">{{ eligibleMembers }}</pre>
-  </div>
 </template>
 
 <script setup>
@@ -135,6 +187,16 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "vue-sonner";
 
+// Constants
+const PREDEFINED_LABELS = [
+  "Website",
+  "Instagram",
+  "Facebook",
+  "X",
+  "TikTok",
+  "LinkedIn",
+  "YouTube",
+];
 const FILE_STATUS = {
   PROCESSING: 3,
 };
@@ -153,6 +215,7 @@ function createEmptyForm() {
     status: "active",
     visibility: "public",
     member_ids: [],
+    links: [],
   };
 }
 
@@ -216,6 +279,31 @@ watch(
   { deep: true }
 );
 
+// Add link
+function addLink() {
+  form.links.push({
+    label: "",
+    url: "",
+    isCustomLabel: false,
+  });
+}
+
+// Remove link
+function removeLink(index) {
+  form.links.splice(index, 1);
+}
+
+// Handle label change
+function handleLabelChange(index, value) {
+  if (value === "Custom") {
+    form.links[index].isCustomLabel = true;
+    form.links[index].label = "";
+  } else {
+    form.links[index].isCustomLabel = false;
+    form.links[index].label = value;
+  }
+}
+
 // Populate form with initial data
 function populateForm(data) {
   if (!data || Object.keys(data).length === 0) return;
@@ -234,6 +322,19 @@ function populateForm(data) {
   if (Array.isArray(data.members) && data.members.length > 0) {
     form.member_ids = data.members.map((member) => member.id);
     selectedMembers.value = data.members;
+  }
+
+  // Handle links
+  form.links.splice(0, form.links.length);
+
+  if (Array.isArray(data.links) && data.links.length > 0) {
+    const formattedLinks = data.links.map((link) => ({
+      label: link.label || "",
+      url: link.url || "",
+      isCustomLabel: !PREDEFINED_LABELS.includes(link.label),
+    }));
+
+    form.links.push(...formattedLinks);
   }
 
   // Clear file uploads and reset delete flags
@@ -267,8 +368,18 @@ function handleSubmit() {
     return;
   }
 
+  // Filter out empty links (both label and url are empty)
+  const filteredLinks = form.links.filter((link) => link.label || link.url);
+
+  // Map links to only include label and url (remove isCustomLabel flag)
+  const formattedLinks = filteredLinks.map((link) => ({
+    label: link.label,
+    url: link.url,
+  }));
+
   const payload = {
     ...form,
+    links: formattedLinks,
   };
 
   // Handle profile image

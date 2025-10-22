@@ -1,5 +1,6 @@
 <template>
-  <div class="mx-auto max-w-4xl space-y-6">
+  <div class="mx-auto max-w-xl space-y-6">
+    <!-- Header -->
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:layers-01" class="size-5 sm:size-6" />
@@ -30,8 +31,17 @@
         >
           <Spinner v-if="exportPending" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
-          <span>Export {{ columnFilters?.length ? "selected" : "all" }}</span>
+          <span>Export</span>
         </button>
+
+        <NuxtLink
+          v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
+          to="/projects/create"
+          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
+        >
+          <Icon name="lucide:plus" class="size-4 shrink-0" />
+          <span>Add Project</span>
+        </NuxtLink>
 
         <nuxt-link
           v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
@@ -44,119 +54,280 @@
       </div>
     </div>
 
-    <TableData
-      :clientOnly="clientOnly"
-      ref="tableRef"
-      :data="data"
-      :columns="columns"
-      :meta="meta"
-      :pending="pending"
-      :error="error"
-      model="projects"
-      search-column="name"
-      search-placeholder="Search projects by name or username"
-      error-title="Error loading projects"
-      :initial-pagination="pagination"
-      :initial-sorting="sorting"
-      :initial-column-filters="columnFilters"
-      @update:pagination="pagination = $event"
-      @update:sorting="sorting = $event"
-      @update:column-filters="columnFilters = $event"
-      @refresh="refresh"
-    >
-      <template #filters="{ table }">
-        <!-- Filter Popover -->
+    <!-- Search and Filters -->
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="relative flex-1">
+        <Icon
+          name="lucide:search"
+          class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+        />
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search projects"
+          class="placeholder:text-muted-foreground h-9 w-full rounded-md border bg-transparent px-9 py-1.5 text-sm tracking-tight focus:outline-hidden"
+        />
+        <button
+          v-if="searchQuery"
+          @click="searchQuery = ''"
+          class="bg-muted hover:bg-border absolute top-1/2 right-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full"
+          aria-label="Clear search"
+        >
+          <Icon name="lucide:x" class="size-3 shrink-0" />
+        </button>
+      </div>
+
+      <div class="flex gap-2">
+        <!-- Status Filter -->
         <Popover>
           <PopoverTrigger asChild>
             <button
-              class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+              class="hover:bg-muted relative flex h-9 shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-3 text-sm tracking-tight active:scale-98"
             >
               <Icon name="lucide:list-filter" class="size-4 shrink-0" />
-              <span class="hidden sm:flex">Filter</span>
+              <span>Filter</span>
               <span
-                v-if="totalActiveFilters > 0"
-                class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
+                v-if="selectedStatuses.length > 0"
+                class="bg-primary text-primary-foreground ml-1 inline-flex size-5 items-center justify-center rounded-full text-[11px] font-medium"
               >
-                {{ totalActiveFilters }}
+                {{ selectedStatuses.length }}
               </span>
             </button>
           </PopoverTrigger>
-          <PopoverContent class="w-auto min-w-48 p-3" align="start">
-            <div class="space-y-4">
-              <FilterSection
-                title="Status"
-                :options="['active', 'draft']"
-                :selected="selectedStatuses"
-                @change="handleFilterChange('status', $event)"
-              />
+          <PopoverContent class="w-48 p-3" align="end">
+            <div class="space-y-3">
+              <div class="text-muted-foreground text-xs font-medium">Status</div>
+              <div class="space-y-2">
+                <div
+                  v-for="status in ['active', 'draft', 'archived']"
+                  :key="status"
+                  class="flex items-center gap-2"
+                >
+                  <Checkbox
+                    :id="`status-${status}`"
+                    :checked="selectedStatuses.includes(status)"
+                    @update:checked="toggleStatus(status)"
+                  />
+                  <Label
+                    :for="`status-${status}`"
+                    class="grow cursor-pointer font-normal tracking-tight capitalize"
+                  >
+                    {{ status }}
+                  </Label>
+                </div>
+              </div>
             </div>
           </PopoverContent>
         </Popover>
-      </template>
 
-      <template #actions="{ selectedRows }">
-        <DialogResponsive
-          v-if="selectedRows.length > 0"
-          v-model:open="deleteDialogOpen"
-          class="h-full"
+        <!-- Refresh Button -->
+        <button
+          @click="refresh"
+          :disabled="pending"
+          class="hover:bg-muted flex h-9 items-center gap-x-1.5 rounded-md border px-3 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <template #trigger="{ open }">
-            <button
-              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
-              @click="open()"
-            >
-              <Icon name="lucide:trash" class="size-4 shrink-0" />
-              <span class="text-sm tracking-tight">Delete</span>
-              <span
-                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
-              >
-                {{ selectedRows.length }}
-              </span>
-            </button>
-          </template>
-          <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
-              <p class="text-body mt-1.5 text-sm tracking-tight">
-                This action can't be undone. This will permanently delete
-                {{ selectedRows.length }} selected {{ selectedRows.length === 1 ? "row" : "rows" }}.
-              </p>
-              <div class="mt-3 flex justify-end gap-2">
-                <button
-                  class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-                  @click="deleteDialogOpen = false"
-                >
-                  Cancel
-                </button>
-                <button
-                  @click="handleDeleteRows(selectedRows)"
-                  class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </template>
-        </DialogResponsive>
-      </template>
-    </TableData>
+          <Icon
+            name="lucide:refresh-cw"
+            class="size-4 shrink-0"
+            :class="pending ? 'animate-spin' : ''"
+          />
+          <span class="hidden sm:inline">Refresh</span>
+        </button>
+      </div>
+    </div>
 
-    <!-- <div class="border-border text-foreground w-full overflow-x-scroll rounded-xl border p-4">
-      <pre class="text-foreground/80 text-sm !leading-[1.5]">{{ data }}</pre>
-    </div> -->
+    <!-- Filter Active Warning -->
+    <div
+      v-if="hasActiveFilters && filteredProjects.length > 0"
+      class="bg-warning/10 border-warning/50 flex items-start gap-x-2 rounded-lg border p-3"
+    >
+      <Icon name="lucide:alert-triangle" class="text-warning mt-0.5 size-4 shrink-0" />
+      <div class="flex-1">
+        <p class="text-sm tracking-tight">
+          <span class="font-medium">Drag & drop disabled</span> while filters are active. Clear
+          filters to reorder projects.
+        </p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div
+      v-if="error"
+      class="border-destructive/50 bg-destructive/10 flex flex-col items-start gap-y-3 rounded-lg border p-4"
+    >
+      <div class="text-destructive flex items-center gap-x-2">
+        <Icon name="hugeicons:alert-circle" class="size-5" />
+        <span class="font-medium tracking-tight">Error loading projects</span>
+      </div>
+      <p class="text-sm tracking-tight">
+        {{ error?.message || "An error occurred while fetching data." }}
+      </p>
+    </div>
+
+    <!-- Loading State -->
+    <div v-else-if="pending" class="flex items-center justify-center py-12">
+      <Spinner class="size-8" />
+    </div>
+
+    <!-- Empty State -->
+    <div
+      v-else-if="filteredProjects.length === 0"
+      class="flex flex-col items-center gap-4 rounded-lg border border-dashed py-12 text-center"
+    >
+      <div class="text-muted-foreground flex items-center gap-2">
+        <Icon name="hugeicons:folder-search" class="size-12" />
+      </div>
+      <div class="space-y-1">
+        <h3 class="text-lg font-semibold tracking-tight">No projects found</h3>
+        <p class="text-muted-foreground text-sm">
+          {{
+            searchQuery
+              ? "Try adjusting your search query."
+              : "Get started by creating a new project."
+          }}
+        </p>
+      </div>
+      <NuxtLink
+        v-if="!searchQuery"
+        to="/projects/create"
+        class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+      >
+        <Icon name="lucide:plus" class="size-4 shrink-0" />
+        <span>Create Project</span>
+      </NuxtLink>
+    </div>
+
+    <!-- Projects List (Sortable) -->
+    <div v-else ref="projectsList" class="divide-border divide-y rounded-lg border">
+      <div
+        v-for="project in filteredProjects"
+        :key="project.id"
+        :data-id="project.id"
+        class="flex items-center gap-x-2 bg-white px-2 py-4 transition-all first:rounded-t-lg last:rounded-b-lg dark:bg-gray-900/50"
+      >
+        <!-- Drag Handle -->
+        <div
+          class="hover:bg-muted text-muted-foreground hover:text-primary -mx-1 flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
+          :class="
+            hasActiveFilters
+              ? 'cursor-not-allowed opacity-30'
+              : 'drag-handle cursor-grab active:cursor-grabbing'
+          "
+        >
+          <Icon name="lucide:grip-vertical" class="size-5" />
+        </div>
+
+        <!-- Project Info -->
+        <div class="flex w-full items-center gap-x-2">
+          <!-- Avatar -->
+          <Avatar :model="project" class="size-12" />
+
+          <!-- Details -->
+          <div class="flex grow flex-col gap-y-1.5">
+            <div class="flex items-center gap-x-2">
+              <h3 class="text-sm font-semibold tracking-tight">{{ project.name }}</h3>
+
+              <span
+                class="flex items-center gap-x-1 rounded-full px-2 py-0.5 text-xs font-medium tracking-tight capitalize"
+                :class="{
+                  'bg-success/10 text-success-foreground': project.status === 'active',
+                  'bg-warning/10 text-warning-foreground': project.status === 'draft',
+                  'bg-border/70 text-muted-foreground': project.status === 'archived',
+                }"
+              >
+                <span
+                  class="size-1.5 rounded-full"
+                  :class="{
+                    'bg-success': project.status === 'active',
+                    'bg-warning': project.status === 'draft',
+                    'bg-muted-foreground': project.status === 'archived',
+                  }"
+                ></span>
+                {{ project.status }}
+              </span>
+            </div>
+
+            <div class="text-muted-foreground flex gap-x-3 text-xs tracking-tight">
+              <span> @{{ project.username }}</span>
+
+              <span v-if="project.members_count" class="flex items-center gap-x-1">
+                <Icon name="lucide:users" class="size-3.5" />
+                {{ project.members_count }} member{{ project.members_count > 1 ? "s" : "" }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex shrink-0 items-center">
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                class="hover:bg-muted data-[state=open]:bg-muted inline-flex size-8 items-center justify-center rounded-md"
+              >
+                <Icon name="lucide:ellipsis" class="size-4" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" class="w-40 p-1">
+              <NuxtLink
+                :to="`/projects/${project.username}/edit`"
+                class="hover:bg-muted flex items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
+              >
+                <Icon name="lucide:pencil-line" class="size-4 shrink-0" />
+                <span>Edit</span>
+              </NuxtLink>
+
+              <button
+                @click="openDeleteDialog(project)"
+                class="hover:bg-destructive/10 text-destructive flex items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
+              >
+                <Icon name="lucide:trash" class="size-4 shrink-0" />
+                <span>Delete</span>
+              </button>
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Dialog -->
+    <DialogResponsive v-model:open="deleteDialogOpen">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="text-primary text-lg font-semibold tracking-tight">Delete Project?</div>
+          <p class="text-body mt-1.5 text-sm tracking-tight">
+            Are you sure you want to delete <strong>{{ projectToDelete?.name }}</strong
+            >? This action cannot be undone.
+          </p>
+          <div class="mt-4 flex justify-end gap-2">
+            <button
+              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+              @click="deleteDialogOpen = false"
+            >
+              Cancel
+            </button>
+            <button
+              @click="handleDeleteProject"
+              :disabled="deleteLoading"
+              class="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Spinner v-if="deleteLoading" class="size-4" />
+              <span v-else>Delete</span>
+            </button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
   </div>
 </template>
 
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import ImportDialog from "@/components/project/ImportDialog.vue";
-import ProjectProfile from "@/components/project/Profile.vue";
-import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { PopoverClose } from "reka-ui";
-import { resolveDirective, withDirectives } from "vue";
+import { useSortable } from "@vueuse/integrations/useSortable";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -172,65 +343,25 @@ usePageMeta("projects");
 
 const { user } = useSanctumAuth();
 
-const { $dayjs } = useNuxtApp();
-
-// Table state
-const columnFilters = ref([]);
-const pagination = ref({ pageIndex: 0, pageSize: 20 });
-const sorting = ref([{ id: "created_at", desc: true }]);
-
 // Data state
 const data = ref([]);
-const meta = ref({ current_page: 1, last_page: 1, per_page: 20, total: 0 });
 const pending = ref(false);
 const error = ref(null);
-
-// Client-only mode flag (true = client-side pagination, false = server-side)
-const clientOnly = ref(true);
-
-// Build query params
-const buildQueryParams = () => {
-  const params = new URLSearchParams();
-
-  if (clientOnly.value) {
-    params.append("client_only", "true");
-  } else {
-    // Server-side mode: add pagination, filters, and sorting
-    params.append("page", pagination.value.pageIndex + 1);
-    params.append("per_page", pagination.value.pageSize);
-
-    // Filters
-    const filters = {
-      name: "filter.search",
-      status: "filter.status",
-    };
-
-    Object.entries(filters).forEach(([columnId, paramKey]) => {
-      const filter = columnFilters.value.find((f) => f.id === columnId);
-      if (filter?.value) {
-        const value = Array.isArray(filter.value) ? filter.value.join(",") : filter.value;
-        params.append(paramKey, value);
-      }
-    });
-
-    // Sorting
-    const sortField = sorting.value[0]?.id || "created_at";
-    const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
-    params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
-  }
-
-  return params.toString();
-};
+const searchQuery = ref("");
+const selectedStatuses = ref([]);
 
 // Fetch projects
-const fetchprojects = async () => {
+const fetchProjects = async () => {
   try {
     pending.value = true;
     error.value = null;
     const client = useSanctumClient();
-    const response = await client(`/api/projects?${buildQueryParams()}`);
+    const params = new URLSearchParams();
+    params.append("client_only", "true");
+    params.append("sort", "order_column");
+
+    const response = await client(`/api/projects?${params.toString()}`);
     data.value = response.data;
-    meta.value = response.meta;
   } catch (err) {
     error.value = err;
     console.error("Failed to fetch projects:", err);
@@ -239,158 +370,160 @@ const fetchprojects = async () => {
   }
 };
 
-await fetchprojects();
+await fetchProjects();
 
-// Watchers for server-side mode only
-const debouncedFetch = useDebounceFn(fetchprojects, 300);
+const refresh = fetchProjects;
 
-watch(
-  [columnFilters, sorting, pagination],
-  () => {
-    if (!clientOnly.value) {
-      const hasNameFilter = columnFilters.value.some((f) => f.id === "name");
-      hasNameFilter ? debouncedFetch() : fetchprojects();
-    }
-  },
-  { deep: true }
-);
+// Check if filters are active
+const hasActiveFilters = computed(() => {
+  return searchQuery.value !== "" || selectedStatuses.value.length > 0;
+});
 
-const refresh = fetchprojects;
-
-// Table columns
-const columns = [
-  {
-    id: "select",
-    header: ({ table }) =>
-      h(Checkbox, {
-        modelValue:
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate"),
-        "onUpdate:modelValue": (value) => table.toggleAllPageRowsSelected(!!value),
-        "aria-label": "Select all",
-      }),
-    cell: ({ row }) =>
-      h(Checkbox, {
-        modelValue: row.getIsSelected(),
-        "onUpdate:modelValue": (value) => row.toggleSelected(!!value),
-        "aria-label": "Select row",
-      }),
-    size: 28,
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    header: "Name",
-    accessorKey: "name",
-    cell: ({ row }) =>
-      h(
-        resolveComponent("NuxtLink"),
-        {
-          to: `/projects/${row.original.username}/edit`,
-          class: "block hover:opacity-80 transition-opacity",
-        },
-        {
-          default: () => h(ProjectProfile, { project: row.original }),
-        }
-      ),
-    size: 280,
-    enableHiding: false,
-    filterFn: (row, columnId, filterValue) => {
-      const searchValue = filterValue.toLowerCase();
-      const name = row.original.name?.toLowerCase() || "";
-      const username = row.original.username?.toLowerCase() || "";
-      return name.includes(searchValue) || username.includes(searchValue);
-    },
-  },
-  {
-    header: "Status",
-    accessorKey: "status",
-    cell: ({ row }) => {
-      const status = row.getValue("status");
-      const statusColors = {
-        active: "bg-success",
-        inactive: "bg-destructive",
-        draft: "bg-primary/50",
-        pending: "bg-warning",
-      };
-      return h("div", { class: "flex items-center gap-x-1.5 capitalize text-sm tracking-tight" }, [
-        h("span", { class: ["rounded-full size-2", statusColors[status.toLowerCase()]] }),
-        status,
-      ]);
-    },
-    size: 80,
-    filterFn: (row, columnId, filterValue) => {
-      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
-      const status = row.getValue(columnId);
-      return filterValue.includes(status);
-    },
-  },
-  {
-    header: "Created",
-    accessorKey: "created_at",
-    cell: ({ row }) => {
-      const date = row.getValue("created_at");
-      return withDirectives(
-        h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $dayjs(date).fromNow()),
-        [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
-      );
-    },
-    size: 100,
-  },
-  {
-    id: "actions",
-    header: () => h("span", { class: "sr-only" }, "Actions"),
-    cell: ({ row }) => h(RowActions, { username: row.original.username }),
-    size: 60,
-    enableHiding: false,
-  },
-];
-
-// Table ref
-const tableRef = ref();
-
-// Filter helpers - handle both client and server mode
-const getFilterValue = (columnId) => {
-  if (clientOnly.value && tableRef.value?.table) {
-    return tableRef.value.table.getColumn(columnId)?.getFilterValue() ?? [];
+// Filtered projects
+const filteredProjects = computed(() => {
+  // If no filters, return data directly to allow drag & drop
+  if (!hasActiveFilters.value) {
+    return data.value;
   }
-  return columnFilters.value.find((f) => f.id === columnId)?.value ?? [];
+
+  // Otherwise apply filters
+  let filtered = [...data.value];
+
+  // Apply search filter
+  if (searchQuery.value) {
+    const search = searchQuery.value.toLowerCase();
+    filtered = filtered.filter((project) => {
+      return (
+        project.name?.toLowerCase().includes(search) ||
+        project.username?.toLowerCase().includes(search) ||
+        project.email?.toLowerCase().includes(search)
+      );
+    });
+  }
+
+  // Apply status filter
+  if (selectedStatuses.value.length > 0) {
+    filtered = filtered.filter((project) => selectedStatuses.value.includes(project.status));
+  }
+
+  // Sort filtered results
+  filtered.sort((a, b) => {
+    const orderA = Number(a.order_column) || 0;
+    const orderB = Number(b.order_column) || 0;
+    return orderA - orderB;
+  });
+
+  return filtered;
+});
+
+// Toggle status filter
+const toggleStatus = (status) => {
+  const index = selectedStatuses.value.indexOf(status);
+  if (index > -1) {
+    selectedStatuses.value.splice(index, 1);
+  } else {
+    selectedStatuses.value.push(status);
+  }
 };
 
-const selectedStatuses = computed(() => getFilterValue("status"));
-const totalActiveFilters = computed(() => selectedStatuses.value.length);
+// Sortable functionality
+const projectsList = ref(null);
+const isSyncing = ref(false);
 
-const handleFilterChange = (columnId, { checked, value }) => {
-  if (clientOnly.value && tableRef.value?.table) {
-    // Client-side mode: use table instance
-    const column = tableRef.value.table.getColumn(columnId);
-    if (!column) return;
+const updateProjectOrder = async () => {
+  if (isSyncing.value) return;
 
-    const current = column.getFilterValue() ?? [];
-    const updated = checked ? [...current, value] : current.filter((item) => item !== value);
+  try {
+    isSyncing.value = true;
+    const client = useSanctumClient();
 
-    column.setFilterValue(updated.length > 0 ? updated : undefined);
-    // Reset to first page when filter changes
-    tableRef.value.table.setPageIndex(0);
-  } else {
-    // Server-side mode: update columnFilters ref
-    const current = getFilterValue(columnId);
-    const updated = checked ? [...current, value] : current.filter((item) => item !== value);
+    const orders = data.value.map((project, index) => ({
+      id: project.id,
+      order: index + 1,
+    }));
 
-    const existingIndex = columnFilters.value.findIndex((f) => f.id === columnId);
-    if (updated.length) {
-      if (existingIndex >= 0) {
-        columnFilters.value[existingIndex].value = updated;
-      } else {
-        columnFilters.value.push({ id: columnId, value: updated });
-      }
-    } else {
-      if (existingIndex >= 0) {
-        columnFilters.value.splice(existingIndex, 1);
-      }
+    await client("/api/projects/update-order", {
+      method: "POST",
+      body: { orders },
+    });
+
+    // Update local order_column to match new order
+    data.value.forEach((project, index) => {
+      project.order_column = index + 1;
+    });
+
+    toast.success("Project order updated successfully");
+  } catch (error) {
+    console.error("Failed to update project order:", error);
+    toast.error("Failed to update project order", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+    await refresh();
+  } finally {
+    isSyncing.value = false;
+  }
+};
+
+// Initialize sortable
+let sortableInstance = null;
+
+onMounted(() => {
+  setTimeout(() => {
+    if (projectsList.value) {
+      sortableInstance = useSortable(projectsList.value, data, {
+        animation: 200,
+        handle: ".drag-handle",
+        ghostClass: "sortable-ghost",
+        chosenClass: "sortable-chosen",
+        dragClass: "sortable-drag",
+        disabled: hasActiveFilters.value,
+        onEnd: async () => {
+          await nextTick();
+          await updateProjectOrder();
+        },
+      });
     }
-    // Reset to first page when filter changes (server-side)
-    pagination.value.pageIndex = 0;
+  }, 500);
+});
+
+// Watch for filter changes to enable/disable sortable
+watch(hasActiveFilters, (isActive) => {
+  if (sortableInstance?.option) {
+    sortableInstance.option("disabled", isActive);
+  }
+});
+
+// Delete functionality
+const deleteDialogOpen = ref(false);
+const projectToDelete = ref(null);
+const deleteLoading = ref(false);
+
+const openDeleteDialog = (project) => {
+  projectToDelete.value = project;
+  deleteDialogOpen.value = true;
+};
+
+const handleDeleteProject = async () => {
+  if (!projectToDelete.value) return;
+
+  try {
+    deleteLoading.value = true;
+    const client = useSanctumClient();
+    const response = await client(`/api/projects/${projectToDelete.value.username}`, {
+      method: "DELETE",
+    });
+
+    toast.success(response.message || "Project deleted successfully");
+    deleteDialogOpen.value = false;
+    projectToDelete.value = null;
+    await refresh();
+  } catch (error) {
+    console.error("Failed to delete project:", error);
+    toast.error("Failed to delete project", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    deleteLoading.value = false;
   }
 };
 
@@ -400,58 +533,19 @@ const handleExport = async () => {
   try {
     exportPending.value = true;
 
-    // Build query params
     const params = new URLSearchParams();
+    params.append("sort", "order_column");
 
-    // Get current filters and sorting from table instance (for client-only mode) or refs (for server mode)
-    let currentFilters = {};
-    let currentSorting = [];
-
-    if (clientOnly.value && tableRef.value?.table) {
-      // Client-only mode: get filters from table instance
-      const nameFilter = tableRef.value.table.getColumn("name")?.getFilterValue();
-      const statusFilter = tableRef.value.table.getColumn("status")?.getFilterValue();
-
-      if (nameFilter) currentFilters.name = nameFilter;
-      if (statusFilter) currentFilters.status = statusFilter;
-
-      // Get sorting from table state
-      currentSorting = tableRef.value.table.getState().sorting;
-    } else {
-      // Server mode: use refs
-      columnFilters.value.forEach((filter) => {
-        currentFilters[filter.id] = filter.value;
-      });
-      currentSorting = sorting.value;
+    if (selectedStatuses.value.length > 0) {
+      params.append("filter.status", selectedStatuses.value.join(","));
     }
-
-    // Add filters to params
-    const filterMapping = {
-      name: "filter.search",
-      status: "filter.status",
-    };
-
-    Object.entries(currentFilters).forEach(([columnId, value]) => {
-      const paramKey = filterMapping[columnId];
-      if (paramKey && value) {
-        const paramValue = Array.isArray(value) ? value.join(",") : value;
-        params.append(paramKey, paramValue);
-      }
-    });
-
-    // Add sorting
-    const sortField = currentSorting[0]?.id || "created_at";
-    const sortDirection = currentSorting[0]?.desc ? "desc" : "asc";
-    params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
 
     const client = useSanctumClient();
 
-    // Fetch the file as blob
     const response = await client(`/api/projects/export?${params.toString()}`, {
       responseType: "blob",
     });
 
-    // Create a download link and trigger download
     const blob = new Blob([response], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
@@ -464,7 +558,7 @@ const handleExport = async () => {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
-    toast.success("projects exported successfully");
+    toast.success("Projects exported successfully");
   } catch (error) {
     console.error("Failed to export projects:", error);
     toast.error("Failed to export projects", {
@@ -474,226 +568,4 @@ const handleExport = async () => {
     exportPending.value = false;
   }
 };
-
-// Delete handlers
-const deleteDialogOpen = ref(false);
-const handleDeleteRows = async (selectedRows) => {
-  const userIds = selectedRows.map((row) => row.original.id);
-  try {
-    const client = useSanctumClient();
-    const response = await client("/api/projects/bulk", {
-      method: "DELETE",
-      body: { ids: userIds },
-    });
-    await refresh();
-    deleteDialogOpen.value = false;
-    if (tableRef.value?.table) {
-      tableRef.value.table.resetRowSelection();
-    }
-
-    // Show success toast
-    toast.success(response.message || "projects deleted successfully", {
-      description:
-        response.errors?.length > 0
-          ? `${response.deleted_count} deleted, ${response.errors.length} failed`
-          : `${response.deleted_count} user(s) deleted`,
-    });
-  } catch (error) {
-    console.error("Failed to delete projects:", error);
-    toast.error("Failed to delete projects", {
-      description: error?.data?.message || error?.message || "An error occurred",
-    });
-  }
-};
-
-const handleDeleteSingleRow = async (username) => {
-  try {
-    const client = useSanctumClient();
-    const response = await client(`/api/projects/${username}`, { method: "DELETE" });
-    await refresh();
-
-    // Show success toast
-    toast.success(response.message || "User deleted successfully");
-  } catch (error) {
-    console.error("Failed to delete user:", error);
-    toast.error("Failed to delete user", {
-      description: error?.data?.message || error?.message || "An error occurred",
-    });
-  }
-};
-
-// Row Actions Component
-const RowActions = defineComponent({
-  props: {
-    username: { type: String, required: true },
-  },
-  setup(props) {
-    const dialogOpen = ref(false);
-    return () =>
-      h("div", { class: "flex justify-end" }, [
-        h(
-          Popover,
-          {},
-          {
-            default: () => [
-              h(
-                PopoverTrigger,
-                { asChild: true },
-                {
-                  default: () =>
-                    h(
-                      "button",
-                      {
-                        class:
-                          "hover:bg-muted data-[state=open]:bg-muted inline-flex size-8 items-center justify-center rounded-md",
-                      },
-                      [h(resolveComponent("Icon"), { name: "lucide:ellipsis", class: "size-4" })]
-                    ),
-                }
-              ),
-              h(
-                PopoverContent,
-                { align: "end", class: "w-40 p-1" },
-                {
-                  default: () =>
-                    h("div", { class: "flex flex-col" }, [
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
-                            h(
-                              resolveComponent("NuxtLink"),
-                              {
-                                to: `/projects/${props.username}/edit`,
-                                class:
-                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                              },
-                              {
-                                default: () => [
-                                  h(resolveComponent("Icon"), {
-                                    name: "lucide:pencil-line",
-                                    class: "size-4 shrink-0",
-                                  }),
-                                  h("span", {}, "Edit"),
-                                ],
-                              }
-                            ),
-                        }
-                      ),
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
-                            h(
-                              "button",
-                              {
-                                class:
-                                  "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                onClick: () => (dialogOpen.value = true),
-                              },
-                              [
-                                h(resolveComponent("Icon"), {
-                                  name: "lucide:trash",
-                                  class: "size-4 shrink-0",
-                                }),
-                                h("span", {}, "Delete"),
-                              ]
-                            ),
-                        }
-                      ),
-                    ]),
-                }
-              ),
-            ],
-          }
-        ),
-        h(
-          DialogResponsive,
-          {
-            open: dialogOpen.value,
-            "onUpdate:open": (value) => (dialogOpen.value = value),
-          },
-          {
-            default: () =>
-              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
-                h(
-                  "div",
-                  { class: "text-primary text-lg font-semibold tracking-tight" },
-                  "Are you sure?"
-                ),
-                h(
-                  "p",
-                  { class: "text-body mt-1.5 text-sm tracking-tight" },
-                  "This action can't be undone. This will permanently delete this user."
-                ),
-                h("div", { class: "mt-3 flex justify-end gap-2" }, [
-                  h(
-                    "button",
-                    {
-                      class:
-                        "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
-                      onClick: () => (dialogOpen.value = false),
-                    },
-                    "Cancel"
-                  ),
-                  h(
-                    "button",
-                    {
-                      class:
-                        "bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
-                      onClick: async () => {
-                        await handleDeleteSingleRow(props.username);
-                        dialogOpen.value = false;
-                      },
-                    },
-                    "Delete"
-                  ),
-                ]),
-              ]),
-          }
-        ),
-      ]);
-  },
-});
-
-// Filter Section Component
-const FilterSection = defineComponent({
-  props: {
-    title: String,
-    options: Array,
-    selected: Array,
-  },
-  emits: ["change"],
-  setup(props, { emit }) {
-    return () =>
-      h("div", { class: "space-y-2" }, [
-        h("div", { class: "text-muted-foreground text-xs font-medium" }, props.title),
-        h(
-          "div",
-          { class: "space-y-2" },
-          props.options.map((option, i) => {
-            const value = typeof option === "string" ? option : option.value;
-            const label = typeof option === "string" ? option : option.label;
-            return h("div", { key: value, class: "flex items-center gap-2" }, [
-              h(Checkbox, {
-                id: `${props.title}-${i}`,
-                modelValue: props.selected.includes(value),
-                "onUpdate:modelValue": (checked) => emit("change", { checked: !!checked, value }),
-              }),
-              h(
-                Label,
-                {
-                  for: `${props.title}-${i}`,
-                  class: "grow cursor-pointer font-normal tracking-tight capitalize",
-                },
-                { default: () => label }
-              ),
-            ]);
-          })
-        ),
-      ]);
-  },
-});
 </script>

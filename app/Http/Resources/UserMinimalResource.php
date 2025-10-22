@@ -25,32 +25,4 @@ class UserMinimalResource extends JsonResource
             ),
         ];
     }
-
-    /**
-     * Get all media URLs including conversions for a collection
-     */
-    private function getMediaUrls(string $collection): array
-    {
-        $media = $this->getFirstMedia($collection);
-
-        if (! $media) {
-            return [
-                'original' => null,
-                'lqip' => null,
-                'sm' => null,
-                'md' => null,
-                'lg' => null,
-                'xl' => null,
-            ];
-        }
-
-        return [
-            'original' => $media->getUrl(),
-            'lqip' => $media->getUrl('lqip'),
-            'sm' => $media->getUrl('sm'),
-            'md' => $media->getUrl('md'),
-            'lg' => $media->getUrl('lg'),
-            'xl' => $media->getUrl('xl'),
-        ];
-    }
 }

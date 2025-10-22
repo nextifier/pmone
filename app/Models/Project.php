@@ -12,17 +12,82 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\EloquentSortable\Sortable;
+use Spatie\EloquentSortable\SortableTrait;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Project extends Model implements HasMedia
+/**
+ * @property int $id
+ * @property string $ulid
+ * @property string $name
+ * @property string $username
+ * @property string|null $bio
+ * @property array<array-key, mixed> $settings
+ * @property array<array-key, mixed> $more_details
+ * @property string $status
+ * @property string $visibility
+ * @property string|null $email
+ * @property array<array-key, mixed>|null $phone
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\User|null $deleter
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Link> $links
+ * @property-read int|null $links_count
+ * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read int|null $media_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $members
+ * @property-read int|null $members_count
+ * @property-read \App\Models\User|null $updater
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
+ * @property-read int|null $visits_count
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project active()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project byStatus(string $status)
+ * @method static \Database\Factories\ProjectFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project public()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereBio($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereDeletedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereMoreDetails($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project wherePhone($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereSettings($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereUlid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereUpdatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereUsername($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereVisibility($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withoutTrashed()
+ *
+ * @mixin \Eloquent
+ */
+class Project extends Model implements HasMedia, Sortable
 {
     use HasFactory;
     use HasMediaManager;
     use InteractsWithMedia;
     use LogsActivity;
     use SoftDeletes;
+    use SortableTrait;
 
     protected $fillable = [
         'name',
@@ -34,6 +99,11 @@ class Project extends Model implements HasMedia
         'visibility',
         'email',
         'phone',
+    ];
+
+    public array $sortable = [
+        'order_column_name' => 'order_column',
+        'sort_when_creating' => true,
     ];
 
     protected function casts(): array
@@ -57,6 +127,33 @@ class Project extends Model implements HasMedia
         static::creating(function ($model) {
             if (empty($model->ulid)) {
                 $model->ulid = (string) Str::ulid();
+            }
+
+            // Generate username from name if not provided
+            if (empty($model->username) && ! empty($model->name)) {
+                $cleaned = strtolower(trim($model->name));
+                $cleaned = str_replace(' ', '-', $cleaned);
+                $baseUsername = preg_replace('/[^a-z0-9\-]/', '', $cleaned);
+
+                $username = $baseUsername;
+                $counter = 1;
+                $maxAttempts = 10;
+
+                while (static::where('username', $username)->exists()) {
+                    if ($counter > $maxAttempts) {
+                        $username = $baseUsername.'-'.strtolower(Str::random(6));
+                        break;
+                    }
+
+                    $username = $baseUsername.'-'.$counter;
+                    $counter++;
+                }
+
+                if (static::where('username', $username)->exists()) {
+                    $username = $baseUsername.'-'.time();
+                }
+
+                $model->username = $username;
             }
 
             if (auth()->check()) {

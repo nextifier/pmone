@@ -26,6 +26,9 @@ class ProjectController extends Controller
         if (! $clientOnly) {
             $this->applyFilters($query, $request);
             $this->applySorting($query, $request);
+        } else {
+            // For client-only mode, still apply sorting from request
+            $this->applySorting($query, $request);
         }
 
         if ($clientOnly) {
@@ -101,7 +104,7 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'username' => [
-                'required',
+                'nullable',
                 'string',
                 'max:30',
                 'min:1',
@@ -118,12 +121,27 @@ class ProjectController extends Controller
             'phone' => ['nullable', 'array'],
             'member_ids' => ['nullable', 'array'],
             'member_ids.*' => ['exists:users,id'],
+            'links' => ['nullable', 'array'],
+            'links.*.label' => ['required', 'string', 'max:100'],
+            'links.*.url' => ['required', 'url', 'max:500'],
         ]);
 
         $project = Project::create($validated);
 
         if (! empty($validated['member_ids'])) {
             $project->members()->attach($validated['member_ids']);
+        }
+
+        // Handle links
+        if (! empty($validated['links'])) {
+            foreach ($validated['links'] as $index => $link) {
+                $project->links()->create([
+                    'label' => $link['label'],
+                    'url' => $link['url'],
+                    'order' => $index,
+                    'is_active' => true,
+                ]);
+            }
         }
 
         return response()->json([
@@ -171,12 +189,31 @@ class ProjectController extends Controller
             'phone' => ['nullable', 'array'],
             'member_ids' => ['nullable', 'array'],
             'member_ids.*' => ['exists:users,id'],
+            'links' => ['nullable', 'array'],
+            'links.*.label' => ['required', 'string', 'max:100'],
+            'links.*.url' => ['required', 'url', 'max:500'],
         ]);
 
         $project->update($validated);
 
         if (isset($validated['member_ids'])) {
             $project->members()->sync($validated['member_ids']);
+        }
+
+        // Handle links
+        if (isset($validated['links'])) {
+            // Delete all existing links
+            $project->links()->delete();
+
+            // Create new links
+            foreach ($validated['links'] as $index => $link) {
+                $project->links()->create([
+                    'label' => $link['label'],
+                    'url' => $link['url'],
+                    'order' => $index,
+                    'is_active' => true,
+                ]);
+            }
         }
 
         return response()->json([
@@ -345,6 +382,43 @@ class ProjectController extends Controller
         ]);
     }
 
+    public function updateOrder(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'orders' => ['required', 'array'],
+            'orders.*.id' => ['required', 'integer', 'exists:projects,id'],
+            'orders.*.order' => ['required', 'integer', 'min:1'],
+        ]);
+
+        // Authorize - user must be able to update project ordering
+        $this->authorize('updateOrder', Project::class);
+
+        // Build CASE statement for batch update
+        $cases = [];
+        $ids = [];
+        $params = [];
+
+        foreach ($validated['orders'] as $index => $orderData) {
+            $cases[] = 'WHEN id = ? THEN ?::integer';
+            $params[] = $orderData['id'];
+            $params[] = $orderData['order'];
+            $ids[] = $orderData['id'];
+        }
+
+        $idsString = implode(',', $ids);
+        $casesString = implode(' ', $cases);
+
+        // Execute batch update in single query with explicit integer casting for PostgreSQL
+        \DB::statement(
+            "UPDATE projects SET order_column = CASE {$casesString} END WHERE id IN ({$idsString})",
+            $params
+        );
+
+        return response()->json([
+            'message' => 'Project order updated successfully',
+        ]);
+    }
+
     public function getEligibleMembers(): JsonResponse
     {
         $users = User::role(['master', 'admin', 'staff'])
@@ -380,7 +454,7 @@ class ProjectController extends Controller
 
     private function applySorting($query, Request $request): void
     {
-        $sort = $request->input('sort', '-created_at');
+        $sort = $request->input('sort', 'order_column');
         $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
         $field = ltrim($sort, '-');
 

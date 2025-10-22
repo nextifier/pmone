@@ -93,4 +93,13 @@ class ProjectPolicy
         // Only master can force delete projects
         return $user->hasRole('master');
     }
+
+    /**
+     * Determine whether the user can update project ordering.
+     */
+    public function updateOrder(User $user): bool
+    {
+        // Only master, admin, and staff can reorder projects
+        return $user->hasRole(['master', 'admin', 'staff']);
+    }
 }

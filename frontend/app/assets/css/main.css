@@ -778,7 +778,7 @@ img.pswp__img {
   @apply !border-foreground/10 !items-start !gap-x-2 !rounded-xl !border !bg-white dark:!bg-gray-900;
 
   & [data-title] {
-    @apply !text-foreground !text-sm !font-semibold !tracking-tighter;
+    @apply !text-foreground !text-sm !font-medium !tracking-tight;
   }
 
   & [data-description] {
