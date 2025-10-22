@@ -1,63 +1,54 @@
 <template>
-  <SidebarGroup class="group-data-[collapsible=icon]:hidden">
-    <SidebarGroupLabel>Projects</SidebarGroupLabel>
+  <SidebarGroup
+    v-if="
+      projects?.length && user?.roles?.some((role) => ['master', 'admin', 'staff'].includes(role))
+    "
+  >
+    <SidebarGroupLabel class="text-muted-foreground tracking-tight">Projects</SidebarGroupLabel>
     <SidebarMenu>
-      <SidebarMenuItem v-for="item in projects" :key="item.name">
-        <SidebarMenuButton as-child>
-          <a :href="item.url">
-            <component :is="item.icon" />
-            <span>{{ item.name }}</span>
-          </a>
-        </SidebarMenuButton>
-        <DropdownMenu>
-          <DropdownMenuTrigger as-child>
-            <SidebarMenuAction show-on-hover>
-              <MoreHorizontal />
-              <span class="sr-only">More</span>
-            </SidebarMenuAction>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            class="w-48 rounded-lg"
-            :side="isMobile ? 'bottom' : 'right'"
-            :align="isMobile ? 'end' : 'start'"
-          >
-            <DropdownMenuItem>
-              <Folder class="text-muted-foreground" />
-              <span>View Project</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Forward class="text-muted-foreground" />
-              <span>Share Project</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Trash2 class="text-muted-foreground" />
-              <span>Delete Project</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SidebarMenuItem>
-      <SidebarMenuItem>
-        <SidebarMenuButton class="text-sidebar-foreground/70">
-          <MoreHorizontal class="text-sidebar-foreground/70" />
-          <span>More</span>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
+      <div v-for="project in projects" :key="project?.id" class="tracking-tight">
+        <NuxtLink
+          :to="`/projects/${project?.username}/edit`"
+          @click="setOpenMobile(false)"
+          activeClass="*:bg-muted"
+        >
+          <SidebarMenuButton :tooltip="project?.name">
+            <Avatar
+              :model="project"
+              class="size-6 shrink-0 group-data-[state=collapsed]:size-4.5 group-data-[state=collapsed]:scale-150"
+            />
+            <span class="line-clamp-1 text-sm tracking-tight">{{ project?.name }}</span>
+          </SidebarMenuButton>
+        </NuxtLink>
+      </div>
     </SidebarMenu>
   </SidebarGroup>
 </template>
 
 <script setup>
-import { Folder, Forward, MoreHorizontal, Trash2 } from "lucide-vue-next";
-import { useSidebar } from "@/components/ui/sidebar";
+import { useSidebar } from "@/components/ui/sidebar/utils";
+const { setOpenMobile } = useSidebar();
+const { user } = useSanctumAuth();
 
-defineProps({
-  projects: {
-    type: Array,
-    required: true,
-    default: () => [],
-  },
+const sanctumFetch = useSanctumClient();
+const projects = ref([]);
+
+// Fetch projects
+const fetchProjects = async () => {
+  try {
+    const params = new URLSearchParams();
+    params.append("client_only", "true");
+    params.append("sort", "order_column");
+    const response = await sanctumFetch(`/api/projects?${params.toString()}`);
+    projects.value = response.data || [];
+  } catch (err) {
+    console.error("Failed to fetch projects:", err);
+    projects.value = [];
+  }
+};
+
+// Load projects on mount
+onMounted(() => {
+  fetchProjects();
 });
-
-const { isMobile } = useSidebar();
 </script>

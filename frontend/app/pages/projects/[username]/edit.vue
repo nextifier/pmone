@@ -48,12 +48,12 @@
         >
       </div>
 
-      <div
+      <!-- <div
         v-if="project"
         class="border-border text-foreground w-full overflow-x-scroll rounded-xl border p-4"
       >
         <pre class="text-foreground/80 text-sm !leading-[1.5]">{{ project }}</pre>
-      </div>
+      </div> -->
     </template>
 
     <template v-else>

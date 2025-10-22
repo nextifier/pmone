@@ -68,6 +68,7 @@
           v-model="selectedMembers"
           v-model:query="memberQuery"
           placeholder="Search members..."
+          :hide-clear-all-button="true"
         />
         <InputErrorMessage :errors="errors.member_ids" />
       </div>

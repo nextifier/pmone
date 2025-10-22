@@ -19,8 +19,8 @@
       </NuxtLink>
     </SidebarHeader>
     <SidebarContent>
-      <AppSidebarNavMain :items="navMainGroups" />
-      <!-- <AppSidebarNavProjects :projects="data.projects" /> -->
+      <AppSidebarNavMain />
+      <AppSidebarNavProjects />
     </SidebarContent>
     <SidebarFooter>
       <AppSidebarNavUser />
@@ -38,93 +38,5 @@ const props = defineProps({
     type: String,
     default: "icon",
   },
-});
-
-const { user } = useSanctumAuth();
-
-const navMainGroups = computed(() => {
-  const groups = [
-    {
-      label: "Platform",
-      items: [
-        {
-          label: "Dashboard",
-          path: "/dashboard",
-          iconName: "hugeicons:dashboard-circle",
-        },
-        {
-          label: "Inbox",
-          path: "/inbox",
-          iconName: "hugeicons:mail-open-love",
-        },
-        {
-          label: "Projects",
-          path: "/projects",
-          iconName: "hugeicons:layers-01",
-        },
-        {
-          label: "Posts",
-          path: "/posts",
-          iconName: "hugeicons:task-edit-01",
-        },
-        {
-          label: "Reports",
-          path: "/reports",
-          iconName: "hugeicons:analysis-text-link",
-        },
-      ],
-    },
-  ];
-
-  // Admin section - filter based on user permissions
-  const adminItems = [];
-
-  if (user.value?.roles?.some((role) => ["master", "admin", "staff"].includes(role))) {
-    adminItems.push({
-      label: "Users",
-      path: "/users",
-      iconName: "hugeicons:user-group",
-    });
-  }
-
-  // Activity Logs - only master and admin
-  if (user.value?.roles?.some((role) => ["master", "admin"].includes(role))) {
-    adminItems.push({
-      label: "Activity Logs",
-      path: "/logs",
-      iconName: "hugeicons:activity-03",
-    });
-  }
-
-  // Settings - always available
-  adminItems.push({
-    label: "Settings",
-    path: "/settings",
-    iconName: "hugeicons:settings-01",
-    isActive: true,
-    items: [
-      {
-        label: "Profile",
-        path: "/settings/profile",
-      },
-      {
-        label: "Password",
-        path: "/settings/password",
-      },
-      {
-        label: "Appearance",
-        path: "/settings/appearance",
-      },
-    ],
-  });
-
-  if (adminItems.length > 0) {
-    groups.push({
-      label: "Admin",
-      items: adminItems,
-    });
-  }
-
-  return groups;
 });
 </script>
