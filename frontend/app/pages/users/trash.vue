@@ -166,7 +166,7 @@
                 </button>
                 <button
                   @click="handleDeleteRows(selectedRows)"
-                  class="bg-destructive text-destructive-foreground hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98"
                 >
                   Delete Permanently
                 </button>
@@ -734,7 +734,7 @@ const RowActions = defineComponent({
                     "button",
                     {
                       class:
-                        "bg-destructive text-destructive-foreground hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                        "bg-destructive text-white hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
                       onClick: async () => {
                         await handleDeleteSingleRow(props.userId);
                         deleteDialogOpen.value = false;

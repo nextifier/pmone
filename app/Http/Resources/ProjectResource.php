@@ -33,6 +33,7 @@ class ProjectResource extends JsonResource
                 'created_at' => $this->created_at,
                 'updated_at' => $this->updated_at,
                 'deleted_at' => $this->deleted_at,
+                'members' => $this->whenLoaded('members', fn () => UserMinimalResource::collection($this->members)),
             ];
         }
 
