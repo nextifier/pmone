@@ -813,3 +813,7 @@ img.pswp__img {
     @apply !text-destructive;
   }
 }
+
+.sortable-drag {
+  @apply border-primary/15 rounded-xl border;
+}
