@@ -136,20 +136,6 @@
       </div>
     </div>
 
-    <!-- Filter Active Warning -->
-    <div
-      v-if="hasActiveFilters && filteredProjects.length > 0"
-      class="bg-warning/10 border-warning/50 flex items-start gap-x-2 rounded-lg border p-3"
-    >
-      <Icon name="lucide:alert-triangle" class="text-warning mt-0.5 size-4 shrink-0" />
-      <div class="flex-1">
-        <p class="text-sm tracking-tight">
-          <span class="font-medium">Drag & drop disabled</span> while filters are active. Clear
-          filters to reorder projects.
-        </p>
-      </div>
-    </div>
-
     <!-- Error State -->
     <div
       v-if="error"
@@ -225,7 +211,7 @@
           <!-- Details -->
           <div class="flex grow flex-col gap-y-1.5">
             <div class="flex items-center gap-x-2">
-              <h3 class="text-sm font-semibold tracking-tight">{{ project.name }}</h3>
+              <h3 class="line-clamp-1 text-sm font-semibold tracking-tight">{{ project.name }}</h3>
 
               <span
                 class="flex items-center gap-x-1 rounded-full px-2 py-0.5 text-xs font-medium tracking-tight capitalize"
