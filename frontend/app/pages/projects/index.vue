@@ -192,23 +192,23 @@
         v-for="project in filteredProjects"
         :key="project.id"
         :data-id="project.id"
-        class="hover:bg-muted dark:hover:bg-muted bg-background dark:bg-muted/50 relative isolate flex items-center gap-x-2 px-3 py-4 first:rounded-t-xl last:rounded-b-xl"
+        class="hover:bg-muted dark:hover:bg-muted bg-background dark:bg-muted/50 relative isolate flex items-center gap-x-1 px-3 py-4 first:rounded-t-xl last:rounded-b-xl sm:gap-x-2"
       >
         <NuxtLink :to="`/projects/${project.username}/edit`" class="absolute inset-0 z-10" />
 
         <!-- Drag Handle -->
         <div
-          class="hover:bg-muted text-muted-foreground hover:text-primary relative z-20 -mx-1 flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
+          class="hover:bg-border text-muted-foreground hover:text-primary relative z-20 -ml-1.5 flex size-8 shrink-0 items-center justify-center rounded-md transition-colors sm:-mx-1"
           :class="
             hasActiveFilters
               ? 'cursor-not-allowed opacity-30'
               : 'drag-handle cursor-grab active:cursor-grabbing'
           "
         >
-          <Icon name="lucide:grip-vertical" class="size-5" />
+          <Icon name="lucide:grip-vertical" class="size-4.5" />
         </div>
 
-        <div class="flex w-full items-center gap-x-2">
+        <div class="flex w-full items-center gap-x-1.5 sm:gap-x-2">
           <Avatar :model="project" class="squircle size-12 overflow-hidden border" />
 
           <div class="flex grow flex-col gap-y-1.5">
@@ -218,17 +218,17 @@
 
             <div class="text-muted-foreground flex items-center gap-x-3 text-xs tracking-tight">
               <span v-if="project.members?.length" class="flex items-center gap-x-1">
-                <div class="flex -space-x-1.5">
+                <div class="relative z-20 flex -space-x-1.5">
                   <Avatar
                     v-for="member in project.members.slice(0, 4)"
                     :model="member"
                     :key="member.id"
-                    class="bg-muted ring-background [&_.initial]:text-muted-foreground size-6 shrink-0 overflow-hidden rounded-full ring-1 [&_.initial]:text-[10px] [&_.initial]:font-medium"
+                    class="bg-muted ring-background [&_.initial]:text-muted-foreground size-7 shrink-0 overflow-hidden rounded-full ring-1 [&_.initial]:text-[10px] [&_.initial]:font-medium"
                     v-tippy="member.name"
                   />
                   <span
                     v-if="project.members_count && project.members_count > 4"
-                    class="ring-background bg-muted text-muted-foreground relative flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full border text-center text-[10px] font-medium tracking-tighter ring-1"
+                    class="ring-background bg-muted text-muted-foreground relative flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full border text-center text-[10px] font-medium tracking-tighter ring-1"
                     >+{{ project.members_count - 4 }}</span
                   >
                 </div>
