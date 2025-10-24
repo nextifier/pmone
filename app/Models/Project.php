@@ -120,6 +120,17 @@ class Project extends Model implements HasMedia, Sortable
         return 'username';
     }
 
+    /**
+     * Set the project's username (normalize to lowercase if provided).
+     */
+    public function setUsernameAttribute(?string $value): void
+    {
+        if ($value) {
+            $this->attributes['username'] = strtolower(trim($value));
+        }
+        // Don't auto-generate here - let boot() handle it with uniqueness check
+    }
+
     protected static function boot(): void
     {
         parent::boot();
@@ -131,26 +142,30 @@ class Project extends Model implements HasMedia, Sortable
 
             // Generate username from name if not provided
             if (empty($model->username) && ! empty($model->name)) {
+                // First lowercase, then remove spaces and special characters
                 $cleaned = strtolower(trim($model->name));
-                $cleaned = str_replace(' ', '-', $cleaned);
-                $baseUsername = preg_replace('/[^a-z0-9\-]/', '', $cleaned);
+                $cleaned = str_replace(' ', '', $cleaned);
+                $baseUsername = preg_replace('/[^a-z0-9._]/', '', $cleaned);
 
                 $username = $baseUsername;
                 $counter = 1;
-                $maxAttempts = 10;
+                $maxAttempts = 10; // Reduced from 1000 to prevent performance issues
 
+                // Ensure username is unique (retry with numeric suffix if taken)
                 while (static::where('username', $username)->exists()) {
                     if ($counter > $maxAttempts) {
-                        $username = $baseUsername.'-'.strtolower(Str::random(6));
+                        // After max attempts, use a random suffix to guarantee uniqueness
+                        $username = $baseUsername.'_'.strtolower(Str::random(6));
                         break;
                     }
 
-                    $username = $baseUsername.'-'.$counter;
+                    $username = $baseUsername.$counter;
                     $counter++;
                 }
 
+                // Final check: if still exists (rare race condition), add timestamp
                 if (static::where('username', $username)->exists()) {
-                    $username = $baseUsername.'-'.time();
+                    $username = $baseUsername.'_'.time();
                 }
 
                 $model->username = $username;

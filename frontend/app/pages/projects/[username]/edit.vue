@@ -6,7 +6,7 @@
           <BackButton destination="/projects" />
 
           <button
-            @click="formProfileRef?.handleSubmit()"
+            @click="formProjectRef?.handleSubmit()"
             :disabled="loading"
             class="text-primary-foreground hover:bg-primary/80 bg-primary flex items-center justify-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
           >

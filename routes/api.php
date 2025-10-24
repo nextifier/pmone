@@ -63,6 +63,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::prefix('projects')->group(function () {
         Route::get('/', [ProjectController::class, 'index'])->name('projects.index');
         Route::post('/', [ProjectController::class, 'store'])->name('projects.store');
+        Route::get('/export', [ProjectController::class, 'export'])->name('projects.export');
+        Route::get('/import/template', [ProjectController::class, 'downloadTemplate'])->name('projects.import.template');
         Route::post('/update-order', [ProjectController::class, 'updateOrder'])->name('projects.update-order');
         Route::get('/eligible-members', [ProjectController::class, 'getEligibleMembers'])->name('projects.eligible-members');
         Route::delete('/bulk', [ProjectController::class, 'bulkDestroy'])->name('projects.bulk-destroy');

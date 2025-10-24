@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exports\ProjectsExport;
+use App\Exports\ProjectsTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\UserMinimalResource;
@@ -11,6 +13,8 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProjectController extends Controller
 {
@@ -106,9 +110,8 @@ class ProjectController extends Controller
             'username' => [
                 'nullable',
                 'string',
-                'max:30',
-                'min:1',
-                'regex:/^[a-z0-9\-]+$/',
+                'max:255',
+                'regex:/^[a-zA-Z0-9._]+$/',
                 'not_in:'.implode(',', config('reserved_slugs')),
                 'unique:projects,username',
             ],
@@ -124,6 +127,8 @@ class ProjectController extends Controller
             'links' => ['nullable', 'array'],
             'links.*.label' => ['required', 'string', 'max:100'],
             'links.*.url' => ['required', 'url', 'max:500'],
+            'tmp_profile_image' => ['nullable', 'string'],
+            'tmp_cover_image' => ['nullable', 'string'],
         ]);
 
         $project = Project::create($validated);
@@ -143,6 +148,12 @@ class ProjectController extends Controller
                 ]);
             }
         }
+
+        // Handle profile image upload from temporary storage
+        $this->handleTemporaryUpload($request, $project, 'tmp_profile_image', 'profile_image');
+
+        // Handle cover image upload from temporary storage
+        $this->handleTemporaryUpload($request, $project, 'tmp_cover_image', 'cover_image');
 
         return response()->json([
             'message' => 'Project created successfully',
@@ -174,9 +185,8 @@ class ProjectController extends Controller
             'username' => [
                 'sometimes',
                 'string',
-                'max:30',
-                'min:1',
-                'regex:/^[a-z0-9\-]+$/',
+                'max:255',
+                'regex:/^[a-zA-Z0-9._]+$/',
                 'not_in:'.implode(',', config('reserved_slugs')),
                 Rule::unique('projects', 'username')->ignore($project->id),
             ],
@@ -192,6 +202,10 @@ class ProjectController extends Controller
             'links' => ['nullable', 'array'],
             'links.*.label' => ['required', 'string', 'max:100'],
             'links.*.url' => ['required', 'url', 'max:500'],
+            'tmp_profile_image' => ['nullable', 'string'],
+            'tmp_cover_image' => ['nullable', 'string'],
+            'delete_profile_image' => ['nullable', 'boolean'],
+            'delete_cover_image' => ['nullable', 'boolean'],
         ]);
 
         $project->update($validated);
@@ -215,6 +229,12 @@ class ProjectController extends Controller
                 ]);
             }
         }
+
+        // Handle profile image upload from temporary storage
+        $this->handleTemporaryUpload($request, $project, 'tmp_profile_image', 'profile_image');
+
+        // Handle cover image upload from temporary storage
+        $this->handleTemporaryUpload($request, $project, 'tmp_cover_image', 'cover_image');
 
         return response()->json([
             'message' => 'Project updated successfully',
@@ -430,6 +450,43 @@ class ProjectController extends Controller
         ]);
     }
 
+    public function export(Request $request): BinaryFileResponse
+    {
+        $this->authorize('viewAny', Project::class);
+
+        // Get filters and sorting from request
+        // Note: Laravel converts dots in query params to underscores
+        $filters = [];
+        if ($search = $request->input('filter_search')) {
+            $filters['search'] = $search;
+        }
+        if ($status = $request->input('filter_status')) {
+            $filters['status'] = $status;
+        }
+        if ($visibility = $request->input('filter_visibility')) {
+            $filters['visibility'] = $visibility;
+        }
+
+        $sort = $request->input('sort', 'order_column');
+
+        // Create the export with filters and sorting
+        $export = new ProjectsExport($filters, $sort);
+
+        // Generate filename with timestamp
+        $filename = 'projects_'.now()->format('Y-m-d_His').'.xlsx';
+
+        return Excel::download($export, $filename);
+    }
+
+    public function downloadTemplate(): BinaryFileResponse
+    {
+        $this->authorize('create', Project::class);
+
+        $filename = 'projects_import_template.xlsx';
+
+        return Excel::download(new ProjectsTemplateExport, $filename);
+    }
+
     private function applyFilters($query, Request $request): void
     {
         if ($request->has('filter.search')) {
@@ -459,5 +516,64 @@ class ProjectController extends Controller
         $field = ltrim($sort, '-');
 
         $query->orderBy($field, $direction);
+    }
+
+    /**
+     * Handle temporary file upload and move to media collection.
+     */
+    private function handleTemporaryUpload(Request $request, Project $project, string $fieldName, string $collection): void
+    {
+        // Check for delete flag first
+        $deleteFieldName = 'delete_'.str_replace('tmp_', '', $fieldName);
+        if ($request->has($deleteFieldName) && $request->input($deleteFieldName) === true) {
+            $project->clearMediaCollection($collection);
+
+            return;
+        }
+
+        // If field is not present, do nothing (keep existing media)
+        if (! $request->has($fieldName)) {
+            return;
+        }
+
+        $value = $request->input($fieldName);
+
+        // If value is null/empty, skip (already handled by delete flag above)
+        if (! $value) {
+            return;
+        }
+
+        // If value doesn't start with 'tmp-', it's an existing media URL, skip
+        if (! \Illuminate\Support\Str::startsWith($value, 'tmp-')) {
+            return;
+        }
+
+        // Handle new upload from temporary storage
+        $metadataPath = "tmp/uploads/{$value}/metadata.json";
+
+        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+            return;
+        }
+
+        $metadata = json_decode(
+            \Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath),
+            true
+        );
+
+        $filePath = "tmp/uploads/{$value}/{$metadata['original_name']}";
+
+        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($filePath)) {
+            return;
+        }
+
+        // Clear existing media in this collection first
+        $project->clearMediaCollection($collection);
+
+        // Add new media
+        $project->addMedia(\Illuminate\Support\Facades\Storage::disk('local')->path($filePath))
+            ->toMediaCollection($collection);
+
+        // Clean up temporary files
+        \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
     }
 }

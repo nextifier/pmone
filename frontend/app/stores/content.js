@@ -58,6 +58,10 @@ export const useContentStore = defineStore("content", {
         title: `Projects`,
         description: ``,
       },
+      projectTrash: {
+        title: `Project Trash`,
+        description: ``,
+      },
       inbox: {
         title: `Inbox`,
         description: ``,

@@ -39,28 +39,16 @@
 
 <script setup>
 import { useSidebar } from "@/components/ui/sidebar/utils";
+import { storeToRefs } from "pinia";
+
 const { setOpenMobile } = useSidebar();
 const { user } = useSanctumAuth();
 
-const sanctumFetch = useSanctumClient();
-const projects = ref([]);
+const projectsStore = useProjectsStore();
+const { projects } = storeToRefs(projectsStore);
 
-// Fetch projects
-const fetchProjects = async () => {
-  try {
-    const params = new URLSearchParams();
-    params.append("client_only", "true");
-    params.append("sort", "order_column");
-    const response = await sanctumFetch(`/api/projects?${params.toString()}`);
-    projects.value = response.data || [];
-  } catch (err) {
-    console.error("Failed to fetch projects:", err);
-    projects.value = [];
-  }
-};
-
-// Load projects on mount
+// Load projects on mount (only if not already loaded)
 onMounted(() => {
-  fetchProjects();
+  projectsStore.fetchProjects();
 });
 </script>

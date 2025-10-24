@@ -21,13 +21,11 @@
                 <p class="font-medium">Import Instructions:</p>
                 <ul class="text-muted-foreground list-inside list-disc space-y-1">
                   <li>Download the template file with sample data</li>
-                  <li>Only <strong>Name</strong> and <strong>Email</strong> are required</li>
+                  <li>Only <strong>Name</strong> is required</li>
                   <li>Supported formats: CSV, XLS, XLSX (max 5MB)</li>
-                  <li>Default password: "password" for all imported projects</li>
-                  <li>Default role: "user" if roles not specified</li>
-                  <li>Multiple roles separated by commas (e.g., "admin,staff")</li>
-                  <li>Date format: YYYY-MM-DD (e.g., 1990-01-15)</li>
-                  <li>Website & Instagram will be added as social links</li>
+                  <li>Username will be auto-generated if not provided</li>
+                  <li>Status: active, draft, or archived (default: active)</li>
+                  <li>Date format: YYYY-MM-DD (e.g., 2024-01-15)</li>
                 </ul>
               </div>
             </div>
@@ -143,7 +141,7 @@ const handleImport = async () => {
       },
     });
 
-    toast.success(response.message || "projects imported successfully", {
+    toast.success(response.message || "Projects imported successfully", {
       description: response.imported_count
         ? `${response.imported_count} project(s) imported`
         : undefined,

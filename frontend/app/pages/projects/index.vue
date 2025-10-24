@@ -1,12 +1,7 @@
 <template>
   <div class="mx-auto max-w-xl space-y-6">
-    <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
-      <div class="flex shrink-0 items-center gap-x-2.5">
-        <Icon name="hugeicons:layers-01" class="size-5 sm:size-6" />
-        <h1 class="page-title">Project Management</h1>
-      </div>
-
-      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+    <ProjectsHeader title="Project Management">
+      <template #actions>
         <ImportDialog
           v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
           @imported="refresh"
@@ -30,7 +25,7 @@
         >
           <Spinner v-if="exportPending" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
-          <span>Export</span>
+          <span>Export {{ hasActiveFilters ? "selected" : "all" }}</span>
         </button>
 
         <nuxt-link
@@ -41,104 +36,16 @@
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
           <span>Trash</span>
         </nuxt-link>
-      </div>
-    </div>
+      </template>
+    </ProjectsHeader>
 
-    <div class="grid gap-y-3">
-      <div class="flex h-9 gap-x-2">
-        <div class="relative flex h-full grow items-center">
-          <Icon
-            name="lucide:search"
-            class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-          />
-          <input
-            ref="searchInputEl"
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search projects"
-            class="peer placeholder:text-muted-foreground h-full w-full rounded-md border bg-transparent px-9 py-1.5 text-sm tracking-tight focus:outline-hidden"
-          />
-          <span
-            v-if="!searchQuery"
-            class="text-muted-foreground/60 pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 items-center gap-x-1 text-xs font-medium peer-placeholder-shown:flex"
-          >
-            <kbd class="keyboard-symbol">{{ metaSymbol }} K</kbd>
-          </span>
-          <button
-            v-if="searchQuery"
-            @click="searchQuery = ''"
-            class="bg-muted hover:bg-border absolute top-1/2 right-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full"
-            aria-label="Clear search"
-          >
-            <Icon name="lucide:x" class="size-3 shrink-0" />
-          </button>
-        </div>
-
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              class="hover:bg-muted relative flex h-9 shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-3 text-sm tracking-tight active:scale-98"
-            >
-              <Icon name="lucide:list-filter" class="size-4 shrink-0" />
-              <span>Filter</span>
-              <span
-                v-if="selectedStatuses.length > 0"
-                class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
-              >
-                {{ selectedStatuses.length }}
-              </span>
-            </button>
-          </PopoverTrigger>
-          <PopoverContent class="w-48 p-3" align="end">
-            <div class="space-y-3">
-              <div class="text-muted-foreground text-xs font-medium">Status</div>
-              <div class="space-y-2">
-                <div
-                  v-for="status in ['active', 'draft', 'archived']"
-                  :key="status"
-                  class="flex items-center gap-2"
-                >
-                  <Checkbox
-                    :id="`status-${status}`"
-                    :model-value="selectedStatuses.includes(status)"
-                    @update:model-value="(checked) => toggleStatus(status, checked)"
-                  />
-                  <Label
-                    :for="`status-${status}`"
-                    class="grow cursor-pointer font-normal tracking-tight capitalize"
-                  >
-                    {{ status }}
-                  </Label>
-                </div>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      <div class="flex h-9 justify-end gap-x-1 sm:gap-x-2">
-        <button
-          v-if="hasActiveFilters"
-          @click="clearFilters"
-          class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
-        >
-          <Icon name="lucide:x" class="size-4 shrink-0" />
-          <span class="hidden sm:flex">Clear filters</span>
-        </button>
-
-        <button
-          @click="refresh"
-          :disabled="pending"
-          class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
-        >
-          <Icon
-            name="lucide:refresh-cw"
-            class="size-4 shrink-0"
-            :class="pending ? 'animate-spin' : ''"
-          />
-          <span class="hidden sm:flex">Refresh</span>
-        </button>
-
+    <ProjectsFilters
+      v-model:search-query="searchQuery"
+      v-model:selected-statuses="selectedStatuses"
+      :pending="pending"
+      @refresh="refresh"
+    >
+      <template #actions>
         <NuxtLink
           v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
           to="/projects/create"
@@ -147,166 +54,49 @@
           <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
           <span>Add project</span>
         </NuxtLink>
-      </div>
-    </div>
+      </template>
+    </ProjectsFilters>
 
-    <!-- Error State -->
-    <div
-      v-if="error"
-      class="border-destructive/50 bg-destructive/10 flex flex-col items-start gap-y-3 rounded-lg border p-4"
+    <ProjectsList
+      ref="projectsListRef"
+      :projects="filteredProjects"
+      :error="error"
+      :has-active-filters="hasActiveFilters"
+      :empty-description="
+        searchQuery
+          ? 'Try adjusting your search query.'
+          : 'Get started by creating a new project.'
+      "
     >
-      <div class="text-destructive flex items-center gap-x-2">
-        <Icon name="hugeicons:alert-circle" class="size-5" />
-        <span class="font-medium tracking-tight">Error loading projects</span>
-      </div>
-      <p class="text-sm tracking-tight">
-        {{ error?.message || "An error occurred while fetching data." }}
-      </p>
-    </div>
-
-    <!-- Empty State -->
-    <div
-      v-else-if="filteredProjects.length === 0"
-      class="flex flex-col items-center gap-4 rounded-lg border border-dashed py-12 text-center"
-    >
-      <div
-        class="*:bg-background/80 *:squircle text-muted-foreground flex items-center -space-x-2 *:rounded-lg *:border *:p-3 *:backdrop-blur-sm [&_svg]:size-5"
-      >
-        <div class="translate-y-1.5 -rotate-6">
-          <Icon name="hugeicons:file-empty-01" />
-        </div>
-        <div>
-          <Icon name="hugeicons:search-remove" />
-        </div>
-        <div class="translate-y-1.5 rotate-6">
-          <Icon name="hugeicons:user" />
-        </div>
-      </div>
-      <div class="space-y-1">
-        <h3 class="text-lg font-semibold tracking-tighter">No projects found</h3>
-        <p class="text-muted-foreground text-sm tracking-tight">
-          {{
-            searchQuery
-              ? "Try adjusting your search query."
-              : "Get started by creating a new project."
-          }}
-        </p>
-      </div>
-      <NuxtLink
-        v-if="!searchQuery"
-        to="/projects/create"
-        class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-      >
-        <Icon name="lucide:plus" class="size-4 shrink-0" />
-        <span>Create Project</span>
-      </NuxtLink>
-    </div>
-
-    <!-- Projects List (Sortable) -->
-    <div v-else ref="projectsList" class="divide-border divide-y rounded-xl border">
-      <div
-        v-for="project in filteredProjects"
-        :key="project.id"
-        :data-id="project.id"
-        class="hover:bg-muted dark:hover:bg-muted bg-background dark:bg-muted/50 relative isolate flex items-center gap-x-1 px-3 py-4 first:rounded-t-xl last:rounded-b-xl sm:gap-x-2"
-      >
-        <NuxtLink :to="`/projects/${project.username}/edit`" class="absolute inset-0 z-10" />
-
-        <!-- Drag Handle -->
-        <div
-          class="hover:bg-border text-muted-foreground hover:text-primary relative z-20 -ml-1.5 flex size-8 shrink-0 items-center justify-center rounded-md transition-colors sm:-mx-1"
-          :class="
-            hasActiveFilters
-              ? 'cursor-not-allowed opacity-30'
-              : 'drag-handle cursor-grab active:cursor-grabbing'
-          "
+      <template #empty-actions>
+        <NuxtLink
+          v-if="!searchQuery"
+          to="/projects/create"
+          class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
         >
-          <Icon name="lucide:grip-vertical" class="size-4.5" />
-        </div>
+          <Icon name="lucide:plus" class="size-4 shrink-0" />
+          <span>Create Project</span>
+        </NuxtLink>
+      </template>
 
-        <div class="flex w-full items-center gap-x-1.5 sm:gap-x-2">
-          <Avatar :model="project" class="squircle size-12 overflow-hidden border" />
+      <template #row-actions="{ project }">
+        <NuxtLink
+          :to="`/projects/${project.username}/edit`"
+          class="hover:bg-muted hover:text-foreground flex w-full items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
+        >
+          <Icon name="lucide:pencil-line" class="size-4 shrink-0" />
+          <span>Edit</span>
+        </NuxtLink>
 
-          <div class="flex grow flex-col gap-y-1.5">
-            <div class="flex items-center gap-x-2">
-              <h3 class="line-clamp-1 text-sm font-semibold tracking-tight">{{ project.name }}</h3>
-            </div>
-
-            <div class="text-muted-foreground flex items-center gap-x-3 text-xs tracking-tight">
-              <span v-if="project.members?.length" class="flex items-center gap-x-1">
-                <div class="relative z-20 flex -space-x-1.5">
-                  <Avatar
-                    v-for="member in project.members.slice(0, 4)"
-                    :model="member"
-                    :key="member.id"
-                    class="bg-muted ring-background [&_.initial]:text-muted-foreground size-6 shrink-0 overflow-hidden rounded-full ring-1 [&_.initial]:text-[10px] [&_.initial]:font-medium"
-                    v-tippy="member.name"
-                  />
-                  <span
-                    v-if="project.members_count && project.members_count > 4"
-                    class="ring-background bg-muted text-muted-foreground relative flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full border text-center text-[10px] font-medium tracking-tighter ring-1"
-                    >+{{ project.members_count - 4 }}</span
-                  >
-                </div>
-                <span v-if="project.members_count"
-                  >{{ project.members_count }} member{{
-                    project.members_count > 1 ? "s" : ""
-                  }}</span
-                >
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-2 flex shrink-0 flex-col items-end gap-y-1.5">
-          <span
-            class="flex items-center gap-x-1 rounded-full px-2 py-0.5 text-xs font-medium tracking-tight capitalize"
-            :class="{
-              'bg-success/10 text-success-foreground': project.status === 'active',
-              'bg-warning/10 text-warning-foreground': project.status === 'draft',
-              'bg-muted text-muted-foreground': project.status === 'archived',
-            }"
-          >
-            <span
-              class="size-1.5 rounded-full"
-              :class="{
-                'bg-success': project.status === 'active',
-                'bg-warning': project.status === 'draft',
-                'bg-muted-foreground': project.status === 'archived',
-              }"
-            ></span>
-            {{ project.status }}
-          </span>
-
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                class="hover:bg-border data-[state=open]:bg-muted text-muted-foreground hover:text-foreground data-[state=open]:text-foreground relative z-20 inline-flex size-8 items-center justify-center rounded-md"
-              >
-                <Icon name="lucide:ellipsis" class="size-4" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent align="end" class="w-40 p-1">
-              <NuxtLink
-                :to="`/projects/${project.username}/edit`"
-                class="hover:bg-muted hover:text-foreground flex w-full items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
-              >
-                <Icon name="lucide:pencil-line" class="size-4 shrink-0" />
-                <span>Edit</span>
-              </NuxtLink>
-
-              <button
-                @click="openDeleteDialog(project)"
-                class="hover:bg-destructive/10 text-destructive flex w-full items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
-              >
-                <Icon name="lucide:trash" class="size-4 shrink-0" />
-                <span>Delete</span>
-              </button>
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
-    </div>
+        <button
+          @click="openDeleteDialog(project)"
+          class="hover:bg-destructive/10 text-destructive flex w-full items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
+        >
+          <Icon name="lucide:trash" class="size-4 shrink-0" />
+          <span>Delete</span>
+        </button>
+      </template>
+    </ProjectsList>
 
     <!-- Delete Dialog -->
     <DialogResponsive v-model:open="deleteDialogOpen">
@@ -342,9 +132,9 @@
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import ImportDialog from "@/components/project/ImportDialog.vue";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import ProjectsHeader from "@/components/project/ProjectsHeader.vue";
+import ProjectsFilters from "@/components/project/ProjectsFilters.vue";
+import ProjectsList from "@/components/project/ProjectsList.vue";
 import { useSortable } from "@vueuse/integrations/useSortable";
 import { toast } from "vue-sonner";
 
@@ -432,28 +222,8 @@ const filteredProjects = computed(() => {
   return filtered;
 });
 
-// Toggle status filter
-const toggleStatus = (status, checked) => {
-  if (checked) {
-    if (!selectedStatuses.value.includes(status)) {
-      selectedStatuses.value.push(status);
-    }
-  } else {
-    const index = selectedStatuses.value.indexOf(status);
-    if (index > -1) {
-      selectedStatuses.value.splice(index, 1);
-    }
-  }
-};
-
-// Clear all filters
-const clearFilters = () => {
-  searchQuery.value = "";
-  selectedStatuses.value = [];
-};
-
 // Sortable functionality
-const projectsList = ref(null);
+const projectsListRef = ref(null);
 const isSyncing = ref(false);
 
 const updateProjectOrder = async () => {
@@ -501,9 +271,9 @@ const initializeSortable = () => {
   }
 
   // Only create sortable when no filters are active
-  if (!hasActiveFilters.value && projectsList.value) {
+  if (!hasActiveFilters.value && projectsListRef.value?.projectsListEl) {
     nextTick(() => {
-      sortableInstance = useSortable(projectsList.value, data, {
+      sortableInstance = useSortable(projectsListRef.value.projectsListEl, data, {
         animation: 200,
         handle: ".drag-handle",
         ghostClass: "sortable-ghost",
@@ -567,19 +337,30 @@ const handleExport = async () => {
   try {
     exportPending.value = true;
 
+    // Build query params
     const params = new URLSearchParams();
-    params.append("sort", "order_column");
 
+    // Add search filter if present
+    if (searchQuery.value) {
+      params.append("filter.search", searchQuery.value);
+    }
+
+    // Add status filter if present
     if (selectedStatuses.value.length > 0) {
       params.append("filter.status", selectedStatuses.value.join(","));
     }
 
+    // Add sorting (default to order_column)
+    params.append("sort", "order_column");
+
     const client = useSanctumClient();
 
+    // Fetch the file as blob
     const response = await client(`/api/projects/export?${params.toString()}`, {
       responseType: "blob",
     });
 
+    // Create a download link and trigger download
     const blob = new Blob([response], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
@@ -603,15 +384,4 @@ const handleExport = async () => {
   }
 };
 
-const searchInputEl = ref();
-const { metaSymbol } = useShortcuts();
-
-defineShortcuts({
-  meta_k: {
-    usingInput: true,
-    handler: () => {
-      searchInputEl.value?.focus();
-    },
-  },
-});
 </script>
