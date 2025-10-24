@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive v-model:open="isOpen" dialog-max-width="500px">
+  <DialogResponsive v-model:open="isOpen" dialog-max-width="500px" :overflow-content="true">
     <template #trigger="{ open }">
       <slot name="trigger" :open="open" />
     </template>
@@ -50,7 +50,11 @@
               <label class="text-sm font-medium tracking-tight">Upload File</label>
               <InputFile
                 v-model="uploadedFiles"
-                :accepted-file-types="['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']"
+                :accepted-file-types="[
+                  'text/csv',
+                  'application/vnd.ms-excel',
+                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                ]"
                 max-file-size="5MB"
               />
             </div>

@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive v-model:open="isOpen" dialog-max-width="500px">
+  <DialogResponsive v-model:open="isOpen" dialog-max-width="500px" :overflow-content="true">
     <template #trigger="{ open }">
       <slot name="trigger" :open="open" />
     </template>
