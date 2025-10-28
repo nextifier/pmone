@@ -7,11 +7,13 @@ use App\Exports\ProjectsTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\UserMinimalResource;
+use App\Imports\ProjectsImport;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -501,6 +503,95 @@ class ProjectController extends Controller
         $filename = 'projects_import_template.xlsx';
 
         return Excel::download(new ProjectsTemplateExport, $filename);
+    }
+
+    public function import(Request $request): JsonResponse
+    {
+        $this->authorize('create', Project::class);
+
+        $validator = Validator::make($request->all(), [
+            'file' => ['required', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $tempFolder = null;
+
+        try {
+            $tempFolder = $request->input('file');
+
+            // Get file path from temporary storage
+            $metadataPath = "tmp/uploads/{$tempFolder}/metadata.json";
+
+            if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+                return response()->json([
+                    'message' => 'File not found',
+                ], 404);
+            }
+
+            $metadata = json_decode(
+                \Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath),
+                true
+            );
+
+            $filePath = "tmp/uploads/{$tempFolder}/{$metadata['original_name']}";
+
+            if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($filePath)) {
+                return response()->json([
+                    'message' => 'File not found',
+                ], 404);
+            }
+
+            // Import projects
+            $import = new ProjectsImport;
+            Excel::import($import, \Illuminate\Support\Facades\Storage::disk('local')->path($filePath));
+
+            // Get import results
+            $failures = $import->getFailures();
+            $importedCount = $import->getImportedCount();
+            $errorMessages = [];
+
+            foreach ($failures as $failure) {
+                $errorMessages[] = [
+                    'row' => $failure->row(),
+                    'attribute' => $failure->attribute(),
+                    'errors' => $failure->errors(),
+                    'values' => $failure->values(),
+                ];
+            }
+
+            if (count($errorMessages) > 0) {
+                return response()->json([
+                    'message' => 'Import completed with errors',
+                    'errors' => $errorMessages,
+                    'imported_count' => $importedCount,
+                ], 422);
+            }
+
+            return response()->json([
+                'message' => 'Projects imported successfully',
+                'imported_count' => $importedCount,
+            ]);
+        } catch (\Exception $e) {
+            logger()->error('Project import failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to import projects',
+                'error' => $e->getMessage(),
+            ], 500);
+        } finally {
+            // Always clean up temporary files
+            if ($tempFolder) {
+                \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
+            }
+        }
     }
 
     private function applyFilters($query, Request $request): void
