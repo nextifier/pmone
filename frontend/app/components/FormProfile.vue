@@ -73,6 +73,12 @@
       </div>
 
       <div class="space-y-2">
+        <Label for="title">Job Title</Label>
+        <Input id="title" v-model="form.title" type="text" />
+        <InputErrorMessage :errors="errors.title" />
+      </div>
+
+      <div class="space-y-2">
         <Label for="birth_date">Birth Date</Label>
         <Popover>
           <PopoverTrigger as-child>
@@ -295,6 +301,7 @@ function createEmptyForm() {
     username: "",
     email: "",
     password: "",
+    title: "",
     phone: "",
     birth_date: "",
     gender: "",
@@ -422,6 +429,7 @@ async function populateForm(data) {
   form.name = data.name || "";
   form.username = data.username || "";
   form.email = data.email || "";
+  form.title = data.title || "";
   form.phone = data.phone || "";
   form.gender = data.gender || "";
   form.bio = data.bio || "";

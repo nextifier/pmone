@@ -46,7 +46,7 @@
       v-for="project in projects"
       :key="project.id"
       :data-id="project.id"
-      class="hover:bg-muted dark:hover:bg-muted bg-background dark:bg-muted/50 relative isolate flex items-center gap-x-1 px-3 py-4 first:rounded-t-xl last:rounded-b-xl sm:gap-x-2"
+      class="hover:bg-muted/50 bg-background relative isolate flex items-center gap-x-1 px-3 py-4 first:rounded-t-xl last:rounded-b-xl sm:gap-x-2"
     >
       <NuxtLink
         v-if="!isTrash"
@@ -57,7 +57,7 @@
       <!-- Drag Handle (only for non-trash, non-filtered lists) -->
       <div
         v-if="!isTrash && enableDragDrop"
-        class="hover:bg-border text-muted-foreground hover:text-primary relative z-20 -ml-1.5 flex size-8 shrink-0 items-center justify-center rounded-md transition-colors sm:-mx-1"
+        class="hover:bg-muted text-muted-foreground hover:text-primary relative z-20 -ml-1.5 flex size-8 shrink-0 items-center justify-center rounded-md transition-colors sm:-mx-1"
         :class="
           hasActiveFilters
             ? 'cursor-not-allowed opacity-30'
@@ -82,12 +82,12 @@
                   v-for="member in project.members.slice(0, 4)"
                   :model="member"
                   :key="member.id"
-                  class="bg-muted ring-background [&_.initial]:text-muted-foreground size-6 shrink-0 overflow-hidden rounded-full ring-1 [&_.initial]:text-[10px] [&_.initial]:font-medium"
+                  class="!bg-border ring-background [&_.initial]:text-muted-foreground size-6 shrink-0 overflow-hidden !rounded-full ring-1 [&_.initial]:text-[10px] [&_.initial]:font-medium"
                   v-tippy="member.name"
                 />
                 <span
                   v-if="project.members_count && project.members_count > 4"
-                  class="ring-background bg-muted text-muted-foreground relative flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full border text-center text-[10px] font-medium tracking-tighter ring-1"
+                  class="ring-background bg-border text-muted-foreground relative flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full border text-center text-[10px] font-medium tracking-tighter ring-1"
                   >+{{ project.members_count - 4 }}</span
                 >
               </div>
@@ -122,7 +122,7 @@
         <Popover>
           <PopoverTrigger asChild>
             <button
-              class="hover:bg-border data-[state=open]:bg-muted text-muted-foreground hover:text-foreground data-[state=open]:text-foreground relative z-20 inline-flex size-8 items-center justify-center rounded-md"
+              class="hover:bg-muted data-[state=open]:bg-muted text-muted-foreground hover:text-foreground data-[state=open]:text-foreground relative z-20 inline-flex size-8 items-center justify-center rounded-md"
             >
               <Icon name="lucide:ellipsis" class="size-4" />
             </button>

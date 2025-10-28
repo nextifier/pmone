@@ -31,6 +31,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property \Illuminate\Support\Carbon|null $email_verified_at
  * @property string|null $password
  * @property string|null $phone
+ * @property string|null $title
  * @property \Illuminate\Support\Carbon|null $birth_date
  * @property string|null $gender
  * @property string|null $bio
@@ -148,6 +149,7 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         'email',
         'password',
         'phone',
+        'title',
         'birth_date',
         'gender',
         'bio',

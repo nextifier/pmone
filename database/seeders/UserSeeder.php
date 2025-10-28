@@ -117,9 +117,10 @@ class UserSeeder extends Seeder
                 'email' => self::MASTER_EMAIL,
                 'email_verified_at' => now(),
                 'password' => Hash::make(self::DEFAULT_PASSWORD),
-                'phone' => '+62812-3456-7890',
+                'phone' => '+6281234567890',
                 'birth_date' => '1990-01-15',
                 'gender' => 'male',
+                'title' => 'System Administrator',
                 'bio' => 'Master administrator of PM One platform. Responsible for overall system management and strategic decisions.',
                 'user_settings' => [
                     'theme' => 'dark',
@@ -158,9 +159,10 @@ class UserSeeder extends Seeder
             'email' => $faker->unique()->safeEmail(),
             'email_verified_at' => $this->shouldAutoVerify($role, $faker) ? now() : null,
             'password' => Hash::make(self::DEFAULT_PASSWORD),
-            'phone' => $faker->boolean(70) ? $faker->phoneNumber() : null,
+            'phone' => $faker->boolean(70) ? $this->generateIndonesianPhoneNumber($faker) : null,
             'birth_date' => $faker->boolean(60) ? $faker->date('Y-m-d', '-18 years') : null,
             'gender' => $faker->boolean(80) ? $faker->randomElement($genders) : null,
+            'title' => $faker->boolean(60) ? $this->generateRoleTitle($role, $faker) : null,
             'bio' => $faker->boolean(40) ? $faker->realText($faker->numberBetween(50, 200)) : null,
             'user_settings' => [
                 'theme' => $faker->randomElement($themes),
@@ -193,6 +195,60 @@ class UserSeeder extends Seeder
         }
 
         return $username;
+    }
+
+    private function generateIndonesianPhoneNumber($faker): string
+    {
+        // Indonesian mobile operators prefixes (after +62)
+        $operators = ['811', '812', '813', '814', '815', '816', '817', '818', '819', '821', '822', '823', '852', '853', '855', '856', '857', '858', '859', '877', '878', '879', '881', '882', '883', '884', '885', '886', '887', '888', '889', '895', '896', '897', '898', '899'];
+
+        $prefix = $faker->randomElement($operators);
+        $suffix = $faker->numerify('########'); // 8 digits
+
+        return '+62'.$prefix.$suffix;
+    }
+
+    private function generateRoleTitle(string $role, $faker): string
+    {
+        $titles = match ($role) {
+            'master' => [
+                'Chief Executive Officer',
+                'Chief Technology Officer',
+                'Chief Operating Officer',
+                'Managing Director',
+                'President',
+            ],
+            'admin' => [
+                'Operations Manager',
+                'Events Manager',
+                'Marketing Manager',
+                'HR Manager',
+                'Finance Manager',
+                'Department Head',
+                'Senior Administrator',
+            ],
+            'staff' => [
+                'Event Coordinator',
+                'Marketing Specialist',
+                'Customer Support Specialist',
+                'Logistics Coordinator',
+                'Technical Support Officer',
+                'Administrative Assistant',
+                'Project Coordinator',
+            ],
+            default => [
+                'Business Owner',
+                'Entrepreneur',
+                'Marketing Director',
+                'Sales Manager',
+                'Product Manager',
+                'Consultant',
+                'Freelancer',
+                'CEO',
+            ],
+        };
+
+        return $faker->randomElement($titles);
     }
 
     private function attachRandomProfileImage(User $user, $faker): void

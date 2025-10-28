@@ -23,23 +23,6 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
 
     public function model(array $row): ?User
     {
-        // Prepare links array as array of objects with label and url
-        $links = [];
-
-        if (! empty($row['website'])) {
-            $links[] = [
-                'label' => 'Website',
-                'url' => $row['website'],
-            ];
-        }
-
-        if (! empty($row['instagram'])) {
-            $links[] = [
-                'label' => 'Instagram',
-                'url' => $row['instagram'],
-            ];
-        }
-
         // Create user
         $user = User::create([
             'name' => $row['name'],
@@ -48,8 +31,8 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
             'phone' => $row['phone'] ?? null,
             'birth_date' => ! empty($row['birth_date']) ? $row['birth_date'] : null,
             'gender' => $row['gender'] ?? null,
+            'title' => $row['title'] ?? null,
             'bio' => $row['bio'] ?? null,
-            'links' => ! empty($links) ? $links : null,
             'status' => $row['status'] ?? 'active',
             'visibility' => $row['visibility'] ?? 'public',
             'password' => Hash::make('password'),
@@ -61,6 +44,26 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
             $user->assignRole($roles);
         } else {
             $user->assignRole('user');
+        }
+
+        // Create links from website and instagram columns
+        $order = 0;
+        if (! empty($row['website'])) {
+            $user->links()->create([
+                'label' => 'Website',
+                'url' => $row['website'],
+                'order' => $order++,
+                'is_active' => true,
+            ]);
+        }
+
+        if (! empty($row['instagram'])) {
+            $user->links()->create([
+                'label' => 'Instagram',
+                'url' => $row['instagram'],
+                'order' => $order++,
+                'is_active' => true,
+            ]);
         }
 
         $this->importedCount++;
@@ -78,6 +81,7 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
             'phone' => ['nullable', 'string', 'max:20'],
             'birth_date' => ['nullable', 'date', 'before:today'],
             'gender' => ['nullable', Rule::in(['male', 'female', 'other'])],
+            'title' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', Rule::in(['active', 'inactive'])],
             'visibility' => ['nullable', Rule::in(['public', 'private'])],
             'bio' => ['nullable', 'string', 'max:1000'],

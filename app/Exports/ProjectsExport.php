@@ -3,38 +3,18 @@
 namespace App\Exports;
 
 use App\Models\Project;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Illuminate\Database\Eloquent\Builder;
 
-class ProjectsExport implements FromCollection, ShouldAutoSize, WithHeadings, WithMapping, WithStyles
+class ProjectsExport extends BaseExport
 {
-    public function __construct(
-        protected ?array $filters = null,
-        protected ?string $sort = null
-    ) {}
-
-    /**
-     * @return \Illuminate\Support\Collection
-     */
-    public function collection()
+    protected function getQuery(): Builder
     {
-        $query = Project::query()->with(['members', 'links', 'media']);
+        return Project::query()->with(['members', 'links', 'media']);
+    }
 
-        // Apply filters if provided
-        if ($this->filters) {
-            $this->applyFilters($query);
-        }
-
-        // Apply sorting if provided
-        if ($this->sort) {
-            $this->applySorting($query);
-        }
-
-        return $query->get();
+    protected function phoneColumns(): array
+    {
+        return ['F'];
     }
 
     public function headings(): array
@@ -49,9 +29,10 @@ class ProjectsExport implements FromCollection, ShouldAutoSize, WithHeadings, Wi
             'Status',
             'Visibility',
             'Members',
-            'Links',
             'Created At',
             'Updated At',
+            'Website',
+            'Instagram',
             'Profile Image',
             'Cover Image',
         ];
@@ -71,19 +52,22 @@ class ProjectsExport implements FromCollection, ShouldAutoSize, WithHeadings, Wi
         // Format members
         $members = $project->members->pluck('name')->join(', ') ?: '-';
 
-        // Format links
-        $links = '-';
-        if ($project->links && $project->links->isNotEmpty()) {
-            $linksArray = $project->links->map(function ($link) {
-                return $link->label.': '.$link->url;
-            })->toArray();
-            $links = implode('; ', $linksArray);
-        }
-
         // Format phone
         $phone = '-';
         if ($project->phone && is_array($project->phone) && count($project->phone) > 0) {
             $phone = implode(', ', array_filter($project->phone));
+        }
+
+        // Get Website and Instagram URLs from links relation
+        $website = '-';
+        $instagram = '-';
+
+        foreach ($project->links as $link) {
+            if (strtolower($link->label) === 'website') {
+                $website = $link->url;
+            } elseif (strtolower($link->label) === 'instagram') {
+                $instagram = $link->url;
+            }
         }
 
         return [
@@ -93,41 +77,28 @@ class ProjectsExport implements FromCollection, ShouldAutoSize, WithHeadings, Wi
             $project->bio ?? '-',
             $project->email ?? '-',
             $phone,
-            $project->status,
-            $project->visibility ?? '-',
+            $this->titleCase($project->status),
+            $this->titleCase($project->visibility),
             $members,
-            $links,
             $project->created_at?->format('Y-m-d H:i:s'),
             $project->updated_at?->format('Y-m-d H:i:s'),
+            $website,
+            $instagram,
             $profileImage,
             $coverImage,
         ];
     }
 
-    public function styles(Worksheet $sheet): array
-    {
-        return [
-            // Style the first row as bold text
-            1 => ['font' => ['bold' => true]],
-        ];
-    }
-
-    private function applyFilters($query): void
+    protected function applyFilters(Builder $query): void
     {
         // Search filter
         if (isset($this->filters['search'])) {
-            $searchTerm = strtolower($this->filters['search']);
-            $query->where(function ($q) use ($searchTerm) {
-                $q->whereRaw('LOWER(name) LIKE ?', ["%{$searchTerm}%"])
-                    ->orWhereRaw('LOWER(username) LIKE ?', ["%{$searchTerm}%"])
-                    ->orWhereRaw('LOWER(email) LIKE ?', ["%{$searchTerm}%"]);
-            });
+            $this->applySearchFilter($query, ['name', 'username', 'email'], $this->filters['search']);
         }
 
         // Status filter
         if (isset($this->filters['status'])) {
-            $statuses = array_map('strtolower', explode(',', $this->filters['status']));
-            $query->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), $statuses);
+            $this->applyStatusFilter($query, $this->filters['status']);
         }
 
         // Visibility filter
@@ -137,11 +108,9 @@ class ProjectsExport implements FromCollection, ShouldAutoSize, WithHeadings, Wi
         }
     }
 
-    private function applySorting($query): void
+    protected function applySorting(Builder $query): void
     {
-        $sortField = $this->sort;
-        $direction = str_starts_with($sortField, '-') ? 'desc' : 'asc';
-        $field = ltrim($sortField, '-');
+        [$field, $direction] = $this->parseSortField($this->sort);
 
         if (in_array($field, ['name', 'username', 'email', 'status', 'visibility', 'order_column', 'created_at', 'updated_at'])) {
             $query->orderBy($field, $direction);

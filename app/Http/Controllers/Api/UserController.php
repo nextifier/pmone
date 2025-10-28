@@ -167,7 +167,7 @@ class UserController extends Controller
     {
         $this->authorize('users.view');
 
-        $user->load(['roles', 'media']);
+        $user->load(['roles', 'media', 'links']);
 
         return response()->json([
             'data' => new UserResource($user),
@@ -182,6 +182,9 @@ class UserController extends Controller
         while ($attempt < $maxRetries) {
             try {
                 $userData = $request->validated();
+                $linksData = $userData['links'] ?? [];
+                unset($userData['links']);
+
                 $userData['password'] = Hash::make($userData['password']);
                 $userData['status'] = $userData['status'] ?? 'active';
                 $userData['visibility'] = $userData['visibility'] ?? 'public';
@@ -192,13 +195,25 @@ class UserController extends Controller
                 $roles = $request->input('roles', ['user']);
                 $user->assignRole($roles);
 
+                // Create links if provided
+                if (! empty($linksData)) {
+                    foreach ($linksData as $index => $linkData) {
+                        $user->links()->create([
+                            'label' => $linkData['label'],
+                            'url' => $linkData['url'],
+                            'order' => $index,
+                            'is_active' => true,
+                        ]);
+                    }
+                }
+
                 // Handle profile image upload from temporary storage
                 $this->handleTemporaryUpload($request, $user, 'tmp_profile_image', 'profile_image');
 
                 // Handle cover image upload from temporary storage
                 $this->handleTemporaryUpload($request, $user, 'tmp_cover_image', 'cover_image');
 
-                $user->load(['roles', 'media']);
+                $user->load(['roles', 'media', 'links']);
 
                 return response()->json([
                     'message' => 'User created successfully',
@@ -251,7 +266,7 @@ class UserController extends Controller
 
     public function profile(Request $request): JsonResponse
     {
-        $user = $request->user()->load(['roles', 'permissions', 'oauthProviders', 'media']);
+        $user = $request->user()->load(['roles', 'permissions', 'oauthProviders', 'media', 'links']);
 
         return response()->json(new UserResource($user));
     }
@@ -267,6 +282,8 @@ class UserController extends Controller
 
         try {
             $userData = $request->validated();
+            $linksData = $userData['links'] ?? null;
+            unset($userData['links']);
 
             // Hash password if provided
             if (isset($userData['password'])) {
@@ -280,13 +297,29 @@ class UserController extends Controller
                 $user->syncRoles($request->input('roles'));
             }
 
+            // Handle links update if provided
+            if ($linksData !== null) {
+                // Delete all existing links
+                $user->links()->delete();
+
+                // Create new links with order
+                foreach ($linksData as $index => $linkData) {
+                    $user->links()->create([
+                        'label' => $linkData['label'],
+                        'url' => $linkData['url'],
+                        'order' => $index,
+                        'is_active' => true,
+                    ]);
+                }
+            }
+
             // Handle profile image upload from temporary storage
             $this->handleTemporaryUpload($request, $user, 'tmp_profile_image', 'profile_image');
 
             // Handle cover image upload from temporary storage
             $this->handleTemporaryUpload($request, $user, 'tmp_cover_image', 'cover_image');
 
-            $user->load(['roles', 'media']);
+            $user->load(['roles', 'media', 'links']);
 
             return response()->json([
                 'message' => 'User updated successfully',
@@ -417,7 +450,7 @@ class UserController extends Controller
             ], 403);
         }
 
-        $user->load(['roles', 'media']);
+        $user->load(['roles', 'media', 'links']);
 
         return response()->json([
             'data' => new UserResource($user),
@@ -465,12 +498,14 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'links' => ['required', 'array'],
-            'links.website' => ['nullable', 'url'],
-            'links.twitter' => ['nullable', 'url'],
-            'links.instagram' => ['nullable', 'url'],
-            'links.linkedin' => ['nullable', 'url'],
-            'links.github' => ['nullable', 'url'],
-            'links.youtube' => ['nullable', 'url'],
+            'links.*.label' => ['required', 'string', 'max:100'],
+            'links.*.url' => ['required', 'url', 'max:500'],
+        ], [
+            'links.*.label.required' => 'Link label is required.',
+            'links.*.label.max' => 'Link label must not exceed 100 characters.',
+            'links.*.url.required' => 'Link URL is required.',
+            'links.*.url.url' => 'Please enter a valid URL.',
+            'links.*.url.max' => 'Link URL must not exceed 500 characters.',
         ]);
 
         if ($validator->fails()) {
@@ -482,17 +517,27 @@ class UserController extends Controller
 
         try {
             $user = $request->user();
+            $linksData = $request->input('links', []);
 
-            // Filter out null values
-            $links = array_filter($request->input('links'), function ($value) {
-                return ! is_null($value) && $value !== '';
-            });
+            // Delete all existing links
+            $user->links()->delete();
 
-            $user->update(['links' => $links]);
+            // Create new links with order
+            foreach ($linksData as $index => $linkData) {
+                $user->links()->create([
+                    'label' => $linkData['label'],
+                    'url' => $linkData['url'],
+                    'order' => $index,
+                    'is_active' => true,
+                ]);
+            }
+
+            // Load fresh links
+            $user->load('links');
 
             return response()->json([
                 'message' => 'Links updated successfully',
-                'links' => $links,
+                'data' => $user->links,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -520,6 +565,7 @@ class UserController extends Controller
             'username' => ['sometimes', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._]+$/', 'unique:users,username,'.$user->id],
             'email' => ['sometimes', 'email', 'unique:users,email,'.$user->id],
             'phone' => ['nullable', 'string', 'max:20'],
+            'title' => ['nullable', 'string', 'max:255'],
             'birth_date' => ['nullable', 'date', 'before:today'],
             'gender' => ['nullable', 'in:male,female,other'],
             'bio' => ['nullable', 'string', 'max:1000'],
@@ -547,7 +593,29 @@ class UserController extends Controller
         }
 
         try {
-            $user->update($validator->validated());
+            // Extract links data before update
+            $validatedData = $validator->validated();
+            $linksData = $validatedData['links'] ?? null;
+            unset($validatedData['links']);
+
+            // Update user profile
+            $user->update($validatedData);
+
+            // Handle links update if provided
+            if ($linksData !== null) {
+                // Delete all existing links
+                $user->links()->delete();
+
+                // Create new links with order
+                foreach ($linksData as $index => $linkData) {
+                    $user->links()->create([
+                        'label' => $linkData['label'],
+                        'url' => $linkData['url'],
+                        'order' => $index,
+                        'is_active' => true,
+                    ]);
+                }
+            }
 
             // Handle profile image upload from temporary storage
             $this->handleTemporaryUpload($request, $user, 'tmp_profile_image', 'profile_image');
@@ -555,7 +623,7 @@ class UserController extends Controller
             // Handle cover image upload from temporary storage
             $this->handleTemporaryUpload($request, $user, 'tmp_cover_image', 'cover_image');
 
-            $user->load(['roles', 'media']);
+            $user->load(['roles', 'media', 'links']);
 
             return response()->json([
                 'message' => 'Profile updated successfully',

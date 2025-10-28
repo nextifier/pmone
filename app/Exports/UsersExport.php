@@ -3,38 +3,18 @@
 namespace App\Exports;
 
 use App\Models\User;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Illuminate\Database\Eloquent\Builder;
 
-class UsersExport implements FromCollection, ShouldAutoSize, WithHeadings, WithMapping, WithStyles
+class UsersExport extends BaseExport
 {
-    public function __construct(
-        protected ?array $filters = null,
-        protected ?string $sort = null
-    ) {}
-
-    /**
-     * @return \Illuminate\Support\Collection
-     */
-    public function collection()
+    protected function getQuery(): Builder
     {
-        $query = User::query()->with(['roles', 'media']);
+        return User::query()->with(['roles', 'media', 'links']);
+    }
 
-        // Apply filters if provided
-        if ($this->filters) {
-            $this->applyFilters($query);
-        }
-
-        // Apply sorting if provided
-        if ($this->sort) {
-            $this->applySorting($query);
-        }
-
-        return $query->get();
+    protected function phoneColumns(): array
+    {
+        return ['G'];
     }
 
     public function headings(): array
@@ -49,6 +29,7 @@ class UsersExport implements FromCollection, ShouldAutoSize, WithHeadings, WithM
             'Phone',
             'Birth Date',
             'Gender',
+            'Title',
             'Status',
             'Visibility',
             'Email Verified',
@@ -72,21 +53,20 @@ class UsersExport implements FromCollection, ShouldAutoSize, WithHeadings, WithM
         // Get cover image URL
         $coverImage = $user->getFirstMediaUrl('cover_image', 'original') ?: '-';
 
-        // Get Website and Instagram URLs from links array
+        // Get Website and Instagram URLs from links relation
         $website = '-';
         $instagram = '-';
 
-        if ($user->links && is_array($user->links)) {
-            foreach ($user->links as $link) {
-                if (isset($link['label']) && isset($link['url'])) {
-                    if (strtolower($link['label']) === 'website') {
-                        $website = $link['url'];
-                    } elseif (strtolower($link['label']) === 'instagram') {
-                        $instagram = $link['url'];
-                    }
-                }
+        foreach ($user->links as $link) {
+            if (strtolower($link->label) === 'website') {
+                $website = $link->url;
+            } elseif (strtolower($link->label) === 'instagram') {
+                $instagram = $link->url;
             }
         }
+
+        // Format roles with title case
+        $roles = $user->roles->pluck('name')->map(fn ($role) => $this->titleCase($role))->join(', ');
 
         return [
             $user->id,
@@ -94,12 +74,13 @@ class UsersExport implements FromCollection, ShouldAutoSize, WithHeadings, WithM
             $user->name,
             $user->username,
             $user->email,
-            $user->roles->pluck('name')->join(', '),
+            $roles,
             $user->phone ?? '-',
             $user->birth_date?->format('Y-m-d') ?? '-',
-            $user->gender ?? '-',
-            $user->status,
-            $user->visibility ?? '-',
+            $this->titleCase($user->gender),
+            $user->title ?? '-',
+            $this->titleCase($user->status),
+            $this->titleCase($user->visibility),
             $user->email_verified_at ? 'Yes' : 'No',
             $user->created_at?->format('Y-m-d H:i:s'),
             $user->updated_at?->format('Y-m-d H:i:s'),
@@ -110,30 +91,16 @@ class UsersExport implements FromCollection, ShouldAutoSize, WithHeadings, WithM
         ];
     }
 
-    public function styles(Worksheet $sheet): array
-    {
-        return [
-            // Style the first row as bold text
-            1 => ['font' => ['bold' => true]],
-        ];
-    }
-
-    private function applyFilters($query): void
+    protected function applyFilters(Builder $query): void
     {
         // Search filter
         if (isset($this->filters['search'])) {
-            $searchTerm = strtolower($this->filters['search']);
-            $query->where(function ($q) use ($searchTerm) {
-                $q->whereRaw('LOWER(name) LIKE ?', ["%{$searchTerm}%"])
-                    ->orWhereRaw('LOWER(email) LIKE ?', ["%{$searchTerm}%"])
-                    ->orWhereRaw('LOWER(username) LIKE ?', ["%{$searchTerm}%"]);
-            });
+            $this->applySearchFilter($query, ['name', 'email', 'username'], $this->filters['search']);
         }
 
         // Status filter
         if (isset($this->filters['status'])) {
-            $statuses = array_map('strtolower', explode(',', $this->filters['status']));
-            $query->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), $statuses);
+            $this->applyStatusFilter($query, $this->filters['status']);
         }
 
         // Role filter
@@ -156,11 +123,9 @@ class UsersExport implements FromCollection, ShouldAutoSize, WithHeadings, WithM
         }
     }
 
-    private function applySorting($query): void
+    protected function applySorting(Builder $query): void
     {
-        $sortField = $this->sort;
-        $direction = str_starts_with($sortField, '-') ? 'desc' : 'asc';
-        $field = ltrim($sortField, '-');
+        [$field, $direction] = $this->parseSortField($this->sort);
 
         if ($field === 'roles') {
             $query->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')

@@ -18,8 +18,9 @@ class UserResource extends JsonResource
             'phone' => $this->phone,
             'birth_date' => $this->birth_date?->format('Y-m-d'),
             'gender' => $this->gender,
+            'title' => $this->title,
             'bio' => $this->bio,
-            'links' => $this->links,
+            'links' => LinkResource::collection($this->whenLoaded('links')),
             'user_settings' => $this->when(
                 $this->id === auth()->id() || auth()->user()?->can('users.view.settings'),
                 $this->user_settings

@@ -59,7 +59,7 @@ class ProjectResource extends JsonResource
                 $this->getMediaUrls('cover_image')
             ),
             'members' => $this->whenLoaded('members', fn () => UserMinimalResource::collection($this->members)),
-            'links' => $this->whenLoaded('links'),
+            'links' => LinkResource::collection($this->whenLoaded('links')),
             'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
             'updater' => $this->whenLoaded('updater', fn () => new UserMinimalResource($this->updater)),
             'deleter' => $this->whenLoaded('deleter', fn () => new UserMinimalResource($this->deleter)),

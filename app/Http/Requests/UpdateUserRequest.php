@@ -31,6 +31,7 @@ class UpdateUserRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:20'],
             'birth_date' => ['nullable', 'date', 'before:today'],
             'gender' => ['nullable', 'in:male,female,other'],
+            'title' => ['nullable', 'string', 'max:255'],
             'bio' => ['nullable', 'string', 'max:1000'],
             'links' => ['nullable', 'array'],
             'links.*.label' => ['required', 'string', 'max:100'],

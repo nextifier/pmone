@@ -19,6 +19,7 @@ class UserMinimalResource extends JsonResource
             'name' => $this->name,
             'username' => $this->username,
             'email' => $this->email,
+            'title' => $this->title,
             'profile_image' => $this->when(
                 $this->hasMedia('profile_image'),
                 $this->getMediaUrls('profile_image')
