@@ -68,20 +68,72 @@
       </div>
     </div>
 
-    <!-- <div class="frame">
+    <div class="frame">
       <div class="frame-header">
         <div class="frame-title">Phones</div>
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="phone">Phone Number</Label>
-            <InputPhone v-model="form.phone" id="phone" />
-            <InputErrorMessage :errors="errors.phone" />
+          <div class="space-y-3">
+            <div v-if="form.phones.length > 0" class="space-y-2">
+              <div
+                v-for="(phone, index) in form.phones"
+                :key="index"
+                class="flex items-center gap-1.5"
+              >
+                <div class="min-w-42">
+                  <Select
+                    v-model="phone.label"
+                    @update:model-value="(value) => handlePhoneLabelChange(index, value)"
+                  >
+                    <div v-if="phone.isCustomLabel" class="relative">
+                      <Input
+                        v-model="phone.label"
+                        type="text"
+                        placeholder="Enter custom label"
+                        class="pr-7"
+                      />
+                      <SelectTrigger
+                        class="absolute top-0 right-0 flex size-8 items-center justify-center border-transparent bg-transparent !p-0 [&_svg]:!m-0"
+                      />
+                    </div>
+                    <SelectTrigger v-else class="w-full">
+                      <SelectValue placeholder="Select label" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem v-for="label in PREDEFINED_PHONE_LABELS" :key="label" :value="label">
+                        {{ label }}
+                      </SelectItem>
+                      <SelectItem value="Custom">Custom</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <InputPhone v-model="phone.number" class="grow" />
+
+                <button
+                  type="button"
+                  @click="removePhone(index)"
+                  class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                >
+                  <Icon name="hugeicons:delete-01" class="size-4" />
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              @click="addPhone"
+              class="text-primary hover:text-primary/80 flex items-center gap-x-1 py-1 text-sm font-medium tracking-tight transition"
+            >
+              <Icon name="hugeicons:add-01" class="size-4" />
+              Add Phone
+            </button>
+            <InputErrorMessage :errors="errors.phones" />
           </div>
         </div>
       </div>
-    </div> -->
+    </div>
 
     <div class="frame">
       <div class="frame-header">
@@ -247,6 +299,10 @@ const PREDEFINED_LABELS = [
   "LinkedIn",
   "YouTube",
 ];
+const PREDEFINED_PHONE_LABELS = [
+  "Sales",
+  "Marketing",
+];
 const FILE_STATUS = {
   PROCESSING: 3,
 };
@@ -260,12 +316,12 @@ function createEmptyForm() {
     name: "",
     username: "",
     email: "",
-    phone: "",
     bio: "",
     status: "active",
     visibility: "public",
     member_ids: [],
     links: [],
+    phones: [],
   };
 }
 
@@ -354,6 +410,31 @@ function handleLabelChange(index, value) {
   }
 }
 
+// Add phone
+function addPhone() {
+  form.phones.push({
+    label: "",
+    number: "",
+    isCustomLabel: false,
+  });
+}
+
+// Remove phone
+function removePhone(index) {
+  form.phones.splice(index, 1);
+}
+
+// Handle phone label change
+function handlePhoneLabelChange(index, value) {
+  if (value === "Custom") {
+    form.phones[index].isCustomLabel = true;
+    form.phones[index].label = "";
+  } else {
+    form.phones[index].isCustomLabel = false;
+    form.phones[index].label = value;
+  }
+}
+
 // Populate form with initial data
 function populateForm(data) {
   if (!data || Object.keys(data).length === 0) return;
@@ -361,7 +442,6 @@ function populateForm(data) {
   form.name = data.name || "";
   form.username = data.username || "";
   form.email = data.email || "";
-  form.phone = data.phone || "";
   form.bio = data.bio || "";
   form.status = data.status || "active";
   form.visibility = data.visibility || "public";
@@ -385,6 +465,19 @@ function populateForm(data) {
     }));
 
     form.links.push(...formattedLinks);
+  }
+
+  // Handle phones
+  form.phones.splice(0, form.phones.length);
+
+  if (Array.isArray(data.phones) && data.phones.length > 0) {
+    const formattedPhones = data.phones.map((phone) => ({
+      label: phone.label || "",
+      number: phone.number || "",
+      isCustomLabel: !PREDEFINED_PHONE_LABELS.includes(phone.label),
+    }));
+
+    form.phones.push(...formattedPhones);
   }
 
   // Clear file uploads and reset delete flags
@@ -427,9 +520,19 @@ function handleSubmit() {
     url: link.url,
   }));
 
+  // Filter out empty phones (both label and number are empty)
+  const filteredPhones = form.phones.filter((phone) => phone.label || phone.number);
+
+  // Map phones to only include label and number (remove isCustomLabel flag)
+  const formattedPhones = filteredPhones.map((phone) => ({
+    label: phone.label,
+    number: phone.number,
+  }));
+
   const payload = {
     ...form,
     links: formattedLinks,
+    phones: formattedPhones,
   };
 
   // Handle profile image

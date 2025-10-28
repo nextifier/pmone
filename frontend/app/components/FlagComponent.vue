@@ -5,12 +5,16 @@
       :src="flagUrl"
       :alt="countryName"
       :title="countryName"
+      loading="lazy"
+      decoding="async"
+      @error="onImageError"
+      class="h-full w-full object-cover"
     />
   </span>
 </template>
 
 <script setup>
-import { computed, defineProps } from "vue";
+import { computed, defineProps, ref } from "vue";
 
 const props = defineProps({
   country: {
@@ -22,7 +26,16 @@ const props = defineProps({
   },
 });
 
+const imageError = ref(false);
+
 const flagUrl = computed(() => {
+  if (imageError.value) {
+    return "";
+  }
   return `https://flagcdn.com/w40/${props.country.toLowerCase()}.png`;
 });
+
+const onImageError = () => {
+  imageError.value = true;
+};
 </script>

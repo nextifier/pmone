@@ -12,6 +12,7 @@ class ProjectsTemplateExport extends BaseTemplateExport
                 'levenium',
                 'hello@levenium.com',
                 '+6281234567890',
+                '+6289876543210',
                 'Active',
                 'Public',
                 'Project / brand description.',
@@ -27,7 +28,8 @@ class ProjectsTemplateExport extends BaseTemplateExport
             'Name',
             'Username',
             'Email',
-            'Phone',
+            'Phone Sales',
+            'Phone Marketing',
             'Status',
             'Visibility',
             'Bio',
@@ -38,6 +40,6 @@ class ProjectsTemplateExport extends BaseTemplateExport
 
     protected function phoneColumns(): array
     {
-        return ['D'];
+        return ['D', 'E'];
     }
 }

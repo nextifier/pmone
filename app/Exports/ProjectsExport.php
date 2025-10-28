@@ -14,7 +14,7 @@ class ProjectsExport extends BaseExport
 
     protected function phoneColumns(): array
     {
-        return ['F'];
+        return ['F', 'G'];
     }
 
     public function headings(): array
@@ -25,7 +25,8 @@ class ProjectsExport extends BaseExport
             'Username',
             'Bio',
             'Email',
-            'Phone',
+            'Phone Sales',
+            'Phone Marketing',
             'Status',
             'Visibility',
             'Members',
@@ -52,10 +53,20 @@ class ProjectsExport extends BaseExport
         // Format members
         $members = $project->members->pluck('name')->join(', ') ?: '-';
 
-        // Format phone
-        $phone = '-';
+        // Format phone - separate Sales and Marketing
+        $phoneSales = '-';
+        $phoneMarketing = '-';
         if ($project->phone && is_array($project->phone) && count($project->phone) > 0) {
-            $phone = implode(', ', array_filter($project->phone));
+            foreach ($project->phone as $phoneData) {
+                if (is_array($phoneData) && isset($phoneData['number'])) {
+                    $label = strtolower($phoneData['label'] ?? '');
+                    if ($label === 'sales') {
+                        $phoneSales = $phoneData['number'];
+                    } elseif ($label === 'marketing') {
+                        $phoneMarketing = $phoneData['number'];
+                    }
+                }
+            }
         }
 
         // Get Website and Instagram URLs from links relation
@@ -76,7 +87,8 @@ class ProjectsExport extends BaseExport
             $project->username,
             $project->bio ?? '-',
             $project->email ?? '-',
-            $phone,
+            $phoneSales,
+            $phoneMarketing,
             $this->titleCase($project->status),
             $this->titleCase($project->visibility),
             $members,

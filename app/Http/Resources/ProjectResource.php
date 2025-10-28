@@ -45,7 +45,7 @@ class ProjectResource extends JsonResource
             'username' => $this->username,
             'bio' => $this->bio,
             'email' => $this->email,
-            'phone' => $this->phone,
+            'phones' => $this->phone,
             'settings' => $this->settings,
             'more_details' => $this->more_details,
             'status' => $this->status,

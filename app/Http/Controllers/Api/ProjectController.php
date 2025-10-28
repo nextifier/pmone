@@ -121,7 +121,9 @@ class ProjectController extends Controller
             'status' => ['required', Rule::in(['draft', 'active', 'archived'])],
             'visibility' => ['required', Rule::in(['public', 'private', 'members_only'])],
             'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'array'],
+            'phones' => ['nullable', 'array'],
+            'phones.*.label' => ['required', 'string', 'max:100'],
+            'phones.*.number' => ['required', 'string', 'max:20'],
             'member_ids' => ['nullable', 'array'],
             'member_ids.*' => ['exists:users,id'],
             'links' => ['nullable', 'array'],
@@ -130,6 +132,12 @@ class ProjectController extends Controller
             'tmp_profile_image' => ['nullable', 'string'],
             'tmp_cover_image' => ['nullable', 'string'],
         ]);
+
+        // Map phones to phone column
+        if (isset($validated['phones'])) {
+            $validated['phone'] = $validated['phones'];
+            unset($validated['phones']);
+        }
 
         $project = Project::create($validated);
 
@@ -196,7 +204,9 @@ class ProjectController extends Controller
             'status' => ['sometimes', Rule::in(['draft', 'active', 'archived'])],
             'visibility' => ['sometimes', Rule::in(['public', 'private', 'members_only'])],
             'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'array'],
+            'phones' => ['nullable', 'array'],
+            'phones.*.label' => ['required', 'string', 'max:100'],
+            'phones.*.number' => ['required', 'string', 'max:20'],
             'member_ids' => ['nullable', 'array'],
             'member_ids.*' => ['exists:users,id'],
             'links' => ['nullable', 'array'],
@@ -207,6 +217,12 @@ class ProjectController extends Controller
             'delete_profile_image' => ['nullable', 'boolean'],
             'delete_cover_image' => ['nullable', 'boolean'],
         ]);
+
+        // Map phones to phone column
+        if (isset($validated['phones'])) {
+            $validated['phone'] = $validated['phones'];
+            unset($validated['phones']);
+        }
 
         $project->update($validated);
 

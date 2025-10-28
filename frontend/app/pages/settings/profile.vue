@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-xl space-y-6">
+  <div class="min-h-screen-offset mx-auto max-w-xl space-y-6">
     <template v-if="userData">
       <div class="flex flex-col gap-y-6">
         <div class="flex w-full items-center justify-between">
