@@ -1,5 +1,5 @@
 <template>
-  <form @submit.prevent="handleSubmit" class="grid gap-y-6">
+  <form @submit.prevent="handleSubmit" class="grid gap-y-8">
     <div class="space-y-5">
       <div class="space-y-4">
         <Label>Profile Image</Label>

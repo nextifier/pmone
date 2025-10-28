@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-md space-y-9">
+  <div class="mx-auto max-w-xl space-y-9">
     <template v-if="project">
       <div class="flex flex-col gap-y-6">
         <div class="flex w-full items-center justify-between">

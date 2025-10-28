@@ -34,8 +34,8 @@ Application experiences memory leaks causing:
 - Call cleanup in onUnmounted hook
 - Clear shortcuts array on unmount
 
-### 3. FormProfile - Deep Watcher Leak
-**File:** `frontend/app/components/FormProfile.vue`
+### 3. FormUser - Deep Watcher Leak
+**File:** `frontend/app/components/FormUser.vue`
 
 **Issue:**
 - Deep watcher on large object creates many reactive observers
@@ -109,7 +109,7 @@ if (process.client && process.env.NODE_ENV === 'production') {
 
 1. ✅ `frontend/app/composables/useNow.js` - Fixed interval leak
 2. ✅ `frontend/app/composables/defineShortcuts.ts` - Fixed event listener leak
-3. ✅ `frontend/app/components/FormProfile.vue` - Fixed deep watcher leak
+3. ✅ `frontend/app/components/FormUser.vue` - Fixed deep watcher leak
 4. ✅ `frontend/nuxt.config.ts` - Added memory optimization settings
 
 ## Next Steps

@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-md space-y-6">
+  <div class="mx-auto max-w-xl space-y-6">
     <template v-if="userData">
       <div class="flex flex-col gap-y-6">
         <div class="flex w-full items-center justify-between">
@@ -9,7 +9,7 @@
           </div>
 
           <button
-            @click="formProfileRef?.handleSubmit()"
+            @click="formUserRef?.handleSubmit()"
             :disabled="isSubmitting"
             class="text-primary-foreground hover:bg-primary/80 bg-primary flex items-center justify-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
           >
@@ -19,8 +19,8 @@
         </div>
       </div>
 
-      <FormProfile
-        ref="formProfileRef"
+      <FormUser
+        ref="formUserRef"
         :initial-data="userData"
         :loading="isSubmitting"
         :errors="errors"
@@ -60,7 +60,7 @@ const sanctumFetch = useSanctumClient();
 const { user } = useSanctumAuth();
 
 // Refs
-const formProfileRef = ref(null);
+const formUserRef = ref(null);
 
 // State
 const userData = ref(null);

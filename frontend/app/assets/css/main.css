@@ -817,3 +817,27 @@ img.pswp__img {
 .sortable-drag {
   @apply border-primary/15 rounded-xl border;
 }
+
+.frame {
+  @apply bg-muted/50 after:border-border/60 border-border relative isolate flex w-full min-w-0 flex-col rounded-xl border bg-clip-padding before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-xl)-1px)] before:shadow-[0_1px_2px_1px_--theme(--color-black/4%)] before:content-[''] after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:bg-clip-padding after:content-[''];
+
+  & .frame-header {
+    @apply flex flex-col px-3 py-3 lg:px-5;
+
+    & .frame-title {
+      @apply text-muted-foreground text-sm font-semibold tracking-tight;
+    }
+
+    & .frame-description {
+      @apply text-muted-foreground text-sm;
+    }
+  }
+
+  & .frame-panel {
+    @apply bg-background -m-px flex min-w-0 flex-1 flex-col gap-1 overflow-x-auto rounded-xl border px-3 py-6 before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-xl)-1px)] lg:px-5;
+  }
+
+  & .frame-footer {
+    @apply flex flex-col gap-1 px-3 py-4 lg:px-5;
+  }
+}

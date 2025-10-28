@@ -1,12 +1,12 @@
 <template>
-  <div class="mx-auto max-w-md space-y-9">
+  <div class="mx-auto max-w-xl space-y-9">
     <template v-if="user">
       <div class="flex flex-col gap-y-6">
         <div class="flex w-full items-center justify-between">
           <BackButton destination="/users" />
 
           <button
-            @click="formProfileRef?.handleSubmit()"
+            @click="formUserRef?.handleSubmit()"
             :disabled="loading"
             class="text-primary-foreground hover:bg-primary/80 bg-primary flex items-center justify-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
           >
@@ -18,8 +18,8 @@
         <h1 class="page-title">Edit User</h1>
       </div>
 
-      <FormProfile
-        ref="formProfileRef"
+      <FormUser
+        ref="formUserRef"
         :initial-data="user"
         :roles="roles"
         :loading="loading"
@@ -85,7 +85,7 @@ const { $dayjs } = useNuxtApp();
 const { metaSymbol } = useShortcuts();
 
 // Refs
-const formProfileRef = ref(null);
+const formUserRef = ref(null);
 
 // State
 const user = ref(null);

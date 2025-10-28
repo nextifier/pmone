@@ -1,12 +1,12 @@
 <template>
-  <div class="mx-auto max-w-md space-y-9">
+  <div class="mx-auto max-w-xl space-y-9">
     <div class="flex flex-col items-start gap-y-6">
       <BackButton destination="/users" />
 
       <h1 class="page-title">Create New User</h1>
     </div>
 
-    <FormProfile
+    <FormUser
       :roles="roles"
       :loading="loading"
       :errors="errors"
@@ -23,7 +23,6 @@
 </template>
 
 <script setup>
-import FormProfile from "@/components/FormProfile.vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
