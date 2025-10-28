@@ -819,7 +819,7 @@ img.pswp__img {
 }
 
 .frame {
-  @apply bg-muted/50 after:border-border/60 border-border relative isolate flex w-full min-w-0 flex-col rounded-xl border bg-clip-padding before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-xl)-1px)] before:shadow-[0_1px_2px_1px_--theme(--color-black/4%)] before:content-[''] after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:bg-clip-padding after:content-[''];
+  @apply bg-muted/50 after:border-border/60 border-border relative isolate flex w-full min-w-0 flex-col rounded-xl border bg-clip-padding before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-xl)-1px)] before:shadow-[0_1px_2px_1px_--theme(--color-black/4%)] before:content-[''] after:pointer-events-none after:absolute after:-inset-[5px] after:-z-1 after:rounded-[calc(var(--radius-xl)+4px)] after:border after:bg-clip-padding after:backdrop-blur-[1px] after:content-[''];
 
   & .frame-header {
     @apply flex flex-col px-3 py-3 lg:px-5;

@@ -81,12 +81,12 @@
                 :key="index"
                 class="flex items-center gap-1.5"
               >
-                <div class="min-w-42">
+                <div class="w-28 shrink-0 sm:w-44">
                   <Select
                     v-model="phone.label"
                     @update:model-value="(value) => handlePhoneLabelChange(index, value)"
                   >
-                    <div v-if="phone.isCustomLabel" class="relative">
+                    <div v-if="phone.isCustomLabel" class="relative w-full">
                       <Input
                         v-model="phone.label"
                         type="text"
@@ -101,7 +101,11 @@
                       <SelectValue placeholder="Select label" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem v-for="label in PREDEFINED_PHONE_LABELS" :key="label" :value="label">
+                      <SelectItem
+                        v-for="label in PREDEFINED_PHONE_LABELS"
+                        :key="label"
+                        :value="label"
+                      >
                         {{ label }}
                       </SelectItem>
                       <SelectItem value="Custom">Custom</SelectItem>
@@ -299,10 +303,7 @@ const PREDEFINED_LABELS = [
   "LinkedIn",
   "YouTube",
 ];
-const PREDEFINED_PHONE_LABELS = [
-  "Sales",
-  "Marketing",
-];
+const PREDEFINED_PHONE_LABELS = ["Sales", "Marketing"];
 const FILE_STATUS = {
   PROCESSING: 3,
 };

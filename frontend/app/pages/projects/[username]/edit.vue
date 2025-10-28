@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen-offset mx-auto max-w-xl space-y-9">
+  <div class="min-h-screen-offset mx-auto max-w-xl">
     <template v-if="project">
       <div class="flex flex-col gap-y-6">
         <div class="flex w-full items-center justify-between">
@@ -62,30 +62,35 @@
           <Spinner class="size-4 shrink-0" />
           <span class="tracking-tight">Loading</span>
         </div>
-        <div v-else-if="error" class="flex flex-col items-center gap-4 text-center">
-          <div class="text-muted-foreground flex flex-col gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="mx-auto size-12"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
-            <p class="text-lg font-medium">{{ error }}</p>
+
+        <div v-else-if="error" class="frame w-full">
+          <div class="frame-panel">
+            <div class="flex w-full flex-col items-center justify-center gap-y-4 text-center">
+              <div
+                class="*:bg-background/80 *:squircle text-muted-foreground flex items-center -space-x-2 *:rounded-lg *:border *:p-3 *:backdrop-blur-sm [&_svg]:size-5"
+              >
+                <div class="translate-y-1.5 -rotate-6">
+                  <Icon name="hugeicons:file-empty-01" />
+                </div>
+                <div>
+                  <Icon name="hugeicons:search-remove" />
+                </div>
+                <div class="translate-y-1.5 rotate-6">
+                  <Icon name="hugeicons:user" />
+                </div>
+              </div>
+              <div class="space-y-1">
+                <h3 class="text-lg font-semibold tracking-tighter">{{ error }}</h3>
+              </div>
+              <NuxtLink
+                to="/projects/"
+                class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+              >
+                <Icon name="lucide:arrow-left" class="size-4 shrink-0" />
+                <span>Back to Projects</span>
+              </NuxtLink>
+            </div>
           </div>
-          <button
-            @click="navigateTo('/projects')"
-            class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight transition"
-          >
-            Back to Projects
-          </button>
         </div>
       </div>
     </template>
