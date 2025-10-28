@@ -129,126 +129,130 @@
       </div>
 
       <!-- Table -->
-      <div class="overflow-hidden rounded-md border">
-        <Table class="table-fixed">
-          <TableHeader>
-            <TableRow
-              v-for="headerGroup in table.getHeaderGroups()"
-              :key="headerGroup.id"
-              class="tracking-tight hover:bg-transparent"
-            >
-              <TableHead
-                v-for="header in headerGroup.headers"
-                :key="header.id"
-                :style="{ width: `${header.getSize()}px` }"
-                class="h-11"
-              >
-                <template v-if="!header.isPlaceholder">
-                  <div
-                    v-if="header.column.getCanSort()"
-                    class="flex h-full cursor-pointer items-center gap-x-3 select-none"
-                    @click="header.column.getToggleSortingHandler()?.($event)"
-                    @keydown="
-                      (event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          header.column.getToggleSortingHandler()?.(event);
-                        }
-                      }
-                    "
-                    tabindex="0"
-                    role="button"
-                  >
-                    <FlexRender
-                      :render="header.column.columnDef.header"
-                      :props="header.getContext()"
-                    />
-                    <Icon
-                      v-if="header.column.getIsSorted() === 'desc'"
-                      name="lucide:chevron-down"
-                      class="text-muted-foreground size-3.5 shrink-0"
-                    />
-                    <Icon
-                      v-else-if="header.column.getIsSorted() === 'asc'"
-                      name="lucide:chevron-up"
-                      class="text-muted-foreground size-3.5 shrink-0"
-                    />
-                    <Icon
-                      v-else
-                      name="lucide:chevron-up"
-                      class="text-muted-foreground/30 size-3.5 shrink-0"
-                    />
-                  </div>
-                  <div v-else>
-                    <FlexRender
-                      :render="header.column.columnDef.header"
-                      :props="header.getContext()"
-                    />
-                  </div>
-                </template>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <template v-if="table.getRowModel().rows?.length">
+      <div class="frame">
+        <div class="frame-panel bg-background -m-px overflow-hidden !p-0">
+          <Table class="table-fixed">
+            <TableHeader>
               <TableRow
-                v-for="row in table.getRowModel().rows"
-                :key="row.id"
-                :data-state="row.getIsSelected() && 'selected'"
-                class="tracking-tight"
+                v-for="headerGroup in table.getHeaderGroups()"
+                :key="headerGroup.id"
+                class="tracking-tight hover:bg-transparent"
               >
-                <TableCell
-                  v-for="cell in row.getVisibleCells()"
-                  :key="cell.id"
-                  :style="{ width: `${cell.column.getSize()}px` }"
-                  class="py-2.5"
+                <TableHead
+                  v-for="header in headerGroup.headers"
+                  :key="header.id"
+                  :style="{ width: `${header.getSize()}px` }"
+                  class="h-11"
                 >
-                  <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
-                </TableCell>
+                  <template v-if="!header.isPlaceholder">
+                    <div
+                      v-if="header.column.getCanSort()"
+                      class="flex h-full cursor-pointer items-center gap-x-3 select-none"
+                      @click="header.column.getToggleSortingHandler()?.($event)"
+                      @keydown="
+                        (event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            header.column.getToggleSortingHandler()?.(event);
+                          }
+                        }
+                      "
+                      tabindex="0"
+                      role="button"
+                    >
+                      <FlexRender
+                        :render="header.column.columnDef.header"
+                        :props="header.getContext()"
+                      />
+                      <Icon
+                        v-if="header.column.getIsSorted() === 'desc'"
+                        name="lucide:chevron-down"
+                        class="text-muted-foreground size-3.5 shrink-0"
+                      />
+                      <Icon
+                        v-else-if="header.column.getIsSorted() === 'asc'"
+                        name="lucide:chevron-up"
+                        class="text-muted-foreground size-3.5 shrink-0"
+                      />
+                      <Icon
+                        v-else
+                        name="lucide:chevron-up"
+                        class="text-muted-foreground/30 size-3.5 shrink-0"
+                      />
+                    </div>
+                    <div v-else>
+                      <FlexRender
+                        :render="header.column.columnDef.header"
+                        :props="header.getContext()"
+                      />
+                    </div>
+                  </template>
+                </TableHead>
               </TableRow>
-            </template>
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              <template v-if="table.getRowModel().rows?.length">
+                <TableRow
+                  v-for="row in table.getRowModel().rows"
+                  :key="row.id"
+                  :data-state="row.getIsSelected() && 'selected'"
+                  class="tracking-tight"
+                >
+                  <TableCell
+                    v-for="cell in row.getVisibleCells()"
+                    :key="cell.id"
+                    :style="{ width: `${cell.column.getSize()}px` }"
+                    class="py-2.5"
+                  >
+                    <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+                  </TableCell>
+                </TableRow>
+              </template>
+            </TableBody>
+          </Table>
 
-        <!-- Empty State -->
-        <div
-          v-if="!hasRows"
-          class="mx-auto flex w-full max-w-md flex-col items-center gap-4 py-10 text-center"
-        >
+          <!-- Empty State -->
           <div
-            class="*:bg-background/80 *:squircle text-muted-foreground flex items-center -space-x-2 *:rounded-lg *:border *:p-3 *:backdrop-blur-sm [&_svg]:size-5"
+            v-if="!hasRows"
+            class="mx-auto flex w-full max-w-md flex-col items-center gap-4 py-10 text-center"
           >
-            <div class="translate-y-1.5 -rotate-6">
-              <Icon name="hugeicons:file-empty-01" />
-            </div>
-            <div>
-              <Icon name="hugeicons:search-remove" />
-            </div>
-            <div class="translate-y-1.5 rotate-6">
-              <Icon name="hugeicons:user" />
-            </div>
-          </div>
-          <div class="flex flex-col gap-y-1.5">
-            <h6 class="text-lg font-semibold tracking-tight">No data found</h6>
-            <p class="text-muted-foreground text-sm">It looks like there's no data in this page.</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <NuxtLink
-              v-if="props.showAddButton"
-              :to="`/${props.model}/create`"
-              class="hover:bg-primary/80 bg-primary text-primary-foreground flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm font-medium tracking-tight active:scale-98"
+            <div
+              class="*:bg-background/80 *:squircle text-muted-foreground flex items-center -space-x-2 *:rounded-lg *:border *:p-3 *:backdrop-blur-sm [&_svg]:size-5"
             >
-              <Icon name="lucide:plus" class="size-4 shrink-0" />
-              <span>Create new</span>
-            </NuxtLink>
-            <button
-              v-if="hasActiveFilters"
-              class="border-border hover:bg-muted text-primary flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm font-medium tracking-tight active:scale-98"
-              @click="table.resetColumnFilters()"
-            >
-              <Icon name="lucide:x" class="size-4 shrink-0" />
-              <span>Clear filters</span>
-            </button>
+              <div class="translate-y-1.5 -rotate-6">
+                <Icon name="hugeicons:file-empty-01" />
+              </div>
+              <div>
+                <Icon name="hugeicons:search-remove" />
+              </div>
+              <div class="translate-y-1.5 rotate-6">
+                <Icon name="hugeicons:user" />
+              </div>
+            </div>
+            <div class="flex flex-col gap-y-1.5">
+              <h6 class="text-lg font-semibold tracking-tight">No data found</h6>
+              <p class="text-muted-foreground text-sm">
+                It looks like there's no data in this page.
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <NuxtLink
+                v-if="props.showAddButton"
+                :to="`/${props.model}/create`"
+                class="hover:bg-primary/80 bg-primary text-primary-foreground flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm font-medium tracking-tight active:scale-98"
+              >
+                <Icon name="lucide:plus" class="size-4 shrink-0" />
+                <span>Create new</span>
+              </NuxtLink>
+              <button
+                v-if="hasActiveFilters"
+                class="border-border hover:bg-muted text-primary flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm font-medium tracking-tight active:scale-98"
+                @click="table.resetColumnFilters()"
+              >
+                <Icon name="lucide:x" class="size-4 shrink-0" />
+                <span>Clear filters</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
