@@ -39,19 +39,17 @@
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
           <div class="space-y-2">
-            <Label for="name">Project Name *</Label>
+            <Label for="name">Project Name</Label>
             <Input id="name" v-model="form.name" type="text" required />
             <InputErrorMessage :errors="errors.name" />
           </div>
 
           <div class="space-y-2">
-            <div class="flex items-center justify-between gap-x-2">
-              <Label for="username">Username</Label>
-              <p class="text-muted-foreground line-clamp-1 text-xs tracking-tight">
-                {{ isCreate ? "Will be auto-generated if left empty." : "" }}
-              </p>
-            </div>
+            <Label for="username">Username</Label>
             <Input id="username" v-model="form.username" type="text" :required="!isCreate" />
+            <p class="text-muted-foreground line-clamp-1 text-xs tracking-tight">
+              {{ isCreate ? "Will be auto-generated if left empty." : "" }}
+            </p>
             <InputErrorMessage :errors="errors.username" />
           </div>
 

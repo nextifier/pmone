@@ -39,24 +39,22 @@
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
           <div class="space-y-2">
-            <Label for="name">Full Name *</Label>
+            <Label for="name">Full Name</Label>
             <Input id="name" v-model="form.name" type="text" required />
             <InputErrorMessage :errors="errors.name" />
           </div>
 
           <div class="space-y-2">
-            <div class="flex items-center justify-between gap-x-2">
-              <Label for="username">Username</Label>
-              <p class="text-muted-foreground line-clamp-1 text-xs tracking-tight">
-                {{ isCreate ? "Will be auto-generated if left empty." : "" }}
-              </p>
-            </div>
+            <Label for="username">Username</Label>
             <Input id="username" v-model="form.username" type="text" :required="!isCreate" />
+            <p class="text-muted-foreground line-clamp-1 text-xs tracking-tight">
+              {{ isCreate ? "Will be auto-generated if left empty." : "" }}
+            </p>
             <InputErrorMessage :errors="errors.username" />
           </div>
 
           <div class="space-y-2">
-            <Label for="email">Email Address *</Label>
+            <Label for="email">Email Address</Label>
             <Input id="email" v-model="form.email" type="email" required />
             <InputErrorMessage :errors="errors.email" />
           </div>
@@ -207,12 +205,7 @@
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
           <div v-if="showPassword" class="space-y-2">
-            <div class="flex items-center justify-between gap-x-2">
-              <Label for="password">Password {{ isCreate ? "*" : "" }}</Label>
-              <p class="text-muted-foreground text-xs tracking-tight">
-                {{ isCreate ? "Minimum 8 characters." : "Leave empty to keep current password." }}
-              </p>
-            </div>
+            <Label for="password">Password</Label>
             <Input
               id="password"
               v-model="form.password"
@@ -220,6 +213,9 @@
               :required="isCreate"
               minlength="8"
             />
+            <p class="text-muted-foreground text-xs tracking-tight">
+              {{ isCreate ? "Minimum 8 characters." : "Leave empty to keep current password." }}
+            </p>
             <InputErrorMessage :errors="errors.password" />
           </div>
 

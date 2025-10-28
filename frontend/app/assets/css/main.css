@@ -841,3 +841,10 @@ img.pswp__img {
     @apply flex flex-col gap-1 px-3 py-4 lg:px-5;
   }
 }
+
+label:has(+ input:required)::after,
+label:has(+ select:required)::after,
+label:has(+ textarea:required)::after {
+  /* content: " *"; */
+  @apply text-destructive ml-0 content-['*'];
+}
