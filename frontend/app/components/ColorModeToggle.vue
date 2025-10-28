@@ -41,79 +41,15 @@
 <script setup>
 import { SwitchRoot, SwitchThumb } from "reka-ui";
 
-const colorMode = useColorMode();
-const nuxtApp = useNuxtApp();
-
-// Try to get user from sanctum auth, but don't fail if not available
-const { user } = useSanctumAuth();
-const sanctumFetch = useSanctumClient();
-
-// Load theme preference from user settings or fallback to current colorMode
-const loadThemePreference = () => {
-  if (user.value?.user_settings?.theme) {
-    colorMode.preference = user.value.user_settings.theme;
-  }
-  // If no user settings, colorMode will use its default behavior (localStorage)
-};
-
-// Save theme to user settings when authenticated
-const saveThemeToUserSettings = async (theme) => {
-  if (!user.value) return; // Skip if not authenticated
-
-  try {
-    const currentSettings = user.value.user_settings || {};
-    const updatedSettings = {
-      ...currentSettings,
-      theme: theme,
-    };
-
-    await sanctumFetch("/api/user/settings", {
-      method: "PATCH",
-      body: {
-        settings: updatedSettings,
-      },
-    });
-
-    // Update local user data
-    if (user.value) {
-      user.value.user_settings = updatedSettings;
-    }
-  } catch (error) {
-    console.error("Failed to save theme to user settings:", error);
-    // Fail silently - localStorage will still work
-  }
-};
+const { colorMode, setTheme } = useThemeSync();
 
 const isDarkMode = computed({
   get: () => colorMode.value === "dark",
   set: (value) => {
     const newTheme = value ? "dark" : "light";
-    colorMode.preference = newTheme;
-
-    nextTick(() => {
-      nuxtApp.$updateMetaThemeColor();
-    });
-
-    // Save to user settings if authenticated
-    saveThemeToUserSettings(newTheme);
+    setTheme(newTheme);
   },
 });
-
-// Load theme preference when component mounts
-onMounted(() => {
-  loadThemePreference();
-});
-
-// Watch for user changes and reload theme preference
-watch(
-  user,
-  () => {
-    if (user.value) {
-      loadThemePreference();
-    }
-  },
-  { deep: true }
-);
 
 defineShortcuts({
   meta_d: {

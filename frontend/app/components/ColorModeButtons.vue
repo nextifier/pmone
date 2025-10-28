@@ -41,12 +41,7 @@
 <script setup>
 import { ColorModeThumbnailDark, ColorModeThumbnailLight } from "#components";
 
-const colorMode = useColorMode();
-const nuxtApp = useNuxtApp();
-
-// Try to get user from sanctum auth, but don't fail if not available
-const { user } = useSanctumAuth();
-const sanctumFetch = useSanctumClient();
+const { colorMode, setTheme } = useThemeSync();
 
 const colorModeList = shallowRef([
   {
@@ -61,65 +56,7 @@ const colorModeList = shallowRef([
   },
 ]);
 
-// Save theme to user settings when authenticated
-const saveThemeToUserSettings = async (theme) => {
-  if (!user.value) return; // Skip if not authenticated
-
-  try {
-    const currentSettings = user.value.user_settings || {};
-    const updatedSettings = {
-      ...currentSettings,
-      theme: theme,
-    };
-
-    await sanctumFetch("/api/user/settings", {
-      method: "PATCH",
-      body: {
-        settings: updatedSettings,
-      },
-    });
-
-    // Update local user data
-    if (user.value) {
-      user.value.user_settings = updatedSettings;
-    }
-  } catch (error) {
-    console.error("Failed to save theme to user settings:", error);
-    // Fail silently - localStorage will still work
-  }
-};
-
 const setColorMode = (mode) => {
-  // Langsung atur preferensi dari useColorMode
-  colorMode.preference = mode;
-  // Panggil fungsi update meta setelah preferensi diubah
-  nuxtApp.$updateMetaThemeColor();
-
-  // Save to user settings if authenticated
-  saveThemeToUserSettings(mode);
+  setTheme(mode);
 };
-
-// Load theme preference from user settings or fallback to current colorMode
-const loadThemePreference = () => {
-  if (user.value?.user_settings?.theme) {
-    colorMode.preference = user.value.user_settings.theme;
-  }
-  // If no user settings, colorMode will use its default behavior (localStorage)
-};
-
-// Load theme preference when component mounts
-onMounted(() => {
-  loadThemePreference();
-});
-
-// Watch for user changes and reload theme preference
-watch(
-  user,
-  () => {
-    if (user.value) {
-      loadThemePreference();
-    }
-  },
-  { deep: true }
-);
 </script>

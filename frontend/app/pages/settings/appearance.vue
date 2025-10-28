@@ -109,7 +109,7 @@
       </div>
 
       <!-- Loading/Success Feedback -->
-      <div v-if="isUpdating" class="text-muted-foreground flex items-center gap-x-1.5 text-sm">
+      <!-- <div v-if="isSyncing" class="text-muted-foreground flex items-center gap-x-1.5 text-sm">
         <LoadingSpinner class="size-4" />
         <span>Saving preferences..</span>
       </div>
@@ -120,7 +120,7 @@
       >
         <Icon name="lucide:check" class="size-4" />
         <span>Preferences saved</span>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
@@ -140,88 +140,38 @@ definePageMeta({
 
 usePageMeta("settingsAppearance");
 
-const sanctumFetch = useSanctumClient();
-const { user } = useSanctumAuth();
-const colorMode = useColorMode();
-const nuxtApp = useNuxtApp();
+const { colorMode, setTheme, isSyncing, lastSyncedAt, syncError } = useThemeSync();
 
 // Reactive state
 const selectedTheme = ref("system");
-const isUpdating = ref(false);
 const lastUpdated = ref(false);
 
 // Load current theme preference from user settings
 const loadThemePreference = () => {
-  if (user.value?.user_settings?.theme) {
-    selectedTheme.value = user.value.user_settings.theme;
-  } else {
-    // If no user setting, use current color mode preference
-    selectedTheme.value = colorMode.preference || "system";
-  }
-};
-
-// Apply theme to color mode and update meta
-const applyTheme = (theme) => {
-  colorMode.preference = theme;
-  // Update meta theme color to match new theme
-  nextTick(() => {
-    nuxtApp.$updateMetaThemeColor?.();
-  });
+  selectedTheme.value = colorMode.preference || "system";
 };
 
 // Update theme preference
-const updateTheme = async () => {
-  try {
-    isUpdating.value = true;
+const updateTheme = () => {
+  // Use the centralized setTheme function with debounced sync
+  setTheme(selectedTheme.value);
+
+  // Show temporary success feedback
+  lastUpdated.value = true;
+  setTimeout(() => {
     lastUpdated.value = false;
-
-    // Get current user settings or initialize empty object
-    const currentSettings = user.value?.user_settings || {};
-
-    // Update theme in user settings
-    const updatedSettings = {
-      ...currentSettings,
-      theme: selectedTheme.value,
-    };
-
-    // Save to backend
-    const response = await sanctumFetch("/api/user/settings", {
-      method: "PATCH",
-      body: {
-        settings: updatedSettings,
-      },
-    });
-
-    // Apply theme immediately
-    applyTheme(selectedTheme.value);
-
-    // Update local user data if available
-    if (user.value) {
-      user.value.user_settings = updatedSettings;
-    }
-
-    // Show success feedback
-    lastUpdated.value = true;
-  } catch (error) {
-    console.error("Failed to update theme:", error);
-    toast.error("Failed to save theme preference. Please try again.");
-  } finally {
-    isUpdating.value = false;
-  }
+  }, 2000);
 };
+
+// Watch for sync errors
+watch(syncError, (error) => {
+  if (error) {
+    toast.error(error);
+  }
+});
 
 // Load theme preference when component mounts
 onMounted(() => {
   loadThemePreference();
-  applyTheme(selectedTheme.value);
 });
-
-// Watch for user changes and reload theme preference
-watch(
-  user,
-  () => {
-    loadThemePreference();
-  },
-  { deep: true }
-);
 </script>
