@@ -1,168 +1,220 @@
 <template>
   <form @submit.prevent="handleSubmit" class="grid gap-y-8">
-    <div class="space-y-5">
-      <div class="space-y-4">
-        <Label>Profile Image</Label>
-        <InputFileImage
-          ref="profileImageInputRef"
-          v-model="imageFiles.profile_image"
-          :initial-image="initialData?.profile_image"
-          v-model:delete-flag="deleteFlags.profile_image"
-          container-class="squircle relative isolate aspect-square max-w-40"
-        />
-        <InputErrorMessage :errors="errors.tmp_profile_image" />
+    <div class="frame">
+      <div class="frame-header">
+        <div class="frame-title">Images</div>
       </div>
-
-      <div class="space-y-4">
-        <Label>Cover Image</Label>
-        <InputFileImage
-          ref="coverImageInputRef"
-          v-model="imageFiles.cover_image"
-          :initial-image="initialData?.cover_image"
-          v-model:delete-flag="deleteFlags.cover_image"
-        />
-        <InputErrorMessage :errors="errors.tmp_cover_image" />
-      </div>
-
-      <h3 class="text-muted-foreground text-sm font-medium tracking-tight">Project Information</h3>
-
-      <div class="space-y-2">
-        <Label for="name">Project Name *</Label>
-        <Input id="name" v-model="form.name" type="text" required />
-        <InputErrorMessage :errors="errors.name" />
-      </div>
-
-      <div class="space-y-2">
-        <div class="flex items-center justify-between gap-x-2">
-          <Label for="username">Username</Label>
-          <p class="text-muted-foreground line-clamp-1 text-xs tracking-tight">
-            {{ isCreate ? "Will be auto-generated if left empty." : "" }}
-          </p>
-        </div>
-        <Input id="username" v-model="form.username" type="text" :required="!isCreate" />
-        <InputErrorMessage :errors="errors.username" />
-      </div>
-
-      <div class="space-y-2">
-        <Label for="email">Email Address</Label>
-        <Input id="email" v-model="form.email" type="email" />
-        <InputErrorMessage :errors="errors.email" />
-      </div>
-
-      <div class="space-y-2">
-        <Label for="phone">Phone Number</Label>
-        <InputPhone v-model="form.phone" id="phone" />
-        <InputErrorMessage :errors="errors.phone" />
-      </div>
-
-      <div class="space-y-2">
-        <Label for="bio">Description</Label>
-        <Textarea id="bio" v-model="form.bio" maxlength="1000" />
-        <InputErrorMessage :errors="errors.bio" />
-      </div>
-
-      <div class="space-y-2">
-        <Label>Members</Label>
-        <UserMultiSelect
-          :users="eligibleMembers"
-          v-model="selectedMembers"
-          v-model:query="memberQuery"
-          placeholder="Search members..."
-          :hide-clear-all-button="true"
-        />
-        <InputErrorMessage :errors="errors.member_ids" />
-      </div>
-
-      <div class="space-y-3">
-        <h3 class="text-muted-foreground text-sm font-medium tracking-tight">Links</h3>
-
-        <div v-if="form.links.length > 0" class="space-y-2">
-          <div v-for="(link, index) in form.links" :key="index" class="flex items-center gap-1.5">
-            <div class="min-w-42">
-              <Select
-                v-model="link.label"
-                @update:model-value="(value) => handleLabelChange(index, value)"
-              >
-                <div v-if="link.isCustomLabel" class="relative">
-                  <Input
-                    v-model="link.label"
-                    type="text"
-                    placeholder="Enter custom label"
-                    class="pr-7"
-                  />
-                  <SelectTrigger
-                    class="absolute top-0 right-0 flex size-8 items-center justify-center border-transparent bg-transparent !p-0 [&_svg]:!m-0"
-                  />
-                </div>
-                <SelectTrigger v-else class="w-full">
-                  <SelectValue placeholder="Select label" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem v-for="label in PREDEFINED_LABELS" :key="label" :value="label">
-                    {{ label }}
-                  </SelectItem>
-                  <SelectItem value="Custom">Custom</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Input v-model="link.url" type="url" placeholder="Enter URL" class="grow" />
-
-            <button
-              type="button"
-              @click="removeLink(index)"
-              class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
-            >
-              <Icon name="hugeicons:delete-01" class="size-4" />
-            </button>
+      <div class="frame-panel">
+        <div class="grid grid-cols-1 gap-y-6">
+          <div class="space-y-4">
+            <Label>Profile Image</Label>
+            <InputFileImage
+              ref="profileImageInputRef"
+              v-model="imageFiles.profile_image"
+              :initial-image="initialData?.profile_image"
+              v-model:delete-flag="deleteFlags.profile_image"
+              container-class="squircle relative isolate aspect-square max-w-40"
+            />
+            <InputErrorMessage :errors="errors.tmp_profile_image" />
           </div>
-        </div>
 
-        <button
-          type="button"
-          @click="addLink"
-          class="text-primary hover:text-primary/80 flex items-center gap-x-1 py-1 text-sm font-medium tracking-tight transition"
-        >
-          <Icon name="hugeicons:add-01" class="size-4" />
-          Add Link
-        </button>
-        <InputErrorMessage :errors="errors.links" />
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
-        <div class="space-y-2">
-          <Label for="status">Status</Label>
-          <Select v-model="form.status">
-            <SelectTrigger class="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="archived">Archived</SelectItem>
-            </SelectContent>
-          </Select>
-          <InputErrorMessage :errors="errors.status" />
-        </div>
-
-        <div class="space-y-2">
-          <Label for="visibility">Visibility</Label>
-          <Select v-model="form.visibility">
-            <SelectTrigger class="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="public">Public</SelectItem>
-              <SelectItem value="private">Private</SelectItem>
-              <SelectItem value="members_only">Members Only</SelectItem>
-            </SelectContent>
-          </Select>
-          <InputErrorMessage :errors="errors.visibility" />
+          <div class="space-y-4">
+            <Label>Cover Image</Label>
+            <InputFileImage
+              ref="coverImageInputRef"
+              v-model="imageFiles.cover_image"
+              :initial-image="initialData?.cover_image"
+              v-model:delete-flag="deleteFlags.cover_image"
+            />
+            <InputErrorMessage :errors="errors.tmp_cover_image" />
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="flex justify-end gap-x-3">
+    <div class="frame">
+      <div class="frame-header">
+        <div class="frame-title">Project Information</div>
+      </div>
+      <div class="frame-panel">
+        <div class="grid grid-cols-1 gap-y-6">
+          <div class="space-y-2">
+            <Label for="name">Project Name *</Label>
+            <Input id="name" v-model="form.name" type="text" required />
+            <InputErrorMessage :errors="errors.name" />
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex items-center justify-between gap-x-2">
+              <Label for="username">Username</Label>
+              <p class="text-muted-foreground line-clamp-1 text-xs tracking-tight">
+                {{ isCreate ? "Will be auto-generated if left empty." : "" }}
+              </p>
+            </div>
+            <Input id="username" v-model="form.username" type="text" :required="!isCreate" />
+            <InputErrorMessage :errors="errors.username" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="email">Email Address</Label>
+            <Input id="email" v-model="form.email" type="email" />
+            <InputErrorMessage :errors="errors.email" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="bio">Description</Label>
+            <Textarea id="bio" v-model="form.bio" maxlength="1000" />
+            <InputErrorMessage :errors="errors.bio" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- <div class="frame">
+      <div class="frame-header">
+        <div class="frame-title">Phones</div>
+      </div>
+      <div class="frame-panel">
+        <div class="grid grid-cols-1 gap-y-6">
+          <div class="space-y-2">
+            <Label for="phone">Phone Number</Label>
+            <InputPhone v-model="form.phone" id="phone" />
+            <InputErrorMessage :errors="errors.phone" />
+          </div>
+        </div>
+      </div>
+    </div> -->
+
+    <div class="frame">
+      <div class="frame-header">
+        <div class="frame-title">Links</div>
+      </div>
+      <div class="frame-panel">
+        <div class="grid grid-cols-1 gap-y-6">
+          <div class="space-y-3">
+            <div v-if="form.links.length > 0" class="space-y-2">
+              <div
+                v-for="(link, index) in form.links"
+                :key="index"
+                class="flex items-center gap-1.5"
+              >
+                <div class="min-w-42">
+                  <Select
+                    v-model="link.label"
+                    @update:model-value="(value) => handleLabelChange(index, value)"
+                  >
+                    <div v-if="link.isCustomLabel" class="relative">
+                      <Input
+                        v-model="link.label"
+                        type="text"
+                        placeholder="Enter custom label"
+                        class="pr-7"
+                      />
+                      <SelectTrigger
+                        class="absolute top-0 right-0 flex size-8 items-center justify-center border-transparent bg-transparent !p-0 [&_svg]:!m-0"
+                      />
+                    </div>
+                    <SelectTrigger v-else class="w-full">
+                      <SelectValue placeholder="Select label" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem v-for="label in PREDEFINED_LABELS" :key="label" :value="label">
+                        {{ label }}
+                      </SelectItem>
+                      <SelectItem value="Custom">Custom</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Input v-model="link.url" type="url" placeholder="Enter URL" class="grow" />
+
+                <button
+                  type="button"
+                  @click="removeLink(index)"
+                  class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                >
+                  <Icon name="hugeicons:delete-01" class="size-4" />
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              @click="addLink"
+              class="text-primary hover:text-primary/80 flex items-center gap-x-1 py-1 text-sm font-medium tracking-tight transition"
+            >
+              <Icon name="hugeicons:add-01" class="size-4" />
+              Add Link
+            </button>
+            <InputErrorMessage :errors="errors.links" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="frame">
+      <div class="frame-header">
+        <div class="frame-title">Members</div>
+      </div>
+      <div class="frame-panel">
+        <div class="grid grid-cols-1 gap-y-6">
+          <div class="space-y-2">
+            <Label class="sr-only">Members</Label>
+            <UserMultiSelect
+              :users="eligibleMembers"
+              v-model="selectedMembers"
+              v-model:query="memberQuery"
+              placeholder="Search members..."
+              :hide-clear-all-button="true"
+            />
+            <InputErrorMessage :errors="errors.member_ids" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="frame">
+      <div class="frame-header">
+        <div class="frame-title">Project Settings</div>
+      </div>
+      <div class="frame-panel">
+        <div class="grid grid-cols-1 gap-y-6">
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-2">
+              <Label for="status">Status</Label>
+              <Select v-model="form.status">
+                <SelectTrigger class="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="archived">Archived</SelectItem>
+                </SelectContent>
+              </Select>
+              <InputErrorMessage :errors="errors.status" />
+            </div>
+
+            <div class="space-y-2">
+              <Label for="visibility">Visibility</Label>
+              <Select v-model="form.visibility">
+                <SelectTrigger class="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="private">Private</SelectItem>
+                  <SelectItem value="members_only">Members Only</SelectItem>
+                </SelectContent>
+              </Select>
+              <InputErrorMessage :errors="errors.visibility" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end">
       <button
         type="submit"
         :disabled="loading"
@@ -185,7 +237,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "vue-sonner";
 
 // Constants
