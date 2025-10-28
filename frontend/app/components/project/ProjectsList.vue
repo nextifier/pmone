@@ -41,96 +41,100 @@
   </div>
 
   <!-- Projects List -->
-  <div v-else ref="projectsListEl" class="divide-border divide-y rounded-xl border">
-    <div
-      v-for="project in projects"
-      :key="project.id"
-      :data-id="project.id"
-      class="hover:bg-muted/50 bg-background relative isolate flex items-center gap-x-1 px-3 py-4 first:rounded-t-xl last:rounded-b-xl sm:gap-x-2"
-    >
-      <NuxtLink
-        v-if="!isTrash"
-        :to="`/projects/${project.username}/edit`"
-        class="absolute inset-0 z-10"
-      />
-
-      <!-- Drag Handle (only for non-trash, non-filtered lists) -->
+  <div v-else ref="projectsListEl" class="frame">
+    <div class="divide-border -m-px divide-y rounded-xl border">
       <div
-        v-if="!isTrash && enableDragDrop"
-        class="hover:bg-muted text-muted-foreground hover:text-primary relative z-20 -ml-1.5 flex size-8 shrink-0 items-center justify-center rounded-md transition-colors sm:-mx-1"
-        :class="
-          hasActiveFilters
-            ? 'cursor-not-allowed opacity-30'
-            : 'drag-handle cursor-grab active:cursor-grabbing'
-        "
+        v-for="project in projects"
+        :key="project.id"
+        :data-id="project.id"
+        class="hover:bg-muted/50 bg-background relative isolate flex items-center gap-x-1 px-3 py-4 first:rounded-t-xl last:rounded-b-xl sm:gap-x-2"
       >
-        <Icon name="lucide:grip-vertical" class="size-4.5" />
-      </div>
+        <NuxtLink
+          v-if="!isTrash"
+          :to="`/projects/${project.username}/edit`"
+          class="absolute inset-0 z-10"
+        />
 
-      <div class="flex w-full items-center gap-x-1.5 sm:gap-x-2">
-        <Avatar :model="project" class="squircle size-12 overflow-hidden border" />
+        <!-- Drag Handle (only for non-trash, non-filtered lists) -->
+        <div
+          v-if="!isTrash && enableDragDrop"
+          class="hover:bg-muted text-muted-foreground hover:text-primary relative z-20 -ml-1.5 flex size-8 shrink-0 items-center justify-center rounded-md transition-colors sm:-mx-1"
+          :class="
+            hasActiveFilters
+              ? 'cursor-not-allowed opacity-30'
+              : 'drag-handle cursor-grab active:cursor-grabbing'
+          "
+        >
+          <Icon name="lucide:grip-vertical" class="size-4.5" />
+        </div>
 
-        <div class="flex grow flex-col gap-y-1.5">
-          <div class="flex items-center gap-x-2">
-            <h3 class="line-clamp-1 text-sm font-semibold tracking-tight">{{ project.name }}</h3>
-          </div>
+        <div class="flex w-full items-center gap-x-1.5 sm:gap-x-2">
+          <Avatar :model="project" class="squircle size-12 overflow-hidden border" />
 
-          <div class="text-muted-foreground flex items-center gap-x-3 text-xs tracking-tight">
-            <span v-if="project.members?.length" class="flex items-center gap-x-1">
-              <div class="relative z-20 flex -space-x-1.5">
-                <Avatar
-                  v-for="member in project.members.slice(0, 4)"
-                  :model="member"
-                  :key="member.id"
-                  class="!bg-border ring-background [&_.initial]:text-muted-foreground size-6 shrink-0 overflow-hidden !rounded-full ring-1 [&_.initial]:text-[10px] [&_.initial]:font-medium"
-                  v-tippy="member.name"
-                />
-                <span
-                  v-if="project.members_count && project.members_count > 4"
-                  class="ring-background bg-border text-muted-foreground relative flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full border text-center text-[10px] font-medium tracking-tighter ring-1"
-                  >+{{ project.members_count - 4 }}</span
+          <div class="flex grow flex-col gap-y-1.5">
+            <div class="flex items-center gap-x-2">
+              <h3 class="line-clamp-1 text-sm font-semibold tracking-tight">{{ project.name }}</h3>
+            </div>
+
+            <div class="text-muted-foreground flex items-center gap-x-3 text-xs tracking-tight">
+              <span v-if="project.members?.length" class="flex items-center gap-x-1">
+                <div class="relative z-20 flex -space-x-1.5">
+                  <Avatar
+                    v-for="member in project.members.slice(0, 4)"
+                    :model="member"
+                    :key="member.id"
+                    class="!bg-border ring-background [&_.initial]:text-muted-foreground size-6 shrink-0 overflow-hidden !rounded-full ring-1 [&_.initial]:text-[10px] [&_.initial]:font-medium"
+                    v-tippy="member.name"
+                  />
+                  <span
+                    v-if="project.members_count && project.members_count > 4"
+                    class="ring-background bg-border text-muted-foreground relative flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full border text-center text-[10px] font-medium tracking-tighter ring-1"
+                    >+{{ project.members_count - 4 }}</span
+                  >
+                </div>
+                <span v-if="project.members_count"
+                  >{{ project.members_count }} member{{
+                    project.members_count > 1 ? "s" : ""
+                  }}</span
                 >
-              </div>
-              <span v-if="project.members_count"
-                >{{ project.members_count }} member{{ project.members_count > 1 ? "s" : "" }}</span
-              >
-            </span>
+              </span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="mt-2 flex shrink-0 flex-col items-end gap-y-1.5">
-        <span
-          class="flex items-center gap-x-1 rounded-full px-2 py-0.5 text-xs font-medium tracking-tight capitalize"
-          :class="{
-            'bg-success/10 text-success-foreground': project.status === 'active',
-            'bg-warning/10 text-warning-foreground': project.status === 'draft',
-            'bg-muted text-muted-foreground': project.status === 'archived',
-          }"
-        >
+        <div class="mt-2 flex shrink-0 flex-col items-end gap-y-1.5">
           <span
-            class="size-1.5 rounded-full"
+            class="flex items-center gap-x-1 rounded-full px-2 py-0.5 text-xs font-medium tracking-tight capitalize"
             :class="{
-              'bg-success': project.status === 'active',
-              'bg-warning': project.status === 'draft',
-              'bg-muted-foreground': project.status === 'archived',
+              'bg-success/10 text-success-foreground': project.status === 'active',
+              'bg-warning/10 text-warning-foreground': project.status === 'draft',
+              'bg-muted text-muted-foreground': project.status === 'archived',
             }"
-          ></span>
-          {{ project.status }}
-        </span>
+          >
+            <span
+              class="size-1.5 rounded-full"
+              :class="{
+                'bg-success': project.status === 'active',
+                'bg-warning': project.status === 'draft',
+                'bg-muted-foreground': project.status === 'archived',
+              }"
+            ></span>
+            {{ project.status }}
+          </span>
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              class="hover:bg-muted data-[state=open]:bg-muted text-muted-foreground hover:text-foreground data-[state=open]:text-foreground relative z-20 inline-flex size-8 items-center justify-center rounded-md"
-            >
-              <Icon name="lucide:ellipsis" class="size-4" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent align="end" class="w-48 p-1">
-            <slot name="row-actions" :project="project" />
-          </PopoverContent>
-        </Popover>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                class="hover:bg-muted data-[state=open]:bg-muted text-muted-foreground hover:text-foreground data-[state=open]:text-foreground relative z-20 inline-flex size-8 items-center justify-center rounded-md"
+              >
+                <Icon name="lucide:ellipsis" class="size-4" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" class="w-48 p-1">
+              <slot name="row-actions" :project="project" />
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
     </div>
   </div>

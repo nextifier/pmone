@@ -21,22 +21,22 @@
 
           <form @submit.prevent="submit" class="grid gap-6">
             <div class="input-group">
-              <label for="name">Name</label>
-              <input v-model="form.name" type="text" name="name" id="name" required autofocus />
+              <Label for="name">Name</Label>
+              <Input v-model="form.name" type="text" name="name" id="name" required autofocus />
               <InputErrorMessage v-if="errors?.name" :errors="errors.name" />
             </div>
 
             <div class="input-group">
-              <label for="email">Email</label>
-              <input v-model="form.email" type="email" name="email" id="email" required />
+              <Label for="email">Email</Label>
+              <Input v-model="form.email" type="email" name="email" id="email" required />
               <InputErrorMessage v-if="errors?.email" :errors="errors.email" />
             </div>
 
             <div class="input-group">
-              <label for="password">Password</label>
+              <Label for="password">Password</Label>
 
               <div class="relative">
-                <input
+                <Input
                   v-model="form.password"
                   :type="showPassword ? 'text' : 'password'"
                   name="password"
@@ -71,10 +71,10 @@
             </div>
 
             <div v-if="enablePasswordConfirmation" class="input-group">
-              <label for="password_confirmation">Confirm Password</label>
+              <Label for="password_confirmation">Confirm Password</Label>
 
               <div class="relative">
-                <input
+                <Input
                   v-model="form.password_confirmation"
                   :type="showPasswordConfirmation ? 'text' : 'password'"
                   name="password_confirmation"

@@ -21,13 +21,13 @@
 
           <form @submit.prevent="submit" class="grid gap-6">
             <div class="input-group">
-              <label for="email">Email</label>
-              <input v-model="form.email" type="email" name="email" id="email" required autofocus />
+              <Label for="email">Email</Label>
+              <Input v-model="form.email" type="email" name="email" id="email" required autofocus />
               <InputErrorMessage v-if="errors?.email" :errors="errors.email" />
             </div>
             <div class="input-group">
               <div class="flex items-center justify-between gap-3">
-                <label for="password">Password</label>
+                <Label for="password">Password</Label>
 
                 <NuxtLink
                   to="/forgot-password"
@@ -38,7 +38,7 @@
               </div>
 
               <div class="relative">
-                <input
+                <Input
                   v-model="form.password"
                   :type="showPassword ? 'text' : 'password'"
                   name="password"

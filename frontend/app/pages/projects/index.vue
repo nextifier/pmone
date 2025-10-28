@@ -63,9 +63,7 @@
       :error="error"
       :has-active-filters="hasActiveFilters"
       :empty-description="
-        searchQuery
-          ? 'Try adjusting your search query.'
-          : 'Get started by creating a new project.'
+        searchQuery ? 'Try adjusting your search query.' : 'Get started by creating a new project.'
       "
     >
       <template #empty-actions>
@@ -132,8 +130,8 @@
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import ImportDialog from "@/components/project/ImportDialog.vue";
-import ProjectsHeader from "@/components/project/ProjectsHeader.vue";
 import ProjectsFilters from "@/components/project/ProjectsFilters.vue";
+import ProjectsHeader from "@/components/project/ProjectsHeader.vue";
 import ProjectsList from "@/components/project/ProjectsList.vue";
 import { useSortable } from "@vueuse/integrations/useSortable";
 import { toast } from "vue-sonner";
@@ -383,5 +381,4 @@ const handleExport = async () => {
     exportPending.value = false;
   }
 };
-
 </script>

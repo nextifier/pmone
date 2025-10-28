@@ -15,8 +15,8 @@
 
           <form @submit.prevent="submit" class="grid gap-6">
             <div class="input-group">
-              <label for="email">Email</label>
-              <input
+              <Label for="email">Email</Label>
+              <Input
                 v-model="form.email"
                 type="email"
                 name="email"

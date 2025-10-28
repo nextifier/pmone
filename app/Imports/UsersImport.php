@@ -21,6 +21,37 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
 
     protected int $importedCount = 0;
 
+    public function prepareForValidation($data, $index)
+    {
+        // Normalize phone to string
+        if (isset($data['phone']) && ! is_null($data['phone'])) {
+            $data['phone'] = (string) $data['phone'];
+        }
+
+        // Normalize roles to lowercase (handles comma-separated values)
+        if (isset($data['roles']) && ! is_null($data['roles'])) {
+            $roles = array_map(fn ($role) => strtolower(trim($role)), explode(',', $data['roles']));
+            $data['roles'] = implode(',', $roles);
+        }
+
+        // Normalize gender to lowercase
+        if (isset($data['gender']) && ! is_null($data['gender'])) {
+            $data['gender'] = strtolower(trim($data['gender']));
+        }
+
+        // Normalize status to lowercase
+        if (isset($data['status']) && ! is_null($data['status'])) {
+            $data['status'] = strtolower(trim($data['status']));
+        }
+
+        // Normalize visibility to lowercase
+        if (isset($data['visibility']) && ! is_null($data['visibility'])) {
+            $data['visibility'] = strtolower(trim($data['visibility']));
+        }
+
+        return $data;
+    }
+
     public function model(array $row): ?User
     {
         // Create user
