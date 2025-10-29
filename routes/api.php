@@ -94,10 +94,15 @@ Route::prefix('user')->group(function () {
         ->middleware('throttle:api');
 });
 
-// Profile routes (public)
-Route::get('/@{username}', [ProfileController::class, 'getUserProfile'])->middleware('throttle:api');
-Route::get('/p/{username}', [ProfileController::class, 'getProjectProfile'])->middleware('throttle:api');
-Route::get('/{slug}', [ProfileController::class, 'resolveShortLink'])->middleware('throttle:api');
+// Profile routes (public) - Order matters!
+// 1. Project profiles (specific prefix)
+Route::get('/p/{username}', [ProfileController::class, 'getProjectProfile'])
+    ->middleware('throttle:api');
+
+// 2. User profiles OR Short links (fallback logic in controller)
+Route::get('/{username}', [ProfileController::class, 'getUserProfile'])
+    ->middleware('throttle:api')
+    ->where('username', '^(?!p$)[a-zA-Z0-9._\-]+$'); // Exclude 'p' prefix
 
 // Tracking routes (public - can track anonymous visitors)
 Route::post('/track/click', [TrackingController::class, 'trackLinkClick'])->middleware('throttle:api');

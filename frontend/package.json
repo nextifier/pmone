@@ -28,6 +28,7 @@
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.14",
     "@tanstack/vue-table": "^8.21.3",
+    "@types/qrcode": "^1.5.6",
     "@vite-pwa/nuxt": "^1.0.4",
     "@vueuse/core": "^13.9.0",
     "@vueuse/integrations": "^13.9.0",
@@ -72,5 +73,8 @@
   "overrides": {
     "vue": "latest",
     "esm-env": "npm:esm-env-runtime@^0.1.1"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4"
   }
 }

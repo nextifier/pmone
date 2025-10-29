@@ -14,31 +14,39 @@ class ProfileController extends Controller
 {
     /**
      * Get user profile by username
+     * Falls back to short link if user not found
      */
     public function getUserProfile(Request $request, string $username): JsonResponse
     {
+        // Try to find user first
         $user = User::where('username', $username)
             ->with(['links' => function ($query) {
                 $query->active()->orderBy('order');
             }])
-            ->firstOrFail();
+            ->first();
 
-        // Track visit
-        TrackingHelper::trackVisit($request, $user);
+        // If user found, return user profile
+        if ($user) {
+            // Track visit
+            TrackingHelper::trackVisit($request, $user);
 
-        return response()->json([
-            'data' => [
-                'id' => $user->id,
-                'ulid' => $user->ulid,
-                'name' => $user->name,
-                'username' => $user->username,
-                'bio' => $user->bio,
-                'profile_image' => $user->getFirstMediaUrl('profile_image'),
-                'cover_image' => $user->getFirstMediaUrl('cover_image'),
-                'links' => $user->links,
-                'visibility' => $user->visibility,
-            ],
-        ]);
+            return response()->json([
+                'data' => [
+                    'id' => $user->id,
+                    'ulid' => $user->ulid,
+                    'name' => $user->name,
+                    'username' => $user->username,
+                    'bio' => $user->bio,
+                    'profile_image' => $user->getFirstMediaUrl('profile_image'),
+                    'cover_image' => $user->getFirstMediaUrl('cover_image'),
+                    'links' => $user->links,
+                    'visibility' => $user->visibility,
+                ],
+            ]);
+        }
+
+        // If user not found, try short link as fallback
+        return $this->resolveShortLink($request, $username);
     }
 
     /**
@@ -47,6 +55,7 @@ class ProfileController extends Controller
     public function getProjectProfile(Request $request, string $username): JsonResponse
     {
         $project = Project::where('username', $username)
+            ->where('status', 'active')
             ->with([
                 'links' => function ($query) {
                     $query->active()->orderBy('order');
@@ -57,9 +66,11 @@ class ProfileController extends Controller
             ])
             ->firstOrFail();
 
-        // Check visibility
-        if (! auth()->check() || ! auth()->user()->can('view', $project)) {
-            abort(403, 'You do not have permission to view this project.');
+        // Check visibility - allow public access for public projects
+        if ($project->visibility !== 'public') {
+            if (! auth()->check() || ! auth()->user()->can('view', $project)) {
+                abort(403, 'You do not have permission to view this project.');
+            }
         }
 
         // Track visit
@@ -72,8 +83,8 @@ class ProfileController extends Controller
                 'name' => $project->name,
                 'username' => $project->username,
                 'bio' => $project->bio,
-                'profile_image' => $project->profile_image,
-                'cover_image' => $project->cover_image,
+                'profile_image' => $project->getFirstMediaUrl('profile_image'),
+                'cover_image' => $project->getFirstMediaUrl('cover_image'),
                 'email' => $project->email,
                 'phone' => $project->phone,
                 'links' => $project->links,
