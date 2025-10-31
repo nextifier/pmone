@@ -38,5 +38,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('tracking:cleanup')->dailyAt('02:00');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Force JSON response for API requests
+        $exceptions->shouldRenderJsonWhen(function (Request $request) {
+            return $request->is('api/*') || $request->expectsJson();
+        });
     })->create();

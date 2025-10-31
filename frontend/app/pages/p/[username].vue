@@ -7,10 +7,37 @@
       </div>
     </div>
 
-    <div v-else-if="error" class="flex items-center justify-center min-h-screen">
-      <div class="text-center">
-        <h1 class="text-2xl font-bold mb-2">Error</h1>
-        <p class="text-muted-foreground">{{ error }}</p>
+    <div
+      v-else-if="error"
+      class="min-h-screen flex flex-col items-center justify-center overflow-hidden px-6"
+    >
+      <div class="container flex flex-col items-center justify-center gap-y-3 text-center">
+        <span v-if="error.statusCode" class="text-sm text-muted-foreground">
+          {{ error.statusCode }}
+        </span>
+
+        <h1
+          v-if="error.statusMessage"
+          class="text-primary w-full text-4xl font-bold tracking-tighter"
+        >
+          {{ error.statusMessage }}
+        </h1>
+
+        <p v-if="error.message" class="mx-auto mt-1 max-w-2xl text-balance text-muted-foreground">
+          {{
+            error.statusCode === 404
+              ? "We couldn't find the project you're looking for. It might have moved, been renamed, or maybe it never existed in the first place."
+              : error.message
+          }}
+        </p>
+
+        <NuxtLink
+          to="/"
+          class="bg-primary text-primary-foreground hover:bg-primary/80 mt-4 flex items-center gap-x-2 rounded-xl px-4 py-3 font-medium tracking-tight transition"
+        >
+          <Icon name="lucide:arrow-left" class="size-4 shrink-0" />
+          <span>Back to home</span>
+        </NuxtLink>
       </div>
     </div>
 
@@ -151,31 +178,45 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import QRCode from "qrcode";
 
 const route = useRoute();
-const username = computed(() => route.params.username as string);
+const username = computed(() => route.params.username);
 
 const project = ref(null);
 const loading = ref(true);
-const error = ref("");
+const error = ref(null);
 const qrcodeCanvas = ref(null);
 
 // Fetch project profile
 const fetchProfile = async () => {
   try {
     loading.value = true;
-    error.value = "";
+    error.value = null;
 
     const response = await $fetch(`/api/p/${username.value}`, {
       baseURL: useRuntimeConfig().public.apiUrl,
     });
 
     project.value = response.data;
-  } catch (err: any) {
+  } catch (err) {
     console.error("Failed to fetch profile:", err);
-    error.value = err.data?.message || "Failed to load profile";
+
+    // Handle error response
+    if (err.data) {
+      error.value = {
+        statusCode: err.statusCode || err.status || 500,
+        statusMessage: err.statusMessage || err.data?.message || "Error",
+        message: err.data?.message || err.message || "Failed to load profile",
+      };
+    } else {
+      error.value = {
+        statusCode: 500,
+        statusMessage: "Error",
+        message: err.message || "Failed to load profile",
+      };
+    }
   } finally {
     loading.value = false;
   }
@@ -243,7 +284,7 @@ const customLinks = computed(() => {
 });
 
 // Get social icon
-const getSocialIcon = (label: string) => {
+const getSocialIcon = (label) => {
   const iconMap = {
     website: "hugeicons:globe-02",
     instagram: "mdi:instagram",
@@ -258,7 +299,7 @@ const getSocialIcon = (label: string) => {
 };
 
 // Track link click
-const trackClick = async (linkLabel: string) => {
+const trackClick = async (linkLabel) => {
   try {
     await $fetch("/api/track/click", {
       method: "POST",
@@ -276,7 +317,6 @@ const trackClick = async (linkLabel: string) => {
 
 // Save namecard
 const saveNamecard = () => {
-  // TODO: Implement vCard download
   const vcard = `BEGIN:VCARD
 VERSION:3.0
 FN:${project.value.name}

@@ -1,10 +1,6 @@
 <template>
-  <div
-    class="flex min-h-screen flex-col items-center justify-center overflow-hidden bg-white text-black dark:bg-gray-950 dark:text-white"
-  >
-    <div
-      class="container flex flex-col items-center justify-center gap-y-3 text-center"
-    >
+  <div class="flex min-h-screen flex-col items-center justify-center overflow-hidden">
+    <div class="container flex flex-col items-center justify-center gap-y-3 text-center">
       <span v-if="error.statusCode" class="text-sm">
         {{ error.statusCode }}
       </span>

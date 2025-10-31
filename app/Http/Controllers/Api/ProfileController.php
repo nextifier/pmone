@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\TrackingHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use App\Models\Project;
 use App\Models\ShortLink;
 use App\Models\User;
@@ -20,9 +21,12 @@ class ProfileController extends Controller
     {
         // Try to find user first
         $user = User::where('username', $username)
-            ->with(['links' => function ($query) {
-                $query->active()->orderBy('order');
-            }])
+            ->with([
+                'links' => function ($query) {
+                    $query->active()->orderBy('order');
+                },
+                'roles',
+            ])
             ->first();
 
         // If user found, return user profile
@@ -31,22 +35,28 @@ class ProfileController extends Controller
             TrackingHelper::trackVisit($request, $user);
 
             return response()->json([
-                'data' => [
-                    'id' => $user->id,
-                    'ulid' => $user->ulid,
-                    'name' => $user->name,
-                    'username' => $user->username,
-                    'bio' => $user->bio,
-                    'profile_image' => $user->getFirstMediaUrl('profile_image'),
-                    'cover_image' => $user->getFirstMediaUrl('cover_image'),
-                    'links' => $user->links,
-                    'visibility' => $user->visibility,
-                ],
+                'data' => new UserResource($user),
             ]);
         }
 
         // If user not found, try short link as fallback
-        return $this->resolveShortLink($request, $username);
+        $shortLink = ShortLink::where('slug', $username)
+            ->where('is_active', true)
+            ->first();
+
+        if ($shortLink) {
+            // Track click
+            TrackingHelper::trackClick($request, $shortLink);
+
+            return response()->json([
+                'data' => [
+                    'destination_url' => $shortLink->destination_url,
+                ],
+            ]);
+        }
+
+        // If both user and short link not found, return 404
+        abort(404, 'User profile or short link not found');
     }
 
     /**

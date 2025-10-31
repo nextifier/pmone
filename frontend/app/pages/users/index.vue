@@ -301,7 +301,7 @@ const columns = [
       h(
         resolveComponent("NuxtLink"),
         {
-          to: `/users/${row.original.username}/edit`,
+          to: `/${row.original.username}`,
           class: "block hover:opacity-80 transition-opacity",
         },
         {
@@ -635,6 +635,31 @@ const RowActions = defineComponent({
                             h(
                               resolveComponent("NuxtLink"),
                               {
+                                to: `/${props.username}`,
+                                class:
+                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                              },
+                              {
+                                default: () => [
+                                  h(resolveComponent("Icon"), {
+                                    name: "lucide:user-round-search",
+                                    class: "size-4 shrink-0",
+                                  }),
+                                  h("span", {}, "View Profile"),
+                                ],
+                              }
+                            ),
+                        }
+                      ),
+
+                      h(
+                        PopoverClose,
+                        { asChild: true },
+                        {
+                          default: () =>
+                            h(
+                              resolveComponent("NuxtLink"),
+                              {
                                 to: `/users/${props.username}/edit`,
                                 class:
                                   "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
@@ -651,6 +676,7 @@ const RowActions = defineComponent({
                             ),
                         }
                       ),
+
                       h(
                         PopoverClose,
                         { asChild: true },
