@@ -207,7 +207,7 @@ const fetchProfile = async () => {
     if (err.data) {
       error.value = {
         statusCode: err.statusCode || err.status || 500,
-        statusMessage: err.statusMessage || err.data?.message || "Error",
+        statusMessage: err.data?.message || err.statusMessage || "Error",
         message: err.data?.message || err.message || "Failed to load profile",
       };
     } else {

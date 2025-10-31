@@ -12,13 +12,17 @@ export function useThemeSync() {
 
   // Sync status for UI feedback
   const isSyncing = ref(false)
-  const lastSyncedAt = ref<Date | null>(null)
-  const syncError = ref<string | null>(null)
+  const lastSyncedAt = ref(null)
+  const syncError = ref(null)
+
+  // Track last local change to prevent backend overwriting local changes
+  const lastLocalChangeAt = ref(null)
+  const hasPendingSync = ref(false)
 
   /**
    * Save theme to backend user settings
    */
-  const saveThemeToBackend = async (theme: string) => {
+  const saveThemeToBackend = async (theme) => {
     if (!user.value) return // Skip if not authenticated
 
     try {
@@ -44,6 +48,7 @@ export function useThemeSync() {
       }
 
       lastSyncedAt.value = new Date()
+      hasPendingSync.value = false
     } catch (error) {
       console.error('Failed to save theme to backend:', error)
       syncError.value = 'Failed to sync theme preference'
@@ -57,14 +62,18 @@ export function useThemeSync() {
    * Debounced save function (1 second delay)
    * Will only execute after user stops changing theme for 1 second
    */
-  const debouncedSave = useDebounceFn((theme: string) => {
+  const debouncedSave = useDebounceFn((theme) => {
     saveThemeToBackend(theme)
   }, 1000)
 
   /**
    * Set theme with instant UI update and debounced backend sync
    */
-  const setTheme = (theme: string) => {
+  const setTheme = (theme) => {
+    // Track this as a local change
+    lastLocalChangeAt.value = Date.now()
+    hasPendingSync.value = true
+
     // 1. Instant UI update (localStorage)
     colorMode.preference = theme
 
@@ -81,9 +90,17 @@ export function useThemeSync() {
 
   /**
    * Load theme preference from user settings
+   * Only loads if there are no pending local changes
    */
   const loadThemePreference = () => {
-    if (user.value?.user_settings?.theme) {
+    // Don't overwrite local changes with backend data
+    if (hasPendingSync.value) {
+      console.log('Skipping theme load - pending local changes')
+      return
+    }
+
+    // Only load if backend has a theme AND it's different from current
+    if (user.value?.user_settings?.theme && user.value.user_settings.theme !== colorMode.preference) {
       colorMode.preference = user.value.user_settings.theme
     }
     // If no user settings, colorMode will use its default behavior (localStorage)
@@ -104,6 +121,7 @@ export function useThemeSync() {
   })
 
   // Watch for user changes and reload theme preference
+  // Only reload if no pending local changes
   watch(
     user,
     () => {
@@ -122,5 +140,6 @@ export function useThemeSync() {
     isSyncing,
     lastSyncedAt,
     syncError,
+    hasPendingSync,
   }
 }

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="loading" class="min-h-screen-offset grid place-items-center">
+    <div v-if="status === 'pending'" class="min-h-screen-offset grid place-items-center">
       <div class="flex items-center gap-x-2">
         <Spinner class="size-4 shrink-0" />
         <span class="text-base tracking-tight">Loading</span>
@@ -8,30 +8,28 @@
     </div>
 
     <div
-      v-else-if="error"
+      v-else-if="status === 'error'"
       class="min-h-screen-offset flex flex-col items-center justify-center overflow-hidden"
     >
       <div class="container flex flex-col items-center justify-center gap-y-3 text-center">
-        <span v-if="error.statusCode" class="text-sm">
+        <span v-if="error?.statusCode" class="text-sm">
           {{ error.statusCode }}
         </span>
 
         <h1
-          v-if="error.statusMessage"
+          v-if="error?.statusMessage"
           class="text-primary w-full text-4xl font-bold tracking-tighter wrap-break-word"
         >
           {{ error.statusMessage }}
         </h1>
 
-        <p v-if="error.message" class="mx-auto mt-1 max-w-2xl tracking-tight text-pretty">
-          {{
-            error.message ??
-            "We couldn’t find the page you’re looking for. It might have moved, been renamed, or maybe it never existed in the first place."
-          }}
+        <p class="mx-auto mt-1 max-w-2xl tracking-tight text-pretty">
+          We couldn't find the page you're looking for. It might have moved, been renamed, or maybe
+          it never existed in the first place.
         </p>
 
         <pre
-          v-if="error.stack && error.statusCode === 500"
+          v-if="error?.stack && error?.statusCode === 500"
           class="text-muted-foreground mt-3 w-full max-w-xl overflow-auto rounded-2xl border px-4 py-6 text-left text-xs leading-normal!"
           >{{ error.stack }}</pre
         >
@@ -46,7 +44,10 @@
       </div>
     </div>
 
-    <div v-else-if="user" class="min-h-screen-offset mx-auto flex max-w-xl flex-col">
+    <div
+      v-else-if="status === 'success'"
+      class="min-h-screen-offset mx-auto flex max-w-xl flex-col"
+    >
       <div class="px-1">
         <div class="bg-muted aspect-[3/1] overflow-hidden rounded-xl">
           <img
@@ -138,22 +139,26 @@
         <div class="mt-auto flex items-end justify-between gap-2 pb-8">
           <div></div>
 
-          <div class="flex flex-col items-end gap-y-3 text-center">
-            <div class="relative isolate">
-              <canvas ref="qrcodeCanvas" class="size-24"></canvas>
-              <div class="absolute -inset-2 z-[-1] rounded-xl bg-white"></div>
+          <ClientOnly>
+            <div class="flex flex-col items-end gap-y-3 text-center">
+              <div class="relative isolate">
+                <canvas ref="qrcodeCanvas" class="size-24"></canvas>
+                <div class="absolute -inset-2 z-[-1] rounded-xl bg-white"></div>
+              </div>
+
+              <p class="text-muted-foreground text-xs tracking-tight">
+                {{ currentDomain }}/{{ user.username }}
+              </p>
+
+              <button
+                @click="saveNamecard"
+                class="bg-muted text-foreground hover:bg-border flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition active:scale-98"
+              >
+                <Icon name="hugeicons:download-01" class="size-4" />
+                <span class="tracking-tight">Save namecard</span>
+              </button>
             </div>
-
-            <p class="text-muted-foreground text-xs tracking-tight">pmone.id/{{ user.username }}</p>
-
-            <button
-              @click="saveNamecard"
-              class="bg-muted text-foreground hover:bg-border flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition active:scale-98"
-            >
-              <Icon name="hugeicons:download-01" class="size-4" />
-              <span class="tracking-tight">Save namecard</span>
-            </button>
-          </div>
+          </ClientOnly>
         </div>
       </div>
 
@@ -173,65 +178,66 @@ import QRCode from "qrcode";
 
 const route = useRoute();
 const username = computed(() => route.params.username);
-
-const user = ref(null);
-const loading = ref(true);
-const error = ref(null);
 const qrcodeCanvas = ref(null);
 
-// Fetch user profile
-const fetchProfile = async () => {
-  try {
-    loading.value = true;
-    error.value = null;
+// Get current domain dynamically (client-side only)
+const currentDomain = ref("");
+onMounted(() => {
+  currentDomain.value = window.location.host;
+});
 
-    const response = await $fetch(`/api/${username.value}`, {
-      baseURL: useRuntimeConfig().public.apiUrl,
-    });
+const {
+  data,
+  status,
+  error: fetchError,
+} = await useFetch(() => `/api/${username.value}`, {
+  baseURL: useRuntimeConfig().public.apiUrl,
+  key: `user-profile-${username.value}`,
+});
 
-    // Check if response is a short link redirect
-    if (response.data?.destination_url) {
-      // Redirect to destination URL
-      window.location.href = response.data.destination_url;
-      return;
+const user = computed(() => data.value?.data || null);
+
+// Format error object to prioritize backend custom message
+const error = computed(() => {
+  if (!fetchError.value) return null;
+
+  const err = fetchError.value;
+  return {
+    statusCode: err.statusCode || 500,
+    statusMessage: err.data?.message || err.statusMessage || "Error",
+    message: err.data?.message || err.message || "Failed to load profile",
+    stack: err.stack,
+  };
+});
+
+// Handle short link redirect
+watch(
+  data,
+  (newResponse) => {
+    if (newResponse?.data?.destination_url) {
+      window.location.href = newResponse.data.destination_url;
     }
-
-    user.value = response.data;
-  } catch (err) {
-    console.error("Failed to fetch profile:", err);
-
-    // Handle error response
-    if (err.data) {
-      error.value = {
-        statusCode: err.statusCode || err.status || 500,
-        statusMessage: err.statusMessage || err.data?.message || "Error",
-        message: err.data?.message || err.message || "Failed to load profile",
-        stack: err.stack,
-      };
-    } else {
-      error.value = {
-        statusCode: 500,
-        statusMessage: "Error",
-        message: err.message || "Failed to load profile",
-        stack: err.stack,
-      };
-    }
-  } finally {
-    loading.value = false;
-  }
-};
+  },
+  { immediate: true }
+);
 
 // Generate QR code
 const generateQRCode = async () => {
   if (qrcodeCanvas.value && user.value) {
     try {
       const url = `${window.location.origin}/${user.value.username}`;
+
+      // Get canvas size from element (respects Tailwind classes)
+      const canvasSize = qrcodeCanvas.value.clientWidth || 96; // default to 96px (size-24)
+
+      // QR code always uses black on white background for best readability
+      // This is the standard for QR codes regardless of theme
       await QRCode.toCanvas(qrcodeCanvas.value, url, {
-        width: 120,
+        width: canvasSize,
         margin: 0,
         color: {
-          dark: "#000000",
-          light: "#FFFFFF",
+          dark: "#000000", // QR code modules (always black)
+          light: "#FFFFFF", // Background (always white)
         },
       });
     } catch (err) {
@@ -309,11 +315,20 @@ END:VCARD`;
   URL.revokeObjectURL(url);
 };
 
-// Lifecycle
+// Generate QR code when component is mounted on client side
 onMounted(async () => {
-  await fetchProfile();
-  await nextTick();
-  await generateQRCode();
+  if (user.value) {
+    await nextTick();
+    await generateQRCode();
+  }
+});
+
+// Re-generate QR code when user changes (e.g., route change)
+watch(user, async (newUser) => {
+  if (newUser && qrcodeCanvas.value) {
+    await nextTick();
+    await generateQRCode();
+  }
 });
 
 // SEO
