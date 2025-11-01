@@ -14,13 +14,11 @@ export function useThemeSync() {
   const isSyncing = ref(false)
   const lastSyncedAt = ref(null)
   const syncError = ref(null)
-
-  // Track last local change to prevent backend overwriting local changes
-  const lastLocalChangeAt = ref(null)
   const hasPendingSync = ref(false)
 
   /**
    * Save theme to backend user settings
+   * Silent sync - does NOT update local state to prevent glitches
    */
   const saveThemeToBackend = async (theme) => {
     if (!user.value) return // Skip if not authenticated
@@ -42,10 +40,8 @@ export function useThemeSync() {
         },
       })
 
-      // Update local user data
-      if (user.value) {
-        user.value.user_settings = updatedSettings
-      }
+      // Silent sync - don't update local user data to prevent watchers triggering
+      // Backend is now in sync, but we don't reflect it back to prevent glitches
 
       lastSyncedAt.value = new Date()
       hasPendingSync.value = false
@@ -70,8 +66,6 @@ export function useThemeSync() {
    * Set theme with instant UI update and debounced backend sync
    */
   const setTheme = (theme) => {
-    // Track this as a local change
-    lastLocalChangeAt.value = Date.now()
     hasPendingSync.value = true
 
     // 1. Instant UI update (localStorage)
@@ -89,21 +83,23 @@ export function useThemeSync() {
   }
 
   /**
-   * Load theme preference from user settings
-   * Only loads if there are no pending local changes
+   * Load theme preference from user settings on initial login
+   * Only runs once - does not re-sync from backend after initial load
    */
   const loadThemePreference = () => {
-    // Don't overwrite local changes with backend data
-    if (hasPendingSync.value) {
-      console.log('Skipping theme load - pending local changes')
+    // Only load backend theme if localStorage is empty (first time login)
+    const hasLocalTheme = localStorage.getItem('nuxt-color-mode')
+    if (hasLocalTheme) {
+      console.log('Using local theme preference')
       return
     }
 
-    // Only load if backend has a theme AND it's different from current
-    if (user.value?.user_settings?.theme && user.value.user_settings.theme !== colorMode.preference) {
+    // Only load if backend has a theme
+    if (user.value?.user_settings?.theme) {
+      console.log('Loading theme from backend (first time)')
       colorMode.preference = user.value.user_settings.theme
     }
-    // If no user settings, colorMode will use its default behavior (localStorage)
+    // If no user settings, colorMode will use its default behavior
   }
 
   /**
@@ -115,22 +111,13 @@ export function useThemeSync() {
     }
   }
 
-  // Load theme preference on initialization
+  // Load theme preference on initialization (only once)
   onMounted(() => {
     loadThemePreference()
   })
 
-  // Watch for user changes and reload theme preference
-  // Only reload if no pending local changes
-  watch(
-    user,
-    () => {
-      if (user.value) {
-        loadThemePreference()
-      }
-    },
-    { deep: true }
-  )
+  // No watcher needed - we use one-way sync (local → backend only)
+  // This prevents glitches from backend responses triggering local state changes
 
   return {
     colorMode,

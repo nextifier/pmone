@@ -7,42 +7,7 @@
       </div>
     </div>
 
-    <div
-      v-else-if="status === 'error'"
-      class="min-h-screen-offset flex flex-col items-center justify-center overflow-hidden"
-    >
-      <div class="container flex flex-col items-center justify-center gap-y-3 text-center">
-        <span v-if="error?.statusCode" class="text-sm">
-          {{ error.statusCode }}
-        </span>
-
-        <h1
-          v-if="error?.statusMessage"
-          class="text-primary w-full text-4xl font-bold tracking-tighter wrap-break-word"
-        >
-          {{ error.statusMessage }}
-        </h1>
-
-        <p class="mx-auto mt-1 max-w-2xl tracking-tight text-pretty">
-          We couldn't find the page you're looking for. It might have moved, been renamed, or maybe
-          it never existed in the first place.
-        </p>
-
-        <pre
-          v-if="error?.stack && error?.statusCode === 500"
-          class="text-muted-foreground mt-3 w-full max-w-xl overflow-auto rounded-2xl border px-4 py-6 text-left text-xs leading-normal!"
-          >{{ error.stack }}</pre
-        >
-
-        <button
-          @click="() => clearError({ redirect: '/' })"
-          class="bg-primary/8 text-foreground hover:bg-primary/14 mt-2 flex items-center gap-x-1 rounded-md px-3 py-2 text-sm font-medium tracking-tight transition active:scale-98"
-        >
-          <Icon name="lucide:arrow-left" class="size-4 shrink-0" />
-          <span>Back to Home</span>
-        </button>
-      </div>
-    </div>
+    <ErrorState v-else-if="status === 'error'" :error="error" />
 
     <div
       v-else-if="status === 'success'"
@@ -87,7 +52,7 @@
             <div class="relative">
               <h1 class="line-clamp-1 text-xl font-semibold tracking-tighter">{{ user.name }}</h1>
               <Icon
-                v-if="hasVerifiedBadge"
+                v-if="user?.roles?.some(role => ['master', 'admin', 'staff'].includes(role))"
                 name="mdi:verified"
                 class="text-info absolute top-1/2 right-0 size-4.5 translate-x-[calc(100%+4px)] -translate-y-1/2"
               />
@@ -137,12 +102,15 @@
 
           <ClientOnly>
             <div class="flex flex-col items-end gap-y-3 text-center">
-              <div class="rounded-sm bg-white p-1.5 dark:border-transparent">
-                <canvas ref="qrcodeCanvas" class="size-24" />
-              </div>
+              <QRCode :url="qrCodeUrl" canvas-class="size-24" />
 
-              <p v-if="currentDomain" class="text-muted-foreground text-xs tracking-tight">
-                {{ currentDomain }}/{{ user.username }}
+              <p
+                v-if="useRuntimeConfig().public.siteUrl"
+                class="text-muted-foreground text-xs tracking-tight"
+              >
+                {{ useRuntimeConfig().public.siteUrl.replace(/^https?:\/\//, "") }}/{{
+                  user.username
+                }}
               </p>
             </div>
           </ClientOnly>
@@ -153,10 +121,21 @@
 </template>
 
 <script setup>
+// Constants extracted to top level (outside setup)
+const SOCIAL_LABELS = ["website", "instagram", "facebook", "x", "tiktok", "linkedin", "youtube"];
+
+const SOCIAL_ICON_MAP = {
+  website: "hugeicons:globe-02",
+  instagram: "hugeicons:instagram",
+  facebook: "hugeicons:facebook-01",
+  x: "hugeicons:new-twitter-rectangle",
+  tiktok: "hugeicons:tiktok",
+  linkedin: "hugeicons:linkedin-01",
+  youtube: "hugeicons:youtube",
+};
+
 const route = useRoute();
 const username = computed(() => route.params.username);
-const qrcodeCanvas = ref(null);
-const currentDomain = computed(() => (import.meta.client ? window.location.host : ""));
 
 const {
   data,
@@ -181,50 +160,32 @@ const error = computed(() => {
   };
 });
 
-const SOCIAL_LABELS = ["website", "instagram", "facebook", "x", "tiktok", "linkedin", "youtube"];
-const VERIFIED_ROLES = ["master", "admin", "staff"];
+// Combined link filtering - single iteration instead of two
+const { socialLinks, customLinks } = computed(() => {
+  const links = user.value?.links || [];
+  const social = [];
+  const custom = [];
 
-const hasVerifiedBadge = computed(() =>
-  user.value?.roles?.some((role) => VERIFIED_ROLES.includes(role))
-);
+  for (const link of links) {
+    if (!link?.label) continue;
 
-const socialLinks = computed(
-  () =>
-    user.value?.links?.filter(
-      (link) => link?.label && SOCIAL_LABELS.includes(link.label.toLowerCase())
-    ) || []
-);
-
-const customLinks = computed(
-  () =>
-    user.value?.links?.filter(
-      (link) => link?.label && !SOCIAL_LABELS.includes(link.label.toLowerCase())
-    ) || []
-);
-
-const generateQRCode = async () => {
-  if (!import.meta.client || !qrcodeCanvas.value || !user.value) return;
-
-  try {
-    const QRCode = await import("qrcode");
-    const url = `${window.location.origin}/${user.value.username}`;
-    const canvasSize = qrcodeCanvas.value.clientWidth || 96;
-
-    qrcodeCanvas.value.width = canvasSize;
-    qrcodeCanvas.value.height = canvasSize;
-
-    await QRCode.toCanvas(qrcodeCanvas.value, url, {
-      width: canvasSize,
-      margin: 0,
-      color: {
-        dark: "#000000",
-        light: "#FFFFFF",
-      },
-    });
-  } catch (err) {
-    console.error("Failed to generate QR code:", err);
+    const labelLower = link.label.toLowerCase();
+    if (SOCIAL_LABELS.includes(labelLower)) {
+      social.push(link);
+    } else {
+      custom.push(link);
+    }
   }
-};
+
+  return { socialLinks: social, customLinks: custom };
+}).value;
+
+const qrCodeUrl = computed(() => {
+  if (!user.value?.username) return "";
+  return `${window.location.origin}/${user.value.username}`;
+});
+
+const getSocialIcon = (label) => SOCIAL_ICON_MAP[label?.toLowerCase()] || "hugeicons:link-02";
 
 if (import.meta.client) {
   watch(
@@ -238,42 +199,29 @@ if (import.meta.client) {
   );
 }
 
-const SOCIAL_ICON_MAP = {
-  website: "hugeicons:globe-02",
-  instagram: "hugeicons:instagram",
-  facebook: "hugeicons:facebook-01",
-  x: "hugeicons:new-twitter-rectangle",
-  tiktok: "hugeicons:tiktok",
-  linkedin: "hugeicons:linkedin-01",
-  youtube: "hugeicons:youtube",
-};
-
-const getSocialIcon = (label) => SOCIAL_ICON_MAP[label?.toLowerCase()] || "hugeicons:link-02";
-
-const trackClick = async (linkLabel) => {
+const trackClick = (linkLabel) => {
   if (!import.meta.client || !user.value?.id) return;
 
-  try {
-    await $fetch("/api/track/click", {
-      method: "POST",
-      baseURL: useRuntimeConfig().public.apiUrl,
-      body: {
-        clickable_type: "App\\Models\\User",
-        clickable_id: user.value.id,
-        link_label: linkLabel,
-      },
-    });
-  } catch (err) {
+  // Fire and forget - non-blocking
+  $fetch("/api/track/click", {
+    method: "POST",
+    baseURL: useRuntimeConfig().public.apiUrl,
+    body: {
+      clickable_type: "App\\Models\\User",
+      clickable_id: user.value.id,
+      link_label: linkLabel,
+    },
+  }).catch((err) => {
     console.error("Failed to track click:", err);
-  }
+  });
 };
 
-onMounted(() => user.value && nextTick(generateQRCode));
-
-watch(user, (newUser) => newUser && nextTick(generateQRCode));
-
-useHead({
+useSeoMeta({
   title: () => (user.value ? `${user.value.name} (@${user.value.username})` : "Profile"),
-  meta: [{ name: "description", content: () => user.value?.bio || "View profile" }],
+  description: () => user.value?.bio || "View profile",
+  ogTitle: () => user.value?.name || "Profile",
+  ogDescription: () => user.value?.bio || "View profile",
+  ogImage: () => user.value?.profile_image?.md || "",
+  twitterCard: "summary_large_image",
 });
 </script>
