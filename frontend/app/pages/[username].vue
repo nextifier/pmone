@@ -157,19 +157,17 @@
 </template>
 
 <script setup>
-// import QRCode from "qrcode";
-
 const route = useRoute();
 const username = computed(() => route.params.username);
-// const qrcodeCanvas = ref(null);
+const qrcodeCanvas = ref(null);
 
 // Get current domain dynamically (client-side only)
-// const currentDomain = computed(() => {
-//   if (import.meta.client) {
-//     return window.location.host;
-//   }
-//   return "";
-// });
+const currentDomain = computed(() => {
+  if (import.meta.client) {
+    return window.location.host;
+  }
+  return "";
+});
 
 const {
   data,
@@ -208,30 +206,29 @@ if (import.meta.client) {
   );
 }
 
-// Generate QR code
-// const generateQRCode = async () => {
-//   if (qrcodeCanvas.value && user.value) {
-//     try {
-//       const url = `${window.location.origin}/${user.value.username}`;
+// Generate QR code (client-side only with dynamic import)
+const generateQRCode = async () => {
+  if (!import.meta.client || !qrcodeCanvas.value || !user.value) return;
 
-//       // Get canvas size from element (respects Tailwind classes)
-//       const canvasSize = qrcodeCanvas.value.clientWidth || 96; // default to 96px (size-24)
+  try {
+    // Dynamic import - only loaded on client-side
+    const QRCode = (await import("qrcode")).default;
 
-//       // QR code always uses black on white background for best readability
-//       // This is the standard for QR codes regardless of theme
-//       await QRCode.toCanvas(qrcodeCanvas.value, url, {
-//         width: canvasSize,
-//         margin: 0,
-//         color: {
-//           dark: "#000000", // QR code modules (always black)
-//           light: "#FFFFFF", // Background (always white)
-//         },
-//       });
-//     } catch (err) {
-//       console.error("Failed to generate QR code:", err);
-//     }
-//   }
-// };
+    const url = `${window.location.origin}/${user.value.username}`;
+    const canvasSize = qrcodeCanvas.value.clientWidth || 96;
+
+    await QRCode.toCanvas(qrcodeCanvas.value, url, {
+      width: canvasSize,
+      margin: 0,
+      color: {
+        dark: "#000000",
+        light: "#FFFFFF",
+      },
+    });
+  } catch (err) {
+    console.error("Failed to generate QR code:", err);
+  }
+};
 
 // Computed properties
 const hasVerifiedBadge = computed(() => {
@@ -301,17 +298,17 @@ const trackClick = async (linkLabel) => {
 onMounted(async () => {
   if (user.value) {
     await nextTick();
-    // await generateQRCode();
+    await generateQRCode();
   }
 });
 
 // Re-generate QR code when user changes (e.g., route change)
-// watch(user, async (newUser) => {
-//   if (newUser && qrcodeCanvas.value) {
-//     await nextTick();
-//     await generateQRCode();
-//   }
-// });
+watch(user, async (newUser) => {
+  if (newUser && qrcodeCanvas.value) {
+    await nextTick();
+    await generateQRCode();
+  }
+});
 
 // SEO
 useHead({
