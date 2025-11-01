@@ -51,7 +51,7 @@
       <div class="px-1">
         <div class="bg-muted aspect-[3/1] overflow-hidden rounded-xl">
           <img
-            v-if="user.cover_image"
+            v-if="user.cover_image?.md"
             :src="user.cover_image.md"
             :alt="`${user.name} cover`"
             class="size-full object-cover"
@@ -66,7 +66,7 @@
         <div class="flex flex-col items-start space-y-2">
           <div class="ring-background relative isolate size-24 rounded-full ring-4 lg:size-32">
             <img
-              v-if="user.profile_image"
+              v-if="user.profile_image?.sm"
               :src="user.profile_image.sm"
               :alt="user.name"
               class="size-full rounded-full object-cover"
@@ -112,9 +112,9 @@
         <div v-if="socialLinks.length > 0" class="mt-4 flex gap-x-2">
           <NuxtLink
             v-for="link in socialLinks"
-            :key="link.url"
-            :to="link.url"
-            :target="link.url.startsWith('http') ? '_blank' : ''"
+            :key="link.url || link.id"
+            :to="link.url || '#'"
+            :target="link.url?.startsWith('http') ? '_blank' : ''"
             @click="trackClick(link.label)"
             class="bg-muted text-foreground hover:bg-border flex size-12 items-center justify-center rounded-full transition active:scale-98"
             v-tippy="link.label"
@@ -126,9 +126,9 @@
         <div v-if="customLinks.length > 0" class="mt-4 flex flex-col gap-y-2">
           <NuxtLink
             v-for="link in customLinks"
-            :key="link.url"
-            :to="link.url"
-            :target="link.url.startsWith('http') ? '_blank' : ''"
+            :key="link.url || link.id"
+            :to="link.url || '#'"
+            :target="link.url?.startsWith('http') ? '_blank' : ''"
             @click="trackClick(link.label)"
             class="bg-muted text-foreground hover:bg-border block rounded-2xl px-6 py-4 text-center text-sm font-medium transition active:scale-98"
           >
@@ -288,6 +288,8 @@ const getSocialIcon = (label) => {
 
 // Track link click
 const trackClick = async (linkLabel) => {
+  if (!import.meta.client || !user.value?.id) return;
+
   try {
     await $fetch("/api/track/click", {
       method: "POST",
