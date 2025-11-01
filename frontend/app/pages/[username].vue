@@ -7,7 +7,7 @@
       </div>
     </div>
 
-    <!-- <div
+    <div
       v-else-if="status === 'error'"
       class="min-h-screen-offset flex flex-col items-center justify-center overflow-hidden"
     >
@@ -42,7 +42,7 @@
           <span>Back to Home</span>
         </button>
       </div>
-    </div> -->
+    </div>
 
     <div
       v-else-if="status === 'success'"
@@ -139,7 +139,7 @@
         <div class="mt-auto flex items-end justify-between gap-2 pb-8">
           <div></div>
 
-          <ClientOnly>
+          <!-- <ClientOnly>
             <div class="flex flex-col items-end gap-y-3 text-center">
               <div class="rounded-sm bg-white p-1.5 dark:border-transparent">
                 <canvas ref="qrcodeCanvas" class="size-24" />
@@ -149,37 +149,33 @@
                 {{ currentDomain }}/{{ user.username }}
               </p>
             </div>
-          </ClientOnly>
+          </ClientOnly> -->
         </div>
       </div>
-
-      <!-- <DevOnly>
-        <div
-          class="border-border text-foreground mt-8 w-full overflow-x-scroll rounded-xl border p-4"
-        >
-          <pre class="text-foreground/80 text-sm !leading-[1.5]">{{ user }}</pre>
-        </div>
-      </DevOnly> -->
     </div>
   </div>
 </template>
 
 <script setup>
-import QRCode from "qrcode";
+// import QRCode from "qrcode";
 
 const route = useRoute();
 const username = computed(() => route.params.username);
-const qrcodeCanvas = ref(null);
+// const qrcodeCanvas = ref(null);
 
 // Get current domain dynamically (client-side only)
-const currentDomain = computed(() => {
-  if (import.meta.client) {
-    return window.location.host;
-  }
-  return "";
-});
+// const currentDomain = computed(() => {
+//   if (import.meta.client) {
+//     return window.location.host;
+//   }
+//   return "";
+// });
 
-const { data, status } = await useFetch(() => `/api/${username.value}`, {
+const {
+  data,
+  status,
+  error: fetchError,
+} = await useFetch(() => `/api/${username.value}`, {
   baseURL: useRuntimeConfig().public.apiUrl,
   key: `user-profile-${username.value}`,
 });
@@ -187,17 +183,17 @@ const { data, status } = await useFetch(() => `/api/${username.value}`, {
 const user = computed(() => data.value?.data || null);
 
 // Format error object to prioritize backend custom message
-// const error = computed(() => {
-//   if (!fetchError.value) return null;
+const error = computed(() => {
+  if (!fetchError.value) return null;
 
-//   const err = fetchError.value;
-//   return {
-//     statusCode: err.statusCode || 500,
-//     statusMessage: err.data?.message || err.statusMessage || "Error",
-//     message: err.data?.message || err.message || "Failed to load profile",
-//     stack: err.stack,
-//   };
-// });
+  const err = fetchError.value;
+  return {
+    statusCode: err.statusCode || 500,
+    statusMessage: err.data?.message || err.statusMessage || "Error",
+    message: err.data?.message || err.message || "Failed to load profile",
+    stack: err.stack,
+  };
+});
 
 // Handle short link redirect (client-side only)
 if (import.meta.client) {
@@ -213,29 +209,29 @@ if (import.meta.client) {
 }
 
 // Generate QR code
-const generateQRCode = async () => {
-  if (qrcodeCanvas.value && user.value) {
-    try {
-      const url = `${window.location.origin}/${user.value.username}`;
+// const generateQRCode = async () => {
+//   if (qrcodeCanvas.value && user.value) {
+//     try {
+//       const url = `${window.location.origin}/${user.value.username}`;
 
-      // Get canvas size from element (respects Tailwind classes)
-      const canvasSize = qrcodeCanvas.value.clientWidth || 96; // default to 96px (size-24)
+//       // Get canvas size from element (respects Tailwind classes)
+//       const canvasSize = qrcodeCanvas.value.clientWidth || 96; // default to 96px (size-24)
 
-      // QR code always uses black on white background for best readability
-      // This is the standard for QR codes regardless of theme
-      await QRCode.toCanvas(qrcodeCanvas.value, url, {
-        width: canvasSize,
-        margin: 0,
-        color: {
-          dark: "#000000", // QR code modules (always black)
-          light: "#FFFFFF", // Background (always white)
-        },
-      });
-    } catch (err) {
-      console.error("Failed to generate QR code:", err);
-    }
-  }
-};
+//       // QR code always uses black on white background for best readability
+//       // This is the standard for QR codes regardless of theme
+//       await QRCode.toCanvas(qrcodeCanvas.value, url, {
+//         width: canvasSize,
+//         margin: 0,
+//         color: {
+//           dark: "#000000", // QR code modules (always black)
+//           light: "#FFFFFF", // Background (always white)
+//         },
+//       });
+//     } catch (err) {
+//       console.error("Failed to generate QR code:", err);
+//     }
+//   }
+// };
 
 // Computed properties
 const hasVerifiedBadge = computed(() => {
@@ -305,17 +301,17 @@ const trackClick = async (linkLabel) => {
 onMounted(async () => {
   if (user.value) {
     await nextTick();
-    await generateQRCode();
+    // await generateQRCode();
   }
 });
 
 // Re-generate QR code when user changes (e.g., route change)
-watch(user, async (newUser) => {
-  if (newUser && qrcodeCanvas.value) {
-    await nextTick();
-    await generateQRCode();
-  }
-});
+// watch(user, async (newUser) => {
+//   if (newUser && qrcodeCanvas.value) {
+//     await nextTick();
+//     await generateQRCode();
+//   }
+// });
 
 // SEO
 useHead({
