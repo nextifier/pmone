@@ -162,7 +162,7 @@
         <!-- QR Code and Save Button -->
         <div class="mt-8 text-center">
           <div class="mx-auto mb-4 inline-block rounded-2xl bg-white p-4">
-            <canvas ref="qrcodeCanvas" class="size-40"></canvas>
+            <div ref="qrcodeContainer" class="size-40"></div>
           </div>
           <button
             @click="saveNamecard"
@@ -179,15 +179,13 @@
 </template>
 
 <script setup>
-import QRCode from "qrcode";
-
 const route = useRoute();
 const username = computed(() => route.params.username);
 
 const project = ref(null);
 const loading = ref(true);
 const error = ref(null);
-const qrcodeCanvas = ref(null);
+const qrcodeContainer = ref(null);
 
 // Fetch project profile
 const fetchProfile = async () => {
@@ -224,20 +222,57 @@ const fetchProfile = async () => {
 
 // Generate QR code
 const generateQRCode = async () => {
-  if (qrcodeCanvas.value && project.value) {
-    try {
-      const url = `${window.location.origin}/p/${project.value.username}`;
-      await QRCode.toCanvas(qrcodeCanvas.value, url, {
-        width: 160,
-        margin: 0,
-        color: {
-          dark: "#000000",
-          light: "#FFFFFF",
-        },
-      });
-    } catch (err) {
-      console.error("Failed to generate QR code:", err);
+  if (!process.client) {
+    return;
+  }
+
+  if (!qrcodeContainer.value) {
+    return;
+  }
+
+  if (!project.value) {
+    return;
+  }
+
+  try {
+    // Clear container first
+    qrcodeContainer.value.innerHTML = "";
+
+    // Dynamic import QRCode library with proper error handling
+    const QRCodeModule = await import("qrcode").catch((err) => {
+      console.error("Failed to import qrcode:", err);
+      return null;
+    });
+
+    if (!QRCodeModule) {
+      console.error("QRCode module not available");
+      return;
     }
+
+    // Access the default export or the module itself
+    const QRCode = QRCodeModule.default || QRCodeModule;
+
+    // Create canvas element
+    const canvas = document.createElement("canvas");
+    canvas.width = 160;
+    canvas.height = 160;
+
+    // Generate QR code
+    const url = `${window.location.origin}/p/${project.value.username}`;
+
+    await QRCode.toCanvas(canvas, url, {
+      width: 160,
+      margin: 0,
+      color: {
+        dark: "#000000",
+        light: "#FFFFFF",
+      },
+    });
+
+    // Append canvas to container
+    qrcodeContainer.value.appendChild(canvas);
+  } catch (err) {
+    console.error("Failed to generate QR code:", err);
   }
 };
 
@@ -317,6 +352,10 @@ const trackClick = async (linkLabel) => {
 
 // Save namecard
 const saveNamecard = () => {
+  if (!process.client) {
+    return;
+  }
+
   const vcard = `BEGIN:VCARD
 VERSION:3.0
 FN:${project.value.name}
@@ -337,8 +376,28 @@ END:VCARD`;
 // Lifecycle
 onMounted(async () => {
   await fetchProfile();
-  await nextTick();
-  await generateQRCode();
+
+  // Generate QR code after profile is loaded
+  if (process.client && project.value) {
+    // Wait for next tick to ensure DOM is updated
+    await nextTick();
+
+    // Try generating QR code with retry mechanism
+    let attempts = 0;
+    const maxAttempts = 5;
+
+    const tryGenerate = async () => {
+      attempts++;
+
+      if (qrcodeContainer.value) {
+        await generateQRCode();
+      } else if (attempts < maxAttempts) {
+        setTimeout(tryGenerate, 200);
+      }
+    };
+
+    tryGenerate();
+  }
 });
 
 // SEO
