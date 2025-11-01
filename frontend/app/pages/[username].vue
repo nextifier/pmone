@@ -139,7 +139,7 @@
         <div class="mt-auto flex items-end justify-between gap-2 pb-8">
           <div></div>
 
-          <!-- <ClientOnly>
+          <ClientOnly>
             <div class="flex flex-col items-end gap-y-3 text-center">
               <div class="rounded-sm bg-white p-1.5 dark:border-transparent">
                 <canvas ref="qrcodeCanvas" class="size-24" />
@@ -149,7 +149,7 @@
                 {{ currentDomain }}/{{ user.username }}
               </p>
             </div>
-          </ClientOnly> -->
+          </ClientOnly>
         </div>
       </div>
     </div>
@@ -206,16 +206,27 @@ if (import.meta.client) {
   );
 }
 
-// Generate QR code (client-side only with dynamic import)
+// Generate QR code (client-side only)
 const generateQRCode = async () => {
-  if (!import.meta.client || !qrcodeCanvas.value || !user.value) return;
+  if (!import.meta.client || !qrcodeCanvas.value || !user.value) {
+    console.log("QR Code generation skipped:", {
+      isClient: import.meta.client,
+      hasCanvas: !!qrcodeCanvas.value,
+      hasUser: !!user.value,
+    });
+    return;
+  }
 
   try {
-    // Dynamic import - only loaded on client-side
-    const QRCode = (await import("qrcode")).default;
-
+    const QRCode = await import("qrcode");
     const url = `${window.location.origin}/${user.value.username}`;
+
+    // Ensure canvas has proper dimensions
     const canvasSize = qrcodeCanvas.value.clientWidth || 96;
+    qrcodeCanvas.value.width = canvasSize;
+    qrcodeCanvas.value.height = canvasSize;
+
+    console.log("Generating QR code:", { url, canvasSize });
 
     await QRCode.toCanvas(qrcodeCanvas.value, url, {
       width: canvasSize,
@@ -225,6 +236,8 @@ const generateQRCode = async () => {
         light: "#FFFFFF",
       },
     });
+
+    console.log("QR code generated successfully");
   } catch (err) {
     console.error("Failed to generate QR code:", err);
   }

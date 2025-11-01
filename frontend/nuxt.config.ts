@@ -250,8 +250,4 @@ export default defineNuxtConfig({
   experimental: {
     viewTransition: true,
   },
-
-  build: {
-    transpile: ["qrcode"],
-  },
 });
