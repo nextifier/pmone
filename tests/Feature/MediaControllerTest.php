@@ -291,7 +291,7 @@ it('handles partial failures in bulk upload gracefully', function () {
         ])
         ->assertJsonStructure([
             'failed_uploads' => [
-                '*' => ['index', 'filename', 'error']
+                '*' => ['index', 'filename', 'error'],
             ],
             'total_files',
             'failed_count',
@@ -382,7 +382,7 @@ it('handles non-existent media IDs in bulk delete', function () {
         ])
         ->assertJsonStructure([
             'failed_deletes' => [
-                '*' => ['id', 'error']
+                '*' => ['id', 'error'],
             ],
         ]);
 });

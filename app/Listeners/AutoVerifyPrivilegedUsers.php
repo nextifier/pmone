@@ -3,8 +3,6 @@
 namespace App\Listeners;
 
 use App\Models\User;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Spatie\Permission\Events\RoleAttached;
 
 class AutoVerifyPrivilegedUsers
@@ -19,7 +17,7 @@ class AutoVerifyPrivilegedUsers
         $rolesOrIds = $event->rolesOrIds;
 
         // Only process if it's a User model
-        if (!$user instanceof User) {
+        if (! $user instanceof User) {
             return;
         }
 
@@ -57,7 +55,7 @@ class AutoVerifyPrivilegedUsers
 
         // Auto-verify if user gets master or admin role
         $privilegedRoles = array_intersect($roleNames, ['master', 'admin']);
-        if (!empty($privilegedRoles)) {
+        if (! empty($privilegedRoles)) {
             $user->markEmailAsVerified();
 
             logger()->info('User auto-verified due to privileged role assignment', [

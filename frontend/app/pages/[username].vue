@@ -78,10 +78,6 @@
               <Icon name="hugeicons:user" class="size-12" />
             </div>
 
-            <!-- <span
-            class="absolute top-1/2 left-0 z-[-1] size-8 -translate-x-[calc(100%+0px)] -translate-y-full rounded-br-[16px] bg-transparent shadow-[16px_16px_0_var(--color-background)]"
-          /> -->
-
             <span
               class="absolute top-1/2 right-0 z-[-1] size-8 translate-x-[calc(100%+0px)] -translate-y-full rounded-bl-[16px] bg-transparent shadow-[-16px_16px_0_var(--color-background)]"
             />
@@ -160,14 +156,7 @@
 const route = useRoute();
 const username = computed(() => route.params.username);
 const qrcodeCanvas = ref(null);
-
-// Get current domain dynamically (client-side only)
-const currentDomain = computed(() => {
-  if (import.meta.client) {
-    return window.location.host;
-  }
-  return "";
-});
+const currentDomain = computed(() => (import.meta.client ? window.location.host : ""));
 
 const {
   data,
@@ -180,7 +169,6 @@ const {
 
 const user = computed(() => data.value?.data || null);
 
-// Format error object to prioritize backend custom message
 const error = computed(() => {
   if (!fetchError.value) return null;
 
@@ -193,7 +181,51 @@ const error = computed(() => {
   };
 });
 
-// Handle short link redirect (client-side only)
+const SOCIAL_LABELS = ["website", "instagram", "facebook", "x", "tiktok", "linkedin", "youtube"];
+const VERIFIED_ROLES = ["master", "admin", "staff"];
+
+const hasVerifiedBadge = computed(() =>
+  user.value?.roles?.some((role) => VERIFIED_ROLES.includes(role))
+);
+
+const socialLinks = computed(
+  () =>
+    user.value?.links?.filter(
+      (link) => link?.label && SOCIAL_LABELS.includes(link.label.toLowerCase())
+    ) || []
+);
+
+const customLinks = computed(
+  () =>
+    user.value?.links?.filter(
+      (link) => link?.label && !SOCIAL_LABELS.includes(link.label.toLowerCase())
+    ) || []
+);
+
+const generateQRCode = async () => {
+  if (!import.meta.client || !qrcodeCanvas.value || !user.value) return;
+
+  try {
+    const QRCode = await import("qrcode");
+    const url = `${window.location.origin}/${user.value.username}`;
+    const canvasSize = qrcodeCanvas.value.clientWidth || 96;
+
+    qrcodeCanvas.value.width = canvasSize;
+    qrcodeCanvas.value.height = canvasSize;
+
+    await QRCode.toCanvas(qrcodeCanvas.value, url, {
+      width: canvasSize,
+      margin: 0,
+      color: {
+        dark: "#000000",
+        light: "#FFFFFF",
+      },
+    });
+  } catch (err) {
+    console.error("Failed to generate QR code:", err);
+  }
+};
+
 if (import.meta.client) {
   watch(
     data,
@@ -206,89 +238,18 @@ if (import.meta.client) {
   );
 }
 
-// Generate QR code (client-side only)
-const generateQRCode = async () => {
-  if (!import.meta.client || !qrcodeCanvas.value || !user.value) {
-    console.log("QR Code generation skipped:", {
-      isClient: import.meta.client,
-      hasCanvas: !!qrcodeCanvas.value,
-      hasUser: !!user.value,
-    });
-    return;
-  }
-
-  try {
-    const QRCode = await import("qrcode");
-    const url = `${window.location.origin}/${user.value.username}`;
-
-    // Ensure canvas has proper dimensions
-    const canvasSize = qrcodeCanvas.value.clientWidth || 96;
-    qrcodeCanvas.value.width = canvasSize;
-    qrcodeCanvas.value.height = canvasSize;
-
-    console.log("Generating QR code:", { url, canvasSize });
-
-    await QRCode.toCanvas(qrcodeCanvas.value, url, {
-      width: canvasSize,
-      margin: 0,
-      color: {
-        dark: "#000000",
-        light: "#FFFFFF",
-      },
-    });
-
-    console.log("QR code generated successfully");
-  } catch (err) {
-    console.error("Failed to generate QR code:", err);
-  }
+const SOCIAL_ICON_MAP = {
+  website: "hugeicons:globe-02",
+  instagram: "hugeicons:instagram",
+  facebook: "hugeicons:facebook-01",
+  x: "hugeicons:new-twitter-rectangle",
+  tiktok: "hugeicons:tiktok",
+  linkedin: "hugeicons:linkedin-01",
+  youtube: "hugeicons:youtube",
 };
 
-// Computed properties
-const hasVerifiedBadge = computed(() => {
-  if (!user.value?.roles || !Array.isArray(user.value.roles)) {
-    return false;
-  }
-  return user.value.roles.some((role) => ["master", "admin", "staff"].includes(role));
-});
+const getSocialIcon = (label) => SOCIAL_ICON_MAP[label?.toLowerCase()] || "hugeicons:link-02";
 
-const socialLinks = computed(() => {
-  if (!user.value?.links || !Array.isArray(user.value.links)) {
-    return [];
-  }
-
-  const socialLabels = ["website", "instagram", "facebook", "x", "tiktok", "linkedin", "youtube"];
-  return user.value.links.filter(
-    (link) => link?.label && socialLabels.includes(link.label.toLowerCase())
-  );
-});
-
-const customLinks = computed(() => {
-  if (!user.value?.links || !Array.isArray(user.value.links)) {
-    return [];
-  }
-
-  const socialLabels = ["website", "instagram", "facebook", "x", "tiktok", "linkedin", "youtube"];
-  return user.value.links.filter(
-    (link) => link?.label && !socialLabels.includes(link.label.toLowerCase())
-  );
-});
-
-// Get social icon
-const getSocialIcon = (label) => {
-  const iconMap = {
-    website: "hugeicons:globe-02",
-    instagram: "hugeicons:instagram",
-    facebook: "hugeicons:facebook-01",
-    x: "hugeicons:new-twitter-rectangle",
-    tiktok: "hugeicons:tiktok",
-    linkedin: "hugeicons:linkedin-01",
-    youtube: "hugeicons:youtube",
-  };
-
-  return iconMap[label?.toLowerCase()] || "hugeicons:link-02";
-};
-
-// Track link click
 const trackClick = async (linkLabel) => {
   if (!import.meta.client || !user.value?.id) return;
 
@@ -307,30 +268,12 @@ const trackClick = async (linkLabel) => {
   }
 };
 
-// Generate QR code when component is mounted on client side
-onMounted(async () => {
-  if (user.value) {
-    await nextTick();
-    await generateQRCode();
-  }
-});
+onMounted(() => user.value && nextTick(generateQRCode));
 
-// Re-generate QR code when user changes (e.g., route change)
-watch(user, async (newUser) => {
-  if (newUser && qrcodeCanvas.value) {
-    await nextTick();
-    await generateQRCode();
-  }
-});
+watch(user, (newUser) => newUser && nextTick(generateQRCode));
 
-// SEO
 useHead({
   title: () => (user.value ? `${user.value.name} (@${user.value.username})` : "Profile"),
-  meta: [
-    {
-      name: "description",
-      content: () => user.value?.bio || "View profile",
-    },
-  ],
+  meta: [{ name: "description", content: () => user.value?.bio || "View profile" }],
 });
 </script>

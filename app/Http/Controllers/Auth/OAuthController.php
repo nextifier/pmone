@@ -186,7 +186,6 @@ class OAuthController extends Controller
         }
     }
 
-
     private function saveUserAvatar(User $user, string $avatarUrl): void
     {
         try {

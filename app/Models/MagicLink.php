@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
  * @property string|null $user_agent
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink forEmail(string $email)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink newQuery()
@@ -30,6 +31,7 @@ use Illuminate\Support\Str;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink whereUsedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink whereUserAgent($value)
+ *
  * @mixin \Eloquent
  */
 class MagicLink extends Model

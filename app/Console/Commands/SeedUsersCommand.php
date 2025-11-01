@@ -40,6 +40,7 @@ class SeedUsersCommand extends Command
             // Only validate if all values are explicitly provided
             if (($masters + $admins + $staff) > $total) {
                 $this->error('Sum of masters, admins, and staff cannot exceed total users');
+
                 return self::FAILURE;
             }
         }
@@ -47,13 +48,15 @@ class SeedUsersCommand extends Command
         // Validate input
         if ($total <= 0) {
             $this->error('Total must be greater than 0');
+
             return self::FAILURE;
         }
 
         // Confirm action
         if ($fresh) {
-            if (!$this->confirm('This will delete ALL existing users. Are you sure?')) {
+            if (! $this->confirm('This will delete ALL existing users. Are you sure?')) {
                 $this->info('Operation cancelled.');
+
                 return self::SUCCESS;
             }
         }
@@ -74,7 +77,7 @@ class SeedUsersCommand extends Command
         }
 
         // Run seeder with options
-        $seeder = new UserSeeder();
+        $seeder = new UserSeeder;
         $seeder->setCommand($this);
         $seeder->run();
 

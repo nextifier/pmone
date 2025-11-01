@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\User $user
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OAuthProvider forProvider(string $provider)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OAuthProvider newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OAuthProvider newQuery()
@@ -28,6 +29,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OAuthProvider whereProviderId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OAuthProvider whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OAuthProvider whereUserId($value)
+ *
  * @mixin \Eloquent
  */
 class OAuthProvider extends Model
