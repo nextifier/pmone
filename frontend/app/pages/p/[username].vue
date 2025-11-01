@@ -226,20 +226,37 @@ const fetchProfile = async () => {
 
 // Generate QR code
 const generateQRCode = async () => {
-  if (process.client && qrcodeCanvas.value && project.value) {
-    try {
-      const url = `${window.location.origin}/p/${project.value.username}`;
-      await QRCode.toCanvas(qrcodeCanvas.value, url, {
-        width: 160,
-        margin: 0,
-        color: {
-          dark: "#000000",
-          light: "#FFFFFF",
-        },
-      });
-    } catch (err) {
-      console.error("Failed to generate QR code:", err);
-    }
+  if (!process.client) {
+    console.log("QR: Not on client side, skipping");
+    return;
+  }
+
+  if (!qrcodeCanvas.value) {
+    console.log("QR: Canvas ref not available yet");
+    return;
+  }
+
+  if (!project.value) {
+    console.log("QR: Project data not available yet");
+    return;
+  }
+
+  try {
+    const url = `${window.location.origin}/p/${project.value.username}`;
+    console.log("QR: Generating QR code for:", url);
+
+    await QRCode.toCanvas(qrcodeCanvas.value, url, {
+      width: 160,
+      margin: 0,
+      color: {
+        dark: "#000000",
+        light: "#FFFFFF",
+      },
+    });
+
+    console.log("QR: QR code generated successfully");
+  } catch (err) {
+    console.error("QR: Failed to generate QR code:", err);
   }
 };
 
@@ -345,11 +362,13 @@ onMounted(async () => {
   await fetchProfile();
 });
 
-// Watch for qrcodeCanvas ref to be available and generate QR code
-watch([qrcodeCanvas, () => project.value], async ([canvas, proj]) => {
-  if (canvas && proj) {
-    await nextTick();
-    await generateQRCode();
+// Watch for project data to be available and generate QR code
+watch(() => project.value, (newProject) => {
+  if (newProject && process.client) {
+    // Use setTimeout to ensure canvas is rendered in DOM
+    setTimeout(() => {
+      generateQRCode();
+    }, 100);
   }
 });
 
