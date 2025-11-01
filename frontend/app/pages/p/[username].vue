@@ -161,9 +161,11 @@
 
         <!-- QR Code and Save Button -->
         <div class="mt-8 text-center">
-          <div class="mx-auto mb-4 inline-block rounded-2xl bg-white p-4">
-            <canvas ref="qrcodeCanvas" class="size-40"></canvas>
-          </div>
+          <ClientOnly>
+            <div class="mx-auto mb-4 inline-block rounded-2xl bg-white p-4">
+              <canvas ref="qrcodeCanvas" class="size-40"></canvas>
+            </div>
+          </ClientOnly>
           <button
             @click="saveNamecard"
             class="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3 text-sm font-medium transition hover:bg-gray-800"
@@ -224,7 +226,7 @@ const fetchProfile = async () => {
 
 // Generate QR code
 const generateQRCode = async () => {
-  if (qrcodeCanvas.value && project.value) {
+  if (process.client && qrcodeCanvas.value && project.value) {
     try {
       const url = `${window.location.origin}/p/${project.value.username}`;
       await QRCode.toCanvas(qrcodeCanvas.value, url, {
@@ -317,6 +319,10 @@ const trackClick = async (linkLabel) => {
 
 // Save namecard
 const saveNamecard = () => {
+  if (!process.client) {
+    return;
+  }
+
   const vcard = `BEGIN:VCARD
 VERSION:3.0
 FN:${project.value.name}
@@ -337,8 +343,14 @@ END:VCARD`;
 // Lifecycle
 onMounted(async () => {
   await fetchProfile();
-  await nextTick();
-  await generateQRCode();
+});
+
+// Watch for qrcodeCanvas ref to be available and generate QR code
+watch([qrcodeCanvas, () => project.value], async ([canvas, proj]) => {
+  if (canvas && proj) {
+    await nextTick();
+    await generateQRCode();
+  }
 });
 
 // SEO
