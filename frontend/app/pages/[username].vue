@@ -74,7 +74,7 @@
               height="1080"
               loading="lazy"
             />
-            <div v-else class="bg-muted flex size-full items-center justify-center">
+            <div v-else class="bg-muted flex size-full items-center justify-center rounded-full">
               <Icon name="hugeicons:user" class="size-12" />
             </div>
 
@@ -91,7 +91,7 @@
             <div class="relative">
               <h1 class="line-clamp-1 text-xl font-semibold tracking-tighter">{{ user.name }}</h1>
               <Icon
-                v-if="user?.roles?.some((role) => ['master', 'admin', 'staff'].includes(role))"
+                v-if="hasVerifiedBadge"
                 name="mdi:verified"
                 class="text-info absolute top-1/2 right-0 size-4.5 translate-x-[calc(100%+4px)] -translate-y-1/2"
               />
@@ -141,22 +141,13 @@
 
           <ClientOnly>
             <div class="flex flex-col items-end gap-y-3 text-center">
-              <div class="relative isolate">
-                <canvas ref="qrcodeCanvas" class="size-24"></canvas>
-                <div class="absolute -inset-2 z-[-1] rounded-xl bg-white"></div>
+              <div class="rounded-sm bg-white p-1.5 dark:border-transparent">
+                <canvas ref="qrcodeCanvas" class="size-24" />
               </div>
 
-              <p class="text-muted-foreground text-xs tracking-tight">
+              <p v-if="currentDomain" class="text-muted-foreground text-xs tracking-tight">
                 {{ currentDomain }}/{{ user.username }}
               </p>
-
-              <button
-                @click="saveNamecard"
-                class="bg-muted text-foreground hover:bg-border flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition active:scale-98"
-              >
-                <Icon name="hugeicons:download-01" class="size-4" />
-                <span class="tracking-tight">Save namecard</span>
-              </button>
             </div>
           </ClientOnly>
         </div>
@@ -181,9 +172,11 @@ const username = computed(() => route.params.username);
 const qrcodeCanvas = ref(null);
 
 // Get current domain dynamically (client-side only)
-const currentDomain = ref("");
-onMounted(() => {
-  currentDomain.value = window.location.host;
+const currentDomain = computed(() => {
+  if (import.meta.client) {
+    return window.location.host;
+  }
+  return "";
 });
 
 const {
@@ -210,16 +203,18 @@ const error = computed(() => {
   };
 });
 
-// Handle short link redirect
-watch(
-  data,
-  (newResponse) => {
-    if (newResponse?.data?.destination_url) {
-      window.location.href = newResponse.data.destination_url;
-    }
-  },
-  { immediate: true }
-);
+// Handle short link redirect (client-side only)
+if (import.meta.client) {
+  watch(
+    data,
+    (newResponse) => {
+      if (newResponse?.data?.destination_url) {
+        window.location.href = newResponse.data.destination_url;
+      }
+    },
+    { immediate: true }
+  );
+}
 
 // Generate QR code
 const generateQRCode = async () => {
@@ -247,34 +242,45 @@ const generateQRCode = async () => {
 };
 
 // Computed properties
+const hasVerifiedBadge = computed(() => {
+  if (!user.value?.roles || !Array.isArray(user.value.roles)) {
+    return false;
+  }
+  return user.value.roles.some((role) => ["master", "admin", "staff"].includes(role));
+});
+
 const socialLinks = computed(() => {
-  if (!user.value?.links) {
+  if (!user.value?.links || !Array.isArray(user.value.links)) {
     return [];
   }
 
   const socialLabels = ["website", "instagram", "facebook", "x", "tiktok", "linkedin", "youtube"];
-  return user.value.links.filter((link) => socialLabels.includes(link.label?.toLowerCase()));
+  return user.value.links.filter(
+    (link) => link?.label && socialLabels.includes(link.label.toLowerCase())
+  );
 });
 
 const customLinks = computed(() => {
-  if (!user.value?.links) {
+  if (!user.value?.links || !Array.isArray(user.value.links)) {
     return [];
   }
 
   const socialLabels = ["website", "instagram", "facebook", "x", "tiktok", "linkedin", "youtube"];
-  return user.value.links.filter((link) => !socialLabels.includes(link.label?.toLowerCase()));
+  return user.value.links.filter(
+    (link) => link?.label && !socialLabels.includes(link.label.toLowerCase())
+  );
 });
 
 // Get social icon
 const getSocialIcon = (label) => {
   const iconMap = {
     website: "hugeicons:globe-02",
-    instagram: "mdi:instagram",
-    facebook: "mdi:facebook",
-    x: "mdi:twitter",
-    tiktok: "mdi:tiktok",
-    linkedin: "mdi:linkedin",
-    youtube: "mdi:youtube",
+    instagram: "hugeicons:instagram",
+    facebook: "hugeicons:facebook-01",
+    x: "hugeicons:new-twitter-rectangle",
+    tiktok: "hugeicons:tiktok",
+    linkedin: "hugeicons:linkedin-01",
+    youtube: "hugeicons:youtube",
   };
 
   return iconMap[label?.toLowerCase()] || "hugeicons:link-02";
@@ -295,24 +301,6 @@ const trackClick = async (linkLabel) => {
   } catch (err) {
     console.error("Failed to track click:", err);
   }
-};
-
-// Save namecard
-const saveNamecard = () => {
-  const vcard = `BEGIN:VCARD
-VERSION:3.0
-FN:${user.value.name}
-EMAIL:${user.value.email || ""}
-URL:${window.location.href}
-END:VCARD`;
-
-  const blob = new Blob([vcard], { type: "text/vcard" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${user.value.username}.vcf`;
-  link.click();
-  URL.revokeObjectURL(url);
 };
 
 // Generate QR code when component is mounted on client side
