@@ -114,9 +114,19 @@ export function useThemeSync() {
   // Load theme preference on initialization (only once)
   onMounted(() => {
     loadThemePreference()
+
+    // Watch for color mode changes and update meta theme color
+    watch(
+      () => colorMode.value,
+      () => {
+        nextTick(() => {
+          nuxtApp.$updateMetaThemeColor?.()
+        })
+      }
+    )
   })
 
-  // No watcher needed - we use one-way sync (local → backend only)
+  // No watcher for backend sync - we use one-way sync (local → backend only)
   // This prevents glitches from backend responses triggering local state changes
 
   return {

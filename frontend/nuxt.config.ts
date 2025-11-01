@@ -178,6 +178,8 @@ export default defineNuxtConfig({
       background_color: "#09090b",
       description:
         "Streamline your project management with PM One - a powerful, intuitive dashboard that helps you organize tasks, track progress, and collaborate seamlessly. Access your projects anywhere, anytime with our fast and reliable PWA experience.",
+      // Note: theme_color and background_color are defaults (dark mode)
+      // The actual theme color is dynamically updated via meta tag based on user's color mode preference
 
       screenshots: [
         {
