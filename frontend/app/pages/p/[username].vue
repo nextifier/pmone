@@ -238,12 +238,24 @@ const generateQRCode = async () => {
     // Clear container first
     qrcodeContainer.value.innerHTML = "";
 
-    // Dynamic import QRCode library
-    const QRCode = await import("qrcode");
+    // Dynamic import QRCode library with proper error handling
+    const QRCodeModule = await import("qrcode").catch((err) => {
+      console.error("Failed to import qrcode:", err);
+      return null;
+    });
+
+    if (!QRCodeModule) {
+      console.error("QRCode module not available");
+      return;
+    }
+
+    // Access the default export or the module itself
+    const QRCode = QRCodeModule.default || QRCodeModule;
 
     // Create canvas element
     const canvas = document.createElement("canvas");
-    canvas.className = "size-40";
+    canvas.width = 160;
+    canvas.height = 160;
 
     // Generate QR code
     const url = `${window.location.origin}/p/${project.value.username}`;
@@ -365,12 +377,26 @@ END:VCARD`;
 onMounted(async () => {
   await fetchProfile();
 
+  // Generate QR code after profile is loaded
   if (process.client && project.value) {
+    // Wait for next tick to ensure DOM is updated
     await nextTick();
-    // Small delay to ensure DOM is ready
-    setTimeout(() => {
-      generateQRCode();
-    }, 300);
+
+    // Try generating QR code with retry mechanism
+    let attempts = 0;
+    const maxAttempts = 5;
+
+    const tryGenerate = async () => {
+      attempts++;
+
+      if (qrcodeContainer.value) {
+        await generateQRCode();
+      } else if (attempts < maxAttempts) {
+        setTimeout(tryGenerate, 200);
+      }
+    };
+
+    tryGenerate();
   }
 });
 
