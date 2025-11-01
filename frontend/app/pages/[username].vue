@@ -7,7 +7,7 @@
       </div>
     </div>
 
-    <div
+    <!-- <div
       v-else-if="status === 'error'"
       class="min-h-screen-offset flex flex-col items-center justify-center overflow-hidden"
     >
@@ -42,7 +42,7 @@
           <span>Back to Home</span>
         </button>
       </div>
-    </div>
+    </div> -->
 
     <div
       v-else-if="status === 'success'"
@@ -179,11 +179,7 @@ const currentDomain = computed(() => {
   return "";
 });
 
-const {
-  data,
-  status,
-  error: fetchError,
-} = await useFetch(() => `/api/${username.value}`, {
+const { data, status } = await useFetch(() => `/api/${username.value}`, {
   baseURL: useRuntimeConfig().public.apiUrl,
   key: `user-profile-${username.value}`,
 });
@@ -191,17 +187,17 @@ const {
 const user = computed(() => data.value?.data || null);
 
 // Format error object to prioritize backend custom message
-const error = computed(() => {
-  if (!fetchError.value) return null;
+// const error = computed(() => {
+//   if (!fetchError.value) return null;
 
-  const err = fetchError.value;
-  return {
-    statusCode: err.statusCode || 500,
-    statusMessage: err.data?.message || err.statusMessage || "Error",
-    message: err.data?.message || err.message || "Failed to load profile",
-    stack: err.stack,
-  };
-});
+//   const err = fetchError.value;
+//   return {
+//     statusCode: err.statusCode || 500,
+//     statusMessage: err.data?.message || err.statusMessage || "Error",
+//     message: err.data?.message || err.message || "Failed to load profile",
+//     stack: err.stack,
+//   };
+// });
 
 // Handle short link redirect (client-side only)
 if (import.meta.client) {
