@@ -161,11 +161,9 @@
 
         <!-- QR Code and Save Button -->
         <div class="mt-8 text-center">
-          <ClientOnly>
-            <div class="mx-auto mb-4 inline-block rounded-2xl bg-white p-4">
-              <canvas ref="qrcodeCanvas" class="size-40"></canvas>
-            </div>
-          </ClientOnly>
+          <div class="mx-auto mb-4 inline-block rounded-2xl bg-white p-4">
+            <div ref="qrcodeContainer" class="size-40"></div>
+          </div>
           <button
             @click="saveNamecard"
             class="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3 text-sm font-medium transition hover:bg-gray-800"
@@ -187,7 +185,7 @@ const username = computed(() => route.params.username);
 const project = ref(null);
 const loading = ref(true);
 const error = ref(null);
-const qrcodeCanvas = ref(null);
+const qrcodeContainer = ref(null);
 
 // Fetch project profile
 const fetchProfile = async () => {
@@ -225,29 +223,32 @@ const fetchProfile = async () => {
 // Generate QR code
 const generateQRCode = async () => {
   if (!process.client) {
-    console.log("QR: Not on client side, skipping");
     return;
   }
 
-  if (!qrcodeCanvas.value) {
-    console.log("QR: Canvas ref not available yet");
+  if (!qrcodeContainer.value) {
     return;
   }
 
   if (!project.value) {
-    console.log("QR: Project data not available yet");
     return;
   }
 
   try {
-    console.log("QR: Dynamically importing QRCode library...");
+    // Clear container first
+    qrcodeContainer.value.innerHTML = "";
+
+    // Dynamic import QRCode library
     const QRCode = await import("qrcode");
 
-    const url = `${window.location.origin}/p/${project.value.username}`;
-    console.log("QR: Generating QR code for:", url);
-    console.log("QR: Canvas element:", qrcodeCanvas.value);
+    // Create canvas element
+    const canvas = document.createElement("canvas");
+    canvas.className = "size-40";
 
-    await QRCode.toCanvas(qrcodeCanvas.value, url, {
+    // Generate QR code
+    const url = `${window.location.origin}/p/${project.value.username}`;
+
+    await QRCode.toCanvas(canvas, url, {
       width: 160,
       margin: 0,
       color: {
@@ -256,9 +257,10 @@ const generateQRCode = async () => {
       },
     });
 
-    console.log("QR: QR code generated successfully");
+    // Append canvas to container
+    qrcodeContainer.value.appendChild(canvas);
   } catch (err) {
-    console.error("QR: Failed to generate QR code:", err);
+    console.error("Failed to generate QR code:", err);
   }
 };
 
@@ -361,34 +363,14 @@ END:VCARD`;
 
 // Lifecycle
 onMounted(async () => {
-  console.log("QR: Component mounted");
   await fetchProfile();
 
-  if (process.client) {
-    console.log("QR: On client, waiting for canvas to be ready...");
-    // Wait for the canvas element to be rendered in DOM
+  if (process.client && project.value) {
     await nextTick();
-
-    // Try multiple times with delays to ensure canvas is ready
-    let attempts = 0;
-    const maxAttempts = 10;
-
-    const tryGenerateQRCode = async () => {
-      attempts++;
-      console.log(`QR: Attempt ${attempts}/${maxAttempts}`);
-
-      if (qrcodeCanvas.value && project.value) {
-        await generateQRCode();
-      } else {
-        if (attempts < maxAttempts) {
-          setTimeout(tryGenerateQRCode, 100);
-        } else {
-          console.error("QR: Failed to generate QR code after max attempts");
-        }
-      }
-    };
-
-    tryGenerateQRCode();
+    // Small delay to ensure DOM is ready
+    setTimeout(() => {
+      generateQRCode();
+    }, 300);
   }
 });
 
