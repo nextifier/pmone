@@ -52,7 +52,7 @@
             <div class="relative">
               <h1 class="line-clamp-1 text-xl font-semibold tracking-tighter">{{ user.name }}</h1>
               <Icon
-                v-if="user?.roles?.some(role => ['master', 'admin', 'staff'].includes(role))"
+                v-if="user?.roles?.some((role) => ['master', 'admin', 'staff'].includes(role))"
                 name="mdi:verified"
                 class="text-info absolute top-1/2 right-0 size-4.5 translate-x-[calc(100%+4px)] -translate-y-1/2"
               />
@@ -160,6 +160,14 @@ const error = computed(() => {
   };
 });
 
+const title = user.value ? `${user.value.name} (@${user.value.username})` : "Profile";
+const description = user.value?.bio || "View profile";
+
+usePageMeta("", {
+  title: title,
+  description: description,
+});
+
 // Combined link filtering - single iteration instead of two
 const { socialLinks, customLinks } = computed(() => {
   const links = user.value?.links || [];
@@ -215,13 +223,4 @@ const trackClick = (linkLabel) => {
     console.error("Failed to track click:", err);
   });
 };
-
-useSeoMeta({
-  title: () => (user.value ? `${user.value.name} (@${user.value.username})` : "Profile"),
-  description: () => user.value?.bio || "View profile",
-  ogTitle: () => user.value?.name || "Profile",
-  ogDescription: () => user.value?.bio || "View profile",
-  ogImage: () => user.value?.profile_image?.md || "",
-  twitterCard: "summary_large_image",
-});
 </script>

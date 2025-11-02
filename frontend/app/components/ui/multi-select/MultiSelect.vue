@@ -70,7 +70,6 @@ const removeTag = (index: number) => {
     <ComboboxAnchor class="w-full">
       <TagsInputRoot
         v-model="modelValue"
-        @removeTag="() => console.log('removeTag')"
         delimiter=""
         class="border-input focus-within:border-ring focus-within:ring-ring has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40 has-aria-invalid:border-destructive relative min-h-[38px] cursor-text rounded-md border p-1 text-sm transition-[color,box-shadow] outline-none focus-within:ring-[3px] has-disabled:pointer-events-none has-disabled:cursor-not-allowed has-disabled:opacity-50"
         :class="{

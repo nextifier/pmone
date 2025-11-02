@@ -28,16 +28,10 @@ definePageMeta({
 
 const title = "Create New Project";
 const description = "";
-const route = useRoute();
 
-useSeoMeta({
-  titleTemplate: "%s · %siteName",
+usePageMeta("", {
   title: title,
-  ogTitle: title,
   description: description,
-  ogDescription: description,
-  ogUrl: useAppConfig().app.url + route.fullPath,
-  twitterCard: "summary_large_image",
 });
 
 const sanctumFetch = useSanctumClient();

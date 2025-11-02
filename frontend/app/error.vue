@@ -1,5 +1,7 @@
 <template>
-  <div class="flex min-h-screen flex-col items-center justify-center overflow-hidden">
+  <div
+    class="bg-background text-foreground flex min-h-screen flex-col items-center justify-center overflow-hidden"
+  >
     <div class="container flex flex-col items-center justify-center gap-y-3 text-center">
       <span v-if="error.statusCode" class="text-sm">
         {{ error.statusCode }}
@@ -28,10 +30,10 @@
 
       <button
         @click="handleError"
-        class="bg-primary text-primary-foreground hover:bg-primary/80 mt-4 flex items-center gap-x-1 rounded-xl px-4 py-3 font-medium tracking-tight transition active:scale-98"
+        class="bg-muted text-foreground hover:bg-border mt-4 flex items-center gap-x-1 rounded-md px-3 py-2 text-sm font-medium tracking-tight transition active:scale-98"
       >
         <Icon name="lucide:arrow-left" class="size-4 shrink-0" />
-        <span>Back to home</span>
+        <span>Back to Home</span>
       </button>
     </div>
   </div>

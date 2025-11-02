@@ -1,5 +1,7 @@
 <template>
-  <div class="min-h-screen-offset flex flex-col items-center justify-center overflow-hidden">
+  <div
+    class="bg-background text-foreground min-h-screen-offset flex flex-col items-center justify-center overflow-hidden"
+  >
     <div class="container flex flex-col items-center justify-center gap-y-3 text-center">
       <span v-if="error?.statusCode" class="text-sm">
         {{ error.statusCode }}
@@ -13,8 +15,8 @@
       </h1>
 
       <p class="mx-auto mt-1 max-w-2xl tracking-tight text-pretty">
-        We couldn't find the page you're looking for. It might have moved, been renamed, or maybe
-        it never existed in the first place.
+        We couldn't find the page you're looking for. It might have moved, been renamed, or maybe it
+        never existed in the first place.
       </p>
 
       <pre

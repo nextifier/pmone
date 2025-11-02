@@ -17,7 +17,7 @@
                 <Icon v-if="item.iconName" :name="item.iconName" class="!size-4.5 shrink-0" />
                 <span>{{ item.label }}</span>
                 <ChevronRight
-                  class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                  class="!text-muted-foreground ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
                 />
               </SidebarMenuButton>
             </CollapsibleTrigger>
@@ -123,7 +123,7 @@ const navMainGroups = computed(() => {
     label: "Settings",
     path: "/settings",
     iconName: "hugeicons:settings-01",
-    isActive: true,
+    isActive: false,
     items: [
       {
         label: "Profile",

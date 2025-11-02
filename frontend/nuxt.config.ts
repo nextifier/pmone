@@ -59,11 +59,6 @@ export default defineNuxtConfig({
     "@formkit/auto-animate/nuxt",
     "nuxt-auth-sanctum",
     "@vite-pwa/nuxt",
-    // (_, nuxt) => {
-    //   nuxt.hook("pwa:beforeBuildServiceWorker", (options) => {
-    //     console.log("pwa:beforeBuildServiceWorker: ", options.base);
-    //   });
-    // },
   ],
 
   sanctum: {
@@ -233,16 +228,6 @@ export default defineNuxtConfig({
       type: "module",
     },
   },
-
-  // gtag: {
-  //   loadingStrategy: "defer",
-  //   tags: [
-  //     {
-  //       id: "G-4ZNWF3G5DM",
-  //       enabled: true,
-  //     },
-  //   ],
-  // },
 
   compatibilityDate: "2025-09-16",
 

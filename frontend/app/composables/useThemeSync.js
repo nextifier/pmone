@@ -112,13 +112,11 @@ export function useThemeSync() {
     // Only load backend theme if localStorage is empty (first time login)
     const hasLocalTheme = localStorage.getItem("color-mode");
     if (hasLocalTheme) {
-      console.log("Using local theme preference");
       return;
     }
 
     // Only load if backend has a theme
     if (user.value?.user_settings?.theme) {
-      console.log("Loading theme from backend (first time)");
       colorMode.preference = user.value.user_settings.theme;
     }
     // If no user settings, colorMode will use its default behavior
