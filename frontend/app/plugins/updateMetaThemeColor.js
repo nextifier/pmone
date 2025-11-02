@@ -3,7 +3,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     provide: {
       updateMetaThemeColor: () => {
         // Get actual color mode from localStorage
-        const colorMode = localStorage.getItem("nuxt-color-mode") || "dark";
+        const colorMode = localStorage.getItem("color-mode") || "dark";
 
         // Dynamic theme color based on actual color mode
         const themeColor = colorMode === "light" ? "#ffffff" : "#09090b";
