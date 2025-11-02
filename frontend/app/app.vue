@@ -15,6 +15,7 @@
 import "vue-sonner/style.css";
 
 onMounted(() => {
-  useNuxtApp().$updateMetaThemeColor();
+  const { updateMetaThemeColor } = useThemeSync();
+  updateMetaThemeColor();
 });
 </script>

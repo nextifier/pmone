@@ -6,7 +6,6 @@ import { useDebounceFn } from "@vueuse/core";
  */
 export function useThemeSync() {
   const colorMode = useColorMode();
-  const nuxtApp = useNuxtApp();
   const { user } = useSanctumAuth();
   const sanctumFetch = useSanctumClient();
 
@@ -15,6 +14,29 @@ export function useThemeSync() {
   const lastSyncedAt = ref(null);
   const syncError = ref(null);
   const hasPendingSync = ref(false);
+
+  /**
+   * Update meta theme-color tag based on current color mode
+   * This affects browser UI chrome (address bar, tab bar, etc.)
+   */
+  const updateMetaThemeColor = () => {
+    // Get actual color mode from localStorage
+    const currentColorMode = localStorage.getItem("color-mode") || "dark";
+
+    // Dynamic theme color based on actual color mode
+    const themeColor = currentColorMode === "light" ? "#ffffff" : "#09090b";
+
+    const meta = document.querySelector("meta[name=theme-color]");
+
+    if (meta) {
+      meta.setAttribute("content", themeColor);
+    } else {
+      const newMeta = document.createElement("meta");
+      newMeta.name = "theme-color";
+      newMeta.content = themeColor;
+      document.head.appendChild(newMeta);
+    }
+  };
 
   /**
    * Save theme to backend user settings
@@ -73,7 +95,7 @@ export function useThemeSync() {
 
     // 2. Update meta theme color
     nextTick(() => {
-      nuxtApp.$updateMetaThemeColor?.();
+      updateMetaThemeColor();
     });
 
     // 3. Debounced backend sync (only if authenticated)
@@ -115,12 +137,15 @@ export function useThemeSync() {
   onMounted(() => {
     loadThemePreference();
 
+    // Update meta theme color on mount
+    updateMetaThemeColor();
+
     // Watch for color mode changes and update meta theme color
     watch(
       () => colorMode.value,
       () => {
         nextTick(() => {
-          nuxtApp.$updateMetaThemeColor?.();
+          updateMetaThemeColor();
         });
       }
     );
@@ -132,6 +157,7 @@ export function useThemeSync() {
   return {
     colorMode,
     setTheme,
+    updateMetaThemeColor,
     loadThemePreference,
     forceSyncNow,
     isSyncing,
