@@ -29,19 +29,8 @@
 
       <div class="-mt-12 flex grow flex-col px-4 lg:-mt-16">
         <div class="flex flex-col items-start space-y-2">
-          <div class="ring-background relative isolate size-24 rounded-full ring-4 lg:size-32">
-            <img
-              v-if="user.profile_image?.sm"
-              :src="user.profile_image.sm"
-              :alt="user.name"
-              class="size-full rounded-full object-cover"
-              width="1080"
-              height="1080"
-              loading="lazy"
-            />
-            <div v-else class="bg-muted flex size-full items-center justify-center rounded-full">
-              <Icon name="hugeicons:user" class="size-12" />
-            </div>
+          <div class="relative isolate">
+            <Avatar :model="user" class="ring-background size-24 !rounded-full ring-4 lg:size-32" />
 
             <span
               class="absolute top-1/2 right-0 z-[-1] size-8 translate-x-[calc(100%+0px)] -translate-y-full rounded-bl-[16px] bg-transparent shadow-[-16px_16px_0_var(--color-background)]"
