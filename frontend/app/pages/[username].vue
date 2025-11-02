@@ -30,7 +30,11 @@
       <div class="-mt-12 flex grow flex-col px-4 lg:-mt-16">
         <div class="flex flex-col items-start space-y-2">
           <div class="relative isolate">
-            <Avatar :model="user" class="ring-background size-24 !rounded-full ring-4 lg:size-32" />
+            <Avatar
+              :model="user"
+              class="ring-background size-24 ring-4 lg:size-32"
+              rounded="rounded-full"
+            />
 
             <span
               class="absolute top-1/2 right-0 z-[-1] size-8 translate-x-[calc(100%+0px)] -translate-y-full rounded-bl-[16px] bg-transparent shadow-[-16px_16px_0_var(--color-background)]"
