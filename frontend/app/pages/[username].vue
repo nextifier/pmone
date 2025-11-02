@@ -98,7 +98,17 @@
         </div>
 
         <div class="mt-auto flex items-end justify-between gap-2 pb-8">
-          <div></div>
+          <ClientOnly>
+            <div v-if="canEdit" class="flex items-end">
+              <NuxtLink
+                :to="`/users/${user.username}/edit`"
+                class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-2 rounded-full px-4 py-2 text-sm font-medium transition active:scale-98"
+              >
+                <Icon name="hugeicons:pencil-edit-02" class="size-4 shrink-0" />
+                <span>Edit Profile</span>
+              </NuxtLink>
+            </div>
+          </ClientOnly>
 
           <ClientOnly>
             <div class="flex flex-col items-end gap-y-3 text-center">
@@ -136,6 +146,8 @@ const SOCIAL_ICON_MAP = {
 
 const route = useRoute();
 const username = computed(() => route.params.username);
+
+const { user: authUser } = useSanctumAuth();
 
 const {
   data,
@@ -191,6 +203,17 @@ const { socialLinks, customLinks } = computed(() => {
 const qrCodeUrl = computed(() => {
   if (!user.value?.username) return "";
   return `${window.location.origin}/${user.value.username}`;
+});
+
+const canEdit = computed(() => {
+  if (!authUser.value || !user.value) return false;
+
+  // User can edit if they are the profile owner
+  if (authUser.value.id === user.value.id) return true;
+
+  // User can edit if they have master or admin role
+  const userRoles = authUser.value.roles || [];
+  return userRoles.some((role) => ["master", "admin"].includes(role));
 });
 
 const getSocialIcon = (label) => SOCIAL_ICON_MAP[label?.toLowerCase()] || "hugeicons:link-02";
