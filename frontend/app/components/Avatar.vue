@@ -75,11 +75,11 @@ const avatarStyle = computed(() => {
   // OKLCH values: lightness between 45-55% for good contrast with white text
   // Chroma (saturation) at 0.15-0.18 for vibrant but not overwhelming colors
   const lightness = 0.5; // 50% lightness for good contrast
-  const chroma = 0.24; // Medium saturation
+  const chroma = 0.16; // Medium saturation
 
   // Create two colors for gradient (main color and slightly rotated hue)
   const color1 = `oklch(${lightness} ${chroma} ${hue})`;
-  const color2 = `oklch(${lightness * 0.95} ${chroma * 1.1} ${(hue + 20) % 360})`;
+  const color2 = `oklch(${lightness * 0.8} ${chroma * 1.2} ${(hue + 20) % 360})`;
 
   return {
     background: `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`,
