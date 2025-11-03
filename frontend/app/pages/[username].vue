@@ -271,6 +271,9 @@ if (import.meta.client) {
 const trackClick = (linkLabel) => {
   if (!import.meta.client || !user.value?.id) return;
 
+  // Don't track if user is clicking their own links
+  if (authUser.value?.id === user.value.id) return;
+
   // Fire and forget - non-blocking
   $fetch("/api/track/click", {
     method: "POST",
@@ -291,6 +294,9 @@ const visitTracked = ref(false);
 
 const trackProfileVisit = () => {
   if (!import.meta.client || !user.value?.id || visitTracked.value) return;
+
+  // Don't track if user is visiting their own profile
+  if (authUser.value?.id === user.value.id) return;
 
   visitTracked.value = true;
 

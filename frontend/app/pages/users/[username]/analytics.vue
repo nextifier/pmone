@@ -114,10 +114,10 @@
                 :key="dayData.date"
                 class="flex items-center gap-x-3"
               >
-                <span class="text-muted-foreground w-24 text-xs tracking-tight">
+                <span class="text-muted-foreground w-10 text-xs tracking-tight">
                   {{ $dayjs(dayData.date).format("MMM D") }}
                 </span>
-                <div class="bg-primary/7 relative h-8 flex-1 overflow-hidden rounded-md">
+                <div class="bg-primary/7 relative h-8 grow overflow-hidden rounded-md">
                   <div
                     class="bg-primary absolute inset-y-0 left-0 transition-all"
                     :style="{
@@ -125,7 +125,7 @@
                     }"
                   ></div>
                 </div>
-                <span class="text-foreground w-12 text-right text-sm font-medium tracking-tight">
+                <span class="text-foreground w-5 text-right text-sm font-medium tracking-tight">
                   {{ dayData.count }}
                 </span>
               </div>
