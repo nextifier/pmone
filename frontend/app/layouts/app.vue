@@ -1,6 +1,6 @@
 <template>
   <SidebarProvider variant="sidebar" :defaultOpen="defaultOpen">
-    <AppSidebar />
+    <AppSidebar class="select-none" />
 
     <SidebarInset class="mx-auto min-h-screen max-w-[1920px]">
       <AppHeader />
