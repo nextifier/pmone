@@ -275,6 +275,7 @@ const trackClick = (linkLabel) => {
   $fetch("/api/track/click", {
     method: "POST",
     baseURL: useRuntimeConfig().public.apiUrl,
+    credentials: "include",
     body: {
       clickable_type: "App\\Models\\User",
       clickable_id: user.value.id,
@@ -285,19 +286,26 @@ const trackClick = (linkLabel) => {
   });
 };
 
+// Track profile visit only once per page load
+const visitTracked = ref(false);
+
 const trackProfileVisit = () => {
-  if (!import.meta.client || !user.value?.id) return;
+  if (!import.meta.client || !user.value?.id || visitTracked.value) return;
+
+  visitTracked.value = true;
 
   // Fire and forget - non-blocking
   $fetch("/api/track/visit", {
     method: "POST",
     baseURL: useRuntimeConfig().public.apiUrl,
+    credentials: "include",
     body: {
       visitable_type: "App\\Models\\User",
       visitable_id: user.value.id,
     },
   }).catch((err) => {
     console.error("Failed to track visit:", err);
+    visitTracked.value = false; // Reset on error to allow retry
   });
 };
 

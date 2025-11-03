@@ -58,13 +58,30 @@ class AnalyticsController extends Controller
             ->authenticated()
             ->select('visitor_id', DB::raw('COUNT(*) as visit_count'))
             ->groupBy('visitor_id')
-            ->with('visitor:id,name,username')
+            ->with(['visitor' => function ($query) {
+                $query->select('id', 'name', 'username')
+                    ->with('media');
+            }])
             ->orderByDesc('visit_count')
             ->limit(10)
             ->get()
             ->map(function ($visit) {
+                $visitor = $visit->visitor;
+                if ($visitor) {
+                    $visitorData = [
+                        'id' => $visitor->id,
+                        'name' => $visitor->name,
+                        'username' => $visitor->username,
+                        'profile_image' => $visitor->hasMedia('profile_image')
+                            ? $visitor->getMediaUrls('profile_image')
+                            : null,
+                    ];
+                } else {
+                    $visitorData = null;
+                }
+
                 return [
-                    'visitor' => $visit->visitor,
+                    'visitor' => $visitorData,
                     'visit_count' => $visit->visit_count,
                 ];
             });

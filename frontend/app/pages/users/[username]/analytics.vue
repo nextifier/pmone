@@ -117,7 +117,7 @@
                 <span class="text-muted-foreground w-24 text-xs tracking-tight">
                   {{ $dayjs(dayData.date).format("MMM D") }}
                 </span>
-                <div class="bg-muted relative h-8 flex-1 overflow-hidden rounded-md">
+                <div class="bg-primary/7 relative h-8 flex-1 overflow-hidden rounded-md">
                   <div
                     class="bg-primary absolute inset-y-0 left-0 transition-all"
                     :style="{
@@ -138,11 +138,11 @@
           <div class="frame-panel space-y-2">
             <h2 class="text-lg font-semibold tracking-tighter">Link Clicks</h2>
 
-            <div v-if="clicksData?.links?.length > 0" class="divide-border -mx-3 divide-y">
+            <div v-if="clicksData?.links?.length > 0" class="divide-border -mx-3 divide-y lg:-mx-5">
               <div
                 v-for="link in clicksData.links"
                 :key="link.link_id"
-                class="flex items-center justify-between gap-x-4 p-3 first:rounded-t-xl first:pt-0 last:rounded-b-xl last:pb-0"
+                class="flex items-center justify-between gap-x-4 px-3 py-3 first:rounded-t-xl first:pt-0 last:rounded-b-xl last:pb-0 lg:px-5"
               >
                 <div class="flex min-w-0 flex-1 items-center gap-x-3">
                   <div class="bg-muted text-primary rounded-lg p-2">
@@ -156,7 +156,7 @@
                   </div>
                 </div>
                 <div class="flex items-center gap-x-4">
-                  <div class="bg-muted relative h-2 w-24 overflow-hidden rounded-full">
+                  <div class="bg-primary/7 relative h-2 w-24 overflow-hidden rounded-full">
                     <div
                       class="bg-primary absolute inset-y-0 left-0 transition-all"
                       :style="{
@@ -179,15 +179,15 @@
 
         <!-- Top Visitors -->
         <div v-if="visitsData?.top_visitors?.length > 0" class="frame">
-          <div class="frame-panel">
+          <div class="frame-panel space-y-2">
             <h2 class="text-lg font-semibold tracking-tighter">Top Visitors</h2>
-            <div class="space-y-2">
+            <div class="divide-border -mx-3 divide-y lg:-mx-5">
               <div
                 v-for="(visitorData, index) in visitsData.top_visitors"
                 :key="visitorData.visitor?.id"
-                class="bg-muted/50 hover:bg-muted flex items-center gap-x-3 rounded-lg p-3 transition"
+                class="flex items-center justify-between gap-x-4 px-3 py-3 first:rounded-t-xl first:pt-0 last:rounded-b-xl last:pb-0 lg:px-5"
               >
-                <span class="text-muted-foreground w-6 text-sm font-medium">{{ index + 1 }}</span>
+                <span class="text-muted-foreground w-2 text-sm font-medium">{{ index + 1 }}</span>
                 <Avatar
                   :model="visitorData.visitor"
                   size="xs"
@@ -296,6 +296,7 @@ const {
     watch: [selectedPeriod],
     immediate: computed(() => !!user.value?.id && canViewAnalytics.value),
     transform: (response) => response.data,
+    server: false,
   }
 );
 
@@ -313,6 +314,7 @@ const {
     watch: [selectedPeriod],
     immediate: computed(() => !!user.value?.id && canViewAnalytics.value),
     transform: (response) => response.data,
+    server: false,
   }
 );
 
