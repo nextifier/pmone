@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property int $id
  * @property string $clickable_type
  * @property int $clickable_id
+ * @property string|null $link_label
  * @property string|null $ip_address
  * @property string|null $user_agent
  * @property string|null $referer
@@ -29,6 +30,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereIpAddress($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereLinkLabel($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereReferer($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereUserAgent($value)
@@ -42,6 +44,7 @@ class Click extends Model
     protected $fillable = [
         'clickable_type',
         'clickable_id',
+        'link_label',
         'ip_address',
         'user_agent',
         'referer',

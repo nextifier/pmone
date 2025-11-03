@@ -11,9 +11,16 @@
 
     <div
       v-else-if="status === 'success'"
-      class="min-h-screen-offset mx-auto flex max-w-xl flex-col"
+      class="min-h-screen-offset mx-auto flex max-w-xl flex-col px-4"
     >
-      <div class="px-1">
+      <div
+        v-if="authUser?.roles?.some((role) => ['master', 'admin', 'staff'].includes(role))"
+        class="mt-2 mb-5 flex items-center justify-between gap-2"
+      >
+        <BackButton destination="/users" />
+      </div>
+
+      <div class="-mx-3">
         <div
           class="aspect-[3/1] overflow-hidden rounded-xl"
           :style="{
@@ -47,7 +54,7 @@
         </div>
       </div>
 
-      <div class="-mt-12 flex grow flex-col justify-between gap-y-8 px-4 lg:-mt-16">
+      <div class="-mt-12 flex grow flex-col justify-between gap-y-8 lg:-mt-16">
         <div class="flex flex-col gap-y-6">
           <div class="flex flex-col items-start gap-y-2">
             <div class="relative flex w-full items-end justify-between gap-2">
@@ -64,14 +71,23 @@
                 />
               </div>
 
-              <NuxtLink
-                v-if="canEdit"
-                :to="`/users/${user.username}/edit`"
-                class="bg-muted text-foreground hover:bg-border flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight backdrop-blur-sm transition active:scale-98"
-              >
-                <Icon name="hugeicons:pencil-edit-02" class="size-4.5 shrink-0" />
-                <span>Edit Profile</span>
-              </NuxtLink>
+              <div v-if="canEdit" class="flex flex-wrap justify-end gap-2">
+                <NuxtLink
+                  :to="`/users/${user.username}/edit`"
+                  class="bg-muted text-foreground hover:bg-border flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight backdrop-blur-sm transition active:scale-98"
+                >
+                  <Icon name="hugeicons:pencil-edit-02" class="size-4.5 shrink-0" />
+                  <span>Edit Profile</span>
+                </NuxtLink>
+
+                <NuxtLink
+                  :to="`/users/${user.username}/analytics`"
+                  class="bg-muted text-foreground hover:bg-border flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight backdrop-blur-sm transition active:scale-98"
+                >
+                  <Icon name="hugeicons:analytics-01" class="size-4.5 shrink-0" />
+                  <span>Analytics</span>
+                </NuxtLink>
+              </div>
             </div>
 
             <div class="space-y-0.5">
@@ -148,7 +164,6 @@
 </template>
 
 <script setup>
-// Constants extracted to top level (outside setup)
 const SOCIAL_LABELS = ["website", "instagram", "facebook", "x", "tiktok", "linkedin", "youtube"];
 
 const SOCIAL_ICON_MAP = {
@@ -263,4 +278,33 @@ const trackClick = (linkLabel) => {
     console.error("Failed to track click:", err);
   });
 };
+
+const trackProfileVisit = () => {
+  if (!import.meta.client || !user.value?.id) return;
+
+  // Fire and forget - non-blocking
+  $fetch("/api/track/visit", {
+    method: "POST",
+    baseURL: useRuntimeConfig().public.apiUrl,
+    body: {
+      visitable_type: "App\\Models\\User",
+      visitable_id: user.value.id,
+    },
+  }).catch((err) => {
+    console.error("Failed to track visit:", err);
+  });
+};
+
+// Track profile visit when page loads and user data is available
+if (import.meta.client) {
+  watch(
+    user,
+    (newUser) => {
+      if (newUser?.id) {
+        trackProfileVisit();
+      }
+    },
+    { immediate: true }
+  );
+}
 </script>

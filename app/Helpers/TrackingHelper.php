@@ -21,11 +21,12 @@ class TrackingHelper
         ]);
     }
 
-    public static function trackClick(Request $request, $clickable): Click
+    public static function trackClick(Request $request, $clickable, ?string $linkLabel = null): Click
     {
         return Click::create([
             'clickable_type' => get_class($clickable),
             'clickable_id' => $clickable->id,
+            'link_label' => $linkLabel,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
             'referer' => $request->header('referer'),

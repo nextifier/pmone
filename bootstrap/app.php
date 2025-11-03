@@ -21,6 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(append: [
             \App\Http\Middleware\UpdateLastSeen::class,
         ]);
+
+        // Exclude tracking endpoints from CSRF verification (for anonymous tracking)
+        $middleware->validateCsrfTokens(except: [
+            'api/track/*',
+        ]);
     })
     ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule): void {
         // Cleanup temporary uploads older than 1 hour, run hourly

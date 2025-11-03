@@ -106,6 +106,7 @@ Route::get('/{username}', [ProfileController::class, 'getUserProfile'])
 
 // Tracking routes (public - can track anonymous visitors)
 Route::post('/track/click', [TrackingController::class, 'trackLinkClick'])->middleware('throttle:api');
+Route::post('/track/visit', [TrackingController::class, 'trackProfileVisit'])->middleware('throttle:api');
 
 // Analytics routes (authenticated)
 Route::middleware(['auth:sanctum'])->prefix('analytics')->group(function () {

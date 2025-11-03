@@ -18,7 +18,7 @@
           :side-offset="4"
         >
           <DropdownMenuLabel class="p-0 font-normal">
-            <NuxtLink to="/settings/profile" @click="setOpenMobile(false)">
+            <NuxtLink :to="`/${user.username}`" @click="setOpenMobile(false)">
               <UserProfile :user="user" class="px-1 py-1.5" />
             </NuxtLink>
           </DropdownMenuLabel>
