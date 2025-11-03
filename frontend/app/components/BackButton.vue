@@ -19,9 +19,6 @@
 </template>
 
 <script setup>
-// import { computed } from 'vue';
-// import { useRouter, useRoute } from 'vue-router';
-
 // Prop 'destination' sekarang bersifat opsional.
 const props = defineProps({
   destination: {

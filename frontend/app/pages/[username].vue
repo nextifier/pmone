@@ -13,14 +13,7 @@
       v-else-if="status === 'success'"
       class="min-h-screen-offset mx-auto flex max-w-xl flex-col px-4"
     >
-      <div
-        v-if="authUser?.roles?.some((role) => ['master', 'admin', 'staff'].includes(role))"
-        class="mt-2 mb-5 flex items-center justify-between gap-2"
-      >
-        <BackButton destination="/users" />
-      </div>
-
-      <div class="-mx-3">
+      <div class="relative -mx-3">
         <div
           class="aspect-[3/1] overflow-hidden rounded-xl"
           :style="{
@@ -52,6 +45,19 @@
             loading="lazy"
           />
         </div>
+
+        <BackButton
+          v-if="authUser?.roles?.some((role) => ['master', 'admin', 'staff'].includes(role))"
+          v-slot="{ goBack }"
+          destination="/users"
+        >
+          <button
+            @click="goBack"
+            class="absolute top-2.5 left-2.5 flex size-10 items-center justify-center rounded-full bg-white/50 text-black shadow backdrop-blur-sm transition hover:bg-white active:scale-98"
+          >
+            <Icon name="lucide:arrow-left" class="size-4 shrink-0" />
+          </button>
+        </BackButton>
       </div>
 
       <div class="-mt-12 flex grow flex-col justify-between gap-y-8 lg:-mt-16">

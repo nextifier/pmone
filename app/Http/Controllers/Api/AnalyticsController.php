@@ -103,7 +103,7 @@ class AnalyticsController extends Controller
         }
 
         // Get all links for this entity
-        $links = $model->links()->with('clicks')->get();
+        $links = $model->links;
 
         $dateFilter = null;
         if ($request->has('start_date') && $request->has('end_date')) {
@@ -114,22 +114,34 @@ class AnalyticsController extends Controller
             $dateFilter = ['days' => 7]; // Default to last 7 days
         }
 
-        $linksWithClicks = $links->map(function ($link) use ($dateFilter) {
-            $clicksQuery = $link->clicks();
+        // Get clicks by link_label (new tracking method)
+        $clicksQuery = \App\Models\Click::query()
+            ->where('clickable_type', get_class($model))
+            ->where('clickable_id', $model->id);
 
-            if (isset($dateFilter['start']) && isset($dateFilter['end'])) {
-                $clicksQuery->inDateRange($dateFilter['start'], $dateFilter['end']);
-            } else {
-                $clicksQuery->lastDays($dateFilter['days']);
-            }
+        if (isset($dateFilter['start']) && isset($dateFilter['end'])) {
+            $clicksQuery->inDateRange($dateFilter['start'], $dateFilter['end']);
+        } else {
+            $clicksQuery->lastDays($dateFilter['days']);
+        }
 
-            $totalClicks = $clicksQuery->count();
+        $clicksByLabel = $clicksQuery
+            ->selectRaw('link_label, COUNT(*) as click_count')
+            ->whereNotNull('link_label')
+            ->groupBy('link_label')
+            ->get()
+            ->pluck('click_count', 'link_label');
+
+        // Map links with their click counts
+        $linksWithClicks = $links->map(function ($link) use ($clicksByLabel) {
+            $label = $link->label;
+            $clicks = $clicksByLabel->get($label, 0);
 
             return [
                 'link_id' => $link->id,
-                'label' => $link->label,
+                'label' => $label,
                 'url' => $link->url,
-                'clicks' => $totalClicks,
+                'clicks' => $clicks,
             ];
         })->sortByDesc('clicks')->values();
 

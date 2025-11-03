@@ -4,7 +4,11 @@
       <NuxtPwaManifest />
       <NuxtLoadingIndicator />
       <NuxtLayout>
-        <NuxtPage />
+        <NuxtPage
+          :keepalive="{
+            include: ['users'],
+          }"
+        />
       </NuxtLayout>
       <Toaster class="pointer-events-auto" />
     </Body>
