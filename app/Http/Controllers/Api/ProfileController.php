@@ -31,8 +31,8 @@ class ProfileController extends Controller
 
         // If user found, return user profile
         if ($user) {
-            // Track visit
-            TrackingHelper::trackVisit($request, $user);
+            // Note: Visit tracking is handled on the frontend via /api/track/visit endpoint
+            // to prevent double tracking and allow better control over tracking behavior
 
             return response()->json([
                 'data' => new UserResource($user),
@@ -83,8 +83,9 @@ class ProfileController extends Controller
             }
         }
 
-        // Track visit
-        TrackingHelper::trackVisit($request, $project);
+        // Note: Visit tracking should be handled on the frontend via /api/track/visit endpoint
+        // TODO: Implement frontend tracking for project profiles if needed
+        // TrackingHelper::trackVisit($request, $project);
 
         return response()->json([
             'data' => [

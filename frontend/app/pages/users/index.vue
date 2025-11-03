@@ -645,7 +645,7 @@ const RowActions = defineComponent({
                                     name: "lucide:user-round-search",
                                     class: "size-4 shrink-0",
                                   }),
-                                  h("span", {}, "View Profile"),
+                                  h("span", {}, "Profile"),
                                 ],
                               }
                             ),
@@ -671,6 +671,31 @@ const RowActions = defineComponent({
                                     class: "size-4 shrink-0",
                                   }),
                                   h("span", {}, "Edit"),
+                                ],
+                              }
+                            ),
+                        }
+                      ),
+
+                      h(
+                        PopoverClose,
+                        { asChild: true },
+                        {
+                          default: () =>
+                            h(
+                              resolveComponent("NuxtLink"),
+                              {
+                                to: `/users/${props.username}/analytics`,
+                                class:
+                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                              },
+                              {
+                                default: () => [
+                                  h(resolveComponent("Icon"), {
+                                    name: "hugeicons:analytics-01",
+                                    class: "size-4 shrink-0",
+                                  }),
+                                  h("span", {}, "Analytics"),
                                 ],
                               }
                             ),
