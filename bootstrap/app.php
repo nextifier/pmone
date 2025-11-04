@@ -22,6 +22,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\UpdateLastSeen::class,
         ]);
 
+        // Register optional auth middleware alias
+        $middleware->alias([
+            'optional.auth' => \App\Http\Middleware\OptionalAuth::class,
+        ]);
+
         // Exclude tracking endpoints from CSRF verification (for anonymous tracking)
         $middleware->validateCsrfTokens(except: [
             'api/track/*',
