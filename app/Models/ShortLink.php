@@ -52,6 +52,8 @@ class ShortLink extends Model
         ];
     }
 
+    protected $appends = ['clicks_count'];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -60,6 +62,11 @@ class ShortLink extends Model
     public function clicks(): MorphMany
     {
         return $this->morphMany(Click::class, 'clickable');
+    }
+
+    public function getClicksCountAttribute(): int
+    {
+        return $this->clicks()->count();
     }
 
     public function scopeActive($query)
