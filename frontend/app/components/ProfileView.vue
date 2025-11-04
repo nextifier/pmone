@@ -19,6 +19,7 @@
           :class="[
             'outline-primary/5 @container relative flex items-center justify-center outline -outline-offset-1 [--bg-chroma:0.16] [--bg-lightness:0.9] [--text-chroma:0.16] [--text-lightness:0.32] dark:[--bg-chroma:0.14] dark:[--bg-lightness:0.28] dark:[--text-chroma:0.16] dark:[--text-lightness:0.8]',
             !profile?.cover_image &&
+              !profile?.profile_image &&
               'bg-[linear-gradient(135deg,oklch(var(--bg-lightness)_var(--bg-chroma)_var(--hue)),oklch(calc(var(--bg-lightness)*1.1)_calc(var(--bg-chroma)*1.5)_calc(var(--hue)+20)))]',
           ]"
         >
@@ -29,6 +30,14 @@
             class="size-full object-cover"
             width="1500"
             height="500"
+            loading="lazy"
+          />
+
+          <img
+            v-else-if="profile?.profile_image?.sm"
+            :src="profile.profile_image.sm"
+            alt=""
+            class="size-full scale-150 object-cover blur-[80px]"
             loading="lazy"
           />
 
@@ -46,7 +55,7 @@
         <BackButton v-if="showBackButton" v-slot="{ goBack }" :destination="backDestination">
           <button
             @click="goBack"
-            class="absolute top-2.5 left-2.5 flex size-10 items-center justify-center rounded-full bg-white/50 text-black shadow backdrop-blur-sm transition hover:bg-white active:scale-98"
+            class="absolute top-2.5 left-2.5 flex size-10 items-center justify-center rounded-full bg-white text-black shadow backdrop-blur-sm transition hover:bg-white/80 active:scale-98"
           >
             <Icon name="lucide:arrow-left" class="size-4 shrink-0" />
           </button>
@@ -123,6 +132,7 @@
                 :to="`https://wa.me/${profile.phone.replace(/\D/g, '')}`"
                 target="_blank"
                 @click="$emit('track-click', 'WhatsApp')"
+                @contextmenu.prevent
                 class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-2 text-sm font-semibold tracking-tight transition active:scale-98"
               >
                 <Icon name="hugeicons:whatsapp" class="size-4.5 shrink-0" />
@@ -137,6 +147,7 @@
                   :to="`https://wa.me/${phone.number.replace(/\D/g, '')}`"
                   target="_blank"
                   @click="$emit('track-click', phone.label || 'WhatsApp')"
+                  @contextmenu.prevent
                   class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-2 text-sm font-semibold tracking-tight transition active:scale-98"
                 >
                   <Icon name="hugeicons:whatsapp" class="size-4.5 shrink-0" />
@@ -149,6 +160,7 @@
                 v-if="profile.email"
                 :to="`mailto:${profile.email}`"
                 @click="$emit('track-click', 'Email')"
+                @contextmenu.prevent
                 class="bg-muted text-foreground hover:bg-border flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-2 text-sm font-semibold tracking-tight transition active:scale-98"
               >
                 <Icon name="hugeicons:mail-02" class="size-4.5 shrink-0" />
@@ -157,13 +169,14 @@
             </div>
           </div>
 
-          <div v-if="socialLinks.length > 0" class="flex flex-wrap justify-center gap-2">
+          <div v-if="socialLinks.length > 0" class="flex flex-wrap gap-2">
             <NuxtLink
               v-for="link in socialLinks"
               :key="link.url || link.id"
               :to="link.url || '#'"
               :target="link.url?.startsWith('http') ? '_blank' : ''"
               @click="$emit('track-click', link.label)"
+              @contextmenu.prevent
               class="bg-muted text-foreground hover:bg-border flex size-12 shrink-0 items-center justify-center rounded-full transition active:scale-98"
               v-tippy="link.label"
             >
@@ -178,6 +191,7 @@
               :to="link.url || '#'"
               :target="link.url?.startsWith('http') ? '_blank' : ''"
               @click="$emit('track-click', link.label)"
+              @contextmenu.prevent
               class="bg-muted text-foreground hover:bg-border flex h-9 items-center justify-center gap-1.5 rounded-lg px-4 text-sm font-medium tracking-tight transition active:scale-98"
             >
               {{ link.label }}
