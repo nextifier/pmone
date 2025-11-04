@@ -37,25 +37,11 @@
     </div>
 
     <div v-else-if="analyticsData" class="space-y-6">
-      <!-- Summary Cards -->
-      <div class="grid gap-4 sm:grid-cols-3">
-        <div class="border-border rounded-lg border p-4">
-          <div class="text-muted-foreground text-xs font-medium">Total Clicks</div>
-          <div class="text-primary mt-1 text-2xl font-semibold">
-            {{ analyticsData.summary.total_clicks.toLocaleString() }}
-          </div>
-        </div>
-        <div class="border-border rounded-lg border p-4">
-          <div class="text-muted-foreground text-xs font-medium">Authenticated Clicks</div>
-          <div class="text-primary mt-1 text-2xl font-semibold">
-            {{ analyticsData.summary.authenticated_clicks.toLocaleString() }}
-          </div>
-        </div>
-        <div class="border-border rounded-lg border p-4">
-          <div class="text-muted-foreground text-xs font-medium">Anonymous Clicks</div>
-          <div class="text-primary mt-1 text-2xl font-semibold">
-            {{ analyticsData.summary.anonymous_clicks.toLocaleString() }}
-          </div>
+      <!-- Summary Card -->
+      <div class="border-border rounded-lg border p-6">
+        <div class="text-muted-foreground text-sm font-medium">Total Clicks</div>
+        <div class="text-primary mt-2 text-4xl font-semibold">
+          {{ analyticsData.summary.total_clicks.toLocaleString() }}
         </div>
       </div>
 
@@ -91,47 +77,6 @@
         </div>
       </div>
 
-      <!-- Top Clickers -->
-      <div class="border-border rounded-lg border p-4">
-        <h2 class="text-lg font-semibold mb-4">Top Clickers</h2>
-        <div v-if="analyticsData.top_clickers?.length" class="space-y-3">
-          <div
-            v-for="item in analyticsData.top_clickers"
-            :key="item.clicker?.id"
-            class="flex items-center justify-between"
-          >
-            <div class="flex items-center gap-3">
-              <div
-                v-if="item.clicker?.profile_image?.thumb"
-                class="size-8 overflow-hidden rounded-full"
-              >
-                <img
-                  :src="item.clicker.profile_image.thumb"
-                  :alt="item.clicker.name"
-                  class="size-full object-cover"
-                />
-              </div>
-              <div
-                v-else
-                class="bg-muted flex size-8 items-center justify-center rounded-full"
-              >
-                <Icon name="lucide:user" class="text-muted-foreground size-4" />
-              </div>
-              <div>
-                <div class="text-sm font-medium">{{ item.clicker?.name }}</div>
-                <div class="text-muted-foreground text-xs">@{{ item.clicker?.username }}</div>
-              </div>
-            </div>
-            <div class="text-primary text-sm font-medium">
-              {{ item.click_count }} {{ item.click_count === 1 ? 'click' : 'clicks' }}
-            </div>
-          </div>
-        </div>
-        <div v-else class="text-muted-foreground py-8 text-center">
-          No authenticated clicks yet
-        </div>
-      </div>
-
       <!-- Recent Clicks -->
       <div class="border-border rounded-lg border p-4">
         <h2 class="text-lg font-semibold mb-4">Recent Clicks</h2>
@@ -142,26 +87,9 @@
             class="border-border flex flex-col gap-2 rounded-lg border p-3"
           >
             <div class="flex items-center justify-between">
-              <div v-if="click.clicker" class="flex items-center gap-2">
-                <div
-                  v-if="click.clicker.profile_image?.thumb"
-                  class="size-6 overflow-hidden rounded-full"
-                >
-                  <img
-                    :src="click.clicker.profile_image.thumb"
-                    :alt="click.clicker.name"
-                    class="size-full object-cover"
-                  />
-                </div>
-                <div
-                  v-else
-                  class="bg-muted flex size-6 items-center justify-center rounded-full"
-                >
-                  <Icon name="lucide:user" class="text-muted-foreground size-3" />
-                </div>
-                <span class="text-sm font-medium">{{ click.clicker.name }}</span>
+              <div class="text-muted-foreground text-sm">
+                {{ click.ip_address }}
               </div>
-              <div v-else class="text-muted-foreground text-sm">Anonymous</div>
               <div class="text-muted-foreground text-xs">
                 {{ $dayjs(click.clicked_at).fromNow() }}
               </div>

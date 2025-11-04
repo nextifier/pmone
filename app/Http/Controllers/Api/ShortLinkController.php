@@ -11,7 +11,6 @@ use App\Models\ShortLink;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ShortLinkController extends Controller
@@ -106,7 +105,7 @@ class ShortLinkController extends Controller
         $this->authorize('view', $shortLink);
 
         $shortLink->load(['user', 'clicks' => function ($query) {
-            $query->with('clicker')->latest('clicked_at')->limit(10);
+            $query->latest('clicked_at')->limit(10);
         }]);
 
         return response()->json([
@@ -270,8 +269,6 @@ class ShortLinkController extends Controller
         }
 
         $totalClicks = $query->count();
-        $authenticatedClicks = $query->clone()->authenticated()->count();
-        $anonymousClicks = $query->clone()->anonymous()->count();
 
         // Clicks per day
         $clicksPerDay = $query->clone()
@@ -280,42 +277,8 @@ class ShortLinkController extends Controller
             ->orderBy('date')
             ->get();
 
-        // Top clickers (for authenticated clicks)
-        $topClickers = $query->clone()
-            ->authenticated()
-            ->select('clicker_id', DB::raw('COUNT(*) as click_count'))
-            ->groupBy('clicker_id')
-            ->with(['clicker' => function ($query) {
-                $query->select('id', 'name', 'username')
-                    ->with('media');
-            }])
-            ->orderByDesc('click_count')
-            ->limit(10)
-            ->get()
-            ->map(function ($click) {
-                $clicker = $click->clicker;
-                if ($clicker) {
-                    $clickerData = [
-                        'id' => $clicker->id,
-                        'name' => $clicker->name,
-                        'username' => $clicker->username,
-                        'profile_image' => $clicker->hasMedia('profile_image')
-                            ? $clicker->getMediaUrls('profile_image')
-                            : null,
-                    ];
-                } else {
-                    $clickerData = null;
-                }
-
-                return [
-                    'clicker' => $clickerData,
-                    'click_count' => $click->click_count,
-                ];
-            });
-
         // Recent clicks
         $recentClicks = $query->clone()
-            ->with('clicker')
             ->latest('clicked_at')
             ->limit(20)
             ->get()
@@ -326,14 +289,6 @@ class ShortLinkController extends Controller
                     'ip_address' => $click->ip_address,
                     'user_agent' => $click->user_agent,
                     'referer' => $click->referer,
-                    'clicker' => $click->clicker ? [
-                        'id' => $click->clicker->id,
-                        'name' => $click->clicker->name,
-                        'username' => $click->clicker->username,
-                        'profile_image' => $click->clicker->hasMedia('profile_image')
-                            ? $click->clicker->getMediaUrls('profile_image')
-                            : null,
-                    ] : null,
                 ];
             });
 
@@ -341,11 +296,8 @@ class ShortLinkController extends Controller
             'data' => [
                 'summary' => [
                     'total_clicks' => $totalClicks,
-                    'authenticated_clicks' => $authenticatedClicks,
-                    'anonymous_clicks' => $anonymousClicks,
                 ],
                 'clicks_per_day' => $clicksPerDay,
-                'top_clickers' => $topClickers,
                 'recent_clicks' => $recentClicks,
             ],
         ]);
