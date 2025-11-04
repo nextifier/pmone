@@ -1,6 +1,6 @@
 <template>
   <AnalyticsView
-    :username="username"
+    :user="user"
     :loading="status === 'pending'"
     :error="error"
     :visits-data="visitsData"

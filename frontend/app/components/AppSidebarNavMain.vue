@@ -94,6 +94,11 @@ const navMainGroups = computed(() => {
           path: "/reports",
           iconName: "hugeicons:analysis-text-link",
         },
+        {
+          label: "Short Links",
+          path: "/short-links",
+          iconName: "hugeicons:unlink-02",
+        },
       ],
     },
   ];

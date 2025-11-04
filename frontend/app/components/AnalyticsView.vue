@@ -1,9 +1,6 @@
 <template>
   <div class="min-h-screen-offset mx-auto max-w-4xl">
-    <div
-      v-if="loading || !visitsData"
-      class="min-h-screen-offset flex items-center justify-center"
-    >
+    <div v-if="loading || !visitsData" class="min-h-screen-offset flex items-center justify-center">
       <div class="flex items-center gap-x-2">
         <Spinner class="size-4 shrink-0" />
         <span class="text-base tracking-tight">Loading analytics</span>
@@ -34,7 +31,7 @@
           </div>
         </div>
 
-        <h1 class="page-title">Analytics for @{{ username }}</h1>
+        <h1 class="page-title">Analytics for {{ user.name }}</h1>
 
         <!-- Summary Cards -->
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -270,8 +267,8 @@
 
 <script setup>
 const props = defineProps({
-  username: {
-    type: String,
+  user: {
+    type: Object,
     required: true,
   },
   loading: {
