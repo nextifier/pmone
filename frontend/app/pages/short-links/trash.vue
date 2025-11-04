@@ -1,55 +1,18 @@
 <template>
   <div class="mx-auto max-w-4xl space-y-6">
-    <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
-      <div class="flex shrink-0 items-center gap-x-2.5">
-        <Icon name="hugeicons:link-01" class="size-5 sm:size-6" />
-        <h1 class="page-title">Short Links</h1>
+    <div class="flex items-center justify-between gap-x-2.5">
+      <div class="flex items-center gap-x-2.5">
+        <Icon name="hugeicons:delete-01" class="size-5 sm:size-6" />
+        <h1 class="page-title">Short Links Trash</h1>
       </div>
 
-      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <a
-          href="/api/short-links/import/template"
-          download
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="hugeicons:download-04" class="size-4 shrink-0" />
-          <span class="hidden sm:inline">Template</span>
-        </a>
-
-        <label
-          class="border-border hover:bg-muted flex cursor-pointer items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="hugeicons:upload-04" class="size-4 shrink-0" />
-          <span class="hidden sm:inline">Import</span>
-          <input type="file" accept=".xlsx,.xls,.csv" class="hidden" @change="handleImport" />
-        </label>
-
-        <button
-          @click="handleExport"
-          :disabled="exportLoading"
-          class="border-border hover:bg-muted disabled:opacity-50 flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Spinner v-if="exportLoading" class="size-4" />
-          <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
-          <span class="hidden sm:inline">Export</span>
-        </button>
-
-        <nuxt-link
-          to="/short-links/trash"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
-          <span class="hidden sm:inline">Trash</span>
-        </nuxt-link>
-
-        <nuxt-link
-          to="/short-links/create"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="hugeicons:add-circle" class="size-4 shrink-0" />
-          <span>Create</span>
-        </nuxt-link>
-      </div>
+      <nuxt-link
+        to="/short-links"
+        class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+      >
+        <Icon name="hugeicons:link-01" class="size-4 shrink-0" />
+        <span>All Short Links</span>
+      </nuxt-link>
     </div>
 
     <TableData
@@ -60,10 +23,11 @@
       :meta="meta"
       :pending="pending"
       :error="error"
-      model="short-links"
+      model="short-links-trash"
       search-column="slug"
+      :show-add-button="false"
       search-placeholder="Search slug or destination URL"
-      error-title="Error loading short links"
+      error-title="Error loading trashed short links"
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
@@ -108,7 +72,7 @@
       <template #actions="{ selectedRows }">
         <DialogResponsive
           v-if="selectedRows.length > 0"
-          v-model:open="deleteDialogOpen"
+          v-model:open="restoreDialogOpen"
           class="h-full"
         >
           <template #trigger="{ open }">
@@ -116,8 +80,8 @@
               class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
               @click="open()"
             >
-              <Icon name="lucide:trash" class="size-4 shrink-0" />
-              <span class="text-sm tracking-tight">Delete</span>
+              <Icon name="hugeicons:undo-02" class="size-4 shrink-0" />
+              <span class="text-sm tracking-tight">Restore</span>
               <span
                 class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
               >
@@ -127,10 +91,57 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+              <div class="text-primary text-lg font-semibold tracking-tight">Restore short links?</div>
+              <p class="text-body mt-1.5 text-sm tracking-tight">
+                This will restore {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "short link" : "short links" }}.
+              </p>
+              <div class="mt-3 flex justify-end gap-2">
+                <button
+                  class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  @click="restoreDialogOpen = false"
+                >
+                  Cancel
+                </button>
+                <button
+                  @click="handleRestoreRows(selectedRows)"
+                  class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                >
+                  Restore
+                </button>
+              </div>
+            </div>
+          </template>
+        </DialogResponsive>
+
+        <DialogResponsive
+          v-if="selectedRows.length > 0"
+          v-model:open="deleteDialogOpen"
+          class="h-full"
+        >
+          <template #trigger="{ open }">
+            <button
+              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
+              @click="open()"
+            >
+              <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
+              <span class="text-sm tracking-tight">Delete Permanently</span>
+              <span
+                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
+              >
+                {{ selectedRows.length }}
+              </span>
+            </button>
+          </template>
+          <template #default>
+            <div class="px-4 pb-10 md:px-6 md:py-5">
+              <div class="text-primary text-lg font-semibold tracking-tight">
+                Are you absolutely sure?
+              </div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This action can't be undone. This will permanently delete
-                {{ selectedRows.length }} selected {{ selectedRows.length === 1 ? "row" : "rows" }}.
+                {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "short link" : "short links" }}.
               </p>
               <div class="mt-3 flex justify-end gap-2">
                 <button
@@ -143,7 +154,7 @@
                   @click="handleDeleteRows(selectedRows)"
                   class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98"
                 >
-                  Delete
+                  Delete Permanently
                 </button>
               </div>
             </div>
@@ -170,21 +181,17 @@ definePageMeta({
 });
 
 defineOptions({
-  name: "short-links",
+  name: "short-links-trash",
 });
 
-usePageMeta("short-links");
+usePageMeta("short-links-trash");
 
-const { user } = useSanctumAuth();
 const { $dayjs } = useNuxtApp();
-
-// Export/Import state
-const exportLoading = ref(false);
 
 // Table state
 const columnFilters = ref([]);
 const pagination = ref({ pageIndex: 0, pageSize: 10 });
-const sorting = ref([{ id: "created_at", desc: true }]);
+const sorting = ref([{ id: "deleted_at", desc: true }]);
 
 // Data state
 const data = ref([]);
@@ -192,7 +199,7 @@ const meta = ref({ current_page: 1, last_page: 1, per_page: 10, total: 0 });
 const pending = ref(false);
 const error = ref(null);
 
-// Client-only mode flag (true = client-side pagination, false = server-side)
+// Client-only mode flag
 const clientOnly = ref(true);
 
 // Build query params
@@ -202,11 +209,9 @@ const buildQueryParams = () => {
   if (clientOnly.value) {
     params.append("client_only", "true");
   } else {
-    // Server-side mode: add pagination, filters, and sorting
     params.append("page", pagination.value.pageIndex + 1);
     params.append("per_page", pagination.value.pageSize);
 
-    // Filters
     const filters = {
       slug: "filter.search",
       is_active: "filter.status",
@@ -220,8 +225,7 @@ const buildQueryParams = () => {
       }
     });
 
-    // Sorting
-    const sortField = sorting.value[0]?.id || "created_at";
+    const sortField = sorting.value[0]?.id || "deleted_at";
     const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
     params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
   }
@@ -229,18 +233,18 @@ const buildQueryParams = () => {
   return params.toString();
 };
 
-// Fetch short links
+// Fetch trashed short links
 const fetchShortLinks = async () => {
   try {
     pending.value = true;
     error.value = null;
     const client = useSanctumClient();
-    const response = await client(`/api/short-links?${buildQueryParams()}`);
+    const response = await client(`/api/short-links/trash?${buildQueryParams()}`);
     data.value = response.data;
     meta.value = response.meta;
   } catch (err) {
     error.value = err;
-    console.error("Failed to fetch short links:", err);
+    console.error("Failed to fetch trashed short links:", err);
   } finally {
     pending.value = false;
   }
@@ -248,7 +252,7 @@ const fetchShortLinks = async () => {
 
 await fetchShortLinks();
 
-// Watchers for server-side mode only
+// Watchers
 const debouncedFetch = useDebounceFn(fetchShortLinks, 300);
 
 watch(
@@ -291,14 +295,7 @@ const columns = [
     accessorKey: "slug",
     cell: ({ row }) =>
       h("div", { class: "flex flex-col gap-1" }, [
-        h(
-          resolveComponent("NuxtLink"),
-          {
-            to: `/short-links/${row.original.slug}/edit`,
-            class: "font-medium hover:opacity-80 transition-opacity",
-          },
-          { default: () => row.original.slug }
-        ),
+        h("div", { class: "font-medium" }, row.original.slug),
         h(
           "a",
           {
@@ -317,16 +314,6 @@ const columns = [
       const url = row.original.destination_url?.toLowerCase() || "";
       return slug.includes(searchValue) || url.includes(searchValue);
     },
-  },
-  {
-    header: "Clicks",
-    accessorKey: "clicks_count",
-    cell: ({ row }) => {
-      const count = row.getValue("clicks_count") || 0;
-      return h("div", { class: "text-sm tracking-tight" }, count.toLocaleString());
-    },
-    size: 80,
-    enableSorting: true,
   },
   {
     header: "Status",
@@ -354,10 +341,22 @@ const columns = [
     },
   },
   {
-    header: "Created",
-    accessorKey: "created_at",
+    header: "Deleted By",
+    accessorKey: "deleter",
     cell: ({ row }) => {
-      const date = row.getValue("created_at");
+      const deleter = row.getValue("deleter");
+      if (!deleter) {
+        return h("div", { class: "text-sm text-muted-foreground tracking-tight" }, "-");
+      }
+      return h("div", { class: "text-sm tracking-tight" }, deleter.name);
+    },
+    size: 120,
+  },
+  {
+    header: "Deleted At",
+    accessorKey: "deleted_at",
+    cell: ({ row }) => {
+      const date = row.getValue("deleted_at");
       return withDirectives(
         h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $dayjs(date).fromNow()),
         [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
@@ -368,7 +367,7 @@ const columns = [
   {
     id: "actions",
     header: () => h("span", { class: "sr-only" }, "Actions"),
-    cell: ({ row }) => h(RowActions, { shortLink: row.original }),
+    cell: ({ row }) => h(RowActions, { shortLinkId: row.original.id }),
     size: 60,
     enableHiding: false,
   },
@@ -377,7 +376,7 @@ const columns = [
 // Table ref
 const tableRef = ref();
 
-// Filter helpers - handle both client and server mode
+// Filter helpers
 const getFilterValue = (columnId) => {
   if (clientOnly.value && tableRef.value?.table) {
     return tableRef.value.table.getColumn(columnId)?.getFilterValue() ?? [];
@@ -390,7 +389,6 @@ const totalActiveFilters = computed(() => selectedStatuses.value.length);
 
 const handleFilterChange = (columnId, { checked, value }) => {
   if (clientOnly.value && tableRef.value?.table) {
-    // Client-side mode: use table instance
     const column = tableRef.value.table.getColumn(columnId);
     if (!column) return;
 
@@ -398,10 +396,8 @@ const handleFilterChange = (columnId, { checked, value }) => {
     const updated = checked ? [...current, value] : current.filter((item) => item !== value);
 
     column.setFilterValue(updated.length > 0 ? updated : undefined);
-    // Reset to first page when filter changes
     tableRef.value.table.setPageIndex(0);
   } else {
-    // Server-side mode: update columnFilters ref
     const current = getFilterValue(columnId);
     const updated = checked ? [...current, value] : current.filter((item) => item !== value);
 
@@ -417,8 +413,52 @@ const handleFilterChange = (columnId, { checked, value }) => {
         columnFilters.value.splice(existingIndex, 1);
       }
     }
-    // Reset to first page when filter changes (server-side)
     pagination.value.pageIndex = 0;
+  }
+};
+
+// Restore handlers
+const restoreDialogOpen = ref(false);
+const handleRestoreRows = async (selectedRows) => {
+  const shortLinkIds = selectedRows.map((row) => row.original.id);
+  try {
+    const client = useSanctumClient();
+    const response = await client("/api/short-links/trash/restore/bulk", {
+      method: "POST",
+      body: { ids: shortLinkIds },
+    });
+    await refresh();
+    restoreDialogOpen.value = false;
+    if (tableRef.value?.table) {
+      tableRef.value.table.resetRowSelection();
+    }
+
+    toast.success(response.message || "Short links restored successfully", {
+      description:
+        response.errors?.length > 0
+          ? `${response.restored_count} restored, ${response.errors.length} failed`
+          : `${response.restored_count} short link(s) restored`,
+    });
+  } catch (error) {
+    console.error("Failed to restore short links:", error);
+    toast.error("Failed to restore short links", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  }
+};
+
+const handleRestoreSingleRow = async (shortLinkId) => {
+  try {
+    const client = useSanctumClient();
+    const response = await client(`/api/short-links/trash/${shortLinkId}/restore`, { method: "POST" });
+    await refresh();
+
+    toast.success(response.message || "Short link restored successfully");
+  } catch (error) {
+    console.error("Failed to restore short link:", error);
+    toast.error("Failed to restore short link", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
   }
 };
 
@@ -428,7 +468,7 @@ const handleDeleteRows = async (selectedRows) => {
   const shortLinkIds = selectedRows.map((row) => row.original.id);
   try {
     const client = useSanctumClient();
-    const response = await client("/api/short-links/bulk", {
+    const response = await client("/api/short-links/trash/bulk", {
       method: "DELETE",
       body: { ids: shortLinkIds },
     });
@@ -438,118 +478,43 @@ const handleDeleteRows = async (selectedRows) => {
       tableRef.value.table.resetRowSelection();
     }
 
-    // Show success toast
-    toast.success(response.message || "Short links deleted successfully", {
+    toast.success(response.message || "Short links permanently deleted", {
       description:
         response.errors?.length > 0
           ? `${response.deleted_count} deleted, ${response.errors.length} failed`
-          : `${response.deleted_count} short link(s) deleted`,
+          : `${response.deleted_count} short link(s) permanently deleted`,
     });
   } catch (error) {
-    console.error("Failed to delete short links:", error);
-    toast.error("Failed to delete short links", {
+    console.error("Failed to permanently delete short links:", error);
+    toast.error("Failed to permanently delete short links", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
   }
 };
 
-const handleDeleteSingleRow = async (slug) => {
+const handleDeleteSingleRow = async (shortLinkId) => {
   try {
     const client = useSanctumClient();
-    const response = await client(`/api/short-links/${slug}`, { method: "DELETE" });
+    const response = await client(`/api/short-links/trash/${shortLinkId}`, { method: "DELETE" });
     await refresh();
 
-    // Show success toast
-    toast.success(response.message || "Short link deleted successfully");
+    toast.success(response.message || "Short link permanently deleted");
   } catch (error) {
-    console.error("Failed to delete short link:", error);
-    toast.error("Failed to delete short link", {
+    console.error("Failed to permanently delete short link:", error);
+    toast.error("Failed to permanently delete short link", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
-  }
-};
-
-// Export handler
-const handleExport = async () => {
-  exportLoading.value = true;
-  try {
-    const params = new URLSearchParams();
-
-    // Add filters
-    const searchFilter = columnFilters.value.find((f) => f.id === "slug");
-    if (searchFilter?.value) {
-      params.append("filter.search", searchFilter.value);
-    }
-
-    const statusFilter = columnFilters.value.find((f) => f.id === "is_active");
-    if (statusFilter?.value) {
-      params.append("filter.status", statusFilter.value.join(","));
-    }
-
-    // Add sorting
-    const sortField = sorting.value[0]?.id || "created_at";
-    const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
-    params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
-
-    // Download file
-    window.location.href = `/api/short-links/export?${params.toString()}`;
-
-    toast.success("Export started", {
-      description: "Your file will download shortly",
-    });
-  } catch (error) {
-    console.error("Failed to export:", error);
-    toast.error("Failed to export short links");
-  } finally {
-    exportLoading.value = false;
-  }
-};
-
-// Import handler
-const handleImport = async (event) => {
-  const file = event.target.files?.[0];
-  if (!file) return;
-
-  try {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const client = useSanctumClient();
-    const response = await client("/api/short-links/import", {
-      method: "POST",
-      body: formData,
-    });
-
-    await refresh();
-
-    if (response.failed_count > 0) {
-      toast.warning(response.message, {
-        description: `${response.imported_count} imported, ${response.failed_count} failed`,
-        duration: 5000,
-      });
-    } else {
-      toast.success(response.message, {
-        description: `${response.imported_count} short link(s) imported`,
-      });
-    }
-  } catch (error) {
-    console.error("Failed to import:", error);
-    toast.error("Failed to import short links", {
-      description: error?.data?.message || error?.message || "An error occurred",
-    });
-  } finally {
-    // Reset file input
-    event.target.value = "";
   }
 };
 
 // Row Actions Component
 const RowActions = defineComponent({
   props: {
-    shortLink: { type: Object, required: true },
+    shortLinkId: { type: Number, required: true },
   },
   setup(props) {
-    const dialogOpen = ref(false);
+    const restoreDialogOpen = ref(false);
+    const deleteDialogOpen = ref(false);
     return () =>
       h("div", { class: "flex justify-end" }, [
         h(
@@ -584,50 +549,22 @@ const RowActions = defineComponent({
                         {
                           default: () =>
                             h(
-                              resolveComponent("NuxtLink"),
+                              "button",
                               {
-                                to: `/short-links/${props.shortLink.slug}/edit`,
                                 class:
                                   "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                onClick: () => (restoreDialogOpen.value = true),
                               },
-                              {
-                                default: () => [
-                                  h(resolveComponent("Icon"), {
-                                    name: "lucide:pencil-line",
-                                    class: "size-4 shrink-0",
-                                  }),
-                                  h("span", {}, "Edit"),
-                                ],
-                              }
+                              [
+                                h(resolveComponent("Icon"), {
+                                  name: "lucide:undo-2",
+                                  class: "size-4 shrink-0",
+                                }),
+                                h("span", {}, "Restore"),
+                              ]
                             ),
                         }
                       ),
-
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
-                            h(
-                              resolveComponent("NuxtLink"),
-                              {
-                                to: `/short-links/${props.shortLink.slug}/analytics`,
-                                class:
-                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                              },
-                              {
-                                default: () => [
-                                  h(resolveComponent("Icon"), {
-                                    name: "lucide:chart-no-axes-combined",
-                                    class: "size-4 shrink-0",
-                                  }),
-                                  h("span", {}, "Analytics"),
-                                ],
-                              }
-                            ),
-                        }
-                      ),
-
                       h(
                         PopoverClose,
                         { asChild: true },
@@ -638,7 +575,7 @@ const RowActions = defineComponent({
                               {
                                 class:
                                   "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                onClick: () => (dialogOpen.value = true),
+                                onClick: () => (deleteDialogOpen.value = true),
                               },
                               [
                                 h(resolveComponent("Icon"), {
@@ -659,8 +596,8 @@ const RowActions = defineComponent({
         h(
           DialogResponsive,
           {
-            open: dialogOpen.value,
-            "onUpdate:open": (value) => (dialogOpen.value = value),
+            open: restoreDialogOpen.value,
+            "onUpdate:open": (value) => (restoreDialogOpen.value = value),
           },
           {
             default: () =>
@@ -668,7 +605,52 @@ const RowActions = defineComponent({
                 h(
                   "div",
                   { class: "text-primary text-lg font-semibold tracking-tight" },
-                  "Are you sure?"
+                  "Restore short link?"
+                ),
+                h(
+                  "p",
+                  { class: "text-body mt-1.5 text-sm tracking-tight" },
+                  "This will restore this short link."
+                ),
+                h("div", { class: "mt-3 flex justify-end gap-2" }, [
+                  h(
+                    "button",
+                    {
+                      class:
+                        "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                      onClick: () => (restoreDialogOpen.value = false),
+                    },
+                    "Cancel"
+                  ),
+                  h(
+                    "button",
+                    {
+                      class:
+                        "bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                      onClick: async () => {
+                        await handleRestoreSingleRow(props.shortLinkId);
+                        restoreDialogOpen.value = false;
+                      },
+                    },
+                    "Restore"
+                  ),
+                ]),
+              ]),
+          }
+        ),
+        h(
+          DialogResponsive,
+          {
+            open: deleteDialogOpen.value,
+            "onUpdate:open": (value) => (deleteDialogOpen.value = value),
+          },
+          {
+            default: () =>
+              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
+                h(
+                  "div",
+                  { class: "text-primary text-lg font-semibold tracking-tight" },
+                  "Are you absolutely sure?"
                 ),
                 h(
                   "p",
@@ -681,7 +663,7 @@ const RowActions = defineComponent({
                     {
                       class:
                         "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
-                      onClick: () => (dialogOpen.value = false),
+                      onClick: () => (deleteDialogOpen.value = false),
                     },
                     "Cancel"
                   ),
@@ -691,11 +673,11 @@ const RowActions = defineComponent({
                       class:
                         "bg-destructive text-white hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
                       onClick: async () => {
-                        await handleDeleteSingleRow(props.shortLink.slug);
-                        dialogOpen.value = false;
+                        await handleDeleteSingleRow(props.shortLinkId);
+                        deleteDialogOpen.value = false;
                       },
                     },
-                    "Delete"
+                    "Delete Permanently"
                   ),
                 ]),
               ]),

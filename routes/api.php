@@ -92,7 +92,15 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::prefix('short-links')->group(function () {
         Route::get('/', [ShortLinkController::class, 'index'])->name('short-links.index');
         Route::post('/', [ShortLinkController::class, 'store'])->name('short-links.store');
+        Route::get('/export', [ShortLinkController::class, 'export'])->name('short-links.export');
+        Route::post('/import', [ShortLinkController::class, 'import'])->name('short-links.import');
+        Route::get('/import/template', [ShortLinkController::class, 'downloadTemplate'])->name('short-links.import.template');
         Route::delete('/bulk', [ShortLinkController::class, 'bulkDestroy'])->name('short-links.bulk-destroy');
+        Route::get('/trash', [ShortLinkController::class, 'trash'])->name('short-links.trash');
+        Route::post('/trash/restore/bulk', [ShortLinkController::class, 'bulkRestore'])->name('short-links.bulk-restore');
+        Route::post('/trash/{id}/restore', [ShortLinkController::class, 'restore'])->name('short-links.restore');
+        Route::delete('/trash/bulk', [ShortLinkController::class, 'bulkForceDestroy'])->name('short-links.bulk-force-destroy');
+        Route::delete('/trash/{id}', [ShortLinkController::class, 'forceDestroy'])->name('short-links.force-destroy');
         Route::get('/{shortLink:slug}', [ShortLinkController::class, 'show'])->name('short-links.show');
         Route::put('/{shortLink:slug}', [ShortLinkController::class, 'update'])->name('short-links.update');
         Route::delete('/{shortLink:slug}', [ShortLinkController::class, 'destroy'])->name('short-links.destroy');
