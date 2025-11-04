@@ -52,13 +52,13 @@ class ProjectsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHea
         $phone = [];
         if (! empty($row['phone_sales'])) {
             $phone[] = [
-                'label' => 'Sales',
+                'label' => 'WhatsApp Sales',
                 'number' => $row['phone_sales'],
             ];
         }
         if (! empty($row['phone_marketing'])) {
             $phone[] = [
-                'label' => 'Marketing',
+                'label' => 'WhatsApp Marketing',
                 'number' => $row['phone_marketing'],
             ];
         }

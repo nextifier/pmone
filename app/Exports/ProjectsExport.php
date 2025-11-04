@@ -60,9 +60,9 @@ class ProjectsExport extends BaseExport
             foreach ($project->phone as $phoneData) {
                 if (is_array($phoneData) && isset($phoneData['number'])) {
                     $label = strtolower($phoneData['label'] ?? '');
-                    if ($label === 'sales') {
+                    if ($label === 'whatsapp sales') {
                         $phoneSales = $phoneData['number'];
-                    } elseif ($label === 'marketing') {
+                    } elseif ($label === 'whatsapp marketing') {
                         $phoneMarketing = $phoneData['number'];
                     }
                 }
