@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id
@@ -36,7 +37,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  */
 class ShortLink extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -54,9 +55,27 @@ class ShortLink extends Model
 
     protected $appends = ['clicks_count'];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($shortLink) {
+            if ($shortLink->isForceDeleting()) {
+                return;
+            }
+            $shortLink->deleted_by = auth()->id();
+            $shortLink->saveQuietly();
+        });
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function deleter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 
     public function clicks(): MorphMany

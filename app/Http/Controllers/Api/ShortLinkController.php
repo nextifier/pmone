@@ -350,4 +350,261 @@ class ShortLinkController extends Controller
             ],
         ]);
     }
+
+    // Trash Management
+
+    public function trash(Request $request): JsonResponse
+    {
+        $query = ShortLink::onlyTrashed()->with(['user', 'deleter']);
+        $clientOnly = $request->boolean('client_only', false);
+
+        if (! $clientOnly) {
+            $this->applyFilters($query, $request);
+            $this->applySorting($query, $request);
+        }
+
+        if ($clientOnly) {
+            $shortLinks = $query->get();
+
+            return response()->json([
+                'data' => \App\Http\Resources\ShortLinkIndexResource::collection($shortLinks),
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => $shortLinks->count(),
+                    'total' => $shortLinks->count(),
+                ],
+            ]);
+        }
+
+        $shortLinks = $query->paginate($request->input('per_page', 15));
+
+        return response()->json([
+            'data' => \App\Http\Resources\ShortLinkIndexResource::collection($shortLinks->items()),
+            'meta' => [
+                'current_page' => $shortLinks->currentPage(),
+                'last_page' => $shortLinks->lastPage(),
+                'per_page' => $shortLinks->perPage(),
+                'total' => $shortLinks->total(),
+            ],
+        ]);
+    }
+
+    public function restore(Request $request, int $id): JsonResponse
+    {
+        $shortLink = ShortLink::onlyTrashed()->findOrFail($id);
+        $this->authorize('delete', $shortLink);
+
+        $shortLink->restore();
+
+        return response()->json([
+            'message' => 'Short link restored successfully',
+        ]);
+    }
+
+    public function bulkRestore(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $shortLinkIds = $request->input('ids');
+            $currentUser = $request->user();
+            $restoredCount = 0;
+            $errors = [];
+
+            foreach ($shortLinkIds as $shortLinkId) {
+                $shortLink = ShortLink::onlyTrashed()->find($shortLinkId);
+
+                if (! $shortLink) {
+                    continue;
+                }
+
+                if (! $currentUser->can('delete', $shortLink)) {
+                    $errors[] = "Cannot restore short link: {$shortLink->slug}";
+
+                    continue;
+                }
+
+                $shortLink->restore();
+                $restoredCount++;
+            }
+
+            $message = $restoredCount > 0
+                ? "Successfully restored {$restoredCount} short link(s)"
+                : 'No short links were restored';
+
+            return response()->json([
+                'message' => $message,
+                'restored_count' => $restoredCount,
+                'errors' => $errors,
+            ], $restoredCount > 0 ? 200 : 400);
+        } catch (\Exception $e) {
+            logger()->error('Bulk short link restoration failed', [
+                'error' => $e->getMessage(),
+                'short_link_ids' => $request->input('ids'),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to restore short links',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function forceDestroy(Request $request, int $id): JsonResponse
+    {
+        $shortLink = ShortLink::onlyTrashed()->findOrFail($id);
+        $this->authorize('delete', $shortLink);
+
+        $shortLink->forceDelete();
+
+        return response()->json([
+            'message' => 'Short link permanently deleted',
+        ]);
+    }
+
+    public function bulkForceDestroy(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $shortLinkIds = $request->input('ids');
+            $currentUser = $request->user();
+            $deletedCount = 0;
+            $errors = [];
+
+            foreach ($shortLinkIds as $shortLinkId) {
+                $shortLink = ShortLink::onlyTrashed()->find($shortLinkId);
+
+                if (! $shortLink) {
+                    continue;
+                }
+
+                if (! $currentUser->can('delete', $shortLink)) {
+                    $errors[] = "Cannot delete short link: {$shortLink->slug}";
+
+                    continue;
+                }
+
+                $shortLink->forceDelete();
+                $deletedCount++;
+            }
+
+            $message = $deletedCount > 0
+                ? "Successfully deleted {$deletedCount} short link(s) permanently"
+                : 'No short links were deleted';
+
+            return response()->json([
+                'message' => $message,
+                'deleted_count' => $deletedCount,
+                'errors' => $errors,
+            ], $deletedCount > 0 ? 200 : 400);
+        } catch (\Exception $e) {
+            logger()->error('Bulk permanent short link deletion failed', [
+                'error' => $e->getMessage(),
+                'short_link_ids' => $request->input('ids'),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to permanently delete short links',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // Import/Export
+
+    public function export(Request $request): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    {
+        $filters = [];
+        if ($search = $request->input('filter_search')) {
+            $filters['search'] = $search;
+        }
+        if ($status = $request->input('filter_status')) {
+            $filters['status'] = $status;
+        }
+
+        $sort = $request->input('sort', '-created_at');
+
+        $export = new \App\Exports\ShortLinksExport($filters, $sort);
+
+        $filename = 'short_links_'.now()->format('Y-m-d_His').'.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
+    }
+
+    public function downloadTemplate(): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    {
+        $export = new \App\Exports\ShortLinksTemplateExport;
+
+        return \Maatwebsite\Excel\Facades\Excel::download($export, 'short_links_import_template.xlsx');
+    }
+
+    public function import(Request $request): JsonResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:10240'],
+        ]);
+
+        try {
+            $import = new \App\Imports\ShortLinksImport($request->user()->id);
+            \Maatwebsite\Excel\Facades\Excel::import($import, $request->file('file'));
+
+            $failures = $import->getFailures();
+            $importedCount = $import->getImportedCount();
+
+            if (count($failures) > 0) {
+                $errors = [];
+                foreach ($failures as $failure) {
+                    $errors[] = [
+                        'row' => $failure->row(),
+                        'attribute' => $failure->attribute(),
+                        'errors' => $failure->errors(),
+                        'values' => $failure->values(),
+                    ];
+                }
+
+                return response()->json([
+                    'message' => "Import completed with {$importedCount} successful and ".count($failures).' failed',
+                    'imported_count' => $importedCount,
+                    'failed_count' => count($failures),
+                    'errors' => $errors,
+                ], 207);
+            }
+
+            return response()->json([
+                'message' => "Successfully imported {$importedCount} short link(s)",
+                'imported_count' => $importedCount,
+            ]);
+        } catch (\Exception $e) {
+            logger()->error('Short link import failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Import failed',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
