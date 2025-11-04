@@ -23,14 +23,9 @@ class TrackingHelper
 
     public static function trackClick(Request $request, $clickable, ?string $linkLabel = null): Click
     {
-        // Get authenticated user ID if available (set by OptionalAuth middleware)
-        // Will be null for anonymous users
-        $clickerId = auth()->id();
-
         return Click::create([
             'clickable_type' => get_class($clickable),
             'clickable_id' => $clickable->id,
-            'clicker_id' => $clickerId,
             'link_label' => $linkLabel,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),

@@ -121,7 +121,7 @@ Route::get('/p/{username}', [ProfileController::class, 'getProjectProfile'])
 
 // 2. User profiles OR Short links (fallback logic in controller)
 Route::get('/{username}', [ProfileController::class, 'getUserProfile'])
-    ->middleware(['optional.auth', 'throttle:api'])
+    ->middleware('throttle:api')
     ->where('username', '^(?!p$)[a-zA-Z0-9._\-]+$'); // Exclude 'p' prefix
 
 // Tracking routes (public - can track anonymous visitors)
