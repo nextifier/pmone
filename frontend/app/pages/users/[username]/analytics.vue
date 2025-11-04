@@ -209,6 +209,57 @@
             </div>
           </div>
         </div>
+
+        <!-- Top Link Clickers -->
+        <div v-if="clicksData?.top_clickers?.length > 0" class="frame">
+          <div class="frame-panel space-y-2">
+            <h2 class="text-lg font-semibold tracking-tighter">Top Link Clickers</h2>
+            <div class="divide-border -mx-3 divide-y lg:-mx-5">
+              <div
+                v-for="(clickerData, index) in clicksData.top_clickers"
+                :key="clickerData.clicker?.id"
+                class="flex flex-col gap-y-2 px-3 py-3 first:rounded-t-xl first:pt-0 last:rounded-b-xl last:pb-0 lg:px-5"
+              >
+                <div class="flex items-center justify-between gap-x-4">
+                  <span class="text-muted-foreground w-2 text-sm font-medium">{{ index + 1 }}</span>
+                  <Avatar
+                    :model="clickerData.clicker"
+                    size="xs"
+                    rounded="rounded-full"
+                    class="size-8"
+                  />
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-medium tracking-tight">
+                      {{ clickerData.clicker?.name }}
+                    </p>
+                    <p class="text-muted-foreground truncate text-xs tracking-tight">
+                      @{{ clickerData.clicker?.username }}
+                    </p>
+                  </div>
+                  <div class="flex flex-col items-end gap-y-1">
+                    <span class="text-foreground text-sm font-bold tracking-tight">
+                      {{ clickerData.click_count }} clicks
+                    </span>
+                    <div
+                      v-if="clickerData.clicked_links?.length > 0"
+                      class="flex flex-wrap gap-1.5"
+                    >
+                      <span
+                        v-for="link in clickerData.clicked_links"
+                        :key="link.label"
+                        class="bg-muted text-foreground inline-flex items-center gap-x-1 rounded-md px-2 py-0.5 text-xs font-medium tracking-tight"
+                      >
+                        <Icon :name="getLinkIcon(link.label)" class="size-3" />
+                        <span>{{ link.label }}</span>
+                        <span class="text-primary/60">{{ link.clicks }}×</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </template>
   </div>

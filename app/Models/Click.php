@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property int $id
  * @property string $clickable_type
  * @property int $clickable_id
+ * @property int|null $clicker_id
  * @property string|null $link_label
  * @property string|null $ip_address
  * @property string|null $user_agent
@@ -18,7 +19,10 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read Model|\Eloquent $clickable
+ * @property-read \App\Models\User|null $clicker
  *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Click authenticated()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Click anonymous()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click inDateRange($startDate, $endDate)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click lastDays(int $days = 7)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click newModelQuery()
@@ -27,6 +31,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereClickableId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereClickableType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereClickedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereClickerId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereIpAddress($value)
@@ -44,6 +49,7 @@ class Click extends Model
     protected $fillable = [
         'clickable_type',
         'clickable_id',
+        'clicker_id',
         'link_label',
         'ip_address',
         'user_agent',
@@ -61,6 +67,21 @@ class Click extends Model
     public function clickable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function clicker(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class, 'clicker_id');
+    }
+
+    public function scopeAuthenticated($query)
+    {
+        return $query->whereNotNull('clicker_id');
+    }
+
+    public function scopeAnonymous($query)
+    {
+        return $query->whereNull('clicker_id');
     }
 
     public function scopeInDateRange($query, $startDate, $endDate)

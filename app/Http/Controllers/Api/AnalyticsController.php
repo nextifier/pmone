@@ -164,6 +164,75 @@ class AnalyticsController extends Controller
 
         $totalClicks = $linksWithClicks->sum('clicks');
 
+        // Get top clickers (for authenticated clicks)
+        $topClickersQuery = \App\Models\Click::query()
+            ->where('clickable_type', get_class($model))
+            ->where('clickable_id', $model->id);
+
+        if (isset($dateFilter['start']) && isset($dateFilter['end'])) {
+            $topClickersQuery->inDateRange($dateFilter['start'], $dateFilter['end']);
+        } else {
+            $topClickersQuery->lastDays($dateFilter['days']);
+        }
+
+        $topClickers = $topClickersQuery
+            ->authenticated()
+            ->select('clicker_id', DB::raw('COUNT(*) as click_count'))
+            ->groupBy('clicker_id')
+            ->with(['clicker' => function ($query) {
+                $query->select('id', 'name', 'username')
+                    ->with('media');
+            }])
+            ->orderByDesc('click_count')
+            ->limit(10)
+            ->get()
+            ->map(function ($click) use ($model, $dateFilter) {
+                $clicker = $click->clicker;
+                if ($clicker) {
+                    $clickerData = [
+                        'id' => $clicker->id,
+                        'name' => $clicker->name,
+                        'username' => $clicker->username,
+                        'profile_image' => $clicker->hasMedia('profile_image')
+                            ? $clicker->getMediaUrls('profile_image')
+                            : null,
+                    ];
+                } else {
+                    $clickerData = null;
+                }
+
+                // Get clicked links for this clicker
+                $clickedLinksQuery = \App\Models\Click::query()
+                    ->where('clickable_type', get_class($model))
+                    ->where('clickable_id', $model->id)
+                    ->where('clicker_id', $click->clicker_id)
+                    ->whereNotNull('link_label');
+
+                if (isset($dateFilter['start']) && isset($dateFilter['end'])) {
+                    $clickedLinksQuery->inDateRange($dateFilter['start'], $dateFilter['end']);
+                } else {
+                    $clickedLinksQuery->lastDays($dateFilter['days']);
+                }
+
+                $clickedLinks = $clickedLinksQuery
+                    ->select('link_label', DB::raw('COUNT(*) as clicks'))
+                    ->groupBy('link_label')
+                    ->orderByDesc('clicks')
+                    ->get()
+                    ->map(function ($linkClick) {
+                        return [
+                            'label' => $linkClick->link_label,
+                            'clicks' => $linkClick->clicks,
+                        ];
+                    });
+
+                return [
+                    'clicker' => $clickerData,
+                    'click_count' => $click->click_count,
+                    'clicked_links' => $clickedLinks,
+                ];
+            });
+
         return response()->json([
             'data' => [
                 'summary' => [
@@ -171,6 +240,7 @@ class AnalyticsController extends Controller
                     'total_links' => $links->count(),
                 ],
                 'links' => $linksWithClicks,
+                'top_clickers' => $topClickers,
             ],
         ]);
     }

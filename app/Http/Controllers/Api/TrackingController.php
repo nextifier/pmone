@@ -34,6 +34,7 @@ class TrackingController extends Controller
             \App\Models\Click::create([
                 'clickable_type' => $request->clickable_type,
                 'clickable_id' => $request->clickable_id,
+                'clicker_id' => auth()->id(),
                 'link_label' => $request->link_label,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
