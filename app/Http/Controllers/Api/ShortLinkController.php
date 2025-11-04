@@ -2,16 +2,21 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exports\ShortLinksExport;
+use App\Exports\ShortLinksTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreShortLinkRequest;
 use App\Http\Requests\UpdateShortLinkRequest;
 use App\Http\Resources\ShortLinkIndexResource;
 use App\Http\Resources\ShortLinkResource;
+use App\Imports\ShortLinksImport;
 use App\Models\ShortLink;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ShortLinkController extends Controller
 {
@@ -486,7 +491,7 @@ class ShortLinkController extends Controller
 
     // Import/Export
 
-    public function export(Request $request): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    public function export(Request $request): BinaryFileResponse
     {
         $filters = [];
         if ($search = $request->input('filter_search')) {
@@ -498,54 +503,86 @@ class ShortLinkController extends Controller
 
         $sort = $request->input('sort', '-created_at');
 
-        $export = new \App\Exports\ShortLinksExport($filters, $sort);
+        $export = new ShortLinksExport($filters, $sort);
 
         $filename = 'short_links_'.now()->format('Y-m-d_His').'.xlsx';
 
-        return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
+        return Excel::download($export, $filename);
     }
 
-    public function downloadTemplate(): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    public function downloadTemplate(): BinaryFileResponse
     {
-        $export = new \App\Exports\ShortLinksTemplateExport;
-
-        return \Maatwebsite\Excel\Facades\Excel::download($export, 'short_links_import_template.xlsx');
+        return Excel::download(new ShortLinksTemplateExport, 'short_links_import_template.xlsx');
     }
 
     public function import(Request $request): JsonResponse
     {
-        $request->validate([
-            'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:10240'],
+        $validator = Validator::make($request->all(), [
+            'file' => ['required', 'string'],
         ]);
 
-        try {
-            $import = new \App\Imports\ShortLinksImport($request->user()->id);
-            \Maatwebsite\Excel\Facades\Excel::import($import, $request->file('file'));
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
 
+        $tempFolder = null;
+
+        try {
+            $tempFolder = $request->input('file');
+
+            // Get file path from temporary storage
+            $metadataPath = "tmp/uploads/{$tempFolder}/metadata.json";
+
+            if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+                return response()->json([
+                    'message' => 'File not found',
+                ], 404);
+            }
+
+            $metadata = json_decode(
+                \Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath),
+                true
+            );
+
+            $filePath = "tmp/uploads/{$tempFolder}/{$metadata['original_name']}";
+
+            if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($filePath)) {
+                return response()->json([
+                    'message' => 'File not found',
+                ], 404);
+            }
+
+            // Import short links
+            $import = new ShortLinksImport($request->user()->id);
+            Excel::import($import, \Illuminate\Support\Facades\Storage::disk('local')->path($filePath));
+
+            // Get import results
             $failures = $import->getFailures();
             $importedCount = $import->getImportedCount();
+            $errorMessages = [];
 
-            if (count($failures) > 0) {
-                $errors = [];
-                foreach ($failures as $failure) {
-                    $errors[] = [
-                        'row' => $failure->row(),
-                        'attribute' => $failure->attribute(),
-                        'errors' => $failure->errors(),
-                        'values' => $failure->values(),
-                    ];
-                }
+            foreach ($failures as $failure) {
+                $errorMessages[] = [
+                    'row' => $failure->row(),
+                    'attribute' => $failure->attribute(),
+                    'errors' => $failure->errors(),
+                    'values' => $failure->values(),
+                ];
+            }
 
+            if (count($errorMessages) > 0) {
                 return response()->json([
-                    'message' => "Import completed with {$importedCount} successful and ".count($failures).' failed',
+                    'message' => 'Import completed with errors',
+                    'errors' => $errorMessages,
                     'imported_count' => $importedCount,
-                    'failed_count' => count($failures),
-                    'errors' => $errors,
-                ], 207);
+                ], 422);
             }
 
             return response()->json([
-                'message' => "Successfully imported {$importedCount} short link(s)",
+                'message' => 'Short links imported successfully',
                 'imported_count' => $importedCount,
             ]);
         } catch (\Exception $e) {
@@ -554,9 +591,14 @@ class ShortLinkController extends Controller
             ]);
 
             return response()->json([
-                'message' => 'Import failed',
+                'message' => 'Failed to import short links',
                 'error' => $e->getMessage(),
             ], 500);
+        } finally {
+            // Always clean up temporary files
+            if ($tempFolder) {
+                \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
+            }
         }
     }
 }
