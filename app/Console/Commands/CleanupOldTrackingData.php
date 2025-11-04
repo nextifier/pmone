@@ -8,9 +8,9 @@ use Illuminate\Console\Command;
 
 class CleanupOldTrackingData extends Command
 {
-    protected $signature = 'tracking:cleanup {--years=3 : Number of years to keep data}';
+    protected $signature = 'tracking:cleanup {--years=5 : Number of years to keep data}';
 
-    protected $description = 'Delete visits and clicks older than specified years (default: 3 years)';
+    protected $description = 'Delete visits and clicks older than specified years (default: 5 years)';
 
     public function handle(): int
     {
