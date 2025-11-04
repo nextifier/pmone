@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\ShortLinkController;
 use App\Http\Controllers\Api\TemporaryUploadController;
 use App\Http\Controllers\Api\TrackingController;
 use App\Http\Controllers\Api\UserController;
@@ -85,6 +86,17 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/log-names', [LogController::class, 'logNames']);
         Route::get('/events', [LogController::class, 'events']);
         Route::delete('/clear', [LogController::class, 'clear']);
+    });
+
+    // Short link management endpoints
+    Route::prefix('short-links')->group(function () {
+        Route::get('/', [ShortLinkController::class, 'index'])->name('short-links.index');
+        Route::post('/', [ShortLinkController::class, 'store'])->name('short-links.store');
+        Route::delete('/bulk', [ShortLinkController::class, 'bulkDestroy'])->name('short-links.bulk-destroy');
+        Route::get('/{shortLink}', [ShortLinkController::class, 'show'])->name('short-links.show');
+        Route::put('/{shortLink}', [ShortLinkController::class, 'update'])->name('short-links.update');
+        Route::delete('/{shortLink}', [ShortLinkController::class, 'destroy'])->name('short-links.destroy');
+        Route::get('/{shortLink}/analytics', [ShortLinkController::class, 'getAnalytics'])->name('short-links.analytics');
     });
 });
 
