@@ -93,10 +93,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/', [ShortLinkController::class, 'index'])->name('short-links.index');
         Route::post('/', [ShortLinkController::class, 'store'])->name('short-links.store');
         Route::delete('/bulk', [ShortLinkController::class, 'bulkDestroy'])->name('short-links.bulk-destroy');
-        Route::get('/{shortLink}', [ShortLinkController::class, 'show'])->name('short-links.show');
-        Route::put('/{shortLink}', [ShortLinkController::class, 'update'])->name('short-links.update');
-        Route::delete('/{shortLink}', [ShortLinkController::class, 'destroy'])->name('short-links.destroy');
-        Route::get('/{shortLink}/analytics', [ShortLinkController::class, 'getAnalytics'])->name('short-links.analytics');
+        Route::get('/{shortLink:slug}', [ShortLinkController::class, 'show'])->name('short-links.show');
+        Route::put('/{shortLink:slug}', [ShortLinkController::class, 'update'])->name('short-links.update');
+        Route::delete('/{shortLink:slug}', [ShortLinkController::class, 'destroy'])->name('short-links.destroy');
+        Route::get('/{shortLink:slug}/analytics', [ShortLinkController::class, 'getAnalytics'])->name('short-links.analytics');
     });
 });
 
