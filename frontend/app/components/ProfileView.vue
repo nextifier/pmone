@@ -122,6 +122,7 @@
                 v-if="profileType === 'user' && profile.phone"
                 :to="`https://wa.me/${profile.phone.replace(/\D/g, '')}`"
                 target="_blank"
+                @click="$emit('track-click', 'WhatsApp')"
                 class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-2 text-sm font-semibold tracking-tight transition active:scale-98"
               >
                 <Icon name="hugeicons:whatsapp" class="size-4.5 shrink-0" />
@@ -135,6 +136,7 @@
                   :key="phone.number"
                   :to="`https://wa.me/${phone.number.replace(/\D/g, '')}`"
                   target="_blank"
+                  @click="$emit('track-click', phone.label || 'WhatsApp')"
                   class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-2 text-sm font-semibold tracking-tight transition active:scale-98"
                 >
                   <Icon name="hugeicons:whatsapp" class="size-4.5 shrink-0" />
@@ -146,6 +148,7 @@
               <NuxtLink
                 v-if="profile.email"
                 :to="`mailto:${profile.email}`"
+                @click="$emit('track-click', 'Email')"
                 class="bg-muted text-foreground hover:bg-border flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-2 text-sm font-semibold tracking-tight transition active:scale-98"
               >
                 <Icon name="hugeicons:mail-02" class="size-4.5 shrink-0" />
@@ -299,6 +302,11 @@ const { socialLinks, customLinks } = computed(() => {
     if (!link?.label) continue;
 
     const labelLower = link.label.toLowerCase();
+    // Skip Email and WhatsApp as they are displayed in Contact Buttons section
+    if (labelLower === "email" || labelLower === "whatsapp" || labelLower.startsWith("whatsapp ")) {
+      continue;
+    }
+
     if (SOCIAL_LABELS.includes(labelLower)) {
       social.push(link);
     } else {

@@ -147,9 +147,14 @@ class ProjectController extends Controller
             $project->members()->attach($validated['member_ids']);
         }
 
-        // Handle links
+        // Handle links (skip Email/WhatsApp from form)
         if (! empty($validated['links'])) {
             foreach ($validated['links'] as $index => $link) {
+                // Skip if trying to create Email or WhatsApp link manually
+                if (\App\Helpers\LinkSyncHelper::isContactLink($link['label'])) {
+                    continue;
+                }
+
                 $project->links()->create([
                     'label' => $link['label'],
                     'url' => $link['url'],
@@ -158,6 +163,9 @@ class ProjectController extends Controller
                 ]);
             }
         }
+
+        // Auto-sync Email and WhatsApp links
+        \App\Helpers\LinkSyncHelper::syncProjectContactLinks($project);
 
         // Handle profile image upload from temporary storage
         $this->handleTemporaryUpload($request, $project, 'tmp_profile_image', 'profile_image');
@@ -234,11 +242,20 @@ class ProjectController extends Controller
 
         // Handle links
         if (isset($validated['links'])) {
-            // Delete all existing links
-            $project->links()->delete();
+            // Delete all existing links EXCEPT Email and WhatsApp
+            $project->links()->where(function ($query) {
+                $query->where('label', '!=', 'Email')
+                    ->where('label', '!=', 'WhatsApp')
+                    ->where('label', 'NOT LIKE', 'WhatsApp %');
+            })->delete();
 
-            // Create new links
+            // Create new links (skip Email/WhatsApp from form)
             foreach ($validated['links'] as $index => $link) {
+                // Skip if trying to create Email or WhatsApp link manually
+                if (\App\Helpers\LinkSyncHelper::isContactLink($link['label'])) {
+                    continue;
+                }
+
                 $project->links()->create([
                     'label' => $link['label'],
                     'url' => $link['url'],
@@ -247,6 +264,9 @@ class ProjectController extends Controller
                 ]);
             }
         }
+
+        // Auto-sync Email and WhatsApp links
+        \App\Helpers\LinkSyncHelper::syncProjectContactLinks($project);
 
         // Handle profile image upload from temporary storage
         $this->handleTemporaryUpload($request, $project, 'tmp_profile_image', 'profile_image');

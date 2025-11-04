@@ -1,6 +1,9 @@
 <template>
   <div class="min-h-screen-offset mx-auto max-w-4xl">
-    <div v-if="loading || !visitsData" class="min-h-screen-offset flex items-center justify-center">
+    <div
+      v-if="loading || (user && !visitsData)"
+      class="min-h-screen-offset flex items-center justify-center"
+    >
       <div class="flex items-center gap-x-2">
         <Spinner class="size-4 shrink-0" />
         <span class="text-base tracking-tight">Loading analytics</span>
@@ -202,7 +205,7 @@
                     @{{ visitorData.visitor?.username }}
                   </p>
                 </div>
-                <span class="text-foreground text-sm font-bold tracking-tight">
+                <span class="text-foreground text-sm font-semibold tracking-tight">
                   {{ visitorData.visit_count }} visits
                 </span>
               </div>
@@ -237,24 +240,24 @@
                     </p>
                   </div>
                   <div class="flex flex-col items-end gap-y-1">
-                    <span class="text-foreground text-sm font-bold tracking-tight">
+                    <span class="text-foreground text-sm font-semibold tracking-tight">
                       {{ clickerData.click_count }} clicks
                     </span>
-                    <div
-                      v-if="clickerData.clicked_links?.length > 0"
-                      class="flex flex-wrap gap-1.5"
-                    >
-                      <span
-                        v-for="link in clickerData.clicked_links"
-                        :key="link.label"
-                        class="bg-muted text-foreground inline-flex items-center gap-x-1 rounded-md px-2 py-0.5 text-xs font-medium tracking-tight"
-                      >
-                        <Icon :name="getLinkIcon(link.label)" class="size-3" />
-                        <span>{{ link.label }}</span>
-                        <span class="text-primary/60">{{ link.clicks }}×</span>
-                      </span>
-                    </div>
                   </div>
+                </div>
+                <div
+                  v-if="clickerData.clicked_links?.length > 0"
+                  class="mt-1 ml-6 flex flex-wrap gap-1.5"
+                >
+                  <span
+                    v-for="link in clickerData.clicked_links"
+                    :key="link.label"
+                    class="bg-muted text-foreground inline-flex items-center gap-x-1 rounded-md px-2 py-0.5 text-xs font-medium tracking-tight"
+                  >
+                    <Icon :name="getLinkIcon(link.label)" class="size-3" />
+                    <span>{{ link.label }}</span>
+                    <span class="text-primary/60">{{ link.clicks }}×</span>
+                  </span>
                 </div>
               </div>
             </div>
@@ -269,7 +272,7 @@
 const props = defineProps({
   user: {
     type: Object,
-    required: true,
+    default: null,
   },
   loading: {
     type: Boolean,
@@ -333,6 +336,8 @@ const SOCIAL_ICON_MAP = {
   tiktok: "hugeicons:tiktok",
   linkedin: "hugeicons:linkedin-01",
   youtube: "hugeicons:youtube",
+  whatsapp: "hugeicons:whatsapp",
+  email: "hugeicons:mail-02",
 };
 
 const getLinkIcon = (label) => {

@@ -160,9 +160,41 @@ class AnalyticsController extends Controller
                 'url' => $link->url,
                 'clicks' => $clicks,
             ];
-        })->sortByDesc('clicks')->values();
+        });
 
-        $totalClicks = $linksWithClicks->sum('clicks');
+        // Add Email and WhatsApp clicks (non-Link items)
+        $contactLabels = ['Email', 'WhatsApp'];
+        foreach ($clicksByLabel as $label => $count) {
+            // Check if this label is Email, WhatsApp, or starts with "WhatsApp " (custom labels)
+            $isEmailOrWhatsApp = in_array($label, $contactLabels) || str_starts_with($label, 'WhatsApp ');
+
+            if ($isEmailOrWhatsApp) {
+                // Check if it's not already in links (from Link model)
+                $existsInLinks = $links->contains(fn ($link) => $link->label === $label);
+
+                if (! $existsInLinks) {
+                    // Determine URL based on label
+                    $url = null;
+                    if ($label === 'Email' && $model->email) {
+                        $url = "mailto:{$model->email}";
+                    } elseif (str_starts_with($label, 'WhatsApp')) {
+                        // For WhatsApp, we don't have the phone number in this context
+                        $url = null;
+                    }
+
+                    $linksWithClicks->push([
+                        'link_id' => null,
+                        'label' => $label,
+                        'url' => $url,
+                        'clicks' => $count,
+                    ]);
+                }
+            }
+        }
+
+        $linksWithClicks = $linksWithClicks->sortByDesc('clicks')->values();
+
+        $totalClicks = $clicksByLabel->sum();
 
         // Get top clickers (for authenticated clicks)
         $topClickersQuery = \App\Models\Click::query()
@@ -237,7 +269,7 @@ class AnalyticsController extends Controller
             'data' => [
                 'summary' => [
                     'total_clicks' => $totalClicks,
-                    'total_links' => $links->count(),
+                    'total_links' => $linksWithClicks->count(),
                 ],
                 'links' => $linksWithClicks,
                 'top_clickers' => $topClickers,

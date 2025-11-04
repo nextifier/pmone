@@ -207,6 +207,9 @@ class UserController extends Controller
                     }
                 }
 
+                // Auto-create Email and WhatsApp links
+                \App\Helpers\LinkSyncHelper::syncUserContactLinks($user);
+
                 // Handle profile image upload from temporary storage
                 $this->handleTemporaryUpload($request, $user, 'tmp_profile_image', 'profile_image');
 
@@ -299,11 +302,20 @@ class UserController extends Controller
 
             // Handle links update if provided
             if ($linksData !== null) {
-                // Delete all existing links
-                $user->links()->delete();
+                // Delete all existing links EXCEPT Email and WhatsApp
+                $user->links()->where(function ($query) {
+                    $query->where('label', '!=', 'Email')
+                        ->where('label', '!=', 'WhatsApp')
+                        ->where('label', 'NOT LIKE', 'WhatsApp %');
+                })->delete();
 
-                // Create new links with order
+                // Create new links with order (skip Email/WhatsApp from form)
                 foreach ($linksData as $index => $linkData) {
+                    // Skip if trying to create Email or WhatsApp link manually
+                    if (\App\Helpers\LinkSyncHelper::isContactLink($linkData['label'])) {
+                        continue;
+                    }
+
                     $user->links()->create([
                         'label' => $linkData['label'],
                         'url' => $linkData['url'],
@@ -312,6 +324,9 @@ class UserController extends Controller
                     ]);
                 }
             }
+
+            // Auto-sync Email and WhatsApp links
+            \App\Helpers\LinkSyncHelper::syncUserContactLinks($user);
 
             // Handle profile image upload from temporary storage
             $this->handleTemporaryUpload($request, $user, 'tmp_profile_image', 'profile_image');
@@ -519,11 +534,20 @@ class UserController extends Controller
             $user = $request->user();
             $linksData = $request->input('links', []);
 
-            // Delete all existing links
-            $user->links()->delete();
+            // Delete all existing links EXCEPT Email and WhatsApp
+            $user->links()->where(function ($query) {
+                $query->where('label', '!=', 'Email')
+                    ->where('label', '!=', 'WhatsApp')
+                    ->where('label', 'NOT LIKE', 'WhatsApp %');
+            })->delete();
 
-            // Create new links with order
+            // Create new links with order (skip Email/WhatsApp from form)
             foreach ($linksData as $index => $linkData) {
+                // Skip if trying to create Email or WhatsApp link manually
+                if (\App\Helpers\LinkSyncHelper::isContactLink($linkData['label'])) {
+                    continue;
+                }
+
                 $user->links()->create([
                     'label' => $linkData['label'],
                     'url' => $linkData['url'],
@@ -531,6 +555,9 @@ class UserController extends Controller
                     'is_active' => true,
                 ]);
             }
+
+            // Auto-sync Email and WhatsApp links
+            \App\Helpers\LinkSyncHelper::syncUserContactLinks($user);
 
             // Load fresh links
             $user->load('links');
@@ -603,11 +630,20 @@ class UserController extends Controller
 
             // Handle links update if provided
             if ($linksData !== null) {
-                // Delete all existing links
-                $user->links()->delete();
+                // Delete all existing links EXCEPT Email and WhatsApp
+                $user->links()->where(function ($query) {
+                    $query->where('label', '!=', 'Email')
+                        ->where('label', '!=', 'WhatsApp')
+                        ->where('label', 'NOT LIKE', 'WhatsApp %');
+                })->delete();
 
-                // Create new links with order
+                // Create new links with order (skip Email/WhatsApp from form)
                 foreach ($linksData as $index => $linkData) {
+                    // Skip if trying to create Email or WhatsApp link manually
+                    if (\App\Helpers\LinkSyncHelper::isContactLink($linkData['label'])) {
+                        continue;
+                    }
+
                     $user->links()->create([
                         'label' => $linkData['label'],
                         'url' => $linkData['url'],
@@ -616,6 +652,9 @@ class UserController extends Controller
                     ]);
                 }
             }
+
+            // Auto-sync Email and WhatsApp links
+            \App\Helpers\LinkSyncHelper::syncUserContactLinks($user);
 
             // Handle profile image upload from temporary storage
             $this->handleTemporaryUpload($request, $user, 'tmp_profile_image', 'profile_image');
