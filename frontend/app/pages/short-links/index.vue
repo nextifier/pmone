@@ -7,31 +7,26 @@
       </div>
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <a
-          href="/api/short-links/import/template"
-          download
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="hugeicons:download-04" class="size-4 shrink-0" />
-          <span class="hidden sm:inline">Template</span>
-        </a>
-
-        <label
-          class="border-border hover:bg-muted flex cursor-pointer items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="hugeicons:upload-04" class="size-4 shrink-0" />
-          <span class="hidden sm:inline">Import</span>
-          <input type="file" accept=".xlsx,.xls,.csv" class="hidden" @change="handleImport" />
-        </label>
+        <ImportDialog @imported="refresh">
+          <template #trigger="{ open }">
+            <button
+              @click="open()"
+              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+            >
+              <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
+              <span class="hidden sm:inline">Import</span>
+            </button>
+          </template>
+        </ImportDialog>
 
         <button
           @click="handleExport"
-          :disabled="exportLoading"
-          class="border-border hover:bg-muted disabled:opacity-50 flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+          :disabled="exportPending"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Spinner v-if="exportLoading" class="size-4" />
+          <Spinner v-if="exportPending" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
-          <span class="hidden sm:inline">Export</span>
+          <span class="hidden sm:inline">Export {{ columnFilters?.length ? "selected" : "all" }}</span>
         </button>
 
         <nuxt-link
@@ -156,6 +151,7 @@
 
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
+import ImportDialog from "@/components/short-link/ImportDialog.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -178,8 +174,8 @@ usePageMeta("short-links");
 const { user } = useSanctumAuth();
 const { $dayjs } = useNuxtApp();
 
-// Export/Import state
-const exportLoading = ref(false);
+// Export state
+const exportPending = ref(false);
 
 // Table state
 const columnFilters = ref([]);
@@ -471,19 +467,22 @@ const handleDeleteSingleRow = async (slug) => {
 
 // Export handler
 const handleExport = async () => {
-  exportLoading.value = true;
   try {
+    exportPending.value = true;
+
+    // Build query params
     const params = new URLSearchParams();
 
     // Add filters
     const searchFilter = columnFilters.value.find((f) => f.id === "slug");
     if (searchFilter?.value) {
-      params.append("filter.search", searchFilter.value);
+      params.append("filter_search", searchFilter.value);
     }
 
     const statusFilter = columnFilters.value.find((f) => f.id === "is_active");
     if (statusFilter?.value) {
-      params.append("filter.status", statusFilter.value.join(","));
+      const statuses = statusFilter.value.map((val) => val ? "active" : "inactive");
+      params.append("filter_status", statuses.join(","));
     }
 
     // Add sorting
@@ -491,55 +490,34 @@ const handleExport = async () => {
     const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
     params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
 
-    // Download file
-    window.location.href = `/api/short-links/export?${params.toString()}`;
-
-    toast.success("Export started", {
-      description: "Your file will download shortly",
-    });
-  } catch (error) {
-    console.error("Failed to export:", error);
-    toast.error("Failed to export short links");
-  } finally {
-    exportLoading.value = false;
-  }
-};
-
-// Import handler
-const handleImport = async (event) => {
-  const file = event.target.files?.[0];
-  if (!file) return;
-
-  try {
-    const formData = new FormData();
-    formData.append("file", file);
-
     const client = useSanctumClient();
-    const response = await client("/api/short-links/import", {
-      method: "POST",
-      body: formData,
+
+    // Fetch the file as blob
+    const response = await client(`/api/short-links/export?${params.toString()}`, {
+      responseType: "blob",
     });
 
-    await refresh();
+    // Create a download link and trigger download
+    const blob = new Blob([response], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `short_links_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
 
-    if (response.failed_count > 0) {
-      toast.warning(response.message, {
-        description: `${response.imported_count} imported, ${response.failed_count} failed`,
-        duration: 5000,
-      });
-    } else {
-      toast.success(response.message, {
-        description: `${response.imported_count} short link(s) imported`,
-      });
-    }
+    toast.success("Short links exported successfully");
   } catch (error) {
-    console.error("Failed to import:", error);
-    toast.error("Failed to import short links", {
+    console.error("Failed to export short links:", error);
+    toast.error("Failed to export short links", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
   } finally {
-    // Reset file input
-    event.target.value = "";
+    exportPending.value = false;
   }
 };
 
