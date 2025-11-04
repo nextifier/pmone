@@ -63,7 +63,7 @@
                   { label: 'Inactive', value: 'inactive' },
                 ]"
                 :selected="selectedStatuses"
-                @change="handleFilterChange('status', $event)"
+                @change="handleFilterChange('is_active', $event)"
               />
             </div>
           </PopoverContent>
@@ -171,7 +171,7 @@ const buildQueryParams = () => {
     // Filters
     const filters = {
       slug: "filter.search",
-      status: "filter.status",
+      is_active: "filter.status",
     };
 
     Object.entries(filters).forEach(([columnId, paramKey]) => {
