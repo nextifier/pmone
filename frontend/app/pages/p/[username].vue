@@ -29,6 +29,15 @@ const {
 const project = computed(() => data.value?.data || null);
 
 const error = computed(() => {
+  if (!fetchError.value && project.value && project.value.status !== "active") {
+    return {
+      statusCode: 403,
+      statusMessage: "Project Not Available",
+      message: "This project is not available.",
+      stack: null,
+    };
+  }
+
   if (!fetchError.value) return null;
 
   const err = fetchError.value;

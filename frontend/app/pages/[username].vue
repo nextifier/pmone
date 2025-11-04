@@ -29,6 +29,15 @@ const {
 const user = computed(() => data.value?.data || null);
 
 const error = computed(() => {
+  if (!fetchError.value && user.value && user.value.status !== "active") {
+    return {
+      statusCode: 403,
+      statusMessage: "Profile Not Available",
+      message: "This profile is not available.",
+      stack: null,
+    };
+  }
+
   if (!fetchError.value) return null;
 
   const err = fetchError.value;
