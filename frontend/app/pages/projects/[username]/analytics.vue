@@ -6,7 +6,7 @@
     :visits-data="visitsData"
     :clicks-data="clicksData"
     v-model:selected-period="selectedPeriod"
-    :back-destination="`/${username}`"
+    :back-destination="`/p/${username}`"
   />
 </template>
 
@@ -22,17 +22,17 @@ const { user: authUser } = useSanctumAuth();
 
 const selectedPeriod = ref(7);
 
-// Fetch user profile
+// Fetch project profile
 const {
-  data: userData,
+  data: projectData,
   status,
   error: fetchError,
-} = await useFetch(() => `/api/${username.value}`, {
+} = await useFetch(() => `/api/p/${username.value}`, {
   baseURL: useRuntimeConfig().public.apiUrl,
-  key: `user-profile-${username.value}`,
+  key: `project-profile-${username.value}`,
 });
 
-const user = computed(() => userData.value?.data || null);
+const project = computed(() => projectData.value?.data || null);
 
 const error = computed(() => {
   if (!fetchError.value) return null;
@@ -48,10 +48,10 @@ const error = computed(() => {
 
 // Check authorization
 const canViewAnalytics = computed(() => {
-  if (!authUser.value || !user.value) return false;
+  if (!authUser.value || !project.value) return false;
 
-  // User can view their own analytics
-  if (authUser.value.id === user.value.id) return true;
+  // User can view if they are the project owner
+  if (authUser.value.id === project.value.user_id) return true;
 
   // Master or admin can view all analytics
   const userRoles = authUser.value.roles || [];
@@ -60,10 +60,10 @@ const canViewAnalytics = computed(() => {
 
 // Redirect if unauthorized
 watch(
-  [authUser, user],
-  ([newAuthUser, newUser]) => {
-    if (newUser && !canViewAnalytics.value) {
-      navigateTo(`/${username.value}`);
+  [authUser, project],
+  ([newAuthUser, newProject]) => {
+    if (newProject && !canViewAnalytics.value) {
+      navigateTo(`/p/${username.value}`);
     }
   },
   { immediate: true }
@@ -71,13 +71,13 @@ watch(
 
 // Fetch visits data
 const { data: visitsData } = await useFetch(
-  () => `/api/analytics/visits?type=user&id=${user.value?.id}&days=${selectedPeriod.value}`,
+  () => `/api/analytics/visits?type=project&id=${project.value?.id}&days=${selectedPeriod.value}`,
   {
     baseURL: useRuntimeConfig().public.apiUrl,
-    key: `analytics-visits-${user.value?.id}-${selectedPeriod.value}`,
+    key: `analytics-visits-${project.value?.id}-${selectedPeriod.value}`,
     credentials: "include",
     watch: [selectedPeriod],
-    immediate: computed(() => !!user.value?.id && canViewAnalytics.value),
+    immediate: computed(() => !!project.value?.id && canViewAnalytics.value),
     transform: (response) => response.data,
     server: false,
   }
@@ -85,13 +85,13 @@ const { data: visitsData } = await useFetch(
 
 // Fetch clicks data
 const { data: clicksData } = await useFetch(
-  () => `/api/analytics/clicks?type=user&id=${user.value?.id}&days=${selectedPeriod.value}`,
+  () => `/api/analytics/clicks?type=project&id=${project.value?.id}&days=${selectedPeriod.value}`,
   {
     baseURL: useRuntimeConfig().public.apiUrl,
-    key: `analytics-clicks-${user.value?.id}-${selectedPeriod.value}`,
+    key: `analytics-clicks-${project.value?.id}-${selectedPeriod.value}`,
     credentials: "include",
     watch: [selectedPeriod],
-    immediate: computed(() => !!user.value?.id && canViewAnalytics.value),
+    immediate: computed(() => !!project.value?.id && canViewAnalytics.value),
     transform: (response) => response.data,
     server: false,
   }

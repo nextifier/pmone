@@ -1,12 +1,12 @@
 <template>
   <ProfileView
-    :profile="user"
-    profile-type="user"
+    :profile="project"
+    profile-type="project"
     :loading="status === 'pending'"
     :error="error"
     :can-edit="canEdit"
     :show-back-button="authUser?.roles?.some((role) => ['master', 'admin', 'staff'].includes(role))"
-    back-destination="/users"
+    back-destination="/projects"
     @track-click="trackClick"
   />
 </template>
@@ -21,12 +21,12 @@ const {
   data,
   status,
   error: fetchError,
-} = await useFetch(() => `/api/${username.value}`, {
+} = await useFetch(() => `/api/p/${username.value}`, {
   baseURL: useRuntimeConfig().public.apiUrl,
-  key: `user-profile-${username.value}`,
+  key: `project-profile-${username.value}`,
 });
 
-const user = computed(() => data.value?.data || null);
+const project = computed(() => data.value?.data || null);
 
 const error = computed(() => {
   if (!fetchError.value) return null;
@@ -35,13 +35,13 @@ const error = computed(() => {
   return {
     statusCode: err.statusCode || 500,
     statusMessage: err.data?.message || err.statusMessage || "Error",
-    message: err.data?.message || err.message || "Failed to load profile",
+    message: err.data?.message || err.message || "Failed to load project",
     stack: err.stack,
   };
 });
 
-const title = user.value ? `${user.value.name} (@${user.value.username})` : "Profile";
-const description = user.value?.bio || "View profile";
+const title = project.value ? `${project.value.name} (@${project.value.username})` : "Project";
+const description = project.value?.bio || "View project";
 
 usePageMeta("", {
   title: title,
@@ -49,10 +49,10 @@ usePageMeta("", {
 });
 
 const canEdit = computed(() => {
-  if (!authUser.value || !user.value) return false;
+  if (!authUser.value || !project.value) return false;
 
-  // User can edit if they are the profile owner
-  if (authUser.value.id === user.value.id) return true;
+  // User can edit if they are the project owner
+  if (authUser.value.id === project.value.user_id) return true;
 
   // User can edit if they have master or admin role
   const userRoles = authUser.value.roles || [];
@@ -72,10 +72,10 @@ if (import.meta.client) {
 }
 
 const trackClick = (linkLabel) => {
-  if (!import.meta.client || !user.value?.id) return;
+  if (!import.meta.client || !project.value?.id) return;
 
-  // Don't track if user is clicking their own links
-  if (authUser.value?.id === user.value.id) return;
+  // Don't track if user is clicking their own project's links
+  if (authUser.value?.id === project.value.user_id) return;
 
   // Fire and forget - non-blocking
   $fetch("/api/track/click", {
@@ -83,8 +83,8 @@ const trackClick = (linkLabel) => {
     baseURL: useRuntimeConfig().public.apiUrl,
     credentials: "include",
     body: {
-      clickable_type: "App\\Models\\User",
-      clickable_id: user.value.id,
+      clickable_type: "App\\Models\\Project",
+      clickable_id: project.value.id,
       link_label: linkLabel,
     },
   }).catch((err) => {
@@ -96,10 +96,10 @@ const trackClick = (linkLabel) => {
 const visitTracked = ref(false);
 
 const trackProfileVisit = () => {
-  if (!import.meta.client || !user.value?.id || visitTracked.value) return;
+  if (!import.meta.client || !project.value?.id || visitTracked.value) return;
 
-  // Don't track if user is visiting their own profile
-  if (authUser.value?.id === user.value.id) return;
+  // Don't track if user is visiting their own project
+  if (authUser.value?.id === project.value.user_id) return;
 
   visitTracked.value = true;
 
@@ -109,8 +109,8 @@ const trackProfileVisit = () => {
     baseURL: useRuntimeConfig().public.apiUrl,
     credentials: "include",
     body: {
-      visitable_type: "App\\Models\\User",
-      visitable_id: user.value.id,
+      visitable_type: "App\\Models\\Project",
+      visitable_id: project.value.id,
     },
   }).catch((err) => {
     console.error("Failed to track visit:", err);
@@ -118,12 +118,12 @@ const trackProfileVisit = () => {
   });
 };
 
-// Track profile visit when page loads and user data is available
+// Track profile visit when page loads and project data is available
 if (import.meta.client) {
   watch(
-    user,
-    (newUser) => {
-      if (newUser?.id) {
+    project,
+    (newProject) => {
+      if (newProject?.id) {
         trackProfileVisit();
       }
     },

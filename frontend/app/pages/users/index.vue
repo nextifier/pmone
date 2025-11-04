@@ -692,7 +692,7 @@ const RowActions = defineComponent({
                               {
                                 default: () => [
                                   h(resolveComponent("Icon"), {
-                                    name: "hugeicons:analytics-01",
+                                    name: "lucide:chart-no-axes-combined",
                                     class: "size-4 shrink-0",
                                   }),
                                   h("span", {}, "Analytics"),

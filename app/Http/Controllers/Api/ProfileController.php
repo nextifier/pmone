@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\TrackingHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ProjectResource;
 use App\Http\Resources\UserResource;
 use App\Models\Project;
 use App\Models\ShortLink;
@@ -74,7 +75,11 @@ class ProfileController extends Controller
                     $query->select('users.id', 'users.name', 'users.username');
                 },
             ])
-            ->firstOrFail();
+            ->first();
+
+        if (! $project) {
+            abort(404, 'Project not found. Please check the username and try again.');
+        }
 
         // Check visibility - allow public access for public projects
         if ($project->visibility !== 'public') {
@@ -83,27 +88,11 @@ class ProfileController extends Controller
             }
         }
 
-        // Note: Visit tracking should be handled on the frontend via /api/track/visit endpoint
-        // TODO: Implement frontend tracking for project profiles if needed
-        // TrackingHelper::trackVisit($request, $project);
+        // Note: Visit tracking is handled on the frontend via /api/track/visit endpoint
+        // to prevent double tracking and allow better control over tracking behavior
 
         return response()->json([
-            'data' => [
-                'id' => $project->id,
-                'ulid' => $project->ulid,
-                'name' => $project->name,
-                'username' => $project->username,
-                'bio' => $project->bio,
-                'profile_image' => $project->getFirstMediaUrl('profile_image'),
-                'cover_image' => $project->getFirstMediaUrl('cover_image'),
-                'email' => $project->email,
-                'phone' => $project->phone,
-                'links' => $project->links,
-                'members' => $project->members,
-                'settings' => $project->settings,
-                'more_details' => $project->more_details,
-                'visibility' => $project->visibility,
-            ],
+            'data' => new ProjectResource($project),
         ]);
     }
 

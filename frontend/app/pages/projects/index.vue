@@ -79,11 +79,27 @@
 
       <template #row-actions="{ project }">
         <NuxtLink
+          :to="`/p/${project.username}`"
+          class="hover:bg-muted hover:text-foreground flex w-full items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
+        >
+          <Icon name="lucide:user-round-search" class="size-4 shrink-0" />
+          <span>Profile</span>
+        </NuxtLink>
+
+        <NuxtLink
           :to="`/projects/${project.username}/edit`"
           class="hover:bg-muted hover:text-foreground flex w-full items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
         >
           <Icon name="lucide:pencil-line" class="size-4 shrink-0" />
           <span>Edit</span>
+        </NuxtLink>
+
+        <NuxtLink
+          :to="`/projects/${project.username}/analytics`"
+          class="hover:bg-muted hover:text-foreground flex w-full items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
+        >
+          <Icon name="lucide:chart-no-axes-combined" class="size-4 shrink-0" />
+          <span>Analytics</span>
         </NuxtLink>
 
         <button
