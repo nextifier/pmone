@@ -1,13 +1,33 @@
 <?php
 
+use App\Jobs\ExtractOpenGraphMetadata;
 use App\Models\ShortLink;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 
 uses(RefreshDatabase::class);
 
-test('automatically extracts og metadata when short link is created', function () {
+test('dispatches job to extract og metadata when short link is created', function () {
+    Queue::fake();
+
+    $user = User::factory()->create();
+
+    $shortLink = ShortLink::create([
+        'user_id' => $user->id,
+        'slug' => 'auto-extract',
+        'destination_url' => 'https://example.com/article',
+        'is_active' => true,
+    ]);
+
+    // Assert job was dispatched
+    Queue::assertPushed(ExtractOpenGraphMetadata::class, function ($job) use ($shortLink) {
+        return $job->shortLinkId === $shortLink->id;
+    });
+});
+
+test('extracts og metadata when job is executed', function () {
     $html = <<<'HTML'
     <!DOCTYPE html>
     <html>
@@ -33,7 +53,10 @@ test('automatically extracts og metadata when short link is created', function (
         'is_active' => true,
     ]);
 
-    // Refresh to get the updated values from observer
+    // Manually execute the job
+    ExtractOpenGraphMetadata::dispatch($shortLink->id);
+
+    // Refresh to get the updated values
     $shortLink->refresh();
 
     expect($shortLink->og_title)->toBe('Amazing Article');
@@ -42,29 +65,8 @@ test('automatically extracts og metadata when short link is created', function (
     expect($shortLink->og_type)->toBe('article');
 });
 
-test('re-extracts og metadata when destination url is updated', function () {
-    $htmlOld = <<<'HTML'
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta property="og:title" content="Old Title" />
-    </head>
-    </html>
-    HTML;
-
-    $htmlNew = <<<'HTML'
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta property="og:title" content="New Title" />
-    </head>
-    </html>
-    HTML;
-
-    Http::fake([
-        'example.com/old' => Http::response($htmlOld, 200, ['Content-Type' => 'text/html']),
-        'example.com/new' => Http::response($htmlNew, 200, ['Content-Type' => 'text/html']),
-    ]);
+test('dispatches job to re-extract og metadata when destination url is updated', function () {
+    Queue::fake();
 
     $user = User::factory()->create();
 
@@ -75,31 +77,20 @@ test('re-extracts og metadata when destination url is updated', function () {
         'is_active' => true,
     ]);
 
-    $shortLink->refresh();
-    expect($shortLink->og_title)->toBe('Old Title');
+    // Clear previous assertions
+    Queue::assertPushed(ExtractOpenGraphMetadata::class, 1);
 
     // Update destination URL
     $shortLink->update([
         'destination_url' => 'https://example.com/new',
     ]);
 
-    $shortLink->refresh();
-    expect($shortLink->og_title)->toBe('New Title');
+    // Should dispatch job again
+    Queue::assertPushed(ExtractOpenGraphMetadata::class, 2);
 });
 
-test('does not re-extract og metadata when other fields are updated', function () {
-    $html = <<<'HTML'
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta property="og:title" content="Original Title" />
-    </head>
-    </html>
-    HTML;
-
-    Http::fake([
-        'example.com/*' => Http::response($html, 200, ['Content-Type' => 'text/html']),
-    ]);
+test('does not dispatch job when other fields are updated', function () {
+    Queue::fake();
 
     $user = User::factory()->create();
 
@@ -110,24 +101,26 @@ test('does not re-extract og metadata when other fields are updated', function (
         'is_active' => true,
     ]);
 
-    Http::assertSentCount(1); // Only one request during creation
+    // Job dispatched once during creation
+    Queue::assertPushed(ExtractOpenGraphMetadata::class, 1);
 
     // Update is_active (not destination_url)
     $shortLink->update([
         'is_active' => false,
     ]);
 
-    Http::assertSentCount(1); // Still only one request, no re-extraction
+    // Still only one job dispatch, no re-extraction
+    Queue::assertPushed(ExtractOpenGraphMetadata::class, 1);
 });
 
-test('handles og extraction failure gracefully', function () {
+test('short link is created even when og extraction fails', function () {
     Http::fake([
         'example.com/*' => Http::response(null, 404),
     ]);
 
     $user = User::factory()->create();
 
-    // Should not throw exception
+    // Should not throw exception during creation
     $shortLink = ShortLink::create([
         'user_id' => $user->id,
         'slug' => 'fail-gracefully',
@@ -135,10 +128,10 @@ test('handles og extraction failure gracefully', function () {
         'is_active' => true,
     ]);
 
-    $shortLink->refresh();
-
-    // Short link should still be created
+    // Short link should be created successfully
     expect($shortLink->id)->not->toBeNull();
+
+    // OG fields will be null initially (job will process later)
     expect($shortLink->og_title)->toBeNull();
     expect($shortLink->og_description)->toBeNull();
     expect($shortLink->og_image)->toBeNull();
@@ -167,6 +160,9 @@ test('extracts og metadata from url without og tags using fallback', function ()
         'destination_url' => 'https://example.com/page',
         'is_active' => true,
     ]);
+
+    // Manually execute the job
+    ExtractOpenGraphMetadata::dispatch($shortLink->id);
 
     $shortLink->refresh();
 

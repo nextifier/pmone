@@ -88,7 +88,12 @@ class ProfileController extends Controller
 
         return response()->json([
             'data' => [
+                'slug' => $shortLink->slug,
                 'destination_url' => $shortLink->destination_url,
+                'og_title' => $shortLink->og_title,
+                'og_description' => $shortLink->og_description,
+                'og_image' => $shortLink->og_image,
+                'og_type' => $shortLink->og_type,
             ],
         ]);
     }
