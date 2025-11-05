@@ -36,14 +36,30 @@ const error = computed(() => {
 });
 
 const title = computed(() => {
-  return error.value ? "Page Not Found" : "Redirecting...";
+  if (error.value) return "Page Not Found";
+
+  const linkData = data.value?.data;
+  return linkData?.og_title || linkData?.slug || "Redirecting...";
 });
 
 const description = computed(() => {
-  return error.value
-    ? error.value.message ||
-        "The short link you are looking for does not exist or has been deactivated."
-    : "Redirecting to destination";
+  if (error.value) {
+    return error.value.message ||
+      "The short link you are looking for does not exist or has been deactivated.";
+  }
+
+  const linkData = data.value?.data;
+  return linkData?.og_description || "Click to visit this link";
+});
+
+const ogImage = computed(() => {
+  const linkData = data.value?.data;
+  return linkData?.og_image || null;
+});
+
+const ogType = computed(() => {
+  const linkData = data.value?.data;
+  return linkData?.og_type || "website";
 });
 
 watchEffect(() => {
@@ -53,6 +69,8 @@ watchEffect(() => {
     ogTitle: title.value,
     description: description.value,
     ogDescription: description.value,
+    ogImage: ogImage.value,
+    ogType: ogType.value,
     ogUrl: useAppConfig().app.url + route.fullPath,
     twitterCard: "summary_large_image",
   });
