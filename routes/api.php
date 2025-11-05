@@ -135,3 +135,25 @@ Route::middleware(['auth:sanctum'])->prefix('analytics')->group(function () {
     Route::get('/summary', [AnalyticsController::class, 'getSummary']);
     Route::get('/activity-log', [AnalyticsController::class, 'getActivityLog']);
 });
+
+// Google Analytics (GA4) routes (authenticated + admin/master only)
+Route::middleware(['auth:sanctum'])->prefix('google-analytics')->group(function () {
+    // CRUD endpoints for GA properties
+    Route::get('/ga-properties', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'index']);
+    Route::post('/ga-properties', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'store']);
+    Route::get('/ga-properties/{id}', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'show']);
+    Route::put('/ga-properties/{id}', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'update']);
+    Route::delete('/ga-properties/{id}', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'destroy']);
+
+    // Analytics data endpoints
+    Route::get('/properties', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getProperties']);
+    Route::get('/properties/by-account', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getPropertiesByAccount']);
+    Route::get('/properties/{id}/analytics', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getPropertyAnalytics']);
+    Route::get('/aggregate', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getAggregatedAnalytics']);
+    Route::get('/accounts/{accountName}/analytics', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getAccountAnalytics']);
+    Route::post('/sync', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'sync']);
+    Route::post('/aggregate', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'aggregate']);
+    Route::get('/cache/status', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getCacheStatus']);
+    Route::delete('/cache/properties/{id}', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'clearPropertyCache']);
+    Route::delete('/cache/all', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'clearAllCache']);
+});
