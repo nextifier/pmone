@@ -1,27 +1,24 @@
 <template>
-  <div v-if="status === 'pending'" class="flex min-h-screen items-center justify-center">
-    <div class="text-center">
-      <div class="mb-4 inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
-      <p class="text-muted-foreground">Redirecting...</p>
-    </div>
-  </div>
-  <div v-else-if="error" class="flex min-h-screen items-center justify-center">
-    <div class="text-center">
-      <h1 class="text-4xl font-bold">{{ error.statusCode }}</h1>
-      <p class="text-muted-foreground">{{ error.message }}</p>
+  <div>
+    <ErrorState v-if="error" :error="error" />
+    <div v-else class="flex min-h-screen items-center justify-center">
+      <div class="flex items-center justify-center gap-x-1.5 font-medium tracking-tight">
+        <Spinner class="size-4" />
+        <span>Redirecting...</span>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
+definePageMeta({
+  layout: "empty",
+});
+
 const route = useRoute();
 const slug = computed(() => route.params.slug);
 
-const {
-  data,
-  status,
-  error: fetchError,
-} = await useFetch(() => `/api/s/${slug.value}`, {
+const { data, error: fetchError } = await useFetch(() => `/api/s/${slug.value}`, {
   baseURL: useRuntimeConfig().public.apiUrl,
   key: `short-link-${slug.value}`,
 });
@@ -33,26 +30,49 @@ const error = computed(() => {
   return {
     statusCode: err.statusCode || 500,
     statusMessage: err.data?.message || err.statusMessage || "Error",
-    message: err.data?.message || err.message || "Short link not found",
+    message: err.data?.message || err.message || "Page not found",
     stack: err.stack,
   };
 });
 
-const title = "Redirecting...";
-const description = "Redirecting to destination";
-
-usePageMeta("", {
-  title: title,
-  description: description,
+const title = computed(() => {
+  return error.value ? "Page Not Found" : "Redirecting...";
 });
 
-// Redirect when short link data is loaded
+const description = computed(() => {
+  return error.value
+    ? error.value.message ||
+        "The short link you are looking for does not exist or has been deactivated."
+    : "Redirecting to destination";
+});
+
+watchEffect(() => {
+  useSeoMeta({
+    titleTemplate: "%s",
+    title: title.value,
+    ogTitle: title.value,
+    description: description.value,
+    ogDescription: description.value,
+    ogUrl: useAppConfig().app.url + route.fullPath,
+    twitterCard: "summary_large_image",
+  });
+});
+
 if (import.meta.client) {
   watch(
     data,
-    (newResponse) => {
-      if (newResponse?.data?.destination_url) {
-        window.location.href = newResponse.data.destination_url;
+    async (newResponse) => {
+      const destinationUrl = newResponse?.data?.destination_url;
+      if (destinationUrl) {
+        try {
+          await navigateTo(destinationUrl, {
+            external: true,
+            replace: true,
+          });
+        } catch (err) {
+          console.error("Navigation failed, using fallback:", err);
+          window.location.replace(destinationUrl);
+        }
       }
     },
     { immediate: true }

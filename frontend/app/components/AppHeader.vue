@@ -9,7 +9,8 @@
         class="text-primary hover:bg-muted flex size-8 items-center justify-center rounded-lg"
         @click="toggleSidebar"
       >
-        <Icon name="lucide:panel-left" class="text-primary size-4" />
+        <Icon v-if="open" name="hugeicons:sidebar-left-01" class="text-primary size-5" />
+        <Icon v-else name="hugeicons:sidebar-left" class="text-primary size-5" />
       </button>
       <template #content>
         <span class="inline-flex items-center gap-x-1.5 tracking-tight">
@@ -60,7 +61,7 @@
 
 <script setup>
 import { useSidebar } from "@/components/ui/sidebar/utils";
-const { toggleSidebar } = useSidebar();
+const { toggleSidebar, open } = useSidebar();
 const { metaSymbol } = useShortcuts();
 const { isAuthenticated } = useSanctumAuth();
 </script>

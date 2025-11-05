@@ -77,7 +77,11 @@ class ProfileController extends Controller
     {
         $shortLink = ShortLink::where('slug', $slug)
             ->where('is_active', true)
-            ->firstOrFail();
+            ->first();
+
+        if (! $shortLink) {
+            abort(404, 'Short link not found or has been deactivated.');
+        }
 
         // Track click
         TrackingHelper::trackClick($request, $shortLink);

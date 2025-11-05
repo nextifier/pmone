@@ -53,6 +53,7 @@
       :pending="pending"
       :error="error"
       model="users"
+      label="User"
       search-column="name"
       search-placeholder="Search name, email, or username"
       error-title="Error loading users"
@@ -142,14 +143,17 @@
                 <button
                   class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
                   @click="deleteDialogOpen = false"
+                  :disabled="deletePending"
                 >
                   Cancel
                 </button>
                 <button
                   @click="handleDeleteRows(selectedRows)"
-                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98"
+                  :disabled="deletePending"
+                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Delete
+                  <Spinner v-if="deletePending" class="size-4 text-white" />
+                  <span v-else>Delete</span>
                 </button>
               </div>
             </div>
@@ -166,6 +170,7 @@ import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
 import ImportDialog from "@/components/user/ImportDialog.vue";
 import UserProfile from "@/components/user/Profile.vue";
 import { PopoverClose } from "reka-ui";
@@ -272,6 +277,43 @@ watch(
 
 const refresh = fetchUsers;
 
+// Toggle status handler
+const handleToggleStatus = async (user) => {
+  const newStatus = user.status === "active" ? "inactive" : "active";
+  const originalStatus = user.status;
+
+  // Optimistic update
+  user.status = newStatus;
+
+  try {
+    const client = useSanctumClient();
+    const response = await client(`/api/users/${user.username}`, {
+      method: "PUT",
+      body: {
+        status: newStatus,
+      },
+    });
+
+    // Update with server response to ensure consistency
+    if (response.data) {
+      const updatedUser = data.value.find((u) => u.id === user.id);
+      if (updatedUser) {
+        updatedUser.status = response.data.status;
+      }
+    }
+
+    toast.success(`User ${newStatus === "active" ? "activated" : "deactivated"} successfully`);
+  } catch (error) {
+    // Revert on error
+    user.status = originalStatus;
+
+    console.error("Failed to update user status:", error);
+    toast.error("Failed to update status", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  }
+};
+
 // Table columns
 const columns = [
   {
@@ -367,15 +409,13 @@ const columns = [
     header: "Status",
     accessorKey: "status",
     cell: ({ row }) => {
-      const status = row.getValue("status");
-      const statusColors = {
-        active: "bg-success",
-        inactive: "bg-destructive",
-        pending: "bg-warning",
-      };
-      return h("div", { class: "flex items-center gap-x-1.5 capitalize text-sm tracking-tight" }, [
-        h("span", { class: ["rounded-full size-2", statusColors[status.toLowerCase()]] }),
-        status,
+      const user = row.original;
+      const isActive = user.status === "active";
+      return h("div", { class: "flex items-center gap-x-2" }, [
+        h(Switch, {
+          modelValue: isActive,
+          "onUpdate:modelValue": () => handleToggleStatus(user),
+        }),
       ]);
     },
     size: 80,
@@ -547,9 +587,11 @@ const handleExport = async () => {
 
 // Delete handlers
 const deleteDialogOpen = ref(false);
+const deletePending = ref(false);
 const handleDeleteRows = async (selectedRows) => {
   const userIds = selectedRows.map((row) => row.original.id);
   try {
+    deletePending.value = true;
     const client = useSanctumClient();
     const response = await client("/api/users/bulk", {
       method: "DELETE",
@@ -573,14 +615,22 @@ const handleDeleteRows = async (selectedRows) => {
     toast.error("Failed to delete users", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
+  } finally {
+    deletePending.value = false;
   }
 };
 
 const handleDeleteSingleRow = async (username) => {
   try {
+    deletePending.value = true;
     const client = useSanctumClient();
     const response = await client(`/api/users/${username}`, { method: "DELETE" });
     await refresh();
+
+    // Reset row selection after delete
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
+    }
 
     // Show success toast
     toast.success(response.message || "User deleted successfully");
@@ -589,6 +639,8 @@ const handleDeleteSingleRow = async (username) => {
     toast.error("Failed to delete user", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
+  } finally {
+    deletePending.value = false;
   }
 };
 
@@ -599,6 +651,7 @@ const RowActions = defineComponent({
   },
   setup(props) {
     const dialogOpen = ref(false);
+    const singleDeletePending = ref(false);
     return () =>
       h("div", { class: "flex justify-end" }, [
         h(
@@ -756,6 +809,7 @@ const RowActions = defineComponent({
                       class:
                         "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
                       onClick: () => (dialogOpen.value = false),
+                      disabled: singleDeletePending.value,
                     },
                     "Cancel"
                   ),
@@ -763,13 +817,21 @@ const RowActions = defineComponent({
                     "button",
                     {
                       class:
-                        "bg-destructive text-white hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                        "bg-destructive text-white hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50",
+                      disabled: singleDeletePending.value,
                       onClick: async () => {
-                        await handleDeleteSingleRow(props.username);
-                        dialogOpen.value = false;
+                        singleDeletePending.value = true;
+                        try {
+                          await handleDeleteSingleRow(props.username);
+                          dialogOpen.value = false;
+                        } finally {
+                          singleDeletePending.value = false;
+                        }
                       },
                     },
-                    "Delete"
+                    singleDeletePending.value
+                      ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
+                      : "Delete"
                   ),
                 ]),
               ]),

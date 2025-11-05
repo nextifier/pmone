@@ -2,7 +2,7 @@
   <div class="mx-auto max-w-4xl space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
-        <Icon name="hugeicons:link-01" class="size-5 sm:size-6" />
+        <Icon name="hugeicons:unlink-02" class="size-5 sm:size-6" />
         <h1 class="page-title">Short Links</h1>
       </div>
 
@@ -38,14 +38,6 @@
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
           <span class="hidden sm:inline">Trash</span>
         </nuxt-link>
-
-        <nuxt-link
-          to="/short-links/create"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="hugeicons:add-circle" class="size-4 shrink-0" />
-          <span>Create</span>
-        </nuxt-link>
       </div>
     </div>
 
@@ -58,6 +50,7 @@
       :pending="pending"
       :error="error"
       model="short-links"
+      label="Short Link"
       search-column="slug"
       search-placeholder="Search slug or destination URL"
       error-title="Error loading short links"
@@ -133,14 +126,17 @@
                 <button
                   class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
                   @click="deleteDialogOpen = false"
+                  :disabled="deletePending"
                 >
                   Cancel
                 </button>
                 <button
                   @click="handleDeleteRows(selectedRows)"
-                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98"
+                  :disabled="deletePending"
+                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Delete
+                  <Spinner v-if="deletePending" class="size-4 text-white" />
+                  <span v-else>Delete</span>
                 </button>
               </div>
             </div>
@@ -159,6 +155,7 @@ import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
 import { PopoverClose } from "reka-ui";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
@@ -269,6 +266,43 @@ watch(
 
 const refresh = fetchShortLinks;
 
+// Toggle status handler
+const handleToggleStatus = async (shortLink) => {
+  const newStatus = !shortLink.is_active;
+  const originalStatus = shortLink.is_active;
+
+  // Optimistic update
+  shortLink.is_active = newStatus;
+
+  try {
+    const client = useSanctumClient();
+    const response = await client(`/api/short-links/${shortLink.slug}`, {
+      method: "PUT",
+      body: {
+        is_active: newStatus,
+      },
+    });
+
+    // Update with server response to ensure consistency
+    if (response.data) {
+      const updatedLink = data.value.find((link) => link.id === shortLink.id);
+      if (updatedLink) {
+        updatedLink.is_active = response.data.is_active;
+      }
+    }
+
+    toast.success(`Short link ${newStatus ? "activated" : "deactivated"} successfully`);
+  } catch (error) {
+    // Revert on error
+    shortLink.is_active = originalStatus;
+
+    console.error("Failed to update short link status:", error);
+    toast.error("Failed to update status", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  }
+};
+
 // Table columns
 const columns = [
   {
@@ -321,14 +355,12 @@ const columns = [
     header: "Status",
     accessorKey: "is_active",
     cell: ({ row }) => {
-      const isActive = row.getValue("is_active");
-      const statusColors = {
-        true: "bg-success",
-        false: "bg-destructive",
-      };
-      return h("div", { class: "flex items-center gap-x-1.5 capitalize text-sm tracking-tight" }, [
-        h("span", { class: ["rounded-full size-2", statusColors[isActive]] }),
-        isActive ? "Active" : "Inactive",
+      const shortLink = row.original;
+      return h("div", { class: "flex items-center gap-x-2" }, [
+        h(Switch, {
+          modelValue: shortLink.is_active,
+          "onUpdate:modelValue": () => handleToggleStatus(shortLink),
+        }),
       ]);
     },
     size: 80,
@@ -353,6 +385,18 @@ const columns = [
       );
     },
     size: 100,
+  },
+  {
+    header: "Created By",
+    accessorKey: "user.name",
+    cell: ({ row }) => {
+      const user = row.original.user;
+      if (!user) {
+        return h("div", { class: "text-sm text-muted-foreground tracking-tight" }, "-");
+      }
+      return h("div", { class: "text-sm tracking-tight overflow-hidden" }, user.name);
+    },
+    size: 120,
   },
   {
     id: "actions",
@@ -413,9 +457,11 @@ const handleFilterChange = (columnId, { checked, value }) => {
 
 // Delete handlers
 const deleteDialogOpen = ref(false);
+const deletePending = ref(false);
 const handleDeleteRows = async (selectedRows) => {
   const shortLinkIds = selectedRows.map((row) => row.original.id);
   try {
+    deletePending.value = true;
     const client = useSanctumClient();
     const response = await client("/api/short-links/bulk", {
       method: "DELETE",
@@ -423,12 +469,12 @@ const handleDeleteRows = async (selectedRows) => {
     });
     await refresh();
     deleteDialogOpen.value = false;
-    if (tableRef.value?.table) {
-      tableRef.value.table.resetRowSelection();
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
     }
 
     // Show success toast
-    toast.success(response.message || "Short links deleted successfully", {
+    toast.success(response.message || "Short links deleted", {
       description:
         response.errors?.length > 0
           ? `${response.deleted_count} deleted, ${response.errors.length} failed`
@@ -439,14 +485,22 @@ const handleDeleteRows = async (selectedRows) => {
     toast.error("Failed to delete short links", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
+  } finally {
+    deletePending.value = false;
   }
 };
 
 const handleDeleteSingleRow = async (slug) => {
   try {
+    deletePending.value = true;
     const client = useSanctumClient();
     const response = await client(`/api/short-links/${slug}`, { method: "DELETE" });
     await refresh();
+
+    // Reset row selection after delete
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
+    }
 
     // Show success toast
     toast.success(response.message || "Short link deleted successfully");
@@ -455,6 +509,8 @@ const handleDeleteSingleRow = async (slug) => {
     toast.error("Failed to delete short link", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
+  } finally {
+    deletePending.value = false;
   }
 };
 
@@ -503,7 +559,7 @@ const handleExport = async () => {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
-    toast.success("Short links exported successfully");
+    toast.success("Short links exported");
   } catch (error) {
     console.error("Failed to export short links:", error);
     toast.error("Failed to export short links", {
@@ -521,6 +577,7 @@ const RowActions = defineComponent({
   },
   setup(props) {
     const dialogOpen = ref(false);
+    const singleDeletePending = ref(false);
     return () =>
       h("div", { class: "flex justify-end" }, [
         h(
@@ -653,6 +710,7 @@ const RowActions = defineComponent({
                       class:
                         "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
                       onClick: () => (dialogOpen.value = false),
+                      disabled: singleDeletePending.value,
                     },
                     "Cancel"
                   ),
@@ -660,13 +718,21 @@ const RowActions = defineComponent({
                     "button",
                     {
                       class:
-                        "bg-destructive text-white hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                        "bg-destructive text-white hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50",
+                      disabled: singleDeletePending.value,
                       onClick: async () => {
-                        await handleDeleteSingleRow(props.shortLink.slug);
-                        dialogOpen.value = false;
+                        singleDeletePending.value = true;
+                        try {
+                          await handleDeleteSingleRow(props.shortLink.slug);
+                          dialogOpen.value = false;
+                        } finally {
+                          singleDeletePending.value = false;
+                        }
                       },
                     },
-                    "Delete"
+                    singleDeletePending.value
+                      ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
+                      : "Delete"
                   ),
                 ]),
               ]),

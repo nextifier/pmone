@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center gap-x-1.5">
+  <div class="flex items-center gap-x-1.5 overflow-hidden">
     <div class="flex flex-col gap-y-0.5">
       <div class="flex items-center gap-x-0.5">
         <NuxtLink

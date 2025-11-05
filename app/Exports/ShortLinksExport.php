@@ -9,7 +9,7 @@ class ShortLinksExport extends BaseExport
 {
     protected function getQuery(): Builder
     {
-        return ShortLink::query()->with(['user']);
+        return ShortLink::query()->with(['user'])->withCount('clicks');
     }
 
     public function headings(): array
@@ -21,9 +21,7 @@ class ShortLinksExport extends BaseExport
             'Status',
             'Clicks Count',
             'Created By',
-            'Created By Email',
             'Created At',
-            'Updated At',
         ];
     }
 
@@ -37,11 +35,9 @@ class ShortLinksExport extends BaseExport
             $shortLink->slug,
             $shortLink->destination_url,
             $shortLink->is_active ? 'Active' : 'Inactive',
-            $shortLink->clicks()->count(),
+            (int) ($shortLink->clicks_count ?? 0),
             $shortLink->user->name ?? '-',
-            $shortLink->user->email ?? '-',
             $shortLink->created_at?->format('Y-m-d H:i:s'),
-            $shortLink->updated_at?->format('Y-m-d H:i:s'),
         ];
     }
 

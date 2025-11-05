@@ -22,7 +22,8 @@ class UpdateShortLinkRequest extends FormRequest
      */
     public function rules(): array
     {
-        $shortLinkId = $this->route('shortLink')->id;
+        $shortLink = $this->route('shortLink');
+        $shortLinkId = $shortLink->id;
 
         return [
             'slug' => [
@@ -32,7 +33,17 @@ class UpdateShortLinkRequest extends FormRequest
                 'max:255',
                 'regex:/^[a-zA-Z0-9._\-]+$/',
                 Rule::unique('short_links', 'slug')->ignore($shortLinkId),
-                'unique:users,username',
+                function ($attribute, $value, $fail) use ($shortLink) {
+                    // Only validate against users/projects if slug is changing
+                    if ($value !== $shortLink->slug) {
+                        $existsInUsers = \App\Models\User::where('username', $value)->exists();
+                        $existsInProjects = \App\Models\Project::where('username', $value)->exists();
+
+                        if ($existsInUsers || $existsInProjects) {
+                            $fail('This slug is already taken by a user or project.');
+                        }
+                    }
+                },
             ],
             'destination_url' => ['sometimes', 'required', 'url', 'max:2000'],
             'is_active' => ['sometimes', 'boolean'],

@@ -122,7 +122,9 @@
               class="hover:bg-primary/80 text-primary-foreground bg-primary flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
             >
               <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
-              <span>Add {{ props.model.slice(0, -1) }}</span>
+              <span
+                >Add <span v-if="props.label">{{ props.label }}</span></span
+              >
             </NuxtLink>
           </div>
         </div>
@@ -131,7 +133,7 @@
       <!-- Table -->
       <div class="frame">
         <div class="frame-panel bg-background -m-px overflow-hidden !p-0">
-          <Table class="table-fixed">
+          <Table class="[&_td]:scroll-fade-x table-fixed [&_td]:overflow-hidden">
             <TableHeader>
               <TableRow
                 v-for="headerGroup in table.getHeaderGroups()"
@@ -403,6 +405,9 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  label: {
+    type: String,
+  },
   clientOnly: {
     type: Boolean,
     default: true,
@@ -647,8 +652,14 @@ const currentPageSizeDisplay = computed(() => {
   return pageSize === totalItems.value ? "All" : `${pageSize}`;
 });
 
-// Expose table instance for parent
+// Method to reset row selection
+const resetRowSelection = () => {
+  table.resetRowSelection();
+};
+
+// Expose table instance and methods for parent
 defineExpose({
   table,
+  resetRowSelection,
 });
 </script>

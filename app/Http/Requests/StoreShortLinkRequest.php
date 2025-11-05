@@ -28,7 +28,15 @@ class StoreShortLinkRequest extends FormRequest
                 'max:255',
                 'regex:/^[a-zA-Z0-9._\-]+$/',
                 'unique:short_links,slug',
-                'unique:users,username',
+                function ($attribute, $value, $fail) {
+                    // Check if slug conflicts with existing usernames or project usernames
+                    $existsInUsers = \App\Models\User::where('username', $value)->exists();
+                    $existsInProjects = \App\Models\Project::where('username', $value)->exists();
+
+                    if ($existsInUsers || $existsInProjects) {
+                        $fail('This slug is already taken by a user or project.');
+                    }
+                },
             ],
             'destination_url' => ['required', 'url', 'max:2000'],
             'is_active' => ['sometimes', 'boolean'],

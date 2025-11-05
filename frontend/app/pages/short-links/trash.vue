@@ -100,14 +100,17 @@
                 <button
                   class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
                   @click="restoreDialogOpen = false"
+                  :disabled="restorePending"
                 >
                   Cancel
                 </button>
                 <button
                   @click="handleRestoreRows(selectedRows)"
-                  class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  :disabled="restorePending"
+                  class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Restore
+                  <Spinner v-if="restorePending" class="size-4 text-white" />
+                  <span v-else>Restore</span>
                 </button>
               </div>
             </div>
@@ -147,14 +150,17 @@
                 <button
                   class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
                   @click="deleteDialogOpen = false"
+                  :disabled="deletePending"
                 >
                   Cancel
                 </button>
                 <button
                   @click="handleDeleteRows(selectedRows)"
-                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98"
+                  :disabled="deletePending"
+                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Delete Permanently
+                  <Spinner v-if="deletePending" class="size-4 text-white" />
+                  <span v-else>Delete Permanently</span>
                 </button>
               </div>
             </div>
@@ -167,10 +173,12 @@
 
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
+import LinkTableItem from "@/components/short-link/LinkTableItem.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
 import { PopoverClose } from "reka-ui";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
@@ -268,6 +276,48 @@ watch(
 
 const refresh = fetchShortLinks;
 
+// Toggle status handler
+const handleToggleStatus = async (shortLink) => {
+  const newStatus = !shortLink.is_active;
+  const originalStatus = shortLink.is_active;
+
+  // Optimistic update
+  shortLink.is_active = newStatus;
+
+  try {
+    const client = useSanctumClient();
+    const response = await client(`/api/short-links/trash/${shortLink.id}/restore`, {
+      method: "POST",
+    });
+
+    // Then update the status
+    await client(`/api/short-links/${shortLink.slug}`, {
+      method: "PUT",
+      body: {
+        is_active: newStatus,
+      },
+    });
+
+    // Update with server response
+    if (response.data) {
+      const updatedLink = data.value.find((link) => link.id === shortLink.id);
+      if (updatedLink) {
+        updatedLink.is_active = newStatus;
+      }
+    }
+
+    toast.success(`Short link ${newStatus ? "activated" : "deactivated"} successfully`);
+  } catch (error) {
+    // Revert on error
+    shortLink.is_active = originalStatus;
+
+    console.error("Failed to update short link status:", error);
+    toast.error("Failed to update status", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  }
+};
+
 // Table columns
 const columns = [
   {
@@ -291,21 +341,12 @@ const columns = [
     enableHiding: false,
   },
   {
-    header: "Slug",
+    header: "Link",
     accessorKey: "slug",
     cell: ({ row }) =>
-      h("div", { class: "flex flex-col gap-1" }, [
-        h("div", { class: "font-medium" }, row.original.slug),
-        h(
-          "a",
-          {
-            href: row.original.destination_url,
-            target: "_blank",
-            class: "text-muted-foreground text-xs hover:opacity-80 transition-opacity truncate max-w-md",
-          },
-          row.original.destination_url
-        ),
-      ]),
+      h(LinkTableItem, {
+        link: row.original,
+      }),
     size: 300,
     enableHiding: false,
     filterFn: (row, columnId, filterValue) => {
@@ -316,17 +357,26 @@ const columns = [
     },
   },
   {
+    header: "Clicks",
+    accessorKey: "clicks_count",
+    cell: ({ row }) => {
+      const count = row.getValue("clicks_count") || 0;
+      return h("div", { class: "text-sm tracking-tight" }, count.toLocaleString());
+    },
+    size: 80,
+    enableSorting: true,
+  },
+  {
     header: "Status",
     accessorKey: "is_active",
     cell: ({ row }) => {
-      const isActive = row.getValue("is_active");
-      const statusColors = {
-        true: "bg-success",
-        false: "bg-destructive",
-      };
-      return h("div", { class: "flex items-center gap-x-1.5 capitalize text-sm tracking-tight" }, [
-        h("span", { class: ["rounded-full size-2", statusColors[isActive]] }),
-        isActive ? "Active" : "Inactive",
+      const shortLink = row.original;
+      return h("div", { class: "flex items-center gap-x-2" }, [
+        h(Switch, {
+          modelValue: shortLink.is_active,
+          "onUpdate:modelValue": () => handleToggleStatus(shortLink),
+          disabled: true, // Disabled in trash
+        }),
       ]);
     },
     size: 80,
@@ -339,6 +389,18 @@ const columns = [
         return false;
       });
     },
+  },
+  {
+    header: "Created By",
+    accessorKey: "user.name",
+    cell: ({ row }) => {
+      const user = row.original.user;
+      if (!user) {
+        return h("div", { class: "text-sm text-muted-foreground tracking-tight" }, "-");
+      }
+      return h("div", { class: "text-sm tracking-tight" }, user.name);
+    },
+    size: 120,
   },
   {
     header: "Deleted By",
@@ -419,9 +481,11 @@ const handleFilterChange = (columnId, { checked, value }) => {
 
 // Restore handlers
 const restoreDialogOpen = ref(false);
+const restorePending = ref(false);
 const handleRestoreRows = async (selectedRows) => {
   const shortLinkIds = selectedRows.map((row) => row.original.id);
   try {
+    restorePending.value = true;
     const client = useSanctumClient();
     const response = await client("/api/short-links/trash/restore/bulk", {
       method: "POST",
@@ -429,8 +493,8 @@ const handleRestoreRows = async (selectedRows) => {
     });
     await refresh();
     restoreDialogOpen.value = false;
-    if (tableRef.value?.table) {
-      tableRef.value.table.resetRowSelection();
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
     }
 
     toast.success(response.message || "Short links restored successfully", {
@@ -444,14 +508,22 @@ const handleRestoreRows = async (selectedRows) => {
     toast.error("Failed to restore short links", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
+  } finally {
+    restorePending.value = false;
   }
 };
 
 const handleRestoreSingleRow = async (shortLinkId) => {
   try {
+    restorePending.value = true;
     const client = useSanctumClient();
     const response = await client(`/api/short-links/trash/${shortLinkId}/restore`, { method: "POST" });
     await refresh();
+
+    // Reset row selection after restore
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
+    }
 
     toast.success(response.message || "Short link restored successfully");
   } catch (error) {
@@ -459,14 +531,18 @@ const handleRestoreSingleRow = async (shortLinkId) => {
     toast.error("Failed to restore short link", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
+  } finally {
+    restorePending.value = false;
   }
 };
 
 // Delete handlers
 const deleteDialogOpen = ref(false);
+const deletePending = ref(false);
 const handleDeleteRows = async (selectedRows) => {
   const shortLinkIds = selectedRows.map((row) => row.original.id);
   try {
+    deletePending.value = true;
     const client = useSanctumClient();
     const response = await client("/api/short-links/trash/bulk", {
       method: "DELETE",
@@ -474,8 +550,8 @@ const handleDeleteRows = async (selectedRows) => {
     });
     await refresh();
     deleteDialogOpen.value = false;
-    if (tableRef.value?.table) {
-      tableRef.value.table.resetRowSelection();
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
     }
 
     toast.success(response.message || "Short links permanently deleted", {
@@ -489,14 +565,22 @@ const handleDeleteRows = async (selectedRows) => {
     toast.error("Failed to permanently delete short links", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
+  } finally {
+    deletePending.value = false;
   }
 };
 
 const handleDeleteSingleRow = async (shortLinkId) => {
   try {
+    deletePending.value = true;
     const client = useSanctumClient();
     const response = await client(`/api/short-links/trash/${shortLinkId}`, { method: "DELETE" });
     await refresh();
+
+    // Reset row selection after delete
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
+    }
 
     toast.success(response.message || "Short link permanently deleted");
   } catch (error) {
@@ -504,6 +588,8 @@ const handleDeleteSingleRow = async (shortLinkId) => {
     toast.error("Failed to permanently delete short link", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
+  } finally {
+    deletePending.value = false;
   }
 };
 
@@ -515,6 +601,8 @@ const RowActions = defineComponent({
   setup(props) {
     const restoreDialogOpen = ref(false);
     const deleteDialogOpen = ref(false);
+    const singleRestorePending = ref(false);
+    const singleDeletePending = ref(false);
     return () =>
       h("div", { class: "flex justify-end" }, [
         h(
@@ -619,6 +707,7 @@ const RowActions = defineComponent({
                       class:
                         "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
                       onClick: () => (restoreDialogOpen.value = false),
+                      disabled: singleRestorePending.value,
                     },
                     "Cancel"
                   ),
@@ -626,13 +715,21 @@ const RowActions = defineComponent({
                     "button",
                     {
                       class:
-                        "bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                        "bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50",
+                      disabled: singleRestorePending.value,
                       onClick: async () => {
-                        await handleRestoreSingleRow(props.shortLinkId);
-                        restoreDialogOpen.value = false;
+                        singleRestorePending.value = true;
+                        try {
+                          await handleRestoreSingleRow(props.shortLinkId);
+                          restoreDialogOpen.value = false;
+                        } finally {
+                          singleRestorePending.value = false;
+                        }
                       },
                     },
-                    "Restore"
+                    singleRestorePending.value
+                      ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
+                      : "Restore"
                   ),
                 ]),
               ]),
@@ -664,6 +761,7 @@ const RowActions = defineComponent({
                       class:
                         "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
                       onClick: () => (deleteDialogOpen.value = false),
+                      disabled: singleDeletePending.value,
                     },
                     "Cancel"
                   ),
@@ -671,13 +769,21 @@ const RowActions = defineComponent({
                     "button",
                     {
                       class:
-                        "bg-destructive text-white hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                        "bg-destructive text-white hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50",
+                      disabled: singleDeletePending.value,
                       onClick: async () => {
-                        await handleDeleteSingleRow(props.shortLinkId);
-                        deleteDialogOpen.value = false;
+                        singleDeletePending.value = true;
+                        try {
+                          await handleDeleteSingleRow(props.shortLinkId);
+                          deleteDialogOpen.value = false;
+                        } finally {
+                          singleDeletePending.value = false;
+                        }
                       },
                     },
-                    "Delete Permanently"
+                    singleDeletePending.value
+                      ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
+                      : "Delete Permanently"
                   ),
                 ]),
               ]),

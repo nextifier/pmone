@@ -114,14 +114,17 @@
                 <button
                   class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
                   @click="restoreDialogOpen = false"
+                  :disabled="restorePending"
                 >
                   Cancel
                 </button>
                 <button
                   @click="handleRestoreRows(selectedRows)"
-                  class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  :disabled="restorePending"
+                  class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Restore
+                  <Spinner v-if="restorePending" class="size-4 text-white" />
+                  <span v-else>Restore</span>
                 </button>
               </div>
             </div>
@@ -161,14 +164,17 @@
                 <button
                   class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
                   @click="deleteDialogOpen = false"
+                  :disabled="deletePending"
                 >
                   Cancel
                 </button>
                 <button
                   @click="handleDeleteRows(selectedRows)"
-                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98"
+                  :disabled="deletePending"
+                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Delete Permanently
+                  <Spinner v-if="deletePending" class="size-4 text-white" />
+                  <span v-else>Delete Permanently</span>
                 </button>
               </div>
             </div>
@@ -478,9 +484,11 @@ const handleFilterChange = (columnId, { checked, value }) => {
 
 // Restore handlers
 const restoreDialogOpen = ref(false);
+const restorePending = ref(false);
 const handleRestoreRows = async (selectedRows) => {
   const userIds = selectedRows.map((row) => row.original.id);
   try {
+    restorePending.value = true;
     const client = useSanctumClient();
     const response = await client("/api/users/trash/restore/bulk", {
       method: "POST",
@@ -504,14 +512,22 @@ const handleRestoreRows = async (selectedRows) => {
     toast.error("Failed to restore users", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
+  } finally {
+    restorePending.value = false;
   }
 };
 
 const handleRestoreSingleRow = async (userId) => {
   try {
+    restorePending.value = true;
     const client = useSanctumClient();
     const response = await client(`/api/users/trash/${userId}/restore`, { method: "POST" });
     await refresh();
+
+    // Reset row selection after restore
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
+    }
 
     // Show success toast
     toast.success(response.message || "User restored successfully");
@@ -520,14 +536,18 @@ const handleRestoreSingleRow = async (userId) => {
     toast.error("Failed to restore user", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
+  } finally {
+    restorePending.value = false;
   }
 };
 
 // Delete handlers
 const deleteDialogOpen = ref(false);
+const deletePending = ref(false);
 const handleDeleteRows = async (selectedRows) => {
   const userIds = selectedRows.map((row) => row.original.id);
   try {
+    deletePending.value = true;
     const client = useSanctumClient();
     const response = await client("/api/users/trash/bulk", {
       method: "DELETE",
@@ -551,14 +571,22 @@ const handleDeleteRows = async (selectedRows) => {
     toast.error("Failed to permanently delete users", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
+  } finally {
+    deletePending.value = false;
   }
 };
 
 const handleDeleteSingleRow = async (userId) => {
   try {
+    deletePending.value = true;
     const client = useSanctumClient();
     const response = await client(`/api/users/trash/${userId}`, { method: "DELETE" });
     await refresh();
+
+    // Reset row selection after delete
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
+    }
 
     // Show success toast
     toast.success(response.message || "User permanently deleted");
@@ -567,6 +595,8 @@ const handleDeleteSingleRow = async (userId) => {
     toast.error("Failed to permanently delete user", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
+  } finally {
+    deletePending.value = false;
   }
 };
 
@@ -578,6 +608,8 @@ const RowActions = defineComponent({
   setup(props) {
     const restoreDialogOpen = ref(false);
     const deleteDialogOpen = ref(false);
+    const singleRestorePending = ref(false);
+    const singleDeletePending = ref(false);
     return () =>
       h("div", { class: "flex justify-end" }, [
         h(
@@ -682,6 +714,7 @@ const RowActions = defineComponent({
                       class:
                         "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
                       onClick: () => (restoreDialogOpen.value = false),
+                      disabled: singleRestorePending.value,
                     },
                     "Cancel"
                   ),
@@ -689,13 +722,21 @@ const RowActions = defineComponent({
                     "button",
                     {
                       class:
-                        "bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                        "bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50",
+                      disabled: singleRestorePending.value,
                       onClick: async () => {
-                        await handleRestoreSingleRow(props.userId);
-                        restoreDialogOpen.value = false;
+                        singleRestorePending.value = true;
+                        try {
+                          await handleRestoreSingleRow(props.userId);
+                          restoreDialogOpen.value = false;
+                        } finally {
+                          singleRestorePending.value = false;
+                        }
                       },
                     },
-                    "Restore"
+                    singleRestorePending.value
+                      ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
+                      : "Restore"
                   ),
                 ]),
               ]),
@@ -727,6 +768,7 @@ const RowActions = defineComponent({
                       class:
                         "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
                       onClick: () => (deleteDialogOpen.value = false),
+                      disabled: singleDeletePending.value,
                     },
                     "Cancel"
                   ),
@@ -734,13 +776,21 @@ const RowActions = defineComponent({
                     "button",
                     {
                       class:
-                        "bg-destructive text-white hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                        "bg-destructive text-white hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50",
+                      disabled: singleDeletePending.value,
                       onClick: async () => {
-                        await handleDeleteSingleRow(props.userId);
-                        deleteDialogOpen.value = false;
+                        singleDeletePending.value = true;
+                        try {
+                          await handleDeleteSingleRow(props.userId);
+                          deleteDialogOpen.value = false;
+                        } finally {
+                          singleDeletePending.value = false;
+                        }
                       },
                     },
-                    "Delete Permanently"
+                    singleDeletePending.value
+                      ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
+                      : "Delete Permanently"
                   ),
                 ]),
               ]),

@@ -17,12 +17,20 @@ class ShortLinkIndexResource extends JsonResource
             'clicks_count' => $this->clicks()->count(),
             'created_at' => $this->created_at->toISOString(),
             'updated_at' => $this->updated_at->toISOString(),
+            'deleted_at' => $this->deleted_at?->toISOString(),
 
             // User relationship
             'user' => $this->whenLoaded('user', fn () => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
                 'username' => $this->user->username,
+            ]),
+
+            // Deleter relationship (for trash)
+            'deleter' => $this->whenLoaded('deleter', fn () => [
+                'id' => $this->deleter->id,
+                'name' => $this->deleter->name,
+                'username' => $this->deleter->username,
             ]),
         ];
     }
