@@ -138,6 +138,14 @@ Route::middleware(['auth:sanctum'])->prefix('analytics')->group(function () {
 
 // Google Analytics (GA4) routes (authenticated + admin/master only)
 Route::middleware(['auth:sanctum'])->prefix('google-analytics')->group(function () {
+    // CRUD endpoints for GA properties
+    Route::get('/ga-properties', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'index']);
+    Route::post('/ga-properties', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'store']);
+    Route::get('/ga-properties/{id}', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'show']);
+    Route::put('/ga-properties/{id}', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'update']);
+    Route::delete('/ga-properties/{id}', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'destroy']);
+
+    // Analytics data endpoints
     Route::get('/properties', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getProperties']);
     Route::get('/properties/by-account', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getPropertiesByAccount']);
     Route::get('/properties/{id}/analytics', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getPropertyAnalytics']);

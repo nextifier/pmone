@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GoogleAnalytics\GetAnalyticsRequest;
+use App\Http\Requests\GoogleAnalytics\StoreGaPropertyRequest;
 use App\Http\Requests\GoogleAnalytics\SyncAnalyticsRequest;
+use App\Http\Requests\GoogleAnalytics\UpdateGaPropertyRequest;
 use App\Jobs\AggregateAnalyticsData;
 use App\Jobs\SyncGoogleAnalyticsData;
 use App\Models\GaProperty;
@@ -19,7 +21,143 @@ class GoogleAnalyticsController extends Controller
     ) {}
 
     /**
-     * Get list of all GA properties.
+     * Get list of all GA properties with pagination.
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $query = GaProperty::query();
+
+        // Apply search filter
+        if ($request->has('filter.search')) {
+            $search = $request->input('filter.search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('property_id', 'like', "%{$search}%")
+                    ->orWhere('account_name', 'like', "%{$search}%");
+            });
+        }
+
+        // Apply status filter
+        if ($request->has('filter.status')) {
+            $statuses = explode(',', $request->input('filter.status'));
+            if (in_array('active', $statuses) && ! in_array('inactive', $statuses)) {
+                $query->where('is_active', true);
+            } elseif (in_array('inactive', $statuses) && ! in_array('active', $statuses)) {
+                $query->where('is_active', false);
+            }
+        }
+
+        // Apply sorting
+        $sortField = $request->input('sort', 'created_at');
+        $sortDirection = 'asc';
+
+        if (str_starts_with($sortField, '-')) {
+            $sortField = substr($sortField, 1);
+            $sortDirection = 'desc';
+        }
+
+        $query->orderBy($sortField, $sortDirection);
+
+        // Check if client-only mode
+        if ($request->has('client_only')) {
+            return response()->json([
+                'data' => $query->get(),
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => $query->count(),
+                    'total' => $query->count(),
+                ],
+            ]);
+        }
+
+        // Server-side pagination
+        $perPage = $request->input('per_page', 10);
+        $page = $request->input('page', 1);
+
+        $properties = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'data' => $properties->items(),
+            'meta' => [
+                'current_page' => $properties->currentPage(),
+                'last_page' => $properties->lastPage(),
+                'per_page' => $properties->perPage(),
+                'total' => $properties->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Get single GA property.
+     */
+    public function show(int $id): JsonResponse
+    {
+        $property = GaProperty::findOrFail($id);
+
+        return response()->json([
+            'data' => $property,
+        ]);
+    }
+
+    /**
+     * Create new GA property.
+     */
+    public function store(StoreGaPropertyRequest $request): JsonResponse
+    {
+        $property = GaProperty::create([
+            'name' => $request->input('name'),
+            'property_id' => $request->input('property_id'),
+            'account_name' => $request->input('account_name'),
+            'is_active' => $request->input('is_active', true),
+            'sync_frequency' => $request->input('sync_frequency', 10),
+            'rate_limit_per_hour' => $request->input('rate_limit_per_hour', 12),
+        ]);
+
+        return response()->json([
+            'message' => 'GA property created successfully',
+            'data' => $property,
+        ], 201);
+    }
+
+    /**
+     * Update GA property.
+     */
+    public function update(UpdateGaPropertyRequest $request, int $id): JsonResponse
+    {
+        $property = GaProperty::findOrFail($id);
+
+        $property->update($request->only([
+            'name',
+            'property_id',
+            'account_name',
+            'is_active',
+            'sync_frequency',
+            'rate_limit_per_hour',
+        ]));
+
+        return response()->json([
+            'message' => 'GA property updated successfully',
+            'data' => $property,
+        ]);
+    }
+
+    /**
+     * Delete GA property.
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        $property = GaProperty::findOrFail($id);
+
+        $property->delete();
+
+        return response()->json([
+            'message' => 'GA property deleted successfully',
+        ]);
+    }
+
+    /**
+     * Get list of all GA properties (simple list without pagination).
      */
     public function getProperties(): JsonResponse
     {
