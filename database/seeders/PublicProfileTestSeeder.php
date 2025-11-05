@@ -59,6 +59,6 @@ class PublicProfileTestSeeder extends Seeder
         }
 
         $this->command->info('Public profile test data created successfully!');
-        $this->command->info('Visit: http://localhost:3000/p/panoramamedia');
+        $this->command->info('Visit: http://localhost:3000/projects/panoramamedia');
     }
 }

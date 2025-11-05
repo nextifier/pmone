@@ -301,7 +301,7 @@ const columns = [
       h(
         resolveComponent("NuxtLink"),
         {
-          to: `/${row.original.username}`,
+          to: `/users/${row.original.username}`,
           class: "block hover:opacity-80 transition-opacity",
         },
         {

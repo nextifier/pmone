@@ -18,7 +18,7 @@
         <SidebarMenu class="gap-y-1.5">
           <div v-for="project in projects" :key="project?.id" class="tracking-tight">
             <NuxtLink
-              :to="`/p/${project?.username}`"
+              :to="`/projects/${project?.username}`"
               @click="setOpenMobile(false)"
               activeClass="*:bg-muted"
             >

@@ -48,7 +48,11 @@
       :data-id="project.id"
       class="hover:bg-muted/50 bg-background relative isolate flex items-center gap-x-1 px-3 py-4 first:rounded-t-xl last:rounded-b-xl sm:gap-x-2"
     >
-      <NuxtLink v-if="!isTrash" :to="`/p/${project.username}`" class="absolute inset-0 z-10" />
+      <NuxtLink
+        v-if="!isTrash"
+        :to="`/projects/${project.username}`"
+        class="absolute inset-0 z-10"
+      />
 
       <!-- Drag Handle (only for non-trash, non-filtered lists) -->
       <div

@@ -79,7 +79,7 @@
 
       <template #row-actions="{ project }">
         <NuxtLink
-          :to="`/p/${project.username}`"
+          :to="`/projects/${project.username}`"
           class="hover:bg-muted hover:text-foreground flex w-full items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
         >
           <Icon name="lucide:user-round-search" class="size-4 shrink-0" />

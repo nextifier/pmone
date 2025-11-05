@@ -16,48 +16,22 @@ class ProfileController extends Controller
 {
     /**
      * Get user profile by username
-     * Falls back to short link if user not found
      */
-    public function getUserProfile(Request $request, string $username): JsonResponse
+    public function getUserProfile(Request $request, User $user): JsonResponse
     {
-        // Try to find user first
-        $user = User::where('username', $username)
-            ->with([
-                'links' => function ($query) {
-                    $query->active()->orderBy('order');
-                },
-                'roles',
-            ])
-            ->first();
+        $user->load([
+            'links' => function ($query) {
+                $query->active()->orderBy('order');
+            },
+            'roles',
+        ]);
 
-        // If user found, return user profile
-        if ($user) {
-            // Note: Visit tracking is handled on the frontend via /api/track/visit endpoint
-            // to prevent double tracking and allow better control over tracking behavior
+        // Note: Visit tracking is handled on the frontend via /api/track/visit endpoint
+        // to prevent double tracking and allow better control over tracking behavior
 
-            return response()->json([
-                'data' => new UserResource($user),
-            ]);
-        }
-
-        // If user not found, try short link as fallback
-        $shortLink = ShortLink::where('slug', $username)
-            ->where('is_active', true)
-            ->first();
-
-        if ($shortLink) {
-            // Track click
-            TrackingHelper::trackClick($request, $shortLink);
-
-            return response()->json([
-                'data' => [
-                    'destination_url' => $shortLink->destination_url,
-                ],
-            ]);
-        }
-
-        // If both user and short link not found, return 404
-        abort(404, 'User profile or short link not found');
+        return response()->json([
+            'data' => new UserResource($user),
+        ]);
     }
 
     /**

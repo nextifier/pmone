@@ -6,7 +6,7 @@
     :visits-data="visitsData"
     :clicks-data="clicksData"
     v-model:selected-period="selectedPeriod"
-    :back-destination="`/p/${username}`"
+    :back-destination="`/projects/${username}`"
   />
 </template>
 
@@ -27,7 +27,7 @@ const {
   data: projectData,
   status,
   error: fetchError,
-} = await useFetch(() => `/api/p/${username.value}`, {
+} = await useFetch(() => `/api/projects/${username.value}`, {
   baseURL: useRuntimeConfig().public.apiUrl,
   key: `project-profile-${username.value}`,
 });
@@ -63,7 +63,7 @@ watch(
   [authUser, project],
   ([newAuthUser, newProject]) => {
     if (newProject && !canViewAnalytics.value) {
-      navigateTo(`/p/${username.value}`);
+      navigateTo(`/projects/${username.value}`);
     }
   },
   { immediate: true }

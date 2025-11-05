@@ -1,0 +1,248 @@
+<?php
+
+use App\Models\Project;
+use App\Models\ShortLink;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
+test('creates short link when user is created', function () {
+    $user = User::factory()->create([
+        'username' => 'johndoe',
+    ]);
+
+    $shortLink = ShortLink::where('user_id', $user->id)
+        ->where('slug', 'johndoe')
+        ->first();
+
+    expect($shortLink)->not->toBeNull();
+    expect($shortLink->destination_url)->toContain('/users/johndoe');
+    expect($shortLink->is_active)->toBeTrue();
+});
+
+test('updates short link when user username is changed', function () {
+    $user = User::factory()->create([
+        'username' => 'oldusername',
+    ]);
+
+    $oldShortLink = ShortLink::where('user_id', $user->id)
+        ->where('slug', 'oldusername')
+        ->first();
+
+    expect($oldShortLink)->not->toBeNull();
+
+    // Update username
+    $user->update(['username' => 'newusername']);
+
+    // Old short link should be updated
+    $updatedShortLink = ShortLink::where('user_id', $user->id)
+        ->where('slug', 'newusername')
+        ->first();
+
+    expect($updatedShortLink)->not->toBeNull();
+    expect($updatedShortLink->id)->toBe($oldShortLink->id);
+    expect($updatedShortLink->destination_url)->toContain('/users/newusername');
+
+    // Old slug should not exist
+    $oldSlugExists = ShortLink::where('slug', 'oldusername')->exists();
+    expect($oldSlugExists)->toBeFalse();
+});
+
+test('soft deletes short link when user is soft deleted', function () {
+    $user = User::factory()->create([
+        'username' => 'testuser',
+    ]);
+
+    $shortLink = ShortLink::where('user_id', $user->id)
+        ->where('slug', 'testuser')
+        ->first();
+
+    expect($shortLink)->not->toBeNull();
+
+    // Soft delete user
+    $user->delete();
+
+    // Short link should be soft deleted
+    $deletedShortLink = ShortLink::withTrashed()
+        ->where('user_id', $user->id)
+        ->where('slug', 'testuser')
+        ->first();
+
+    expect($deletedShortLink)->not->toBeNull();
+    expect($deletedShortLink->trashed())->toBeTrue();
+});
+
+test('restores short link when user is restored', function () {
+    $user = User::factory()->create([
+        'username' => 'testuser',
+    ]);
+
+    // Soft delete user
+    $user->delete();
+
+    // Restore user
+    $user->restore();
+
+    // Short link should be restored
+    $shortLink = ShortLink::where('user_id', $user->id)
+        ->where('slug', 'testuser')
+        ->first();
+
+    expect($shortLink)->not->toBeNull();
+    expect($shortLink->trashed())->toBeFalse();
+});
+
+test('creates short link when project is created', function () {
+    $user = User::factory()->create();
+
+    $project = Project::factory()->create([
+        'name' => 'Mega Project',
+        'username' => 'megaproject',
+        'created_by' => $user->id,
+    ]);
+
+    $shortLink = ShortLink::where('slug', 'megaproject')
+        ->first();
+
+    expect($shortLink)->not->toBeNull();
+    expect($shortLink->destination_url)->toContain('/projects/megaproject');
+    expect($shortLink->is_active)->toBeTrue();
+});
+
+test('updates short link when project username is changed', function () {
+    $user = User::factory()->create();
+
+    $project = Project::factory()->create([
+        'name' => 'Old Project Name',
+        'username' => 'oldprojectname',
+        'created_by' => $user->id,
+    ]);
+
+    $oldShortLink = ShortLink::where('slug', 'oldprojectname')
+        ->first();
+
+    expect($oldShortLink)->not->toBeNull();
+
+    // Update project username
+    $project->update(['username' => 'newprojectname']);
+
+    // Short link should be updated
+    $updatedShortLink = ShortLink::where('slug', 'newprojectname')
+        ->first();
+
+    expect($updatedShortLink)->not->toBeNull();
+    expect($updatedShortLink->id)->toBe($oldShortLink->id);
+    expect($updatedShortLink->destination_url)->toContain('/projects/newprojectname');
+
+    // Old slug should not exist
+    $oldSlugExists = ShortLink::where('slug', 'oldprojectname')->exists();
+    expect($oldSlugExists)->toBeFalse();
+});
+
+test('soft deletes short link when project is soft deleted', function () {
+    $user = User::factory()->create();
+
+    $project = Project::factory()->create([
+        'name' => 'Test Project',
+        'username' => 'testproject',
+        'created_by' => $user->id,
+    ]);
+
+    $shortLink = ShortLink::where('slug', 'testproject')
+        ->first();
+
+    expect($shortLink)->not->toBeNull();
+
+    // Soft delete project
+    $project->delete();
+
+    // Short link should be soft deleted
+    $deletedShortLink = ShortLink::withTrashed()
+        ->where('slug', 'testproject')
+        ->first();
+
+    expect($deletedShortLink)->not->toBeNull();
+    expect($deletedShortLink->trashed())->toBeTrue();
+});
+
+test('restores short link when project is restored', function () {
+    $user = User::factory()->create();
+
+    $project = Project::factory()->create([
+        'name' => 'Test Project',
+        'username' => 'testproject',
+        'created_by' => $user->id,
+    ]);
+
+    // Soft delete project
+    $project->delete();
+
+    // Restore project
+    $project->restore();
+
+    // Short link should be restored
+    $shortLink = ShortLink::where('slug', 'testproject')
+        ->first();
+
+    expect($shortLink)->not->toBeNull();
+    expect($shortLink->trashed())->toBeFalse();
+});
+
+test('can access user profile via new route', function () {
+    $user = User::factory()->create([
+        'username' => 'testuser',
+        'status' => 'active',
+    ]);
+
+    $response = $this->getJson("/api/users/{$user->username}");
+
+    $response->assertOk()
+        ->assertJsonStructure([
+            'data' => [
+                'id',
+                'username',
+                'name',
+            ],
+        ]);
+});
+
+test('can access project profile via new route', function () {
+    $user = User::factory()->create();
+
+    $project = Project::factory()->create([
+        'name' => 'Test Project',
+        'username' => 'testproject',
+        'status' => 'active',
+        'visibility' => 'public',
+        'created_by' => $user->id,
+    ]);
+
+    $response = $this->getJson("/api/projects/{$project->username}");
+
+    $response->assertOk()
+        ->assertJsonStructure([
+            'data' => [
+                'id',
+                'username',
+                'name',
+            ],
+        ]);
+});
+
+test('can resolve short link via new route', function () {
+    $user = User::factory()->create([
+        'username' => 'testuser',
+    ]);
+
+    $shortLink = ShortLink::where('slug', 'testuser')->first();
+
+    $response = $this->getJson("/api/s/{$shortLink->slug}");
+
+    $response->assertOk()
+        ->assertJson([
+            'data' => [
+                'destination_url' => $shortLink->destination_url,
+            ],
+        ]);
+});

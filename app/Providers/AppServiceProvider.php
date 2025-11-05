@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Project;
+use App\Models\User;
+use App\Observers\ProjectObserver;
+use App\Observers\UserObserver;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -26,5 +30,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
+
+        // Register observers
+        User::observe(UserObserver::class);
+        Project::observe(ProjectObserver::class);
     }
 }

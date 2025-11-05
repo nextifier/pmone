@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Project;
+use App\Models\ShortLink;
 
 class ProjectObserver
 {
@@ -11,7 +12,16 @@ class ProjectObserver
      */
     public function created(Project $project): void
     {
-        //
+        // Create a short link for the project profile
+        $frontendUrl = config('app.frontend_url', config('app.url'));
+        $profileUrl = rtrim($frontendUrl, '/').'/projects/'.$project->username;
+
+        ShortLink::create([
+            'user_id' => $project->created_by ?? auth()->id(),
+            'slug' => $project->username,
+            'destination_url' => $profileUrl,
+            'is_active' => true,
+        ]);
     }
 
     /**
@@ -19,7 +29,24 @@ class ProjectObserver
      */
     public function updated(Project $project): void
     {
-        //
+        // If username changed, update the associated short link
+        if ($project->isDirty('username')) {
+            $oldUsername = $project->getOriginal('username');
+
+            // Find the short link with the old username
+            $shortLink = ShortLink::where('slug', $oldUsername)
+                ->first();
+
+            if ($shortLink) {
+                $frontendUrl = config('app.frontend_url', config('app.url'));
+                $profileUrl = rtrim($frontendUrl, '/').'/projects/'.$project->username;
+
+                $shortLink->update([
+                    'slug' => $project->username,
+                    'destination_url' => $profileUrl,
+                ]);
+            }
+        }
     }
 
     /**
@@ -27,7 +54,11 @@ class ProjectObserver
      */
     public function deleted(Project $project): void
     {
-        //
+        // Soft delete the associated short link
+        if (! $project->isForceDeleting()) {
+            ShortLink::where('slug', $project->username)
+                ->delete();
+        }
     }
 
     /**
@@ -35,7 +66,10 @@ class ProjectObserver
      */
     public function restored(Project $project): void
     {
-        //
+        // Restore the associated short link
+        ShortLink::withTrashed()
+            ->where('slug', $project->username)
+            ->restore();
     }
 
     /**
@@ -43,6 +77,9 @@ class ProjectObserver
      */
     public function forceDeleted(Project $project): void
     {
-        //
+        // Force delete the associated short link
+        ShortLink::withTrashed()
+            ->where('slug', $project->username)
+            ->forceDelete();
     }
 }

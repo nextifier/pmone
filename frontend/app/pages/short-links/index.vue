@@ -26,7 +26,9 @@
         >
           <Spinner v-if="exportPending" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
-          <span class="hidden sm:inline">Export {{ columnFilters?.length ? "selected" : "all" }}</span>
+          <span class="hidden sm:inline"
+            >Export {{ columnFilters?.length ? "selected" : "all" }}</span
+          >
         </button>
 
         <nuxt-link
@@ -152,6 +154,7 @@
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import ImportDialog from "@/components/short-link/ImportDialog.vue";
+import LinkTableItem from "@/components/short-link/LinkTableItem.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -169,7 +172,13 @@ defineOptions({
   name: "short-links",
 });
 
-usePageMeta("short-links");
+const title = "Short Links";
+const description = "Shorten your long URLs.";
+
+usePageMeta("", {
+  title: title,
+  description: description,
+});
 
 const { user } = useSanctumAuth();
 const { $dayjs } = useNuxtApp();
@@ -283,28 +292,12 @@ const columns = [
     enableHiding: false,
   },
   {
-    header: "Slug",
+    header: "Link",
     accessorKey: "slug",
     cell: ({ row }) =>
-      h("div", { class: "flex flex-col gap-1" }, [
-        h(
-          resolveComponent("NuxtLink"),
-          {
-            to: `/short-links/${row.original.slug}/edit`,
-            class: "font-medium hover:opacity-80 transition-opacity",
-          },
-          { default: () => row.original.slug }
-        ),
-        h(
-          "a",
-          {
-            href: row.original.destination_url,
-            target: "_blank",
-            class: "text-muted-foreground text-xs hover:opacity-80 transition-opacity truncate max-w-md",
-          },
-          row.original.destination_url
-        ),
-      ]),
+      h(LinkTableItem, {
+        link: row.original,
+      }),
     size: 300,
     enableHiding: false,
     filterFn: (row, columnId, filterValue) => {
@@ -481,7 +474,7 @@ const handleExport = async () => {
 
     const statusFilter = columnFilters.value.find((f) => f.id === "is_active");
     if (statusFilter?.value) {
-      const statuses = statusFilter.value.map((val) => val ? "active" : "inactive");
+      const statuses = statusFilter.value.map((val) => (val ? "active" : "inactive"));
       params.append("filter_status", statuses.join(","));
     }
 

@@ -6,7 +6,7 @@
     :visits-data="visitsData"
     :clicks-data="clicksData"
     v-model:selected-period="selectedPeriod"
-    :back-destination="`/${username}`"
+    :back-destination="`/users/${username}`"
   />
 </template>
 
@@ -63,7 +63,7 @@ watch(
   [authUser, user],
   ([newAuthUser, newUser]) => {
     if (newUser && !canViewAnalytics.value) {
-      navigateTo(`/${username.value}`);
+      navigateTo(`/users/${username.value}`);
     }
   },
   { immediate: true }
