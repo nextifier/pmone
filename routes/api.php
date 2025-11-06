@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ShortLinkController;
 use App\Http\Controllers\Api\TemporaryUploadController;
 use App\Http\Controllers\Api\TrackingController;
@@ -59,6 +60,19 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::put('/{user}', [UserController::class, 'update'])->middleware('can:users.edit');
         Route::delete('/{user}', [UserController::class, 'destroy'])->middleware('can:users.delete');
     });
+
+    // Role management endpoints (master only)
+    Route::prefix('roles')->group(function () {
+        Route::get('/', [RoleController::class, 'index']);
+        Route::post('/', [RoleController::class, 'store']);
+        Route::delete('/bulk', [RoleController::class, 'bulkDestroy']);
+        Route::get('/{name}', [RoleController::class, 'show']);
+        Route::put('/{name}', [RoleController::class, 'update']);
+        Route::delete('/{name}', [RoleController::class, 'destroy']);
+    });
+
+    // Permission endpoints (master only)
+    Route::get('/permissions', [RoleController::class, 'permissions']);
 
     // Project management endpoints
     Route::prefix('projects')->group(function () {
