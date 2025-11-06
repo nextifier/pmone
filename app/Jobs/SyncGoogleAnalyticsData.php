@@ -4,10 +4,10 @@ namespace App\Jobs;
 
 use App\Models\GaProperty;
 use App\Services\GoogleAnalytics\AnalyticsService;
+use App\Services\GoogleAnalytics\Period;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
-use Spatie\Analytics\Period;
 use Throwable;
 
 class SyncGoogleAnalyticsData implements ShouldQueue
