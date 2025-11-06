@@ -43,6 +43,16 @@ class AnalyticsService
      */
     public function getPropertyAnalytics(GaProperty $property, Period $period): array
     {
+        $metricsData = $this->dataFetcher->fetchMetrics($property, $period);
+
+        // Extract data from cache wrapper if present
+        $metrics = $metricsData['data'] ?? $metricsData;
+
+        // Calculate totals from rows if totals are empty
+        if (empty($metrics['totals']) && ! empty($metrics['rows'])) {
+            $metrics['totals'] = $this->calculateTotalsFromRows($metrics['rows']);
+        }
+
         return [
             'property' => [
                 'id' => $property->id,
@@ -51,7 +61,8 @@ class AnalyticsService
                 'account_name' => $property->account_name,
                 'last_synced_at' => $property->last_synced_at,
             ],
-            'metrics' => $this->dataFetcher->fetchMetrics($property, $period),
+            'metrics' => $metrics['totals'] ?? [],
+            'rows' => $metrics['rows'] ?? [],
             'top_pages' => $this->dataFetcher->fetchTopPages($property, $period, 10),
             'traffic_sources' => $this->dataFetcher->fetchTrafficSources($property, $period),
             'devices' => $this->dataFetcher->fetchDevices($property, $period),
@@ -60,6 +71,49 @@ class AnalyticsService
                 'end_date' => $period->endDate->format('Y-m-d'),
             ],
         ];
+    }
+
+    /**
+     * Calculate totals from rows data.
+     */
+    protected function calculateTotalsFromRows(array $rows): array
+    {
+        if (empty($rows)) {
+            return [];
+        }
+
+        $totals = [];
+        $firstRow = reset($rows);
+
+        // Initialize totals for each metric (excluding 'date')
+        foreach (array_keys($firstRow) as $key) {
+            if ($key !== 'date') {
+                $totals[$key] = 0;
+            }
+        }
+
+        // Sum up all values
+        foreach ($rows as $row) {
+            foreach ($totals as $key => $value) {
+                if (isset($row[$key])) {
+                    // For rates (bounceRate), calculate average instead of sum
+                    if (str_contains($key, 'Rate')) {
+                        continue; // We'll calculate average separately
+                    }
+                    $totals[$key] += $row[$key];
+                }
+            }
+        }
+
+        // Calculate average for rate metrics
+        foreach (array_keys($firstRow) as $key) {
+            if (str_contains($key, 'Rate')) {
+                $sum = array_sum(array_column($rows, $key));
+                $totals[$key] = count($rows) > 0 ? $sum / count($rows) : 0;
+            }
+        }
+
+        return $totals;
     }
 
     /**

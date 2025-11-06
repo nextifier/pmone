@@ -185,6 +185,9 @@ class GoogleAnalyticsController extends Controller
      */
     public function getPropertyAnalytics(GetAnalyticsRequest $request, int $id): JsonResponse
     {
+        // Increase execution time for API requests
+        set_time_limit(120);
+
         $property = GaProperty::findOrFail($id);
 
         $period = $this->createPeriodFromRequest($request);
@@ -201,6 +204,9 @@ class GoogleAnalyticsController extends Controller
      */
     public function getAggregatedAnalytics(GetAnalyticsRequest $request): JsonResponse
     {
+        // Increase execution time for API requests
+        set_time_limit(120);
+
         $period = $this->createPeriodFromRequest($request);
         $propertyIds = $request->input('property_ids');
 

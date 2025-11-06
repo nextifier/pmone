@@ -20,7 +20,6 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read Model|\Eloquent $visitable
  * @property-read \App\Models\User|null $visitor
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Visit anonymous()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Visit authenticated()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Visit inDateRange($startDate, $endDate)
@@ -38,7 +37,6 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Visit whereVisitableType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Visit whereVisitedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Visit whereVisitorId($value)
- *
  * @mixin \Eloquent
  */
 class Visit extends Model

@@ -30,6 +30,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property string $visibility
  * @property string|null $email
  * @property array<array-key, mixed>|null $phone
+ * @property int|null $order_column
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $deleted_at
@@ -49,13 +50,13 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property-read \App\Models\User|null $updater
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
  * @property-read int|null $visits_count
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project byStatus(string $status)
  * @method static \Database\Factories\ProjectFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project ordered(string $direction = 'asc')
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project public()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereBio($value)
@@ -67,6 +68,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereMoreDetails($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereOrderColumn($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project wherePhone($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereSettings($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereStatus($value)
@@ -77,7 +79,6 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereVisibility($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class Project extends Model implements HasMedia, Sortable

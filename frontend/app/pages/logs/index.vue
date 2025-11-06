@@ -98,7 +98,7 @@ defineOptions({
 usePageMeta("logs");
 
 const { user } = useSanctumAuth();
-const { $dayjs } = useNuxtApp();
+const { $ } = useNuxtApp();
 
 // Table state
 const columnFilters = ref([]);
@@ -290,8 +290,8 @@ const columns = [
     cell: ({ row }) => {
       const date = row.getValue("created_at");
       return withDirectives(
-        h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $dayjs(date).fromNow()),
-        [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
+        h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $(date).fromNow()),
+        [[resolveDirective("tippy"), $(date).format("MMMM D, YYYY [at] h:mm A")]]
       );
     },
     size: 120,

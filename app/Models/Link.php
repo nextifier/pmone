@@ -20,7 +20,6 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Click> $clicks
  * @property-read int|null $clicks_count
  * @property-read Model|\Eloquent $linkable
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Link active()
  * @method static \Database\Factories\LinkFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Link newModelQuery()
@@ -35,7 +34,6 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Link whereOrder($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Link whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Link whereUrl($value)
- *
  * @mixin \Eloquent
  */
 class Link extends Model

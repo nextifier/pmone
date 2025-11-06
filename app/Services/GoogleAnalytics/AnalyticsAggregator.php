@@ -12,6 +12,49 @@ class AnalyticsAggregator
     ) {}
 
     /**
+     * Calculate totals from rows data.
+     */
+    protected function calculateTotalsFromRows(array $rows): array
+    {
+        if (empty($rows)) {
+            return [];
+        }
+
+        $totals = [];
+        $firstRow = reset($rows);
+
+        // Initialize totals for each metric (excluding 'date')
+        foreach (array_keys($firstRow) as $key) {
+            if ($key !== 'date') {
+                $totals[$key] = 0;
+            }
+        }
+
+        // Sum up all values
+        foreach ($rows as $row) {
+            foreach ($totals as $key => $value) {
+                if (isset($row[$key])) {
+                    // For rates (bounceRate), calculate average instead of sum
+                    if (str_contains($key, 'Rate') || str_contains($key, 'Duration')) {
+                        continue; // We'll calculate average separately
+                    }
+                    $totals[$key] += $row[$key];
+                }
+            }
+        }
+
+        // Calculate average for rate and duration metrics
+        foreach (array_keys($firstRow) as $key) {
+            if (str_contains($key, 'Rate') || str_contains($key, 'Duration')) {
+                $sum = array_sum(array_column($rows, $key));
+                $totals[$key] = count($rows) > 0 ? $sum / count($rows) : 0;
+            }
+        }
+
+        return $totals;
+    }
+
+    /**
      * Aggregate metrics from multiple properties.
      */
     public function aggregateMetrics(Collection $properties, Period $period): array
@@ -33,8 +76,16 @@ class AnalyticsAggregator
             try {
                 $data = $this->dataFetcher->fetchMetrics($property, $period);
 
-                if (isset($data['data']['totals'])) {
-                    $totals = $data['data']['totals'];
+                // Extract data from cache wrapper if present
+                $metricsData = $data['data'] ?? $data;
+
+                // Calculate totals from rows if totals are empty
+                if (empty($metricsData['totals']) && ! empty($metricsData['rows'])) {
+                    $metricsData['totals'] = $this->calculateTotalsFromRows($metricsData['rows']);
+                }
+
+                if (! empty($metricsData['totals'])) {
+                    $totals = $metricsData['totals'];
 
                     $aggregated['activeUsers'] += $totals['activeUsers'] ?? 0;
                     $aggregated['newUsers'] += $totals['newUsers'] ?? 0;
@@ -214,16 +265,32 @@ class AnalyticsAggregator
      */
     public function getDashboardData(Collection $properties, Period $period): array
     {
+        $metricsData = $this->aggregateMetrics($properties, $period);
+        $topPagesData = $this->aggregateTopPages($properties, $period, 20);
+        $trafficSourcesData = $this->aggregateTrafficSources($properties, $period);
+        $devicesData = $this->aggregateDevices($properties, $period);
+
         return [
-            'metrics' => $this->aggregateMetrics($properties, $period),
-            'top_pages' => $this->aggregateTopPages($properties, $period, 20),
-            'traffic_sources' => $this->aggregateTrafficSources($properties, $period),
-            'devices' => $this->aggregateDevices($properties, $period),
+            // Frontend expects 'totals' at root level
+            'totals' => $metricsData['aggregated_totals'],
+            'property_breakdown' => $metricsData['property_breakdown'],
+            'successful_fetches' => $metricsData['successful_fetches'],
+            'top_pages' => $topPagesData['top_pages'],
+            'total_pages' => $topPagesData['total_pages'],
+            'traffic_sources' => $trafficSourcesData['traffic_sources'],
+            'total_sources' => $trafficSourcesData['total_sources'],
+            'devices' => $devicesData['devices'],
             'period' => [
                 'start_date' => $period->startDate->format('Y-m-d'),
                 'end_date' => $period->endDate->format('Y-m-d'),
             ],
             'properties_count' => $properties->count(),
+            'errors' => array_merge(
+                $metricsData['errors'] ?? [],
+                $topPagesData['errors'] ?? [],
+                $trafficSourcesData['errors'] ?? [],
+                $devicesData['errors'] ?? []
+            ),
         ];
     }
 }

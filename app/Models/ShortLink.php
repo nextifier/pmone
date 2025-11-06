@@ -13,26 +13,46 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $user_id
  * @property string $slug
  * @property string $destination_url
+ * @property string|null $og_title
+ * @property string|null $og_description
+ * @property string|null $og_image
+ * @property string $og_type
  * @property bool $is_active
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Click> $clicks
- * @property-read int|null $clicks_count
+ * @property-read int $clicks_count
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\User|null $deleter
+ * @property-read \App\Models\User|null $updater
  * @property-read \App\Models\User $user
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink active()
  * @method static \Database\Factories\ShortLinkFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereDeletedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereDestinationUrl($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereOgDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereOgImage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereOgTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereOgType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereSlug($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereUserId($value)
- *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink withoutTrashed()
  * @mixin \Eloquent
  */
 class ShortLink extends Model

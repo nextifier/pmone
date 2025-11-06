@@ -14,23 +14,41 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $account_name
  * @property bool $is_active
  * @property \Illuminate\Support\Carbon|null $last_synced_at
- * @property int $sync_frequency
- * @property int $rate_limit_per_hour
+ * @property int $sync_frequency Sync frequency in minutes
+ * @property int $rate_limit_per_hour Max requests per hour
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $deleted_at
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
- *
- * @method static \Database\Factories\GaPropertyFactory factory($count = null, $state = [])
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\User|null $deleter
+ * @property-read \App\Models\User|null $updater
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty active()
+ * @method static \Database\Factories\GaPropertyFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty inactive()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty needsSync()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty query()
- *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereAccountName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereDeletedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereLastSyncedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty wherePropertyId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereRateLimitPerHour($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereSyncFrequency($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereUpdatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withoutTrashed()
  * @mixin \Eloquent
  */
 class GaProperty extends Model

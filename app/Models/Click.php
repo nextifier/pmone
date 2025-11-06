@@ -20,9 +20,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read Model|\Eloquent $clickable
  * @property-read \App\Models\User|null $clicker
- *
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Click authenticated()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click anonymous()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Click authenticated()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click inDateRange($startDate, $endDate)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click lastDays(int $days = 7)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click newModelQuery()
@@ -39,7 +38,6 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereReferer($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereUserAgent($value)
- *
  * @mixin \Eloquent
  */
 class Click extends Model
