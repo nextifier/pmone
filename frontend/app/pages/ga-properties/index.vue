@@ -148,7 +148,7 @@ const { $dayjs } = useNuxtApp();
 // Table state
 const columnFilters = ref([]);
 const pagination = ref({ pageIndex: 0, pageSize: 10 });
-const sorting = ref([{ id: "created_at", desc: true }]);
+const sorting = ref([{ id: "last_synced_at", desc: true }]);
 
 // Data state
 const data = ref([]);
@@ -184,7 +184,7 @@ const buildQueryParams = () => {
     });
 
     // Sorting
-    const sortField = sorting.value[0]?.id || "created_at";
+    const sortField = sorting.value[0]?.id || "last_synced_at";
     const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
     params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
   }
