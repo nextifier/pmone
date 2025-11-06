@@ -396,6 +396,7 @@
 
 <script setup>
 const { $dayjs } = useNuxtApp();
+const analyticsStore = useAnalyticsStore();
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -479,6 +480,13 @@ const totalDeviceUsers = computed(() => {
 
 // Fetch analytics data
 const fetchAnalytics = async () => {
+  // Check Pinia store first for fresh data
+  if (analyticsStore.isAggregateFresh) {
+    console.log("✅ Using Pinia cache for aggregate data");
+    aggregateData.value = analyticsStore.aggregateData;
+    return;
+  }
+
   loading.value = true;
   error.value = null;
 
@@ -492,6 +500,10 @@ const fetchAnalytics = async () => {
 
     console.log("Aggregate data received:", data);
     aggregateData.value = data;
+
+    // Save to Pinia store for future use
+    analyticsStore.setAggregate(data);
+    console.log("💾 Saved aggregate data to Pinia store");
   } catch (err) {
     console.error("Error fetching analytics:", err);
     error.value =
