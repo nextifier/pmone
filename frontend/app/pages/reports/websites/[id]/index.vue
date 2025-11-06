@@ -531,7 +531,7 @@ const fetchPropertyAnalytics = async () => {
     console.log("Fetching property analytics for", propertyId);
 
     const { data } = await client(
-      `/api/google-analytics/ga-properties/${propertyId}/analytics?start_date=${startDateStr}&end_date=${endDateStr}`
+      `/api/google-analytics/properties/${propertyId}/analytics?start_date=${startDateStr}&end_date=${endDateStr}`
     );
 
     console.log("Property data received:", data);
