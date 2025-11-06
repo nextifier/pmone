@@ -3,13 +3,12 @@
 namespace App\Services\GoogleAnalytics;
 
 use App\Models\GaProperty;
+use App\Services\GoogleAnalytics\Period;
 use Google\Analytics\Data\V1beta\Client\BetaAnalyticsDataClient;
 use Google\Analytics\Data\V1beta\DateRange;
 use Google\Analytics\Data\V1beta\Dimension;
 use Google\Analytics\Data\V1beta\Metric;
 use Google\Analytics\Data\V1beta\RunReportRequest;
-use Spatie\Analytics\Analytics;
-use Spatie\Analytics\Period;
 
 class AnalyticsDataFetcher
 {

@@ -5,8 +5,8 @@ namespace App\Console\Commands;
 use App\Jobs\SyncGoogleAnalyticsData;
 use App\Models\GaProperty;
 use App\Services\GoogleAnalytics\AnalyticsService;
+use App\Services\GoogleAnalytics\Period;
 use Illuminate\Console\Command;
-use Spatie\Analytics\Period;
 
 class SyncGoogleAnalytics extends Command
 {

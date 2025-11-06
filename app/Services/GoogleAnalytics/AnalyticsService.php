@@ -3,9 +3,9 @@
 namespace App\Services\GoogleAnalytics;
 
 use App\Models\GaProperty;
+use App\Services\GoogleAnalytics\Period;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Spatie\Analytics\Period;
 
 class AnalyticsService
 {

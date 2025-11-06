@@ -3,11 +3,11 @@
 namespace App\Jobs;
 
 use App\Services\GoogleAnalytics\AnalyticsService;
+use App\Services\GoogleAnalytics\Period;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Spatie\Analytics\Period;
 use Throwable;
 
 class AggregateAnalyticsData implements ShouldQueue

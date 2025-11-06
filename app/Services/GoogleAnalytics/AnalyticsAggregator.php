@@ -2,8 +2,8 @@
 
 namespace App\Services\GoogleAnalytics;
 
+use App\Services\GoogleAnalytics\Period;
 use Illuminate\Support\Collection;
-use Spatie\Analytics\Period;
 
 class AnalyticsAggregator
 {
