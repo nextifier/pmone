@@ -57,25 +57,6 @@
         </nuxt-link>
       </div>
     </form>
-
-    <div v-if="mode === 'edit' && shortLink" class="frame !bg-background p-4">
-      <div class="flex items-end justify-between gap-2">
-        <div class="flex flex-col items-start gap-y-2">
-          <div class="text-sm font-medium tracking-tight">Total Clicks</div>
-          <div class="text-3xl font-bold tracking-tighter">
-            {{ shortLink.clicks_count?.toLocaleString() || 0 }}
-          </div>
-        </div>
-
-        <nuxt-link
-          :to="`/short-links/${shortLink.slug}/analytics`"
-          class="text-primary bg-muted hover:bg-border inline-flex items-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight"
-        >
-          <Icon name="lucide:chart-no-axes-combined" class="size-4" />
-          <span>View Analytics</span>
-        </nuxt-link>
-      </div>
-    </div>
   </div>
 </template>
 

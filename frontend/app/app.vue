@@ -6,7 +6,7 @@
       <NuxtLayout>
         <NuxtPage
           :keepalive="{
-            include: ['users'],
+            include: [],
           }"
         />
       </NuxtLayout>

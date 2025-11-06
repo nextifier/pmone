@@ -89,15 +89,27 @@ const navMainGroups = computed(() => {
           path: "/posts",
           iconName: "hugeicons:task-edit-01",
         },
-        {
-          label: "Reports",
-          path: "/reports",
-          iconName: "hugeicons:analysis-text-link",
-        },
+        // {
+        //   label: "Reports",
+        //   path: "/reports",
+        //   iconName: "hugeicons:analysis-text-link",
+        // },
         {
           label: "Short Links",
           path: "/short-links",
           iconName: "hugeicons:unlink-02",
+        },
+        {
+          label: "Reports",
+          path: "/reports",
+          iconName: "hugeicons:analysis-text-link",
+          isActive: false,
+          items: [
+            {
+              label: "Web Analytics",
+              path: "/reports/websites",
+            },
+          ],
         },
       ],
     },

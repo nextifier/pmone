@@ -1,20 +1,27 @@
 <template>
-  <div class="mx-auto max-w-xl space-y-9">
+  <div class="mx-auto max-w-lg space-y-6">
     <div class="flex flex-col items-start gap-y-6">
       <BackButton destination="/short-links" />
-      <h1 class="page-title">Edit Short Link</h1>
+
+      <div class="flex w-full items-center justify-between gap-2">
+        <h1 class="page-title">Edit Short Link</h1>
+
+        <nuxt-link
+          v-if="shortLink?.slug"
+          :to="`/short-links/${shortLink.slug}/analytics`"
+          class="text-primary bg-muted hover:bg-border inline-flex items-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight"
+        >
+          <Icon name="lucide:chart-no-axes-combined" class="size-4" />
+          <span>View Analytics</span>
+        </nuxt-link>
+      </div>
     </div>
 
     <div v-if="loadingData" class="flex justify-center py-12">
-      <Spinner class="size-8" />
+      <Spinner class="size-5" />
     </div>
 
-    <FormShortLink
-      v-else-if="shortLink"
-      ref="formRef"
-      mode="edit"
-      :short-link="shortLink"
-    />
+    <FormShortLink v-else-if="shortLink" ref="formRef" mode="edit" :short-link="shortLink" />
 
     <div v-else class="py-12 text-center">
       <p class="text-muted-foreground">Short link not found</p>

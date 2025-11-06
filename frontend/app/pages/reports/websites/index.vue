@@ -1,5 +1,5 @@
 <template>
-  <ComingSoon title="Reports" iconName="hugeicons:analysis-text-link" />
+  <ComingSoon title="Web Analytics" iconName="hugeicons:analysis-text-link" />
 </template>
 
 <script setup>
@@ -9,7 +9,7 @@ definePageMeta({
 });
 
 usePageMeta("", {
-  title: `Reports`,
+  title: `Web Analytics`,
   description: "",
 });
 </script>

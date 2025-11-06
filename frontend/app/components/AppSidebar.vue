@@ -18,7 +18,7 @@
         </div>
       </NuxtLink>
     </SidebarHeader>
-    <SidebarContent>
+    <SidebarContent class="">
       <AppSidebarNavMain />
       <AppSidebarNavProjects />
     </SidebarContent>
