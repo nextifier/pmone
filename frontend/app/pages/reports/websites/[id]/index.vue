@@ -500,6 +500,7 @@
 <script setup>
 const { $dayjs } = useNuxtApp();
 const route = useRoute();
+const analyticsStore = useAnalyticsStore();
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -621,12 +622,28 @@ const totalDeviceUsers = computed(() => {
 
 // Fetch property analytics
 const fetchPropertyAnalytics = async () => {
+  const propertyId = route.params.id;
+
+  // Check Pinia store first for fresh data
+  if (analyticsStore.isFresh(propertyId)) {
+    console.log("✅ Using Pinia cache for property", propertyId);
+    propertyData.value = analyticsStore.getProperty(propertyId);
+
+    // Update page title with cached property name
+    if (propertyData.value?.property?.name) {
+      usePageMeta("", {
+        title: `${propertyData.value.property.name} - Analytics`,
+        description: `Detailed analytics for ${propertyData.value.property.name}`,
+      });
+    }
+    return;
+  }
+
   loading.value = true;
   error.value = null;
 
   try {
     const client = useSanctumClient();
-    const propertyId = route.params.id;
     const startDateStr = startDate.value.format("YYYY-MM-DD");
     const endDateStr = endDate.value.format("YYYY-MM-DD");
 
@@ -638,6 +655,10 @@ const fetchPropertyAnalytics = async () => {
 
     console.log("Property data received:", data);
     propertyData.value = data;
+
+    // Save to Pinia store for future use
+    analyticsStore.setProperty(propertyId, data);
+    console.log("💾 Saved property data to Pinia store");
 
     // Update page title with property name
     if (data?.property?.name) {
