@@ -34,7 +34,7 @@ class SyncGoogleAnalyticsData implements ShouldQueue
      */
     public function __construct(
         public int $propertyId,
-        public int $days = 7,
+        public int $days = 30,
     ) {}
 
     /**

@@ -17,7 +17,7 @@ class SyncGoogleAnalytics extends Command
      */
     protected $signature = 'analytics:sync
                             {--property= : Sync specific property by ID}
-                            {--days=7 : Number of days to sync (default: 7)}
+                            {--days=30 : Number of days to sync (default: 30)}
                             {--queue : Dispatch sync jobs to queue}
                             {--only-needed : Only sync properties that need syncing}';
 

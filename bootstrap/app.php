@@ -35,10 +35,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('tracking:cleanup')->dailyAt('02:00');
 
         // Sync Google Analytics properties that need updating, run every 10 minutes
-        $schedule->command('analytics:sync --only-needed --queue')->everyTenMinutes();
+        $schedule->command('analytics:sync --days=30 --only-needed --queue')->everyTenMinutes();
 
         // Aggregate analytics data for dashboard, run every 15 minutes
-        $schedule->job(new \App\Jobs\AggregateAnalyticsData(null, 7))->everyFifteenMinutes();
+        $schedule->job(new \App\Jobs\AggregateAnalyticsData(null, 30))->everyFifteenMinutes();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Force JSON response for API requests
