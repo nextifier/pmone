@@ -24,7 +24,7 @@ class SmartAnalyticsCache
         $cacheKey = $this->generateCacheKey($property->property_id, $startDate, $endDate);
         $rateLimitKey = $this->generateRateLimitKey($property->property_id);
 
-        // Check if data exists in cache
+        // Check if exact match exists in cache
         $cachedData = Cache::get($cacheKey);
         $cacheTimestamp = Cache::get("{$cacheKey}_timestamp");
 
@@ -33,6 +33,18 @@ class SmartAnalyticsCache
                 'data' => $cachedData,
                 'cached_at' => $cacheTimestamp,
                 'is_fresh' => true,
+            ];
+        }
+
+        // NEW: Try to find subset from larger cached period
+        $subsetData = $this->findSubsetFromLargerCache($property->property_id, $startDate, $endDate);
+
+        if ($subsetData) {
+            return [
+                'data' => $subsetData,
+                'cached_at' => now(),
+                'is_fresh' => true,
+                'from_subset' => true,
             ];
         }
 
@@ -149,6 +161,128 @@ class SmartAnalyticsCache
     {
         // Convert hourly rate limit to per-sync-frequency limit
         return (int) ceil($property->rate_limit_per_hour / (60 / $property->sync_frequency));
+    }
+
+    /**
+     * Try to find subset data from larger cached period.
+     *
+     * This method checks if there's a larger period cache that contains
+     * the requested date range, and extracts a subset from it.
+     */
+    protected function findSubsetFromLargerCache(
+        string $propertyId,
+        string $requestStart,
+        string $requestEnd
+    ): ?array {
+        // Common larger periods to check (30, 60, 90 days)
+        $largerPeriods = [30, 60, 90];
+        $today = now();
+
+        foreach ($largerPeriods as $days) {
+            $largeStart = $today->copy()->subDays($days)->format('Y-m-d');
+            $largeEnd = $today->format('Y-m-d');
+            $largeCacheKey = $this->generateCacheKey($propertyId, $largeStart, $largeEnd);
+
+            $largeCache = Cache::get($largeCacheKey);
+            $largeCacheTimestamp = Cache::get("{$largeCacheKey}_timestamp");
+
+            // Skip if cache doesn't exist or is stale
+            if (! $largeCache || ! $this->isCacheStillFresh($largeCacheTimestamp)) {
+                continue;
+            }
+
+            // Check if requested period is within cached period
+            if ($requestStart >= $largeStart && $requestEnd <= $largeEnd) {
+                // Extract subset from the larger cache
+                return $this->extractSubsetFromRows($largeCache, $requestStart, $requestEnd);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Extract subset of data from larger cached period.
+     *
+     * Filters rows by date range and recalculates totals.
+     */
+    protected function extractSubsetFromRows(
+        array $cachedData,
+        string $startDate,
+        string $endDate
+    ): array {
+        // If no rows data, return as-is
+        if (! isset($cachedData['rows']) || empty($cachedData['rows'])) {
+            return $cachedData;
+        }
+
+        // Convert dates to comparable format (YYYYMMDD)
+        $start = str_replace('-', '', $startDate);
+        $end = str_replace('-', '', $endDate);
+
+        // Filter rows to match requested date range
+        $filteredRows = array_filter($cachedData['rows'], function ($row) use ($start, $end) {
+            $rowDate = (string) $row['date'];
+
+            return $rowDate >= $start && $rowDate <= $end;
+        });
+
+        // Recalculate totals from filtered rows
+        $totals = $this->calculateTotalsFromRows(array_values($filteredRows));
+
+        // Return subset data with recalculated totals
+        return [
+            'totals' => $totals,
+            'rows' => array_values($filteredRows),
+            // Note: top_pages, traffic_sources, devices are not filtered
+            // as they would need separate GA API calls to be accurate for subset
+        ];
+    }
+
+    /**
+     * Calculate totals from rows data.
+     *
+     * Sums up metrics across all rows to generate aggregate totals.
+     */
+    protected function calculateTotalsFromRows(array $rows): array
+    {
+        if (empty($rows)) {
+            return [];
+        }
+
+        $totals = [];
+        $firstRow = reset($rows);
+
+        // Initialize totals for each metric (excluding 'date')
+        foreach (array_keys($firstRow) as $key) {
+            if ($key !== 'date') {
+                $totals[$key] = 0;
+            }
+        }
+
+        // Sum up values from all rows
+        foreach ($rows as $row) {
+            foreach ($row as $key => $value) {
+                if ($key !== 'date' && isset($totals[$key])) {
+                    $totals[$key] += $value;
+                }
+            }
+        }
+
+        // Calculate averages for rate metrics (bounceRate, etc.)
+        $rowCount = count($rows);
+        if ($rowCount > 0) {
+            // Metrics that should be averaged instead of summed
+            $averageMetrics = ['bounceRate', 'averageSessionDuration', 'engagementRate'];
+
+            foreach ($averageMetrics as $metric) {
+                if (isset($totals[$metric])) {
+                    $totals[$metric] = $totals[$metric] / $rowCount;
+                }
+            }
+        }
+
+        return $totals;
     }
 
     /**
