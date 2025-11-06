@@ -23,7 +23,13 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('clicker_id')->references('id')->on('users')->onDelete('set null');
+
+            // Composite indexes
+            $table->index(['clickable_type', 'clickable_id', 'clicked_at']);
             $table->index(['clickable_type', 'clickable_id', 'clicker_id', 'clicked_at']);
+
+            // Single column indexes
+            $table->index('clicked_at');
         });
     }
 

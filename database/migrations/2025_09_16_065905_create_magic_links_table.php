@@ -21,7 +21,10 @@ return new class extends Migration
             $table->text('user_agent')->nullable();
             $table->timestamps();
 
+            // Composite indexes
             $table->index(['email', 'token']);
+
+            // Single column indexes
             $table->index('expires_at');
         });
     }

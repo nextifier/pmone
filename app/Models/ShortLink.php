@@ -63,18 +63,42 @@ class ShortLink extends Model
     {
         parent::boot();
 
+        static::creating(function ($model) {
+            if (auth()->check()) {
+                $model->created_by = auth()->id();
+            }
+        });
+
+        static::updating(function ($model) {
+            if (auth()->check()) {
+                $model->updated_by = auth()->id();
+            }
+        });
+
         static::deleting(function ($shortLink) {
             if ($shortLink->isForceDeleting()) {
                 return;
             }
-            $shortLink->deleted_by = auth()->id();
-            $shortLink->saveQuietly();
+            if (auth()->check()) {
+                $shortLink->deleted_by = auth()->id();
+                $shortLink->saveQuietly();
+            }
         });
     }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function deleter(): BelongsTo

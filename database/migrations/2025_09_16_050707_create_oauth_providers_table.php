@@ -20,8 +20,14 @@ return new class extends Migration
             $table->json('provider_data')->nullable(); // Store additional data
             $table->timestamps();
 
+            // Unique constraints
             $table->unique(['provider', 'provider_id']);
+
+            // Composite indexes
             $table->index(['user_id', 'provider']);
+
+            // Single column indexes
+            $table->index('provider_email');
         });
     }
 

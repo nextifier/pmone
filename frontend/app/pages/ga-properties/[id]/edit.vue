@@ -9,12 +9,7 @@
       <Spinner class="size-8" />
     </div>
 
-    <FormGaProperty
-      v-else-if="gaProperty"
-      ref="formRef"
-      mode="edit"
-      :ga-property="gaProperty"
-    />
+    <FormGaProperty v-else-if="gaProperty" ref="formRef" mode="edit" :ga-property="gaProperty" />
 
     <div v-else class="py-12 text-center">
       <p class="text-muted-foreground">GA4 property not found</p>
@@ -26,7 +21,7 @@
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth"],
+  middleware: ["sanctum:auth", "admin-master"],
   layout: "app",
 });
 

@@ -11,12 +11,12 @@
 
 <script setup>
 definePageMeta({
-  middleware: ["sanctum:auth"],
+  middleware: ["sanctum:auth", "admin-master"],
   layout: "app",
 });
 
 usePageMeta("", {
-  title: "Create GA4 Property",
+  title: "Create Google Analytics Property",
   description: "Add a new Google Analytics 4 property",
 });
 

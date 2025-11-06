@@ -20,7 +20,11 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
+            // Composite indexes
             $table->index(['linkable_type', 'linkable_id', 'is_active']);
+            $table->index(['linkable_type', 'linkable_id', 'order']);
+
+            // Single column indexes
             $table->index('order');
         });
     }

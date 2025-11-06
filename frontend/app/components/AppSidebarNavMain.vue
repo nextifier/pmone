@@ -126,6 +126,14 @@ const navMainGroups = computed(() => {
     });
   }
 
+  if (user.value?.roles?.some((role) => ["master", "admin"].includes(role))) {
+    adminItems.push({
+      label: "Google Analytics Properties",
+      path: "/ga-properties",
+      iconName: "hugeicons:analytics-01",
+    });
+  }
+
   // Activity Logs - only master and admin
   if (user.value?.roles?.some((role) => ["master", "admin"].includes(role))) {
     adminItems.push({

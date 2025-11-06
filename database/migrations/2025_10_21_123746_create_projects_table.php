@@ -30,8 +30,17 @@ return new class extends Migration
             $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->foreignId('deleted_by')->nullable()->constrained('users');
 
+            // Composite indexes
             $table->index(['username', 'status']);
+            $table->index(['status', 'visibility']);
+
+            // Single column indexes
+            $table->index('status');
             $table->index('visibility');
+            $table->index('order_column');
+            $table->index('deleted_at');
+            $table->index('created_by');
+            $table->index('updated_by');
         });
     }
 

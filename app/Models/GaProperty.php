@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id
@@ -16,6 +18,10 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $rate_limit_per_hour
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
  *
  * @method static \Database\Factories\GaPropertyFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty active()
@@ -30,7 +36,7 @@ use Illuminate\Database\Eloquent\Model;
 class GaProperty extends Model
 {
     /** @use HasFactory<\Database\Factories\GaPropertyFactory> */
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -109,5 +115,50 @@ class GaProperty extends Model
     public function markAsSynced(): void
     {
         $this->update(['last_synced_at' => now()]);
+    }
+
+    /**
+     * Boot method to handle audit columns.
+     */
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (auth()->check()) {
+                $model->created_by = auth()->id();
+            }
+        });
+
+        static::updating(function ($model) {
+            if (auth()->check()) {
+                $model->updated_by = auth()->id();
+            }
+        });
+
+        static::deleting(function ($model) {
+            if ($model->isForceDeleting() === false && auth()->check()) {
+                $model->deleted_by = auth()->id();
+                $model->saveQuietly();
+            }
+        });
+    }
+
+    /**
+     * Relationships
+     */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function deleter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 }

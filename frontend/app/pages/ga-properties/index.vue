@@ -2,18 +2,8 @@
   <div class="mx-auto max-w-4xl space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
-        <Icon name="hugeicons:analytics-02" class="size-5 sm:size-6" />
-        <h1 class="page-title">GA4 Properties</h1>
-      </div>
-
-      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <nuxt-link
-          to="/ga-properties/create"
-          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1 rounded-md px-3 py-2 text-sm font-medium tracking-tight active:scale-98"
-        >
-          <Icon name="hugeicons:add-01" class="size-4 shrink-0" />
-          <span>New Property</span>
-        </nuxt-link>
+        <Icon name="hugeicons:analytics-01" class="size-5 sm:size-6" />
+        <h1 class="page-title">Google Analytics Properties</h1>
       </div>
     </div>
 
@@ -96,7 +86,8 @@
               <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This action can't be undone. This will permanently delete
-                {{ selectedRows.length }} selected {{ selectedRows.length === 1 ? "property" : "properties" }}.
+                {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "property" : "properties" }}.
               </p>
               <div class="mt-3 flex justify-end gap-2">
                 <button
@@ -135,7 +126,7 @@ import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth"],
+  middleware: ["sanctum:auth", "admin-master"],
   layout: "app",
 });
 
@@ -143,7 +134,7 @@ defineOptions({
   name: "ga-properties",
 });
 
-const title = "GA4 Properties";
+const title = "Google Analytics Properties";
 const description = "Manage your Google Analytics 4 properties";
 
 usePageMeta("", {
@@ -312,7 +303,11 @@ const columns = [
       const name = row.original.name?.toLowerCase() || "";
       const propertyId = row.original.property_id?.toLowerCase() || "";
       const account = row.original.account_name?.toLowerCase() || "";
-      return name.includes(searchValue) || propertyId.includes(searchValue) || account.includes(searchValue);
+      return (
+        name.includes(searchValue) ||
+        propertyId.includes(searchValue) ||
+        account.includes(searchValue)
+      );
     },
   },
   {
@@ -446,7 +441,9 @@ const handleDeleteRows = async (selectedRows) => {
       tableRef.value.resetRowSelection();
     }
 
-    toast.success(`${propertyIds.length} propert${propertyIds.length === 1 ? "y" : "ies"} deleted successfully`);
+    toast.success(
+      `${propertyIds.length} propert${propertyIds.length === 1 ? "y" : "ies"} deleted successfully`
+    );
   } catch (error) {
     console.error("Failed to delete properties:", error);
     toast.error("Failed to delete properties", {

@@ -21,8 +21,12 @@ return new class extends Migration
             $table->timestamp('visited_at');
             $table->timestamps();
 
+            // Composite indexes
             $table->index(['visitable_type', 'visitable_id', 'visited_at']);
             $table->index(['visitor_id', 'visited_at']);
+
+            // Single column indexes
+            $table->index('visited_at');
         });
     }
 
