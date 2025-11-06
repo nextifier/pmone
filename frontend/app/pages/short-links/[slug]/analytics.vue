@@ -10,7 +10,7 @@
             v-if="shortLink"
             :href="shortLink.destination_url"
             target="_blank"
-            class="text-muted-foreground hover:text-primary text-sm transition-colors truncate max-w-md"
+            class="text-muted-foreground hover:text-primary max-w-md truncate text-sm transition-colors"
           >
             {{ shortLink.destination_url }}
           </a>
@@ -18,7 +18,7 @@
 
         <select
           v-model="selectedPeriod"
-          class="border-border bg-background focus:ring-primary rounded-md border px-3 py-2 text-sm tracking-tight focus:outline-none focus:ring-2"
+          class="border-border bg-background focus:ring-primary rounded-md border px-3 py-2 text-sm tracking-tight focus:ring-2 focus:outline-none"
         >
           <option :value="7">Last 7 days</option>
           <option :value="14">Last 14 days</option>
@@ -32,7 +32,7 @@
       <Spinner class="size-8" />
     </div>
 
-    <div v-else-if="error" class="text-center py-12">
+    <div v-else-if="error" class="py-12 text-center">
       <p class="text-destructive">{{ error }}</p>
     </div>
 
@@ -47,7 +47,7 @@
 
       <!-- Clicks Per Day Chart -->
       <div class="border-border rounded-lg border p-4">
-        <h2 class="text-lg font-semibold mb-4">Clicks Over Time</h2>
+        <h2 class="mb-4 text-lg font-semibold tracking-tighter">Clicks Over Time</h2>
         <div v-if="analyticsData.clicks_per_day?.length" class="space-y-2">
           <div
             v-for="day in analyticsData.clicks_per_day"
@@ -55,14 +55,14 @@
             class="flex items-center gap-3"
           >
             <div class="text-muted-foreground w-24 text-sm">
-              {{ $dayjs(day.date).format('MMM DD') }}
+              {{ $dayjs(day.date).format("MMM D") }}
             </div>
             <div class="flex-1">
-              <div class="bg-primary/20 relative h-6 rounded">
+              <div class="bg-muted relative h-6 rounded">
                 <div
                   class="bg-primary absolute inset-y-0 left-0 rounded"
                   :style="{
-                    width: `${(day.count / maxClicksPerDay) * 100}%`
+                    width: `${(day.count / maxClicksPerDay) * 100}%`,
                   }"
                 ></div>
               </div>
@@ -72,38 +72,42 @@
             </div>
           </div>
         </div>
-        <div v-else class="text-muted-foreground py-8 text-center">
+        <div v-else class="text-muted-foreground py-8 text-center tracking-tight">
           No click data available for this period
         </div>
       </div>
-
-      <!-- Recent Clicks -->
-      <div class="border-border rounded-lg border p-4">
-        <h2 class="text-lg font-semibold mb-4">Recent Clicks</h2>
-        <div v-if="analyticsData.recent_clicks?.length" class="space-y-3">
-          <div
-            v-for="click in analyticsData.recent_clicks"
-            :key="click.id"
-            class="border-border flex flex-col gap-2 rounded-lg border p-3"
-          >
-            <div class="flex items-center justify-between">
-              <div class="text-muted-foreground text-sm">
-                {{ click.ip_address }}
-              </div>
-              <div class="text-muted-foreground text-xs">
-                {{ $dayjs(click.clicked_at).fromNow() }}
-              </div>
-            </div>
-            <div v-if="click.referer" class="text-muted-foreground text-xs truncate">
-              Referer: {{ click.referer }}
-            </div>
-          </div>
-        </div>
-        <div v-else class="text-muted-foreground py-8 text-center">
-          No clicks yet
-        </div>
-      </div>
     </div>
+
+    <NuxtLink
+      v-if="shortLink?.og_image && shortLink?.og_title"
+      :to="`${useRuntimeConfig().public.siteUrl}/${shortLink.slug}`"
+      target="_blank"
+      class="frame mt-10 flex w-full max-w-sm flex-col"
+    >
+      <div class="bg-muted aspect-[1200/630] shrink-0 overflow-hidden rounded-lg">
+        <img
+          v-if="shortLink?.og_image"
+          :src="shortLink?.og_image"
+          :alt="shortLink?.og_title"
+          class="size-full object-cover"
+        />
+      </div>
+
+      <div class="bg-background flex flex-col p-4">
+        <h6
+          v-if="shortLink?.og_title"
+          class="text-foreground text-base font-semibold tracking-tighter"
+        >
+          {{ shortLink?.og_title }}
+        </h6>
+        <p
+          v-if="shortLink?.og_description"
+          class="text-muted-foreground mt-1 text-xs tracking-tight"
+        >
+          {{ shortLink?.og_description }}
+        </p>
+      </div>
+    </NuxtLink>
   </div>
 </template>
 
@@ -130,7 +134,7 @@ const error = ref(null);
 // Computed max clicks per day for chart scaling
 const maxClicksPerDay = computed(() => {
   if (!analyticsData.value?.clicks_per_day?.length) return 0;
-  return Math.max(...analyticsData.value.clicks_per_day.map(d => d.count));
+  return Math.max(...analyticsData.value.clicks_per_day.map((d) => d.count));
 });
 
 // Load short link details

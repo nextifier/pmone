@@ -23,7 +23,7 @@
     />
     <span
       v-else
-      class="initial text-[45cqw] font-bold tracking-tighter text-[oklch(var(--text-lightness)_var(--text-chroma)_var(--hue))]"
+      class="initial text-[45cqw] font-semibold tracking-tight text-[oklch(var(--text-lightness)_var(--text-chroma)_var(--hue))]"
     >
       {{
         (() => {

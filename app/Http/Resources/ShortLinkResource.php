@@ -15,6 +15,10 @@ class ShortLinkResource extends JsonResource
             'destination_url' => $this->destination_url,
             'is_active' => $this->is_active,
             'clicks_count' => $this->clicks()->count(),
+            'og_title' => $this->og_title,
+            'og_description' => $this->og_description,
+            'og_image' => $this->og_image,
+            'og_type' => $this->og_type,
             'created_at' => $this->created_at->toISOString(),
             'updated_at' => $this->updated_at->toISOString(),
 

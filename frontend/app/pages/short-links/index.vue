@@ -150,7 +150,7 @@
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import ImportDialog from "@/components/short-link/ImportDialog.vue";
-import LinkTableItem from "@/components/short-link/LinkTableItem.vue";
+import ShortLinkTableItem from "@/components/short-link/ShortLinkTableItem.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -329,7 +329,7 @@ const columns = [
     header: "Link",
     accessorKey: "slug",
     cell: ({ row }) =>
-      h(LinkTableItem, {
+      h(ShortLinkTableItem, {
         link: row.original,
       }),
     size: 300,

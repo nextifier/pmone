@@ -91,7 +91,9 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">Restore short links?</div>
+              <div class="text-primary text-lg font-semibold tracking-tight">
+                Restore short links?
+              </div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This will restore {{ selectedRows.length }} selected
                 {{ selectedRows.length === 1 ? "short link" : "short links" }}.
@@ -173,7 +175,7 @@
 
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
-import LinkTableItem from "@/components/short-link/LinkTableItem.vue";
+import ShortLinkTableItem from "@/components/short-link/ShortLinkTableItem.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -344,7 +346,7 @@ const columns = [
     header: "Link",
     accessorKey: "slug",
     cell: ({ row }) =>
-      h(LinkTableItem, {
+      h(ShortLinkTableItem, {
         link: row.original,
       }),
     size: 300,
@@ -517,7 +519,9 @@ const handleRestoreSingleRow = async (shortLinkId) => {
   try {
     restorePending.value = true;
     const client = useSanctumClient();
-    const response = await client(`/api/short-links/trash/${shortLinkId}/restore`, { method: "POST" });
+    const response = await client(`/api/short-links/trash/${shortLinkId}/restore`, {
+      method: "POST",
+    });
     await refresh();
 
     // Reset row selection after restore
