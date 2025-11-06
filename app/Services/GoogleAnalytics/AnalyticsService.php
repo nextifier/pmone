@@ -4,6 +4,7 @@ namespace App\Services\GoogleAnalytics;
 
 use App\Models\GaProperty;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Spatie\Analytics\Period;
 
 class AnalyticsService
@@ -121,11 +122,18 @@ class AnalyticsService
      */
     public function getAggregatedAnalytics(Period $period, ?array $propertyIds = null): array
     {
-        $properties = $propertyIds
-            ? GaProperty::active()->whereIn('property_id', $propertyIds)->get()
-            : $this->getActiveProperties();
+        // Create cache key for aggregate data
+        $propertyIdsStr = $propertyIds ? implode(',', $propertyIds) : 'all';
+        $cacheKey = "ga4_aggregate_{$propertyIdsStr}_{$period->startDate->format('Y-m-d')}_{$period->endDate->format('Y-m-d')}";
 
-        return $this->aggregator->getDashboardData($properties, $period);
+        // Try to get from cache first (cache for 30 minutes)
+        return Cache::remember($cacheKey, now()->addMinutes(30), function () use ($period, $propertyIds) {
+            $properties = $propertyIds
+                ? GaProperty::active()->whereIn('property_id', $propertyIds)->get()
+                : $this->getActiveProperties();
+
+            return $this->aggregator->getDashboardData($properties, $period);
+        });
     }
 
     /**

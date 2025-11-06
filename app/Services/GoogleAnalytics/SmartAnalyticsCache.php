@@ -103,11 +103,11 @@ class SmartAnalyticsCache
 
         // During peak hours (9am-5pm), cache expires faster
         if ($this->isPeakHours()) {
-            return $age < 5; // 5 minutes
+            return $age < 10; // 10 minutes (increased from 5)
         }
 
         // Outside peak hours, cache lasts longer
-        return $age < 15; // 15 minutes
+        return $age < 30; // 30 minutes (increased from 15)
     }
 
     /**

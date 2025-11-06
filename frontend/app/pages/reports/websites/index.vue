@@ -85,7 +85,7 @@
     </div>
 
     <!-- Data Display -->
-    <template v-else-if="analyticsData">
+    <template v-else-if="aggregateData">
       <!-- Summary Cards -->
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div
@@ -112,8 +112,8 @@
         <div class="border-border border-b p-4">
           <h2 class="text-foreground font-semibold">Analytics by Property</h2>
           <p class="text-muted-foreground text-sm">
-            Data from {{ analyticsData.length }} active
-            {{ analyticsData.length === 1 ? "property" : "properties" }}
+            Data from {{ analyticsData?.length || 0 }} active
+            {{ analyticsData?.length === 1 ? "property" : "properties" }}
           </p>
         </div>
 
