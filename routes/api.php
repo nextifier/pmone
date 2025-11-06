@@ -138,6 +138,11 @@ Route::middleware(['auth:sanctum'])->prefix('analytics')->group(function () {
 
 // Google Analytics (GA4) routes (authenticated + admin/master only)
 Route::middleware(['auth:sanctum'])->prefix('google-analytics')->group(function () {
+    // GA Properties Import/Export (must be before {id} routes)
+    Route::get('/ga-properties/export', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'export']);
+    Route::get('/ga-properties/import/template', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'downloadTemplate']);
+    Route::post('/ga-properties/import', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'import']);
+
     // CRUD endpoints for GA properties
     Route::get('/ga-properties', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'index']);
     Route::post('/ga-properties', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'store']);

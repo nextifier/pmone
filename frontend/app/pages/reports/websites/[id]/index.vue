@@ -3,8 +3,20 @@
     <!-- Header -->
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
-        <Icon name="hugeicons:analysis-text-link" class="size-5 sm:size-6" />
-        <h1 class="page-title">Web Analytics Dashboard</h1>
+        <NuxtLink
+          to="/reports/websites"
+          class="text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Icon name="hugeicons:arrow-left-01" class="size-5 sm:size-6" />
+        </NuxtLink>
+        <div>
+          <h1 class="page-title">
+            {{ propertyData?.property?.name || "Property Analytics" }}
+          </h1>
+          <p class="text-muted-foreground text-sm">
+            Property ID: {{ route.params.id }}
+          </p>
+        </div>
       </div>
 
       <div class="ml-auto flex shrink-0 gap-2">
@@ -58,7 +70,7 @@
           name="hugeicons:loading-03"
           class="text-primary size-8 animate-spin"
         />
-        <p class="text-muted-foreground text-sm">Loading analytics data...</p>
+        <p class="text-muted-foreground text-sm">Loading property analytics...</p>
       </div>
     </div>
 
@@ -71,7 +83,7 @@
         <Icon name="hugeicons:alert-circle" class="text-destructive size-8" />
         <div>
           <h3 class="text-foreground mb-1 font-semibold">
-            Failed to load analytics
+            Failed to load property analytics
           </h3>
           <p class="text-muted-foreground text-sm">{{ error }}</p>
         </div>
@@ -85,11 +97,49 @@
     </div>
 
     <!-- Data Display -->
-    <template v-else-if="aggregateData">
-      <!-- Overall Summary Cards -->
+    <template v-else-if="propertyData">
+      <!-- Property Info Card -->
+      <div class="border-border bg-card rounded-lg border p-5">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div class="flex-1">
+            <h2 class="text-foreground mb-1 text-lg font-semibold">
+              {{ propertyData.property.name }}
+            </h2>
+            <p class="text-muted-foreground text-sm">
+              {{ propertyData.property.account_name }}
+            </p>
+            <div class="mt-2 flex flex-wrap items-center gap-3">
+              <div class="flex items-center gap-1.5 text-sm">
+                <Icon name="hugeicons:checkmark-badge-01" class="size-4" />
+                <span class="text-muted-foreground">
+                  Property ID: {{ propertyData.property.property_id }}
+                </span>
+              </div>
+              <div
+                v-if="propertyData.property.last_synced_at"
+                class="flex items-center gap-1.5 text-sm"
+              >
+                <Icon name="hugeicons:clock-03" class="size-4" />
+                <span class="text-muted-foreground">
+                  Last synced:
+                  {{ formatRelativeTime(propertyData.property.last_synced_at) }}
+                </span>
+              </div>
+              <span
+                v-if="propertyData.property.is_active"
+                class="bg-green-500/10 text-green-600 dark:text-green-400 rounded-full px-2 py-0.5 text-xs font-medium"
+              >
+                Active
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Metrics Cards -->
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div
-          v-for="metric in summaryMetrics"
+          v-for="metric in mainMetrics"
           :key="metric.key"
           class="border-border bg-card rounded-lg border p-5 transition-colors hover:bg-muted/50"
         >
@@ -115,95 +165,28 @@
         </div>
       </div>
 
-      <!-- Property Breakdown Cards -->
-      <div class="space-y-4">
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="text-foreground text-lg font-semibold">
-              Analytics by Property
-            </h2>
-            <p class="text-muted-foreground text-sm">
-              Click on a property to view detailed analytics
+      <!-- Additional Metrics Grid -->
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div
+          v-for="metric in additionalMetrics"
+          :key="metric.key"
+          class="border-border bg-card rounded-lg border p-4"
+        >
+          <div class="flex items-center gap-2">
+            <Icon :name="metric.icon" class="text-muted-foreground size-5" />
+            <p class="text-muted-foreground text-sm font-medium">
+              {{ metric.label }}
             </p>
           </div>
-          <div class="text-muted-foreground text-sm">
-            {{ propertyBreakdown.length }} active
-            {{ propertyBreakdown.length === 1 ? "property" : "properties" }}
-          </div>
-        </div>
-
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <NuxtLink
-            v-for="property in propertyBreakdown"
-            :key="property.property_id"
-            :to="`/reports/websites/${property.property_id}`"
-            class="border-border bg-card hover:border-primary group relative overflow-hidden rounded-lg border p-5 transition-all hover:shadow-lg"
-          >
-            <div class="mb-4 flex items-start justify-between">
-              <div class="flex-1">
-                <h3
-                  class="text-foreground mb-1 font-semibold group-hover:text-primary transition-colors"
-                >
-                  {{ property.property_name }}
-                </h3>
-                <p class="text-muted-foreground text-xs">
-                  Property ID: {{ property.property_id }}
-                </p>
-              </div>
-              <Icon
-                name="hugeicons:arrow-right-01"
-                class="text-muted-foreground group-hover:text-primary size-5 transition-all group-hover:translate-x-1"
-              />
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div class="bg-muted/30 rounded-md p-2.5">
-                <p class="text-muted-foreground text-xs">Active Users</p>
-                <p class="text-foreground mt-1 text-lg font-semibold">
-                  {{ formatNumber(property.metrics.activeUsers || 0) }}
-                </p>
-              </div>
-              <div class="bg-muted/30 rounded-md p-2.5">
-                <p class="text-muted-foreground text-xs">Sessions</p>
-                <p class="text-foreground mt-1 text-lg font-semibold">
-                  {{ formatNumber(property.metrics.sessions || 0) }}
-                </p>
-              </div>
-              <div class="bg-muted/30 rounded-md p-2.5">
-                <p class="text-muted-foreground text-xs">Page Views</p>
-                <p class="text-foreground mt-1 text-lg font-semibold">
-                  {{ formatNumber(property.metrics.screenPageViews || 0) }}
-                </p>
-              </div>
-              <div class="bg-muted/30 rounded-md p-2.5">
-                <p class="text-muted-foreground text-xs">Bounce Rate</p>
-                <p class="text-foreground mt-1 text-lg font-semibold">
-                  {{ formatPercent(property.metrics.bounceRate || 0) }}
-                </p>
-              </div>
-            </div>
-
-            <div class="mt-3 flex items-center gap-2">
-              <span
-                v-if="property.is_fresh"
-                class="bg-green-500/10 text-green-600 dark:text-green-400 rounded-full px-2 py-0.5 text-xs font-medium"
-              >
-                Fresh Data
-              </span>
-              <span
-                v-if="property.cached_at"
-                class="text-muted-foreground text-xs"
-              >
-                Cached {{ formatRelativeTime(property.cached_at) }}
-              </span>
-            </div>
-          </NuxtLink>
+          <p class="text-foreground mt-2 text-2xl font-bold">
+            {{ formatMetricValue(metric.key, metric.value) }}
+          </p>
         </div>
       </div>
 
       <!-- Top Pages -->
       <div
-        v-if="aggregateData.top_pages && aggregateData.top_pages.length > 0"
+        v-if="propertyData.top_pages && propertyData.top_pages.length > 0"
         class="border-border bg-card rounded-lg border"
       >
         <div class="border-border border-b p-4">
@@ -212,12 +195,12 @@
             Top Pages
           </h2>
           <p class="text-muted-foreground text-sm">
-            Most visited pages across all properties
+            Most visited pages for this property
           </p>
         </div>
         <div class="divide-border divide-y">
           <div
-            v-for="(page, index) in aggregateData.top_pages.slice(0, 10)"
+            v-for="(page, index) in propertyData.top_pages"
             :key="index"
             class="hover:bg-muted/30 p-4 transition-colors"
           >
@@ -229,15 +212,10 @@
                   >
                     {{ index + 1 }}
                   </span>
-                  <p class="text-foreground font-medium">
-                    {{ page.title }}
-                  </p>
+                  <p class="text-foreground font-medium">{{ page.title }}</p>
                 </div>
                 <p class="text-muted-foreground ml-8 mt-1 text-sm">
                   {{ page.path }}
-                </p>
-                <p class="text-muted-foreground ml-8 text-xs">
-                  {{ page.property_name }}
                 </p>
               </div>
               <div class="text-right">
@@ -256,8 +234,8 @@
         <!-- Traffic Sources -->
         <div
           v-if="
-            aggregateData.traffic_sources &&
-            aggregateData.traffic_sources.length > 0
+            propertyData.traffic_sources &&
+            propertyData.traffic_sources.length > 0
           "
           class="border-border bg-card rounded-lg border"
         >
@@ -272,18 +250,13 @@
           </div>
           <div class="divide-border divide-y">
             <div
-              v-for="(source, index) in aggregateData.traffic_sources.slice(
-                0,
-                5
-              )"
+              v-for="(source, index) in propertyData.traffic_sources"
               :key="index"
               class="hover:bg-muted/30 p-4 transition-colors"
             >
               <div class="flex items-center justify-between">
                 <div class="flex-1">
-                  <p class="text-foreground font-medium">
-                    {{ source.source }}
-                  </p>
+                  <p class="text-foreground font-medium">{{ source.source }}</p>
                   <p class="text-muted-foreground text-sm">
                     {{ source.medium }}
                   </p>
@@ -293,6 +266,9 @@
                     {{ formatNumber(source.sessions) }}
                   </p>
                   <p class="text-muted-foreground text-xs">sessions</p>
+                  <p class="text-muted-foreground text-xs">
+                    {{ formatNumber(source.users) }} users
+                  </p>
                 </div>
               </div>
             </div>
@@ -301,7 +277,7 @@
 
         <!-- Device Categories -->
         <div
-          v-if="aggregateData.devices && aggregateData.devices.length > 0"
+          v-if="propertyData.devices && propertyData.devices.length > 0"
           class="border-border bg-card rounded-lg border"
         >
           <div class="border-border border-b p-4">
@@ -316,7 +292,7 @@
           <div class="p-4">
             <div class="space-y-4">
               <div
-                v-for="(device, index) in aggregateData.devices"
+                v-for="(device, index) in propertyData.devices"
                 :key="index"
                 class="space-y-2"
               >
@@ -334,7 +310,9 @@
                     <p class="text-foreground font-semibold">
                       {{ formatNumber(device.users) }}
                     </p>
-                    <p class="text-muted-foreground text-xs">users</p>
+                    <p class="text-muted-foreground text-xs">
+                      {{ formatNumber(device.sessions) }} sessions
+                    </p>
                   </div>
                 </div>
                 <div class="bg-muted h-2 overflow-hidden rounded-full">
@@ -351,22 +329,73 @@
         </div>
       </div>
 
+      <!-- Rows Data (Time Series) -->
+      <div v-if="propertyData.rows && propertyData.rows.length > 0" class="border-border bg-card rounded-lg border">
+        <div class="border-border border-b p-4">
+          <h2 class="text-foreground flex items-center gap-2 font-semibold">
+            <Icon name="hugeicons:chart-line-data-03" class="size-5" />
+            Daily Metrics
+          </h2>
+          <p class="text-muted-foreground text-sm">
+            Day-by-day breakdown of metrics
+          </p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-muted/30">
+              <tr class="border-border border-b">
+                <th class="text-muted-foreground px-4 py-3 text-left font-medium">
+                  Date
+                </th>
+                <th class="text-muted-foreground px-4 py-3 text-right font-medium">
+                  Active Users
+                </th>
+                <th class="text-muted-foreground px-4 py-3 text-right font-medium">
+                  Sessions
+                </th>
+                <th class="text-muted-foreground px-4 py-3 text-right font-medium">
+                  Page Views
+                </th>
+                <th class="text-muted-foreground px-4 py-3 text-right font-medium">
+                  Bounce Rate
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-border divide-y">
+              <tr
+                v-for="(row, index) in propertyData.rows.slice().reverse()"
+                :key="index"
+                class="hover:bg-muted/30 transition-colors"
+              >
+                <td class="text-foreground px-4 py-3">
+                  {{ formatRowDate(row.date) }}
+                </td>
+                <td class="text-foreground px-4 py-3 text-right font-medium">
+                  {{ formatNumber(row.activeUsers || 0) }}
+                </td>
+                <td class="text-foreground px-4 py-3 text-right font-medium">
+                  {{ formatNumber(row.sessions || 0) }}
+                </td>
+                <td class="text-foreground px-4 py-3 text-right font-medium">
+                  {{ formatNumber(row.screenPageViews || 0) }}
+                </td>
+                <td class="text-foreground px-4 py-3 text-right font-medium">
+                  {{ formatPercent(row.bounceRate || 0) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Period Info -->
       <div class="border-border bg-muted/30 rounded-lg border p-4">
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p class="text-foreground text-sm font-medium">Data Period</p>
             <p class="text-muted-foreground text-xs">
-              {{ aggregateData.period?.start_date }} to
-              {{ aggregateData.period?.end_date }}
-            </p>
-          </div>
-          <div>
-            <p class="text-foreground text-sm font-medium">
-              {{ aggregateData.properties_count || 0 }} Properties
-            </p>
-            <p class="text-muted-foreground text-xs">
-              {{ aggregateData.successful_fetches || 0 }} successful fetches
+              {{ propertyData.period?.start_date }} to
+              {{ propertyData.period?.end_date }}
             </p>
           </div>
         </div>
@@ -386,7 +415,7 @@
         <div>
           <h3 class="text-foreground mb-1 font-semibold">No data available</h3>
           <p class="text-muted-foreground text-sm">
-            Analytics data will appear here once properties are configured
+            Property analytics data will appear here once loaded
           </p>
         </div>
       </div>
@@ -396,21 +425,17 @@
 
 <script setup>
 const { $dayjs } = useNuxtApp();
+const route = useRoute();
 
 definePageMeta({
   middleware: ["sanctum:auth"],
   layout: "app",
 });
 
-usePageMeta("", {
-  title: `Web Analytics Dashboard`,
-  description: "View aggregated analytics data from all Google Analytics 4 properties",
-});
-
 // State
 const loading = ref(false);
 const error = ref(null);
-const aggregateData = ref(null);
+const propertyData = ref(null);
 const selectedRange = ref("30");
 
 // Computed dates
@@ -419,24 +444,24 @@ const startDate = computed(() =>
   $dayjs().subtract(parseInt(selectedRange.value), "day")
 );
 
-// Summary metrics
-const summaryMetrics = computed(() => {
-  if (!aggregateData.value?.totals) return [];
+// Main metrics
+const mainMetrics = computed(() => {
+  if (!propertyData.value?.metrics) return [];
 
   return [
     {
       key: "activeUsers",
-      label: "Total Active Users",
-      value: aggregateData.value.totals.activeUsers || 0,
+      label: "Active Users",
+      value: propertyData.value.metrics.activeUsers || 0,
       icon: "hugeicons:user-multiple-02",
       bgClass: "bg-blue-500/10",
       iconClass: "text-blue-600 dark:text-blue-400",
-      description: "Unique visitors across all sites",
+      description: "Unique visitors",
     },
     {
       key: "sessions",
-      label: "Total Sessions",
-      value: aggregateData.value.totals.sessions || 0,
+      label: "Sessions",
+      value: propertyData.value.metrics.sessions || 0,
       icon: "hugeicons:cursor-pointer-02",
       bgClass: "bg-green-500/10",
       iconClass: "text-green-600 dark:text-green-400",
@@ -444,8 +469,8 @@ const summaryMetrics = computed(() => {
     },
     {
       key: "screenPageViews",
-      label: "Total Page Views",
-      value: aggregateData.value.totals.screenPageViews || 0,
+      label: "Page Views",
+      value: propertyData.value.metrics.screenPageViews || 0,
       icon: "hugeicons:view",
       bgClass: "bg-purple-500/10",
       iconClass: "text-purple-600 dark:text-purple-400",
@@ -453,49 +478,76 @@ const summaryMetrics = computed(() => {
     },
     {
       key: "bounceRate",
-      label: "Avg Bounce Rate",
-      value: aggregateData.value.totals.bounceRate || 0,
+      label: "Bounce Rate",
+      value: propertyData.value.metrics.bounceRate || 0,
       icon: "hugeicons:arrow-turn-backward",
       bgClass: "bg-orange-500/10",
       iconClass: "text-orange-600 dark:text-orange-400",
-      description: "Average across all properties",
+      description: "Single-page sessions",
     },
   ];
 });
 
-// Property breakdown
-const propertyBreakdown = computed(() => {
-  return aggregateData.value?.property_breakdown || [];
+// Additional metrics
+const additionalMetrics = computed(() => {
+  if (!propertyData.value?.metrics) return [];
+
+  return [
+    {
+      key: "newUsers",
+      label: "New Users",
+      value: propertyData.value.metrics.newUsers || 0,
+      icon: "hugeicons:user-add-01",
+    },
+    {
+      key: "averageSessionDuration",
+      label: "Avg Session Duration",
+      value: propertyData.value.metrics.averageSessionDuration || 0,
+      icon: "hugeicons:time-03",
+    },
+  ];
 });
 
 // Total device users for percentage calculation
 const totalDeviceUsers = computed(() => {
-  if (!aggregateData.value?.devices) return 0;
-  return aggregateData.value.devices.reduce(
+  if (!propertyData.value?.devices) return 0;
+  return propertyData.value.devices.reduce(
     (sum, device) => sum + (device.users || 0),
     0
   );
 });
 
-// Fetch analytics data
-const fetchAnalytics = async () => {
+// Fetch property analytics
+const fetchPropertyAnalytics = async () => {
   loading.value = true;
   error.value = null;
 
   try {
     const client = useSanctumClient();
-    const days = parseInt(selectedRange.value);
+    const propertyId = route.params.id;
+    const startDateStr = startDate.value.format("YYYY-MM-DD");
+    const endDateStr = endDate.value.format("YYYY-MM-DD");
 
-    console.log("Fetching aggregate analytics for", days, "days...");
+    console.log("Fetching property analytics for", propertyId);
 
-    const { data } = await client(`/api/google-analytics/aggregate?days=${days}`);
+    const { data } = await client(
+      `/api/google-analytics/ga-properties/${propertyId}/analytics?start_date=${startDateStr}&end_date=${endDateStr}`
+    );
 
-    console.log("Aggregate data received:", data);
-    aggregateData.value = data;
+    console.log("Property data received:", data);
+    propertyData.value = data;
+
+    // Update page title with property name
+    if (data?.property?.name) {
+      usePageMeta("", {
+        title: `${data.property.name} - Analytics`,
+        description: `Detailed analytics for ${data.property.name}`,
+      });
+    }
   } catch (err) {
-    console.error("Error fetching analytics:", err);
+    console.error("Error fetching property analytics:", err);
     error.value =
-      err.data?.message || err.message || "Failed to load analytics data";
+      err.data?.message || err.message || "Failed to load property analytics";
   } finally {
     loading.value = false;
   }
@@ -503,12 +555,12 @@ const fetchAnalytics = async () => {
 
 // Handle date range change
 const handleDateRangeChange = () => {
-  fetchAnalytics();
+  fetchPropertyAnalytics();
 };
 
 // Refresh data
 const refreshData = () => {
-  fetchAnalytics();
+  fetchPropertyAnalytics();
 };
 
 // Format helpers
@@ -524,6 +576,14 @@ const formatPercent = (value) => {
 
 const formatDate = (date) => {
   return date.format("MMM DD, YYYY");
+};
+
+const formatRowDate = (dateString) => {
+  // dateString format: YYYYMMDD
+  const year = dateString.substring(0, 4);
+  const month = dateString.substring(4, 6);
+  const day = dateString.substring(6, 8);
+  return $dayjs(`${year}-${month}-${day}`).format("MMM DD, YYYY");
 };
 
 const formatMetricValue = (key, value) => {
@@ -555,6 +615,6 @@ const getDeviceIcon = (device) => {
 
 // Load data on mount
 onMounted(() => {
-  fetchAnalytics();
+  fetchPropertyAnalytics();
 });
 </script>
