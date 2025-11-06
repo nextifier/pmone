@@ -184,6 +184,80 @@
         </div>
       </div>
 
+      <!-- Daily Growth Chart -->
+      <div
+        v-if="chartData.length > 0"
+        class="border-border bg-card rounded-lg border"
+      >
+        <div class="border-border border-b p-4">
+          <h2 class="text-foreground flex items-center gap-2 font-semibold">
+            <Icon name="hugeicons:chart-line-data-03" class="size-5" />
+            Daily Growth
+          </h2>
+          <p class="text-muted-foreground text-sm">
+            Page views and users over time
+          </p>
+        </div>
+
+        <!-- Legend -->
+        <div class="border-border flex flex-wrap items-center gap-4 border-b px-4 py-3">
+          <div class="flex items-center gap-2">
+            <div class="bg-purple-500 size-3 rounded"></div>
+            <span class="text-muted-foreground text-sm">Page Views</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="bg-blue-500 size-3 rounded"></div>
+            <span class="text-muted-foreground text-sm">Active Users</span>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="p-4">
+          <div class="space-y-3">
+            <div
+              v-for="(row, index) in chartData"
+              :key="index"
+              class="space-y-2"
+            >
+              <!-- Date Label -->
+              <div class="flex items-center justify-between">
+                <span class="text-muted-foreground text-xs font-medium">
+                  {{ row.formattedDate }}
+                </span>
+                <div class="flex items-center gap-3 text-xs">
+                  <span class="text-purple-600 dark:text-purple-400">
+                    {{ formatNumber(row.pageViews) }} views
+                  </span>
+                  <span class="text-blue-600 dark:text-blue-400">
+                    {{ formatNumber(row.users) }} users
+                  </span>
+                </div>
+              </div>
+
+              <!-- Page Views Bar -->
+              <div class="space-y-1">
+                <div class="bg-muted h-2 overflow-hidden rounded-full">
+                  <div
+                    class="bg-purple-500 h-full transition-all duration-500"
+                    :style="{ width: `${row.pageViewsPercent}%` }"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- Users Bar -->
+              <div class="space-y-1">
+                <div class="bg-muted h-2 overflow-hidden rounded-full">
+                  <div
+                    class="bg-blue-500 h-full transition-all duration-500"
+                    :style="{ width: `${row.usersPercent}%` }"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Top Pages -->
       <div
         v-if="propertyData.top_pages && propertyData.top_pages.length > 0"
@@ -506,6 +580,34 @@ const additionalMetrics = computed(() => {
       icon: "hugeicons:time-03",
     },
   ];
+});
+
+// Chart data for daily growth visualization
+const chartData = computed(() => {
+  if (!propertyData.value?.rows || propertyData.value.rows.length === 0) {
+    return [];
+  }
+
+  // Get rows sorted by date (oldest first for chronological display)
+  const rows = [...propertyData.value.rows].sort((a, b) => a.date - b.date);
+
+  // Find max values for percentage calculation
+  const maxPageViews = Math.max(...rows.map((r) => r.screenPageViews || 0));
+  const maxUsers = Math.max(...rows.map((r) => r.activeUsers || 0));
+
+  return rows.map((row) => {
+    const pageViews = row.screenPageViews || 0;
+    const users = row.activeUsers || 0;
+
+    return {
+      date: row.date,
+      formattedDate: formatRowDate(row.date),
+      pageViews,
+      users,
+      pageViewsPercent: maxPageViews > 0 ? (pageViews / maxPageViews) * 100 : 0,
+      usersPercent: maxUsers > 0 ? (users / maxUsers) * 100 : 0,
+    };
+  });
 });
 
 // Total device users for percentage calculation

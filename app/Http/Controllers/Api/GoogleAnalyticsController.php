@@ -189,12 +189,13 @@ class GoogleAnalyticsController extends Controller
     /**
      * Get analytics for a single property.
      */
-    public function getPropertyAnalytics(GetAnalyticsRequest $request, int $id): JsonResponse
+    public function getPropertyAnalytics(GetAnalyticsRequest $request, string $id): JsonResponse
     {
         // Increase execution time for API requests
         set_time_limit(120);
 
-        $property = GaProperty::findOrFail($id);
+        // Find property by property_id (Google Analytics Property ID), not database id
+        $property = GaProperty::where('property_id', $id)->firstOrFail();
 
         $period = $this->createPeriodFromRequest($request);
 
@@ -303,9 +304,10 @@ class GoogleAnalyticsController extends Controller
     /**
      * Clear cache for a property.
      */
-    public function clearPropertyCache(int $id): JsonResponse
+    public function clearPropertyCache(string $id): JsonResponse
     {
-        $property = GaProperty::findOrFail($id);
+        // Find property by property_id (Google Analytics Property ID), not database id
+        $property = GaProperty::where('property_id', $id)->firstOrFail();
 
         $this->analyticsService->clearPropertyCache($property);
 
