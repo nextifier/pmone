@@ -145,6 +145,11 @@ Route::middleware(['auth:sanctum'])->prefix('google-analytics')->group(function 
     Route::put('/ga-properties/{id}', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'update']);
     Route::delete('/ga-properties/{id}', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'destroy']);
 
+    // GA Properties Import/Export
+    Route::get('/ga-properties/export', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'export']);
+    Route::get('/ga-properties/import/template', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'downloadTemplate']);
+    Route::post('/ga-properties/import', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'import']);
+
     // Analytics data endpoints
     Route::get('/properties', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getProperties']);
     Route::get('/properties/by-account', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getPropertiesByAccount']);

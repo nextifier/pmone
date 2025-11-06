@@ -5,6 +5,32 @@
         <Icon name="hugeicons:analytics-01" class="size-5 sm:size-6" />
         <h1 class="page-title">Google Analytics Properties</h1>
       </div>
+
+      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+        <ImportDialog @imported="refresh">
+          <template #trigger="{ open }">
+            <button
+              @click="open()"
+              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+            >
+              <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
+              <span class="hidden sm:inline">Import</span>
+            </button>
+          </template>
+        </ImportDialog>
+
+        <button
+          @click="handleExport"
+          :disabled="exportPending"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Spinner v-if="exportPending" class="size-4 shrink-0" />
+          <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
+          <span class="hidden sm:inline"
+            >Export {{ columnFilters?.length ? "selected" : "all" }}</span
+          >
+        </button>
+      </div>
     </div>
 
     <TableData
@@ -116,6 +142,7 @@
 
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
+import ImportDialog from "@/components/ga-property/ImportDialog.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -158,6 +185,9 @@ const error = ref(null);
 
 // Client-only mode flag
 const clientOnly = ref(true);
+
+// Export state
+const exportPending = ref(false);
 
 // Build query params
 const buildQueryParams = () => {
@@ -473,6 +503,62 @@ const handleDeleteSingleRow = async (id) => {
     });
   } finally {
     deletePending.value = false;
+  }
+};
+
+// Export handler
+const handleExport = async () => {
+  try {
+    exportPending.value = true;
+
+    // Build query params
+    const params = new URLSearchParams();
+
+    // Add filters
+    const searchFilter = columnFilters.value.find((f) => f.id === "name");
+    if (searchFilter?.value) {
+      params.append("filter_search", searchFilter.value);
+    }
+
+    const statusFilter = columnFilters.value.find((f) => f.id === "is_active");
+    if (statusFilter?.value) {
+      const statuses = statusFilter.value.map((val) => (val === "active" ? "active" : "inactive"));
+      params.append("filter_status", statuses.join(","));
+    }
+
+    // Add sorting
+    const sortField = sorting.value[0]?.id || "last_synced_at";
+    const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
+    params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
+
+    const client = useSanctumClient();
+
+    // Fetch the file as blob
+    const response = await client(`/api/google-analytics/ga-properties/export?${params.toString()}`, {
+      responseType: "blob",
+    });
+
+    // Create a download link and trigger download
+    const blob = new Blob([response], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `ga_properties_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    toast.success("GA properties exported");
+  } catch (error) {
+    console.error("Failed to export GA properties:", error);
+    toast.error("Failed to export GA properties", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    exportPending.value = false;
   }
 };
 

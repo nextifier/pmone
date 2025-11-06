@@ -2,17 +2,23 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exports\GaPropertiesExport;
+use App\Exports\GaPropertiesTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GoogleAnalytics\GetAnalyticsRequest;
 use App\Http\Requests\GoogleAnalytics\StoreGaPropertyRequest;
 use App\Http\Requests\GoogleAnalytics\SyncAnalyticsRequest;
 use App\Http\Requests\GoogleAnalytics\UpdateGaPropertyRequest;
+use App\Imports\GaPropertiesImport;
 use App\Jobs\AggregateAnalyticsData;
 use App\Jobs\SyncGoogleAnalyticsData;
 use App\Models\GaProperty;
 use App\Services\GoogleAnalytics\AnalyticsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class GoogleAnalyticsController extends Controller
 {
@@ -336,5 +342,127 @@ class GoogleAnalyticsController extends Controller
         $days = $request->input('days', 7);
 
         return $this->analyticsService->createPeriodFromDays($days);
+    }
+
+    // Import/Export
+
+    /**
+     * Export GA properties to Excel.
+     */
+    public function export(Request $request): BinaryFileResponse
+    {
+        $filters = [];
+        if ($search = $request->input('filter_search')) {
+            $filters['search'] = $search;
+        }
+        if ($status = $request->input('filter_status')) {
+            $filters['status'] = $status;
+        }
+
+        $sort = $request->input('sort', '-last_synced_at');
+
+        $export = new GaPropertiesExport($filters, $sort);
+
+        $filename = 'ga_properties_'.now()->format('Y-m-d_His').'.xlsx';
+
+        return Excel::download($export, $filename);
+    }
+
+    /**
+     * Download import template.
+     */
+    public function downloadTemplate(): BinaryFileResponse
+    {
+        return Excel::download(new GaPropertiesTemplateExport, 'ga_properties_import_template.xlsx');
+    }
+
+    /**
+     * Import GA properties from Excel.
+     */
+    public function import(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'file' => ['required', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $tempFolder = null;
+
+        try {
+            $tempFolder = $request->input('file');
+
+            // Get file path from temporary storage
+            $metadataPath = "tmp/uploads/{$tempFolder}/metadata.json";
+
+            if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+                return response()->json([
+                    'message' => 'File not found',
+                ], 404);
+            }
+
+            $metadata = json_decode(
+                \Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath),
+                true
+            );
+
+            $filePath = "tmp/uploads/{$tempFolder}/{$metadata['original_name']}";
+
+            if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($filePath)) {
+                return response()->json([
+                    'message' => 'File not found',
+                ], 404);
+            }
+
+            // Import GA properties
+            $import = new GaPropertiesImport;
+            Excel::import($import, \Illuminate\Support\Facades\Storage::disk('local')->path($filePath));
+
+            // Get import results
+            $failures = $import->getFailures();
+            $importedCount = $import->getImportedCount();
+            $errorMessages = [];
+
+            foreach ($failures as $failure) {
+                $errorMessages[] = [
+                    'row' => $failure->row(),
+                    'attribute' => $failure->attribute(),
+                    'errors' => $failure->errors(),
+                    'values' => $failure->values(),
+                ];
+            }
+
+            if (count($errorMessages) > 0) {
+                return response()->json([
+                    'message' => 'Import completed with errors',
+                    'errors' => $errorMessages,
+                    'imported_count' => $importedCount,
+                ], 422);
+            }
+
+            return response()->json([
+                'message' => 'GA properties imported successfully',
+                'imported_count' => $importedCount,
+            ]);
+        } catch (\Exception $e) {
+            logger()->error('GA properties import failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to import GA properties',
+                'error' => $e->getMessage(),
+            ], 500);
+        } finally {
+            // Always clean up temporary files
+            if ($tempFolder) {
+                \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
+            }
+        }
     }
 }
