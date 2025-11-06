@@ -126,6 +126,14 @@ const navMainGroups = computed(() => {
     });
   }
 
+  if (user.value?.roles?.includes("master")) {
+    adminItems.push({
+      label: "Roles",
+      path: "/roles",
+      iconName: "hugeicons:user-settings-01",
+    });
+  }
+
   if (user.value?.roles?.some((role) => ["master", "admin"].includes(role))) {
     adminItems.push({
       label: "Google Analytics Properties",
