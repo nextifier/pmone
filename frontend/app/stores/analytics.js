@@ -153,10 +153,4 @@ export const useAnalyticsStore = defineStore("analytics", {
       return freshData;
     },
   },
-
-  // Persist to localStorage
-  persist: {
-    storage: persistedState.localStorage,
-    paths: ["propertiesCache", "timestamps", "aggregateData", "aggregateTimestamp"],
-  },
 });
