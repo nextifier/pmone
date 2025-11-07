@@ -117,22 +117,90 @@ class AnalyticsService
     }
 
     /**
-     * Get aggregated analytics from all active properties.
+     * Get aggregated analytics from all active properties with cache-first strategy.
      */
     public function getAggregatedAnalytics(Period $period, ?array $propertyIds = null): array
     {
         // Create cache key for aggregate data
         $propertyIdsStr = $propertyIds ? implode(',', $propertyIds) : 'all';
         $cacheKey = "ga4_aggregate_{$propertyIdsStr}_{$period->startDate->format('Y-m-d')}_{$period->endDate->format('Y-m-d')}";
+        $cacheTimestampKey = "{$cacheKey}_timestamp";
 
-        // Try to get from cache first (cache for 30 minutes)
-        return Cache::remember($cacheKey, now()->addMinutes(30), function () use ($period, $propertyIds) {
-            $properties = $propertyIds
-                ? GaProperty::active()->whereIn('property_id', $propertyIds)->get()
-                : $this->getActiveProperties();
+        // Get cached data and timestamp
+        $cachedData = Cache::get($cacheKey);
+        $cacheTimestamp = Cache::get($cacheTimestampKey);
 
-            return $this->aggregator->getDashboardData($properties, $period);
-        });
+        // CACHE-FIRST: Return cached data if available
+        if ($cachedData) {
+            $cacheAge = $cacheTimestamp ? now()->diffInMinutes($cacheTimestamp) : null;
+            $isFresh = $cacheAge !== null && $cacheAge < 30;
+
+            // Calculate next update
+            $nextUpdate = $cacheTimestamp ? $cacheTimestamp->copy()->addMinutes(30) : null;
+            $nextUpdateIn = $nextUpdate ? max(0, now()->diffInMinutes($nextUpdate, false)) : 0;
+
+            // If cache is stale and not currently refreshing, dispatch background refresh
+            if (!$isFresh && !Cache::has("{$cacheKey}_refreshing")) {
+                $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
+            }
+
+            return array_merge($cachedData, [
+                'cache_info' => [
+                    'last_updated' => $cacheTimestamp ? $cacheTimestamp->toIso8601String() : null,
+                    'cache_age_minutes' => $cacheAge,
+                    'next_update_in_minutes' => abs($nextUpdateIn),
+                    'is_fresh' => $isFresh,
+                    'is_updating' => !$isFresh,
+                ],
+            ]);
+        }
+
+        // No cache: fetch data synchronously
+        $properties = $propertyIds
+            ? GaProperty::active()->whereIn('property_id', $propertyIds)->get()
+            : $this->getActiveProperties();
+
+        $data = $this->aggregator->getDashboardData($properties, $period);
+
+        // Cache the data
+        Cache::put($cacheKey, $data, now()->addMinutes(30));
+        Cache::put($cacheTimestampKey, now(), now()->addMinutes(30));
+
+        return array_merge($data, [
+            'cache_info' => [
+                'last_updated' => now()->toIso8601String(),
+                'cache_age_minutes' => 0,
+                'next_update_in_minutes' => 30,
+                'is_fresh' => true,
+                'is_updating' => false,
+            ],
+        ]);
+    }
+
+    /**
+     * Dispatch background job to refresh aggregate cache.
+     */
+    protected function dispatchAggregateBackgroundRefresh(Period $period, ?array $propertyIds, string $cacheKey): void
+    {
+        // Mark as refreshing
+        Cache::put("{$cacheKey}_refreshing", true, now()->addMinutes(5));
+
+        dispatch(function () use ($period, $propertyIds, $cacheKey) {
+            try {
+                $properties = $propertyIds
+                    ? GaProperty::active()->whereIn('property_id', $propertyIds)->get()
+                    : GaProperty::active()->get();
+
+                $data = $this->aggregator->getDashboardData($properties, $period);
+
+                Cache::put($cacheKey, $data, now()->addMinutes(30));
+                Cache::put("{$cacheKey}_timestamp", now(), now()->addMinutes(30));
+            } catch (\Exception $e) {
+                \Log::error("Background aggregate cache refresh failed: {$e->getMessage()}");
+            } finally {
+                Cache::forget("{$cacheKey}_refreshing");
+            }
+        })->afterResponse();
     }
 
     /**

@@ -23,27 +23,54 @@
       </div>
     </div>
 
-    <!-- Date Range Selector -->
+    <!-- Date Range Selector & Cache Info -->
     <div class="border-border bg-card rounded-lg border p-4">
-      <div class="flex flex-wrap items-center gap-4">
-        <div class="flex items-center gap-2">
-          <label class="text-muted-foreground text-sm font-medium">
-            Date Range:
-          </label>
-          <select
-            v-model="selectedRange"
-            @change="handleDateRangeChange"
-            class="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
-          >
-            <option value="7">Last 7 days</option>
-            <option value="14">Last 14 days</option>
-            <option value="30">Last 30 days</option>
-            <option value="90">Last 90 days</option>
-          </select>
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-4">
+          <div class="flex items-center gap-2">
+            <label class="text-muted-foreground text-sm font-medium">
+              Date Range:
+            </label>
+            <select
+              v-model="selectedRange"
+              @change="handleDateRangeChange"
+              class="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
+            >
+              <option value="7">Last 7 days</option>
+              <option value="14">Last 14 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="90">Last 90 days</option>
+            </select>
+          </div>
+
+          <div class="text-muted-foreground text-sm">
+            {{ formatDate(startDate) }} - {{ formatDate(endDate) }}
+          </div>
         </div>
 
-        <div class="text-muted-foreground text-sm">
-          {{ formatDate(startDate) }} - {{ formatDate(endDate) }}
+        <!-- Cache Info -->
+        <div v-if="cacheInfo" class="flex items-center gap-2">
+          <div
+            v-if="cacheInfo.is_updating"
+            class="flex items-center gap-1.5 rounded-full bg-blue-500/10 px-3 py-1"
+          >
+            <Icon
+              name="hugeicons:loading-03"
+              class="text-blue-600 dark:text-blue-400 size-3.5 animate-spin"
+            />
+            <span class="text-blue-600 dark:text-blue-400 text-xs font-medium"
+              >Updating...</span
+            >
+          </div>
+          <div class="text-muted-foreground text-xs">
+            <span>Last updated {{ formatCacheAge(cacheInfo.cache_age_minutes) }}</span>
+            <template v-if="cacheInfo.next_update_in_minutes >= 0">
+              <span class="mx-1">•</span>
+              <span
+                >Next update in {{ Math.ceil(cacheInfo.next_update_in_minutes) }} min</span
+              >
+            </template>
+          </div>
         </div>
       </div>
     </div>
@@ -469,6 +496,11 @@ const propertyBreakdown = computed(() => {
   return aggregateData.value?.property_breakdown || [];
 });
 
+// Cache info
+const cacheInfo = computed(() => {
+  return aggregateData.value?.cache_info || null;
+});
+
 // Total device users for percentage calculation
 const totalDeviceUsers = computed(() => {
   if (!aggregateData.value?.devices) return 0;
@@ -487,7 +519,12 @@ const fetchAnalytics = async () => {
     return;
   }
 
-  loading.value = true;
+  // Only show loading indicator if we don't have any data yet
+  // If we have cached data, just fetch in background
+  const showLoading = !aggregateData.value;
+  if (showLoading) {
+    loading.value = true;
+  }
   error.value = null;
 
   try {
@@ -506,10 +543,15 @@ const fetchAnalytics = async () => {
     console.log("💾 Saved aggregate data to Pinia store");
   } catch (err) {
     console.error("Error fetching analytics:", err);
-    error.value =
-      err.data?.message || err.message || "Failed to load analytics data";
+    // Only show error if we don't have cached data to fall back on
+    if (!aggregateData.value) {
+      error.value =
+        err.data?.message || err.message || "Failed to load analytics data";
+    }
   } finally {
-    loading.value = false;
+    if (showLoading) {
+      loading.value = false;
+    }
   }
 };
 
@@ -536,6 +578,16 @@ const formatPercent = (value) => {
 
 const formatDate = (date) => {
   return date.format("MMM DD, YYYY");
+};
+
+const formatCacheAge = (minutes) => {
+  if (minutes === null || minutes === undefined) return "just now";
+  if (minutes < 1) return "just now";
+  if (minutes === 1) return "1 minute ago";
+  if (minutes < 60) return `${Math.floor(minutes)} minutes ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours === 1) return "1 hour ago";
+  return `${hours} hours ago`;
 };
 
 const formatMetricValue = (key, value) => {
