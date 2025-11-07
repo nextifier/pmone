@@ -196,57 +196,15 @@ class AnalyticsService
             ]);
         }
 
-        // PRIORITY 3: Try to fetch synchronously ONE TIME if currently refreshing
-        // This ensures we populate last_success cache for future requests
-        if (Cache::has("{$cacheKey}_refreshing")) {
-            \Log::warning("Already refreshing, returning empty data");
-            return $this->getEmptyDataStructure($period, true);
+        // PRIORITY 3: NO CACHE AT ALL - Return empty and dispatch background job
+        \Log::warning("No cache found, dispatching background job and returning empty data");
+
+        // Dispatch background job to fetch data
+        if (!Cache::has("{$cacheKey}_refreshing")) {
+            $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
         }
 
-        // PRIORITY 4: NO CACHE AT ALL - Fetch synchronously to populate last_success
-        \Log::warning("No cache found, fetching synchronously to populate last_success");
-
-        try {
-            // Mark as refreshing
-            Cache::put("{$cacheKey}_refreshing", true, now()->addMinutes(5));
-
-            $properties = $propertyIds
-                ? GaProperty::active()->whereIn('property_id', $propertyIds)->get()
-                : GaProperty::active()->get();
-
-            if ($properties->isEmpty()) {
-                \Log::info("No active properties found");
-                return $this->getEmptyDataStructure($period, true);
-            }
-
-            // Fetch data synchronously for first time
-            $data = $this->aggregator->getDashboardData($properties, $period);
-
-            // Store in all cache locations
-            Cache::put($cacheKey, $data, now()->addMinutes(30));
-            Cache::put($cacheTimestampKey, now(), now()->addMinutes(30));
-            Cache::put($lastSuccessKey, $data, now()->addYears(10)); // Never expires
-
-            \Log::info("Successfully populated all caches (first time)");
-
-            $lastSyncedAt = $this->getMostRecentSyncTime($propertyIds);
-
-            return array_merge($data, [
-                'cache_info' => [
-                    'last_updated' => $lastSyncedAt ? $lastSyncedAt->toIso8601String() : now()->toIso8601String(),
-                    'cache_age_minutes' => 0,
-                    'next_update_in_minutes' => 30,
-                    'is_fresh' => true,
-                    'is_updating' => false,
-                    'first_load' => true,
-                ],
-            ]);
-        } catch (\Exception $e) {
-            \Log::error("Failed to fetch aggregate data: {$e->getMessage()}");
-            return $this->getEmptyDataStructure($period, true, $e->getMessage());
-        } finally {
-            Cache::forget("{$cacheKey}_refreshing");
-        }
+        return $this->getEmptyDataStructure($period, true);
     }
 
     /**
@@ -311,24 +269,46 @@ class AnalyticsService
         // Mark as refreshing
         Cache::put("{$cacheKey}_refreshing", true, now()->addMinutes(5));
 
-        dispatch(function () use ($period, $propertyIds, $cacheKey) {
+        // Bind aggregator to avoid context issues in closure
+        $aggregator = $this->aggregator;
+
+        dispatch(function () use ($period, $propertyIds, $cacheKey, $aggregator) {
             try {
+                \Log::info("Background refresh started for {$cacheKey}");
+
                 $properties = $propertyIds
                     ? GaProperty::active()->whereIn('property_id', $propertyIds)->get()
                     : GaProperty::active()->get();
 
-                $data = $this->aggregator->getDashboardData($properties, $period);
+                if ($properties->isEmpty()) {
+                    \Log::warning("No active properties found for background refresh");
+                    return;
+                }
+
+                \Log::info("Fetching dashboard data for {$properties->count()} properties");
+
+                $data = $aggregator->getDashboardData($properties, $period);
 
                 // Store with 30-minute expiry
                 Cache::put($cacheKey, $data, now()->addMinutes(30));
                 Cache::put("{$cacheKey}_timestamp", now(), now()->addMinutes(30));
 
                 // Store as "last known good data" that never expires (for instant fallback)
-                Cache::put("{$cacheKey}_last_success", $data, now()->addYears(10));
+                $lastSuccessKey = "{$cacheKey}_last_success";
+                Cache::put($lastSuccessKey, $data, now()->addYears(10));
 
-                \Log::info("Aggregate cache refreshed successfully for {$cacheKey}");
+                \Log::info("Aggregate cache refreshed successfully", [
+                    'cache_key' => $cacheKey,
+                    'last_success_key' => $lastSuccessKey,
+                    'properties_count' => $properties->count(),
+                    'has_totals' => !empty($data['totals'] ?? []),
+                ]);
             } catch (\Exception $e) {
-                \Log::error("Background aggregate cache refresh failed: {$e->getMessage()}");
+                \Log::error("Background aggregate cache refresh failed", [
+                    'cache_key' => $cacheKey,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
             } finally {
                 Cache::forget("{$cacheKey}_refreshing");
             }
