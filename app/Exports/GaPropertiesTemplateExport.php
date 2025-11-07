@@ -8,6 +8,7 @@ class GaPropertiesTemplateExport extends BaseTemplateExport
     {
         return [
             [
+                '1',
                 'My Website',
                 '123456789',
                 'production, website',
@@ -15,6 +16,7 @@ class GaPropertiesTemplateExport extends BaseTemplateExport
                 '10',
             ],
             [
+                '1',
                 'Another Property',
                 '987654321',
                 'production, mobile',
@@ -22,6 +24,7 @@ class GaPropertiesTemplateExport extends BaseTemplateExport
                 '15',
             ],
             [
+                '1',
                 'Disabled Property',
                 '555555555',
                 'development, staging',
@@ -34,6 +37,7 @@ class GaPropertiesTemplateExport extends BaseTemplateExport
     public function headings(): array
     {
         return [
+            'Project ID',
             'Name',
             'Property ID',
             'Tags (comma-separated)',

@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Models\GaProperty;
+use App\Models\Project;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
@@ -19,11 +20,24 @@ class GaPropertiesImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, Wit
 
     protected int $importedCount = 0;
 
+    protected ?int $defaultProjectId = null;
+
+    public function __construct(?int $defaultProjectId = null)
+    {
+        // If no default project specified, get the first available project
+        $this->defaultProjectId = $defaultProjectId ?? Project::first()?->id;
+    }
+
     public function prepareForValidation($data, $index)
     {
         // Convert property_id to string (Excel may read it as number)
         if (isset($data['property_id']) && ! is_null($data['property_id'])) {
             $data['property_id'] = (string) $data['property_id'];
+        }
+
+        // Set default project_id if not provided
+        if (! isset($data['project_id']) || empty($data['project_id'])) {
+            $data['project_id'] = $this->defaultProjectId;
         }
 
         // Normalize status to lowercase
@@ -56,6 +70,7 @@ class GaPropertiesImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, Wit
 
         // Create GA property
         $property = GaProperty::create([
+            'project_id' => $row['project_id'],
             'name' => $row['name'],
             'property_id' => $row['property_id'],
             'is_active' => $isActive,
@@ -75,6 +90,7 @@ class GaPropertiesImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, Wit
     public function rules(): array
     {
         return [
+            'project_id' => ['required', 'integer', 'exists:projects,id'],
             'name' => ['required', 'string', 'max:255'],
             'property_id' => [
                 'required',
@@ -91,6 +107,8 @@ class GaPropertiesImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, Wit
     public function customValidationMessages(): array
     {
         return [
+            'project_id.required' => 'The project field is required.',
+            'project_id.exists' => 'The selected project does not exist.',
             'name.required' => 'The property name field is required.',
             'property_id.required' => 'The property ID is required.',
             'property_id.unique' => 'This property ID is already in use.',
