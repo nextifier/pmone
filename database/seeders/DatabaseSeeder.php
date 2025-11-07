@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             RoleAndPermissionSeeder::class,
             UserSeeder::class,
             ProjectSeeder::class,
+            GaPropertySeeder::class,
             LinkSeeder::class,
             ShortLinkSeeder::class,
         ]);

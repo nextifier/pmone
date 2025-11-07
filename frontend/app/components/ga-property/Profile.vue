@@ -7,9 +7,9 @@
       >
         <span class="shrink truncate">{{ model?.name }}</span>
       </span>
-      <span v-if="model?.property_id" class="text-muted-foreground truncate text-xs">{{
-        model.property_id
-      }}</span>
+      <span v-if="model?.property_id" class="text-muted-foreground truncate text-xs"
+        >ID: {{ model.property_id }}</span
+      >
     </div>
   </div>
 </template>

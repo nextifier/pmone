@@ -28,9 +28,7 @@
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div class="flex flex-wrap items-center gap-4">
           <div class="flex items-center gap-2">
-            <label class="text-muted-foreground text-sm font-medium">
-              Date Range:
-            </label>
+            <label class="text-muted-foreground text-sm font-medium"> Date Range: </label>
             <select
               v-model="selectedRange"
               @change="handleDateRangeChange"
@@ -56,19 +54,15 @@
           >
             <Icon
               name="hugeicons:loading-03"
-              class="text-blue-600 dark:text-blue-400 size-3.5 animate-spin"
+              class="size-3.5 animate-spin text-blue-600 dark:text-blue-400"
             />
-            <span class="text-blue-600 dark:text-blue-400 text-xs font-medium"
-              >Updating...</span
-            >
+            <span class="text-xs font-medium text-blue-600 dark:text-blue-400">Updating...</span>
           </div>
           <div class="text-muted-foreground text-xs">
             <span>Last updated {{ formatCacheAge(cacheInfo.cache_age_minutes) }}</span>
             <template v-if="cacheInfo.next_update_in_minutes >= 0">
               <span class="mx-1">•</span>
-              <span
-                >Next update in {{ Math.ceil(cacheInfo.next_update_in_minutes) }} min</span
-              >
+              <span>Next update in {{ Math.ceil(cacheInfo.next_update_in_minutes) }} min</span>
             </template>
           </div>
         </div>
@@ -81,25 +75,17 @@
       class="border-border bg-card flex items-center justify-center rounded-lg border p-12"
     >
       <div class="flex flex-col items-center gap-3">
-        <Icon
-          name="hugeicons:loading-03"
-          class="text-primary size-8 animate-spin"
-        />
+        <Icon name="hugeicons:loading-03" class="text-primary size-8 animate-spin" />
         <p class="text-muted-foreground text-sm">Loading analytics data...</p>
       </div>
     </div>
 
     <!-- Error State -->
-    <div
-      v-else-if="error"
-      class="border-border bg-card rounded-lg border p-6"
-    >
+    <div v-else-if="error" class="border-border bg-card rounded-lg border p-6">
       <div class="flex flex-col items-center gap-3 text-center">
         <Icon name="hugeicons:alert-circle" class="text-destructive size-8" />
         <div>
-          <h3 class="text-foreground mb-1 font-semibold">
-            Failed to load analytics
-          </h3>
+          <h3 class="text-foreground mb-1 font-semibold">Failed to load analytics</h3>
           <p class="text-muted-foreground text-sm">{{ error }}</p>
         </div>
         <button
@@ -118,7 +104,7 @@
         <div
           v-for="metric in summaryMetrics"
           :key="metric.key"
-          class="border-border bg-card rounded-lg border p-5 transition-colors hover:bg-muted/50"
+          class="border-border bg-card hover:bg-muted/50 rounded-lg border p-5 transition-colors"
         >
           <div class="flex items-center justify-between">
             <p class="text-muted-foreground text-sm font-medium">
@@ -146,9 +132,7 @@
       <div class="space-y-4">
         <div class="flex items-center justify-between">
           <div>
-            <h2 class="text-foreground text-lg font-semibold">
-              Analytics by Property
-            </h2>
+            <h2 class="text-foreground text-lg font-semibold">Analytics by Property</h2>
             <p class="text-muted-foreground text-sm">
               Click on a property to view detailed analytics
             </p>
@@ -163,19 +147,17 @@
           <NuxtLink
             v-for="property in propertyBreakdown"
             :key="property.property_id"
-            :to="`/reports/websites/${property.property_id}`"
+            :to="`/web-analytics/${property.property_id}`"
             class="border-border bg-card hover:border-primary group relative overflow-hidden rounded-lg border p-5 transition-all hover:shadow-lg"
           >
             <div class="mb-4 flex items-start justify-between">
               <div class="flex-1">
                 <h3
-                  class="text-foreground mb-1 font-semibold group-hover:text-primary transition-colors"
+                  class="text-foreground group-hover:text-primary mb-1 font-semibold transition-colors"
                 >
                   {{ property.property_name }}
                 </h3>
-                <p class="text-muted-foreground text-xs">
-                  Property ID: {{ property.property_id }}
-                </p>
+                <p class="text-muted-foreground text-xs">Property ID: {{ property.property_id }}</p>
               </div>
               <Icon
                 name="hugeicons:arrow-right-01"
@@ -213,14 +195,11 @@
             <div class="mt-3 flex items-center gap-2">
               <span
                 v-if="property.is_fresh"
-                class="bg-green-500/10 text-green-600 dark:text-green-400 rounded-full px-2 py-0.5 text-xs font-medium"
+                class="rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400"
               >
                 Fresh Data
               </span>
-              <span
-                v-if="property.cached_at"
-                class="text-muted-foreground text-xs"
-              >
+              <span v-if="property.cached_at" class="text-muted-foreground text-xs">
                 Cached {{ formatRelativeTime(property.cached_at) }}
               </span>
             </div>
@@ -230,7 +209,7 @@
 
       <!-- Top Pages -->
       <div
-        v-if="aggregateData.top_pages && aggregateData.top_pages.length > 0"
+        v-if="aggregateData.top_pages?.length > 0"
         class="border-border bg-card rounded-lg border"
       >
         <div class="border-border border-b p-4">
@@ -238,9 +217,7 @@
             <Icon name="hugeicons:file-star" class="size-5" />
             Top Pages
           </h2>
-          <p class="text-muted-foreground text-sm">
-            Most visited pages across all properties
-          </p>
+          <p class="text-muted-foreground text-sm">Most visited pages across all properties</p>
         </div>
         <div class="divide-border divide-y">
           <div
@@ -260,7 +237,7 @@
                     {{ page.title }}
                   </p>
                 </div>
-                <p class="text-muted-foreground ml-8 mt-1 text-sm">
+                <p class="text-muted-foreground mt-1 ml-8 text-sm">
                   {{ page.path }}
                 </p>
                 <p class="text-muted-foreground ml-8 text-xs">
@@ -282,10 +259,7 @@
       <div class="grid gap-4 lg:grid-cols-2">
         <!-- Traffic Sources -->
         <div
-          v-if="
-            aggregateData.traffic_sources &&
-            aggregateData.traffic_sources.length > 0
-          "
+          v-if="aggregateData.traffic_sources?.length > 0"
           class="border-border bg-card rounded-lg border"
         >
           <div class="border-border border-b p-4">
@@ -293,16 +267,11 @@
               <Icon name="hugeicons:link-square-02" class="size-5" />
               Traffic Sources
             </h2>
-            <p class="text-muted-foreground text-sm">
-              Where your visitors come from
-            </p>
+            <p class="text-muted-foreground text-sm">Where your visitors come from</p>
           </div>
           <div class="divide-border divide-y">
             <div
-              v-for="(source, index) in aggregateData.traffic_sources.slice(
-                0,
-                5
-              )"
+              v-for="(source, index) in aggregateData.traffic_sources.slice(0, 5)"
               :key="index"
               class="hover:bg-muted/30 p-4 transition-colors"
             >
@@ -327,35 +296,24 @@
         </div>
 
         <!-- Device Categories -->
-        <div
-          v-if="aggregateData.devices && aggregateData.devices.length > 0"
-          class="border-border bg-card rounded-lg border"
-        >
+        <div v-if="aggregateData.devices?.length > 0" class="border-border bg-card rounded-lg border">
           <div class="border-border border-b p-4">
             <h2 class="text-foreground flex items-center gap-2 font-semibold">
               <Icon name="hugeicons:monitor-01" class="size-5" />
               Devices
             </h2>
-            <p class="text-muted-foreground text-sm">
-              Device breakdown of your visitors
-            </p>
+            <p class="text-muted-foreground text-sm">Device breakdown of your visitors</p>
           </div>
           <div class="p-4">
             <div class="space-y-4">
-              <div
-                v-for="(device, index) in aggregateData.devices"
-                :key="index"
-                class="space-y-2"
-              >
+              <div v-for="(device, index) in aggregateData.devices" :key="index" class="space-y-2">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
                     <Icon
                       :name="getDeviceIcon(device.device)"
                       class="text-muted-foreground size-4"
                     />
-                    <span class="text-foreground capitalize">{{
-                      device.device
-                    }}</span>
+                    <span class="text-foreground capitalize">{{ device.device }}</span>
                   </div>
                   <div class="text-right">
                     <p class="text-foreground font-semibold">
@@ -406,10 +364,7 @@
       class="border-border bg-card flex items-center justify-center rounded-lg border p-12"
     >
       <div class="flex flex-col items-center gap-3 text-center">
-        <Icon
-          name="hugeicons:database-01"
-          class="text-muted-foreground size-12"
-        />
+        <Icon name="hugeicons:database-01" class="text-muted-foreground size-12" />
         <div>
           <h3 class="text-foreground mb-1 font-semibold">No data available</h3>
           <p class="text-muted-foreground text-sm">
@@ -423,7 +378,6 @@
 
 <script setup>
 const { $dayjs } = useNuxtApp();
-const analyticsStore = useAnalyticsStore();
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -431,7 +385,7 @@ definePageMeta({
 });
 
 usePageMeta("", {
-  title: `Web Analytics Dashboard`,
+  title: "Web Analytics Dashboard",
   description: "View aggregated analytics data from all Google Analytics 4 properties",
 });
 
@@ -441,13 +395,13 @@ const error = ref(null);
 const aggregateData = ref(null);
 const selectedRange = ref("30");
 
-// Computed dates
-const endDate = computed(() => $dayjs());
-const startDate = computed(() =>
-  $dayjs().subtract(parseInt(selectedRange.value), "day")
-);
+// Auto-refresh timer
+let autoRefreshTimeout = null;
 
-// Summary metrics
+// Computed
+const endDate = computed(() => $dayjs());
+const startDate = computed(() => $dayjs().subtract(parseInt(selectedRange.value), "day"));
+
 const summaryMetrics = computed(() => {
   if (!aggregateData.value?.totals) return [];
 
@@ -491,27 +445,12 @@ const summaryMetrics = computed(() => {
   ];
 });
 
-// Property breakdown
-const propertyBreakdown = computed(() => {
-  return aggregateData.value?.property_breakdown || [];
-});
-
-// Cache info
-const cacheInfo = computed(() => {
-  return aggregateData.value?.cache_info || null;
-});
-
-// Total device users for percentage calculation
+const propertyBreakdown = computed(() => aggregateData.value?.property_breakdown || []);
+const cacheInfo = computed(() => aggregateData.value?.cache_info || null);
 const totalDeviceUsers = computed(() => {
   if (!aggregateData.value?.devices) return 0;
-  return aggregateData.value.devices.reduce(
-    (sum, device) => sum + (device.users || 0),
-    0
-  );
+  return aggregateData.value.devices.reduce((sum, device) => sum + (device.users || 0), 0);
 });
-
-// Auto-refresh timer
-let autoRefreshTimeout = null;
 
 // Fetch analytics data
 const fetchAnalytics = async (silent = false) => {
@@ -521,72 +460,43 @@ const fetchAnalytics = async (silent = false) => {
     autoRefreshTimeout = null;
   }
 
-  // Check Pinia store first for fresh data (but not on silent refresh)
-  if (analyticsStore.isAggregateFresh && !silent) {
-    console.log("✅ Using Pinia cache for aggregate data");
-    aggregateData.value = analyticsStore.aggregateData;
-    return;
-  }
-
   // Only show loading indicator if we don't have any data AND not silent refresh
   const showLoading = !aggregateData.value && !silent;
-  if (showLoading) {
-    loading.value = true;
-  }
+  if (showLoading) loading.value = true;
   error.value = null;
 
   try {
     const client = useSanctumClient();
     const days = parseInt(selectedRange.value);
 
-    console.log("Fetching aggregate analytics for", days, "days...", silent ? "(silent)" : "");
-
     const { data } = await client(`/api/google-analytics/aggregate?days=${days}`);
-
-    console.log("Aggregate data received:", data);
     aggregateData.value = data;
 
-    // Save to Pinia store for future use
-    analyticsStore.setAggregate(data);
-    console.log("💾 Saved aggregate data to Pinia store");
-
     // Auto-refresh logic based on cache state
-    if (data.cache_info?.initial_load || (data.cache_info?.is_updating && data.cache_info?.properties_count === 0)) {
+    if (
+      data.cache_info?.initial_load ||
+      (data.cache_info?.is_updating && data.cache_info?.properties_count === 0)
+    ) {
       // Initial load with empty data - refresh quickly
-      console.log("🔄 Initial load detected, will auto-refresh in 5 seconds");
-      autoRefreshTimeout = setTimeout(() => {
-        fetchAnalytics(true); // Silent refresh
-      }, 5000);
+      autoRefreshTimeout = setTimeout(() => fetchAnalytics(true), 5000);
     } else if (data.cache_info?.is_updating) {
       // Has data but updating in background - refresh slower
-      console.log("🔄 Data updating in background, will auto-refresh in 15 seconds");
-      autoRefreshTimeout = setTimeout(() => {
-        fetchAnalytics(true); // Silent refresh
-      }, 15000);
+      autoRefreshTimeout = setTimeout(() => fetchAnalytics(true), 15000);
     }
   } catch (err) {
     console.error("Error fetching analytics:", err);
     // Only show error if we don't have cached data to fall back on
     if (!aggregateData.value) {
-      error.value =
-        err.data?.message || err.message || "Failed to load analytics data";
+      error.value = err.data?.message || err.message || "Failed to load analytics data";
     }
   } finally {
-    if (showLoading) {
-      loading.value = false;
-    }
+    if (showLoading) loading.value = false;
   }
 };
 
-// Handle date range change
-const handleDateRangeChange = () => {
-  fetchAnalytics();
-};
-
-// Refresh data
-const refreshData = () => {
-  fetchAnalytics();
-};
+// Handlers
+const handleDateRangeChange = () => fetchAnalytics();
+const refreshData = () => fetchAnalytics();
 
 // Format helpers
 const formatNumber = (value) => {
@@ -599,33 +509,23 @@ const formatPercent = (value) => {
   return `${(value * 100).toFixed(1)}%`;
 };
 
-const formatDate = (date) => {
-  return date.format("MMM DD, YYYY");
-};
+const formatDate = (date) => date.format("MMM DD, YYYY");
 
 const formatCacheAge = (minutes) => {
-  if (minutes === null || minutes === undefined) return "just now";
-  if (minutes < 1) return "just now";
+  if (!minutes || minutes < 1) return "just now";
   if (minutes === 1) return "1 minute ago";
   if (minutes < 60) return `${Math.floor(minutes)} minutes ago`;
   const hours = Math.floor(minutes / 60);
-  if (hours === 1) return "1 hour ago";
-  return `${hours} hours ago`;
+  return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
 };
 
 const formatMetricValue = (key, value) => {
-  if (key.toLowerCase().includes("rate")) {
-    return formatPercent(value);
-  }
-  if (key.toLowerCase().includes("duration")) {
-    return `${formatNumber(value)}s`;
-  }
+  if (key.toLowerCase().includes("rate")) return formatPercent(value);
+  if (key.toLowerCase().includes("duration")) return `${formatNumber(value)}s`;
   return formatNumber(value);
 };
 
-const formatRelativeTime = (dateString) => {
-  return $dayjs(dateString).fromNow();
-};
+const formatRelativeTime = (dateString) => $dayjs(dateString).fromNow();
 
 const calculatePercentage = (value, total) => {
   if (!total) return 0;
@@ -640,15 +540,9 @@ const getDeviceIcon = (device) => {
   return "hugeicons:device-access";
 };
 
-// Load data on mount
-onMounted(() => {
-  fetchAnalytics();
-});
-
-// Cleanup on unmount
+// Lifecycle
+onMounted(() => fetchAnalytics());
 onUnmounted(() => {
-  if (autoRefreshTimeout) {
-    clearTimeout(autoRefreshTimeout);
-  }
+  if (autoRefreshTimeout) clearTimeout(autoRefreshTimeout);
 });
 </script>

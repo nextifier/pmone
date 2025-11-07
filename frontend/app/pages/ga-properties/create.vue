@@ -21,12 +21,4 @@ usePageMeta("", {
 });
 
 const formRef = ref(null);
-
-defineShortcuts({
-  meta_s: {
-    handler: () => {
-      formRef.value?.handleSubmit();
-    },
-  },
-});
 </script>

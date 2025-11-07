@@ -57,12 +57,4 @@ async function loadGaProperty() {
 onMounted(async () => {
   await loadGaProperty();
 });
-
-defineShortcuts({
-  meta_s: {
-    handler: () => {
-      formRef.value?.handleSubmit();
-    },
-  },
-});
 </script>

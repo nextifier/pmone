@@ -29,6 +29,8 @@
     "@tailwindcss/vite": "^4.1.14",
     "@tanstack/vue-table": "^8.21.3",
     "@types/qrcode": "^1.5.6",
+    "@unovis/ts": "^1.6.1",
+    "@unovis/vue": "^1.6.1",
     "@vite-pwa/nuxt": "^1.0.4",
     "@vueuse/core": "^13.9.0",
     "@vueuse/integrations": "^13.9.0",

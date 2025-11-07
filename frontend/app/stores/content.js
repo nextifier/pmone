@@ -50,10 +50,6 @@ export const useContentStore = defineStore("content", {
         title: `Edit Profile`,
         description: ``,
       },
-      reports: {
-        title: `Reports`,
-        description: ``,
-      },
       projects: {
         title: `Projects`,
         description: ``,

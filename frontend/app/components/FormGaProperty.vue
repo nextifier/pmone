@@ -63,9 +63,7 @@
               <TagsInputInput placeholder="Add tags..." />
             </TagsInput>
             <InputErrorMessage :errors="errors.tags" />
-            <p class="text-muted-foreground text-xs">
-              Organize properties with tags (e.g., production, website, mobile)
-            </p>
+            <p class="text-muted-foreground text-xs">Organize properties with tags</p>
           </div>
         </div>
       </div>
@@ -243,13 +241,7 @@ watch(
         project_id: newProperty.project_id,
         name: newProperty.name,
         property_id: newProperty.property_id,
-        tags:
-          newProperty.tags?.map((tag) => {
-            // Handle both translatable object {"en": "value"} and plain string
-            return typeof tag.name === "object"
-              ? tag.name.en || Object.values(tag.name)[0]
-              : tag.name;
-          }) || [],
+        tags: newProperty.tags || [],
         is_active: newProperty.is_active,
         sync_frequency: newProperty.sync_frequency || 10,
       };

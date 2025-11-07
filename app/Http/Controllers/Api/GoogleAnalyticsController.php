@@ -65,10 +65,22 @@ class GoogleAnalyticsController extends Controller
 
         // Check if client-only mode
         if ($request->has('client_only')) {
-            $data = $query->with(['tags', 'project'])->get()->map(function ($property) {
-                return array_merge($property->toArray(), [
+            $data = $query->with(['tags', 'project.media'])->get()->map(function ($property) {
+                $propertyData = array_merge($property->toArray(), [
                     'next_sync_at' => $property->next_sync_at,
                 ]);
+
+                // Simplify tags to just names
+                $propertyData['tags'] = $property->tags->pluck('name')->map(fn ($name) => is_array($name) ? ($name['en'] ?? reset($name)) : $name)->values()->toArray();
+
+                // Add profile_image URLs if project has media
+                if ($property->project) {
+                    $propertyData['project']['profile_image'] = $property->project->getMediaUrls('profile_image');
+                    // Remove media collection from response
+                    unset($propertyData['project']['media']);
+                }
+
+                return $propertyData;
             });
 
             return response()->json([
@@ -86,12 +98,24 @@ class GoogleAnalyticsController extends Controller
         $perPage = $request->input('per_page', 10);
         $page = $request->input('page', 1);
 
-        $properties = $query->with(['tags', 'project'])->paginate($perPage, ['*'], 'page', $page);
+        $properties = $query->with(['tags', 'project.media'])->paginate($perPage, ['*'], 'page', $page);
 
         $data = collect($properties->items())->map(function ($property) {
-            return array_merge($property->toArray(), [
+            $propertyData = array_merge($property->toArray(), [
                 'next_sync_at' => $property->next_sync_at,
             ]);
+
+            // Simplify tags to just names
+            $propertyData['tags'] = $property->tags->pluck('name')->map(fn ($name) => is_array($name) ? ($name['en'] ?? reset($name)) : $name)->values()->toArray();
+
+            // Add profile_image URLs if project has media
+            if ($property->project) {
+                $propertyData['project']['profile_image'] = $property->project->getMediaUrls('profile_image');
+                // Remove media collection from response
+                unset($propertyData['project']['media']);
+            }
+
+            return $propertyData;
         });
 
         return response()->json([
@@ -110,12 +134,24 @@ class GoogleAnalyticsController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        $property = GaProperty::with(['tags', 'project'])->findOrFail($id);
+        $property = GaProperty::with(['tags', 'project.media'])->findOrFail($id);
+
+        $propertyData = array_merge($property->toArray(), [
+            'next_sync_at' => $property->next_sync_at,
+        ]);
+
+        // Simplify tags to just names
+        $propertyData['tags'] = $property->tags->pluck('name')->map(fn ($name) => is_array($name) ? ($name['en'] ?? reset($name)) : $name)->values()->toArray();
+
+        // Add profile_image URLs if project has media
+        if ($property->project) {
+            $propertyData['project']['profile_image'] = $property->project->getMediaUrls('profile_image');
+            // Remove media collection from response
+            unset($propertyData['project']['media']);
+        }
 
         return response()->json([
-            'data' => array_merge($property->toArray(), [
-                'next_sync_at' => $property->next_sync_at,
-            ]),
+            'data' => $propertyData,
         ]);
     }
 
@@ -138,11 +174,23 @@ class GoogleAnalyticsController extends Controller
         }
 
         // Load tags relationship for response
-        $property->load(['tags', 'project']);
+        $property->load(['tags', 'project.media']);
+
+        $propertyData = $property->toArray();
+
+        // Simplify tags to just names
+        $propertyData['tags'] = $property->tags->pluck('name')->map(fn ($name) => is_array($name) ? ($name['en'] ?? reset($name)) : $name)->values()->toArray();
+
+        // Add profile_image URLs if project has media
+        if ($property->project) {
+            $propertyData['project']['profile_image'] = $property->project->getMediaUrls('profile_image');
+            // Remove media collection from response
+            unset($propertyData['project']['media']);
+        }
 
         return response()->json([
             'message' => 'GA property created successfully',
-            'data' => $property,
+            'data' => $propertyData,
         ], 201);
     }
 
@@ -167,11 +215,23 @@ class GoogleAnalyticsController extends Controller
         }
 
         // Load tags relationship for response
-        $property->load(['tags', 'project']);
+        $property->load(['tags', 'project.media']);
+
+        $propertyData = $property->toArray();
+
+        // Simplify tags to just names
+        $propertyData['tags'] = $property->tags->pluck('name')->map(fn ($name) => is_array($name) ? ($name['en'] ?? reset($name)) : $name)->values()->toArray();
+
+        // Add profile_image URLs if project has media
+        if ($property->project) {
+            $propertyData['project']['profile_image'] = $property->project->getMediaUrls('profile_image');
+            // Remove media collection from response
+            unset($propertyData['project']['media']);
+        }
 
         return response()->json([
             'message' => 'GA property updated successfully',
-            'data' => $property,
+            'data' => $propertyData,
         ]);
     }
 
@@ -194,10 +254,26 @@ class GoogleAnalyticsController extends Controller
      */
     public function getProperties(): JsonResponse
     {
-        $properties = GaProperty::with('project')->get();
+        $properties = GaProperty::with(['tags', 'project.media'])->get();
+
+        $data = $properties->map(function ($property) {
+            $propertyData = $property->toArray();
+
+            // Simplify tags to just names
+            $propertyData['tags'] = $property->tags->pluck('name')->map(fn ($name) => is_array($name) ? ($name['en'] ?? reset($name)) : $name)->values()->toArray();
+
+            // Add profile_image URLs if project has media
+            if ($property->project) {
+                $propertyData['project']['profile_image'] = $property->project->getMediaUrls('profile_image');
+                // Remove media collection from response
+                unset($propertyData['project']['media']);
+            }
+
+            return $propertyData;
+        });
 
         return response()->json([
-            'data' => $properties,
+            'data' => $data,
         ]);
     }
 

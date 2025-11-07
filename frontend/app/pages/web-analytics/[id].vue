@@ -4,7 +4,7 @@
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <NuxtLink
-          to="/reports/websites"
+          to="/web-analytics"
           class="text-muted-foreground hover:text-foreground transition-colors"
         >
           <Icon name="hugeicons:arrow-left-01" class="size-5 sm:size-6" />
@@ -13,9 +13,7 @@
           <h1 class="page-title">
             {{ propertyData?.property?.name || "Property Analytics" }}
           </h1>
-          <p class="text-muted-foreground text-sm">
-            Property ID: {{ route.params.id }}
-          </p>
+          <p class="text-muted-foreground text-sm">Property ID: {{ route.params.id }}</p>
         </div>
       </div>
 
@@ -39,9 +37,7 @@
     <div class="border-border bg-card rounded-lg border p-4">
       <div class="flex flex-wrap items-center gap-4">
         <div class="flex items-center gap-2">
-          <label class="text-muted-foreground text-sm font-medium">
-            Date Range:
-          </label>
+          <label class="text-muted-foreground text-sm font-medium"> Date Range: </label>
           <select
             v-model="selectedRange"
             @change="handleDateRangeChange"
@@ -66,25 +62,17 @@
       class="border-border bg-card flex items-center justify-center rounded-lg border p-12"
     >
       <div class="flex flex-col items-center gap-3">
-        <Icon
-          name="hugeicons:loading-03"
-          class="text-primary size-8 animate-spin"
-        />
+        <Icon name="hugeicons:loading-03" class="text-primary size-8 animate-spin" />
         <p class="text-muted-foreground text-sm">Loading property analytics...</p>
       </div>
     </div>
 
     <!-- Error State -->
-    <div
-      v-else-if="error"
-      class="border-border bg-card rounded-lg border p-6"
-    >
+    <div v-else-if="error" class="border-border bg-card rounded-lg border p-6">
       <div class="flex flex-col items-center gap-3 text-center">
         <Icon name="hugeicons:alert-circle" class="text-destructive size-8" />
         <div>
-          <h3 class="text-foreground mb-1 font-semibold">
-            Failed to load property analytics
-          </h3>
+          <h3 class="text-foreground mb-1 font-semibold">Failed to load property analytics</h3>
           <p class="text-muted-foreground text-sm">{{ error }}</p>
         </div>
         <button
@@ -121,13 +109,12 @@
               >
                 <Icon name="hugeicons:clock-03" class="size-4" />
                 <span class="text-muted-foreground">
-                  Last synced:
-                  {{ formatRelativeTime(propertyData.property.last_synced_at) }}
+                  Last synced: {{ formatRelativeTime(propertyData.property.last_synced_at) }}
                 </span>
               </div>
               <span
                 v-if="propertyData.property.is_active"
-                class="bg-green-500/10 text-green-600 dark:text-green-400 rounded-full px-2 py-0.5 text-xs font-medium"
+                class="rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400"
               >
                 Active
               </span>
@@ -141,7 +128,7 @@
         <div
           v-for="metric in mainMetrics"
           :key="metric.key"
-          class="border-border bg-card rounded-lg border p-5 transition-colors hover:bg-muted/50"
+          class="border-border bg-card hover:bg-muted/50 rounded-lg border p-5 transition-colors"
         >
           <div class="flex items-center justify-between">
             <p class="text-muted-foreground text-sm font-medium">
@@ -185,28 +172,23 @@
       </div>
 
       <!-- Daily Growth Chart -->
-      <div
-        v-if="chartData.length > 0"
-        class="border-border bg-card rounded-lg border"
-      >
+      <div v-if="chartData.length > 0" class="border-border bg-card rounded-lg border">
         <div class="border-border border-b p-4">
           <h2 class="text-foreground flex items-center gap-2 font-semibold">
             <Icon name="hugeicons:chart-line-data-03" class="size-5" />
             Daily Growth
           </h2>
-          <p class="text-muted-foreground text-sm">
-            Page views and users over time
-          </p>
+          <p class="text-muted-foreground text-sm">Page views and users over time</p>
         </div>
 
         <!-- Legend -->
         <div class="border-border flex flex-wrap items-center gap-4 border-b px-4 py-3">
           <div class="flex items-center gap-2">
-            <div class="bg-purple-500 size-3 rounded"></div>
+            <div class="size-3 rounded bg-purple-500"></div>
             <span class="text-muted-foreground text-sm">Page Views</span>
           </div>
           <div class="flex items-center gap-2">
-            <div class="bg-blue-500 size-3 rounded"></div>
+            <div class="size-3 rounded bg-blue-500"></div>
             <span class="text-muted-foreground text-sm">Active Users</span>
           </div>
         </div>
@@ -214,11 +196,7 @@
         <!-- Chart -->
         <div class="p-4">
           <div class="space-y-3">
-            <div
-              v-for="(row, index) in chartData"
-              :key="index"
-              class="space-y-2"
-            >
+            <div v-for="(row, index) in chartData" :key="index" class="space-y-2">
               <!-- Date Label -->
               <div class="flex items-center justify-between">
                 <span class="text-muted-foreground text-xs font-medium">
@@ -238,7 +216,7 @@
               <div class="space-y-1">
                 <div class="bg-muted h-2 overflow-hidden rounded-full">
                   <div
-                    class="bg-purple-500 h-full transition-all duration-500"
+                    class="h-full bg-purple-500 transition-all duration-500"
                     :style="{ width: `${row.pageViewsPercent}%` }"
                   ></div>
                 </div>
@@ -248,7 +226,7 @@
               <div class="space-y-1">
                 <div class="bg-muted h-2 overflow-hidden rounded-full">
                   <div
-                    class="bg-blue-500 h-full transition-all duration-500"
+                    class="h-full bg-blue-500 transition-all duration-500"
                     :style="{ width: `${row.usersPercent}%` }"
                   ></div>
                 </div>
@@ -260,7 +238,7 @@
 
       <!-- Top Pages -->
       <div
-        v-if="propertyData.top_pages && propertyData.top_pages.length > 0"
+        v-if="propertyData.top_pages?.length > 0"
         class="border-border bg-card rounded-lg border"
       >
         <div class="border-border border-b p-4">
@@ -268,9 +246,7 @@
             <Icon name="hugeicons:file-star" class="size-5" />
             Top Pages
           </h2>
-          <p class="text-muted-foreground text-sm">
-            Most visited pages for this property
-          </p>
+          <p class="text-muted-foreground text-sm">Most visited pages for this property</p>
         </div>
         <div class="divide-border divide-y">
           <div
@@ -288,7 +264,7 @@
                   </span>
                   <p class="text-foreground font-medium">{{ page.title }}</p>
                 </div>
-                <p class="text-muted-foreground ml-8 mt-1 text-sm">
+                <p class="text-muted-foreground mt-1 ml-8 text-sm">
                   {{ page.path }}
                 </p>
               </div>
@@ -307,10 +283,7 @@
       <div class="grid gap-4 lg:grid-cols-2">
         <!-- Traffic Sources -->
         <div
-          v-if="
-            propertyData.traffic_sources &&
-            propertyData.traffic_sources.length > 0
-          "
+          v-if="propertyData.traffic_sources?.length > 0"
           class="border-border bg-card rounded-lg border"
         >
           <div class="border-border border-b p-4">
@@ -318,9 +291,7 @@
               <Icon name="hugeicons:link-square-02" class="size-5" />
               Traffic Sources
             </h2>
-            <p class="text-muted-foreground text-sm">
-              Where your visitors come from
-            </p>
+            <p class="text-muted-foreground text-sm">Where your visitors come from</p>
           </div>
           <div class="divide-border divide-y">
             <div
@@ -331,9 +302,7 @@
               <div class="flex items-center justify-between">
                 <div class="flex-1">
                   <p class="text-foreground font-medium">{{ source.source }}</p>
-                  <p class="text-muted-foreground text-sm">
-                    {{ source.medium }}
-                  </p>
+                  <p class="text-muted-foreground text-sm">{{ source.medium }}</p>
                 </div>
                 <div class="text-right">
                   <p class="text-foreground font-semibold">
@@ -351,7 +320,7 @@
 
         <!-- Device Categories -->
         <div
-          v-if="propertyData.devices && propertyData.devices.length > 0"
+          v-if="propertyData.devices?.length > 0"
           class="border-border bg-card rounded-lg border"
         >
           <div class="border-border border-b p-4">
@@ -359,26 +328,18 @@
               <Icon name="hugeicons:monitor-01" class="size-5" />
               Devices
             </h2>
-            <p class="text-muted-foreground text-sm">
-              Device breakdown of your visitors
-            </p>
+            <p class="text-muted-foreground text-sm">Device breakdown of your visitors</p>
           </div>
           <div class="p-4">
             <div class="space-y-4">
-              <div
-                v-for="(device, index) in propertyData.devices"
-                :key="index"
-                class="space-y-2"
-              >
+              <div v-for="(device, index) in propertyData.devices" :key="index" class="space-y-2">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
                     <Icon
                       :name="getDeviceIcon(device.device)"
                       class="text-muted-foreground size-4"
                     />
-                    <span class="text-foreground capitalize">{{
-                      device.device
-                    }}</span>
+                    <span class="text-foreground capitalize">{{ device.device }}</span>
                   </div>
                   <div class="text-right">
                     <p class="text-foreground font-semibold">
@@ -403,36 +364,24 @@
         </div>
       </div>
 
-      <!-- Rows Data (Time Series) -->
-      <div v-if="propertyData.rows && propertyData.rows.length > 0" class="border-border bg-card rounded-lg border">
+      <!-- Daily Metrics Table -->
+      <div v-if="propertyData.rows?.length > 0" class="border-border bg-card rounded-lg border">
         <div class="border-border border-b p-4">
           <h2 class="text-foreground flex items-center gap-2 font-semibold">
             <Icon name="hugeicons:chart-line-data-03" class="size-5" />
             Daily Metrics
           </h2>
-          <p class="text-muted-foreground text-sm">
-            Day-by-day breakdown of metrics
-          </p>
+          <p class="text-muted-foreground text-sm">Day-by-day breakdown of metrics</p>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead class="bg-muted/30">
               <tr class="border-border border-b">
-                <th class="text-muted-foreground px-4 py-3 text-left font-medium">
-                  Date
-                </th>
-                <th class="text-muted-foreground px-4 py-3 text-right font-medium">
-                  Active Users
-                </th>
-                <th class="text-muted-foreground px-4 py-3 text-right font-medium">
-                  Sessions
-                </th>
-                <th class="text-muted-foreground px-4 py-3 text-right font-medium">
-                  Page Views
-                </th>
-                <th class="text-muted-foreground px-4 py-3 text-right font-medium">
-                  Bounce Rate
-                </th>
+                <th class="text-muted-foreground px-4 py-3 text-left font-medium">Date</th>
+                <th class="text-muted-foreground px-4 py-3 text-right font-medium">Active Users</th>
+                <th class="text-muted-foreground px-4 py-3 text-right font-medium">Sessions</th>
+                <th class="text-muted-foreground px-4 py-3 text-right font-medium">Page Views</th>
+                <th class="text-muted-foreground px-4 py-3 text-right font-medium">Bounce Rate</th>
               </tr>
             </thead>
             <tbody class="divide-border divide-y">
@@ -468,8 +417,7 @@
           <div>
             <p class="text-foreground text-sm font-medium">Data Period</p>
             <p class="text-muted-foreground text-xs">
-              {{ propertyData.period?.start_date }} to
-              {{ propertyData.period?.end_date }}
+              {{ propertyData.period?.start_date }} to {{ propertyData.period?.end_date }}
             </p>
           </div>
         </div>
@@ -482,10 +430,7 @@
       class="border-border bg-card flex items-center justify-center rounded-lg border p-12"
     >
       <div class="flex flex-col items-center gap-3 text-center">
-        <Icon
-          name="hugeicons:database-01"
-          class="text-muted-foreground size-12"
-        />
+        <Icon name="hugeicons:database-01" class="text-muted-foreground size-12" />
         <div>
           <h3 class="text-foreground mb-1 font-semibold">No data available</h3>
           <p class="text-muted-foreground text-sm">
@@ -500,7 +445,6 @@
 <script setup>
 const { $dayjs } = useNuxtApp();
 const route = useRoute();
-const analyticsStore = useAnalyticsStore();
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -513,13 +457,24 @@ const error = ref(null);
 const propertyData = ref(null);
 const selectedRange = ref("30");
 
-// Computed dates
+// Computed
 const endDate = computed(() => $dayjs());
-const startDate = computed(() =>
-  $dayjs().subtract(parseInt(selectedRange.value), "day")
-);
+const startDate = computed(() => $dayjs().subtract(parseInt(selectedRange.value), "day"));
 
-// Main metrics
+// Dynamic page title
+const pageTitle = computed(() => {
+  if (propertyData.value?.property?.name) {
+    return `${propertyData.value.property.name} - Analytics`;
+  }
+  return "Property Analytics";
+});
+
+// Set initial meta and watch for changes
+useSeoMeta({
+  title: pageTitle,
+  description: "Detailed analytics for Google Analytics property",
+});
+
 const mainMetrics = computed(() => {
   if (!propertyData.value?.metrics) return [];
 
@@ -563,7 +518,6 @@ const mainMetrics = computed(() => {
   ];
 });
 
-// Additional metrics
 const additionalMetrics = computed(() => {
   if (!propertyData.value?.metrics) return [];
 
@@ -583,16 +537,10 @@ const additionalMetrics = computed(() => {
   ];
 });
 
-// Chart data for daily growth visualization
 const chartData = computed(() => {
-  if (!propertyData.value?.rows || propertyData.value.rows.length === 0) {
-    return [];
-  }
+  if (!propertyData.value?.rows?.length) return [];
 
-  // Get rows sorted by date (oldest first for chronological display)
   const rows = [...propertyData.value.rows].sort((a, b) => a.date - b.date);
-
-  // Find max values for percentage calculation
   const maxPageViews = Math.max(...rows.map((r) => r.screenPageViews || 0));
   const maxUsers = Math.max(...rows.map((r) => r.activeUsers || 0));
 
@@ -611,80 +559,38 @@ const chartData = computed(() => {
   });
 });
 
-// Total device users for percentage calculation
 const totalDeviceUsers = computed(() => {
   if (!propertyData.value?.devices) return 0;
-  return propertyData.value.devices.reduce(
-    (sum, device) => sum + (device.users || 0),
-    0
-  );
+  return propertyData.value.devices.reduce((sum, device) => sum + (device.users || 0), 0);
 });
 
 // Fetch property analytics
 const fetchPropertyAnalytics = async () => {
-  const propertyId = route.params.id;
-
-  // Check Pinia store first for fresh data
-  if (analyticsStore.isFresh(propertyId)) {
-    console.log("✅ Using Pinia cache for property", propertyId);
-    propertyData.value = analyticsStore.getProperty(propertyId);
-
-    // Update page title with cached property name
-    if (propertyData.value?.property?.name) {
-      usePageMeta("", {
-        title: `${propertyData.value.property.name} - Analytics`,
-        description: `Detailed analytics for ${propertyData.value.property.name}`,
-      });
-    }
-    return;
-  }
-
   loading.value = true;
   error.value = null;
 
   try {
     const client = useSanctumClient();
+    const propertyId = route.params.id;
     const startDateStr = startDate.value.format("YYYY-MM-DD");
     const endDateStr = endDate.value.format("YYYY-MM-DD");
-
-    console.log("Fetching property analytics for", propertyId);
 
     const { data } = await client(
       `/api/google-analytics/properties/${propertyId}/analytics?start_date=${startDateStr}&end_date=${endDateStr}`
     );
 
-    console.log("Property data received:", data);
     propertyData.value = data;
-
-    // Save to Pinia store for future use
-    analyticsStore.setProperty(propertyId, data);
-    console.log("💾 Saved property data to Pinia store");
-
-    // Update page title with property name
-    if (data?.property?.name) {
-      usePageMeta("", {
-        title: `${data.property.name} - Analytics`,
-        description: `Detailed analytics for ${data.property.name}`,
-      });
-    }
   } catch (err) {
     console.error("Error fetching property analytics:", err);
-    error.value =
-      err.data?.message || err.message || "Failed to load property analytics";
+    error.value = err.data?.message || err.message || "Failed to load property analytics";
   } finally {
     loading.value = false;
   }
 };
 
-// Handle date range change
-const handleDateRangeChange = () => {
-  fetchPropertyAnalytics();
-};
-
-// Refresh data
-const refreshData = () => {
-  fetchPropertyAnalytics();
-};
+// Handlers
+const handleDateRangeChange = () => fetchPropertyAnalytics();
+const refreshData = () => fetchPropertyAnalytics();
 
 // Format helpers
 const formatNumber = (value) => {
@@ -697,12 +603,9 @@ const formatPercent = (value) => {
   return `${(value * 100).toFixed(1)}%`;
 };
 
-const formatDate = (date) => {
-  return date.format("MMM DD, YYYY");
-};
+const formatDate = (date) => date.format("MMM DD, YYYY");
 
 const formatRowDate = (dateString) => {
-  // dateString format: YYYYMMDD
   const year = dateString.substring(0, 4);
   const month = dateString.substring(4, 6);
   const day = dateString.substring(6, 8);
@@ -710,18 +613,12 @@ const formatRowDate = (dateString) => {
 };
 
 const formatMetricValue = (key, value) => {
-  if (key.toLowerCase().includes("rate")) {
-    return formatPercent(value);
-  }
-  if (key.toLowerCase().includes("duration")) {
-    return `${formatNumber(value)}s`;
-  }
+  if (key.toLowerCase().includes("rate")) return formatPercent(value);
+  if (key.toLowerCase().includes("duration")) return `${formatNumber(value)}s`;
   return formatNumber(value);
 };
 
-const formatRelativeTime = (dateString) => {
-  return $dayjs(dateString).fromNow();
-};
+const formatRelativeTime = (dateString) => $dayjs(dateString).fromNow();
 
 const calculatePercentage = (value, total) => {
   if (!total) return 0;
@@ -736,8 +633,6 @@ const getDeviceIcon = (device) => {
   return "hugeicons:device-access";
 };
 
-// Load data on mount
-onMounted(() => {
-  fetchPropertyAnalytics();
-});
+// Lifecycle
+onMounted(() => fetchPropertyAnalytics());
 </script>

@@ -128,7 +128,7 @@ class AnalyticsService
         $cacheTimestampKey = "{$cacheKey}_timestamp";
         $lastSuccessKey = "{$cacheKey}_last_success"; // Never expires, for instant fallback
 
-        \Log::info("Fetching aggregate analytics", [
+        \Log::info('Fetching aggregate analytics', [
             'cache_key' => $cacheKey,
             'last_success_key' => $lastSuccessKey,
         ]);
@@ -138,15 +138,15 @@ class AnalyticsService
         $cacheTimestamp = Cache::get($cacheTimestampKey);
         $lastSuccessData = Cache::get($lastSuccessKey); // Last known good data
 
-        \Log::info("Cache status", [
-            'has_cached_data' => !is_null($cachedData),
-            'has_last_success' => !is_null($lastSuccessData),
+        \Log::info('Cache status', [
+            'has_cached_data' => ! is_null($cachedData),
+            'has_last_success' => ! is_null($lastSuccessData),
             'cache_timestamp' => $cacheTimestamp,
         ]);
 
         // CACHE-FIRST PRIORITY 1: Return fresh cache if available
         if ($cachedData) {
-            $cacheAge = $cacheTimestamp ? now()->diffInMinutes($cacheTimestamp) : null;
+            $cacheAge = $cacheTimestamp ? abs(now()->diffInMinutes($cacheTimestamp, false)) : null;
             $isFresh = $cacheAge !== null && $cacheAge < 30;
 
             // Calculate next update
@@ -157,37 +157,37 @@ class AnalyticsService
             $lastSyncedAt = $this->getMostRecentSyncTime($propertyIds);
 
             // If cache is stale and not currently refreshing, dispatch background refresh
-            if (!$isFresh && !Cache::has("{$cacheKey}_refreshing")) {
-                \Log::info("Cache is stale, dispatching background refresh");
+            if (! $isFresh && ! Cache::has("{$cacheKey}_refreshing")) {
+                \Log::info('Cache is stale, dispatching background refresh');
                 $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
             }
 
             return array_merge($cachedData, [
                 'cache_info' => [
                     'last_updated' => $lastSyncedAt ? $lastSyncedAt->toIso8601String() : ($cacheTimestamp ? $cacheTimestamp->toIso8601String() : null),
-                    'cache_age_minutes' => $lastSyncedAt ? now()->diffInMinutes($lastSyncedAt) : $cacheAge,
+                    'cache_age_minutes' => $lastSyncedAt ? abs(now()->diffInMinutes($lastSyncedAt, false)) : $cacheAge,
                     'next_update_in_minutes' => abs($nextUpdateIn),
                     'is_fresh' => $isFresh,
-                    'is_updating' => !$isFresh,
+                    'is_updating' => ! $isFresh,
                 ],
             ]);
         }
 
         // CACHE-FIRST PRIORITY 2: Return last known good data if exists (even if very old)
         if ($lastSuccessData) {
-            \Log::info("Using last_success fallback cache");
+            \Log::info('Using last_success fallback cache');
             $lastSyncedAt = $this->getMostRecentSyncTime($propertyIds);
 
             // Dispatch background refresh to get new data
-            if (!Cache::has("{$cacheKey}_refreshing")) {
-                \Log::info("Dispatching background refresh from fallback");
+            if (! Cache::has("{$cacheKey}_refreshing")) {
+                \Log::info('Dispatching background refresh from fallback');
                 $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
             }
 
             return array_merge($lastSuccessData, [
                 'cache_info' => [
                     'last_updated' => $lastSyncedAt ? $lastSyncedAt->toIso8601String() : null,
-                    'cache_age_minutes' => $lastSyncedAt ? now()->diffInMinutes($lastSyncedAt) : 999,
+                    'cache_age_minutes' => $lastSyncedAt ? abs(now()->diffInMinutes($lastSyncedAt, false)) : 999,
                     'next_update_in_minutes' => 0, // Updating now
                     'is_fresh' => false,
                     'is_updating' => true,
@@ -197,10 +197,10 @@ class AnalyticsService
         }
 
         // PRIORITY 3: NO CACHE AT ALL - Return empty and dispatch background job
-        \Log::warning("No cache found, dispatching background job and returning empty data");
+        \Log::warning('No cache found, dispatching background job and returning empty data');
 
         // Dispatch background job to fetch data
-        if (!Cache::has("{$cacheKey}_refreshing")) {
+        if (! Cache::has("{$cacheKey}_refreshing")) {
             $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
         }
 
@@ -281,7 +281,8 @@ class AnalyticsService
                     : GaProperty::active()->get();
 
                 if ($properties->isEmpty()) {
-                    \Log::warning("No active properties found for background refresh");
+                    \Log::warning('No active properties found for background refresh');
+
                     return;
                 }
 
@@ -297,14 +298,14 @@ class AnalyticsService
                 $lastSuccessKey = "{$cacheKey}_last_success";
                 Cache::put($lastSuccessKey, $data, now()->addYears(10));
 
-                \Log::info("Aggregate cache refreshed successfully", [
+                \Log::info('Aggregate cache refreshed successfully', [
                     'cache_key' => $cacheKey,
                     'last_success_key' => $lastSuccessKey,
                     'properties_count' => $properties->count(),
-                    'has_totals' => !empty($data['totals'] ?? []),
+                    'has_totals' => ! empty($data['totals'] ?? []),
                 ]);
             } catch (\Exception $e) {
-                \Log::error("Background aggregate cache refresh failed", [
+                \Log::error('Background aggregate cache refresh failed', [
                     'cache_key' => $cacheKey,
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),

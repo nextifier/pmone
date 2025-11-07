@@ -1,5 +1,9 @@
 <template>
   <div class="mx-auto max-w-4xl space-y-6">
+    <!-- <div class="border-border text-foreground w-full overflow-x-scroll rounded-xl border p-4">
+      <pre class="text-foreground/80 text-sm !leading-[1.5]">{{ data }}</pre>
+    </div> -->
+
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:analytics-01" class="size-5 sm:size-6" />
@@ -150,7 +154,6 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { PopoverClose } from "reka-ui";
-import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -175,7 +178,7 @@ const { $dayjs } = useNuxtApp();
 
 // Table state
 const columnFilters = ref([]);
-const pagination = ref({ pageIndex: 0, pageSize: 10 });
+const pagination = ref({ pageIndex: 0, pageSize: 20 });
 const sorting = ref([{ id: "last_synced_at", desc: true }]);
 
 // Data state
@@ -388,21 +391,14 @@ const columns = [
         "div",
         { class: "flex flex-wrap gap-1" },
         tags.slice(0, 3).map((tag) => {
-          // Handle both translatable object {"en": "value"} and plain string
-          const tagName =
-            typeof tag === "string"
-              ? tag
-              : typeof tag.name === "object"
-                ? tag.name.en || Object.values(tag.name)[0]
-                : tag.name;
-
+          // Tags are now plain strings from backend
           return h(
             "span",
             {
               class:
                 "inline-flex items-center rounded-full border px-2 py-0.5 text-xs tracking-tight",
             },
-            tagName
+            tag
           );
         })
       );
@@ -453,30 +449,26 @@ const columns = [
         return h("div", { class: "text-sm text-muted-foreground tracking-tight" }, "Never synced");
       }
 
-      return h(
-        "div",
-        { class: "flex flex-col gap-y-0.5" },
-        [
-          withDirectives(
-            h(
+      return h("div", { class: "flex flex-col gap-y-0.5" }, [
+        h(
+          "div",
+          {
+            class: "text-xs text-muted-foreground tracking-tight",
+            title: $dayjs(lastSynced).format("MMMM D, YYYY [at] h:mm A"),
+          },
+          `Last: ${$dayjs(lastSynced).fromNow()}`
+        ),
+        nextSync && property.is_active
+          ? h(
               "div",
-              { class: "text-xs text-muted-foreground tracking-tight" },
-              `Last: ${$dayjs(lastSynced).fromNow()}`
-            ),
-            [[resolveDirective("v-tippy"), $dayjs(lastSynced).format("MMMM D, YYYY [at] h:mm A")]]
-          ),
-          nextSync && property.is_active
-            ? withDirectives(
-                h(
-                  "div",
-                  { class: "text-xs text-muted-foreground tracking-tight" },
-                  `Next: ${$dayjs(nextSync).fromNow()}`
-                ),
-                [[resolveDirective("v-tippy"), $dayjs(nextSync).format("MMMM D, YYYY [at] h:mm A")]]
-              )
-            : null,
-        ].filter(Boolean)
-      );
+              {
+                class: "text-xs text-muted-foreground tracking-tight",
+                title: $dayjs(nextSync).format("MMMM D, YYYY [at] h:mm A"),
+              },
+              `Next: ${$dayjs(nextSync).fromNow()}`
+            )
+          : null,
+      ]);
     },
     size: 150,
   },
