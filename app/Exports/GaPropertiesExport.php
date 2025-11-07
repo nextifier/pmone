@@ -9,13 +9,15 @@ class GaPropertiesExport extends BaseExport
 {
     protected function getQuery(): Builder
     {
-        return GaProperty::with('tags');
+        return GaProperty::with(['tags', 'project']);
     }
 
     public function headings(): array
     {
         return [
             'ID',
+            'Project ID',
+            'Project Name',
             'Name',
             'Property ID',
             'Tags',
@@ -35,6 +37,8 @@ class GaPropertiesExport extends BaseExport
 
         return [
             $property->id,
+            $property->project_id,
+            $property->project?->name ?? 'N/A',
             $property->name,
             $property->property_id,
             $tags,
