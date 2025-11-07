@@ -1,26 +1,5 @@
 <template>
   <form @submit.prevent="handleSubmit" class="grid gap-y-8">
-    <!-- Profile Image Section -->
-    <div class="frame">
-      <div class="frame-header">
-        <div class="frame-title">Property Image</div>
-      </div>
-      <div class="frame-panel">
-        <div class="space-y-4">
-          <Label>Profile Image</Label>
-          <InputFileImage
-            ref="profileImageInputRef"
-            v-model="imageFiles.profile_image"
-            :initial-image="initialData?.profile_image"
-            v-model:delete-flag="deleteFlags.profile_image"
-            container-class="squircle relative isolate aspect-square max-w-40"
-          />
-          <InputErrorMessage :errors="errors.tmp_profile_image" />
-          <p class="text-muted-foreground text-xs">Upload a logo or icon for this property</p>
-        </div>
-      </div>
-    </div>
-
     <!-- Basic Information -->
     <div class="frame">
       <div class="frame-header">
@@ -28,6 +7,24 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
+          <div class="space-y-2">
+            <Label for="project_id">Project</Label>
+            <Select v-model="formData.project_id" :disabled="loadingProjects">
+              <SelectTrigger class="w-full">
+                <SelectValue placeholder="Select a project" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="project in projects" :key="project.id" :value="project.id">
+                  {{ project.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <InputErrorMessage :errors="errors.project_id" />
+            <p class="text-muted-foreground text-xs">
+              Select the project this GA property belongs to
+            </p>
+          </div>
+
           <div class="space-y-2">
             <Label for="name">Property Name</Label>
             <Input
@@ -157,6 +154,13 @@
 </template>
 
 <script setup>
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import {
   TagsInput,
@@ -188,24 +192,13 @@ const emit = defineEmits(["submit", "update:loading"]);
 const sanctumFetch = useSanctumClient();
 const { $dayjs } = useNuxtApp();
 
-// Image handling
-const profileImageInputRef = ref(null);
-const imageFiles = ref({
-  profile_image: null,
-});
-const deleteFlags = ref({
-  profile_image: false,
-});
-
-const initialData = computed(() => {
-  if (!props.gaProperty) return null;
-  return {
-    profile_image: props.gaProperty.profile_image || null,
-  };
-});
+// Projects list
+const projects = ref([]);
+const loadingProjects = ref(false);
 
 // Form state
 const formData = ref({
+  project_id: null,
   name: "",
   property_id: "",
   tags: [],
@@ -221,12 +214,33 @@ const submitText = computed(() => (props.mode === "create" ? "Create Property" :
 const loadingText = computed(() => (props.mode === "create" ? "Creating..." : "Saving..."));
 const loading = computed(() => props.loading || internalLoading.value);
 
+// Fetch projects
+async function fetchProjects() {
+  loadingProjects.value = true;
+  try {
+    const response = await sanctumFetch("/api/projects");
+    projects.value = response.data || [];
+  } catch (error) {
+    toast.error("Failed to load projects", {
+      description: error?.data?.message || "An error occurred",
+    });
+  } finally {
+    loadingProjects.value = false;
+  }
+}
+
+// Load projects on mount
+onMounted(() => {
+  fetchProjects();
+});
+
 // Populate form when editing
 watch(
   () => props.gaProperty,
   (newProperty) => {
     if (newProperty && props.mode === "edit") {
       formData.value = {
+        project_id: newProperty.project_id,
         name: newProperty.name,
         property_id: newProperty.property_id,
         tags:
@@ -261,6 +275,7 @@ async function handleSubmit() {
     const submitData = new FormData();
 
     // Add basic fields
+    submitData.append("project_id", formData.value.project_id);
     submitData.append("name", formData.value.name);
     submitData.append("property_id", formData.value.property_id);
     submitData.append("is_active", formData.value.is_active ? "1" : "0");
@@ -271,16 +286,6 @@ async function handleSubmit() {
       formData.value.tags.forEach((tag) => {
         submitData.append("tags[]", tag);
       });
-    }
-
-    // Add profile image if selected
-    if (imageFiles.value.profile_image) {
-      submitData.append("tmp_profile_image", imageFiles.value.profile_image);
-    }
-
-    // Add delete flags
-    if (deleteFlags.value.profile_image) {
-      submitData.append("delete_profile_image", "1");
     }
 
     const response = await sanctumFetch(endpoint, {

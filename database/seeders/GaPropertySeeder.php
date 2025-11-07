@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\GaProperty;
+use App\Models\Project;
 use Illuminate\Database\Seeder;
 
 class GaPropertySeeder extends Seeder
@@ -12,30 +13,30 @@ class GaPropertySeeder extends Seeder
      */
     public function run(): void
     {
+        // Get first project or create one if none exists
+        $project = Project::first() ?? Project::factory()->create();
+
         $properties = [
             [
+                'project_id' => $project->id,
                 'name' => 'Main Website',
                 'property_id' => '123456789',
-                'account_name' => 'Company Main Account',
                 'is_active' => true,
                 'sync_frequency' => 10,
-                'rate_limit_per_hour' => 12,
             ],
             [
+                'project_id' => $project->id,
                 'name' => 'Blog Website',
                 'property_id' => '987654321',
-                'account_name' => 'Company Main Account',
                 'is_active' => true,
                 'sync_frequency' => 15,
-                'rate_limit_per_hour' => 12,
             ],
             [
+                'project_id' => $project->id,
                 'name' => 'E-commerce Store',
                 'property_id' => '555666777',
-                'account_name' => 'Company Secondary Account',
                 'is_active' => true,
                 'sync_frequency' => 5,
-                'rate_limit_per_hour' => 15,
             ],
         ];
 

@@ -65,7 +65,7 @@ class GoogleAnalyticsController extends Controller
 
         // Check if client-only mode
         if ($request->has('client_only')) {
-            $data = $query->with('tags')->get()->map(function ($property) {
+            $data = $query->with(['tags', 'project'])->get()->map(function ($property) {
                 return array_merge($property->toArray(), [
                     'next_sync_at' => $property->next_sync_at,
                 ]);
@@ -86,7 +86,7 @@ class GoogleAnalyticsController extends Controller
         $perPage = $request->input('per_page', 10);
         $page = $request->input('page', 1);
 
-        $properties = $query->with('tags')->paginate($perPage, ['*'], 'page', $page);
+        $properties = $query->with(['tags', 'project'])->paginate($perPage, ['*'], 'page', $page);
 
         $data = collect($properties->items())->map(function ($property) {
             return array_merge($property->toArray(), [
@@ -110,7 +110,7 @@ class GoogleAnalyticsController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        $property = GaProperty::with(['tags', 'media'])->findOrFail($id);
+        $property = GaProperty::with(['tags', 'project'])->findOrFail($id);
 
         return response()->json([
             'data' => array_merge($property->toArray(), [
@@ -125,6 +125,7 @@ class GoogleAnalyticsController extends Controller
     public function store(StoreGaPropertyRequest $request): JsonResponse
     {
         $property = GaProperty::create([
+            'project_id' => $request->input('project_id'),
             'name' => $request->input('name'),
             'property_id' => $request->input('property_id'),
             'is_active' => $request->input('is_active', true),
@@ -136,11 +137,8 @@ class GoogleAnalyticsController extends Controller
             $property->syncTags($request->input('tags'));
         }
 
-        // Handle profile image upload from temporary storage
-        $this->handleTemporaryUpload($request, $property, 'tmp_profile_image', 'profile_image');
-
-        // Load tags and media relationships for response
-        $property->load(['tags', 'media']);
+        // Load tags relationship for response
+        $property->load(['tags', 'project']);
 
         return response()->json([
             'message' => 'GA property created successfully',
@@ -156,6 +154,7 @@ class GoogleAnalyticsController extends Controller
         $property = GaProperty::findOrFail($id);
 
         $property->update($request->only([
+            'project_id',
             'name',
             'property_id',
             'is_active',
@@ -167,11 +166,8 @@ class GoogleAnalyticsController extends Controller
             $property->syncTags($request->input('tags'));
         }
 
-        // Handle profile image upload from temporary storage
-        $this->handleTemporaryUpload($request, $property, 'tmp_profile_image', 'profile_image');
-
-        // Load tags and media relationships for response
-        $property->load(['tags', 'media']);
+        // Load tags relationship for response
+        $property->load(['tags', 'project']);
 
         return response()->json([
             'message' => 'GA property updated successfully',
@@ -198,7 +194,7 @@ class GoogleAnalyticsController extends Controller
      */
     public function getProperties(): JsonResponse
     {
-        $properties = GaProperty::all();
+        $properties = GaProperty::with('project')->get();
 
         return response()->json([
             'data' => $properties,

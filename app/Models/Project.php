@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
@@ -41,6 +42,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property-read int|null $activities_count
  * @property-read \App\Models\User|null $creator
  * @property-read \App\Models\User|null $deleter
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\GaProperty> $gaProperties
+ * @property-read int|null $ga_properties_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Link> $links
  * @property-read int|null $links_count
  * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
@@ -301,6 +304,11 @@ class Project extends Model implements HasMedia, Sortable
     public function visits(): MorphMany
     {
         return $this->morphMany(Visit::class, 'visitable');
+    }
+
+    public function gaProperties(): HasMany
+    {
+        return $this->hasMany(GaProperty::class);
     }
 
     public function creator(): BelongsTo

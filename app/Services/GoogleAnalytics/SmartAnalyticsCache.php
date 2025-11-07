@@ -14,6 +14,7 @@ class SmartAnalyticsCache
 
     /**
      * Get data with smart caching strategy.
+     * CACHE-FIRST STRATEGY: Always return cache if available, fetch in background if stale.
      */
     public function getDataWithSmartCache(
         GaProperty $property,
@@ -28,11 +29,29 @@ class SmartAnalyticsCache
         $cachedData = Cache::get($cacheKey);
         $cacheTimestamp = Cache::get("{$cacheKey}_timestamp");
 
-        if ($cachedData && $this->isCacheStillFresh($cacheTimestamp)) {
+        // CACHE-FIRST: If cache exists, return it immediately (even if stale)
+        if ($cachedData) {
+            $isFresh = $this->isCacheStillFresh($cacheTimestamp);
+            $lastUpdated = $cacheTimestamp ? $cacheTimestamp->toIso8601String() : null;
+            $cacheAge = $cacheTimestamp ? now()->diffInMinutes($cacheTimestamp) : null;
+
+            // Calculate next update time based on sync frequency
+            $nextUpdate = $cacheTimestamp ? $cacheTimestamp->copy()->addMinutes($property->sync_frequency) : null;
+            $nextUpdateIn = $nextUpdate ? max(0, now()->diffInMinutes($nextUpdate, false)) : 0;
+
+            // If cache is stale, dispatch background job to refresh it
+            if (!$isFresh && !$this->isRefreshJobQueued($cacheKey)) {
+                $this->dispatchBackgroundRefresh($property, $startDate, $endDate, $fetchCallback, $cacheKey);
+            }
+
             return [
                 'data' => $cachedData,
                 'cached_at' => $cacheTimestamp,
-                'is_fresh' => true,
+                'last_updated' => $lastUpdated,
+                'cache_age_minutes' => $cacheAge,
+                'next_update_in_minutes' => abs($nextUpdateIn),
+                'is_fresh' => $isFresh,
+                'is_updating' => !$isFresh,
             ];
         }
 
@@ -43,6 +62,9 @@ class SmartAnalyticsCache
             return [
                 'data' => $subsetData,
                 'cached_at' => now(),
+                'last_updated' => now()->toIso8601String(),
+                'cache_age_minutes' => 0,
+                'next_update_in_minutes' => $property->sync_frequency,
                 'is_fresh' => true,
                 'from_subset' => true,
             ];
@@ -53,22 +75,11 @@ class SmartAnalyticsCache
         $decayMinutes = $property->sync_frequency;
 
         if (RateLimiter::tooManyAttempts($rateLimitKey, $maxAttempts)) {
-            // Return stale cache if available
-            if ($cachedData) {
-                return [
-                    'data' => $cachedData,
-                    'cached_at' => $cacheTimestamp,
-                    'is_fresh' => false,
-                    'message' => 'Rate limited, showing cached data',
-                ];
-            }
-
             $availableIn = RateLimiter::availableIn($rateLimitKey);
-
             throw new \Exception("Rate limit exceeded. Available in {$availableIn} seconds.");
         }
 
-        // Fetch new data
+        // Fetch new data (only if no cache exists)
         RateLimiter::hit($rateLimitKey, $decayMinutes * 60); // Convert to seconds
 
         $freshData = $fetchCallback();
@@ -82,8 +93,48 @@ class SmartAnalyticsCache
         return [
             'data' => $freshData,
             'cached_at' => now(),
+            'last_updated' => now()->toIso8601String(),
+            'cache_age_minutes' => 0,
+            'next_update_in_minutes' => $property->sync_frequency,
             'is_fresh' => true,
         ];
+    }
+
+    /**
+     * Check if a background refresh job is already queued for this cache key.
+     */
+    protected function isRefreshJobQueued(string $cacheKey): bool
+    {
+        return Cache::has("{$cacheKey}_refreshing");
+    }
+
+    /**
+     * Dispatch background job to refresh cache data.
+     */
+    protected function dispatchBackgroundRefresh(
+        GaProperty $property,
+        string $startDate,
+        string $endDate,
+        callable $fetchCallback,
+        string $cacheKey
+    ): void {
+        // Mark as refreshing to prevent duplicate jobs
+        Cache::put("{$cacheKey}_refreshing", true, now()->addMinutes(5));
+
+        // Dispatch job to fetch new data in background
+        dispatch(function () use ($property, $startDate, $endDate, $fetchCallback, $cacheKey) {
+            try {
+                $freshData = $fetchCallback();
+                $cacheDuration = $this->getDynamicCacheDuration($property);
+
+                Cache::put($cacheKey, $freshData, now()->addMinutes($cacheDuration));
+                Cache::put("{$cacheKey}_timestamp", now(), now()->addMinutes($cacheDuration));
+            } catch (\Exception $e) {
+                \Log::error("Background cache refresh failed for {$cacheKey}: {$e->getMessage()}");
+            } finally {
+                Cache::forget("{$cacheKey}_refreshing");
+            }
+        })->afterResponse();
     }
 
     /**
@@ -159,8 +210,11 @@ class SmartAnalyticsCache
      */
     protected function getMaxAttemptsPerProperty(GaProperty $property): int
     {
+        // Default rate limit: 12 requests per hour
+        $rateLimitPerHour = 12;
+
         // Convert hourly rate limit to per-sync-frequency limit
-        return (int) ceil($property->rate_limit_per_hour / (60 / $property->sync_frequency));
+        return (int) ceil($rateLimitPerHour / (60 / $property->sync_frequency));
     }
 
     /**

@@ -17,13 +17,12 @@ class GaPropertyFactory extends Factory
     public function definition(): array
     {
         return [
+            'project_id' => \App\Models\Project::factory(),
             'name' => fake()->company().' Website',
             'property_id' => fake()->numerify('#########'),
-            'account_name' => fake()->company().' Analytics Account',
             'is_active' => true,
             'last_synced_at' => fake()->optional(0.7)->dateTimeBetween('-1 hour', 'now'),
             'sync_frequency' => fake()->randomElement([5, 10, 15, 30]),
-            'rate_limit_per_hour' => fake()->randomElement([10, 12, 15, 20]),
         ];
     }
 
