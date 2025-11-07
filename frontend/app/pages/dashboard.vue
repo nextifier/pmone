@@ -9,14 +9,6 @@
       </div>
     </div>
 
-    <div>
-      <AreaChart :data="data" index="name" :categories="['total', 'predicted']" />
-    </div>
-
-    <!-- <div class="border-border text-foreground w-full overflow-x-scroll rounded-xl border p-4">
-      <pre class="text-foreground/80 text-sm !leading-[1.5]">{{ user }}</pre>
-    </div> -->
-
     <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
       <div
         v-for="(_, index) in 40"
@@ -36,42 +28,4 @@ definePageMeta({
 usePageMeta("dashboard");
 
 const { user, isAuthenticated } = useSanctumAuth();
-
-const data = [
-  {
-    name: "Jan",
-    total: Math.floor(Math.random() * 2000) + 500,
-    predicted: Math.floor(Math.random() * 2000) + 500,
-  },
-  {
-    name: "Feb",
-    total: Math.floor(Math.random() * 2000) + 500,
-    predicted: Math.floor(Math.random() * 2000) + 500,
-  },
-  {
-    name: "Mar",
-    total: Math.floor(Math.random() * 2000) + 500,
-    predicted: Math.floor(Math.random() * 2000) + 500,
-  },
-  {
-    name: "Apr",
-    total: Math.floor(Math.random() * 2000) + 500,
-    predicted: Math.floor(Math.random() * 2000) + 500,
-  },
-  {
-    name: "May",
-    total: Math.floor(Math.random() * 2000) + 500,
-    predicted: Math.floor(Math.random() * 2000) + 500,
-  },
-  {
-    name: "Jun",
-    total: Math.floor(Math.random() * 2000) + 500,
-    predicted: Math.floor(Math.random() * 2000) + 500,
-  },
-  {
-    name: "Jul",
-    total: Math.floor(Math.random() * 2000) + 500,
-    predicted: Math.floor(Math.random() * 2000) + 500,
-  },
-];
 </script>
