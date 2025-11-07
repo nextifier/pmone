@@ -510,18 +510,26 @@ const totalDeviceUsers = computed(() => {
   );
 });
 
+// Auto-refresh timer
+let autoRefreshTimeout = null;
+
 // Fetch analytics data
-const fetchAnalytics = async () => {
-  // Check Pinia store first for fresh data
-  if (analyticsStore.isAggregateFresh) {
+const fetchAnalytics = async (silent = false) => {
+  // Clear any existing auto-refresh
+  if (autoRefreshTimeout) {
+    clearTimeout(autoRefreshTimeout);
+    autoRefreshTimeout = null;
+  }
+
+  // Check Pinia store first for fresh data (but not on silent refresh)
+  if (analyticsStore.isAggregateFresh && !silent) {
     console.log("✅ Using Pinia cache for aggregate data");
     aggregateData.value = analyticsStore.aggregateData;
     return;
   }
 
-  // Only show loading indicator if we don't have any data yet
-  // If we have cached data, just fetch in background
-  const showLoading = !aggregateData.value;
+  // Only show loading indicator if we don't have any data AND not silent refresh
+  const showLoading = !aggregateData.value && !silent;
   if (showLoading) {
     loading.value = true;
   }
@@ -531,7 +539,7 @@ const fetchAnalytics = async () => {
     const client = useSanctumClient();
     const days = parseInt(selectedRange.value);
 
-    console.log("Fetching aggregate analytics for", days, "days...");
+    console.log("Fetching aggregate analytics for", days, "days...", silent ? "(silent)" : "");
 
     const { data } = await client(`/api/google-analytics/aggregate?days=${days}`);
 
@@ -541,6 +549,21 @@ const fetchAnalytics = async () => {
     // Save to Pinia store for future use
     analyticsStore.setAggregate(data);
     console.log("💾 Saved aggregate data to Pinia store");
+
+    // Auto-refresh logic based on cache state
+    if (data.cache_info?.initial_load || (data.cache_info?.is_updating && data.cache_info?.properties_count === 0)) {
+      // Initial load with empty data - refresh quickly
+      console.log("🔄 Initial load detected, will auto-refresh in 5 seconds");
+      autoRefreshTimeout = setTimeout(() => {
+        fetchAnalytics(true); // Silent refresh
+      }, 5000);
+    } else if (data.cache_info?.is_updating) {
+      // Has data but updating in background - refresh slower
+      console.log("🔄 Data updating in background, will auto-refresh in 15 seconds");
+      autoRefreshTimeout = setTimeout(() => {
+        fetchAnalytics(true); // Silent refresh
+      }, 15000);
+    }
   } catch (err) {
     console.error("Error fetching analytics:", err);
     // Only show error if we don't have cached data to fall back on
@@ -620,5 +643,12 @@ const getDeviceIcon = (device) => {
 // Load data on mount
 onMounted(() => {
   fetchAnalytics();
+});
+
+// Cleanup on unmount
+onUnmounted(() => {
+  if (autoRefreshTimeout) {
+    clearTimeout(autoRefreshTimeout);
+  }
 });
 </script>
