@@ -41,5 +41,9 @@ function color(d: unknown, i: number) {
 
 <template>
   <VisTooltip :horizontal-shift="20" :vertical-shift="20" />
-  <VisCrosshair :template="template" :color="color" />
+  <VisCrosshair
+    :template="template"
+    :color="color"
+    :hide-when-far-from-pointer="false"
+  />
 </template>
