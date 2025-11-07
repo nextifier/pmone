@@ -166,10 +166,8 @@ Route::middleware(['auth:sanctum'])->prefix('google-analytics')->group(function 
 
     // Analytics data endpoints
     Route::get('/properties', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getProperties']);
-    Route::get('/properties/by-account', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getPropertiesByAccount']);
     Route::get('/properties/{id}/analytics', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getPropertyAnalytics']);
     Route::get('/aggregate', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getAggregatedAnalytics']);
-    Route::get('/accounts/{accountName}/analytics', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getAccountAnalytics']);
     Route::post('/sync', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'sync']);
     Route::post('/aggregate', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'aggregate']);
     Route::get('/cache/status', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getCacheStatus']);

@@ -44,7 +44,7 @@
       model="ga-properties"
       label="GA Property"
       search-column="name"
-      search-placeholder="Search name, property ID or account"
+      search-placeholder="Search name or property ID"
       error-title="Error loading GA properties"
       :initial-pagination="pagination"
       :initial-sorting="sorting"
@@ -143,6 +143,7 @@
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import ImportDialog from "@/components/ga-property/ImportDialog.vue";
+import GaPropertyProfile from "@/components/ga-property/Profile.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -316,15 +317,55 @@ const columns = [
     enableSorting: false,
     enableHiding: false,
   },
+  //   {
+  //     header: "",
+  //     accessorKey: "profile_image",
+  //     cell: ({ row }) => {
+  //       const property = row.original;
+  //       const profileImage = property.profile_image?.md || property.profile_image?.original;
+
+  //       if (profileImage) {
+  //         return h("img", {
+  //           src: profileImage,
+  //           alt: property.name,
+  //           class: "size-8 rounded-md object-cover",
+  //         });
+  //       }
+
+  //       return h(
+  //         "div",
+  //         {
+  //           class: "flex size-8 items-center justify-center rounded-md bg-muted text-muted-foreground",
+  //         },
+  //         h(resolveComponent("Icon"), { name: "hugeicons:analytics-01", class: "size-4" })
+  //       );
+  //     },
+  //     size: 48,
+  //     enableSorting: false,
+  //   },
   {
     header: "Property",
     accessorKey: "name",
+    // cell: ({ row }) => {
+    //   const property = row.original;
+    //   return h("div", { class: "flex flex-col gap-y-1" }, [
+    //     h("div", { class: "text-sm font-medium tracking-tight" }, property.name),
+    //     h("div", { class: "text-xs text-muted-foreground" }, `ID: ${property.property_id}`),
+    //   ]);
+    // },
+
     cell: ({ row }) => {
       const property = row.original;
-      return h("div", { class: "flex flex-col gap-y-1" }, [
-        h("div", { class: "text-sm font-medium tracking-tight" }, property.name),
-        h("div", { class: "text-xs text-muted-foreground" }, `ID: ${property.property_id}`),
-      ]);
+      return h(
+        resolveComponent("NuxtLink"),
+        {
+          to: `/ga-properties/${property.id}/edit`,
+          class: "block hover:opacity-80 transition-opacity",
+        },
+        {
+          default: () => h(GaPropertyProfile, { model: property }),
+        }
+      );
     },
     size: 250,
     enableHiding: false,
@@ -332,19 +373,39 @@ const columns = [
       const searchValue = filterValue.toLowerCase();
       const name = row.original.name?.toLowerCase() || "";
       const propertyId = row.original.property_id?.toLowerCase() || "";
-      const account = row.original.account_name?.toLowerCase() || "";
-      return (
-        name.includes(searchValue) ||
-        propertyId.includes(searchValue) ||
-        account.includes(searchValue)
-      );
+      return name.includes(searchValue) || propertyId.includes(searchValue);
     },
   },
   {
-    header: "Account",
-    accessorKey: "account_name",
+    header: "Tags",
+    accessorKey: "tags",
     cell: ({ row }) => {
-      return h("div", { class: "text-sm tracking-tight" }, row.getValue("account_name"));
+      const tags = row.getValue("tags") || [];
+      if (tags.length === 0) {
+        return h("div", { class: "text-xs text-muted-foreground tracking-tight" }, "-");
+      }
+      return h(
+        "div",
+        { class: "flex flex-wrap gap-1" },
+        tags.slice(0, 3).map((tag) => {
+          // Handle both translatable object {"en": "value"} and plain string
+          const tagName =
+            typeof tag === "string"
+              ? tag
+              : typeof tag.name === "object"
+                ? tag.name.en || Object.values(tag.name)[0]
+                : tag.name;
+
+          return h(
+            "span",
+            {
+              class:
+                "inline-flex items-center rounded-full border px-2 py-0.5 text-xs tracking-tight",
+            },
+            tagName
+          );
+        })
+      );
     },
     size: 180,
   },
@@ -381,19 +442,43 @@ const columns = [
     },
   },
   {
-    header: "Last Synced",
+    header: "Sync Status",
     accessorKey: "last_synced_at",
     cell: ({ row }) => {
-      const date = row.getValue("last_synced_at");
-      if (!date) {
-        return h("div", { class: "text-sm text-muted-foreground tracking-tight" }, "Never");
+      const property = row.original;
+      const lastSynced = property.last_synced_at;
+      const nextSync = property.next_sync_at;
+
+      if (!lastSynced) {
+        return h("div", { class: "text-sm text-muted-foreground tracking-tight" }, "Never synced");
       }
-      return withDirectives(
-        h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $dayjs(date).fromNow()),
-        [[resolveDirective("v-tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
+
+      return h(
+        "div",
+        { class: "flex flex-col gap-y-0.5" },
+        [
+          withDirectives(
+            h(
+              "div",
+              { class: "text-xs text-muted-foreground tracking-tight" },
+              `Last: ${$dayjs(lastSynced).fromNow()}`
+            ),
+            [[resolveDirective("v-tippy"), $dayjs(lastSynced).format("MMMM D, YYYY [at] h:mm A")]]
+          ),
+          nextSync && property.is_active
+            ? withDirectives(
+                h(
+                  "div",
+                  { class: "text-xs text-muted-foreground tracking-tight" },
+                  `Next: ${$dayjs(nextSync).fromNow()}`
+                ),
+                [[resolveDirective("v-tippy"), $dayjs(nextSync).format("MMMM D, YYYY [at] h:mm A")]]
+              )
+            : null,
+        ].filter(Boolean)
       );
     },
-    size: 120,
+    size: 150,
   },
   {
     id: "actions",
@@ -534,9 +619,12 @@ const handleExport = async () => {
     const client = useSanctumClient();
 
     // Fetch the file as blob
-    const response = await client(`/api/google-analytics/ga-properties/export?${params.toString()}`, {
-      responseType: "blob",
-    });
+    const response = await client(
+      `/api/google-analytics/ga-properties/export?${params.toString()}`,
+      {
+        responseType: "blob",
+      }
+    );
 
     // Create a download link and trigger download
     const blob = new Blob([response], {

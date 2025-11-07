@@ -3,7 +3,6 @@
 namespace App\Imports;
 
 use App\Models\GaProperty;
-use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
@@ -22,6 +21,11 @@ class GaPropertiesImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, Wit
 
     public function prepareForValidation($data, $index)
     {
+        // Convert property_id to string (Excel may read it as number)
+        if (isset($data['property_id']) && ! is_null($data['property_id'])) {
+            $data['property_id'] = (string) $data['property_id'];
+        }
+
         // Normalize status to lowercase
         if (isset($data['status']) && ! is_null($data['status'])) {
             $data['status'] = strtolower(trim($data['status']));
@@ -32,8 +36,11 @@ class GaPropertiesImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, Wit
             $data['sync_frequency'] = 10;
         }
 
-        if (! isset($data['rate_limit_per_hour']) || empty($data['rate_limit_per_hour'])) {
-            $data['rate_limit_per_hour'] = 12;
+        // Parse tags if provided
+        if (isset($data['tags_comma_separated']) && ! empty($data['tags_comma_separated'])) {
+            $data['tags'] = array_filter(
+                array_map('trim', explode(',', $data['tags_comma_separated']))
+            );
         }
 
         return $data;
@@ -51,11 +58,14 @@ class GaPropertiesImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, Wit
         $property = GaProperty::create([
             'name' => $row['name'],
             'property_id' => $row['property_id'],
-            'account_name' => $row['account_name'] ?? null,
             'is_active' => $isActive,
             'sync_frequency' => (int) ($row['sync_frequency'] ?? 10),
-            'rate_limit_per_hour' => (int) ($row['rate_limit_per_hour'] ?? 12),
         ]);
+
+        // Sync tags if provided
+        if (isset($row['tags']) && is_array($row['tags']) && ! empty($row['tags'])) {
+            $property->syncTags($row['tags']);
+        }
 
         $this->importedCount++;
 
@@ -72,10 +82,9 @@ class GaPropertiesImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, Wit
                 'max:255',
                 'unique:ga_properties,property_id',
             ],
-            'account_name' => ['nullable', 'string', 'max:255'],
+            'tags_comma_separated' => ['nullable', 'string'],
             'status' => ['nullable', 'string'],
-            'sync_frequency' => ['nullable', 'integer', 'min:1', 'max:1440'],
-            'rate_limit_per_hour' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'sync_frequency' => ['nullable', 'integer', 'min:5', 'max:60'],
         ];
     }
 
@@ -86,11 +95,8 @@ class GaPropertiesImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, Wit
             'property_id.required' => 'The property ID is required.',
             'property_id.unique' => 'This property ID is already in use.',
             'sync_frequency.integer' => 'Sync frequency must be a number.',
-            'sync_frequency.min' => 'Sync frequency must be at least 1 minute.',
-            'sync_frequency.max' => 'Sync frequency must not exceed 1440 minutes (24 hours).',
-            'rate_limit_per_hour.integer' => 'Rate limit must be a number.',
-            'rate_limit_per_hour.min' => 'Rate limit must be at least 1.',
-            'rate_limit_per_hour.max' => 'Rate limit must not exceed 100.',
+            'sync_frequency.min' => 'Sync frequency must be at least 5 minutes.',
+            'sync_frequency.max' => 'Sync frequency must not exceed 60 minutes.',
         ];
     }
 

@@ -23,10 +23,10 @@
                   <li>Download the template file with sample data</li>
                   <li>Required fields: <strong>Name</strong> and <strong>Property ID</strong></li>
                   <li>Supported formats: CSV, XLS, XLSX (max 5MB)</li>
-                  <li>Status can be "Active" or "Inactive" (defaults to "Active")</li>
-                  <li>Property ID must be unique (GA4 property ID)</li>
-                  <li>Sync frequency in minutes (default: 10)</li>
-                  <li>Rate limit per hour (default: 12)</li>
+                  <li>Property ID must be unique (GA4 property ID, numbers only)</li>
+                  <li>Tags: comma-separated values (optional)</li>
+                  <li>Status: "Active" or "Inactive" (defaults to "Active")</li>
+                  <li>Sync frequency: 5-60 minutes (default: 10)</li>
                 </ul>
               </div>
             </div>

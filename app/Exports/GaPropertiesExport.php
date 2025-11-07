@@ -9,7 +9,7 @@ class GaPropertiesExport extends BaseExport
 {
     protected function getQuery(): Builder
     {
-        return GaProperty::query();
+        return GaProperty::with('tags');
     }
 
     public function headings(): array
@@ -18,10 +18,9 @@ class GaPropertiesExport extends BaseExport
             'ID',
             'Name',
             'Property ID',
-            'Account Name',
+            'Tags',
             'Status',
             'Sync Frequency (minutes)',
-            'Rate Limit Per Hour',
             'Last Synced At',
             'Created At',
         ];
@@ -32,14 +31,15 @@ class GaPropertiesExport extends BaseExport
      */
     public function map($property): array
     {
+        $tags = $property->tags->pluck('name')->implode(', ');
+
         return [
             $property->id,
             $property->name,
             $property->property_id,
-            $property->account_name,
+            $tags,
             $property->is_active ? 'Active' : 'Inactive',
             $property->sync_frequency,
-            $property->rate_limit_per_hour,
             $property->last_synced_at?->format('Y-m-d H:i:s') ?? 'Never',
             $property->created_at?->format('Y-m-d H:i:s'),
         ];
@@ -49,7 +49,7 @@ class GaPropertiesExport extends BaseExport
     {
         // Search filter
         if (isset($this->filters['search'])) {
-            $this->applySearchFilter($query, ['name', 'property_id', 'account_name'], $this->filters['search']);
+            $this->applySearchFilter($query, ['name', 'property_id'], $this->filters['search']);
         }
 
         // Status filter
@@ -71,7 +71,7 @@ class GaPropertiesExport extends BaseExport
     {
         [$field, $direction] = $this->parseSortField($this->sort);
 
-        if (in_array($field, ['name', 'property_id', 'account_name', 'is_active', 'sync_frequency', 'rate_limit_per_hour', 'last_synced_at', 'created_at', 'updated_at'])) {
+        if (in_array($field, ['name', 'property_id', 'is_active', 'sync_frequency', 'last_synced_at', 'created_at', 'updated_at'])) {
             $query->orderBy($field, $direction);
         } else {
             $query->orderBy('last_synced_at', 'desc');

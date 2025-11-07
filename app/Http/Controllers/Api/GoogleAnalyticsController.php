@@ -38,8 +38,7 @@ class GoogleAnalyticsController extends Controller
             $search = $request->input('filter.search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('property_id', 'like', "%{$search}%")
-                    ->orWhere('account_name', 'like', "%{$search}%");
+                    ->orWhere('property_id', 'like', "%{$search}%");
             });
         }
 
@@ -66,13 +65,19 @@ class GoogleAnalyticsController extends Controller
 
         // Check if client-only mode
         if ($request->has('client_only')) {
+            $data = $query->with('tags')->get()->map(function ($property) {
+                return array_merge($property->toArray(), [
+                    'next_sync_at' => $property->next_sync_at,
+                ]);
+            });
+
             return response()->json([
-                'data' => $query->get(),
+                'data' => $data,
                 'meta' => [
                     'current_page' => 1,
                     'last_page' => 1,
-                    'per_page' => $query->count(),
-                    'total' => $query->count(),
+                    'per_page' => $data->count(),
+                    'total' => $data->count(),
                 ],
             ]);
         }
@@ -81,10 +86,16 @@ class GoogleAnalyticsController extends Controller
         $perPage = $request->input('per_page', 10);
         $page = $request->input('page', 1);
 
-        $properties = $query->paginate($perPage, ['*'], 'page', $page);
+        $properties = $query->with('tags')->paginate($perPage, ['*'], 'page', $page);
+
+        $data = collect($properties->items())->map(function ($property) {
+            return array_merge($property->toArray(), [
+                'next_sync_at' => $property->next_sync_at,
+            ]);
+        });
 
         return response()->json([
-            'data' => $properties->items(),
+            'data' => $data,
             'meta' => [
                 'current_page' => $properties->currentPage(),
                 'last_page' => $properties->lastPage(),
@@ -99,10 +110,12 @@ class GoogleAnalyticsController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        $property = GaProperty::findOrFail($id);
+        $property = GaProperty::with(['tags', 'media'])->findOrFail($id);
 
         return response()->json([
-            'data' => $property,
+            'data' => array_merge($property->toArray(), [
+                'next_sync_at' => $property->next_sync_at,
+            ]),
         ]);
     }
 
@@ -114,11 +127,20 @@ class GoogleAnalyticsController extends Controller
         $property = GaProperty::create([
             'name' => $request->input('name'),
             'property_id' => $request->input('property_id'),
-            'account_name' => $request->input('account_name'),
             'is_active' => $request->input('is_active', true),
             'sync_frequency' => $request->input('sync_frequency', 10),
-            'rate_limit_per_hour' => $request->input('rate_limit_per_hour', 12),
         ]);
+
+        // Sync tags if provided
+        if ($request->has('tags')) {
+            $property->syncTags($request->input('tags'));
+        }
+
+        // Handle profile image upload from temporary storage
+        $this->handleTemporaryUpload($request, $property, 'tmp_profile_image', 'profile_image');
+
+        // Load tags and media relationships for response
+        $property->load(['tags', 'media']);
 
         return response()->json([
             'message' => 'GA property created successfully',
@@ -136,11 +158,20 @@ class GoogleAnalyticsController extends Controller
         $property->update($request->only([
             'name',
             'property_id',
-            'account_name',
             'is_active',
             'sync_frequency',
-            'rate_limit_per_hour',
         ]));
+
+        // Sync tags if provided
+        if ($request->has('tags')) {
+            $property->syncTags($request->input('tags'));
+        }
+
+        // Handle profile image upload from temporary storage
+        $this->handleTemporaryUpload($request, $property, 'tmp_profile_image', 'profile_image');
+
+        // Load tags and media relationships for response
+        $property->load(['tags', 'media']);
 
         return response()->json([
             'message' => 'GA property updated successfully',
@@ -171,18 +202,6 @@ class GoogleAnalyticsController extends Controller
 
         return response()->json([
             'data' => $properties,
-        ]);
-    }
-
-    /**
-     * Get properties grouped by account.
-     */
-    public function getPropertiesByAccount(): JsonResponse
-    {
-        $grouped = $this->analyticsService->getGroupedByAccount();
-
-        return response()->json([
-            'data' => $grouped,
         ]);
     }
 
@@ -218,20 +237,6 @@ class GoogleAnalyticsController extends Controller
         $propertyIds = $request->input('property_ids');
 
         $analytics = $this->analyticsService->getAggregatedAnalytics($period, $propertyIds);
-
-        return response()->json([
-            'data' => $analytics,
-        ]);
-    }
-
-    /**
-     * Get analytics for a specific account.
-     */
-    public function getAccountAnalytics(GetAnalyticsRequest $request, string $accountName): JsonResponse
-    {
-        $period = $this->createPeriodFromRequest($request);
-
-        $analytics = $this->analyticsService->getAnalyticsByAccount($accountName, $period);
 
         return response()->json([
             'data' => $analytics,
@@ -466,5 +471,64 @@ class GoogleAnalyticsController extends Controller
                 \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
             }
         }
+    }
+
+    /**
+     * Handle temporary upload for media.
+     */
+    private function handleTemporaryUpload(Request $request, GaProperty $property, string $fieldName, string $collection): void
+    {
+        // Check for delete flag first
+        $deleteFieldName = 'delete_'.str_replace('tmp_', '', $fieldName);
+        if ($request->has($deleteFieldName) && $request->input($deleteFieldName) === true) {
+            $property->clearMediaCollection($collection);
+
+            return;
+        }
+
+        // If field is not present, do nothing (keep existing media)
+        if (! $request->has($fieldName)) {
+            return;
+        }
+
+        $value = $request->input($fieldName);
+
+        // If value is null/empty, skip (already handled by delete flag above)
+        if (! $value) {
+            return;
+        }
+
+        // If value doesn't start with 'tmp-', it's an existing media URL, skip
+        if (! \Illuminate\Support\Str::startsWith($value, 'tmp-')) {
+            return;
+        }
+
+        // Handle new upload from temporary storage
+        $metadataPath = "tmp/uploads/{$value}/metadata.json";
+
+        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+            return;
+        }
+
+        $metadata = json_decode(
+            \Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath),
+            true
+        );
+
+        $filePath = "tmp/uploads/{$value}/{$metadata['original_name']}";
+
+        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($filePath)) {
+            return;
+        }
+
+        // Clear existing media in this collection first
+        $property->clearMediaCollection($collection);
+
+        // Add new media
+        $property->addMedia(\Illuminate\Support\Facades\Storage::disk('local')->path($filePath))
+            ->toMediaCollection($collection);
+
+        // Clean up temporary files
+        \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
     }
 }

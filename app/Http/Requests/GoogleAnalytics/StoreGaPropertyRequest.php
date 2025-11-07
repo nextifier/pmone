@@ -24,10 +24,12 @@ class StoreGaPropertyRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'property_id' => ['required', 'string', 'max:255', 'unique:ga_properties,property_id'],
-            'account_name' => ['required', 'string', 'max:255'],
             'is_active' => ['nullable', 'boolean'],
             'sync_frequency' => ['nullable', 'integer', 'min:5', 'max:60'],
-            'rate_limit_per_hour' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['string', 'max:100'],
+            'tmp_profile_image' => ['nullable', 'string', 'regex:/^tmp-[a-zA-Z0-9._]+$/'],
+            'delete_profile_image' => ['nullable', 'boolean'],
         ];
     }
 
@@ -42,11 +44,10 @@ class StoreGaPropertyRequest extends FormRequest
             'name.required' => 'Property name is required.',
             'property_id.required' => 'GA4 Property ID is required.',
             'property_id.unique' => 'This property ID already exists.',
-            'account_name.required' => 'Account name is required.',
             'sync_frequency.min' => 'Sync frequency must be at least 5 minutes.',
             'sync_frequency.max' => 'Sync frequency cannot exceed 60 minutes.',
-            'rate_limit_per_hour.min' => 'Rate limit must be at least 1 request per hour.',
-            'rate_limit_per_hour.max' => 'Rate limit cannot exceed 100 requests per hour.',
+            'tags.*.max' => 'Each tag must not exceed 100 characters.',
+            'tmp_profile_image.regex' => 'Invalid profile image format.',
         ];
     }
 }

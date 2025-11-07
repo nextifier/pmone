@@ -3,7 +3,6 @@
 namespace App\Services\GoogleAnalytics;
 
 use App\Models\GaProperty;
-use App\Services\GoogleAnalytics\Period;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
@@ -59,8 +58,8 @@ class AnalyticsService
                 'id' => $property->id,
                 'name' => $property->name,
                 'property_id' => $property->property_id,
-                'account_name' => $property->account_name,
                 'last_synced_at' => $property->last_synced_at,
+                'next_sync_at' => $property->next_sync_at,
             ],
             'metrics' => $metrics['totals'] ?? [],
             'rows' => $metrics['rows'] ?? [],
@@ -134,18 +133,6 @@ class AnalyticsService
 
             return $this->aggregator->getDashboardData($properties, $period);
         });
-    }
-
-    /**
-     * Get aggregated analytics by account.
-     */
-    public function getAnalyticsByAccount(string $accountName, Period $period): array
-    {
-        $properties = GaProperty::active()
-            ->where('account_name', $accountName)
-            ->get();
-
-        return $this->aggregator->getDashboardData($properties, $period);
     }
 
     /**
@@ -250,29 +237,6 @@ class AnalyticsService
     public function clearAllCache(): void
     {
         $this->cache->clearAllCache();
-    }
-
-    /**
-     * Get accounts grouped by account name.
-     */
-    public function getGroupedByAccount(): Collection
-    {
-        return GaProperty::active()
-            ->get()
-            ->groupBy('account_name')
-            ->map(function ($properties, $accountName) {
-                return [
-                    'account_name' => $accountName,
-                    'properties_count' => $properties->count(),
-                    'properties' => $properties->map(fn ($p) => [
-                        'id' => $p->id,
-                        'name' => $p->name,
-                        'property_id' => $p->property_id,
-                        'last_synced_at' => $p->last_synced_at,
-                    ]),
-                ];
-            })
-            ->values();
     }
 
     /**

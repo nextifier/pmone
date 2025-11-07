@@ -10,26 +10,23 @@ class GaPropertiesTemplateExport extends BaseTemplateExport
             [
                 'My Website',
                 '123456789',
-                'My GA4 Account',
+                'production, website',
                 'Active',
                 '10',
-                '12',
             ],
             [
                 'Another Property',
                 '987654321',
-                'Another Account',
+                'production, mobile',
                 'Active',
                 '15',
-                '10',
             ],
             [
                 'Disabled Property',
                 '555555555',
-                'Test Account',
+                'development, staging',
                 'Inactive',
                 '30',
-                '6',
             ],
         ];
     }
@@ -39,10 +36,9 @@ class GaPropertiesTemplateExport extends BaseTemplateExport
         return [
             'Name',
             'Property ID',
-            'Account Name',
+            'Tags (comma-separated)',
             'Status',
             'Sync Frequency (minutes)',
-            'Rate Limit Per Hour',
         ];
     }
 }

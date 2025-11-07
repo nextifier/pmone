@@ -2,20 +2,23 @@
 
 namespace App\Models;
 
+use App\Traits\HasMediaManager;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Tags\HasTags;
 
 /**
  * @property int $id
  * @property string $name
  * @property string $property_id
- * @property string $account_name
  * @property bool $is_active
  * @property \Illuminate\Support\Carbon|null $last_synced_at
  * @property int $sync_frequency Sync frequency in minutes
- * @property int $rate_limit_per_hour Max requests per hour
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $deleted_at
@@ -25,6 +28,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property-read \App\Models\User|null $creator
  * @property-read \App\Models\User|null $deleter
  * @property-read \App\Models\User|null $updater
+ * @property-read \Illuminate\Support\Carbon|null $next_sync_at
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty active()
  * @method static \Database\Factories\GaPropertyFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty inactive()
@@ -33,7 +38,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereAccountName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereCreatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereDeletedAt($value)
@@ -43,18 +47,27 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereLastSyncedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty wherePropertyId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereRateLimitPerHour($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereSyncFrequency($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withoutTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withAllTags($tags, ?string $type = null)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withAllTagsOfAnyType($tags)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withAnyTags($tags, ?string $type = null)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withAnyTagsOfAnyType($tags)
+ *
  * @mixin \Eloquent
  */
-class GaProperty extends Model
+class GaProperty extends Model implements HasMedia
 {
     /** @use HasFactory<\Database\Factories\GaPropertyFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+
+    use HasMediaManager;
+    use HasTags;
+    use InteractsWithMedia;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -64,11 +77,9 @@ class GaProperty extends Model
     protected $fillable = [
         'name',
         'property_id',
-        'account_name',
         'is_active',
         'last_synced_at',
         'sync_frequency',
-        'rate_limit_per_hour',
     ];
 
     /**
@@ -80,7 +91,6 @@ class GaProperty extends Model
         'is_active' => 'boolean',
         'last_synced_at' => 'datetime',
         'sync_frequency' => 'integer',
-        'rate_limit_per_hour' => 'integer',
     ];
 
     /**
@@ -136,6 +146,86 @@ class GaProperty extends Model
     }
 
     /**
+     * Get the next sync time for this property.
+     */
+    protected function nextSyncAt(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if (! $this->is_active) {
+                    return null;
+                }
+
+                if (! $this->last_synced_at) {
+                    return now(); // Should sync immediately
+                }
+
+                return $this->last_synced_at->addMinutes($this->sync_frequency);
+            }
+        );
+    }
+
+    /**
+     * Register media collections.
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->registerDynamicMediaCollections();
+    }
+
+    /**
+     * Register media conversions.
+     */
+    public function registerMediaConversions($media = null): void
+    {
+        $this->addMediaConversion('lqip')
+            ->width(20)
+            ->height(20)
+            ->quality(10)
+            ->blur(10)
+            ->performOnCollections('profile_image')
+            ->nonQueued();
+
+        $this->addMediaConversion('sm')
+            ->width(200)
+            ->height(200)
+            ->quality(85)
+            ->performOnCollections('profile_image')
+            ->nonQueued();
+
+        $this->addMediaConversion('md')
+            ->width(400)
+            ->height(400)
+            ->quality(90)
+            ->performOnCollections('profile_image');
+
+        $this->addMediaConversion('lg')
+            ->width(800)
+            ->height(800)
+            ->quality(90)
+            ->performOnCollections('profile_image');
+
+        $this->addMediaConversion('xl')
+            ->width(1080)
+            ->height(1080)
+            ->quality(95)
+            ->performOnCollections('profile_image');
+    }
+
+    /**
+     * Get media collections configuration.
+     */
+    public function getMediaCollections(): array
+    {
+        return [
+            'profile_image' => [
+                'single_file' => true,
+                'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
+            ],
+        ];
+    }
+
+    /**
      * Boot method to handle audit columns.
      */
     protected static function boot(): void
@@ -158,6 +248,11 @@ class GaProperty extends Model
             if ($model->isForceDeleting() === false && auth()->check()) {
                 $model->deleted_by = auth()->id();
                 $model->saveQuietly();
+            }
+
+            // Auto-cleanup media when property is force deleted
+            if ($model->isForceDeleting()) {
+                $model->clearMediaCollection();
             }
         });
     }
