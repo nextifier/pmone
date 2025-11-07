@@ -22,14 +22,13 @@ class StoreGaPropertyRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'project_id' => ['required', 'integer', 'exists:projects,id'],
             'name' => ['required', 'string', 'max:255'],
             'property_id' => ['required', 'string', 'max:255', 'unique:ga_properties,property_id'],
             'is_active' => ['nullable', 'boolean'],
             'sync_frequency' => ['nullable', 'integer', 'min:5', 'max:60'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['string', 'max:100'],
-            'tmp_profile_image' => ['nullable', 'string', 'regex:/^tmp-[a-zA-Z0-9._]+$/'],
-            'delete_profile_image' => ['nullable', 'boolean'],
         ];
     }
 
@@ -41,13 +40,14 @@ class StoreGaPropertyRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'project_id.required' => 'Project is required.',
+            'project_id.exists' => 'Selected project does not exist.',
             'name.required' => 'Property name is required.',
             'property_id.required' => 'GA4 Property ID is required.',
             'property_id.unique' => 'This property ID already exists.',
             'sync_frequency.min' => 'Sync frequency must be at least 5 minutes.',
             'sync_frequency.max' => 'Sync frequency cannot exceed 60 minutes.',
             'tags.*.max' => 'Each tag must not exceed 100 characters.',
-            'tmp_profile_image.regex' => 'Invalid profile image format.',
         ];
     }
 }

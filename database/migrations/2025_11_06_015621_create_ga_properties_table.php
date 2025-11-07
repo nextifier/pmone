@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('ga_properties', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete();
             $table->string('name');
             $table->string('property_id')->unique();
             $table->boolean('is_active')->default(true);
@@ -28,6 +29,7 @@ return new class extends Migration
             $table->index(['is_active', 'last_synced_at']);
 
             // Single column indexes
+            $table->index('project_id');
             $table->index('is_active');
             $table->index('last_synced_at');
             $table->index('deleted_at');

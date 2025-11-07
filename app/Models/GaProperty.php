@@ -14,6 +14,7 @@ use Spatie\Tags\HasTags;
 
 /**
  * @property int $id
+ * @property int $project_id
  * @property string $name
  * @property string $property_id
  * @property bool $is_active
@@ -25,6 +26,7 @@ use Spatie\Tags\HasTags;
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
+ * @property-read \App\Models\Project $project
  * @property-read \App\Models\User|null $creator
  * @property-read \App\Models\User|null $deleter
  * @property-read \App\Models\User|null $updater
@@ -75,6 +77,7 @@ class GaProperty extends Model implements HasMedia
      * @var list<string>
      */
     protected $fillable = [
+        'project_id',
         'name',
         'property_id',
         'is_active',
@@ -178,38 +181,7 @@ class GaProperty extends Model implements HasMedia
      */
     public function registerMediaConversions($media = null): void
     {
-        $this->addMediaConversion('lqip')
-            ->width(20)
-            ->height(20)
-            ->quality(10)
-            ->blur(10)
-            ->performOnCollections('profile_image')
-            ->nonQueued();
-
-        $this->addMediaConversion('sm')
-            ->width(200)
-            ->height(200)
-            ->quality(85)
-            ->performOnCollections('profile_image')
-            ->nonQueued();
-
-        $this->addMediaConversion('md')
-            ->width(400)
-            ->height(400)
-            ->quality(90)
-            ->performOnCollections('profile_image');
-
-        $this->addMediaConversion('lg')
-            ->width(800)
-            ->height(800)
-            ->quality(90)
-            ->performOnCollections('profile_image');
-
-        $this->addMediaConversion('xl')
-            ->width(1080)
-            ->height(1080)
-            ->quality(95)
-            ->performOnCollections('profile_image');
+        // No media conversions needed - profile_image accessed via project relationship
     }
 
     /**
@@ -217,12 +189,7 @@ class GaProperty extends Model implements HasMedia
      */
     public function getMediaCollections(): array
     {
-        return [
-            'profile_image' => [
-                'single_file' => true,
-                'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
-            ],
-        ];
+        return [];
     }
 
     /**
@@ -260,6 +227,11 @@ class GaProperty extends Model implements HasMedia
     /**
      * Relationships
      */
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
