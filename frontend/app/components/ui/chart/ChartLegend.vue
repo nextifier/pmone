@@ -5,7 +5,7 @@ import { BulletLegend } from "@unovis/ts";
 import { VisBulletLegend } from "@unovis/vue";
 import { nextTick, onMounted, ref } from "vue";
 
-const props = withDefaults(defineProps<{ items?: BulletLegendItemInterface[] }>(), {
+const props = withDefaults(defineProps<{ items: BulletLegendItemInterface[] }>(), {
   items: () => [],
 });
 
@@ -20,7 +20,7 @@ function keepStyling() {
   const selector = `.${BulletLegend.selectors.item}`;
   nextTick(() => {
     const elements = elRef.value?.querySelectorAll(selector);
-    const classes = buttonVariants({ variant: "ghost", size: "sm" }).split(" ");
+    const classes = buttonVariants({ variant: "ghost", size: "xs" }).split(" ");
 
     elements?.forEach((el) => el.classList.add(...classes, "!inline-flex", "!mr-2"));
   });
