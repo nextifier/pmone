@@ -118,6 +118,7 @@ class AnalyticsService
 
     /**
      * Get aggregated analytics from all active properties with cache-first strategy.
+     * CRITICAL: Always return cache immediately if available, NEVER wait for fresh data.
      */
     public function getAggregatedAnalytics(Period $period, ?array $propertyIds = null): array
     {
@@ -125,12 +126,14 @@ class AnalyticsService
         $propertyIdsStr = $propertyIds ? implode(',', $propertyIds) : 'all';
         $cacheKey = "ga4_aggregate_{$propertyIdsStr}_{$period->startDate->format('Y-m-d')}_{$period->endDate->format('Y-m-d')}";
         $cacheTimestampKey = "{$cacheKey}_timestamp";
+        $lastSuccessKey = "{$cacheKey}_last_success"; // Never expires, for instant fallback
 
         // Get cached data and timestamp
         $cachedData = Cache::get($cacheKey);
         $cacheTimestamp = Cache::get($cacheTimestampKey);
+        $lastSuccessData = Cache::get($lastSuccessKey); // Last known good data
 
-        // CACHE-FIRST: Return cached data if available
+        // CACHE-FIRST PRIORITY 1: Return fresh cache if available
         if ($cachedData) {
             $cacheAge = $cacheTimestamp ? now()->diffInMinutes($cacheTimestamp) : null;
             $isFresh = $cacheAge !== null && $cacheAge < 30;
@@ -139,6 +142,9 @@ class AnalyticsService
             $nextUpdate = $cacheTimestamp ? $cacheTimestamp->copy()->addMinutes(30) : null;
             $nextUpdateIn = $nextUpdate ? max(0, now()->diffInMinutes($nextUpdate, false)) : 0;
 
+            // Get last_synced_at from most recent property
+            $lastSyncedAt = $this->getMostRecentSyncTime($propertyIds);
+
             // If cache is stale and not currently refreshing, dispatch background refresh
             if (!$isFresh && !Cache::has("{$cacheKey}_refreshing")) {
                 $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
@@ -146,8 +152,8 @@ class AnalyticsService
 
             return array_merge($cachedData, [
                 'cache_info' => [
-                    'last_updated' => $cacheTimestamp ? $cacheTimestamp->toIso8601String() : null,
-                    'cache_age_minutes' => $cacheAge,
+                    'last_updated' => $lastSyncedAt ? $lastSyncedAt->toIso8601String() : ($cacheTimestamp ? $cacheTimestamp->toIso8601String() : null),
+                    'cache_age_minutes' => $lastSyncedAt ? now()->diffInMinutes($lastSyncedAt) : $cacheAge,
                     'next_update_in_minutes' => abs($nextUpdateIn),
                     'is_fresh' => $isFresh,
                     'is_updating' => !$isFresh,
@@ -155,26 +161,83 @@ class AnalyticsService
             ]);
         }
 
-        // No cache: fetch data synchronously
-        $properties = $propertyIds
-            ? GaProperty::active()->whereIn('property_id', $propertyIds)->get()
-            : $this->getActiveProperties();
+        // CACHE-FIRST PRIORITY 2: Return last known good data if exists (even if very old)
+        if ($lastSuccessData) {
+            $lastSyncedAt = $this->getMostRecentSyncTime($propertyIds);
 
-        $data = $this->aggregator->getDashboardData($properties, $period);
+            // Dispatch background refresh to get new data
+            if (!Cache::has("{$cacheKey}_refreshing")) {
+                $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
+            }
 
-        // Cache the data
-        Cache::put($cacheKey, $data, now()->addMinutes(30));
-        Cache::put($cacheTimestampKey, now(), now()->addMinutes(30));
+            return array_merge($lastSuccessData, [
+                'cache_info' => [
+                    'last_updated' => $lastSyncedAt ? $lastSyncedAt->toIso8601String() : null,
+                    'cache_age_minutes' => $lastSyncedAt ? now()->diffInMinutes($lastSyncedAt) : 999,
+                    'next_update_in_minutes' => 0, // Updating now
+                    'is_fresh' => false,
+                    'is_updating' => true,
+                    'from_fallback' => true,
+                ],
+            ]);
+        }
 
-        return array_merge($data, [
+        // NO CACHE AT ALL: Return empty structure immediately and dispatch background job
+        // User will see empty dashboard with loading indicator
+        $emptyData = [
+            'totals' => [
+                'activeUsers' => 0,
+                'newUsers' => 0,
+                'sessions' => 0,
+                'screenPageViews' => 0,
+                'bounceRate' => 0,
+                'averageSessionDuration' => 0,
+            ],
+            'property_breakdown' => [],
+            'successful_fetches' => 0,
+            'top_pages' => [],
+            'traffic_sources' => [],
+            'devices' => [],
+            'period' => [
+                'start_date' => $period->startDate->format('Y-m-d'),
+                'end_date' => $period->endDate->format('Y-m-d'),
+            ],
+            'properties_count' => 0,
+        ];
+
+        // Dispatch background job to fetch data
+        if (!Cache::has("{$cacheKey}_refreshing")) {
+            $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
+        }
+
+        return array_merge($emptyData, [
             'cache_info' => [
-                'last_updated' => now()->toIso8601String(),
-                'cache_age_minutes' => 0,
-                'next_update_in_minutes' => 30,
-                'is_fresh' => true,
-                'is_updating' => false,
+                'last_updated' => null,
+                'cache_age_minutes' => null,
+                'next_update_in_minutes' => 0,
+                'is_fresh' => false,
+                'is_updating' => true,
+                'initial_load' => true,
             ],
         ]);
+    }
+
+    /**
+     * Get most recent sync time from properties.
+     */
+    protected function getMostRecentSyncTime(?array $propertyIds): ?\Carbon\Carbon
+    {
+        $query = GaProperty::query();
+
+        if ($propertyIds) {
+            $query->whereIn('property_id', $propertyIds);
+        }
+
+        $mostRecent = $query->whereNotNull('last_synced_at')
+            ->orderBy('last_synced_at', 'desc')
+            ->first();
+
+        return $mostRecent?->last_synced_at;
     }
 
     /**
@@ -193,8 +256,14 @@ class AnalyticsService
 
                 $data = $this->aggregator->getDashboardData($properties, $period);
 
+                // Store with 30-minute expiry
                 Cache::put($cacheKey, $data, now()->addMinutes(30));
                 Cache::put("{$cacheKey}_timestamp", now(), now()->addMinutes(30));
+
+                // Store as "last known good data" that never expires (for instant fallback)
+                Cache::put("{$cacheKey}_last_success", $data, now()->addYears(10));
+
+                \Log::info("Aggregate cache refreshed successfully for {$cacheKey}");
             } catch (\Exception $e) {
                 \Log::error("Background aggregate cache refresh failed: {$e->getMessage()}");
             } finally {
