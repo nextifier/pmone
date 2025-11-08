@@ -4,6 +4,7 @@ namespace App\Services\GoogleAnalytics;
 
 use App\Services\GoogleAnalytics\Period;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Concurrency;
 
 class AnalyticsAggregator
 {
@@ -55,7 +56,8 @@ class AnalyticsAggregator
     }
 
     /**
-     * Aggregate metrics from multiple properties.
+     * Aggregate metrics from multiple properties using parallel execution.
+     * This significantly improves performance when dealing with multiple properties.
      */
     public function aggregateMetrics(Collection $properties, Period $period): array
     {
@@ -72,21 +74,45 @@ class AnalyticsAggregator
         $errors = [];
         $propertyData = [];
 
-        foreach ($properties as $property) {
-            try {
-                $data = $this->dataFetcher->fetchMetrics($property, $period);
+        // Execute all property fetches in parallel for massive performance gain
+        $results = Concurrency::run(
+            $properties->map(fn ($property) => function () use ($property, $period) {
+                try {
+                    $data = $this->dataFetcher->fetchMetrics($property, $period);
 
-                // Extract data from cache wrapper if present
-                $metricsData = $data['data'] ?? $data;
+                    // Extract data from cache wrapper if present
+                    $metricsData = $data['data'] ?? $data;
 
-                // Calculate totals from rows if totals are empty
-                if (empty($metricsData['totals']) && ! empty($metricsData['rows'])) {
-                    $metricsData['totals'] = $this->calculateTotalsFromRows($metricsData['rows']);
+                    // Calculate totals from rows if totals are empty
+                    if (empty($metricsData['totals']) && ! empty($metricsData['rows'])) {
+                        $metricsData['totals'] = $this->calculateTotalsFromRows($metricsData['rows']);
+                    }
+
+                    return [
+                        'success' => true,
+                        'property_id' => $property->property_id,
+                        'property_name' => $property->name,
+                        'totals' => $metricsData['totals'] ?? [],
+                        'is_fresh' => $data['is_fresh'] ?? false,
+                        'cached_at' => $data['cached_at'] ?? null,
+                    ];
+                } catch (\Exception $e) {
+                    return [
+                        'success' => false,
+                        'property_id' => $property->property_id,
+                        'property_name' => $property->name,
+                        'error' => $e->getMessage(),
+                    ];
                 }
+            })->all()
+        );
 
-                if (! empty($metricsData['totals'])) {
-                    $totals = $metricsData['totals'];
+        // Process parallel results
+        foreach ($results as $result) {
+            if ($result['success']) {
+                $totals = $result['totals'];
 
+                if (! empty($totals)) {
                     $aggregated['activeUsers'] += $totals['activeUsers'] ?? 0;
                     $aggregated['newUsers'] += $totals['newUsers'] ?? 0;
                     $aggregated['sessions'] += $totals['sessions'] ?? 0;
@@ -97,18 +123,18 @@ class AnalyticsAggregator
                     $successfulFetches++;
 
                     $propertyData[] = [
-                        'property_id' => $property->property_id,
-                        'property_name' => $property->name,
+                        'property_id' => $result['property_id'],
+                        'property_name' => $result['property_name'],
                         'metrics' => $totals,
-                        'is_fresh' => $data['is_fresh'] ?? false,
-                        'cached_at' => $data['cached_at'] ?? null,
+                        'is_fresh' => $result['is_fresh'],
+                        'cached_at' => $result['cached_at'],
                     ];
                 }
-            } catch (\Exception $e) {
+            } else {
                 $errors[] = [
-                    'property_id' => $property->property_id,
-                    'property_name' => $property->name,
-                    'error' => $e->getMessage(),
+                    'property_id' => $result['property_id'],
+                    'property_name' => $result['property_name'],
+                    'error' => $result['error'],
                 ];
             }
         }
@@ -261,14 +287,18 @@ class AnalyticsAggregator
     }
 
     /**
-     * Get comprehensive analytics dashboard data.
+     * Get comprehensive analytics dashboard data with parallel execution.
+     * Fetches all data types simultaneously for maximum performance.
      */
     public function getDashboardData(Collection $properties, Period $period): array
     {
-        $metricsData = $this->aggregateMetrics($properties, $period);
-        $topPagesData = $this->aggregateTopPages($properties, $period, 20);
-        $trafficSourcesData = $this->aggregateTrafficSources($properties, $period);
-        $devicesData = $this->aggregateDevices($properties, $period);
+        // Execute all aggregation tasks in parallel for maximum performance
+        [$metricsData, $topPagesData, $trafficSourcesData, $devicesData] = Concurrency::run([
+            fn () => $this->aggregateMetrics($properties, $period),
+            fn () => $this->aggregateTopPages($properties, $period, 20),
+            fn () => $this->aggregateTrafficSources($properties, $period),
+            fn () => $this->aggregateDevices($properties, $period),
+        ]);
 
         return [
             // Frontend expects 'totals' at root level

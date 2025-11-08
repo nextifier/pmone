@@ -8,12 +8,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\GoogleAnalytics\GetAnalyticsRequest;
 use App\Http\Requests\GoogleAnalytics\StoreGaPropertyRequest;
 use App\Http\Requests\GoogleAnalytics\SyncAnalyticsRequest;
+use App\Http\Requests\GoogleAnalytics\TriggerSyncRequest;
 use App\Http\Requests\GoogleAnalytics\UpdateGaPropertyRequest;
 use App\Imports\GaPropertiesImport;
 use App\Jobs\AggregateAnalyticsData;
 use App\Jobs\SyncGoogleAnalyticsData;
 use App\Models\GaProperty;
 use App\Services\GoogleAnalytics\AnalyticsService;
+use App\Services\GoogleAnalytics\AnalyticsCacheKeyGenerator as CacheKey;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -372,9 +374,25 @@ class GoogleAnalyticsController extends Controller
      * This forces cache refresh and creates sync log entries immediately.
      * Runs SYNCHRONOUSLY to ensure sync logs are created for testing.
      */
-    public function triggerAggregateSyncNow(Request $request): JsonResponse
+    public function triggerAggregateSyncNow(TriggerSyncRequest $request): JsonResponse
     {
-        $days = $request->integer('days', 30);
+        // Rate limiting: 2 syncs per hour per user
+        $userId = auth()->id();
+        $key = "sync-analytics:{$userId}";
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($key, 2)) {
+            $retryAfter = \Illuminate\Support\Facades\RateLimiter::availableIn($key);
+
+            return response()->json([
+                'message' => 'Too many sync attempts. Please try again later.',
+                'retry_after_seconds' => $retryAfter,
+                'retry_after_minutes' => ceil($retryAfter / 60),
+            ], 429);
+        }
+
+        \Illuminate\Support\Facades\RateLimiter::hit($key, 3600); // 1 hour
+
+        $days = $request->validated()['days'];
 
         try {
             // Create period
@@ -399,12 +417,13 @@ class GoogleAnalyticsController extends Controller
                 ], 400);
             }
 
-            // Clear cache to force refresh
-            $cacheKey = "ga4_aggregate_all_{$period->startDate->format('Y-m-d')}_{$period->endDate->format('Y-m-d')}";
-            \Illuminate\Support\Facades\Cache::forget($cacheKey);
-            \Illuminate\Support\Facades\Cache::forget("{$cacheKey}_timestamp");
-            \Illuminate\Support\Facades\Cache::forget("{$cacheKey}_refreshing");
-            \Illuminate\Support\Facades\Cache::forget("{$cacheKey}_last_success");
+            // Clear cache to force refresh using cache key generator
+            $cacheKey = CacheKey::forAggregate(null, $period->startDate, $period->endDate);
+
+            // Clear all related cache keys
+            foreach (CacheKey::getAllKeys($cacheKey) as $key) {
+                \Illuminate\Support\Facades\Cache::forget($key);
+            }
 
             // Fetch data DIRECTLY without triggering background job
             \Log::info('Manual sync: Fetching dashboard data', [
@@ -414,10 +433,10 @@ class GoogleAnalyticsController extends Controller
 
             $data = $this->aggregator->getDashboardData($properties, $period);
 
-            // Store in cache
+            // Store in cache using proper cache keys
             \Illuminate\Support\Facades\Cache::put($cacheKey, $data, now()->addMinutes(30));
-            \Illuminate\Support\Facades\Cache::put("{$cacheKey}_timestamp", now(), now()->addMinutes(30));
-            \Illuminate\Support\Facades\Cache::put("{$cacheKey}_last_success", $data, now()->addYears(10));
+            \Illuminate\Support\Facades\Cache::put(CacheKey::timestamp($cacheKey), now(), now()->addMinutes(30));
+            \Illuminate\Support\Facades\Cache::put(CacheKey::lastSuccess($cacheKey), $data, now()->addYears(10));
 
             // Mark sync as successful
             $syncLog->markSuccess([
