@@ -38,3 +38,4 @@ _ide_helper_models.php
 /frontend/.output
 /frontend/dist
 /frontend/.env
+/frontend/temp

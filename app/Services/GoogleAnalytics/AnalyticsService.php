@@ -164,8 +164,8 @@ class AnalyticsService
 
             return array_merge($cachedData, [
                 'cache_info' => [
-                    'last_updated' => $lastSyncedAt ? $lastSyncedAt->toIso8601String() : ($cacheTimestamp ? $cacheTimestamp->toIso8601String() : null),
-                    'cache_age_minutes' => $lastSyncedAt ? abs(now()->diffInMinutes($lastSyncedAt, false)) : $cacheAge,
+                    'last_updated' => $cacheTimestamp ? $cacheTimestamp->toIso8601String() : ($lastSyncedAt ? $lastSyncedAt->toIso8601String() : null),
+                    'cache_age_minutes' => $cacheAge, // Use actual cache age, not property sync time
                     'next_update_in_minutes' => abs($nextUpdateIn),
                     'is_fresh' => $isFresh,
                     'is_updating' => ! $isFresh,
@@ -184,10 +184,13 @@ class AnalyticsService
                 $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
             }
 
+            // When using fallback, we don't know exact cache age, so use property sync time as estimate
+            $estimatedCacheAge = $lastSyncedAt ? abs(now()->diffInMinutes($lastSyncedAt, false)) : 999;
+
             return array_merge($lastSuccessData, [
                 'cache_info' => [
                     'last_updated' => $lastSyncedAt ? $lastSyncedAt->toIso8601String() : null,
-                    'cache_age_minutes' => $lastSyncedAt ? abs(now()->diffInMinutes($lastSyncedAt, false)) : 999,
+                    'cache_age_minutes' => $estimatedCacheAge,
                     'next_update_in_minutes' => 0, // Updating now
                     'is_fresh' => false,
                     'is_updating' => true,

@@ -4,13 +4,14 @@ namespace App\Jobs;
 
 use App\Services\GoogleAnalytics\AnalyticsService;
 use App\Services\GoogleAnalytics\Period;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class AggregateAnalyticsData implements ShouldQueue
+class AggregateAnalyticsData implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
@@ -30,12 +31,27 @@ class AggregateAnalyticsData implements ShouldQueue
     public int $timeout = 180;
 
     /**
+     * The number of seconds after which the job's unique lock will be released.
+     */
+    public int $uniqueFor = 900; // 15 minutes
+
+    /**
      * Create a new job instance.
      */
     public function __construct(
         public ?array $propertyIds = null,
         public int $days = 7,
     ) {}
+
+    /**
+     * Get the unique ID for the job.
+     */
+    public function uniqueId(): string
+    {
+        $propertiesKey = $this->propertyIds ? implode('-', $this->propertyIds) : 'all';
+
+        return "aggregate-ga-{$propertiesKey}-{$this->days}days";
+    }
 
     /**
      * Execute the job.

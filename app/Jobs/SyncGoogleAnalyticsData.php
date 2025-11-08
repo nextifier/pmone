@@ -5,12 +5,13 @@ namespace App\Jobs;
 use App\Models\GaProperty;
 use App\Services\GoogleAnalytics\AnalyticsService;
 use App\Services\GoogleAnalytics\Period;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class SyncGoogleAnalyticsData implements ShouldQueue
+class SyncGoogleAnalyticsData implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
@@ -30,12 +31,25 @@ class SyncGoogleAnalyticsData implements ShouldQueue
     public int $timeout = 120;
 
     /**
+     * The number of seconds after which the job's unique lock will be released.
+     */
+    public int $uniqueFor = 600; // 10 minutes
+
+    /**
      * Create a new job instance.
      */
     public function __construct(
         public int $propertyId,
         public int $days = 30,
     ) {}
+
+    /**
+     * Get the unique ID for the job.
+     */
+    public function uniqueId(): string
+    {
+        return "sync-ga-property-{$this->propertyId}-{$this->days}days";
+    }
 
     /**
      * Execute the job.

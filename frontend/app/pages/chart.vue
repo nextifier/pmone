@@ -13,9 +13,9 @@
     <div class="space-y-3">
       <div>
         <h2 class="text-xl font-semibold">Area Chart</h2>
-        <p class="text-sm text-muted-foreground">Monthly revenue comparison with predictions</p>
+        <p class="text-muted-foreground text-sm">Monthly revenue comparison with predictions</p>
       </div>
-      <div class="rounded-lg border bg-card p-6">
+      <div class="bg-card rounded-lg border p-6">
         <AreaChart
           :data="areaChartData"
           index="month"
@@ -29,9 +29,9 @@
     <div class="space-y-3">
       <div>
         <h2 class="text-xl font-semibold">Line Chart</h2>
-        <p class="text-sm text-muted-foreground">User engagement metrics over time</p>
+        <p class="text-muted-foreground text-sm">User engagement metrics over time</p>
       </div>
-      <div class="rounded-lg border bg-card p-6">
+      <div class="bg-card rounded-lg border p-6">
         <LineChart
           :data="lineChartData"
           index="date"
@@ -44,9 +44,9 @@
     <div class="space-y-3">
       <div>
         <h2 class="text-xl font-semibold">Bar Chart (Grouped)</h2>
-        <p class="text-sm text-muted-foreground">Product sales comparison by quarter</p>
+        <p class="text-muted-foreground text-sm">Product sales comparison by quarter</p>
       </div>
-      <div class="rounded-lg border bg-card p-6">
+      <div class="bg-card rounded-lg border p-6">
         <BarChart
           :data="barChartData"
           index="quarter"
@@ -61,9 +61,9 @@
     <div class="space-y-3">
       <div>
         <h2 class="text-xl font-semibold">Bar Chart (Stacked)</h2>
-        <p class="text-sm text-muted-foreground">Traffic sources by month</p>
+        <p class="text-muted-foreground text-sm">Traffic sources by month</p>
       </div>
-      <div class="rounded-lg border bg-card p-6">
+      <div class="bg-card rounded-lg border p-6">
         <BarChart
           :data="stackedBarChartData"
           index="month"
@@ -78,9 +78,9 @@
     <div class="space-y-3">
       <div>
         <h2 class="text-xl font-semibold">Donut Chart</h2>
-        <p class="text-sm text-muted-foreground">Browser usage distribution</p>
+        <p class="text-muted-foreground text-sm">Browser usage distribution</p>
       </div>
-      <div class="rounded-lg border bg-card p-6">
+      <div class="bg-card rounded-lg border p-6">
         <DonutChart
           :data="donutChartData"
           index="browser"
@@ -94,9 +94,9 @@
     <div class="space-y-3">
       <div>
         <h2 class="text-xl font-semibold">Pie Chart</h2>
-        <p class="text-sm text-muted-foreground">Device type distribution</p>
+        <p class="text-muted-foreground text-sm">Device type distribution</p>
       </div>
-      <div class="rounded-lg border bg-card p-6">
+      <div class="bg-card rounded-lg border p-6">
         <DonutChart
           :data="pieChartData"
           index="device"
@@ -115,12 +115,9 @@ import { BarChart } from "@/components/ui/chart-bar";
 import { DonutChart } from "@/components/ui/chart-donut";
 import { LineChart } from "@/components/ui/chart-line";
 
-// No auth middleware - public page
-definePageMeta({
-  layout: "default",
+usePageMeta("", {
+  title: "Hello",
 });
-
-usePageMeta("chart");
 
 // Area Chart Data
 const areaChartData = [
