@@ -5,6 +5,7 @@ namespace App\Services\GoogleAnalytics;
 use App\Models\GaProperty;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use App\Services\GoogleAnalytics\AnalyticsCacheKeyGenerator as CacheKey;
 
 class AnalyticsService
 {
@@ -122,11 +123,10 @@ class AnalyticsService
      */
     public function getAggregatedAnalytics(Period $period, ?array $propertyIds = null): array
     {
-        // Create cache key for aggregate data
-        $propertyIdsStr = $propertyIds ? implode(',', $propertyIds) : 'all';
-        $cacheKey = "ga4_aggregate_{$propertyIdsStr}_{$period->startDate->format('Y-m-d')}_{$period->endDate->format('Y-m-d')}";
-        $cacheTimestampKey = "{$cacheKey}_timestamp";
-        $lastSuccessKey = "{$cacheKey}_last_success"; // Never expires, for instant fallback
+        // Create cache key for aggregate data using centralized generator
+        $cacheKey = CacheKey::forAggregate($propertyIds, $period->startDate, $period->endDate);
+        $cacheTimestampKey = CacheKey::timestamp($cacheKey);
+        $lastSuccessKey = CacheKey::lastSuccess($cacheKey);
 
         \Log::info('Fetching aggregate analytics', [
             'cache_key' => $cacheKey,
@@ -157,7 +157,7 @@ class AnalyticsService
             $lastSyncedAt = $this->getMostRecentSyncTime($propertyIds);
 
             // If cache is stale and not currently refreshing, dispatch background refresh
-            if (! $isFresh && ! Cache::has("{$cacheKey}_refreshing")) {
+            if (! $isFresh && ! Cache::has(CacheKey::refreshing($cacheKey))) {
                 \Log::info('Cache is stale, dispatching background refresh');
                 $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
             }
@@ -178,7 +178,7 @@ class AnalyticsService
             \Log::info('Using last_success fallback cache');
 
             // Dispatch background refresh to get new data
-            if (! Cache::has("{$cacheKey}_refreshing")) {
+            if (! Cache::has(CacheKey::refreshing($cacheKey))) {
                 \Log::info('Dispatching background refresh from fallback');
                 $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
             }
@@ -203,7 +203,7 @@ class AnalyticsService
         \Log::warning('No cache found, dispatching background job and returning empty data');
 
         // Dispatch background job to fetch data
-        if (! Cache::has("{$cacheKey}_refreshing")) {
+        if (! Cache::has(CacheKey::refreshing($cacheKey))) {
             $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
         }
 
@@ -270,7 +270,8 @@ class AnalyticsService
     protected function dispatchAggregateBackgroundRefresh(Period $period, ?array $propertyIds, string $cacheKey): void
     {
         // Mark as refreshing
-        Cache::put("{$cacheKey}_refreshing", true, now()->addMinutes(5));
+        $refreshingKey = CacheKey::refreshing($cacheKey);
+        Cache::put($refreshingKey, true, now()->addMinutes(5));
 
         // Bind aggregator to avoid context issues in closure
         $aggregator = $this->aggregator;
@@ -342,7 +343,7 @@ class AnalyticsService
                     'sync_log_id' => $syncLog->id,
                 ]);
             } finally {
-                Cache::forget("{$cacheKey}_refreshing");
+                Cache::forget($refreshingKey);
             }
         })->afterResponse();
     }
