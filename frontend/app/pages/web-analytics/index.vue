@@ -9,6 +9,18 @@
 
       <div class="ml-auto flex shrink-0 gap-2">
         <button
+          @click="triggerSyncNow"
+          :disabled="syncingNow"
+          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1.5 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Icon
+            name="hugeicons:refresh"
+            class="size-4 shrink-0"
+            :class="{ 'animate-spin': syncingNow }"
+          />
+          <span>{{ syncingNow ? 'Syncing...' : 'Sync Now' }}</span>
+        </button>
+        <button
           @click="refreshData"
           :disabled="loading"
           class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
@@ -654,6 +666,7 @@ const loading = ref(false);
 const error = ref(null);
 const aggregateData = ref(null);
 const selectedRange = ref("30");
+const syncingNow = ref(false);
 
 // Sync history state
 const syncLogs = ref([]);
@@ -795,6 +808,40 @@ const fetchSyncHistory = async () => {
     console.error("Error fetching sync history:", err);
   } finally {
     syncHistoryLoading.value = false;
+  }
+};
+
+// Trigger manual sync now
+const triggerSyncNow = async () => {
+  syncingNow.value = true;
+
+  try {
+    const client = useSanctumClient();
+    const days = parseInt(selectedRange.value);
+
+    await client(`/api/google-analytics/aggregate/sync-now?days=${days}`, {
+      method: "POST",
+    });
+
+    // Wait 2 seconds for background job to start
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Refresh data and sync history
+    await Promise.all([fetchAnalytics(true), fetchSyncHistory()]);
+
+    // Continue auto-refreshing for a bit to see sync logs appear
+    const checkInterval = setInterval(async () => {
+      await fetchSyncHistory();
+    }, 5000);
+
+    // Stop checking after 30 seconds
+    setTimeout(() => {
+      clearInterval(checkInterval);
+    }, 30000);
+  } catch (err) {
+    console.error("Error triggering sync:", err);
+  } finally {
+    syncingNow.value = false;
   }
 };
 

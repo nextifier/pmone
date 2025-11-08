@@ -176,7 +176,6 @@ class AnalyticsService
         // CACHE-FIRST PRIORITY 2: Return last known good data if exists (even if very old)
         if ($lastSuccessData) {
             \Log::info('Using last_success fallback cache');
-            $lastSyncedAt = $this->getMostRecentSyncTime($propertyIds);
 
             // Dispatch background refresh to get new data
             if (! Cache::has("{$cacheKey}_refreshing")) {
@@ -184,13 +183,14 @@ class AnalyticsService
                 $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
             }
 
-            // When using fallback, we don't know exact cache age, so use property sync time as estimate
-            $estimatedCacheAge = $lastSyncedAt ? abs(now()->diffInMinutes($lastSyncedAt, false)) : 999;
+            // When using fallback during refresh, show minimal cache age since we're actively updating
+            // This prevents showing confusing large numbers like "16 hours ago" when we're actually refreshing now
+            $cacheAge = 0; // Show as "just now" since we're using fallback during active refresh
 
             return array_merge($lastSuccessData, [
                 'cache_info' => [
-                    'last_updated' => $lastSyncedAt ? $lastSyncedAt->toIso8601String() : null,
-                    'cache_age_minutes' => $estimatedCacheAge,
+                    'last_updated' => now()->toIso8601String(),
+                    'cache_age_minutes' => $cacheAge,
                     'next_update_in_minutes' => 0, // Updating now
                     'is_fresh' => false,
                     'is_updating' => true,
@@ -275,9 +275,21 @@ class AnalyticsService
         // Bind aggregator to avoid context issues in closure
         $aggregator = $this->aggregator;
 
-        dispatch(function () use ($period, $propertyIds, $cacheKey, $aggregator) {
+        // Calculate days for sync log
+        $days = $period->startDate->diffInDays($period->endDate) + 1;
+
+        dispatch(function () use ($period, $propertyIds, $cacheKey, $aggregator, $days) {
+            // Create sync log entry for aggregate dashboard sync
+            $syncLog = \App\Models\AnalyticsSyncLog::startSync(
+                syncType: 'aggregate',
+                gaPropertyId: null, // null for aggregate syncs
+                days: $days
+            );
+
             try {
-                \Log::info("Background refresh started for {$cacheKey}");
+                \Log::info("Background refresh started for {$cacheKey}", [
+                    'sync_log_id' => $syncLog->id,
+                ]);
 
                 $properties = $propertyIds
                     ? GaProperty::active()->whereIn('property_id', $propertyIds)->get()
@@ -285,6 +297,7 @@ class AnalyticsService
 
                 if ($properties->isEmpty()) {
                     \Log::warning('No active properties found for background refresh');
+                    $syncLog->markFailed('No active properties found');
 
                     return;
                 }
@@ -301,17 +314,32 @@ class AnalyticsService
                 $lastSuccessKey = "{$cacheKey}_last_success";
                 Cache::put($lastSuccessKey, $data, now()->addYears(10));
 
+                // Mark sync as successful with metadata
+                $syncLog->markSuccess([
+                    'properties_count' => $properties->count(),
+                    'has_totals' => ! empty($data['totals'] ?? []),
+                    'cache_key' => $cacheKey,
+                ]);
+
                 \Log::info('Aggregate cache refreshed successfully', [
                     'cache_key' => $cacheKey,
                     'last_success_key' => $lastSuccessKey,
                     'properties_count' => $properties->count(),
                     'has_totals' => ! empty($data['totals'] ?? []),
+                    'sync_log_id' => $syncLog->id,
                 ]);
             } catch (\Exception $e) {
+                // Mark sync as failed
+                $syncLog->markFailed($e->getMessage(), [
+                    'cache_key' => $cacheKey,
+                    'exception_class' => get_class($e),
+                ]);
+
                 \Log::error('Background aggregate cache refresh failed', [
                     'cache_key' => $cacheKey,
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
+                    'sync_log_id' => $syncLog->id,
                 ]);
             } finally {
                 Cache::forget("{$cacheKey}_refreshing");
