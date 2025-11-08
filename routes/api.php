@@ -170,6 +170,7 @@ Route::middleware(['auth:sanctum'])->prefix('google-analytics')->group(function 
     Route::get('/aggregate', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getAggregatedAnalytics']);
     Route::post('/sync', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'sync']);
     Route::post('/aggregate', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'aggregate']);
+    Route::post('/aggregate/sync-now', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'triggerAggregateSyncNow']);
     Route::get('/cache/status', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getCacheStatus']);
     Route::delete('/cache/properties/{id}', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'clearPropertyCache']);
     Route::delete('/cache/all', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'clearAllCache']);

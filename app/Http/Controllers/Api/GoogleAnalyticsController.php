@@ -367,6 +367,31 @@ class GoogleAnalyticsController extends Controller
     }
 
     /**
+     * Trigger manual aggregate sync now for testing/debugging.
+     * This forces cache refresh and creates sync log entries immediately.
+     */
+    public function triggerAggregateSyncNow(Request $request): JsonResponse
+    {
+        $days = $request->integer('days', 30);
+
+        // Clear aggregate cache to force refresh
+        \Illuminate\Support\Facades\Cache::forget("ga4_aggregate_all_*");
+
+        // Create period
+        $period = $this->analyticsService->createPeriodFromDays($days);
+
+        // Trigger sync by accessing aggregate data (will trigger background job)
+        $analytics = $this->analyticsService->getAggregatedAnalytics($period, null);
+
+        return response()->json([
+            'message' => 'Aggregate sync triggered successfully',
+            'days' => $days,
+            'is_updating' => $analytics['cache_info']['is_updating'] ?? false,
+            'properties_count' => $analytics['properties_count'] ?? 0,
+        ]);
+    }
+
+    /**
      * Get cache status for all properties.
      */
     public function getCacheStatus(): JsonResponse
