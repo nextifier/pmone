@@ -14,8 +14,8 @@ use App\Imports\GaPropertiesImport;
 use App\Jobs\AggregateAnalyticsData;
 use App\Jobs\SyncGoogleAnalyticsData;
 use App\Models\GaProperty;
-use App\Services\GoogleAnalytics\AnalyticsService;
 use App\Services\GoogleAnalytics\AnalyticsCacheKeyGenerator as CacheKey;
+use App\Services\GoogleAnalytics\AnalyticsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -313,9 +313,7 @@ class GoogleAnalyticsController extends Controller
 
         $analytics = $this->analyticsService->getAggregatedAnalytics($period, $propertyIds);
 
-        return response()->json([
-            'data' => $analytics,
-        ]);
+        return response()->json($analytics);
     }
 
     /**
@@ -441,14 +439,14 @@ class GoogleAnalyticsController extends Controller
             // Mark sync as successful
             $syncLog->markSuccess([
                 'properties_count' => $properties->count(),
-                'has_data' => !empty($data['totals'] ?? []),
+                'has_data' => ! empty($data['totals'] ?? []),
                 'cache_key' => $cacheKey,
             ]);
 
             \Log::info('Manual sync completed', [
                 'sync_log_id' => $syncLog->id,
                 'properties_count' => $properties->count(),
-                'has_totals' => !empty($data['totals'] ?? []),
+                'has_totals' => ! empty($data['totals'] ?? []),
             ]);
 
             return response()->json([
@@ -456,7 +454,7 @@ class GoogleAnalyticsController extends Controller
                 'days' => $days,
                 'properties_count' => $properties->count(),
                 'sync_log_id' => $syncLog->id,
-                'has_data' => !empty($data['totals'] ?? []),
+                'has_data' => ! empty($data['totals'] ?? []),
             ]);
         } catch (\Exception $e) {
             if (isset($syncLog)) {

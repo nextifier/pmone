@@ -2,7 +2,6 @@
 
 namespace App\Services\GoogleAnalytics;
 
-use App\Services\GoogleAnalytics\Period;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Concurrency;
 
@@ -75,37 +74,38 @@ class AnalyticsAggregator
         $propertyData = [];
 
         // Execute all property fetches in parallel for massive performance gain
-        $results = Concurrency::run(
-            $properties->map(fn ($property) => function () use ($property, $period) {
-                try {
-                    $data = $this->dataFetcher->fetchMetrics($property, $period);
+        // Use sync driver to avoid serialization issues with process driver
+        $tasks = $properties->map(fn ($property) => fn () => (function () use ($property, $period) {
+            try {
+                $data = $this->dataFetcher->fetchMetrics($property, $period);
 
-                    // Extract data from cache wrapper if present
-                    $metricsData = $data['data'] ?? $data;
+                // Extract data from cache wrapper if present
+                $metricsData = $data['data'] ?? $data;
 
-                    // Calculate totals from rows if totals are empty
-                    if (empty($metricsData['totals']) && ! empty($metricsData['rows'])) {
-                        $metricsData['totals'] = $this->calculateTotalsFromRows($metricsData['rows']);
-                    }
-
-                    return [
-                        'success' => true,
-                        'property_id' => $property->property_id,
-                        'property_name' => $property->name,
-                        'totals' => $metricsData['totals'] ?? [],
-                        'is_fresh' => $data['is_fresh'] ?? false,
-                        'cached_at' => $data['cached_at'] ?? null,
-                    ];
-                } catch (\Exception $e) {
-                    return [
-                        'success' => false,
-                        'property_id' => $property->property_id,
-                        'property_name' => $property->name,
-                        'error' => $e->getMessage(),
-                    ];
+                // Calculate totals from rows if totals are empty
+                if (empty($metricsData['totals']) && ! empty($metricsData['rows'])) {
+                    $metricsData['totals'] = $this->calculateTotalsFromRows($metricsData['rows']);
                 }
-            })->all()
-        );
+
+                return [
+                    'success' => true,
+                    'property_id' => $property->property_id,
+                    'property_name' => $property->name,
+                    'totals' => $metricsData['totals'] ?? [],
+                    'is_fresh' => $data['is_fresh'] ?? false,
+                    'cached_at' => $data['cached_at'] ?? null,
+                ];
+            } catch (\Exception $e) {
+                return [
+                    'success' => false,
+                    'property_id' => $property->property_id,
+                    'property_name' => $property->name,
+                    'error' => $e->getMessage(),
+                ];
+            }
+        })())->all();
+
+        $results = Concurrency::driver('sync')->run($tasks);
 
         // Process parallel results
         foreach ($results as $result) {
@@ -293,7 +293,8 @@ class AnalyticsAggregator
     public function getDashboardData(Collection $properties, Period $period): array
     {
         // Execute all aggregation tasks in parallel for maximum performance
-        [$metricsData, $topPagesData, $trafficSourcesData, $devicesData] = Concurrency::run([
+        // Use sync driver to avoid serialization issues
+        [$metricsData, $topPagesData, $trafficSourcesData, $devicesData] = Concurrency::driver('sync')->run([
             fn () => $this->aggregateMetrics($properties, $period),
             fn () => $this->aggregateTopPages($properties, $period, 20),
             fn () => $this->aggregateTrafficSources($properties, $period),

@@ -749,7 +749,15 @@ const fetchAnalytics = async (silent = false) => {
     const client = useSanctumClient();
     const days = parseInt(selectedRange.value);
 
-    const { data } = await client(`/api/google-analytics/aggregate?days=${days}`);
+    const response = await client(`/api/google-analytics/aggregate?days=${days}`);
+
+    // Handle both wrapped and unwrapped responses
+    const data = response?.data || response;
+
+    if (!data) {
+      throw new Error('No data received from server');
+    }
+
     aggregateData.value = data;
 
     // Auto-refresh logic based on cache state
@@ -788,16 +796,16 @@ const fetchSyncHistory = async () => {
     const client = useSanctumClient();
 
     // Fetch logs
-    const { data: logsData } = await client(
+    const logsResponse = await client(
       `/api/google-analytics/sync-logs?hours=${syncHistoryHours.value}&limit=50`
     );
-    syncLogs.value = logsData.logs || [];
+    syncLogs.value = logsResponse.logs || [];
 
     // Fetch stats
-    const { data: statsData } = await client(
+    const statsResponse = await client(
       `/api/google-analytics/sync-logs/stats?hours=${syncHistoryHours.value}`
     );
-    syncStats.value = statsData;
+    syncStats.value = statsResponse;
 
     // Auto-refresh if there are in-progress syncs
     const hasInProgress = syncLogs.value.some((log) => log.status === "started");

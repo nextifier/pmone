@@ -3,9 +3,9 @@
 namespace App\Services\GoogleAnalytics;
 
 use App\Models\GaProperty;
+use App\Services\GoogleAnalytics\AnalyticsCacheKeyGenerator as CacheKey;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use App\Services\GoogleAnalytics\AnalyticsCacheKeyGenerator as CacheKey;
 
 class AnalyticsService
 {
@@ -279,7 +279,7 @@ class AnalyticsService
         // Calculate days for sync log
         $days = $period->startDate->diffInDays($period->endDate) + 1;
 
-        dispatch(function () use ($period, $propertyIds, $cacheKey, $aggregator, $days) {
+        dispatch(function () use ($period, $propertyIds, $cacheKey, $aggregator, $days, $refreshingKey) {
             // Create sync log entry for aggregate dashboard sync
             $syncLog = \App\Models\AnalyticsSyncLog::startSync(
                 syncType: 'aggregate',
@@ -309,10 +309,10 @@ class AnalyticsService
 
                 // Store with 30-minute expiry
                 Cache::put($cacheKey, $data, now()->addMinutes(30));
-                Cache::put("{$cacheKey}_timestamp", now(), now()->addMinutes(30));
+                Cache::put(CacheKey::timestamp($cacheKey), now(), now()->addMinutes(30));
 
                 // Store as "last known good data" that never expires (for instant fallback)
-                $lastSuccessKey = "{$cacheKey}_last_success";
+                $lastSuccessKey = CacheKey::lastSuccess($cacheKey);
                 Cache::put($lastSuccessKey, $data, now()->addYears(10));
 
                 // Mark sync as successful with metadata
