@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\AnalyticsSyncLog;
 use App\Models\GaProperty;
 use App\Services\GoogleAnalytics\AnalyticsService;
 use App\Services\GoogleAnalytics\Period;
@@ -75,30 +76,61 @@ class SyncGoogleAnalyticsData implements ShouldBeUnique, ShouldQueue
             return;
         }
 
+        // Create sync log entry
+        $syncLog = AnalyticsSyncLog::startSync(
+            syncType: 'property',
+            gaPropertyId: $property->id,
+            days: $this->days,
+            jobId: $this->job?->getJobId()
+        );
+
         try {
             $period = Period::days($this->days);
 
             $result = $analyticsService->syncProperty($property, $period);
 
             if ($result['success']) {
-                Log::info('GA4 property synced successfully', [
+                $syncLog->markSuccess([
                     'property_id' => $property->property_id,
                     'property_name' => $property->name,
                     'synced_at' => $result['synced_at'],
                 ]);
+
+                Log::info('GA4 property synced successfully', [
+                    'property_id' => $property->property_id,
+                    'property_name' => $property->name,
+                    'synced_at' => $result['synced_at'],
+                    'sync_log_id' => $syncLog->id,
+                ]);
             } else {
+                $syncLog->markFailed(
+                    $result['error'] ?? 'Unknown error',
+                    [
+                        'property_id' => $property->property_id,
+                        'property_name' => $property->name,
+                    ]
+                );
+
                 Log::error('Failed to sync GA4 property', [
                     'property_id' => $property->property_id,
                     'property_name' => $property->name,
                     'error' => $result['error'] ?? 'Unknown error',
+                    'sync_log_id' => $syncLog->id,
                 ]);
             }
         } catch (Throwable $e) {
+            $syncLog->markFailed($e->getMessage(), [
+                'property_id' => $property->property_id,
+                'property_name' => $property->name,
+                'exception_class' => get_class($e),
+            ]);
+
             Log::error('Exception while syncing GA4 property', [
                 'property_id' => $property->property_id,
                 'property_name' => $property->name,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
+                'sync_log_id' => $syncLog->id,
             ]);
 
             throw $e; // Re-throw to allow retry

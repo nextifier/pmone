@@ -23,6 +23,86 @@
       </div>
     </div>
 
+    <!-- How It Works Info Box -->
+    <div class="border-border rounded-lg border p-5">
+      <div class="flex items-start gap-3">
+        <div class="bg-primary/10 text-primary rounded-lg p-2">
+          <Icon name="hugeicons:information-circle" class="size-6" />
+        </div>
+        <div class="flex-1">
+          <h3 class="text-foreground mb-2 font-semibold">
+            Cara Kerja Sinkronisasi Data Google Analytics
+          </h3>
+          <div class="text-muted-foreground space-y-2 text-sm">
+            <p>
+              <strong class="text-foreground">Otomatis & Cerdas:</strong> Sistem kami mengambil data
+              dari Google Analytics 4 secara otomatis di background setiap 10-15 menit, tanpa
+              mengganggu pengalaman Anda.
+            </p>
+            <div class="mt-3 grid gap-3 sm:grid-cols-3">
+              <div class="rounded-lg bg-white/50 p-3 dark:bg-gray-800/50">
+                <div class="flex items-center gap-2">
+                  <Icon name="hugeicons:database-sync-01" class="text-primary size-5" />
+                  <span class="text-foreground text-xs font-semibold">Auto-Sync</span>
+                </div>
+                <p class="text-muted-foreground mt-1 text-xs">
+                  Data di-fetch otomatis setiap 10-15 menit untuk memastikan selalu fresh
+                </p>
+              </div>
+              <div class="rounded-lg bg-white/50 p-3 dark:bg-gray-800/50">
+                <div class="flex items-center gap-2">
+                  <Icon name="hugeicons:rocket-01" class="text-primary size-5" />
+                  <span class="text-foreground text-xs font-semibold">Instant Load</span>
+                </div>
+                <p class="text-muted-foreground mt-1 text-xs">
+                  Menggunakan smart cache agar dashboard langsung tampil tanpa loading lama
+                </p>
+              </div>
+              <div class="rounded-lg bg-white/50 p-3 dark:bg-gray-800/50">
+                <div class="flex items-center gap-2">
+                  <Icon name="hugeicons:shield-user" class="text-primary size-5" />
+                  <span class="text-foreground text-xs font-semibold">No Duplicate</span>
+                </div>
+                <p class="text-muted-foreground mt-1 text-xs">
+                  Sistem mencegah duplikasi fetch, jadi efisien dan tidak boros API quota
+                </p>
+              </div>
+            </div>
+            <details class="mt-3">
+              <summary class="text-primary cursor-pointer text-xs font-medium hover:underline">
+                Lihat detail teknis →
+              </summary>
+              <div class="text-muted-foreground mt-3 space-y-2 text-xs">
+                <p>
+                  <strong>1. Background Jobs:</strong> Setiap 10 menit, sistem cek property mana
+                  yang perlu di-update. Data di-fetch di background tanpa memperlambat halaman.
+                </p>
+                <p>
+                  <strong>2. Smart Caching:</strong> Data yang sudah di-fetch disimpan di cache
+                  selama 30 menit. Saat Anda buka dashboard, data langsung muncul dari cache (super
+                  cepat!).
+                </p>
+                <p>
+                  <strong>3. Auto-Refresh:</strong> Jika cache sudah lebih dari 30 menit, sistem
+                  otomatis fetch data baru di background. Anda tetap lihat data lama sambil menunggu
+                  update.
+                </p>
+                <p>
+                  <strong>4. Unique Jobs:</strong> Untuk mencegah duplikasi, setiap job punya ID
+                  unik. Jika ada job dengan parameter sama yang sudah jalan, job baru tidak akan
+                  dibuat.
+                </p>
+                <p>
+                  <strong>5. Sync History:</strong> Semua aktivitas fetch dicatat lengkap dengan
+                  waktu, durasi, dan status (success/failed) untuk monitoring & debugging.
+                </p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Date Range Selector & Cache Info -->
     <div class="border-border bg-card rounded-lg border p-4">
       <div class="flex flex-wrap items-center justify-between gap-4">
@@ -50,13 +130,10 @@
         <div v-if="cacheInfo" class="flex items-center gap-2">
           <div
             v-if="cacheInfo.is_updating"
-            class="flex items-center gap-1.5 rounded-full bg-blue-500/10 px-3 py-1"
+            class="flex items-center gap-1.5 rounded-full px-3 py-1"
           >
-            <Icon
-              name="hugeicons:loading-03"
-              class="size-3.5 animate-spin text-blue-600 dark:text-blue-400"
-            />
-            <span class="text-xs font-medium text-blue-600 dark:text-blue-400">Updating...</span>
+            <Icon name="hugeicons:loading-03" class="size-3.5 animate-spin" />
+            <span class="text-xs font-medium">Updating...</span>
           </div>
           <div class="text-muted-foreground text-xs">
             <span>Last updated {{ formatCacheAge(cacheInfo.cache_age_minutes) }}</span>
@@ -296,7 +373,10 @@
         </div>
 
         <!-- Device Categories -->
-        <div v-if="aggregateData.devices?.length > 0" class="border-border bg-card rounded-lg border">
+        <div
+          v-if="aggregateData.devices?.length > 0"
+          class="border-border bg-card rounded-lg border"
+        >
           <div class="border-border border-b p-4">
             <h2 class="text-foreground flex items-center gap-2 font-semibold">
               <Icon name="hugeicons:monitor-01" class="size-5" />
@@ -356,6 +436,186 @@
           </div>
         </div>
       </div>
+
+      <!-- Sync History -->
+      <div class="border-border bg-card rounded-lg border">
+        <div class="border-border border-b p-4">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 class="text-foreground flex items-center gap-2 font-semibold">
+                <Icon name="hugeicons:clock-03" class="size-5" />
+                Sync History
+              </h2>
+              <p class="text-muted-foreground text-sm">
+                Recent background data fetching activities
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <select
+                v-model="syncHistoryHours"
+                @change="fetchSyncHistory"
+                class="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
+              >
+                <option :value="1">Last 1 hour</option>
+                <option :value="6">Last 6 hours</option>
+                <option :value="24">Last 24 hours</option>
+                <option :value="72">Last 3 days</option>
+                <option :value="168">Last 7 days</option>
+              </select>
+              <button
+                @click="fetchSyncHistory"
+                :disabled="syncHistoryLoading"
+                class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Icon
+                  name="hugeicons:refresh"
+                  class="size-4"
+                  :class="{ 'animate-spin': syncHistoryLoading }"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sync Stats -->
+        <div v-if="syncStats" class="border-border bg-muted/30 border-b p-4">
+          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div class="rounded-lg bg-white p-3 dark:bg-gray-800">
+              <p class="text-muted-foreground text-xs">Total Syncs</p>
+              <p class="text-foreground mt-1 text-2xl font-bold">{{ syncStats.total_syncs }}</p>
+            </div>
+            <div class="rounded-lg bg-green-50 p-3 dark:bg-green-900/20">
+              <p class="text-xs text-green-700 dark:text-green-400">Successful</p>
+              <p class="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">
+                {{ syncStats.successful_syncs }}
+              </p>
+            </div>
+            <div class="rounded-lg bg-red-50 p-3 dark:bg-red-900/20">
+              <p class="text-xs text-red-700 dark:text-red-400">Failed</p>
+              <p class="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">
+                {{ syncStats.failed_syncs }}
+              </p>
+            </div>
+            <div class="rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20">
+              <p class="text-xs text-blue-700 dark:text-blue-400">Success Rate</p>
+              <p class="mt-1 text-2xl font-bold text-blue-600 dark:text-blue-400">
+                {{ syncStats.success_rate }}%
+              </p>
+            </div>
+            <div class="rounded-lg bg-purple-50 p-3 dark:bg-purple-900/20">
+              <p class="text-xs text-purple-700 dark:text-purple-400">Avg Duration</p>
+              <p class="mt-1 text-2xl font-bold text-purple-600 dark:text-purple-400">
+                {{
+                  syncStats.avg_duration_seconds ? Math.round(syncStats.avg_duration_seconds) : 0
+                }}s
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sync Logs -->
+        <div class="max-h-[600px] overflow-y-auto">
+          <div v-if="syncHistoryLoading && !syncLogs.length" class="p-12 text-center">
+            <Icon name="hugeicons:loading-03" class="text-primary mx-auto size-8 animate-spin" />
+            <p class="text-muted-foreground mt-3 text-sm">Loading sync history...</p>
+          </div>
+
+          <div v-else-if="syncLogs.length === 0" class="p-12 text-center">
+            <Icon name="hugeicons:database-01" class="text-muted-foreground mx-auto size-12" />
+            <p class="text-foreground mt-3 font-medium">No sync history found</p>
+            <p class="text-muted-foreground text-sm">
+              Sync logs will appear here after background jobs run
+            </p>
+          </div>
+
+          <div v-else class="divide-border divide-y">
+            <div
+              v-for="log in syncLogs"
+              :key="log.id"
+              class="hover:bg-muted/30 p-4 transition-colors"
+            >
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <!-- Status Badge -->
+                    <span
+                      v-if="log.status === 'success'"
+                      class="rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-medium text-green-600 dark:text-green-400"
+                    >
+                      Success
+                    </span>
+                    <span
+                      v-else-if="log.status === 'failed'"
+                      class="rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-600 dark:text-red-400"
+                    >
+                      Failed
+                    </span>
+                    <span
+                      v-else
+                      class="flex items-center gap-1 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-400"
+                    >
+                      <Icon name="hugeicons:loading-03" class="size-3 animate-spin" />
+                      In Progress
+                    </span>
+
+                    <!-- Sync Type Badge -->
+                    <span
+                      class="text-muted-foreground rounded-md bg-gray-500/10 px-2 py-0.5 text-xs font-medium capitalize"
+                    >
+                      {{ log.sync_type }}
+                    </span>
+
+                    <!-- Days Badge -->
+                    <span class="text-muted-foreground text-xs">{{ log.days }} days</span>
+                  </div>
+
+                  <div class="mt-2">
+                    <p v-if="log.property" class="text-foreground text-sm font-medium">
+                      {{ log.property.name }}
+                      <span class="text-muted-foreground text-xs"
+                        >({{ log.property.property_id }})</span
+                      >
+                    </p>
+                    <p v-else class="text-foreground text-sm font-medium">Aggregate Dashboard</p>
+
+                    <div
+                      class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 text-xs"
+                    >
+                      <span>{{ formatRelativeTime(log.created_at) }}</span>
+                      <span v-if="log.duration_seconds">{{ log.duration_seconds }}s duration</span>
+                      <span v-if="log.metadata?.properties_count"
+                        >{{ log.metadata.properties_count }} properties</span
+                      >
+                    </div>
+
+                    <p v-if="log.error_message" class="mt-2 text-xs text-red-600 dark:text-red-400">
+                      Error: {{ log.error_message }}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="text-right">
+                  <Icon
+                    v-if="log.status === 'success'"
+                    name="hugeicons:checkmark-circle-01"
+                    class="size-6 text-green-600 dark:text-green-400"
+                  />
+                  <Icon
+                    v-else-if="log.status === 'failed'"
+                    name="hugeicons:cancel-circle"
+                    class="size-6 text-red-600 dark:text-red-400"
+                  />
+                  <Icon
+                    v-else
+                    name="hugeicons:loading-03"
+                    class="size-6 animate-spin text-blue-600 dark:text-blue-400"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </template>
 
     <!-- Empty State -->
@@ -395,8 +655,15 @@ const error = ref(null);
 const aggregateData = ref(null);
 const selectedRange = ref("30");
 
+// Sync history state
+const syncLogs = ref([]);
+const syncStats = ref(null);
+const syncHistoryLoading = ref(false);
+const syncHistoryHours = ref(24);
+
 // Auto-refresh timer
 let autoRefreshTimeout = null;
+let syncHistoryRefreshTimeout = null;
 
 // Computed
 const endDate = computed(() => $dayjs());
@@ -494,6 +761,43 @@ const fetchAnalytics = async (silent = false) => {
   }
 };
 
+// Fetch sync history
+const fetchSyncHistory = async () => {
+  syncHistoryLoading.value = true;
+
+  // Clear any existing auto-refresh
+  if (syncHistoryRefreshTimeout) {
+    clearTimeout(syncHistoryRefreshTimeout);
+    syncHistoryRefreshTimeout = null;
+  }
+
+  try {
+    const client = useSanctumClient();
+
+    // Fetch logs
+    const { data: logsData } = await client(
+      `/api/google-analytics/sync-logs?hours=${syncHistoryHours.value}&limit=50`
+    );
+    syncLogs.value = logsData.logs || [];
+
+    // Fetch stats
+    const { data: statsData } = await client(
+      `/api/google-analytics/sync-logs/stats?hours=${syncHistoryHours.value}`
+    );
+    syncStats.value = statsData;
+
+    // Auto-refresh if there are in-progress syncs
+    const hasInProgress = syncLogs.value.some((log) => log.status === "started");
+    if (hasInProgress) {
+      syncHistoryRefreshTimeout = setTimeout(() => fetchSyncHistory(), 10000); // Refresh every 10s
+    }
+  } catch (err) {
+    console.error("Error fetching sync history:", err);
+  } finally {
+    syncHistoryLoading.value = false;
+  }
+};
+
 // Handlers
 const handleDateRangeChange = () => fetchAnalytics();
 const refreshData = () => fetchAnalytics();
@@ -541,8 +845,13 @@ const getDeviceIcon = (device) => {
 };
 
 // Lifecycle
-onMounted(() => fetchAnalytics());
+onMounted(() => {
+  fetchAnalytics();
+  fetchSyncHistory();
+});
+
 onUnmounted(() => {
   if (autoRefreshTimeout) clearTimeout(autoRefreshTimeout);
+  if (syncHistoryRefreshTimeout) clearTimeout(syncHistoryRefreshTimeout);
 });
 </script>

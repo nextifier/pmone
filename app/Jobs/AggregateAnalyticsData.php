@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\AnalyticsSyncLog;
 use App\Services\GoogleAnalytics\AnalyticsService;
 use App\Services\GoogleAnalytics\Period;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -58,12 +59,21 @@ class AggregateAnalyticsData implements ShouldBeUnique, ShouldQueue
      */
     public function handle(AnalyticsService $analyticsService): void
     {
+        // Create sync log entry
+        $syncLog = AnalyticsSyncLog::startSync(
+            syncType: 'aggregate',
+            gaPropertyId: null,
+            days: $this->days,
+            jobId: $this->job?->getJobId()
+        );
+
         try {
             $period = Period::days($this->days);
 
             Log::info('Starting analytics aggregation', [
                 'property_ids' => $this->propertyIds,
                 'days' => $this->days,
+                'sync_log_id' => $syncLog->id,
             ]);
 
             $aggregatedData = $analyticsService->getAggregatedAnalytics($period, $this->propertyIds);
@@ -74,17 +84,30 @@ class AggregateAnalyticsData implements ShouldBeUnique, ShouldQueue
 
             Cache::put($cacheKey, $aggregatedData, $cacheDuration);
 
+            $syncLog->markSuccess([
+                'properties_count' => $aggregatedData['properties_count'] ?? 0,
+                'successful_fetches' => $aggregatedData['successful_fetches'] ?? 0,
+                'cache_key' => $cacheKey,
+            ]);
+
             Log::info('Analytics aggregation completed successfully', [
                 'properties_count' => $aggregatedData['properties_count'] ?? 0,
                 'cache_key' => $cacheKey,
                 'cache_until' => $cacheDuration->toDateTimeString(),
+                'sync_log_id' => $syncLog->id,
             ]);
         } catch (Throwable $e) {
+            $syncLog->markFailed($e->getMessage(), [
+                'property_ids' => $this->propertyIds,
+                'exception_class' => get_class($e),
+            ]);
+
             Log::error('Exception while aggregating analytics data', [
                 'property_ids' => $this->propertyIds,
                 'days' => $this->days,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
+                'sync_log_id' => $syncLog->id,
             ]);
 
             throw $e; // Re-throw to allow retry
