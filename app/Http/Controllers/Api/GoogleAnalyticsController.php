@@ -23,7 +23,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class GoogleAnalyticsController extends Controller
 {
     public function __construct(
-        protected AnalyticsService $analyticsService
+        protected AnalyticsService $analyticsService,
+        protected \App\Services\GoogleAnalytics\AnalyticsAggregator $aggregator
     ) {}
 
     /**
@@ -369,26 +370,92 @@ class GoogleAnalyticsController extends Controller
     /**
      * Trigger manual aggregate sync now for testing/debugging.
      * This forces cache refresh and creates sync log entries immediately.
+     * Runs SYNCHRONOUSLY to ensure sync logs are created for testing.
      */
     public function triggerAggregateSyncNow(Request $request): JsonResponse
     {
         $days = $request->integer('days', 30);
 
-        // Clear aggregate cache to force refresh
-        \Illuminate\Support\Facades\Cache::forget("ga4_aggregate_all_*");
+        try {
+            // Create period
+            $period = $this->analyticsService->createPeriodFromDays($days);
 
-        // Create period
-        $period = $this->analyticsService->createPeriodFromDays($days);
+            // Create sync log entry
+            $syncLog = \App\Models\AnalyticsSyncLog::startSync(
+                syncType: 'aggregate',
+                gaPropertyId: null,
+                days: $days
+            );
 
-        // Trigger sync by accessing aggregate data (will trigger background job)
-        $analytics = $this->analyticsService->getAggregatedAnalytics($period, null);
+            // Get all active properties
+            $properties = \App\Models\GaProperty::active()->get();
 
-        return response()->json([
-            'message' => 'Aggregate sync triggered successfully',
-            'days' => $days,
-            'is_updating' => $analytics['cache_info']['is_updating'] ?? false,
-            'properties_count' => $analytics['properties_count'] ?? 0,
-        ]);
+            if ($properties->isEmpty()) {
+                $syncLog->markFailed('No active properties found');
+
+                return response()->json([
+                    'message' => 'No active properties found',
+                    'sync_log_id' => $syncLog->id,
+                ], 400);
+            }
+
+            // Clear cache to force refresh
+            $cacheKey = "ga4_aggregate_all_{$period->startDate->format('Y-m-d')}_{$period->endDate->format('Y-m-d')}";
+            \Illuminate\Support\Facades\Cache::forget($cacheKey);
+            \Illuminate\Support\Facades\Cache::forget("{$cacheKey}_timestamp");
+            \Illuminate\Support\Facades\Cache::forget("{$cacheKey}_refreshing");
+            \Illuminate\Support\Facades\Cache::forget("{$cacheKey}_last_success");
+
+            // Fetch data DIRECTLY without triggering background job
+            \Log::info('Manual sync: Fetching dashboard data', [
+                'sync_log_id' => $syncLog->id,
+                'properties_count' => $properties->count(),
+            ]);
+
+            $data = $this->aggregator->getDashboardData($properties, $period);
+
+            // Store in cache
+            \Illuminate\Support\Facades\Cache::put($cacheKey, $data, now()->addMinutes(30));
+            \Illuminate\Support\Facades\Cache::put("{$cacheKey}_timestamp", now(), now()->addMinutes(30));
+            \Illuminate\Support\Facades\Cache::put("{$cacheKey}_last_success", $data, now()->addYears(10));
+
+            // Mark sync as successful
+            $syncLog->markSuccess([
+                'properties_count' => $properties->count(),
+                'has_data' => !empty($data['totals'] ?? []),
+                'cache_key' => $cacheKey,
+            ]);
+
+            \Log::info('Manual sync completed', [
+                'sync_log_id' => $syncLog->id,
+                'properties_count' => $properties->count(),
+                'has_totals' => !empty($data['totals'] ?? []),
+            ]);
+
+            return response()->json([
+                'message' => 'Aggregate sync completed successfully',
+                'days' => $days,
+                'properties_count' => $properties->count(),
+                'sync_log_id' => $syncLog->id,
+                'has_data' => !empty($data['totals'] ?? []),
+            ]);
+        } catch (\Exception $e) {
+            if (isset($syncLog)) {
+                $syncLog->markFailed($e->getMessage());
+            }
+
+            \Log::error('Manual sync failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'sync_log_id' => $syncLog->id ?? null,
+            ]);
+
+            return response()->json([
+                'message' => 'Sync failed: '.$e->getMessage(),
+                'error' => $e->getMessage(),
+                'sync_log_id' => $syncLog->id ?? null,
+            ], 500);
+        }
     }
 
     /**
