@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\AnalyticsSyncLog;
+use App\Services\GoogleAnalytics\AnalyticsCacheKeyGenerator as CacheKey;
 use App\Services\GoogleAnalytics\AnalyticsService;
 use App\Services\GoogleAnalytics\Period;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -78,11 +79,16 @@ class AggregateAnalyticsData implements ShouldBeUnique, ShouldQueue
 
             $aggregatedData = $analyticsService->getAggregatedAnalytics($period, $this->propertyIds);
 
-            // Cache the aggregated data
-            $cacheKey = $this->generateCacheKey();
-            $cacheDuration = now()->addMinutes(15);
+            // Cache the aggregated data using centralized cache key generator
+            $cacheKey = CacheKey::forAggregate($this->propertyIds, $period->startDate, $period->endDate);
+            $cacheDuration = now()->addMinutes(30);
 
+            // Store main cache and timestamp
             Cache::put($cacheKey, $aggregatedData, $cacheDuration);
+            Cache::put(CacheKey::timestamp($cacheKey), now(), $cacheDuration);
+
+            // Store as long-term fallback (never expires)
+            Cache::put(CacheKey::lastSuccess($cacheKey), $aggregatedData, now()->addYears(10));
 
             $syncLog->markSuccess([
                 'properties_count' => $aggregatedData['properties_count'] ?? 0,
@@ -112,20 +118,6 @@ class AggregateAnalyticsData implements ShouldBeUnique, ShouldQueue
 
             throw $e; // Re-throw to allow retry
         }
-    }
-
-    /**
-     * Generate cache key for aggregated data.
-     */
-    protected function generateCacheKey(): string
-    {
-        if ($this->propertyIds) {
-            $propertiesKey = implode('_', $this->propertyIds);
-
-            return "ga4_aggregated_{$propertiesKey}_{$this->days}days";
-        }
-
-        return "ga4_aggregated_all_{$this->days}days";
     }
 
     /**

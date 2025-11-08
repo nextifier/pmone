@@ -649,6 +649,10 @@
 </template>
 
 <script setup>
+import { useAnalyticsData } from '~/composables/useAnalyticsData';
+import { useAnalyticsSync } from '~/composables/useAnalyticsSync';
+import { useAnalyticsSyncHistory } from '~/composables/useAnalyticsSyncHistory';
+
 const { $dayjs } = useNuxtApp();
 
 definePageMeta({
@@ -661,22 +665,34 @@ usePageMeta("", {
   description: "View aggregated analytics data from all Google Analytics 4 properties",
 });
 
-// State
-const loading = ref(false);
-const error = ref(null);
-const aggregateData = ref(null);
+// Local state for UI controls
 const selectedRange = ref("30");
-const syncingNow = ref(false);
-
-// Sync history state
-const syncLogs = ref([]);
-const syncStats = ref(null);
-const syncHistoryLoading = ref(false);
 const syncHistoryHours = ref(24);
 
-// Auto-refresh timer
-let autoRefreshTimeout = null;
-let syncHistoryRefreshTimeout = null;
+// Use composables for data management
+const {
+  aggregateData,
+  loading,
+  error,
+  cacheInfo: cacheInfoFromComposable,
+  fetchAnalytics,
+  changeDateRange,
+  refreshData: refreshAnalyticsData,
+} = useAnalyticsData(parseInt(selectedRange.value));
+
+const {
+  syncingNow,
+  syncError,
+  triggerSync,
+} = useAnalyticsSync();
+
+const {
+  syncLogs,
+  syncStats,
+  loading: syncHistoryLoading,
+  fetchSyncHistory,
+  startAutoRefresh: startSyncHistoryAutoRefresh,
+} = useAnalyticsSyncHistory(syncHistoryHours);
 
 // Computed
 const endDate = computed(() => $dayjs());
@@ -726,136 +742,44 @@ const summaryMetrics = computed(() => {
 });
 
 const propertyBreakdown = computed(() => aggregateData.value?.property_breakdown || []);
-const cacheInfo = computed(() => aggregateData.value?.cache_info || null);
+const cacheInfo = computed(() => cacheInfoFromComposable.value);
 const totalDeviceUsers = computed(() => {
   if (!aggregateData.value?.devices) return 0;
   return aggregateData.value.devices.reduce((sum, device) => sum + (device.users || 0), 0);
 });
 
-// Fetch analytics data
-const fetchAnalytics = async (silent = false) => {
-  // Clear any existing auto-refresh
-  if (autoRefreshTimeout) {
-    clearTimeout(autoRefreshTimeout);
-    autoRefreshTimeout = null;
-  }
-
-  // Only show loading indicator if we don't have any data AND not silent refresh
-  const showLoading = !aggregateData.value && !silent;
-  if (showLoading) loading.value = true;
-  error.value = null;
-
-  try {
-    const client = useSanctumClient();
-    const days = parseInt(selectedRange.value);
-
-    const response = await client(`/api/google-analytics/aggregate?days=${days}`);
-
-    // Handle both wrapped and unwrapped responses
-    const data = response?.data || response;
-
-    if (!data) {
-      throw new Error('No data received from server');
-    }
-
-    aggregateData.value = data;
-
-    // Auto-refresh logic based on cache state
-    if (
-      data.cache_info?.initial_load ||
-      (data.cache_info?.is_updating && data.cache_info?.properties_count === 0)
-    ) {
-      // Initial load with empty data - refresh quickly
-      autoRefreshTimeout = setTimeout(() => fetchAnalytics(true), 5000);
-    } else if (data.cache_info?.is_updating) {
-      // Has data but updating in background - refresh slower
-      autoRefreshTimeout = setTimeout(() => fetchAnalytics(true), 15000);
-    }
-  } catch (err) {
-    console.error("Error fetching analytics:", err);
-    // Only show error if we don't have cached data to fall back on
-    if (!aggregateData.value) {
-      error.value = err.data?.message || err.message || "Failed to load analytics data";
-    }
-  } finally {
-    if (showLoading) loading.value = false;
-  }
-};
-
-// Fetch sync history
-const fetchSyncHistory = async () => {
-  syncHistoryLoading.value = true;
-
-  // Clear any existing auto-refresh
-  if (syncHistoryRefreshTimeout) {
-    clearTimeout(syncHistoryRefreshTimeout);
-    syncHistoryRefreshTimeout = null;
-  }
-
-  try {
-    const client = useSanctumClient();
-
-    // Fetch logs
-    const logsResponse = await client(
-      `/api/google-analytics/sync-logs?hours=${syncHistoryHours.value}&limit=50`
-    );
-    syncLogs.value = logsResponse.logs || [];
-
-    // Fetch stats
-    const statsResponse = await client(
-      `/api/google-analytics/sync-logs/stats?hours=${syncHistoryHours.value}`
-    );
-    syncStats.value = statsResponse;
-
-    // Auto-refresh if there are in-progress syncs
-    const hasInProgress = syncLogs.value.some((log) => log.status === "started");
-    if (hasInProgress) {
-      syncHistoryRefreshTimeout = setTimeout(() => fetchSyncHistory(), 10000); // Refresh every 10s
-    }
-  } catch (err) {
-    console.error("Error fetching sync history:", err);
-  } finally {
-    syncHistoryLoading.value = false;
-  }
-};
-
-// Trigger manual sync now
+// Trigger manual sync with integrated history refresh
 const triggerSyncNow = async () => {
-  syncingNow.value = true;
-
   try {
-    const client = useSanctumClient();
     const days = parseInt(selectedRange.value);
 
-    await client(`/api/google-analytics/aggregate/sync-now?days=${days}`, {
-      method: "POST",
-    });
+    // Trigger sync using composable
+    await triggerSync(days);
 
-    // Wait 2 seconds for background job to start
+    // Wait 2 seconds for sync to process
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // Refresh data and sync history
-    await Promise.all([fetchAnalytics(true), fetchSyncHistory()]);
+    // Refresh both analytics data and sync history
+    await Promise.all([
+      fetchAnalytics(true),
+      fetchSyncHistory(),
+    ]);
 
-    // Continue auto-refreshing for a bit to see sync logs appear
-    const checkInterval = setInterval(async () => {
-      await fetchSyncHistory();
-    }, 5000);
-
-    // Stop checking after 30 seconds
-    setTimeout(() => {
-      clearInterval(checkInterval);
-    }, 30000);
+    // Start auto-refreshing sync history to see updates
+    startSyncHistoryAutoRefresh(5);
   } catch (err) {
     console.error("Error triggering sync:", err);
-  } finally {
-    syncingNow.value = false;
   }
 };
 
 // Handlers
-const handleDateRangeChange = () => fetchAnalytics();
-const refreshData = () => fetchAnalytics();
+const handleDateRangeChange = async () => {
+  await changeDateRange(parseInt(selectedRange.value));
+};
+
+const refreshData = async () => {
+  await refreshAnalyticsData();
+};
 
 // Format helpers
 const formatNumber = (value) => {
@@ -899,14 +823,9 @@ const getDeviceIcon = (device) => {
   return "hugeicons:device-access";
 };
 
-// Lifecycle
+// Lifecycle - composables handle cleanup automatically
 onMounted(() => {
   fetchAnalytics();
   fetchSyncHistory();
-});
-
-onUnmounted(() => {
-  if (autoRefreshTimeout) clearTimeout(autoRefreshTimeout);
-  if (syncHistoryRefreshTimeout) clearTimeout(syncHistoryRefreshTimeout);
 });
 </script>

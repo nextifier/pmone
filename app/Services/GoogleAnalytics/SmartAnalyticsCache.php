@@ -3,11 +3,15 @@
 namespace App\Services\GoogleAnalytics;
 
 use App\Models\GaProperty;
+use App\Services\GoogleAnalytics\AnalyticsCacheKeyGenerator as CacheKey;
+use App\Services\GoogleAnalytics\Concerns\CalculatesTotalsFromRows;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 
 class SmartAnalyticsCache
 {
+    use CalculatesTotalsFromRows;
+
     protected int $minCacheDuration = 5; // 5 minutes minimum
 
     protected int $maxCacheDuration = 30; // 30 minutes maximum
@@ -27,7 +31,7 @@ class SmartAnalyticsCache
 
         // Check if exact match exists in cache
         $cachedData = Cache::get($cacheKey);
-        $cacheTimestamp = Cache::get("{$cacheKey}_timestamp");
+        $cacheTimestamp = Cache::get(CacheKey::timestamp($cacheKey));
 
         // CACHE-FIRST: If cache exists, return it immediately (even if stale)
         if ($cachedData) {
@@ -88,7 +92,7 @@ class SmartAnalyticsCache
         $cacheDuration = $this->getDynamicCacheDuration($property);
 
         Cache::put($cacheKey, $freshData, now()->addMinutes($cacheDuration));
-        Cache::put("{$cacheKey}_timestamp", now(), now()->addMinutes($cacheDuration));
+        Cache::put(CacheKey::timestamp($cacheKey), now(), now()->addMinutes($cacheDuration));
 
         return [
             'data' => $freshData,
@@ -105,7 +109,7 @@ class SmartAnalyticsCache
      */
     protected function isRefreshJobQueued(string $cacheKey): bool
     {
-        return Cache::has("{$cacheKey}_refreshing");
+        return Cache::has(CacheKey::refreshing($cacheKey));
     }
 
     /**
@@ -119,7 +123,7 @@ class SmartAnalyticsCache
         string $cacheKey
     ): void {
         // Mark as refreshing to prevent duplicate jobs
-        Cache::put("{$cacheKey}_refreshing", true, now()->addMinutes(5));
+        Cache::put(CacheKey::refreshing($cacheKey), true, now()->addMinutes(5));
 
         // Dispatch job to fetch new data in background
         dispatch(function () use ($property, $startDate, $endDate, $fetchCallback, $cacheKey) {
@@ -128,21 +132,21 @@ class SmartAnalyticsCache
                 $cacheDuration = $this->getDynamicCacheDuration($property);
 
                 Cache::put($cacheKey, $freshData, now()->addMinutes($cacheDuration));
-                Cache::put("{$cacheKey}_timestamp", now(), now()->addMinutes($cacheDuration));
+                Cache::put(CacheKey::timestamp($cacheKey), now(), now()->addMinutes($cacheDuration));
             } catch (\Exception $e) {
                 \Log::error("Background cache refresh failed for {$cacheKey}: {$e->getMessage()}");
             } finally {
-                Cache::forget("{$cacheKey}_refreshing");
+                Cache::forget(CacheKey::refreshing($cacheKey));
             }
         })->afterResponse();
     }
 
     /**
-     * Generate cache key for analytics data.
+     * Generate cache key for analytics data using centralized generator.
      */
     protected function generateCacheKey(string $propertyId, string $startDate, string $endDate): string
     {
-        return "ga4_{$propertyId}_{$startDate}_{$endDate}";
+        return CacheKey::forProperty($propertyId, $startDate, $endDate);
     }
 
     /**
@@ -238,7 +242,7 @@ class SmartAnalyticsCache
             $largeCacheKey = $this->generateCacheKey($propertyId, $largeStart, $largeEnd);
 
             $largeCache = Cache::get($largeCacheKey);
-            $largeCacheTimestamp = Cache::get("{$largeCacheKey}_timestamp");
+            $largeCacheTimestamp = Cache::get(CacheKey::timestamp($largeCacheKey));
 
             // Skip if cache doesn't exist or is stale
             if (! $largeCache || ! $this->isCacheStillFresh($largeCacheTimestamp)) {
@@ -294,65 +298,61 @@ class SmartAnalyticsCache
     }
 
     /**
-     * Calculate totals from rows data.
-     *
-     * Sums up metrics across all rows to generate aggregate totals.
-     */
-    protected function calculateTotalsFromRows(array $rows): array
-    {
-        if (empty($rows)) {
-            return [];
-        }
-
-        $totals = [];
-        $firstRow = reset($rows);
-
-        // Initialize totals for each metric (excluding 'date')
-        foreach (array_keys($firstRow) as $key) {
-            if ($key !== 'date') {
-                $totals[$key] = 0;
-            }
-        }
-
-        // Sum up values from all rows
-        foreach ($rows as $row) {
-            foreach ($row as $key => $value) {
-                if ($key !== 'date' && isset($totals[$key])) {
-                    $totals[$key] += $value;
-                }
-            }
-        }
-
-        // Calculate averages for rate metrics (bounceRate, etc.)
-        $rowCount = count($rows);
-        if ($rowCount > 0) {
-            // Metrics that should be averaged instead of summed
-            $averageMetrics = ['bounceRate', 'averageSessionDuration', 'engagementRate'];
-
-            foreach ($averageMetrics as $metric) {
-                if (isset($totals[$metric])) {
-                    $totals[$metric] = $totals[$metric] / $rowCount;
-                }
-            }
-        }
-
-        return $totals;
-    }
-
-    /**
      * Clear cache for a specific property.
+     * Clears common date range caches (7, 14, 30, 90 days).
      */
     public function clearPropertyCache(GaProperty $property): void
     {
-        $pattern = "ga4_{$property->property_id}_*";
-        Cache::forget($pattern);
+        $today = now();
+        $commonPeriods = [7, 14, 30, 90, 180, 365];
+
+        foreach ($commonPeriods as $days) {
+            $startDate = $today->copy()->subDays($days)->format('Y-m-d');
+            $endDate = $today->format('Y-m-d');
+            $cacheKey = CacheKey::forProperty($property->property_id, $startDate, $endDate);
+
+            // Clear all related cache keys
+            foreach (CacheKey::getAllKeys($cacheKey) as $key) {
+                Cache::forget($key);
+            }
+        }
+
+        \Log::info('Cleared property cache', [
+            'property_id' => $property->property_id,
+            'periods_cleared' => count($commonPeriods),
+        ]);
     }
 
     /**
-     * Clear all analytics cache.
+     * Clear all analytics cache for common aggregate periods.
+     * Only clears analytics-specific cache, not application-wide cache.
      */
     public function clearAllCache(): void
     {
-        Cache::flush();
+        $today = now();
+        $commonPeriods = [7, 14, 30, 90, 180, 365];
+
+        // Clear aggregate cache for common periods
+        foreach ($commonPeriods as $days) {
+            $startDate = $today->copy()->subDays($days)->format('Y-m-d');
+            $endDate = $today->format('Y-m-d');
+            $cacheKey = CacheKey::forAggregate(null, $startDate, $endDate);
+
+            // Clear all related cache keys
+            foreach (CacheKey::getAllKeys($cacheKey) as $key) {
+                Cache::forget($key);
+            }
+        }
+
+        // Clear property-specific cache for all active properties
+        $properties = GaProperty::active()->get();
+        foreach ($properties as $property) {
+            $this->clearPropertyCache($property);
+        }
+
+        \Log::info('Cleared all analytics cache', [
+            'aggregate_periods_cleared' => count($commonPeriods),
+            'properties_cleared' => $properties->count(),
+        ]);
     }
 }
