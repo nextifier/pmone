@@ -674,7 +674,7 @@ const {
   aggregateData,
   loading,
   error,
-  cacheInfo: cacheInfoFromComposable,
+  cacheInfo,
   fetchAnalytics,
   changeDateRange,
   refreshData: refreshAnalyticsData,
@@ -742,7 +742,6 @@ const summaryMetrics = computed(() => {
 });
 
 const propertyBreakdown = computed(() => aggregateData.value?.property_breakdown || []);
-const cacheInfo = computed(() => cacheInfoFromComposable.value);
 const totalDeviceUsers = computed(() => {
   if (!aggregateData.value?.devices) return 0;
   return aggregateData.value.devices.reduce((sum, device) => sum + (device.users || 0), 0);
