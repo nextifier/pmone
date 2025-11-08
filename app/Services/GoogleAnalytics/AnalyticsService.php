@@ -3,12 +3,15 @@
 namespace App\Services\GoogleAnalytics;
 
 use App\Models\GaProperty;
+use App\Services\GoogleAnalytics\AnalyticsCacheKeyGenerator as CacheKey;
+use App\Services\GoogleAnalytics\Concerns\CalculatesTotalsFromRows;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use App\Services\GoogleAnalytics\AnalyticsCacheKeyGenerator as CacheKey;
 
 class AnalyticsService
 {
+    use CalculatesTotalsFromRows;
+
     public function __construct(
         protected AnalyticsDataFetcher $dataFetcher,
         protected AnalyticsAggregator $aggregator,
@@ -72,49 +75,6 @@ class AnalyticsService
                 'end_date' => $period->endDate->format('Y-m-d'),
             ],
         ];
-    }
-
-    /**
-     * Calculate totals from rows data.
-     */
-    protected function calculateTotalsFromRows(array $rows): array
-    {
-        if (empty($rows)) {
-            return [];
-        }
-
-        $totals = [];
-        $firstRow = reset($rows);
-
-        // Initialize totals for each metric (excluding 'date')
-        foreach (array_keys($firstRow) as $key) {
-            if ($key !== 'date') {
-                $totals[$key] = 0;
-            }
-        }
-
-        // Sum up all values
-        foreach ($rows as $row) {
-            foreach ($totals as $key => $value) {
-                if (isset($row[$key])) {
-                    // For rates (bounceRate), calculate average instead of sum
-                    if (str_contains($key, 'Rate')) {
-                        continue; // We'll calculate average separately
-                    }
-                    $totals[$key] += $row[$key];
-                }
-            }
-        }
-
-        // Calculate average for rate metrics
-        foreach (array_keys($firstRow) as $key) {
-            if (str_contains($key, 'Rate')) {
-                $sum = array_sum(array_column($rows, $key));
-                $totals[$key] = count($rows) > 0 ? $sum / count($rows) : 0;
-            }
-        }
-
-        return $totals;
     }
 
     /**

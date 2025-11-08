@@ -4,11 +4,14 @@ namespace App\Services\GoogleAnalytics;
 
 use App\Models\GaProperty;
 use App\Services\GoogleAnalytics\AnalyticsCacheKeyGenerator as CacheKey;
+use App\Services\GoogleAnalytics\Concerns\CalculatesTotalsFromRows;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 
 class SmartAnalyticsCache
 {
+    use CalculatesTotalsFromRows;
+
     protected int $minCacheDuration = 5; // 5 minutes minimum
 
     protected int $maxCacheDuration = 30; // 30 minutes maximum
@@ -292,52 +295,6 @@ class SmartAnalyticsCache
             // Note: top_pages, traffic_sources, devices are not filtered
             // as they would need separate GA API calls to be accurate for subset
         ];
-    }
-
-    /**
-     * Calculate totals from rows data.
-     *
-     * Sums up metrics across all rows to generate aggregate totals.
-     */
-    protected function calculateTotalsFromRows(array $rows): array
-    {
-        if (empty($rows)) {
-            return [];
-        }
-
-        $totals = [];
-        $firstRow = reset($rows);
-
-        // Initialize totals for each metric (excluding 'date')
-        foreach (array_keys($firstRow) as $key) {
-            if ($key !== 'date') {
-                $totals[$key] = 0;
-            }
-        }
-
-        // Sum up values from all rows
-        foreach ($rows as $row) {
-            foreach ($row as $key => $value) {
-                if ($key !== 'date' && isset($totals[$key])) {
-                    $totals[$key] += $value;
-                }
-            }
-        }
-
-        // Calculate averages for rate metrics (bounceRate, etc.)
-        $rowCount = count($rows);
-        if ($rowCount > 0) {
-            // Metrics that should be averaged instead of summed
-            $averageMetrics = ['bounceRate', 'averageSessionDuration', 'engagementRate'];
-
-            foreach ($averageMetrics as $metric) {
-                if (isset($totals[$metric])) {
-                    $totals[$metric] = $totals[$metric] / $rowCount;
-                }
-            }
-        }
-
-        return $totals;
     }
 
     /**
