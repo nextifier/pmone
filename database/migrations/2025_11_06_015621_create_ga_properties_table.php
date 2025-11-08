@@ -25,8 +25,11 @@ return new class extends Migration
             $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->foreignId('deleted_by')->nullable()->constrained('users');
 
-            // Composite indexes
-            $table->index(['is_active', 'last_synced_at']);
+            // Composite index for active properties ordered by last sync
+            $table->index(['is_active', 'last_synced_at'], 'idx_ga_properties_active_sync');
+
+            // Index for sync frequency queries
+            $table->index('sync_frequency', 'idx_ga_properties_sync_frequency');
 
             // Single column indexes
             $table->index('project_id');
