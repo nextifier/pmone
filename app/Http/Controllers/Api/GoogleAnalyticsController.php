@@ -71,6 +71,8 @@ class GoogleAnalyticsController extends Controller
             $data = $query->with(['tags', 'project.media'])->get()->map(function ($property) {
                 $propertyData = array_merge($property->toArray(), [
                     'next_sync_at' => $property->next_sync_at,
+                    // Ensure last_synced_at is properly serialized as ISO8601 string
+                    'last_synced_at' => $property->last_synced_at?->toIso8601String(),
                 ]);
 
                 // Simplify tags to just names

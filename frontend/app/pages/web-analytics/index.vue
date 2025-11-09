@@ -780,6 +780,7 @@ const summaryMetrics = computed(() => {
 });
 
 const propertyBreakdown = computed(() => aggregateData.value?.property_breakdown || []);
+
 const totalDeviceUsers = computed(() => {
   if (!aggregateData.value?.devices) return 0;
   return aggregateData.value.devices.reduce((sum, device) => sum + (device.users || 0), 0);
