@@ -105,6 +105,7 @@
 
             <!-- Refresh Button -->
             <button
+              v-if="showRefreshButton && !displayOnly"
               class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
               @click="$emit('refresh')"
             >
@@ -117,7 +118,7 @@
             </button>
 
             <NuxtLink
-              v-if="showAddButton"
+              v-if="showAddButton && !displayOnly"
               :to="`/${props.model}/create`"
               class="hover:bg-primary/80 text-primary-foreground bg-primary flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
             >
@@ -239,7 +240,7 @@
             </div>
             <div class="flex items-center gap-2">
               <NuxtLink
-                v-if="props.showAddButton"
+                v-if="props.showAddButton && !props.displayOnly"
                 :to="`/${props.model}/create`"
                 class="hover:bg-primary/80 bg-primary text-primary-foreground flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm font-medium tracking-tight active:scale-98"
               >
@@ -432,6 +433,14 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  showRefreshButton: {
+    type: Boolean,
+    default: true,
+  },
+  displayOnly: {
+    type: Boolean,
+    default: false,
+  },
   pageSizes: {
     type: Array,
     default: () => [10, 20, 30, 40, 50],
@@ -475,6 +484,9 @@ const emit = defineEmits([
   "update:sorting",
 ]);
 
+// Determine if we should use client-side processing
+const isClientSideMode = computed(() => props.displayOnly || props.clientOnly);
+
 // Table state
 const rowSelection = ref(props.initialRowSelection);
 const columnFilters = ref(props.initialColumnFilters);
@@ -498,13 +510,13 @@ const table = useVueTable({
     return props.columns;
   },
   getCoreRowModel: getCoreRowModel(),
-  getFilteredRowModel: props.clientOnly ? getFilteredRowModel() : undefined,
-  getSortedRowModel: props.clientOnly ? getSortedRowModel() : undefined,
-  getPaginationRowModel: props.clientOnly ? getPaginationRowModel() : undefined,
-  manualPagination: !props.clientOnly,
-  manualSorting: !props.clientOnly,
-  manualFiltering: !props.clientOnly,
-  pageCount: props.clientOnly ? undefined : props.meta.last_page,
+  getFilteredRowModel: isClientSideMode.value ? getFilteredRowModel() : undefined,
+  getSortedRowModel: isClientSideMode.value ? getSortedRowModel() : undefined,
+  getPaginationRowModel: isClientSideMode.value ? getPaginationRowModel() : undefined,
+  manualPagination: !isClientSideMode.value,
+  manualSorting: !isClientSideMode.value,
+  manualFiltering: !isClientSideMode.value,
+  pageCount: isClientSideMode.value ? undefined : props.meta.last_page,
   autoResetPageIndex: false,
   state: {
     get rowSelection() {
@@ -589,7 +601,7 @@ defineShortcuts({
 });
 
 // Computed properties for better readability
-const isClientSidePagination = computed(() => props.clientOnly);
+const isClientSidePagination = computed(() => isClientSideMode.value);
 const hasRows = computed(() => table.getRowModel().rows?.length > 0);
 const hasActiveFilters = computed(() => table.getState().columnFilters.length > 0);
 const selectedRowsCount = computed(() => table.getSelectedRowModel().rows.length);
