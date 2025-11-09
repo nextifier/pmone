@@ -518,6 +518,18 @@ class GoogleAnalyticsController extends Controller
     }
 
     /**
+     * Get realtime active users (last 30 minutes).
+     */
+    public function getRealtimeActiveUsers(Request $request): JsonResponse
+    {
+        $propertyIds = $request->input('property_ids');
+
+        $data = $this->analyticsService->getRealtimeActiveUsers($propertyIds);
+
+        return response()->json($data);
+    }
+
+    /**
      * Create period from request parameters.
      */
     protected function createPeriodFromRequest(GetAnalyticsRequest $request)

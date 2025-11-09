@@ -168,6 +168,7 @@ Route::middleware(['auth:sanctum'])->prefix('google-analytics')->group(function 
     Route::get('/properties', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getProperties']);
     Route::get('/properties/{id}/analytics', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getPropertyAnalytics']);
     Route::get('/aggregate', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getAggregatedAnalytics']);
+    Route::get('/realtime', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getRealtimeActiveUsers']);
     Route::post('/sync', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'sync']);
     Route::post('/aggregate', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'aggregate']);
     Route::post('/aggregate/sync-now', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'triggerAggregateSyncNow']);
