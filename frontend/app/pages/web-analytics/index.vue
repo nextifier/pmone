@@ -397,99 +397,53 @@
       </div>
 
       <!-- Top Pages -->
-      <div
-        v-if="aggregateData.top_pages?.length > 0"
-        class="border-border bg-card rounded-lg border overflow-hidden"
-      >
-        <div class="border-border border-b p-4">
+      <div v-if="aggregateData.top_pages?.length > 0" class="space-y-3">
+        <div>
           <h2 class="text-foreground flex items-center gap-2 font-semibold">
             <Icon name="hugeicons:file-star" class="size-5" />
             Top Pages
           </h2>
           <p class="text-muted-foreground text-sm">Most visited pages across all properties</p>
         </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead class="w-14">#</TableHead>
-              <TableHead>Page</TableHead>
-              <TableHead>Property</TableHead>
-              <TableHead class="text-right w-32">Views</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow
-              v-for="(page, index) in aggregateData.top_pages.slice(0, 10)"
-              :key="index"
-              class="hover:bg-muted/30"
-            >
-              <TableCell>
-                <span
-                  class="bg-primary/10 text-primary flex size-7 items-center justify-center rounded-full text-sm font-bold"
-                >
-                  {{ index + 1 }}
-                </span>
-              </TableCell>
-              <TableCell>
-                <div class="space-y-1">
-                  <p class="text-foreground font-medium">{{ page.title }}</p>
-                  <p class="text-muted-foreground text-sm">{{ page.path }}</p>
-                </div>
-              </TableCell>
-              <TableCell>
-                <p class="text-foreground text-sm">{{ page.property_name }}</p>
-              </TableCell>
-              <TableCell class="text-right">
-                <div>
-                  <p class="text-foreground text-lg font-semibold">
-                    {{ formatNumber(page.pageviews) }}
-                  </p>
-                  <p class="text-muted-foreground text-sm">views</p>
-                </div>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+        <TableData
+          :data="topPagesData"
+          :columns="topPagesColumns"
+          :meta="{ total: topPagesData.length, current_page: 1, per_page: 10, last_page: 1 }"
+          model="analytics"
+          display-only
+          searchable
+          search-column="title"
+          search-placeholder="Search pages..."
+          :column-toggle="false"
+          :initial-pagination="{ pageIndex: 0, pageSize: 10 }"
+          :page-sizes="[10, 20, 50, 100]"
+        />
       </div>
 
       <!-- Traffic Sources & Devices Grid -->
       <div class="grid gap-4 lg:grid-cols-2">
         <!-- Traffic Sources -->
-        <div
-          v-if="aggregateData.traffic_sources?.length > 0"
-          class="border-border bg-card rounded-lg border"
-        >
-          <div class="border-border border-b p-4">
+        <div v-if="aggregateData.traffic_sources?.length > 0" class="space-y-3">
+          <div>
             <h2 class="text-foreground flex items-center gap-2 font-semibold">
               <Icon name="hugeicons:link-square-02" class="size-5" />
               Traffic Sources
             </h2>
             <p class="text-muted-foreground text-sm">Where your visitors come from</p>
           </div>
-          <div class="divide-border divide-y">
-            <div
-              v-for="(source, index) in aggregateData.traffic_sources.slice(0, 5)"
-              :key="index"
-              class="hover:bg-muted/30 p-4 transition-colors"
-            >
-              <div class="flex items-center justify-between">
-                <div class="flex-1">
-                  <p class="text-foreground font-medium">
-                    {{ source.source }}
-                  </p>
-                  <p class="text-muted-foreground text-sm">
-                    {{ source.medium }}
-                  </p>
-                </div>
-                <div class="text-right">
-                  <p class="text-foreground font-semibold">
-                    {{ formatNumber(source.sessions) }}
-                  </p>
-                  <p class="text-muted-foreground text-sm">sessions</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <TableData
+            :data="trafficSourcesData"
+            :columns="trafficSourcesColumns"
+            :meta="{ total: trafficSourcesData.length, current_page: 1, per_page: 10, last_page: 1 }"
+            model="analytics"
+            display-only
+            searchable
+            search-column="source"
+            search-placeholder="Search sources..."
+            :column-toggle="false"
+            :initial-pagination="{ pageIndex: 0, pageSize: 10 }"
+            :page-sizes="[5, 10, 20]"
+          />
         </div>
 
         <!-- Device Categories -->
@@ -634,106 +588,89 @@
         </div>
 
         <!-- Sync Logs -->
-        <div class="max-h-[600px] overflow-y-auto">
-          <div v-if="syncHistoryLoading && !syncLogs.length" class="p-12 text-center">
-            <Icon name="hugeicons:loading-03" class="text-primary mx-auto size-8 animate-spin" />
-            <p class="text-muted-foreground mt-3 text-sm">Loading sync history...</p>
-          </div>
-
-          <div v-else-if="syncLogs.length === 0" class="p-12 text-center">
-            <Icon name="hugeicons:database-01" class="text-muted-foreground mx-auto size-12" />
-            <p class="text-foreground mt-3 font-medium">No sync history found</p>
-            <p class="text-muted-foreground text-sm">
-              Sync logs will appear here after background jobs run
-            </p>
-          </div>
-
-          <div v-else class="divide-border divide-y">
-            <div
-              v-for="log in syncLogs"
-              :key="log.id"
-              class="hover:bg-muted/30 p-4 transition-colors"
-            >
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex-1">
-                  <div class="flex items-center gap-2">
-                    <!-- Status Badge -->
+        <div v-if="!syncHistoryLoading || syncLogs.length > 0">
+          <TableData
+            :data="syncHistoryData"
+            :columns="syncHistoryColumns"
+            :meta="{ total: syncHistoryData.length, current_page: 1, per_page: 20, last_page: 1 }"
+            :pending="syncHistoryLoading"
+            model="analytics"
+            display-only
+            searchable
+            search-column="propertyName"
+            search-placeholder="Search property name..."
+            :initial-pagination="{ pageIndex: 0, pageSize: 20 }"
+            :page-sizes="[10, 20, 50]"
+            :initial-sorting="[{ id: 'created_at', desc: true }]"
+          >
+            <template #filters="{ table }">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+                  >
+                    <Icon name="lucide:list-filter" class="size-4 shrink-0" />
+                    <span class="hidden sm:flex">Filter</span>
                     <span
-                      v-if="log.status === 'success'"
-                      class="rounded-full bg-green-500/10 px-2.5 py-0.5 text-sm font-medium text-green-600 dark:text-green-400"
+                      v-if="table.getColumn('status')?.getFilterValue()?.length"
+                      class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
                     >
-                      Success
+                      {{ table.getColumn('status')?.getFilterValue()?.length }}
                     </span>
-                    <span
-                      v-else-if="log.status === 'failed'"
-                      class="rounded-full bg-red-500/10 px-2.5 py-0.5 text-sm font-medium text-red-600 dark:text-red-400"
-                    >
-                      Failed
-                    </span>
-                    <span
-                      v-else
-                      class="flex items-center gap-1 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-sm font-medium text-blue-600 dark:text-blue-400"
-                    >
-                      <Icon name="hugeicons:loading-03" class="size-3 animate-spin" />
-                      In Progress
-                    </span>
-
-                    <!-- Sync Type Badge -->
-                    <span
-                      class="text-muted-foreground rounded-md bg-gray-500/10 px-2 py-0.5 text-sm font-medium capitalize"
-                    >
-                      {{ log.sync_type }}
-                    </span>
-
-                    <!-- Days Badge -->
-                    <span class="text-muted-foreground text-sm">{{ log.days }} days</span>
-                  </div>
-
-                  <div class="mt-2">
-                    <p v-if="log.property" class="text-foreground text-sm font-medium">
-                      {{ log.property.name }}
-                      <span class="text-muted-foreground text-sm"
-                        >({{ log.property.property_id }})</span
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent class="w-auto min-w-48 p-3" align="start">
+                  <div class="space-y-2">
+                    <div class="text-muted-foreground text-xs font-medium">Filter by Status</div>
+                    <div class="space-y-2">
+                      <div
+                        v-for="status in ['success', 'failed', 'in_progress']"
+                        :key="status"
+                        class="flex items-center gap-2"
                       >
-                    </p>
-                    <p v-else class="text-foreground text-sm font-medium">Aggregate Dashboard</p>
-
-                    <div
-                      class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 text-sm"
-                    >
-                      <span>{{ formatRelativeTime(log.created_at) }}</span>
-                      <span v-if="log.duration_seconds">{{ log.duration_seconds }}s duration</span>
-                      <span v-if="log.metadata?.properties_count"
-                        >{{ log.metadata.properties_count }} properties</span
-                      >
+                        <Checkbox
+                          :id="`status-${status}`"
+                          :model-value="
+                            table
+                              .getColumn('status')
+                              ?.getFilterValue()
+                              ?.includes(status) || false
+                          "
+                          @update:model-value="
+                            (checked) => {
+                              const column = table.getColumn('status');
+                              const current = column?.getFilterValue() || [];
+                              const updated = checked
+                                ? [...current, status]
+                                : current.filter((s) => s !== status);
+                              column?.setFilterValue(updated.length > 0 ? updated : undefined);
+                            }
+                          "
+                        />
+                        <Label
+                          :for="`status-${status}`"
+                          class="grow cursor-pointer font-normal tracking-tight capitalize"
+                        >
+                          {{ status.replace('_', ' ') }}
+                        </Label>
+                      </div>
                     </div>
-
-                    <p v-if="log.error_message" class="mt-2 text-sm text-red-600 dark:text-red-400">
-                      Error: {{ log.error_message }}
-                    </p>
                   </div>
-                </div>
-
-                <div class="text-right">
-                  <Icon
-                    v-if="log.status === 'success'"
-                    name="hugeicons:checkmark-circle-01"
-                    class="size-6 text-green-600 dark:text-green-400"
-                  />
-                  <Icon
-                    v-else-if="log.status === 'failed'"
-                    name="hugeicons:cancel-circle"
-                    class="size-6 text-red-600 dark:text-red-400"
-                  />
-                  <Icon
-                    v-else
-                    name="hugeicons:loading-03"
-                    class="size-6 animate-spin text-blue-600 dark:text-blue-400"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+                </PopoverContent>
+              </Popover>
+            </template>
+          </TableData>
+        </div>
+        <div v-else-if="syncHistoryLoading" class="p-12 text-center">
+          <Icon name="hugeicons:loading-03" class="text-primary mx-auto size-8 animate-spin" />
+          <p class="text-muted-foreground mt-3 text-sm">Loading sync history...</p>
+        </div>
+        <div v-else class="p-12 text-center">
+          <Icon name="hugeicons:database-01" class="text-muted-foreground mx-auto size-12" />
+          <p class="text-foreground mt-3 font-medium">No sync history found</p>
+          <p class="text-muted-foreground text-sm">
+            Sync logs will appear here after background jobs run
+          </p>
         </div>
       </div>
     </template>
@@ -760,7 +697,10 @@
 import { useAnalyticsData } from "~/composables/useAnalyticsData";
 import { useAnalyticsSync } from "~/composables/useAnalyticsSync";
 import { useAnalyticsSyncHistory } from "~/composables/useAnalyticsSyncHistory";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
+import TableData from "@/components/TableData.vue";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const { $dayjs } = useNuxtApp();
 
@@ -918,4 +858,216 @@ onMounted(() => {
   fetchAnalytics();
   fetchSyncHistory();
 });
+
+// ===== TableData Columns & Data Definitions =====
+
+// Top Pages Data & Columns
+const topPagesData = computed(() => {
+  if (!aggregateData.value?.top_pages) return [];
+  return aggregateData.value.top_pages.map((page, index) => ({
+    rank: index + 1,
+    title: page.title || "Untitled",
+    path: page.path || "/",
+    property_name: page.property_name || "Unknown",
+    pageviews: page.pageviews || 0,
+  }));
+});
+
+const topPagesColumns = [
+  {
+    accessorKey: "rank",
+    header: "#",
+    size: 60,
+    cell: ({ row }) =>
+      h(
+        "span",
+        {
+          class:
+            "bg-primary/10 text-primary flex size-7 items-center justify-center rounded-full text-sm font-bold",
+        },
+        row.getValue("rank")
+      ),
+    enableSorting: false,
+  },
+  {
+    accessorKey: "title",
+    header: "Page",
+    size: 300,
+    cell: ({ row }) =>
+      h("div", { class: "space-y-1" }, [
+        h("p", { class: "text-foreground font-medium" }, row.getValue("title")),
+        h("p", { class: "text-muted-foreground text-sm" }, row.getValue("path")),
+      ]),
+    filterFn: (row, columnId, filterValue) => {
+      const title = row.getValue("title")?.toLowerCase() || "";
+      const path = row.getValue("path")?.toLowerCase() || "";
+      const searchValue = filterValue.toLowerCase();
+      return title.includes(searchValue) || path.includes(searchValue);
+    },
+  },
+  {
+    accessorKey: "property_name",
+    header: "Property",
+    size: 200,
+    cell: ({ row }) => h("p", { class: "text-foreground text-sm" }, row.getValue("property_name")),
+  },
+  {
+    accessorKey: "pageviews",
+    header: "Views",
+    size: 120,
+    cell: ({ row }) =>
+      h("div", { class: "text-right" }, [
+        h("p", { class: "text-foreground text-lg font-semibold" }, formatNumber(row.getValue("pageviews"))),
+        h("p", { class: "text-muted-foreground text-sm" }, "views"),
+      ]),
+  },
+];
+
+// Traffic Sources Data & Columns
+const trafficSourcesData = computed(() => {
+  if (!aggregateData.value?.traffic_sources) return [];
+  return aggregateData.value.traffic_sources.map((source) => ({
+    source: source.source || "Unknown",
+    medium: source.medium || "Unknown",
+    sessions: source.sessions || 0,
+  }));
+});
+
+const trafficSourcesColumns = [
+  {
+    accessorKey: "source",
+    header: "Source",
+    size: 200,
+    cell: ({ row }) => h("p", { class: "text-foreground font-medium" }, row.getValue("source")),
+  },
+  {
+    accessorKey: "medium",
+    header: "Medium",
+    size: 150,
+    cell: ({ row }) => h("p", { class: "text-muted-foreground text-sm" }, row.getValue("medium")),
+  },
+  {
+    accessorKey: "sessions",
+    header: "Sessions",
+    size: 120,
+    cell: ({ row }) =>
+      h("div", { class: "text-right" }, [
+        h("p", { class: "text-foreground font-semibold" }, formatNumber(row.getValue("sessions"))),
+        h("p", { class: "text-muted-foreground text-sm" }, "sessions"),
+      ]),
+  },
+];
+
+// Sync History Data & Columns
+const syncHistoryData = computed(() => {
+  if (!syncLogs.value) return [];
+  return syncLogs.value.map((log) => ({
+    id: log.id,
+    status: log.status,
+    sync_type: log.sync_type,
+    propertyName: log.property?.name || "Aggregate Dashboard",
+    property_id: log.property?.property_id || null,
+    days: log.days,
+    duration_seconds: log.duration_seconds,
+    created_at: log.created_at,
+    error_message: log.error_message,
+    metadata: log.metadata,
+  }));
+});
+
+const syncHistoryColumns = [
+  {
+    accessorKey: "status",
+    header: "Status",
+    size: 120,
+    cell: ({ row }) => {
+      const status = row.getValue("status");
+      if (status === "success") {
+        return h(
+          "span",
+          {
+            class:
+              "rounded-full bg-green-500/10 px-2.5 py-0.5 text-sm font-medium text-green-600 dark:text-green-400",
+          },
+          "Success"
+        );
+      } else if (status === "failed") {
+        return h(
+          "span",
+          {
+            class:
+              "rounded-full bg-red-500/10 px-2.5 py-0.5 text-sm font-medium text-red-600 dark:text-red-400",
+          },
+          "Failed"
+        );
+      } else {
+        return h(
+          "span",
+          {
+            class:
+              "flex items-center gap-1 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-sm font-medium text-blue-600 dark:text-blue-400",
+          },
+          [h(resolveComponent("Icon"), { name: "hugeicons:loading-03", class: "size-3 animate-spin" }), "In Progress"]
+        );
+      }
+    },
+    filterFn: (row, columnId, filterValue) => {
+      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+      return filterValue.includes(row.getValue(columnId));
+    },
+  },
+  {
+    accessorKey: "sync_type",
+    header: "Type",
+    size: 100,
+    cell: ({ row }) =>
+      h(
+        "span",
+        {
+          class:
+            "text-muted-foreground rounded-md bg-gray-500/10 px-2 py-0.5 text-sm font-medium capitalize",
+        },
+        row.getValue("sync_type")
+      ),
+  },
+  {
+    accessorKey: "propertyName",
+    header: "Property",
+    size: 250,
+    cell: ({ row }) => {
+      const propertyId = row.original.property_id;
+      return h("div", {}, [
+        h("p", { class: "text-foreground text-sm font-medium" }, row.getValue("propertyName")),
+        propertyId && h("p", { class: "text-muted-foreground text-sm" }, `(${propertyId})`),
+      ]);
+    },
+  },
+  {
+    accessorKey: "days",
+    header: "Days",
+    size: 80,
+    cell: ({ row }) =>
+      h("span", { class: "text-muted-foreground text-sm" }, `${row.getValue("days")} days`),
+  },
+  {
+    accessorKey: "duration_seconds",
+    header: "Duration",
+    size: 100,
+    cell: ({ row }) => {
+      const duration = row.getValue("duration_seconds");
+      return duration
+        ? h("span", { class: "text-muted-foreground text-sm" }, `${duration}s`)
+        : h("span", { class: "text-muted-foreground text-sm" }, "-");
+    },
+  },
+  {
+    accessorKey: "created_at",
+    header: "Time",
+    size: 150,
+    cell: ({ row }) => {
+      const date = row.getValue("created_at");
+      return h("div", { class: "text-muted-foreground text-sm" }, formatRelativeTime(date));
+    },
+  },
+];
 </script>
