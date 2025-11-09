@@ -317,83 +317,32 @@
         </div>
       </div>
 
-      <!-- Property Breakdown Cards -->
-      <div class="space-y-4">
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="text-foreground text-lg font-semibold">Analytics by Property</h2>
-            <p class="text-muted-foreground text-sm">
-              Click on a property to view detailed analytics
-            </p>
-          </div>
-          <div class="text-muted-foreground text-sm">
+      <!-- Analytics by Property -->
+      <div v-if="propertyBreakdown.length > 0" class="space-y-3">
+        <div>
+          <h2 class="text-foreground flex items-center gap-2 font-semibold">
+            <Icon name="hugeicons:analytics-01" class="size-5" />
+            Analytics by Property
+          </h2>
+          <p class="text-muted-foreground text-sm">
             {{ propertyBreakdown.length }} active
             {{ propertyBreakdown.length === 1 ? "property" : "properties" }}
-          </div>
+          </p>
         </div>
-
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <NuxtLink
-            v-for="property in propertyBreakdown"
-            :key="property.property_id"
-            :to="`/web-analytics/${property.property_id}`"
-            class="border-border bg-card hover:border-primary group relative overflow-hidden rounded-lg border p-5 transition-all hover:shadow-lg"
-          >
-            <div class="mb-4 flex items-start justify-between">
-              <div class="flex-1">
-                <h3
-                  class="text-foreground group-hover:text-primary mb-1 font-semibold transition-colors"
-                >
-                  {{ property.property_name }}
-                </h3>
-                <p class="text-muted-foreground text-sm">Property ID: {{ property.property_id }}</p>
-              </div>
-              <Icon
-                name="hugeicons:arrow-right-01"
-                class="text-muted-foreground group-hover:text-primary size-5 transition-all group-hover:translate-x-1"
-              />
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div class="bg-muted/30 rounded-md p-2.5">
-                <p class="text-muted-foreground text-sm">Active Users</p>
-                <p class="text-foreground mt-1 text-lg font-semibold">
-                  {{ formatNumber(property.metrics.activeUsers || 0) }}
-                </p>
-              </div>
-              <div class="bg-muted/30 rounded-md p-2.5">
-                <p class="text-muted-foreground text-sm">Sessions</p>
-                <p class="text-foreground mt-1 text-lg font-semibold">
-                  {{ formatNumber(property.metrics.sessions || 0) }}
-                </p>
-              </div>
-              <div class="bg-muted/30 rounded-md p-2.5">
-                <p class="text-muted-foreground text-sm">Page Views</p>
-                <p class="text-foreground mt-1 text-lg font-semibold">
-                  {{ formatNumber(property.metrics.screenPageViews || 0) }}
-                </p>
-              </div>
-              <div class="bg-muted/30 rounded-md p-2.5">
-                <p class="text-muted-foreground text-sm">Bounce Rate</p>
-                <p class="text-foreground mt-1 text-lg font-semibold">
-                  {{ formatPercent(property.metrics.bounceRate || 0) }}
-                </p>
-              </div>
-            </div>
-
-            <div class="mt-3 flex items-center gap-2">
-              <span
-                v-if="property.is_fresh"
-                class="rounded-full bg-green-500/10 px-2 py-0.5 text-sm font-medium text-green-600 dark:text-green-400"
-              >
-                Fresh Data
-              </span>
-              <span v-if="property.cached_at" class="text-muted-foreground text-sm">
-                Cached {{ formatRelativeTime(property.cached_at) }}
-              </span>
-            </div>
-          </NuxtLink>
-        </div>
+        <TableData
+          :data="propertyBreakdownData"
+          :columns="propertyBreakdownColumns"
+          :meta="{ total: propertyBreakdownData.length, current_page: 1, per_page: 10, last_page: 1 }"
+          model="analytics"
+          display-only
+          searchable
+          search-column="property_name"
+          search-placeholder="Search property..."
+          :column-toggle="false"
+          :initial-pagination="{ pageIndex: 0, pageSize: 10 }"
+          :initial-sorting="[{ id: 'screenPageViews', desc: true }]"
+          :page-sizes="[5, 10, 20]"
+        />
       </div>
 
       <!-- Top Pages -->
@@ -956,6 +905,117 @@ const trafficSourcesColumns = [
         h("p", { class: "text-foreground font-semibold" }, formatNumber(row.getValue("sessions"))),
         h("p", { class: "text-muted-foreground text-sm" }, "sessions"),
       ]),
+  },
+];
+
+// Property Breakdown Data & Columns
+const propertyBreakdownData = computed(() => {
+  if (!aggregateData.value?.property_breakdown) return [];
+  return aggregateData.value.property_breakdown.map((property) => ({
+    property_id: property.property_id,
+    property_name: property.property_name,
+    activeUsers: property.metrics?.activeUsers || 0,
+    newUsers: property.metrics?.newUsers || 0,
+    sessions: property.metrics?.sessions || 0,
+    screenPageViews: property.metrics?.screenPageViews || 0,
+    bounceRate: property.metrics?.bounceRate || 0,
+    averageSessionDuration: property.metrics?.averageSessionDuration || 0,
+    is_fresh: property.is_fresh,
+    cached_at: property.cached_at,
+  }));
+});
+
+const propertyBreakdownColumns = [
+  {
+    accessorKey: "property_name",
+    header: "Property",
+    size: 250,
+    cell: ({ row }) => {
+      const propertyId = row.getValue("property_id");
+      return h(
+        resolveComponent("NuxtLink"),
+        {
+          to: `/web-analytics/${propertyId}`,
+          class: "block hover:opacity-80 transition-opacity",
+        },
+        {
+          default: () =>
+            h("div", {}, [
+              h("p", { class: "text-foreground font-medium" }, row.getValue("property_name")),
+              h("p", { class: "text-muted-foreground text-sm" }, `ID: ${propertyId}`),
+            ]),
+        }
+      );
+    },
+  },
+  {
+    accessorKey: "screenPageViews",
+    header: "Page Views",
+    size: 120,
+    cell: ({ row }) =>
+      h("p", { class: "text-foreground font-semibold" }, formatNumber(row.getValue("screenPageViews"))),
+  },
+  {
+    accessorKey: "activeUsers",
+    header: "Active Users",
+    size: 120,
+    cell: ({ row }) =>
+      h("p", { class: "text-foreground font-semibold" }, formatNumber(row.getValue("activeUsers"))),
+  },
+  {
+    accessorKey: "sessions",
+    header: "Sessions",
+    size: 120,
+    cell: ({ row }) =>
+      h("p", { class: "text-foreground font-semibold" }, formatNumber(row.getValue("sessions"))),
+  },
+  {
+    accessorKey: "bounceRate",
+    header: "Bounce Rate",
+    size: 120,
+    cell: ({ row }) =>
+      h("p", { class: "text-foreground font-semibold" }, formatPercent(row.getValue("bounceRate"))),
+  },
+  {
+    accessorKey: "averageSessionDuration",
+    header: "Avg. Duration",
+    size: 130,
+    cell: ({ row }) => {
+      const duration = row.getValue("averageSessionDuration");
+      const minutes = Math.floor(duration / 60);
+      const seconds = Math.floor(duration % 60);
+      return h(
+        "p",
+        { class: "text-foreground font-semibold" },
+        `${minutes}m ${seconds}s`
+      );
+    },
+  },
+  {
+    accessorKey: "cached_at",
+    header: "Last Synced",
+    size: 150,
+    cell: ({ row }) => {
+      const cachedAt = row.getValue("cached_at");
+      const isFresh = row.original.is_fresh;
+      return h("div", { class: "flex items-center gap-2" }, [
+        isFresh &&
+          h(
+            "span",
+            {
+              class:
+                "rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400",
+            },
+            "Fresh"
+          ),
+        cachedAt &&
+          h(
+            "span",
+            { class: "text-muted-foreground text-sm" },
+            formatRelativeTime(cachedAt)
+          ),
+      ]);
+    },
   },
 ];
 
