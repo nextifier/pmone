@@ -779,7 +779,26 @@ const summaryMetrics = computed(() => {
   ];
 });
 
-const propertyBreakdown = computed(() => aggregateData.value?.property_breakdown || []);
+const propertyBreakdown = computed(() => {
+  const breakdown = aggregateData.value?.property_breakdown || [];
+
+  // Debug: Log cached_at values to check for issues
+  if (breakdown.length > 0) {
+    console.log("=== Property Breakdown Debug ===");
+    breakdown.forEach((property, index) => {
+      console.log(`Property ${index + 1}:`, {
+        name: property.property_name,
+        cached_at: property.cached_at,
+        cached_at_type: typeof property.cached_at,
+        formatted: property.cached_at ? formatRelativeTime(property.cached_at) : 'N/A',
+        raw_dayjs: property.cached_at ? $dayjs(property.cached_at).format('YYYY-MM-DD HH:mm:ss') : 'N/A',
+      });
+    });
+  }
+
+  return breakdown;
+});
+
 const totalDeviceUsers = computed(() => {
   if (!aggregateData.value?.devices) return 0;
   return aggregateData.value.devices.reduce((sum, device) => sum + (device.users || 0), 0);
