@@ -434,42 +434,49 @@ class AnalyticsService
     /**
      * Get realtime active users across all active properties.
      * Returns total active users in the last 30 minutes.
+     * Cached for 30 seconds to reduce API quota usage.
      */
     public function getRealtimeActiveUsers(?array $propertyIds = null): array
     {
-        $query = GaProperty::active();
+        // Generate cache key based on property IDs
+        $cacheKey = 'realtime_users:'.($propertyIds ? implode(',', $propertyIds) : 'all');
 
-        if ($propertyIds) {
-            $query->whereIn('property_id', $propertyIds);
-        }
+        // Cache for 30 seconds to match frontend refresh interval
+        return Cache::remember($cacheKey, 30, function () use ($propertyIds) {
+            $query = GaProperty::active();
 
-        $properties = $query->get();
-
-        $totalActiveUsers = 0;
-        $propertyBreakdown = [];
-
-        foreach ($properties as $property) {
-            $activeUsers = $this->dataFetcher->fetchRealtimeUsers($property);
-
-            $totalActiveUsers += $activeUsers;
-
-            if ($activeUsers > 0) {
-                $propertyBreakdown[] = [
-                    'property_id' => $property->property_id,
-                    'property_name' => $property->name,
-                    'active_users' => $activeUsers,
-                ];
+            if ($propertyIds) {
+                $query->whereIn('property_id', $propertyIds);
             }
-        }
 
-        // Sort by active users descending
-        usort($propertyBreakdown, fn ($a, $b) => $b['active_users'] <=> $a['active_users']);
+            $properties = $query->get();
 
-        return [
-            'total_active_users' => $totalActiveUsers,
-            'property_breakdown' => $propertyBreakdown,
-            'properties_count' => $properties->count(),
-            'timestamp' => now()->toIso8601String(),
-        ];
+            $totalActiveUsers = 0;
+            $propertyBreakdown = [];
+
+            foreach ($properties as $property) {
+                $activeUsers = $this->dataFetcher->fetchRealtimeUsers($property);
+
+                $totalActiveUsers += $activeUsers;
+
+                if ($activeUsers > 0) {
+                    $propertyBreakdown[] = [
+                        'property_id' => $property->property_id,
+                        'property_name' => $property->name,
+                        'active_users' => $activeUsers,
+                    ];
+                }
+            }
+
+            // Sort by active users descending
+            usort($propertyBreakdown, fn ($a, $b) => $b['active_users'] <=> $a['active_users']);
+
+            return [
+                'total_active_users' => $totalActiveUsers,
+                'property_breakdown' => $propertyBreakdown,
+                'properties_count' => $properties->count(),
+                'timestamp' => now()->toIso8601String(),
+            ];
+        });
     }
 }
