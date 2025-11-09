@@ -288,6 +288,96 @@
 
     <!-- Data Display -->
     <template v-else-if="aggregateData">
+      <!-- Realtime Active Users - Total -->
+      <div
+        v-if="realtimeData"
+        class="border-border bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg border border-green-500/20 p-5"
+      >
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="bg-green-500/20 inline-flex rounded-full p-3">
+              <Icon name="hugeicons:user-multiple" class="size-6 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-foreground text-lg font-semibold">
+                  {{ formatNumber(realtimeData.total_active_users) }}
+                </h3>
+                <span
+                  class="bg-green-500/20 text-green-700 dark:text-green-300 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+                >
+                  <span class="relative flex size-2">
+                    <span class="bg-green-500 absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"></span>
+                    <span class="bg-green-500 relative inline-flex size-2 rounded-full"></span>
+                  </span>
+                  LIVE
+                </span>
+              </div>
+              <p class="text-muted-foreground text-sm">Active users in the last 30 minutes</p>
+            </div>
+          </div>
+          <div
+            v-if="realtimeData.property_breakdown && realtimeData.property_breakdown.length > 0"
+            class="text-muted-foreground hidden text-sm sm:block"
+          >
+            <span class="font-medium">{{ realtimeData.property_breakdown.length }}</span>
+            {{ realtimeData.property_breakdown.length === 1 ? 'property' : 'properties' }} with
+            active visitors
+          </div>
+        </div>
+      </div>
+
+      <!-- Realtime Active Users - Per Property -->
+      <div
+        v-if="realtimeData && realtimeData.property_breakdown && realtimeData.property_breakdown.length > 0"
+        class="space-y-3"
+      >
+        <div>
+          <h2 class="text-foreground flex items-center gap-2 text-sm font-semibold">
+            <Icon name="hugeicons:analytics-up" class="size-4" />
+            Active Users by Property
+          </h2>
+          <p class="text-muted-foreground text-xs">
+            Real-time breakdown across {{ realtimeData.property_breakdown.length }}
+            {{ realtimeData.property_breakdown.length === 1 ? 'property' : 'properties' }}
+          </p>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <NuxtLink
+            v-for="property in realtimeData.property_breakdown"
+            :key="property.property_id"
+            :to="`/web-analytics/${property.property_id}`"
+            class="border-border bg-card hover:bg-muted/50 group rounded-lg border p-4 transition-all hover:border-green-500/30"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <p class="text-foreground truncate text-sm font-medium group-hover:text-green-600 dark:group-hover:text-green-400">
+                  {{ property.property_name }}
+                </p>
+                <div class="mt-2 flex items-center gap-2">
+                  <p class="text-foreground text-2xl font-bold">
+                    {{ formatNumber(property.active_users) }}
+                  </p>
+                  <span
+                    class="bg-green-500/20 text-green-700 dark:text-green-300 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium"
+                  >
+                    <span class="relative flex size-1.5">
+                      <span class="bg-green-500 absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"></span>
+                      <span class="bg-green-500 relative inline-flex size-1.5 rounded-full"></span>
+                    </span>
+                    LIVE
+                  </span>
+                </div>
+                <p class="text-muted-foreground mt-1 text-xs">active now</p>
+              </div>
+              <div class="bg-green-500/10 flex size-8 shrink-0 items-center justify-center rounded-lg">
+                <Icon name="hugeicons:user-check-01" class="size-4 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+          </NuxtLink>
+        </div>
+      </div>
+
       <!-- Overall Summary Cards -->
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div
@@ -317,83 +407,32 @@
         </div>
       </div>
 
-      <!-- Property Breakdown Cards -->
-      <div class="space-y-4">
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="text-foreground text-lg font-semibold">Analytics by Property</h2>
-            <p class="text-muted-foreground text-sm">
-              Click on a property to view detailed analytics
-            </p>
-          </div>
-          <div class="text-muted-foreground text-sm">
+      <!-- Analytics by Property -->
+      <div v-if="propertyBreakdown.length > 0" class="space-y-3">
+        <div>
+          <h2 class="text-foreground flex items-center gap-2 font-semibold">
+            <Icon name="hugeicons:analytics-01" class="size-5" />
+            Analytics by Property
+          </h2>
+          <p class="text-muted-foreground text-sm">
             {{ propertyBreakdown.length }} active
             {{ propertyBreakdown.length === 1 ? "property" : "properties" }}
-          </div>
+          </p>
         </div>
-
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <NuxtLink
-            v-for="property in propertyBreakdown"
-            :key="property.property_id"
-            :to="`/web-analytics/${property.property_id}`"
-            class="border-border bg-card hover:border-primary group relative overflow-hidden rounded-lg border p-5 transition-all hover:shadow-lg"
-          >
-            <div class="mb-4 flex items-start justify-between">
-              <div class="flex-1">
-                <h3
-                  class="text-foreground group-hover:text-primary mb-1 font-semibold transition-colors"
-                >
-                  {{ property.property_name }}
-                </h3>
-                <p class="text-muted-foreground text-sm">Property ID: {{ property.property_id }}</p>
-              </div>
-              <Icon
-                name="hugeicons:arrow-right-01"
-                class="text-muted-foreground group-hover:text-primary size-5 transition-all group-hover:translate-x-1"
-              />
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div class="bg-muted/30 rounded-md p-2.5">
-                <p class="text-muted-foreground text-sm">Active Users</p>
-                <p class="text-foreground mt-1 text-lg font-semibold">
-                  {{ formatNumber(property.metrics.activeUsers || 0) }}
-                </p>
-              </div>
-              <div class="bg-muted/30 rounded-md p-2.5">
-                <p class="text-muted-foreground text-sm">Sessions</p>
-                <p class="text-foreground mt-1 text-lg font-semibold">
-                  {{ formatNumber(property.metrics.sessions || 0) }}
-                </p>
-              </div>
-              <div class="bg-muted/30 rounded-md p-2.5">
-                <p class="text-muted-foreground text-sm">Page Views</p>
-                <p class="text-foreground mt-1 text-lg font-semibold">
-                  {{ formatNumber(property.metrics.screenPageViews || 0) }}
-                </p>
-              </div>
-              <div class="bg-muted/30 rounded-md p-2.5">
-                <p class="text-muted-foreground text-sm">Bounce Rate</p>
-                <p class="text-foreground mt-1 text-lg font-semibold">
-                  {{ formatPercent(property.metrics.bounceRate || 0) }}
-                </p>
-              </div>
-            </div>
-
-            <div class="mt-3 flex items-center gap-2">
-              <span
-                v-if="property.is_fresh"
-                class="rounded-full bg-green-500/10 px-2 py-0.5 text-sm font-medium text-green-600 dark:text-green-400"
-              >
-                Fresh Data
-              </span>
-              <span v-if="property.cached_at" class="text-muted-foreground text-sm">
-                Cached {{ formatRelativeTime(property.cached_at) }}
-              </span>
-            </div>
-          </NuxtLink>
-        </div>
+        <TableData
+          :data="propertyBreakdownData"
+          :columns="propertyBreakdownColumns"
+          :meta="{ total: propertyBreakdownData.length, current_page: 1, per_page: 10, last_page: 1 }"
+          model="analytics"
+          display-only
+          searchable
+          search-column="property_name"
+          search-placeholder="Search property..."
+          :column-toggle="false"
+          :initial-pagination="{ pageIndex: 0, pageSize: 10 }"
+          :initial-sorting="[{ id: 'screenPageViews', desc: true }]"
+          :page-sizes="[5, 10, 20]"
+        />
       </div>
 
       <!-- Top Pages -->
@@ -697,6 +736,7 @@
 import { useAnalyticsData } from "~/composables/useAnalyticsData";
 import { useAnalyticsSync } from "~/composables/useAnalyticsSync";
 import { useAnalyticsSyncHistory } from "~/composables/useAnalyticsSyncHistory";
+import { useRealtimeAnalytics } from "~/composables/useRealtimeAnalytics";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -854,10 +894,14 @@ const getDeviceIcon = (device) => {
   return "hugeicons:device-access";
 };
 
+// Realtime analytics
+const { realtimeData, startAutoRefresh: startRealtimeRefresh } = useRealtimeAnalytics();
+
 // Lifecycle - composables handle cleanup automatically
 onMounted(() => {
   fetchAnalytics();
   fetchSyncHistory();
+  startRealtimeRefresh(); // Start auto-refresh for realtime users (every 30 seconds)
 });
 
 // ===== TableData Columns & Data Definitions =====
@@ -956,6 +1000,117 @@ const trafficSourcesColumns = [
         h("p", { class: "text-foreground font-semibold" }, formatNumber(row.getValue("sessions"))),
         h("p", { class: "text-muted-foreground text-sm" }, "sessions"),
       ]),
+  },
+];
+
+// Property Breakdown Data & Columns
+const propertyBreakdownData = computed(() => {
+  if (!aggregateData.value?.property_breakdown) return [];
+  return aggregateData.value.property_breakdown.map((property) => ({
+    property_id: property.property_id,
+    property_name: property.property_name,
+    activeUsers: property.metrics?.activeUsers || 0,
+    newUsers: property.metrics?.newUsers || 0,
+    sessions: property.metrics?.sessions || 0,
+    screenPageViews: property.metrics?.screenPageViews || 0,
+    bounceRate: property.metrics?.bounceRate || 0,
+    averageSessionDuration: property.metrics?.averageSessionDuration || 0,
+    is_fresh: property.is_fresh,
+    cached_at: property.cached_at,
+  }));
+});
+
+const propertyBreakdownColumns = [
+  {
+    accessorKey: "property_name",
+    header: "Property",
+    size: 250,
+    cell: ({ row }) => {
+      const propertyId = row.getValue("property_id");
+      return h(
+        resolveComponent("NuxtLink"),
+        {
+          to: `/web-analytics/${propertyId}`,
+          class: "block hover:opacity-80 transition-opacity",
+        },
+        {
+          default: () =>
+            h("div", {}, [
+              h("p", { class: "text-foreground font-medium" }, row.getValue("property_name")),
+              h("p", { class: "text-muted-foreground text-sm" }, `ID: ${propertyId}`),
+            ]),
+        }
+      );
+    },
+  },
+  {
+    accessorKey: "screenPageViews",
+    header: "Page Views",
+    size: 120,
+    cell: ({ row }) =>
+      h("p", { class: "text-foreground font-semibold" }, formatNumber(row.getValue("screenPageViews"))),
+  },
+  {
+    accessorKey: "activeUsers",
+    header: "Active Users",
+    size: 120,
+    cell: ({ row }) =>
+      h("p", { class: "text-foreground font-semibold" }, formatNumber(row.getValue("activeUsers"))),
+  },
+  {
+    accessorKey: "sessions",
+    header: "Sessions",
+    size: 120,
+    cell: ({ row }) =>
+      h("p", { class: "text-foreground font-semibold" }, formatNumber(row.getValue("sessions"))),
+  },
+  {
+    accessorKey: "bounceRate",
+    header: "Bounce Rate",
+    size: 120,
+    cell: ({ row }) =>
+      h("p", { class: "text-foreground font-semibold" }, formatPercent(row.getValue("bounceRate"))),
+  },
+  {
+    accessorKey: "averageSessionDuration",
+    header: "Avg. Duration",
+    size: 130,
+    cell: ({ row }) => {
+      const duration = row.getValue("averageSessionDuration");
+      const minutes = Math.floor(duration / 60);
+      const seconds = Math.floor(duration % 60);
+      return h(
+        "p",
+        { class: "text-foreground font-semibold" },
+        `${minutes}m ${seconds}s`
+      );
+    },
+  },
+  {
+    accessorKey: "cached_at",
+    header: "Last Synced",
+    size: 150,
+    cell: ({ row }) => {
+      const cachedAt = row.getValue("cached_at");
+      const isFresh = row.original.is_fresh;
+      return h("div", { class: "flex items-center gap-2" }, [
+        isFresh &&
+          h(
+            "span",
+            {
+              class:
+                "rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400",
+            },
+            "Fresh"
+          ),
+        cachedAt &&
+          h(
+            "span",
+            { class: "text-muted-foreground text-sm" },
+            formatRelativeTime(cachedAt)
+          ),
+      ]);
+    },
   },
 ];
 

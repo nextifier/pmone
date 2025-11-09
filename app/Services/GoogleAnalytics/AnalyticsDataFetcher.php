@@ -8,6 +8,7 @@ use Google\Analytics\Data\V1beta\Client\BetaAnalyticsDataClient;
 use Google\Analytics\Data\V1beta\DateRange;
 use Google\Analytics\Data\V1beta\Dimension;
 use Google\Analytics\Data\V1beta\Metric;
+use Google\Analytics\Data\V1beta\RunRealtimeReportRequest;
 use Google\Analytics\Data\V1beta\RunReportRequest;
 
 class AnalyticsDataFetcher
@@ -266,6 +267,39 @@ class AnalyticsDataFetcher
             return $devices;
         } catch (\Exception $e) {
             throw new \Exception("Failed to fetch device data: {$e->getMessage()}");
+        }
+    }
+
+    /**
+     * Fetch realtime active users (last 30 minutes).
+     * Returns the number of users currently active on the property.
+     */
+    public function fetchRealtimeUsers(GaProperty $property): int
+    {
+        try {
+            $client = $this->createGA4Client($property);
+
+            $request = (new RunRealtimeReportRequest)
+                ->setProperty('properties/'.$property->property_id)
+                ->setMetrics([
+                    new Metric(['name' => 'activeUsers']),
+                ]);
+
+            $response = $client->runRealtimeReport($request);
+
+            // Get active users from the first row
+            if ($response->getRowCount() > 0) {
+                $rows = $response->getRows();
+                $firstRow = $rows[0];
+
+                return (int) $firstRow->getMetricValues()[0]->getValue();
+            }
+
+            return 0;
+        } catch (\Exception $e) {
+            \Log::warning("Failed to fetch realtime users for property {$property->name}: {$e->getMessage()}");
+
+            return 0; // Return 0 instead of throwing, since realtime data is not critical
         }
     }
 }
