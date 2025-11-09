@@ -54,7 +54,9 @@ class AnalyticsAggregator
                     'property_name' => $property->name,
                     'totals' => $metricsData['totals'] ?? [],
                     'is_fresh' => $data['is_fresh'] ?? false,
-                    'cached_at' => $data['cached_at'] ?? null,
+                    // Use property's individual last_synced_at instead of aggregate cache timestamp
+                    // This shows when each property was actually synced, not when the aggregate was cached
+                    'cached_at' => $property->last_synced_at?->toIso8601String() ?? ($data['cached_at'] ?? null),
                 ];
             } catch (\Exception $e) {
                 return [
@@ -88,6 +90,7 @@ class AnalyticsAggregator
                         'property_name' => $result['property_name'],
                         'metrics' => $totals,
                         'is_fresh' => $result['is_fresh'],
+                        // cached_at now contains property's last_synced_at, showing individual sync times
                         'cached_at' => $result['cached_at'],
                     ];
                 }
