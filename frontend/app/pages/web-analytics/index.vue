@@ -18,99 +18,199 @@
             class="size-4 shrink-0"
             :class="{ 'animate-spin': syncingNow }"
           />
-          <span>{{ syncingNow ? 'Syncing...' : 'Sync Now' }}</span>
-        </button>
-        <button
-          @click="refreshData"
-          :disabled="loading"
-          class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Icon
-            name="hugeicons:refresh"
-            class="size-4 shrink-0"
-            :class="{ 'animate-spin': loading }"
-          />
-          <span>Refresh</span>
+          <span>{{ syncingNow ? "Syncing..." : "Sync Now" }}</span>
         </button>
       </div>
     </div>
 
     <!-- How It Works Info Box -->
     <div class="border-border rounded-lg border p-5">
-      <div class="flex items-start gap-3">
-        <div class="bg-primary/10 text-primary rounded-lg p-2">
-          <Icon name="hugeicons:information-circle" class="size-6" />
-        </div>
-        <div class="flex-1">
-          <h3 class="text-foreground mb-2 font-semibold">
-            Cara Kerja Sinkronisasi Data Google Analytics
-          </h3>
-          <div class="text-muted-foreground space-y-2 text-sm">
-            <p>
-              <strong class="text-foreground">Otomatis & Cerdas:</strong> Sistem kami mengambil data
-              dari Google Analytics 4 secara otomatis di background setiap 10-15 menit, tanpa
-              mengganggu pengalaman Anda.
-            </p>
-            <div class="mt-3 grid gap-3 sm:grid-cols-3">
-              <div class="rounded-lg bg-white/50 p-3 dark:bg-gray-800/50">
-                <div class="flex items-center gap-2">
-                  <Icon name="hugeicons:database-sync-01" class="text-primary size-5" />
-                  <span class="text-foreground text-xs font-semibold">Auto-Sync</span>
+      <div class="flex flex-col tracking-tight">
+        <h3 class="text-foreground mb-2 font-semibold">
+          Gimana Sih Cara Kerja Sinkronisasi Data Google Analytics?
+        </h3>
+        <div class="text-muted-foreground space-y-3 text-sm">
+          <p>
+            <strong class="text-foreground">Auto-Sync yang Pinter Banget!</strong> Sistemnya ambil
+            data dari Google Analytics 4 secara otomatis di background. Jadi kamu gak perlu manual
+            refresh-refresh tiap mau liat data terbaru. Tinggal buka aja, data langsung nongol! ✨
+          </p>
+
+          <!-- Key Features -->
+          <div class="mt-3 grid gap-3 sm:grid-cols-3">
+            <div class="rounded-lg bg-white/50 p-3 dark:bg-gray-800/50">
+              <div class="flex items-center gap-2">
+                <Icon name="hugeicons:database-sync-01" class="text-primary size-5" />
+                <span class="text-foreground text-sm font-semibold">Auto-Sync</span>
+              </div>
+              <p class="text-muted-foreground mt-1 text-sm">
+                Data di-ambil otomatis tiap 10-30 menit biar selalu segar
+              </p>
+            </div>
+            <div class="rounded-lg bg-white/50 p-3 dark:bg-gray-800/50">
+              <div class="flex items-center gap-2">
+                <Icon name="hugeicons:rocket-01" class="text-primary size-5" />
+                <span class="text-foreground text-sm font-semibold">Super Cepat</span>
+              </div>
+              <p class="text-muted-foreground mt-1 text-sm">
+                Pakai smart cache biar dashboard langsung nongol tanpa nunggu lama
+              </p>
+            </div>
+            <div class="rounded-lg bg-white/50 p-3 dark:bg-gray-800/50">
+              <div class="flex items-center gap-2">
+                <Icon name="hugeicons:shield-user" class="text-primary size-5" />
+                <span class="text-foreground text-sm font-semibold">Hemat Kuota</span>
+              </div>
+              <p class="text-muted-foreground mt-1 text-sm">
+                Cegah duplikasi fetch biar irit API quota Google Analytics
+              </p>
+            </div>
+          </div>
+
+          <!-- Detailed Explanation -->
+          <details class="mt-4">
+            <summary class="text-primary cursor-pointer text-sm font-medium hover:underline">
+              👀 Pengen tau lebih detail? Klik di sini!
+            </summary>
+            <div class="text-muted-foreground mt-4 space-y-3 text-sm">
+              <!-- How It Works -->
+              <div class="border-border rounded-lg border p-3">
+                <h4 class="text-foreground mb-2 flex items-center gap-2 text-sm font-semibold">
+                  <Icon name="hugeicons:workflow-circle-01" class="size-4" />
+                  Cara Kerjanya Step by Step
+                </h4>
+                <ol class="ml-5 list-decimal space-y-2 text-sm">
+                  <li>
+                    <strong>Background Jobs:</strong> Tiap 10 menit, sistem cek property mana yang
+                    perlu di-update. Data di-fetch di background jadi gak ganggu kamu.
+                  </li>
+                  <li>
+                    <strong>Smart Cache (30 Menit):</strong> Data yang udah di-ambil disimpan selama
+                    30 menit. Waktu kamu buka dashboard, data langsung muncul dari cache - super
+                    kilat! ⚡
+                  </li>
+                  <li>
+                    <strong>Auto-Refresh:</strong> Kalau cache udah lebih dari 30 menit, sistem
+                    otomatis fetch data baru di background. Kamu tetap liat data lama sambil nunggu
+                    yang baru siap.
+                  </li>
+                  <li>
+                    <strong>Unique Jobs:</strong> Biar gak dobel-dobel, tiap job punya ID unik.
+                    Kalau ada job yang sama lagi jalan, job baru gak akan dibuat lagi.
+                  </li>
+                </ol>
+              </div>
+
+              <!-- Sync Intervals -->
+              <div class="border-border rounded-lg border p-3">
+                <h4 class="text-foreground mb-2 flex items-center gap-2 text-sm font-semibold">
+                  <Icon name="hugeicons:clock-03" class="size-4" />
+                  Interval Sinkronisasi
+                </h4>
+                <div class="space-y-2 text-sm">
+                  <div class="flex items-start gap-2">
+                    <span class="text-green-600 dark:text-green-400">🕐</span>
+                    <div>
+                      <strong>Jam Normal (Default):</strong> Tiap 10-15 menit sekali. Cocok buat
+                      daily monitoring tanpa terlalu sering hit API.
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-2">
+                    <span class="text-blue-600 dark:text-blue-400">⏰</span>
+                    <div>
+                      <strong>Peak Hours (09:00-17:00):</strong> Bisa lebih sering karena ini waktu
+                      prime time pengunjung website biasanya paling rame!
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-2">
+                    <span class="text-purple-600 dark:text-purple-400">🌙</span>
+                    <div>
+                      <strong>Weekend & Malam:</strong> Agak jarang (setiap 20-30 menit), soalnya
+                      traffic biasanya lebih sepi. Ngirit quota juga kan! 😎
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-2">
+                    <span class="text-orange-600 dark:text-orange-400">⚙️</span>
+                    <div>
+                      <strong>Custom Interval:</strong> Tiap property bisa di-set manual antara 5-60
+                      menit sesuai kebutuhan. Tinggal atur di halaman property!
+                    </div>
+                  </div>
                 </div>
-                <p class="text-muted-foreground mt-1 text-xs">
-                  Data di-fetch otomatis setiap 10-15 menit untuk memastikan selalu fresh
+              </div>
+
+              <!-- Rate Limiting -->
+              <div class="border-border rounded-lg border p-3">
+                <h4 class="text-foreground mb-2 flex items-center gap-2 text-sm font-semibold">
+                  <Icon name="hugeicons:shield-energy" class="size-4" />
+                  Rate Limiting & Proteksi
+                </h4>
+                <div class="space-y-2 text-sm">
+                  <div class="flex items-start gap-2">
+                    <span class="text-red-600 dark:text-red-400">⚠️</span>
+                    <div>
+                      <strong>Manual Sync Limit:</strong> Maksimal 2x per jam per user. Jadi gak
+                      bisa spam tombol "Sync Now" terus-terusan ya! Kasian Google API-nya nanti
+                      marah 😅
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-2">
+                    <span class="text-yellow-600 dark:text-yellow-400">🔒</span>
+                    <div>
+                      <strong>Duplicate Prevention:</strong> Kalau udah ada sync yang lagi jalan
+                      untuk property yang sama, request baru bakal di-skip otomatis.
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-2">
+                    <span class="text-green-600 dark:text-green-400">✅</span>
+                    <div>
+                      <strong>Fallback Data:</strong> Kalau API Google lagi error, sistem tetap
+                      nampilin data cache terakhir yang sukses. Jadi dashboard gak blank!
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sync History -->
+              <div class="border-border rounded-lg border p-3">
+                <h4 class="text-foreground mb-2 flex items-center gap-2 text-sm font-semibold">
+                  <Icon name="hugeicons:file-search" class="size-4" />
+                  Tracking & Monitoring
+                </h4>
+                <p class="text-sm">
+                  Semua aktivitas sync dicatat lengkap dengan timestamp, durasi, dan status
+                  (success/failed). Kamu bisa liat history-nya di bawah buat tau kapan terakhir data
+                  di-update dan berapa lama prosesnya. Transparansi 100%! 📊
                 </p>
               </div>
-              <div class="rounded-lg bg-white/50 p-3 dark:bg-gray-800/50">
-                <div class="flex items-center gap-2">
-                  <Icon name="hugeicons:rocket-01" class="text-primary size-5" />
-                  <span class="text-foreground text-xs font-semibold">Instant Load</span>
-                </div>
-                <p class="text-muted-foreground mt-1 text-xs">
-                  Menggunakan smart cache agar dashboard langsung tampil tanpa loading lama
-                </p>
-              </div>
-              <div class="rounded-lg bg-white/50 p-3 dark:bg-gray-800/50">
-                <div class="flex items-center gap-2">
-                  <Icon name="hugeicons:shield-user" class="text-primary size-5" />
-                  <span class="text-foreground text-xs font-semibold">No Duplicate</span>
-                </div>
-                <p class="text-muted-foreground mt-1 text-xs">
-                  Sistem mencegah duplikasi fetch, jadi efisien dan tidak boros API quota
-                </p>
+
+              <!-- Tips -->
+              <div class="bg-primary/5 rounded-lg p-3">
+                <h4 class="text-foreground mb-2 flex items-center gap-2 text-sm font-semibold">
+                  <Icon name="hugeicons:bulb" class="size-4" />
+                  Tips & Trik
+                </h4>
+                <ul class="ml-5 list-disc space-y-1 text-sm">
+                  <li>
+                    Kalo butuh data real-time banget, tinggal klik tombol
+                    <strong>"Sync Now"</strong> di atas. Tapi inget limit-nya ya!
+                  </li>
+                  <li>
+                    Cache 30 menit udah cukup fresh kok buat monitoring harian. Gak perlu refresh
+                    terus-terusan.
+                  </li>
+                  <li>
+                    Cek bagian "Sync History" di bawah buat liat apakah ada sync yang gagal. Kalau
+                    ada yang error, bisa langsung investigasi!
+                  </li>
+                  <li>
+                    Property yang jarang dikunjungi bisa di-set interval lebih lama (misal 30-60
+                    menit) biar hemat quota.
+                  </li>
+                </ul>
               </div>
             </div>
-            <details class="mt-3">
-              <summary class="text-primary cursor-pointer text-xs font-medium hover:underline">
-                Lihat detail teknis →
-              </summary>
-              <div class="text-muted-foreground mt-3 space-y-2 text-xs">
-                <p>
-                  <strong>1. Background Jobs:</strong> Setiap 10 menit, sistem cek property mana
-                  yang perlu di-update. Data di-fetch di background tanpa memperlambat halaman.
-                </p>
-                <p>
-                  <strong>2. Smart Caching:</strong> Data yang sudah di-fetch disimpan di cache
-                  selama 30 menit. Saat Anda buka dashboard, data langsung muncul dari cache (super
-                  cepat!).
-                </p>
-                <p>
-                  <strong>3. Auto-Refresh:</strong> Jika cache sudah lebih dari 30 menit, sistem
-                  otomatis fetch data baru di background. Anda tetap lihat data lama sambil menunggu
-                  update.
-                </p>
-                <p>
-                  <strong>4. Unique Jobs:</strong> Untuk mencegah duplikasi, setiap job punya ID
-                  unik. Jika ada job dengan parameter sama yang sudah jalan, job baru tidak akan
-                  dibuat.
-                </p>
-                <p>
-                  <strong>5. Sync History:</strong> Semua aktivitas fetch dicatat lengkap dengan
-                  waktu, durasi, dan status (success/failed) untuk monitoring & debugging.
-                </p>
-              </div>
-            </details>
-          </div>
+          </details>
         </div>
       </div>
     </div>
@@ -145,9 +245,9 @@
             class="flex items-center gap-1.5 rounded-full px-3 py-1"
           >
             <Icon name="hugeicons:loading-03" class="size-3.5 animate-spin" />
-            <span class="text-xs font-medium">Updating...</span>
+            <span class="text-sm font-medium">Updating...</span>
           </div>
-          <div class="text-muted-foreground text-xs">
+          <div class="text-muted-foreground text-sm">
             <span>Last updated {{ formatCacheAge(cacheInfo.cache_age_minutes) }}</span>
             <template v-if="cacheInfo.next_update_in_minutes >= 0">
               <span class="mx-1">•</span>
@@ -210,7 +310,7 @@
             <p class="text-foreground text-3xl font-bold tracking-tight">
               {{ formatMetricValue(metric.key, metric.value) }}
             </p>
-            <p class="text-muted-foreground mt-1 text-xs">
+            <p class="text-muted-foreground mt-1 text-sm">
               {{ metric.description }}
             </p>
           </div>
@@ -246,7 +346,7 @@
                 >
                   {{ property.property_name }}
                 </h3>
-                <p class="text-muted-foreground text-xs">Property ID: {{ property.property_id }}</p>
+                <p class="text-muted-foreground text-sm">Property ID: {{ property.property_id }}</p>
               </div>
               <Icon
                 name="hugeicons:arrow-right-01"
@@ -256,25 +356,25 @@
 
             <div class="grid grid-cols-2 gap-3">
               <div class="bg-muted/30 rounded-md p-2.5">
-                <p class="text-muted-foreground text-xs">Active Users</p>
+                <p class="text-muted-foreground text-sm">Active Users</p>
                 <p class="text-foreground mt-1 text-lg font-semibold">
                   {{ formatNumber(property.metrics.activeUsers || 0) }}
                 </p>
               </div>
               <div class="bg-muted/30 rounded-md p-2.5">
-                <p class="text-muted-foreground text-xs">Sessions</p>
+                <p class="text-muted-foreground text-sm">Sessions</p>
                 <p class="text-foreground mt-1 text-lg font-semibold">
                   {{ formatNumber(property.metrics.sessions || 0) }}
                 </p>
               </div>
               <div class="bg-muted/30 rounded-md p-2.5">
-                <p class="text-muted-foreground text-xs">Page Views</p>
+                <p class="text-muted-foreground text-sm">Page Views</p>
                 <p class="text-foreground mt-1 text-lg font-semibold">
                   {{ formatNumber(property.metrics.screenPageViews || 0) }}
                 </p>
               </div>
               <div class="bg-muted/30 rounded-md p-2.5">
-                <p class="text-muted-foreground text-xs">Bounce Rate</p>
+                <p class="text-muted-foreground text-sm">Bounce Rate</p>
                 <p class="text-foreground mt-1 text-lg font-semibold">
                   {{ formatPercent(property.metrics.bounceRate || 0) }}
                 </p>
@@ -284,11 +384,11 @@
             <div class="mt-3 flex items-center gap-2">
               <span
                 v-if="property.is_fresh"
-                class="rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400"
+                class="rounded-full bg-green-500/10 px-2 py-0.5 text-sm font-medium text-green-600 dark:text-green-400"
               >
                 Fresh Data
               </span>
-              <span v-if="property.cached_at" class="text-muted-foreground text-xs">
+              <span v-if="property.cached_at" class="text-muted-foreground text-sm">
                 Cached {{ formatRelativeTime(property.cached_at) }}
               </span>
             </div>
@@ -318,7 +418,7 @@
               <div class="flex-1">
                 <div class="flex items-center gap-2">
                   <span
-                    class="bg-primary/10 text-primary flex size-6 items-center justify-center rounded-full text-xs font-bold"
+                    class="bg-primary/10 text-primary flex size-6 items-center justify-center rounded-full text-sm font-bold"
                   >
                     {{ index + 1 }}
                   </span>
@@ -329,7 +429,7 @@
                 <p class="text-muted-foreground mt-1 ml-8 text-sm">
                   {{ page.path }}
                 </p>
-                <p class="text-muted-foreground ml-8 text-xs">
+                <p class="text-muted-foreground ml-8 text-sm">
                   {{ page.property_name }}
                 </p>
               </div>
@@ -337,7 +437,7 @@
                 <p class="text-foreground text-lg font-semibold">
                   {{ formatNumber(page.pageviews) }}
                 </p>
-                <p class="text-muted-foreground text-xs">views</p>
+                <p class="text-muted-foreground text-sm">views</p>
               </div>
             </div>
           </div>
@@ -377,7 +477,7 @@
                   <p class="text-foreground font-semibold">
                     {{ formatNumber(source.sessions) }}
                   </p>
-                  <p class="text-muted-foreground text-xs">sessions</p>
+                  <p class="text-muted-foreground text-sm">sessions</p>
                 </div>
               </div>
             </div>
@@ -411,7 +511,7 @@
                     <p class="text-foreground font-semibold">
                       {{ formatNumber(device.users) }}
                     </p>
-                    <p class="text-muted-foreground text-xs">users</p>
+                    <p class="text-muted-foreground text-sm">users</p>
                   </div>
                 </div>
                 <div class="bg-muted h-2 overflow-hidden rounded-full">
@@ -433,7 +533,7 @@
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p class="text-foreground text-sm font-medium">Data Period</p>
-            <p class="text-muted-foreground text-xs">
+            <p class="text-muted-foreground text-sm">
               {{ aggregateData.period?.start_date }} to
               {{ aggregateData.period?.end_date }}
             </p>
@@ -442,7 +542,7 @@
             <p class="text-foreground text-sm font-medium">
               {{ aggregateData.properties_count || 0 }} Properties
             </p>
-            <p class="text-muted-foreground text-xs">
+            <p class="text-muted-foreground text-sm">
               {{ aggregateData.successful_fetches || 0 }} successful fetches
             </p>
           </div>
@@ -493,29 +593,29 @@
         <div v-if="syncStats" class="border-border bg-muted/30 border-b p-4">
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <div class="rounded-lg bg-white p-3 dark:bg-gray-800">
-              <p class="text-muted-foreground text-xs">Total Syncs</p>
+              <p class="text-muted-foreground text-sm">Total Syncs</p>
               <p class="text-foreground mt-1 text-2xl font-bold">{{ syncStats.total_syncs }}</p>
             </div>
             <div class="rounded-lg bg-green-50 p-3 dark:bg-green-900/20">
-              <p class="text-xs text-green-700 dark:text-green-400">Successful</p>
+              <p class="text-sm text-green-700 dark:text-green-400">Successful</p>
               <p class="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">
                 {{ syncStats.successful_syncs }}
               </p>
             </div>
             <div class="rounded-lg bg-red-50 p-3 dark:bg-red-900/20">
-              <p class="text-xs text-red-700 dark:text-red-400">Failed</p>
+              <p class="text-sm text-red-700 dark:text-red-400">Failed</p>
               <p class="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">
                 {{ syncStats.failed_syncs }}
               </p>
             </div>
             <div class="rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20">
-              <p class="text-xs text-blue-700 dark:text-blue-400">Success Rate</p>
+              <p class="text-sm text-blue-700 dark:text-blue-400">Success Rate</p>
               <p class="mt-1 text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {{ syncStats.success_rate }}%
               </p>
             </div>
             <div class="rounded-lg bg-purple-50 p-3 dark:bg-purple-900/20">
-              <p class="text-xs text-purple-700 dark:text-purple-400">Avg Duration</p>
+              <p class="text-sm text-purple-700 dark:text-purple-400">Avg Duration</p>
               <p class="mt-1 text-2xl font-bold text-purple-600 dark:text-purple-400">
                 {{
                   syncStats.avg_duration_seconds ? Math.round(syncStats.avg_duration_seconds) : 0
@@ -552,19 +652,19 @@
                     <!-- Status Badge -->
                     <span
                       v-if="log.status === 'success'"
-                      class="rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-medium text-green-600 dark:text-green-400"
+                      class="rounded-full bg-green-500/10 px-2.5 py-0.5 text-sm font-medium text-green-600 dark:text-green-400"
                     >
                       Success
                     </span>
                     <span
                       v-else-if="log.status === 'failed'"
-                      class="rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-600 dark:text-red-400"
+                      class="rounded-full bg-red-500/10 px-2.5 py-0.5 text-sm font-medium text-red-600 dark:text-red-400"
                     >
                       Failed
                     </span>
                     <span
                       v-else
-                      class="flex items-center gap-1 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-400"
+                      class="flex items-center gap-1 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-sm font-medium text-blue-600 dark:text-blue-400"
                     >
                       <Icon name="hugeicons:loading-03" class="size-3 animate-spin" />
                       In Progress
@@ -572,26 +672,26 @@
 
                     <!-- Sync Type Badge -->
                     <span
-                      class="text-muted-foreground rounded-md bg-gray-500/10 px-2 py-0.5 text-xs font-medium capitalize"
+                      class="text-muted-foreground rounded-md bg-gray-500/10 px-2 py-0.5 text-sm font-medium capitalize"
                     >
                       {{ log.sync_type }}
                     </span>
 
                     <!-- Days Badge -->
-                    <span class="text-muted-foreground text-xs">{{ log.days }} days</span>
+                    <span class="text-muted-foreground text-sm">{{ log.days }} days</span>
                   </div>
 
                   <div class="mt-2">
                     <p v-if="log.property" class="text-foreground text-sm font-medium">
                       {{ log.property.name }}
-                      <span class="text-muted-foreground text-xs"
+                      <span class="text-muted-foreground text-sm"
                         >({{ log.property.property_id }})</span
                       >
                     </p>
                     <p v-else class="text-foreground text-sm font-medium">Aggregate Dashboard</p>
 
                     <div
-                      class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 text-xs"
+                      class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 text-sm"
                     >
                       <span>{{ formatRelativeTime(log.created_at) }}</span>
                       <span v-if="log.duration_seconds">{{ log.duration_seconds }}s duration</span>
@@ -600,7 +700,7 @@
                       >
                     </div>
 
-                    <p v-if="log.error_message" class="mt-2 text-xs text-red-600 dark:text-red-400">
+                    <p v-if="log.error_message" class="mt-2 text-sm text-red-600 dark:text-red-400">
                       Error: {{ log.error_message }}
                     </p>
                   </div>
@@ -649,9 +749,9 @@
 </template>
 
 <script setup>
-import { useAnalyticsData } from '~/composables/useAnalyticsData';
-import { useAnalyticsSync } from '~/composables/useAnalyticsSync';
-import { useAnalyticsSyncHistory } from '~/composables/useAnalyticsSyncHistory';
+import { useAnalyticsData } from "~/composables/useAnalyticsData";
+import { useAnalyticsSync } from "~/composables/useAnalyticsSync";
+import { useAnalyticsSyncHistory } from "~/composables/useAnalyticsSyncHistory";
 
 const { $dayjs } = useNuxtApp();
 
@@ -670,20 +770,10 @@ const selectedRange = ref("30");
 const syncHistoryHours = ref(24);
 
 // Use composables for data management
-const {
-  aggregateData,
-  loading,
-  error,
-  cacheInfo,
-  fetchAnalytics,
-  changeDateRange,
-  refreshData: refreshAnalyticsData,
-} = useAnalyticsData(parseInt(selectedRange.value));
+const { aggregateData, loading, error, cacheInfo, fetchAnalytics, changeDateRange } =
+  useAnalyticsData(parseInt(selectedRange.value));
 
-const {
-  syncingNow,
-  triggerSync,
-} = useAnalyticsSync();
+const { syncingNow, triggerSync } = useAnalyticsSync();
 
 const {
   syncLogs,
@@ -758,10 +848,7 @@ const triggerSyncNow = async () => {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Refresh both analytics data and sync history
-    await Promise.all([
-      fetchAnalytics(true),
-      fetchSyncHistory(),
-    ]);
+    await Promise.all([fetchAnalytics(true), fetchSyncHistory()]);
 
     // Start auto-refreshing sync history to see updates
     startSyncHistoryAutoRefresh(5);
@@ -773,10 +860,6 @@ const triggerSyncNow = async () => {
 // Handlers
 const handleDateRangeChange = async () => {
   await changeDateRange(parseInt(selectedRange.value));
-};
-
-const refreshData = async () => {
-  await refreshAnalyticsData();
 };
 
 // Format helpers
