@@ -288,6 +288,45 @@
 
     <!-- Data Display -->
     <template v-else-if="aggregateData">
+      <!-- Realtime Active Users -->
+      <div
+        v-if="realtimeData"
+        class="border-border bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg border border-green-500/20 p-5"
+      >
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="bg-green-500/20 inline-flex rounded-full p-3">
+              <Icon name="hugeicons:user-multiple" class="size-6 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-foreground text-lg font-semibold">
+                  {{ formatNumber(realtimeData.total_active_users) }}
+                </h3>
+                <span
+                  class="bg-green-500/20 text-green-700 dark:text-green-300 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+                >
+                  <span class="relative flex size-2">
+                    <span class="bg-green-500 absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"></span>
+                    <span class="bg-green-500 relative inline-flex size-2 rounded-full"></span>
+                  </span>
+                  LIVE
+                </span>
+              </div>
+              <p class="text-muted-foreground text-sm">Active users in the last 30 minutes</p>
+            </div>
+          </div>
+          <div
+            v-if="realtimeData.property_breakdown && realtimeData.property_breakdown.length > 0"
+            class="text-muted-foreground hidden text-sm sm:block"
+          >
+            <span class="font-medium">{{ realtimeData.property_breakdown.length }}</span>
+            {{ realtimeData.property_breakdown.length === 1 ? 'property' : 'properties' }} with
+            active visitors
+          </div>
+        </div>
+      </div>
+
       <!-- Overall Summary Cards -->
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div
@@ -646,6 +685,7 @@
 import { useAnalyticsData } from "~/composables/useAnalyticsData";
 import { useAnalyticsSync } from "~/composables/useAnalyticsSync";
 import { useAnalyticsSyncHistory } from "~/composables/useAnalyticsSyncHistory";
+import { useRealtimeAnalytics } from "~/composables/useRealtimeAnalytics";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -803,10 +843,14 @@ const getDeviceIcon = (device) => {
   return "hugeicons:device-access";
 };
 
+// Realtime analytics
+const { realtimeData, startAutoRefresh: startRealtimeRefresh } = useRealtimeAnalytics();
+
 // Lifecycle - composables handle cleanup automatically
 onMounted(() => {
   fetchAnalytics();
   fetchSyncHistory();
+  startRealtimeRefresh(); // Start auto-refresh for realtime users (every 30 seconds)
 });
 
 // ===== TableData Columns & Data Definitions =====
