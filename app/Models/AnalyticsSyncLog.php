@@ -126,7 +126,7 @@ class AnalyticsSyncLog extends Model
         $this->update([
             'status' => 'success',
             'completed_at' => now(),
-            'duration_seconds' => $this->started_at ? now()->diffInSeconds($this->started_at) : null,
+            'duration_seconds' => $this->started_at ? $this->started_at->diffInSeconds(now()) : null,
             'metadata' => $metadata,
         ]);
     }
@@ -139,7 +139,7 @@ class AnalyticsSyncLog extends Model
         $this->update([
             'status' => 'failed',
             'completed_at' => now(),
-            'duration_seconds' => $this->started_at ? now()->diffInSeconds($this->started_at) : null,
+            'duration_seconds' => $this->started_at ? $this->started_at->diffInSeconds(now()) : null,
             'error_message' => $errorMessage,
             'metadata' => $metadata,
         ]);
