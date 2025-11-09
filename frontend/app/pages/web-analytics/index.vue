@@ -682,7 +682,6 @@ const {
 
 const {
   syncingNow,
-  syncError,
   triggerSync,
 } = useAnalyticsSync();
 

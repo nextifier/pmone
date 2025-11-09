@@ -15,10 +15,22 @@ export function useAnalyticsData(initialDays: number = 30) {
   let autoRefreshTimeout: NodeJS.Timeout | null = null;
 
   // Computed
-  const cacheInfo = computed(() => aggregateData.value?.cache_info || null);
-  const isUpdating = computed(() => cacheInfo.value?.is_updating || false);
-  const cacheAge = computed(() => cacheInfo.value?.cache_age_minutes || null);
-  const lastUpdated = computed(() => cacheInfo.value?.last_updated || null);
+  const cacheInfo = computed(() => {
+    if (!aggregateData.value) return null;
+    return aggregateData.value.cache_info || null;
+  });
+  const isUpdating = computed(() => {
+    if (!aggregateData.value || !cacheInfo.value) return false;
+    return cacheInfo.value.is_updating || false;
+  });
+  const cacheAge = computed(() => {
+    if (!aggregateData.value || !cacheInfo.value) return null;
+    return cacheInfo.value.cache_age_minutes || null;
+  });
+  const lastUpdated = computed(() => {
+    if (!aggregateData.value || !cacheInfo.value) return null;
+    return cacheInfo.value.last_updated || null;
+  });
 
   /**
    * Fetch analytics data.
@@ -36,9 +48,17 @@ export function useAnalyticsData(initialDays: number = 30) {
     error.value = null;
 
     try {
-      const { data } = await client(`/api/google-analytics/aggregate`, {
+      const response = await client(`/api/google-analytics/aggregate`, {
         params: { days: selectedDays.value },
       });
+
+      // Handle response - client might return { data } or just the data directly
+      const data = response?.data || response;
+
+      // Validate response has expected structure
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response format from API');
+      }
 
       aggregateData.value = data;
 

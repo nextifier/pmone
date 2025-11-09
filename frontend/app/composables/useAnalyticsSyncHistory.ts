@@ -43,8 +43,12 @@ export function useAnalyticsSyncHistory(hoursFilter: Ref<number> = ref(24)) {
         }),
       ]);
 
-      syncLogs.value = logsResponse.data.logs || [];
-      syncStats.value = statsResponse.data;
+      // Handle responses - client might return { data } or just data directly
+      const logsData = logsResponse?.data || logsResponse;
+      const statsData = statsResponse?.data || statsResponse;
+
+      syncLogs.value = logsData?.logs || [];
+      syncStats.value = statsData;
 
       // Auto-refresh if there are in-progress syncs
       const hasInProgress = syncLogs.value.some((log) => log.status === "started");

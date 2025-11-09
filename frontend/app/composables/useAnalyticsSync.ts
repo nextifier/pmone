@@ -19,10 +19,13 @@ export function useAnalyticsSync() {
     syncError.value = null;
 
     try {
-      const { data } = await client(`/api/google-analytics/aggregate/sync-now`, {
+      const response = await client(`/api/google-analytics/aggregate/sync-now`, {
         method: "POST",
         body: { days },
       });
+
+      // Handle response - client might return { data } or just data directly
+      const data = response?.data || response;
 
       lastSyncResult.value = data;
       return data;
