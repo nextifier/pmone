@@ -288,7 +288,7 @@
 
     <!-- Data Display -->
     <template v-else-if="aggregateData">
-      <!-- Realtime Active Users -->
+      <!-- Realtime Active Users - Total -->
       <div
         v-if="realtimeData"
         class="border-border bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg border border-green-500/20 p-5"
@@ -324,6 +324,57 @@
             {{ realtimeData.property_breakdown.length === 1 ? 'property' : 'properties' }} with
             active visitors
           </div>
+        </div>
+      </div>
+
+      <!-- Realtime Active Users - Per Property -->
+      <div
+        v-if="realtimeData && realtimeData.property_breakdown && realtimeData.property_breakdown.length > 0"
+        class="space-y-3"
+      >
+        <div>
+          <h2 class="text-foreground flex items-center gap-2 text-sm font-semibold">
+            <Icon name="hugeicons:analytics-up" class="size-4" />
+            Active Users by Property
+          </h2>
+          <p class="text-muted-foreground text-xs">
+            Real-time breakdown across {{ realtimeData.property_breakdown.length }}
+            {{ realtimeData.property_breakdown.length === 1 ? 'property' : 'properties' }}
+          </p>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <NuxtLink
+            v-for="property in realtimeData.property_breakdown"
+            :key="property.property_id"
+            :to="`/web-analytics/${property.property_id}`"
+            class="border-border bg-card hover:bg-muted/50 group rounded-lg border p-4 transition-all hover:border-green-500/30"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <p class="text-foreground truncate text-sm font-medium group-hover:text-green-600 dark:group-hover:text-green-400">
+                  {{ property.property_name }}
+                </p>
+                <div class="mt-2 flex items-center gap-2">
+                  <p class="text-foreground text-2xl font-bold">
+                    {{ formatNumber(property.active_users) }}
+                  </p>
+                  <span
+                    class="bg-green-500/20 text-green-700 dark:text-green-300 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium"
+                  >
+                    <span class="relative flex size-1.5">
+                      <span class="bg-green-500 absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"></span>
+                      <span class="bg-green-500 relative inline-flex size-1.5 rounded-full"></span>
+                    </span>
+                    LIVE
+                  </span>
+                </div>
+                <p class="text-muted-foreground mt-1 text-xs">active now</p>
+              </div>
+              <div class="bg-green-500/10 flex size-8 shrink-0 items-center justify-center rounded-lg">
+                <Icon name="hugeicons:user-check-01" class="size-4 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+          </NuxtLink>
         </div>
       </div>
 
