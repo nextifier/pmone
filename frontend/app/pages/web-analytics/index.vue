@@ -399,7 +399,7 @@
       <!-- Top Pages -->
       <div
         v-if="aggregateData.top_pages?.length > 0"
-        class="border-border bg-card rounded-lg border"
+        class="border-border bg-card rounded-lg border overflow-hidden"
       >
         <div class="border-border border-b p-4">
           <h2 class="text-foreground flex items-center gap-2 font-semibold">
@@ -408,40 +408,48 @@
           </h2>
           <p class="text-muted-foreground text-sm">Most visited pages across all properties</p>
         </div>
-        <div class="divide-border divide-y">
-          <div
-            v-for="(page, index) in aggregateData.top_pages.slice(0, 10)"
-            :key="index"
-            class="hover:bg-muted/30 p-4 transition-colors"
-          >
-            <div class="flex items-start justify-between gap-4">
-              <div class="flex-1">
-                <div class="flex items-center gap-2">
-                  <span
-                    class="bg-primary/10 text-primary flex size-6 items-center justify-center rounded-full text-sm font-bold"
-                  >
-                    {{ index + 1 }}
-                  </span>
-                  <p class="text-foreground font-medium">
-                    {{ page.title }}
-                  </p>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead class="w-14">#</TableHead>
+              <TableHead>Page</TableHead>
+              <TableHead>Property</TableHead>
+              <TableHead class="text-right w-32">Views</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow
+              v-for="(page, index) in aggregateData.top_pages.slice(0, 10)"
+              :key="index"
+              class="hover:bg-muted/30"
+            >
+              <TableCell>
+                <span
+                  class="bg-primary/10 text-primary flex size-7 items-center justify-center rounded-full text-sm font-bold"
+                >
+                  {{ index + 1 }}
+                </span>
+              </TableCell>
+              <TableCell>
+                <div class="space-y-1">
+                  <p class="text-foreground font-medium">{{ page.title }}</p>
+                  <p class="text-muted-foreground text-sm">{{ page.path }}</p>
                 </div>
-                <p class="text-muted-foreground mt-1 ml-8 text-sm">
-                  {{ page.path }}
-                </p>
-                <p class="text-muted-foreground ml-8 text-sm">
-                  {{ page.property_name }}
-                </p>
-              </div>
-              <div class="text-right">
-                <p class="text-foreground text-lg font-semibold">
-                  {{ formatNumber(page.pageviews) }}
-                </p>
-                <p class="text-muted-foreground text-sm">views</p>
-              </div>
-            </div>
-          </div>
-        </div>
+              </TableCell>
+              <TableCell>
+                <p class="text-foreground text-sm">{{ page.property_name }}</p>
+              </TableCell>
+              <TableCell class="text-right">
+                <div>
+                  <p class="text-foreground text-lg font-semibold">
+                    {{ formatNumber(page.pageviews) }}
+                  </p>
+                  <p class="text-muted-foreground text-sm">views</p>
+                </div>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </div>
 
       <!-- Traffic Sources & Devices Grid -->
@@ -752,6 +760,7 @@
 import { useAnalyticsData } from "~/composables/useAnalyticsData";
 import { useAnalyticsSync } from "~/composables/useAnalyticsSync";
 import { useAnalyticsSyncHistory } from "~/composables/useAnalyticsSyncHistory";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 
 const { $dayjs } = useNuxtApp();
 
