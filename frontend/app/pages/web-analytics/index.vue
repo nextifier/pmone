@@ -91,7 +91,7 @@
       </div>
     </div>
 
-    <div v-else-if="aggregateData" class="grid gap-y-10">
+    <div v-else-if="aggregateData" class="grid grid-cols-1 gap-y-10">
       <div
         v-if="aggregateData.errors && aggregateData.errors.length > 0"
         class="bg-destructive/5 border-destructive/20 flex flex-col gap-3 rounded-lg border p-4"
