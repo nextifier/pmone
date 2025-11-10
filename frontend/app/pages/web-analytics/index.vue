@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-7xl space-y-6">
+  <div class="min-h-screen-offset mx-auto flex max-w-7xl flex-col space-y-6 pb-12">
     <!-- <pre v-if="aggregateData">
         {{ aggregateData }}
     </pre> -->
@@ -15,75 +15,74 @@
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
           <Icon name="hugeicons:book-02" class="size-4 shrink-0" />
-          <span class="hidden sm:inline">Documentation</span>
+          <span>Documentation</span>
         </NuxtLink>
         <NuxtLink
           to="/web-analytics/sync-history"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
           <Icon name="hugeicons:clock-03" class="size-4 shrink-0" />
-          <span class="hidden sm:inline">Sync History</span>
+          <span>Sync History</span>
         </NuxtLink>
       </div>
     </div>
 
-    <div class="border-border bg-card rounded-lg border p-4">
-      <div class="flex flex-wrap items-center justify-between gap-4">
-        <div class="flex flex-wrap items-center gap-4">
-          <div class="flex items-center gap-2">
-            <label class="text-muted-foreground text-sm font-medium"> Date Range: </label>
-            <select
-              v-model="selectedRange"
-              @change="handleDateRangeChange"
-              class="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
-            >
-              <option value="7">Last 7 days</option>
-              <option value="14">Last 14 days</option>
-              <option value="30">Last 30 days</option>
-              <option value="90">Last 90 days</option>
-            </select>
-          </div>
-
-          <div class="text-muted-foreground text-sm">
-            {{ formatDate(startDate) }} - {{ formatDate(endDate) }}
-          </div>
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="flex items-center gap-2">
+          <!-- <label class="text-muted-foreground text-sm font-medium"> Date Range: </label> -->
+          <select
+            v-model="selectedRange"
+            @change="handleDateRangeChange"
+            class="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
+          >
+            <option value="7">Last 7 days</option>
+            <option value="14">Last 14 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+          </select>
         </div>
 
-        <div v-if="cacheInfo" class="flex items-center gap-2">
-          <div
-            v-if="cacheInfo.is_updating"
-            class="flex items-center gap-1.5 rounded-full px-3 py-1"
+        <div class="text-sm font-medium tracking-tight">
+          {{ formatDate(startDate) }} - {{ formatDate(endDate) }}
+        </div>
+      </div>
+
+      <div class="text-muted-foreground flex items-center gap-x-1.5 text-sm tracking-tight">
+        <div v-if="!cacheInfo || cacheInfo?.is_updating" class="flex items-center gap-x-1.5">
+          <Spinner class="size-3.5 shrink-0" />
+          <span>Updating...</span>
+        </div>
+        <div v-else>
+          <span
+            >Last updated {{ formatCacheAge(cacheInfo?.cache_age_minutes) }}.
+            <span v-if="cacheInfo?.next_update_in_minutes"
+              >Next update in {{ Math.ceil(cacheInfo?.next_update_in_minutes) }} min<span
+                v-if="Math.ceil(cacheInfo?.next_update_in_minutes) > 1"
+                >s</span
+              >.
+            </span></span
           >
-            <Icon name="hugeicons:loading-03" class="size-3.5 animate-spin" />
-            <span class="text-sm font-medium">Updating...</span>
-          </div>
-          <div class="text-muted-foreground text-sm">
-            <span>Last updated {{ formatCacheAge(cacheInfo.cache_age_minutes) }}</span>
-            <template v-if="cacheInfo.next_update_in_minutes >= 0">
-              <span class="mx-1">•</span>
-              <span>Next update in {{ Math.ceil(cacheInfo.next_update_in_minutes) }} min</span>
-            </template>
-          </div>
         </div>
       </div>
     </div>
 
     <div
       v-if="loading"
-      class="border-border bg-card flex items-center justify-center rounded-lg border p-12"
+      class="border-border bg-pattern-diagonal flex grow items-center justify-center overflow-hidden rounded-xl border p-6"
     >
-      <div class="flex flex-col items-center gap-3">
-        <Icon name="hugeicons:loading-03" class="text-primary size-8 animate-spin" />
-        <p class="text-muted-foreground text-sm">Loading analytics data...</p>
+      <div class="flex items-center gap-2">
+        <Spinner class="size-5 shrink-0" />
+        <span class="text-sm tracking-tight">Loading analytics data..</span>
       </div>
     </div>
 
-    <div v-else-if="error" class="border-border bg-card rounded-lg border p-6">
+    <div v-else-if="error" class="flex items-center justify-center p-6">
       <div class="flex flex-col items-center gap-3 text-center">
-        <Icon name="hugeicons:alert-circle" class="text-destructive size-8" />
+        <Icon name="hugeicons:alert-circle" class="text-destructive size-6" />
         <div>
-          <h3 class="text-foreground mb-1 font-semibold">Failed to load analytics</h3>
-          <p class="text-muted-foreground text-sm">{{ error }}</p>
+          <h3 class="text-foreground font-semibold tracking-tighter">Failed to load analytics</h3>
+          <p class="text-muted-foreground mt-1 text-sm tracking-tight">{{ error }}</p>
         </div>
         <button
           @click="refreshData"
@@ -188,16 +187,13 @@
 
     <div
       v-else
-      class="border-border bg-card flex items-center justify-center rounded-lg border p-12"
+      class="border-border bg-pattern-diagonal flex grow items-center justify-center overflow-hidden rounded-xl border p-6"
     >
-      <div class="flex flex-col items-center gap-3 text-center">
-        <Icon name="hugeicons:database-01" class="text-muted-foreground size-12" />
-        <div>
-          <h3 class="text-foreground mb-1 font-semibold">No data available</h3>
-          <p class="text-muted-foreground text-sm">
-            Analytics data will appear here once properties are configured
-          </p>
-        </div>
+      <div class="flex flex-col items-center gap-2 text-center">
+        <h3 class="text-foreground text-lg font-semibold tracking-tighter">No data available</h3>
+        <p class="text-muted-foreground text-sm tracking-tight">
+          Analytics data will appear here once properties are configured.
+        </p>
       </div>
     </div>
   </div>
@@ -239,66 +235,75 @@ const summaryMetrics = computed(() => {
   return [
     {
       key: "onlineUsers",
-      label: "Online Now",
+      label: "Online Visitors",
+      description: "People browsing your site right now.",
+      value: totals.onlineUsers || 0,
       formattedValue: formatNumber(totals.onlineUsers || 0),
-      icon: "hugeicons:wifi",
+      icon: "hugeicons:wifi-02",
       bgClass: "bg-green-500/10",
-      iconClass: "text-green-600 dark:text-green-400",
-      description: "People browsing your site right now",
+      iconClass: "text-green-700 dark:text-green-400",
     },
     {
       key: "activeUsers",
       label: "Total Visitors",
+      description: "Everyone who visited your site.",
+      value: totals.activeUsers || 0,
       formattedValue: formatNumber(totals.activeUsers || 0),
       icon: "hugeicons:user-multiple-02",
       bgClass: "bg-blue-500/10",
-      iconClass: "text-blue-600 dark:text-blue-400",
-      description: "Everyone who visited your site",
+      iconClass: "text-blue-700 dark:text-blue-400",
     },
     {
       key: "newUsers",
       label: "New Visitors",
+      description: "First-time visitors to your site.",
+      value: totals.newUsers || 0,
       formattedValue: formatNumber(totals.newUsers || 0),
       icon: "hugeicons:user-add-02",
-      bgClass: "bg-cyan-500/10",
-      iconClass: "text-cyan-600 dark:text-cyan-400",
-      description: "First-time visitors to your site",
+      bgClass: "bg-sky-500/10",
+      iconClass: "text-sky-700 dark:text-sky-400",
     },
     {
       key: "sessions",
       label: "Total Sessions",
+      description: "Number of times people opened your site.",
+      value: totals.sessions || 0,
       formattedValue: formatNumber(totals.sessions || 0),
       icon: "hugeicons:cursor-pointer-02",
       bgClass: "bg-indigo-500/10",
-      iconClass: "text-indigo-600 dark:text-indigo-400",
-      description: "Number of times people opened your site",
+      iconClass: "text-indigo-700 dark:text-indigo-400",
     },
     {
       key: "screenPageViews",
       label: "Page Views",
+      description: "Total pages viewed by visitors.",
+      value: totals.screenPageViews || 0,
       formattedValue: formatNumber(totals.screenPageViews || 0),
       icon: "hugeicons:view",
-      bgClass: "bg-purple-500/10",
-      iconClass: "text-purple-600 dark:text-purple-400",
-      description: "Total pages viewed by visitors",
+      bgClass: "bg-pink-500/10",
+      iconClass: "text-pink-700 dark:text-pink-400",
     },
     {
       key: "bounceRate",
       label: "Bounce Rate",
+      description: "Visitors who left immediately.",
+      value: (totals.bounceRate || 0) * 100,
       formattedValue: formatPercent(totals.bounceRate || 0),
-      icon: "hugeicons:arrow-turn-backward",
-      bgClass: "bg-orange-500/10",
-      iconClass: "text-orange-600 dark:text-orange-400",
-      description: "Visitors who left immediately",
+      format: "percent",
+      icon: "hugeicons:undo-02",
+      bgClass: "bg-red-500/10",
+      iconClass: "text-red-700 dark:text-red-400",
     },
     {
       key: "averageSessionDuration",
-      label: "Avg. Duration",
+      label: "Average Duration",
+      description: "How long visitors stay on your site.",
+      value: totals.averageSessionDuration || 0,
       formattedValue: formatDuration(totals.averageSessionDuration || 0),
-      icon: "hugeicons:time-02",
-      bgClass: "bg-pink-500/10",
-      iconClass: "text-pink-600 dark:text-pink-400",
-      description: "How long visitors stay on your site",
+      format: "duration",
+      icon: "hugeicons:time-quarter-02",
+      bgClass: "bg-yellow-500/10",
+      iconClass: "text-yellow-700 dark:text-yellow-400",
     },
   ];
 });

@@ -21,9 +21,11 @@
       <div class="space-y-1">
         <p class="text-muted-foreground text-xs font-medium">Online Now</p>
         <div class="flex items-baseline gap-2">
-          <p class="text-foreground text-2xl font-bold">
-            {{ formatNumber(property.metrics.onlineUsers) }}
-          </p>
+          <NumberFlow
+            class="text-foreground text-2xl font-bold tracking-tighter"
+            :value="property.metrics?.onlineUsers || 0"
+            :format="{ notation: 'compact' }"
+          />
 
           <div
             v-if="property.metrics?.onlineUsers > 0"
@@ -43,49 +45,63 @@
       <!-- Active Users -->
       <div class="space-y-1">
         <p class="text-muted-foreground text-xs font-medium">Total Visitors</p>
-        <p class="text-foreground text-2xl font-bold">
-          {{ formatNumber(property.metrics?.activeUsers || 0) }}
-        </p>
+        <NumberFlow
+          class="text-foreground text-2xl font-bold tracking-tighter"
+          :value="property.metrics?.activeUsers || 0"
+          :format="{ notation: 'compact' }"
+        />
       </div>
 
       <!-- New Users -->
       <div class="space-y-1">
         <p class="text-muted-foreground text-xs font-medium">New Visitors</p>
-        <p class="text-foreground text-2xl font-bold">
-          {{ formatNumber(property.metrics?.newUsers || 0) }}
-        </p>
+        <NumberFlow
+          class="text-foreground text-2xl font-bold tracking-tighter"
+          :value="property.metrics?.newUsers || 0"
+          :format="{ notation: 'compact' }"
+        />
       </div>
 
       <!-- Sessions -->
       <div class="space-y-1">
         <p class="text-muted-foreground text-xs font-medium">Sessions</p>
-        <p class="text-foreground text-2xl font-bold">
-          {{ formatNumber(property.metrics?.sessions || 0) }}
-        </p>
+        <NumberFlow
+          class="text-foreground text-2xl font-bold tracking-tighter"
+          :value="property.metrics?.sessions || 0"
+          :format="{ notation: 'compact' }"
+        />
       </div>
 
       <!-- Page Views -->
       <div class="space-y-1">
         <p class="text-muted-foreground text-xs font-medium">Page Views</p>
-        <p class="text-foreground text-2xl font-bold">
-          {{ formatNumber(property.metrics?.screenPageViews || 0) }}
-        </p>
+        <NumberFlow
+          class="text-foreground text-2xl font-bold tracking-tighter"
+          :value="property.metrics?.screenPageViews || 0"
+          :format="{ notation: 'compact' }"
+        />
       </div>
 
       <!-- Bounce Rate -->
       <div class="space-y-1">
         <p class="text-muted-foreground text-xs font-medium">Bounce Rate</p>
-        <p class="text-foreground text-2xl font-bold">
-          {{ formatPercent(property.metrics?.bounceRate || 0) }}
-        </p>
+        <NumberFlow
+          class="text-foreground text-2xl font-bold tracking-tighter"
+          :value="(property.metrics?.bounceRate || 0) * 100"
+          :format="{ notation: 'standard', minimumFractionDigits: 1, maximumFractionDigits: 1 }"
+          suffix="%"
+        />
       </div>
 
       <!-- Average Duration -->
       <div class="space-y-1">
         <p class="text-muted-foreground text-xs font-medium">Average Duration</p>
-        <p class="text-foreground text-2xl font-bold">
-          {{ formatDuration(property.metrics?.averageSessionDuration || 0) }}
-        </p>
+        <NumberFlow
+          class="text-foreground text-2xl font-bold tracking-tighter"
+          :value="property.metrics?.averageSessionDuration || 0"
+          :format="{ notation: 'standard', minimumFractionDigits: 0, maximumFractionDigits: 0 }"
+          suffix="s"
+        />
       </div>
 
       <!-- Last Synced -->
