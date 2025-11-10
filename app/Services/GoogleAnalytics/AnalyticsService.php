@@ -252,20 +252,31 @@ class AnalyticsService
                     'sync_log_id' => $syncLog->id,
                 ]);
 
-                $properties = $propertyIds
-                    ? GaProperty::active()->with('project')->whereIn('property_id', $propertyIds)->get()
-                    : GaProperty::active()->with('project')->get();
+                // Build query for properties
+                $query = GaProperty::active()->with('project');
+                if ($propertyIds) {
+                    $query->whereIn('property_id', $propertyIds);
+                }
 
-                if ($properties->isEmpty()) {
+                $totalCount = $query->count();
+
+                if ($totalCount === 0) {
                     \Log::warning('No active properties found for background refresh');
                     $syncLog->markFailed('No active properties found');
 
                     return;
                 }
 
-                \Log::info("Fetching dashboard data for {$properties->count()} properties");
+                \Log::info("Fetching dashboard data for {$totalCount} properties");
 
-                $data = $aggregator->getDashboardData($properties, $period);
+                // For large datasets (>100 properties), process in chunks to prevent memory issues
+                if ($totalCount > 100) {
+                    $data = $this->aggregatePropertiesInChunks($query, $period, $totalCount);
+                } else {
+                    // For small datasets, fetch all at once
+                    $properties = $query->get();
+                    $data = $aggregator->getDashboardData($properties, $period);
+                }
 
                 // Store with 30-minute expiry
                 Cache::put($cacheKey, $data, now()->addMinutes(30));
@@ -306,6 +317,141 @@ class AnalyticsService
                 Cache::forget($refreshingKey);
             }
         })->afterResponse();
+    }
+
+    /**
+     * Aggregate properties in chunks to prevent memory issues.
+     * Processes properties in batches of 100 and merges results.
+     */
+    protected function aggregatePropertiesInChunks($query, Period $period, int $totalCount): array
+    {
+        $chunkSize = 100;
+        $aggregatedData = null;
+
+        \Log::info("Processing {$totalCount} properties in chunks of {$chunkSize}");
+
+        $query->chunk($chunkSize, function ($properties) use ($period, &$aggregatedData) {
+            $chunkData = $this->aggregator->getDashboardData($properties, $period);
+
+            if ($aggregatedData === null) {
+                // First chunk - initialize aggregated data
+                $aggregatedData = $chunkData;
+            } else {
+                // Merge subsequent chunks
+                $aggregatedData = $this->mergeAggregatedData($aggregatedData, $chunkData);
+            }
+        });
+
+        return $aggregatedData ?? $this->getEmptyDataStructure($period);
+    }
+
+    /**
+     * Merge two sets of aggregated analytics data.
+     */
+    protected function mergeAggregatedData(array $data1, array $data2): array
+    {
+        // Merge totals
+        $mergedTotals = [
+            'activeUsers' => ($data1['totals']['activeUsers'] ?? 0) + ($data2['totals']['activeUsers'] ?? 0),
+            'newUsers' => ($data1['totals']['newUsers'] ?? 0) + ($data2['totals']['newUsers'] ?? 0),
+            'sessions' => ($data1['totals']['sessions'] ?? 0) + ($data2['totals']['sessions'] ?? 0),
+            'screenPageViews' => ($data1['totals']['screenPageViews'] ?? 0) + ($data2['totals']['screenPageViews'] ?? 0),
+        ];
+
+        // Calculate weighted averages for rate metrics
+        $totalProperties = ($data1['properties_count'] ?? 0) + ($data2['properties_count'] ?? 0);
+        if ($totalProperties > 0) {
+            $weight1 = ($data1['properties_count'] ?? 0) / $totalProperties;
+            $weight2 = ($data2['properties_count'] ?? 0) / $totalProperties;
+
+            $mergedTotals['bounceRate'] = (($data1['totals']['bounceRate'] ?? 0) * $weight1) +
+                                         (($data2['totals']['bounceRate'] ?? 0) * $weight2);
+            $mergedTotals['averageSessionDuration'] = (($data1['totals']['averageSessionDuration'] ?? 0) * $weight1) +
+                                                      (($data2['totals']['averageSessionDuration'] ?? 0) * $weight2);
+        } else {
+            $mergedTotals['bounceRate'] = 0;
+            $mergedTotals['averageSessionDuration'] = 0;
+        }
+
+        // Merge property breakdowns
+        $mergedPropertyBreakdown = array_merge(
+            $data1['property_breakdown'] ?? [],
+            $data2['property_breakdown'] ?? []
+        );
+
+        // Merge and sort top pages
+        $mergedTopPages = array_merge($data1['top_pages'] ?? [], $data2['top_pages'] ?? []);
+        usort($mergedTopPages, fn ($a, $b) => $b['pageviews'] <=> $a['pageviews']);
+        $mergedTopPages = array_slice($mergedTopPages, 0, 20); // Keep top 20
+
+        // Merge traffic sources
+        $mergedTrafficSources = $this->mergeTrafficSources(
+            $data1['traffic_sources'] ?? [],
+            $data2['traffic_sources'] ?? []
+        );
+
+        // Merge devices
+        $mergedDevices = $this->mergeDevices(
+            $data1['devices'] ?? [],
+            $data2['devices'] ?? []
+        );
+
+        return [
+            'totals' => $mergedTotals,
+            'property_breakdown' => $mergedPropertyBreakdown,
+            'successful_fetches' => ($data1['successful_fetches'] ?? 0) + ($data2['successful_fetches'] ?? 0),
+            'top_pages' => $mergedTopPages,
+            'traffic_sources' => $mergedTrafficSources,
+            'devices' => $mergedDevices,
+            'period' => $data1['period'] ?? $data2['period'],
+            'properties_count' => $totalProperties,
+            'errors' => array_merge($data1['errors'] ?? [], $data2['errors'] ?? []),
+        ];
+    }
+
+    /**
+     * Merge traffic sources from two datasets.
+     */
+    protected function mergeTrafficSources(array $sources1, array $sources2): array
+    {
+        $merged = [];
+
+        foreach (array_merge($sources1, $sources2) as $source) {
+            $key = $source['source'].'_'.$source['medium'];
+
+            if (! isset($merged[$key])) {
+                $merged[$key] = $source;
+            } else {
+                $merged[$key]['sessions'] += $source['sessions'];
+                $merged[$key]['users'] += $source['users'];
+            }
+        }
+
+        $result = array_values($merged);
+        usort($result, fn ($a, $b) => $b['sessions'] <=> $a['sessions']);
+
+        return $result;
+    }
+
+    /**
+     * Merge device data from two datasets.
+     */
+    protected function mergeDevices(array $devices1, array $devices2): array
+    {
+        $merged = [];
+
+        foreach (array_merge($devices1, $devices2) as $device) {
+            $category = $device['device'];
+
+            if (! isset($merged[$category])) {
+                $merged[$category] = $device;
+            } else {
+                $merged[$category]['users'] += $device['users'];
+                $merged[$category]['sessions'] += $device['sessions'];
+            }
+        }
+
+        return array_values($merged);
     }
 
     /**

@@ -12,6 +12,12 @@ use Carbon\Carbon;
 class AnalyticsCacheKeyGenerator
 {
     /**
+     * Cache version to prevent corruption when data format changes.
+     * Increment this when making breaking changes to cached data structure.
+     */
+    public const VERSION = 'v2';
+
+    /**
      * Cache key prefix for all analytics data.
      */
     public const PREFIX = 'analytics';
@@ -28,7 +34,7 @@ class AnalyticsCacheKeyGenerator
         $start = $startDate instanceof Carbon ? $startDate->format('Y-m-d') : $startDate;
         $end = $endDate instanceof Carbon ? $endDate->format('Y-m-d') : $endDate;
 
-        return sprintf('%s:property:%s:%s:%s', self::PREFIX, $propertyId, $start, $end);
+        return sprintf('%s:%s:property:%s:%s:%s', self::PREFIX, self::VERSION, $propertyId, $start, $end);
     }
 
     /**
@@ -39,11 +45,12 @@ class AnalyticsCacheKeyGenerator
         string|Carbon $startDate,
         string|Carbon $endDate
     ): string {
-        $key = $propertyIds ? implode(',', $propertyIds) : 'all';
+        // Sort property IDs to prevent cache key collision (e.g., [1,2,3] vs [12,3])
+        $key = $propertyIds ? implode(',', collect($propertyIds)->sort()->values()->all()) : 'all';
         $start = $startDate instanceof Carbon ? $startDate->format('Y-m-d') : $startDate;
         $end = $endDate instanceof Carbon ? $endDate->format('Y-m-d') : $endDate;
 
-        return sprintf('%s:aggregate:%s:%s:%s', self::PREFIX, $key, $start, $end);
+        return sprintf('%s:%s:aggregate:%s:%s:%s', self::PREFIX, self::VERSION, $key, $start, $end);
     }
 
     /**

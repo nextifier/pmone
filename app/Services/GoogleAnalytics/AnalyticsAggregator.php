@@ -33,6 +33,9 @@ class AnalyticsAggregator
         $errors = [];
         $propertyData = [];
 
+        // Create indexed lookup to avoid N+1 query problem
+        $propertiesLookup = $properties->keyBy('property_id');
+
         // Execute all property fetches in parallel for massive performance gain
         // Use sync driver to avoid serialization issues with process driver
         $tasks = $properties->map(fn ($property) => fn () => (function () use ($property, $period) {
@@ -84,8 +87,8 @@ class AnalyticsAggregator
 
                     $successfulFetches++;
 
-                    // Get property with project relationship to include profile_image
-                    $propertyWithProject = $properties->firstWhere('property_id', $result['property_id']);
+                    // Use indexed lookup instead of firstWhere to avoid N+1 problem
+                    $propertyWithProject = $propertiesLookup->get($result['property_id']);
 
                     $propertyData[] = [
                         'property_id' => $result['property_id'],
@@ -126,28 +129,50 @@ class AnalyticsAggregator
     }
 
     /**
-     * Aggregate top pages from multiple properties.
+     * Aggregate top pages from multiple properties using parallel execution.
      */
     public function aggregateTopPages(Collection $properties, Period $period, int $limit = 10): array
     {
         $allPages = [];
         $errors = [];
 
-        foreach ($properties as $property) {
+        // Execute all property fetches in parallel
+        $tasks = $properties->map(fn ($property) => fn () => (function () use ($property, $period, $limit) {
             try {
                 $pages = $this->dataFetcher->fetchTopPages($property, $period, $limit);
 
-                foreach ($pages as $page) {
-                    $allPages[] = array_merge($page, [
-                        'property_id' => $property->property_id,
-                        'property_name' => $property->name,
-                    ]);
-                }
+                return [
+                    'success' => true,
+                    'property_id' => $property->property_id,
+                    'property_name' => $property->name,
+                    'pages' => $pages,
+                ];
             } catch (\Exception $e) {
-                $errors[] = [
+                return [
+                    'success' => false,
                     'property_id' => $property->property_id,
                     'property_name' => $property->name,
                     'error' => $e->getMessage(),
+                ];
+            }
+        })())->all();
+
+        $results = Concurrency::driver('sync')->run($tasks);
+
+        // Process parallel results
+        foreach ($results as $result) {
+            if ($result['success']) {
+                foreach ($result['pages'] as $page) {
+                    $allPages[] = array_merge($page, [
+                        'property_id' => $result['property_id'],
+                        'property_name' => $result['property_name'],
+                    ]);
+                }
+            } else {
+                $errors[] = [
+                    'property_id' => $result['property_id'],
+                    'property_name' => $result['property_name'],
+                    'error' => $result['error'],
                 ];
             }
         }
@@ -163,18 +188,40 @@ class AnalyticsAggregator
     }
 
     /**
-     * Aggregate traffic sources from multiple properties.
+     * Aggregate traffic sources from multiple properties using parallel execution.
      */
     public function aggregateTrafficSources(Collection $properties, Period $period): array
     {
         $sourcesByKey = [];
         $errors = [];
 
-        foreach ($properties as $property) {
+        // Execute all property fetches in parallel
+        $tasks = $properties->map(fn ($property) => fn () => (function () use ($property, $period) {
             try {
                 $sources = $this->dataFetcher->fetchTrafficSources($property, $period);
 
-                foreach ($sources as $source) {
+                return [
+                    'success' => true,
+                    'property_id' => $property->property_id,
+                    'property_name' => $property->name,
+                    'sources' => $sources,
+                ];
+            } catch (\Exception $e) {
+                return [
+                    'success' => false,
+                    'property_id' => $property->property_id,
+                    'property_name' => $property->name,
+                    'error' => $e->getMessage(),
+                ];
+            }
+        })())->all();
+
+        $results = Concurrency::driver('sync')->run($tasks);
+
+        // Process parallel results
+        foreach ($results as $result) {
+            if ($result['success']) {
+                foreach ($result['sources'] as $source) {
                     $key = $source['source'].'_'.$source['medium'];
 
                     if (! isset($sourcesByKey[$key])) {
@@ -190,15 +237,15 @@ class AnalyticsAggregator
                     $sourcesByKey[$key]['sessions'] += $source['sessions'];
                     $sourcesByKey[$key]['users'] += $source['users'];
                     $sourcesByKey[$key]['properties'][] = [
-                        'property_id' => $property->property_id,
-                        'property_name' => $property->name,
+                        'property_id' => $result['property_id'],
+                        'property_name' => $result['property_name'],
                     ];
                 }
-            } catch (\Exception $e) {
+            } else {
                 $errors[] = [
-                    'property_id' => $property->property_id,
-                    'property_name' => $property->name,
-                    'error' => $e->getMessage(),
+                    'property_id' => $result['property_id'],
+                    'property_name' => $result['property_name'],
+                    'error' => $result['error'],
                 ];
             }
         }
@@ -215,18 +262,40 @@ class AnalyticsAggregator
     }
 
     /**
-     * Aggregate device data from multiple properties.
+     * Aggregate device data from multiple properties using parallel execution.
      */
     public function aggregateDevices(Collection $properties, Period $period): array
     {
         $devicesByCategory = [];
         $errors = [];
 
-        foreach ($properties as $property) {
+        // Execute all property fetches in parallel
+        $tasks = $properties->map(fn ($property) => fn () => (function () use ($property, $period) {
             try {
                 $devices = $this->dataFetcher->fetchDevices($property, $period);
 
-                foreach ($devices as $device) {
+                return [
+                    'success' => true,
+                    'property_id' => $property->property_id,
+                    'property_name' => $property->name,
+                    'devices' => $devices,
+                ];
+            } catch (\Exception $e) {
+                return [
+                    'success' => false,
+                    'property_id' => $property->property_id,
+                    'property_name' => $property->name,
+                    'error' => $e->getMessage(),
+                ];
+            }
+        })())->all();
+
+        $results = Concurrency::driver('sync')->run($tasks);
+
+        // Process parallel results
+        foreach ($results as $result) {
+            if ($result['success']) {
+                foreach ($result['devices'] as $device) {
                     $category = $device['device'];
 
                     if (! isset($devicesByCategory[$category])) {
@@ -240,11 +309,11 @@ class AnalyticsAggregator
                     $devicesByCategory[$category]['users'] += $device['users'];
                     $devicesByCategory[$category]['sessions'] += $device['sessions'];
                 }
-            } catch (\Exception $e) {
+            } else {
                 $errors[] = [
-                    'property_id' => $property->property_id,
-                    'property_name' => $property->name,
-                    'error' => $e->getMessage(),
+                    'property_id' => $result['property_id'],
+                    'property_name' => $result['property_name'],
+                    'error' => $result['error'],
                 ];
             }
         }
