@@ -438,9 +438,22 @@ class AnalyticsService
      */
     public function getRealtimeActiveUsers(?array $propertyIds = null): array
     {
-        // Temporary: Disable cache to debug aggregate data issue
-        // TODO: Re-enable cache after debugging
+        // Generate cache key based on property IDs
+        $cacheKey = 'realtime_users:'.($propertyIds ? implode(',', $propertyIds) : 'all');
 
+        // Check if cached data exists
+        $cachedData = Cache::get($cacheKey);
+        $cacheTimestamp = Cache::get($cacheKey.':timestamp');
+
+        // Return cached data if available and fresh (< 30 seconds old)
+        if ($cachedData && $cacheTimestamp) {
+            $cacheAge = now()->diffInSeconds($cacheTimestamp);
+            if ($cacheAge < 30) {
+                return $cachedData;
+            }
+        }
+
+        // Fetch fresh data
         $query = GaProperty::active();
 
         if ($propertyIds) {
@@ -469,11 +482,17 @@ class AnalyticsService
         // Sort by active users descending
         usort($propertyBreakdown, fn ($a, $b) => $b['active_users'] <=> $a['active_users']);
 
-        return [
+        $result = [
             'total_active_users' => $totalActiveUsers,
             'property_breakdown' => $propertyBreakdown,
             'properties_count' => $properties->count(),
             'timestamp' => now()->toIso8601String(),
         ];
+
+        // Cache the result for 30 seconds using the same pattern as SmartAnalyticsCache
+        Cache::put($cacheKey, $result, now()->addSeconds(30));
+        Cache::put($cacheKey.':timestamp', now(), now()->addSeconds(30));
+
+        return $result;
     }
 }
