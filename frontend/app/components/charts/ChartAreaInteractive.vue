@@ -147,7 +147,8 @@ const svgDefs = `
 const timeRange = ref("90d")
 
 const filterRange = computed(() => {
-  const today = new Date()
+  // Use the last date in the data as reference instead of today
+  const referenceDate = new Date("2024-06-30")
   const dayCount =
     timeRange.value === "90d"
       ? 90
@@ -159,8 +160,8 @@ const filterRange = computed(() => {
 
   return chartData.filter((item) => {
     const date = item.date
-    const diff = (today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
-    return diff <= dayCount
+    const diff = (referenceDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+    return diff >= 0 && diff <= dayCount
   })
 })
 </script>
