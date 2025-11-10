@@ -7,7 +7,7 @@
     >
       <div class="flex items-center justify-between">
         <div class="inline-flex items-center gap-x-2">
-          <p class="text-foreground text-base font-medium tracking-tight">
+          <p class="text-foreground text-sm font-medium tracking-tight">
             {{ metric.label }}
           </p>
 

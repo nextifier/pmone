@@ -1,15 +1,15 @@
 <template>
-  <div class="min-h-screen-offset mx-auto flex max-w-7xl flex-col space-y-6 pb-12">
+  <div class="min-h-screen-offset mx-auto flex max-w-7xl flex-col gap-y-6 pb-12">
     <!-- <pre v-if="aggregateData">
         {{ aggregateData }}
     </pre> -->
-    <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
+    <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-6">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:analysis-text-link" class="size-5 sm:size-6" />
         <h1 class="page-title">Web Analytics Dashboard</h1>
       </div>
 
-      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div class="flex shrink-0 gap-1 sm:ml-auto sm:gap-2">
         <NuxtLink
           to="/web-analytics/docs"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
@@ -27,31 +27,29 @@
       </div>
     </div>
 
-    <div class="flex flex-wrap items-center justify-between gap-4">
-      <div class="flex flex-wrap items-center gap-4">
-        <div class="flex items-center gap-2">
-          <!-- <label class="text-muted-foreground text-sm font-medium"> Date Range: </label> -->
-          <select
-            v-model="selectedRange"
-            @change="handleDateRangeChange"
-            class="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
-          >
-            <option value="7">Last 7 days</option>
-            <option value="14">Last 14 days</option>
-            <option value="30">Last 30 days</option>
-            <option value="90">Last 90 days</option>
-          </select>
-        </div>
+    <div class="flex flex-wrap items-center justify-between gap-6">
+      <div class="flex flex-wrap items-center gap-3">
+        <Select v-model="selectedRange" @update:model-value="handleDateRangeChange">
+          <SelectTrigger class="w-40">
+            <SelectValue placeholder="Select date range" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="7">Last 7 days</SelectItem>
+            <SelectItem value="14">Last 14 days</SelectItem>
+            <SelectItem value="30">Last 30 days</SelectItem>
+            <SelectItem value="90">Last 90 days</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <div class="text-sm font-medium tracking-tight">
+        <div class="text-muted-foreground text-sm font-medium tracking-tighter">
           {{ formatDate(startDate) }} - {{ formatDate(endDate) }}
         </div>
       </div>
 
       <div class="text-muted-foreground flex items-center gap-x-1.5 text-sm tracking-tight">
-        <div v-if="!cacheInfo || cacheInfo?.is_updating" class="flex items-center gap-x-1.5">
+        <div v-if="!cacheInfo || cacheInfo?.is_updating" class="flex items-center gap-x-1">
           <Spinner class="size-3.5 shrink-0" />
-          <span>Updating...</span>
+          <span>Updating..</span>
         </div>
         <div v-else>
           <span
@@ -93,21 +91,66 @@
       </div>
     </div>
 
-    <template v-else-if="aggregateData">
-      <AnalyticsSummaryCards :metrics="summaryMetrics" />
-
-      <div v-if="propertyBreakdown.length > 0" class="space-y-4">
-        <div>
-          <h2 class="text-foreground flex items-center gap-2 font-semibold">
-            <Icon name="hugeicons:analytics-01" class="size-5" />
-            Analytics by Property
-          </h2>
-          <p class="text-muted-foreground text-sm">
-            {{ propertyBreakdown.length }} active
-            {{ propertyBreakdown.length === 1 ? "property" : "properties" }}
-          </p>
+    <div v-else-if="aggregateData" class="grid gap-y-10">
+      <div
+        v-if="aggregateData.errors && aggregateData.errors.length > 0"
+        class="bg-destructive/5 border-destructive/20 flex flex-col gap-3 rounded-lg border p-4"
+      >
+        <div class="flex items-start gap-2">
+          <Icon name="hugeicons:alert-circle" class="text-destructive mt-0.5 size-5 shrink-0" />
+          <div class="flex-1">
+            <h3 class="text-foreground font-semibold tracking-tight">
+              Some properties failed to load
+            </h3>
+            <p class="text-muted-foreground mt-1 text-sm tracking-tight">
+              {{ aggregateData.errors.length }} of {{ aggregateData.properties_count }} properties
+              encountered errors. Data shown below may be incomplete.
+            </p>
+          </div>
+          <button
+            v-if="hasRateLimitErrors"
+            @click="clearRateLimit"
+            :disabled="clearingRateLimit"
+            class="bg-destructive hover:bg-destructive/90 flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-white transition disabled:opacity-50"
+          >
+            <Spinner v-if="clearingRateLimit" class="size-3.5" />
+            <Icon v-else name="hugeicons:refresh" class="size-4" />
+            <span>{{ clearingRateLimit ? "Clearing..." : "Clear Rate Limit" }}</span>
+          </button>
         </div>
-        <div class="grid gap-4">
+        <div class="ml-7 space-y-2">
+          <div
+            v-for="(err, index) in aggregateData.errors"
+            :key="index"
+            class="bg-background/50 border-destructive/10 flex items-start gap-2 rounded-md border p-2.5 text-sm"
+          >
+            <div class="flex-1">
+              <span class="font-medium">{{ err.property_name }}</span>
+              <span class="text-muted-foreground ml-1 text-xs">({{ err.property_id }})</span>
+              <p class="text-destructive mt-0.5 text-xs">{{ err.error }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-foreground text-lg font-semibold tracking-tighter">Overall Performance</h2>
+        <p class="text-muted-foreground mt-1 text-sm tracking-tight">
+          Combined metrics from all properties.
+        </p>
+        <AnalyticsSummaryCards :metrics="summaryMetrics" class="mt-4" />
+      </div>
+
+      <div v-if="propertyBreakdown.length > 0">
+        <h2 class="text-foreground text-lg font-semibold tracking-tighter">
+          Analytics by Property
+        </h2>
+        <p class="text-muted-foreground mt-1 text-sm tracking-tight">
+          {{ propertyBreakdown.length }} active
+          {{ propertyBreakdown.length === 1 ? "property" : "properties" }}.
+        </p>
+
+        <div class="mt-4 grid gap-4">
           <AnalyticsPropertyCard
             v-for="property in propertyBreakdown"
             :key="property.property_id"
@@ -183,7 +226,7 @@
         v-if="aggregateData.devices?.length > 0"
         :devices="aggregateData.devices"
       />
-    </template>
+    </div>
 
     <div
       v-else
@@ -200,7 +243,17 @@
 </template>
 
 <script setup>
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "vue-sonner";
+
 const { $dayjs } = useNuxtApp();
+const sanctumFetch = useSanctumClient();
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -318,8 +371,8 @@ const propertyBreakdown = computed(() => {
   });
 });
 
-const handleDateRangeChange = async () => {
-  await changeDateRange(parseInt(selectedRange.value));
+const handleDateRangeChange = async (value) => {
+  await changeDateRange(parseInt(value));
 };
 
 const refreshData = () => {
@@ -343,7 +396,7 @@ const formatDuration = (seconds) => {
   return `${minutes}m ${secs}s`;
 };
 
-const formatDate = (date) => date.format("MMM DD, YYYY");
+const formatDate = (date) => date.format("MMM D");
 
 const formatCacheAge = (minutes) => {
   if (!minutes || minutes < 1) return "just now";
@@ -375,6 +428,36 @@ const displayedTrafficSources = computed(() => {
 
 const toggleTrafficSources = () => {
   showAllTrafficSources.value = !showAllTrafficSources.value;
+};
+
+// Rate limit handling
+const clearingRateLimit = ref(false);
+
+const hasRateLimitErrors = computed(() => {
+  if (!aggregateData.value?.errors) return false;
+  return aggregateData.value.errors.some((err) => err.error.toLowerCase().includes("rate limit"));
+});
+
+const clearRateLimit = async () => {
+  clearingRateLimit.value = true;
+
+  try {
+    await sanctumFetch("/api/google-analytics/rate-limit", {
+      method: "DELETE",
+    });
+
+    toast.success("Rate limit cleared successfully");
+
+    // Refresh analytics data
+    await fetchAnalytics(true);
+  } catch (error) {
+    console.error("Error clearing rate limit:", error);
+    toast.error("Failed to clear rate limit", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    clearingRateLimit.value = false;
+  }
 };
 
 onMounted(() => {

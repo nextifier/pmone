@@ -44,7 +44,7 @@ class SmartAnalyticsCache
             $nextUpdateIn = $nextUpdate ? max(0, now()->diffInMinutes($nextUpdate, false)) : 0;
 
             // If cache is stale, dispatch background job to refresh it
-            if (!$isFresh && !$this->isRefreshJobQueued($cacheKey)) {
+            if (! $isFresh && ! $this->isRefreshJobQueued($cacheKey)) {
                 $this->dispatchBackgroundRefresh($property, $startDate, $endDate, $fetchCallback, $cacheKey);
             }
 
@@ -55,7 +55,7 @@ class SmartAnalyticsCache
                 'cache_age_minutes' => $cacheAge,
                 'next_update_in_minutes' => abs($nextUpdateIn),
                 'is_fresh' => $isFresh,
-                'is_updating' => !$isFresh,
+                'is_updating' => ! $isFresh,
             ];
         }
 
@@ -126,7 +126,7 @@ class SmartAnalyticsCache
         Cache::put(CacheKey::refreshing($cacheKey), true, now()->addMinutes(5));
 
         // Dispatch job to fetch new data in background
-        dispatch(function () use ($property, $startDate, $endDate, $fetchCallback, $cacheKey) {
+        dispatch(function () use ($property, $fetchCallback, $cacheKey) {
             try {
                 $freshData = $fetchCallback();
                 $cacheDuration = $this->getDynamicCacheDuration($property);
@@ -214,10 +214,12 @@ class SmartAnalyticsCache
      */
     protected function getMaxAttemptsPerProperty(GaProperty $property): int
     {
-        // Default rate limit: 12 requests per hour
-        $rateLimitPerHour = 12;
+        // Increased rate limit: 120 requests per hour to prevent frequent rate limiting
+        // With 13+ properties and concurrent requests, this provides better headroom
+        $rateLimitPerHour = 120;
 
         // Convert hourly rate limit to per-sync-frequency limit
+        // For 10min sync_frequency: ceil(120 / 6) = 20 attempts per 10 minutes
         return (int) ceil($rateLimitPerHour / (60 / $property->sync_frequency));
     }
 

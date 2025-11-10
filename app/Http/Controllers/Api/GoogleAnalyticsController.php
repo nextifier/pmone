@@ -518,6 +518,47 @@ class GoogleAnalyticsController extends Controller
     }
 
     /**
+     * Clear rate limit cache for analytics.
+     */
+    public function clearRateLimit(Request $request): JsonResponse
+    {
+        $propertyId = $request->input('property_id');
+
+        $driver = config('cache.default');
+
+        if ($driver === 'database') {
+            if ($propertyId) {
+                // Clear rate limit for specific property
+                $deleted = \DB::table('cache')
+                    ->where('key', 'like', "%analytics-fetch:{$propertyId}%")
+                    ->delete();
+
+                return response()->json([
+                    'message' => "Rate limit cleared for property {$propertyId}",
+                    'deleted' => $deleted,
+                ]);
+            } else {
+                // Clear all analytics rate limits
+                $deleted = \DB::table('cache')
+                    ->where(function ($query) {
+                        $query->where('key', 'like', '%analytics-fetch:%')
+                            ->orWhere('key', 'like', '%limiter:%');
+                    })
+                    ->delete();
+
+                return response()->json([
+                    'message' => 'All analytics rate limits cleared',
+                    'deleted' => $deleted,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Cache driver does not support selective clearing. Please use cache:clear command.',
+        ], 400);
+    }
+
+    /**
      * Get realtime active users (last 30 minutes).
      */
     public function getRealtimeActiveUsers(Request $request): JsonResponse

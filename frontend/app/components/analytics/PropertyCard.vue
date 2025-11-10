@@ -1,10 +1,12 @@
 <template>
   <NuxtLink
     :to="`/web-analytics/${property.property_id}`"
-    class="border-border bg-card hover:bg-muted/50 group relative flex flex-col gap-4 rounded-lg border p-5 transition-all hover:shadow-md"
+    class="border-border hover:bg-muted/50 group relative flex flex-col gap-4 rounded-lg border p-5 transition active:scale-98"
   >
     <!-- Header with Avatar, Name, and Property ID -->
-    <div class="flex items-start gap-3">
+    <GaPropertyProfile :model="property" />
+
+    <!-- <div class="flex items-start gap-3">
       <Avatar v-if="property.project" :model="property.project" class="size-12" />
       <div class="min-w-0 flex-1">
         <h3
@@ -14,7 +16,7 @@
         </h3>
         <p class="text-muted-foreground truncate text-sm">ID: {{ property.property_id }}</p>
       </div>
-    </div>
+    </div> -->
 
     <!-- Metrics Grid -->
     <div class="grid grid-cols-2 gap-3">
@@ -27,7 +29,7 @@
             :format="{ notation: 'compact' }"
           />
 
-          <div
+          <!-- <div
             v-if="property.metrics?.onlineUsers > 0"
             class="inline-flex items-center gap-1.5 rounded-full bg-green-500/20 px-2.5 py-1 text-xs font-medium text-green-700 dark:text-green-300"
           >
@@ -38,7 +40,7 @@
               <span class="relative inline-flex size-2 rounded-full bg-green-500"></span>
             </span>
             LIVE
-          </div>
+          </div> -->
         </div>
       </div>
 
