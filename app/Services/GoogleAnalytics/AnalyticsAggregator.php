@@ -3,7 +3,6 @@
 namespace App\Services\GoogleAnalytics;
 
 use App\Services\GoogleAnalytics\Concerns\CalculatesTotalsFromRows;
-use App\Services\GoogleAnalytics\Period;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Concurrency;
 
@@ -85,6 +84,9 @@ class AnalyticsAggregator
 
                     $successfulFetches++;
 
+                    // Get property with project relationship to include profile_image
+                    $propertyWithProject = $properties->firstWhere('property_id', $result['property_id']);
+
                     $propertyData[] = [
                         'property_id' => $result['property_id'],
                         'property_name' => $result['property_name'],
@@ -92,6 +94,11 @@ class AnalyticsAggregator
                         'is_fresh' => $result['is_fresh'],
                         // cached_at now contains property's last_synced_at, showing individual sync times
                         'cached_at' => $result['cached_at'],
+                        'project' => $propertyWithProject && $propertyWithProject->project ? [
+                            'id' => $propertyWithProject->project->id,
+                            'name' => $propertyWithProject->project->name,
+                            'profile_image' => $propertyWithProject->project->getMediaUrls('profile_image'),
+                        ] : null,
                     ];
                 }
             } else {

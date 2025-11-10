@@ -405,8 +405,8 @@ class GoogleAnalyticsController extends Controller
                 days: $days
             );
 
-            // Get all active properties
-            $properties = \App\Models\GaProperty::active()->get();
+            // Get all active properties with project relationship
+            $properties = \App\Models\GaProperty::active()->with('project')->get();
 
             if ($properties->isEmpty()) {
                 $syncLog->markFailed('No active properties found');

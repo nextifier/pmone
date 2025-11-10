@@ -253,8 +253,8 @@ class AnalyticsService
                 ]);
 
                 $properties = $propertyIds
-                    ? GaProperty::active()->whereIn('property_id', $propertyIds)->get()
-                    : GaProperty::active()->get();
+                    ? GaProperty::active()->with('project')->whereIn('property_id', $propertyIds)->get()
+                    : GaProperty::active()->with('project')->get();
 
                 if ($properties->isEmpty()) {
                     \Log::warning('No active properties found for background refresh');
