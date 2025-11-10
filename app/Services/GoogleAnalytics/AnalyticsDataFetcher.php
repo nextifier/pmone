@@ -13,6 +13,14 @@ use Google\Analytics\Data\V1beta\RunReportRequest;
 
 class AnalyticsDataFetcher
 {
+    /**
+     * Client pool to reuse GA4 client instances.
+     * Prevents creating new clients for every request.
+     *
+     * @var array<string, BetaAnalyticsDataClient>
+     */
+    protected static array $clientPool = [];
+
     public function __construct(
         protected SmartAnalyticsCache $cache
     ) {}
@@ -35,7 +43,7 @@ class AnalyticsDataFetcher
     }
 
     /**
-     * Fetch data directly from GA4 API.
+     * Fetch data directly from GA4 API with quota handling and retry logic.
      */
     protected function fetchFromGA4(
         GaProperty $property,
@@ -43,27 +51,151 @@ class AnalyticsDataFetcher
         string $endDate,
         array $metrics
     ): array {
-        try {
-            $client = $this->createGA4Client($property);
+        $maxRetries = config('analytics.retry.max_attempts', 3);
+        $retryDelays = config('analytics.retry.delays', [1, 2, 4]); // Exponential backoff in seconds
 
-            $response = $this->runReport($client, $property, $startDate, $endDate, $metrics);
+        for ($attempt = 0; $attempt <= $maxRetries; $attempt++) {
+            try {
+                $client = $this->createGA4Client($property);
 
-            return $this->formatResponse($response, $metrics);
-        } catch (\Exception $e) {
-            throw new \Exception("Failed to fetch data from GA4 for property {$property->name}: {$e->getMessage()}");
+                $response = $this->runReport($client, $property, $startDate, $endDate, $metrics);
+
+                return $this->formatResponse($response, $metrics);
+            } catch (\Exception $e) {
+                // Check if it's a quota error
+                if ($this->isQuotaError($e)) {
+                    $retryAfter = $this->extractRetryAfter($e);
+
+                    \Log::warning('GA4 API quota exceeded', [
+                        'property_id' => $property->property_id,
+                        'property_name' => $property->name,
+                        'attempt' => $attempt + 1,
+                        'retry_after' => $retryAfter,
+                        'error' => $e->getMessage(),
+                    ]);
+
+                    // If we've exhausted retries, throw quota exception
+                    if ($attempt >= $maxRetries) {
+                        throw new \App\Exceptions\Analytics\QuotaExceededException(
+                            "Google Analytics API quota exceeded for property {$property->name}",
+                            $retryAfter,
+                            $property->property_id
+                        );
+                    }
+
+                    // Wait before retry with exponential backoff
+                    $delay = $retryAfter ?? $retryDelays[$attempt];
+                    \Log::info("Retrying after {$delay} seconds...");
+                    sleep($delay);
+
+                    continue;
+                }
+
+                // Check if it's a transient network error
+                if ($this->isTransientError($e)) {
+                    if ($attempt >= $maxRetries) {
+                        throw new \Exception("Failed to fetch data from GA4 for property {$property->name} after {$maxRetries} retries: {$e->getMessage()}");
+                    }
+
+                    \Log::warning('Transient error, retrying...', [
+                        'property_id' => $property->property_id,
+                        'attempt' => $attempt + 1,
+                        'error' => $e->getMessage(),
+                    ]);
+
+                    sleep($retryDelays[$attempt]);
+                    continue;
+                }
+
+                // Non-retryable error
+                throw new \Exception("Failed to fetch data from GA4 for property {$property->name}: {$e->getMessage()}");
+            }
         }
+
+        // This should never be reached
+        throw new \Exception("Failed to fetch data from GA4 for property {$property->name}: Maximum retries exceeded");
     }
 
     /**
-     * Create GA4 client for specific property.
+     * Check if exception is a quota error.
+     */
+    protected function isQuotaError(\Exception $e): bool
+    {
+        $message = strtolower($e->getMessage());
+
+        return str_contains($message, 'quota') ||
+               str_contains($message, 'rate limit') ||
+               str_contains($message, 'too many requests') ||
+               str_contains($message, '429');
+    }
+
+    /**
+     * Check if exception is a transient network error.
+     */
+    protected function isTransientError(\Exception $e): bool
+    {
+        $message = strtolower($e->getMessage());
+
+        return str_contains($message, 'timeout') ||
+               str_contains($message, 'connection') ||
+               str_contains($message, 'network') ||
+               str_contains($message, '503') ||
+               str_contains($message, '502') ||
+               str_contains($message, '504');
+    }
+
+    /**
+     * Extract retry-after value from error message.
+     */
+    protected function extractRetryAfter(\Exception $e): ?int
+    {
+        $message = $e->getMessage();
+
+        // Try to extract retry-after header value
+        if (preg_match('/retry[_\s-]?after[:\s]+(\d+)/i', $message, $matches)) {
+            return (int) $matches[1];
+        }
+
+        return null;
+    }
+
+    /**
+     * Create or reuse GA4 client for specific property.
+     * Implements client pooling to prevent creating duplicate instances.
      */
     protected function createGA4Client(GaProperty $property): BetaAnalyticsDataClient
     {
         $credentialsPath = config('analytics.service_account_credentials_json');
 
-        return new BetaAnalyticsDataClient([
+        // Use credentials path as pool key since all properties share same credentials
+        $poolKey = md5($credentialsPath);
+
+        // Return existing client if available
+        if (isset(self::$clientPool[$poolKey])) {
+            return self::$clientPool[$poolKey];
+        }
+
+        // Create new client and store in pool
+        self::$clientPool[$poolKey] = new BetaAnalyticsDataClient([
             'credentials' => $credentialsPath,
         ]);
+
+        \Log::info('Created new GA4 client and added to pool', [
+            'pool_key' => $poolKey,
+            'pool_size' => count(self::$clientPool),
+        ]);
+
+        return self::$clientPool[$poolKey];
+    }
+
+    /**
+     * Clear the client pool.
+     * Useful for testing or when credentials change.
+     */
+    public static function clearClientPool(): void
+    {
+        self::$clientPool = [];
+        \Log::info('GA4 client pool cleared');
     }
 
     /**

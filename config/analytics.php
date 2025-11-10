@@ -30,4 +30,90 @@ return [
     'cache' => [
         'store' => 'file',
     ],
+
+    /*
+     * Smart caching configuration
+     */
+    'smart_cache' => [
+        /*
+         * Minimum cache duration in minutes
+         */
+        'min_duration' => 5,
+
+        /*
+         * Maximum cache duration in minutes
+         */
+        'max_duration' => 30,
+
+        /*
+         * Cache freshness during peak hours (in minutes)
+         */
+        'peak_hours_freshness' => 10,
+
+        /*
+         * Cache freshness during off-peak hours (in minutes)
+         */
+        'off_peak_freshness' => 30,
+
+        /*
+         * Peak hours range (9am to 5pm)
+         */
+        'peak_hours_start' => 9,
+        'peak_hours_end' => 17,
+
+        /*
+         * Rate limit per property per hour
+         */
+        'rate_limit_per_hour' => 120,
+    ],
+
+    /*
+     * API retry configuration for transient failures
+     */
+    'retry' => [
+        /*
+         * Maximum number of retry attempts
+         */
+        'max_attempts' => 3,
+
+        /*
+         * Retry delay in seconds (exponential backoff)
+         */
+        'delays' => [1, 2, 4],
+    ],
+
+    /*
+     * Chunking configuration for large datasets
+     */
+    'chunking' => [
+        /*
+         * Number of properties to process per chunk
+         */
+        'properties_per_chunk' => 100,
+
+        /*
+         * Threshold to trigger chunking
+         */
+        'chunk_threshold' => 100,
+    ],
+
+    /*
+     * API request timeout in seconds
+     */
+    'timeout' => 120,
+
+    /*
+     * Rate limiting configuration for endpoints
+     */
+    'rate_limiting' => [
+        /*
+         * Maximum number of requests per minute
+         */
+        'requests_per_minute' => 60,
+
+        /*
+         * Maximum number of sync requests per hour
+         */
+        'sync_requests_per_hour' => 2,
+    ],
 ];

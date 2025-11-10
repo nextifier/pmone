@@ -6,17 +6,12 @@
     <!-- Header with Avatar, Name, and Property ID -->
     <GaPropertyProfile :model="property" />
 
-    <!-- <div class="flex items-start gap-3">
-      <Avatar v-if="property.project" :model="property.project" class="size-12" />
-      <div class="min-w-0 flex-1">
-        <h3
-          class="text-foreground group-hover:text-primary truncate text-base font-semibold transition-colors"
-        >
-          {{ property.property_name }}
-        </h3>
-        <p class="text-muted-foreground truncate text-sm">ID: {{ property.property_id }}</p>
-      </div>
-    </div> -->
+    <!-- Chart Area - Daily Performance -->
+    <AnalyticsPropertyChartArea
+      v-if="property.rows && property.rows.length > 0"
+      :rows="property.rows"
+      :property-name="property.property_id"
+    />
 
     <!-- Metrics Grid -->
     <div class="grid grid-cols-2 gap-3">

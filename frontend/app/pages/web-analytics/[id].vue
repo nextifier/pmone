@@ -580,9 +580,15 @@ const fetchPropertyAnalytics = async () => {
     );
 
     propertyData.value = data;
-  } catch (err) {
+  } catch (err: any) {
     console.error("Error fetching property analytics:", err);
-    error.value = err.data?.message || err.message || "Failed to load property analytics";
+
+    // Handle rate limit errors specifically
+    if (err.status === 429 || err.statusCode === 429) {
+      error.value = "Too many requests. Please wait a moment and try again.";
+    } else {
+      error.value = err.data?.message || err.message || "Failed to load property analytics";
+    }
   } finally {
     loading.value = false;
   }

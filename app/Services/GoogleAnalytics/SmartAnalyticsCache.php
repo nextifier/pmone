@@ -12,9 +12,15 @@ class SmartAnalyticsCache
 {
     use CalculatesTotalsFromRows;
 
-    protected int $minCacheDuration = 5; // 5 minutes minimum
+    protected int $minCacheDuration;
 
-    protected int $maxCacheDuration = 30; // 30 minutes maximum
+    protected int $maxCacheDuration;
+
+    public function __construct()
+    {
+        $this->minCacheDuration = config('analytics.smart_cache.min_duration', 5);
+        $this->maxCacheDuration = config('analytics.smart_cache.max_duration', 30);
+    }
 
     /**
      * Get data with smart caching strategy.
@@ -168,13 +174,13 @@ class SmartAnalyticsCache
 
         $age = now()->diffInMinutes($cacheTimestamp);
 
-        // During peak hours (9am-5pm), cache expires faster
+        // During peak hours, cache expires faster
         if ($this->isPeakHours()) {
-            return $age < 10; // 10 minutes (increased from 5)
+            return $age < config('analytics.smart_cache.peak_hours_freshness', 10);
         }
 
         // Outside peak hours, cache lasts longer
-        return $age < 30; // 30 minutes (increased from 15)
+        return $age < config('analytics.smart_cache.off_peak_freshness', 30);
     }
 
     /**
@@ -205,8 +211,10 @@ class SmartAnalyticsCache
     protected function isPeakHours(): bool
     {
         $hour = now()->hour;
+        $start = config('analytics.smart_cache.peak_hours_start', 9);
+        $end = config('analytics.smart_cache.peak_hours_end', 17);
 
-        return $hour >= 9 && $hour <= 17 && ! now()->isWeekend();
+        return $hour >= $start && $hour <= $end && ! now()->isWeekend();
     }
 
     /**
@@ -214,9 +222,7 @@ class SmartAnalyticsCache
      */
     protected function getMaxAttemptsPerProperty(GaProperty $property): int
     {
-        // Increased rate limit: 120 requests per hour to prevent frequent rate limiting
-        // With 13+ properties and concurrent requests, this provides better headroom
-        $rateLimitPerHour = 120;
+        $rateLimitPerHour = config('analytics.smart_cache.rate_limit_per_hour', 120);
 
         // Convert hourly rate limit to per-sync-frequency limit
         // For 10min sync_frequency: ceil(120 / 6) = 20 attempts per 10 minutes
