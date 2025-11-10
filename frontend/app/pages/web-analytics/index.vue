@@ -226,6 +226,37 @@
         v-if="aggregateData.devices?.length > 0"
         :devices="aggregateData.devices"
       />
+
+      <div v-if="aggregateData" class="space-y-4">
+        <div>
+          <h2 class="text-foreground text-lg font-semibold tracking-tighter">Data Visualizations</h2>
+          <p class="text-muted-foreground mt-1 text-sm tracking-tight">
+            Interactive charts and graphs for better insights
+          </p>
+        </div>
+
+        <div class="grid gap-6 lg:grid-cols-2">
+          <AnalyticsTopPagesChart
+            v-if="aggregateData.top_pages?.length > 0"
+            :top-pages="aggregateData.top_pages"
+          />
+
+          <AnalyticsTrafficSourcesChart
+            v-if="aggregateData.traffic_sources?.length > 0"
+            :traffic-sources="aggregateData.traffic_sources"
+          />
+
+          <AnalyticsDevicesChart
+            v-if="aggregateData.devices?.length > 0"
+            :devices="aggregateData.devices"
+          />
+
+          <AnalyticsPropertiesChart
+            v-if="propertyBreakdown.length > 0"
+            :properties="propertyBreakdown"
+          />
+        </div>
+      </div>
     </div>
 
     <div
