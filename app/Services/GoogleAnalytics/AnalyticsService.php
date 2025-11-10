@@ -37,7 +37,8 @@ class AnalyticsService
     public function __construct(
         protected AnalyticsDataFetcher $dataFetcher,
         protected AnalyticsAggregator $aggregator,
-        protected SmartAnalyticsCache $cache
+        protected SmartAnalyticsCache $cache,
+        protected AnalyticsMetrics $metrics
     ) {}
 
     /**
@@ -598,6 +599,138 @@ class AnalyticsService
             \Carbon\Carbon::parse($startDate),
             \Carbon\Carbon::parse($endDate)
         );
+    }
+
+    /**
+     * Get analytics comparison between current and previous period.
+     * Calculates changes and trends for all metrics.
+     */
+    public function getComparisonAnalytics(Period $currentPeriod, ?array $propertyIds = null): array
+    {
+        // Calculate previous period with same duration
+        $duration = $currentPeriod->startDate->diffInDays($currentPeriod->endDate);
+        $previousStart = $currentPeriod->startDate->copy()->subDays($duration + 1);
+        $previousEnd = $currentPeriod->startDate->copy()->subDay();
+        $previousPeriod = Period::create($previousStart, $previousEnd);
+
+        // Fetch both periods
+        $current = $this->getAggregatedAnalytics($currentPeriod, $propertyIds);
+        $previous = $this->getAggregatedAnalytics($previousPeriod, $propertyIds);
+
+        // Calculate changes for totals
+        $comparison = [
+            'current' => $current,
+            'previous' => $previous,
+            'changes' => $this->calculateChanges($current['totals'], $previous['totals']),
+            'periods' => [
+                'current' => [
+                    'start_date' => $currentPeriod->startDate->format('Y-m-d'),
+                    'end_date' => $currentPeriod->endDate->format('Y-m-d'),
+                    'days' => $duration + 1,
+                ],
+                'previous' => [
+                    'start_date' => $previousPeriod->startDate->format('Y-m-d'),
+                    'end_date' => $previousPeriod->endDate->format('Y-m-d'),
+                    'days' => $duration + 1,
+                ],
+            ],
+        ];
+
+        return $comparison;
+    }
+
+    /**
+     * Calculate metric changes between two periods.
+     */
+    protected function calculateChanges(array $current, array $previous): array
+    {
+        $changes = [];
+
+        foreach ($current as $metric => $currentValue) {
+            $previousValue = $previous[$metric] ?? 0;
+
+            $changes[$metric] = [
+                'current' => $currentValue,
+                'previous' => $previousValue,
+                'absolute_change' => $currentValue - $previousValue,
+                'percentage_change' => $this->calculatePercentageChange($currentValue, $previousValue),
+                'trend' => $this->determineTrend($currentValue, $previousValue),
+            ];
+        }
+
+        return $changes;
+    }
+
+    /**
+     * Calculate percentage change between two values.
+     */
+    protected function calculatePercentageChange(float $current, float $previous): float
+    {
+        if ($previous == 0) {
+            return $current > 0 ? 100.0 : 0.0;
+        }
+
+        return round((($current - $previous) / $previous) * 100, 2);
+    }
+
+    /**
+     * Determine trend direction.
+     */
+    protected function determineTrend(float $current, float $previous): string
+    {
+        $change = $current - $previous;
+
+        if ($change > 0) {
+            return 'up';
+        }
+
+        if ($change < 0) {
+            return 'down';
+        }
+
+        return 'neutral';
+    }
+
+    /**
+     * Get property analytics with comparison.
+     */
+    public function getPropertyAnalyticsWithComparison(GaProperty $property, Period $currentPeriod): array
+    {
+        // Calculate previous period with same duration
+        $duration = $currentPeriod->startDate->diffInDays($currentPeriod->endDate);
+        $previousStart = $currentPeriod->startDate->copy()->subDays($duration + 1);
+        $previousEnd = $currentPeriod->startDate->copy()->subDay();
+        $previousPeriod = Period::create($previousStart, $previousEnd);
+
+        // Fetch both periods
+        $current = $this->getPropertyAnalytics($property, $currentPeriod);
+        $previous = $this->getPropertyAnalytics($property, $previousPeriod);
+
+        return [
+            'current' => $current,
+            'previous' => $previous,
+            'changes' => $this->calculateChanges($current['metrics'], $previous['metrics']),
+            'periods' => [
+                'current' => [
+                    'start_date' => $currentPeriod->startDate->format('Y-m-d'),
+                    'end_date' => $currentPeriod->endDate->format('Y-m-d'),
+                    'days' => $duration + 1,
+                ],
+                'previous' => [
+                    'start_date' => $previousPeriod->startDate->format('Y-m-d'),
+                    'end_date' => $previousPeriod->endDate->format('Y-m-d'),
+                    'days' => $duration + 1,
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Get metrics dashboard data.
+     */
+    public function getMetricsDashboard(): array
+    {
+        return $this->metrics->getDashboardMetrics();
     }
 
     /**

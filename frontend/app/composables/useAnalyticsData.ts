@@ -78,8 +78,11 @@ export function useAnalyticsData(initialDays: number = 30) {
     } catch (err: any) {
       console.error("Error fetching analytics:", err);
 
-      // Only show error if we don't have cached data to fall back on
-      if (!aggregateData.value) {
+      // Handle rate limit errors specifically
+      if (err.status === 429 || err.statusCode === 429) {
+        error.value = "Too many requests. Please wait a moment and try again.";
+      } else if (!aggregateData.value) {
+        // Only show error if we don't have cached data to fall back on
         error.value =
           err.data?.message || err.message || "Failed to load analytics data";
       }

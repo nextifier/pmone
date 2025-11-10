@@ -16,10 +16,14 @@ class SmartAnalyticsCache
 
     protected int $maxCacheDuration;
 
-    public function __construct()
-    {
+    public function __construct(
+        protected ?AnalyticsMetrics $metrics = null
+    ) {
         $this->minCacheDuration = config('analytics.smart_cache.min_duration', 5);
         $this->maxCacheDuration = config('analytics.smart_cache.max_duration', 30);
+
+        // Metrics can be null for backward compatibility
+        $this->metrics = $metrics ?? app(AnalyticsMetrics::class);
     }
 
     /**
@@ -41,6 +45,9 @@ class SmartAnalyticsCache
 
         // CACHE-FIRST: If cache exists, return it immediately (even if stale)
         if ($cachedData) {
+            // Record cache hit
+            $this->metrics?->recordCacheHit('property', $property->property_id);
+
             $isFresh = $this->isCacheStillFresh($cacheTimestamp);
             $lastUpdated = $cacheTimestamp ? $cacheTimestamp->toIso8601String() : null;
             $cacheAge = $cacheTimestamp ? now()->diffInMinutes($cacheTimestamp) : null;
@@ -69,6 +76,9 @@ class SmartAnalyticsCache
         $subsetData = $this->findSubsetFromLargerCache($property->property_id, $startDate, $endDate);
 
         if ($subsetData) {
+            // Record cache hit (subset extraction)
+            $this->metrics?->recordCacheHit('property_subset', $property->property_id);
+
             return [
                 'data' => $subsetData,
                 'cached_at' => now(),
@@ -79,6 +89,9 @@ class SmartAnalyticsCache
                 'from_subset' => true,
             ];
         }
+
+        // Record cache miss
+        $this->metrics?->recordCacheMiss('property', $property->property_id);
 
         // Rate limiting: prevent too many requests
         $maxAttempts = $this->getMaxAttemptsPerProperty($property);

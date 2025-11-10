@@ -22,7 +22,8 @@ class AnalyticsDataFetcher
     protected static array $clientPool = [];
 
     public function __construct(
-        protected SmartAnalyticsCache $cache
+        protected SmartAnalyticsCache $cache,
+        protected AnalyticsMetrics $metrics
     ) {}
 
     /**
@@ -54,17 +55,29 @@ class AnalyticsDataFetcher
         $maxRetries = config('analytics.retry.max_attempts', 3);
         $retryDelays = config('analytics.retry.delays', [1, 2, 4]); // Exponential backoff in seconds
 
+        $startTime = microtime(true);
+        $success = false;
+        $errorType = null;
+
         for ($attempt = 0; $attempt <= $maxRetries; $attempt++) {
             try {
                 $client = $this->createGA4Client($property);
 
                 $response = $this->runReport($client, $property, $startDate, $endDate, $metrics);
 
-                return $this->formatResponse($response, $metrics);
+                $result = $this->formatResponse($response, $metrics);
+
+                // Record successful API call
+                $duration = (int) ((microtime(true) - $startTime) * 1000);
+                $this->metrics->recordApiCall($property->property_id, $duration, true, 'runReport');
+                $this->metrics->recordQuotaUsage($property->property_id, 1);
+
+                return $result;
             } catch (\Exception $e) {
                 // Check if it's a quota error
                 if ($this->isQuotaError($e)) {
                     $retryAfter = $this->extractRetryAfter($e);
+                    $errorType = 'quota_exceeded';
 
                     \Log::warning('GA4 API quota exceeded', [
                         'property_id' => $property->property_id,
@@ -76,6 +89,10 @@ class AnalyticsDataFetcher
 
                     // If we've exhausted retries, throw quota exception
                     if ($attempt >= $maxRetries) {
+                        // Record failed API call
+                        $duration = (int) ((microtime(true) - $startTime) * 1000);
+                        $this->metrics->recordApiCall($property->property_id, $duration, false, 'runReport', $errorType);
+
                         throw new \App\Exceptions\Analytics\QuotaExceededException(
                             "Google Analytics API quota exceeded for property {$property->name}",
                             $retryAfter,
@@ -93,7 +110,13 @@ class AnalyticsDataFetcher
 
                 // Check if it's a transient network error
                 if ($this->isTransientError($e)) {
+                    $errorType = 'transient_error';
+
                     if ($attempt >= $maxRetries) {
+                        // Record failed API call
+                        $duration = (int) ((microtime(true) - $startTime) * 1000);
+                        $this->metrics->recordApiCall($property->property_id, $duration, false, 'runReport', $errorType);
+
                         throw new \Exception("Failed to fetch data from GA4 for property {$property->name} after {$maxRetries} retries: {$e->getMessage()}");
                     }
 
@@ -108,11 +131,18 @@ class AnalyticsDataFetcher
                 }
 
                 // Non-retryable error
+                $errorType = 'fatal_error';
+                $duration = (int) ((microtime(true) - $startTime) * 1000);
+                $this->metrics->recordApiCall($property->property_id, $duration, false, 'runReport', $errorType);
+
                 throw new \Exception("Failed to fetch data from GA4 for property {$property->name}: {$e->getMessage()}");
             }
         }
 
         // This should never be reached
+        $duration = (int) ((microtime(true) - $startTime) * 1000);
+        $this->metrics->recordApiCall($property->property_id, $duration, false, 'runReport', 'max_retries_exceeded');
+
         throw new \Exception("Failed to fetch data from GA4 for property {$property->name}: Maximum retries exceeded");
     }
 
