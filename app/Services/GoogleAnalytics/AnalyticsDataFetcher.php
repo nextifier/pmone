@@ -51,8 +51,8 @@ class AnalyticsDataFetcher
         string $endDate,
         array $metrics
     ): array {
-        $maxRetries = 3;
-        $retryDelays = [1, 2, 4]; // Exponential backoff in seconds
+        $maxRetries = config('analytics.retry.max_attempts', 3);
+        $retryDelays = config('analytics.retry.delays', [1, 2, 4]); // Exponential backoff in seconds
 
         for ($attempt = 0; $attempt <= $maxRetries; $attempt++) {
             try {

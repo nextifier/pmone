@@ -10,6 +10,8 @@ use App\Http\Requests\GoogleAnalytics\StoreGaPropertyRequest;
 use App\Http\Requests\GoogleAnalytics\SyncAnalyticsRequest;
 use App\Http\Requests\GoogleAnalytics\TriggerSyncRequest;
 use App\Http\Requests\GoogleAnalytics\UpdateGaPropertyRequest;
+use App\Http\Resources\GaPropertyCollection;
+use App\Http\Resources\GaPropertyResource;
 use App\Imports\GaPropertiesImport;
 use App\Jobs\AggregateAnalyticsData;
 use App\Jobs\SyncGoogleAnalyticsData;
@@ -68,33 +70,15 @@ class GoogleAnalyticsController extends Controller
 
         // Check if client-only mode
         if ($request->has('client_only')) {
-            $data = $query->with(['tags', 'project.media'])->get()->map(function ($property) {
-                $propertyData = array_merge($property->toArray(), [
-                    'next_sync_at' => $property->next_sync_at,
-                    // Ensure last_synced_at is properly serialized as ISO8601 string
-                    'last_synced_at' => $property->last_synced_at?->toIso8601String(),
-                ]);
-
-                // Simplify tags to just names
-                $propertyData['tags'] = $property->tags->pluck('name')->map(fn ($name) => is_array($name) ? ($name['en'] ?? reset($name)) : $name)->values()->toArray();
-
-                // Add profile_image URLs if project has media
-                if ($property->project) {
-                    $propertyData['project']['profile_image'] = $property->project->getMediaUrls('profile_image');
-                    // Remove media collection from response
-                    unset($propertyData['project']['media']);
-                }
-
-                return $propertyData;
-            });
+            $properties = $query->with(['tags', 'project'])->get();
 
             return response()->json([
-                'data' => $data,
+                'data' => GaPropertyResource::collection($properties),
                 'meta' => [
                     'current_page' => 1,
                     'last_page' => 1,
-                    'per_page' => $data->count(),
-                    'total' => $data->count(),
+                    'per_page' => $properties->count(),
+                    'total' => $properties->count(),
                 ],
             ]);
         }
@@ -103,28 +87,10 @@ class GoogleAnalyticsController extends Controller
         $perPage = $request->input('per_page', 10);
         $page = $request->input('page', 1);
 
-        $properties = $query->with(['tags', 'project.media'])->paginate($perPage, ['*'], 'page', $page);
-
-        $data = collect($properties->items())->map(function ($property) {
-            $propertyData = array_merge($property->toArray(), [
-                'next_sync_at' => $property->next_sync_at,
-            ]);
-
-            // Simplify tags to just names
-            $propertyData['tags'] = $property->tags->pluck('name')->map(fn ($name) => is_array($name) ? ($name['en'] ?? reset($name)) : $name)->values()->toArray();
-
-            // Add profile_image URLs if project has media
-            if ($property->project) {
-                $propertyData['project']['profile_image'] = $property->project->getMediaUrls('profile_image');
-                // Remove media collection from response
-                unset($propertyData['project']['media']);
-            }
-
-            return $propertyData;
-        });
+        $properties = $query->with(['tags', 'project'])->paginate($perPage, ['*'], 'page', $page);
 
         return response()->json([
-            'data' => $data,
+            'data' => GaPropertyResource::collection($properties->items()),
             'meta' => [
                 'current_page' => $properties->currentPage(),
                 'last_page' => $properties->lastPage(),
@@ -139,24 +105,10 @@ class GoogleAnalyticsController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        $property = GaProperty::with(['tags', 'project.media'])->findOrFail($id);
-
-        $propertyData = array_merge($property->toArray(), [
-            'next_sync_at' => $property->next_sync_at,
-        ]);
-
-        // Simplify tags to just names
-        $propertyData['tags'] = $property->tags->pluck('name')->map(fn ($name) => is_array($name) ? ($name['en'] ?? reset($name)) : $name)->values()->toArray();
-
-        // Add profile_image URLs if project has media
-        if ($property->project) {
-            $propertyData['project']['profile_image'] = $property->project->getMediaUrls('profile_image');
-            // Remove media collection from response
-            unset($propertyData['project']['media']);
-        }
+        $property = GaProperty::with(['tags', 'project'])->findOrFail($id);
 
         return response()->json([
-            'data' => $propertyData,
+            'data' => new GaPropertyResource($property),
         ]);
     }
 
@@ -178,24 +130,12 @@ class GoogleAnalyticsController extends Controller
             $property->syncTags($request->input('tags'));
         }
 
-        // Load tags relationship for response
-        $property->load(['tags', 'project.media']);
-
-        $propertyData = $property->toArray();
-
-        // Simplify tags to just names
-        $propertyData['tags'] = $property->tags->pluck('name')->map(fn ($name) => is_array($name) ? ($name['en'] ?? reset($name)) : $name)->values()->toArray();
-
-        // Add profile_image URLs if project has media
-        if ($property->project) {
-            $propertyData['project']['profile_image'] = $property->project->getMediaUrls('profile_image');
-            // Remove media collection from response
-            unset($propertyData['project']['media']);
-        }
+        // Load relationships for response
+        $property->load(['tags', 'project']);
 
         return response()->json([
             'message' => 'GA property created successfully',
-            'data' => $propertyData,
+            'data' => new GaPropertyResource($property),
         ], 201);
     }
 
@@ -219,24 +159,12 @@ class GoogleAnalyticsController extends Controller
             $property->syncTags($request->input('tags'));
         }
 
-        // Load tags relationship for response
-        $property->load(['tags', 'project.media']);
-
-        $propertyData = $property->toArray();
-
-        // Simplify tags to just names
-        $propertyData['tags'] = $property->tags->pluck('name')->map(fn ($name) => is_array($name) ? ($name['en'] ?? reset($name)) : $name)->values()->toArray();
-
-        // Add profile_image URLs if project has media
-        if ($property->project) {
-            $propertyData['project']['profile_image'] = $property->project->getMediaUrls('profile_image');
-            // Remove media collection from response
-            unset($propertyData['project']['media']);
-        }
+        // Load relationships for response
+        $property->load(['tags', 'project']);
 
         return response()->json([
             'message' => 'GA property updated successfully',
-            'data' => $propertyData,
+            'data' => new GaPropertyResource($property),
         ]);
     }
 
@@ -259,26 +187,10 @@ class GoogleAnalyticsController extends Controller
      */
     public function getProperties(): JsonResponse
     {
-        $properties = GaProperty::with(['tags', 'project.media'])->get();
-
-        $data = $properties->map(function ($property) {
-            $propertyData = $property->toArray();
-
-            // Simplify tags to just names
-            $propertyData['tags'] = $property->tags->pluck('name')->map(fn ($name) => is_array($name) ? ($name['en'] ?? reset($name)) : $name)->values()->toArray();
-
-            // Add profile_image URLs if project has media
-            if ($property->project) {
-                $propertyData['project']['profile_image'] = $property->project->getMediaUrls('profile_image');
-                // Remove media collection from response
-                unset($propertyData['project']['media']);
-            }
-
-            return $propertyData;
-        });
+        $properties = GaProperty::with(['tags', 'project'])->get();
 
         return response()->json([
-            'data' => $data,
+            'data' => GaPropertyResource::collection($properties),
         ]);
     }
 
@@ -287,8 +199,11 @@ class GoogleAnalyticsController extends Controller
      */
     public function getPropertyAnalytics(GetAnalyticsRequest $request, string $id): JsonResponse
     {
+        // Rate limiting for analytics endpoints
+        $this->applyAnalyticsRateLimit($request);
+
         // Increase execution time for API requests
-        set_time_limit(120);
+        set_time_limit(config('analytics.timeout', 120));
 
         // Find property by property_id (Google Analytics Property ID), not database id
         $property = GaProperty::where('property_id', $id)->firstOrFail();
@@ -307,8 +222,11 @@ class GoogleAnalyticsController extends Controller
      */
     public function getAggregatedAnalytics(GetAnalyticsRequest $request): JsonResponse
     {
+        // Rate limiting for analytics endpoints
+        $this->applyAnalyticsRateLimit($request);
+
         // Increase execution time for API requests
-        set_time_limit(120);
+        set_time_limit(config('analytics.timeout', 120));
 
         $period = $this->createPeriodFromRequest($request);
         $propertyIds = $request->input('property_ids');
@@ -568,6 +486,24 @@ class GoogleAnalyticsController extends Controller
         $data = $this->analyticsService->getRealtimeActiveUsers($propertyIds);
 
         return response()->json($data);
+    }
+
+    /**
+     * Apply rate limiting for analytics endpoints.
+     */
+    protected function applyAnalyticsRateLimit(Request $request): void
+    {
+        $userId = auth()->id() ?? $request->ip();
+        $key = "analytics-request:{$userId}";
+        $maxAttempts = config('analytics.rate_limiting.requests_per_minute', 60);
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($key, $maxAttempts)) {
+            $retryAfter = \Illuminate\Support\Facades\RateLimiter::availableIn($key);
+
+            abort(429, "Too many analytics requests. Please try again in {$retryAfter} seconds.");
+        }
+
+        \Illuminate\Support\Facades\RateLimiter::hit($key, 60); // 60 seconds (1 minute)
     }
 
     /**

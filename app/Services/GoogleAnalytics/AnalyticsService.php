@@ -269,8 +269,9 @@ class AnalyticsService
 
                 \Log::info("Fetching dashboard data for {$totalCount} properties");
 
-                // For large datasets (>100 properties), process in chunks to prevent memory issues
-                if ($totalCount > 100) {
+                // For large datasets, process in chunks to prevent memory issues
+                $chunkThreshold = config('analytics.chunking.chunk_threshold', 100);
+                if ($totalCount > $chunkThreshold) {
                     $data = $this->aggregatePropertiesInChunks($query, $period, $totalCount);
                 } else {
                     // For small datasets, fetch all at once
@@ -321,11 +322,11 @@ class AnalyticsService
 
     /**
      * Aggregate properties in chunks to prevent memory issues.
-     * Processes properties in batches of 100 and merges results.
+     * Processes properties in configurable batches and merges results.
      */
     protected function aggregatePropertiesInChunks($query, Period $period, int $totalCount): array
     {
-        $chunkSize = 100;
+        $chunkSize = config('analytics.chunking.properties_per_chunk', 100);
         $aggregatedData = null;
 
         \Log::info("Processing {$totalCount} properties in chunks of {$chunkSize}");
