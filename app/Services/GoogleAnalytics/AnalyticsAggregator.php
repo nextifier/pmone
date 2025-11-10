@@ -55,6 +55,7 @@ class AnalyticsAggregator
                     'property_id' => $property->property_id,
                     'property_name' => $property->name,
                     'totals' => $metricsData['totals'] ?? [],
+                    'rows' => $metricsData['rows'] ?? [],
                     'is_fresh' => $data['is_fresh'] ?? false,
                     // Use property's individual last_synced_at instead of aggregate cache timestamp
                     // This shows when each property was actually synced, not when the aggregate was cached
@@ -94,6 +95,7 @@ class AnalyticsAggregator
                         'property_id' => $result['property_id'],
                         'property_name' => $result['property_name'],
                         'metrics' => $totals,
+                        'rows' => $result['rows'] ?? [],
                         'is_fresh' => $result['is_fresh'],
                         // cached_at now contains property's last_synced_at, showing individual sync times
                         'cached_at' => $result['cached_at'],

@@ -8,6 +8,28 @@ use App\Services\GoogleAnalytics\Concerns\CalculatesTotalsFromRows;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * Main Google Analytics Service.
+ *
+ * Handles fetching, aggregating, and caching analytics data from Google Analytics 4.
+ * Implements cache-first strategy with background refresh for optimal performance.
+ *
+ * Key Features:
+ * - Cache-first data retrieval minimizes API calls
+ * - Smart chunking for large datasets (>100 properties)
+ * - Parallel data fetching for improved performance
+ * - Automatic background refresh when cache is stale
+ * - Realtime active users tracking
+ *
+ * Performance Optimizations:
+ * - N+1 query prevention with indexed lookups
+ * - Parallel execution for multi-property aggregation
+ * - Configurable chunking thresholds
+ * - Client connection pooling for GA4 API
+ *
+ * @package App\Services\GoogleAnalytics
+ * @see config/analytics.php for configuration options
+ */
 class AnalyticsService
 {
     use CalculatesTotalsFromRows;
