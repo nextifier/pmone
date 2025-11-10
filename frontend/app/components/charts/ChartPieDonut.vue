@@ -69,7 +69,7 @@ const chartConfig = {
     <CardContent class="flex-1 pb-0">
       <ChartContainer
         :config="chartConfig"
-        class="mx-auto aspect-square max-h-[250px]"
+        class="min-h-[200px] w-full mx-auto aspect-square max-h-[250px]"
       >
         <VisSingleContainer
           :data="chartData"

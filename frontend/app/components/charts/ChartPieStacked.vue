@@ -86,7 +86,7 @@ const chartConfig = {
     <CardContent class="flex-1 pb-0">
       <ChartContainer
         :config="chartConfig"
-        class="relative mx-auto aspect-square max-h-[250px] [&_[data-vis-single-container]]:!absolute"
+        class="min-h-[200px] w-full relative mx-auto aspect-square max-h-[250px] [&_[data-vis-single-container]]:!absolute"
       >
         <VisSingleContainer
           :margin="{ top: 30, bottom: 30 }"
