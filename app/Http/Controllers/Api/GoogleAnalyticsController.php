@@ -489,6 +489,108 @@ class GoogleAnalyticsController extends Controller
     }
 
     /**
+     * Get analytics comparison with previous period.
+     */
+    public function getComparison(GetAnalyticsRequest $request): JsonResponse
+    {
+        // Rate limiting for analytics endpoints
+        $this->applyAnalyticsRateLimit($request);
+
+        // Increase execution time for API requests
+        set_time_limit(config('analytics.timeout', 120));
+
+        $period = $this->createPeriodFromRequest($request);
+        $propertyIds = $request->input('property_ids');
+
+        $comparison = $this->analyticsService->getComparisonAnalytics($period, $propertyIds);
+
+        return response()->json($comparison);
+    }
+
+    /**
+     * Get property analytics with comparison.
+     */
+    public function getPropertyComparison(GetAnalyticsRequest $request, string $id): JsonResponse
+    {
+        // Rate limiting for analytics endpoints
+        $this->applyAnalyticsRateLimit($request);
+
+        // Increase execution time for API requests
+        set_time_limit(config('analytics.timeout', 120));
+
+        // Find property by property_id (Google Analytics Property ID), not database id
+        $property = GaProperty::where('property_id', $id)->firstOrFail();
+
+        $period = $this->createPeriodFromRequest($request);
+
+        $comparison = $this->analyticsService->getPropertyAnalyticsWithComparison($property, $period);
+
+        return response()->json($comparison);
+    }
+
+    /**
+     * Get metrics dashboard data.
+     */
+    public function getMetricsDashboard(): JsonResponse
+    {
+        $metrics = $this->analyticsService->getMetricsDashboard();
+
+        return response()->json($metrics);
+    }
+
+    /**
+     * Get API call statistics.
+     */
+    public function getApiCallStats(Request $request): JsonResponse
+    {
+        $propertyId = $request->input('property_id');
+        $hours = $request->input('hours', 24);
+
+        $metrics = app(\App\Services\GoogleAnalytics\AnalyticsMetrics::class);
+        $stats = $metrics->getApiCallStats($propertyId, $hours);
+
+        return response()->json($stats);
+    }
+
+    /**
+     * Get cache performance statistics.
+     */
+    public function getCachePerformanceStats(Request $request): JsonResponse
+    {
+        $propertyId = $request->input('property_id');
+        $hours = $request->input('hours', 24);
+
+        $metrics = app(\App\Services\GoogleAnalytics\AnalyticsMetrics::class);
+        $stats = $metrics->getCacheStats($propertyId, $hours);
+
+        return response()->json($stats);
+    }
+
+    /**
+     * Get quota usage for a property.
+     */
+    public function getQuotaUsage(Request $request, string $propertyId): JsonResponse
+    {
+        $days = $request->input('days', 1);
+
+        $metrics = app(\App\Services\GoogleAnalytics\AnalyticsMetrics::class);
+        $usage = $metrics->getQuotaUsage($propertyId, $days);
+
+        return response()->json($usage);
+    }
+
+    /**
+     * Get system health metrics.
+     */
+    public function getSystemHealth(): JsonResponse
+    {
+        $metrics = app(\App\Services\GoogleAnalytics\AnalyticsMetrics::class);
+        $health = $metrics->getSystemHealth();
+
+        return response()->json($health);
+    }
+
+    /**
      * Apply rate limiting for analytics endpoints.
      */
     protected function applyAnalyticsRateLimit(Request $request): void
