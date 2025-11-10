@@ -59,7 +59,7 @@ const chartConfig = {
       </CardDescription>
     </CardHeader>
     <CardContent>
-      <ChartContainer :config="chartConfig">
+      <ChartContainer :config="chartConfig" class="min-h-[200px] w-full">
         <VisXYContainer :data="chartData" :margin="{ top: 10, bottom: 10 }">
           <VisArea
             :x="(d: Data) => d.month"

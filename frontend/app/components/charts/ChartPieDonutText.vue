@@ -72,7 +72,7 @@ const totalVisitors = computed(() => chartData.reduce((acc, curr) => acc + curr.
     <CardContent class="flex-1 pb-0">
       <ChartContainer
         :config="chartConfig"
-        class="mx-auto aspect-square max-h-[250px]"
+        class="min-h-[200px] w-full mx-auto aspect-square max-h-[250px]"
         :style="{
           '--vis-donut-central-label-font-size': 'var(--text-3xl)',
           '--vis-donut-central-label-font-weight': 'var(--font-weight-bold)',

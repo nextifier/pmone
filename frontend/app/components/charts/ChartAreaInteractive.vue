@@ -187,7 +187,7 @@ const filterRange = computed(() => {
       </Select>
     </CardHeader>
     <CardContent class="px-2 pt-4 sm:px-6 sm:pt-6">
-      <ChartContainer :config="chartConfig" class="aspect-auto h-[250px] w-full">
+      <ChartContainer :config="chartConfig" class="min-h-[200px] w-full aspect-auto h-[250px]">
         <VisXYContainer :data="filterRange" :svg-defs="svgDefs">
           <VisArea
             :x="(d: Data) => d.date"

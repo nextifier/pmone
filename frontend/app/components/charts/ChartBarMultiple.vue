@@ -53,7 +53,7 @@ const chartConfig = {
       <CardDescription>January - June 2024</CardDescription>
     </CardHeader>
     <CardContent>
-      <ChartContainer :config="chartConfig">
+      <ChartContainer :config="chartConfig" class="min-h-[200px] w-full">
         <VisXYContainer :data="chartData">
           <VisGroupedBar
             :x="(d: Data) => d.date"
