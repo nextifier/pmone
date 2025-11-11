@@ -1,19 +1,4 @@
 <script setup>
-import ChartAreaAxes from "@/components/charts/ChartAreaAxes.vue";
-import ChartAreaGradient from "@/components/charts/ChartAreaGradient.vue";
-import ChartAreaIcons from "@/components/charts/ChartAreaIcons.vue";
-import ChartAreaInteractive from "@/components/charts/ChartAreaInteractive.vue";
-import ChartBarDefault from "@/components/charts/ChartBarDefault.vue";
-import ChartBarHorizontal from "@/components/charts/ChartBarHorizontal.vue";
-import ChartBarMultiple from "@/components/charts/ChartBarMultiple.vue";
-import ChartLineDefault from "@/components/charts/ChartLineDefault.vue";
-import ChartLineLinear from "@/components/charts/ChartLineLinear.vue";
-import ChartLineStep from "@/components/charts/ChartLineStep.vue";
-import ChartPieDonut from "@/components/charts/ChartPieDonut.vue";
-import ChartPieDonutText from "@/components/charts/ChartPieDonutText.vue";
-import ChartPieSimple from "@/components/charts/ChartPieSimple.vue";
-import ChartPieStacked from "@/components/charts/ChartPieStacked.vue";
-
 usePageMeta("", {
   title: "Charts",
   description: "A collection of chart components built with Unovis",
@@ -21,7 +6,7 @@ usePageMeta("", {
 </script>
 
 <template>
-  <div class="container py-10">
+  <!-- <div class="container py-10">
     <div class="mb-10 space-y-2">
       <h1 class="page-title">Charts</h1>
       <p class="page-description">
@@ -30,7 +15,6 @@ usePageMeta("", {
     </div>
 
     <div class="grid gap-10 tracking-tight md:gap-12">
-      <!-- Area Charts Section -->
       <section class="space-y-6">
         <div class="space-y-2">
           <h2 class="text-2xl font-semibold tracking-tight">Area Charts</h2>
@@ -46,7 +30,6 @@ usePageMeta("", {
         </div>
       </section>
 
-      <!-- Bar Charts Section -->
       <section class="space-y-6">
         <div class="space-y-2">
           <h2 class="text-2xl font-semibold tracking-tight">Bar Charts</h2>
@@ -61,7 +44,6 @@ usePageMeta("", {
         </div>
       </section>
 
-      <!-- Line Charts Section -->
       <section class="space-y-6">
         <div class="space-y-2">
           <h2 class="text-2xl font-semibold tracking-tight">Line Charts</h2>
@@ -76,7 +58,6 @@ usePageMeta("", {
         </div>
       </section>
 
-      <!-- Pie Charts Section -->
       <section class="space-y-6">
         <div class="space-y-2">
           <h2 class="text-2xl font-semibold tracking-tight">Pie Charts</h2>
@@ -92,5 +73,5 @@ usePageMeta("", {
         </div>
       </section>
     </div>
-  </div>
+  </div> -->
 </template>

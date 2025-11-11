@@ -2,10 +2,8 @@
   <div v-if="model" class="flex items-center gap-x-1.5 tracking-tight">
     <Avatar :model="avatarModel" class="size-9" />
     <div class="flex flex-col gap-y-1 text-left text-sm leading-tight">
-      <span
-        class="text-foreground inline-flex items-center gap-x-[3px] truncate align-middle font-medium"
-      >
-        <span class="shrink truncate">{{ model?.name ?? model?.property_name }}</span>
+      <span class="text-foreground inline-flex items-center gap-x-[3px] align-middle font-medium">
+        <span class="line-clamp-1">{{ model?.name ?? model?.property_name }}</span>
       </span>
       <span v-if="model?.property_id" class="text-muted-foreground truncate text-xs"
         >ID: {{ model.property_id }}</span

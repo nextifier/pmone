@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { ChartConfig } from "@/components/ui/chart";
+
 import {
   Card,
   CardContent,
@@ -17,74 +19,63 @@ import {
 import { VisAxis, VisGroupedBar, VisXYContainer } from "@unovis/vue";
 import { TrendingUp } from "lucide-vue-next";
 
-const props = defineProps({
-  data: {
-    type: Array,
-    required: true
+const description = "A bar chart";
+
+const chartData = [
+  { date: new Date("2024-01-01"), desktop: 186 },
+  { date: new Date("2024-02-01"), desktop: 305 },
+  { date: new Date("2024-03-01"), desktop: 237 },
+  { date: new Date("2024-04-01"), desktop: 73 },
+  { date: new Date("2024-05-01"), desktop: 209 },
+  { date: new Date("2024-06-01"), desktop: 214 },
+];
+
+type Data = (typeof chartData)[number];
+
+const chartConfig = {
+  desktop: {
+    label: "Desktop",
+    color: "var(--chart-1)",
   },
-  config: {
-    type: Object,
-    required: true
-  },
-  title: {
-    type: String,
-    default: 'Bar Chart'
-  },
-  description: {
-    type: String,
-    default: 'January - June 2024'
-  },
-  footerText: {
-    type: String,
-    default: 'Trending up by 5.2% this month'
-  },
-  footerIcon: {
-    type: Object,
-    default: () => TrendingUp
-  },
-  footerSubtext: {
-    type: String,
-    default: 'Showing total visitors for the last 6 months'
-  }
-});
+} satisfies ChartConfig;
 </script>
 
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>{{ title }}</CardTitle>
-      <CardDescription>{{ description }}</CardDescription>
+      <CardTitle>Bar Chart</CardTitle>
+      <CardDescription>January - June 2024</CardDescription>
     </CardHeader>
     <CardContent>
-      <ChartContainer :config="config">
-        <VisXYContainer :data="data" :margin="{ left: -24 }" :y-domain="[0, undefined]">
+      <ChartContainer :config="chartConfig">
+        <VisXYContainer :data="chartData" :margin="{ left: -24 }" :y-domain="[0, undefined]">
           <VisGroupedBar
-            :x="(d) => d.date"
-            :y="(d) => d.desktop"
-            :color="config.desktop.color"
+            :x="(d: Data) => d.date"
+            :y="(d: Data) => d.desktop"
+            :color="chartConfig.desktop.color"
             :rounded-corners="10"
           />
           <VisAxis
             type="x"
-            :x="(d) => d.date"
+            :x="(d: Data) => d.date"
             :tick-line="false"
             :domain-line="false"
             :grid-line="false"
             :num-ticks="6"
             :tick-format="
-              (d) => {
+              (d: number) => {
                 const date = new Date(d);
                 return date.toLocaleDateString('en-US', {
                   month: 'short',
                 });
               }
             "
-            :tick-values="data.map((d) => d.date)"
+            :tick-values="chartData.map((d) => d.date)"
           />
           <VisAxis type="y" :num-ticks="3" :tick-line="false" :domain-line="false" />
           <ChartTooltip />
           <ChartCrosshair
-            :template="componentToString(config, ChartTooltipContent, { hideLabel: true })"
+            :template="componentToString(chartConfig, ChartTooltipContent, { hideLabel: true })"
             color="#0000"
           />
         </VisXYContainer>
@@ -92,10 +83,10 @@ const props = defineProps({
     </CardContent>
     <CardFooter class="flex-col items-start gap-2 text-sm">
       <div class="flex gap-2 leading-none font-medium">
-        {{ footerText }} <component :is="footerIcon" class="h-4 w-4" />
+        Trending up by 5.2% this month <TrendingUp class="h-4 w-4" />
       </div>
       <div class="text-muted-foreground leading-none">
-        {{ footerSubtext }}
+        Showing total visitors for the last 6 months
       </div>
     </CardFooter>
   </Card>

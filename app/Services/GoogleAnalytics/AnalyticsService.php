@@ -36,6 +36,7 @@ class AnalyticsService
     public function __construct(
         protected AnalyticsDataFetcher $dataFetcher,
         protected AnalyticsAggregator $aggregator,
+        protected DailyDataAggregator $dailyAggregator,
         protected SmartAnalyticsCache $cache,
         protected AnalyticsMetrics $metrics
     ) {}
@@ -66,12 +67,14 @@ class AnalyticsService
 
     /**
      * Get analytics data for a single property.
+     * NOW USING DAILY AGGREGATION: Fetches from 365-day cache and filters by period.
      */
     public function getPropertyAnalytics(GaProperty $property, Period $period): array
     {
-        $metricsData = $this->dataFetcher->fetchMetrics($property, $period);
+        // Use daily aggregator to get data from 365-day cache
+        $metricsData = $this->dailyAggregator->getDataForPeriod($property, $period);
 
-        // Extract data from cache wrapper if present
+        // Extract metrics from daily aggregator response
         $metrics = $metricsData['data'] ?? $metricsData;
 
         // Calculate totals from rows if totals are empty
@@ -89,13 +92,15 @@ class AnalyticsService
             ],
             'metrics' => $metrics['totals'] ?? [],
             'rows' => $metrics['rows'] ?? [],
-            'top_pages' => $this->dataFetcher->fetchTopPages($property, $period, 10),
-            'traffic_sources' => $this->dataFetcher->fetchTrafficSources($property, $period),
-            'devices' => $this->dataFetcher->fetchDevices($property, $period),
+            'top_pages' => $this->dailyAggregator->getTopPagesForPeriod($property, $period, 20),
+            'traffic_sources' => $this->dailyAggregator->getTrafficSourcesForPeriod($property, $period),
+            'devices' => $this->dailyAggregator->getDevicesForPeriod($property, $period),
             'period' => [
                 'start_date' => $period->startDate->format('Y-m-d'),
                 'end_date' => $period->endDate->format('Y-m-d'),
             ],
+            'is_fresh' => $metricsData['is_fresh'] ?? false,
+            'cached_at' => $metricsData['cached_at'] ?? null,
         ];
     }
 

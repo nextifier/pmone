@@ -1,5 +1,4 @@
-<script setup lang="ts">
-import type { ChartConfig } from "@/components/ui/chart";
+<script setup>
 import { VisArea, VisAxis, VisLine, VisXYContainer } from "@unovis/vue";
 
 import {
@@ -19,66 +18,73 @@ import {
 } from "@/components/ui/chart";
 import { TrendingUp } from "lucide-vue-next";
 
-const description = "An area chart with axes";
-
-const chartData = [
-  { month: 1, monthLabel: "January", desktop: 186, mobile: 80 },
-  { month: 2, monthLabel: "February", desktop: 305, mobile: 200 },
-  { month: 3, monthLabel: "March", desktop: 237, mobile: 120 },
-  { month: 4, monthLabel: "April", desktop: 73, mobile: 190 },
-  { month: 5, monthLabel: "May", desktop: 209, mobile: 130 },
-  { month: 6, monthLabel: "June", desktop: 214, mobile: 140 },
-];
-
-type Data = (typeof chartData)[number];
-
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--chart-1)",
+const props = defineProps({
+  data: {
+    type: Array,
+    required: true
   },
-  mobile: {
-    label: "Mobile",
-    color: "var(--chart-2)",
+  config: {
+    type: Object,
+    required: true
   },
-} satisfies ChartConfig;
+  title: {
+    type: String,
+    default: 'Area Chart - Axes'
+  },
+  description: {
+    type: String,
+    default: 'Showing total visitors for the last 6 months'
+  },
+  footerText: {
+    type: String,
+    default: 'Trending up by 5.2% this month'
+  },
+  footerIcon: {
+    type: Object,
+    default: () => TrendingUp
+  },
+  footerSubtext: {
+    type: String,
+    default: 'January - June 2024'
+  }
+});
 </script>
 
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>Area Chart - Axes</CardTitle>
-      <CardDescription> Showing total visitors for the last 6 months </CardDescription>
+      <CardTitle>{{ title }}</CardTitle>
+      <CardDescription>{{ description }}</CardDescription>
     </CardHeader>
     <CardContent>
-      <ChartContainer :config="chartConfig">
-        <VisXYContainer :data="chartData">
+      <ChartContainer :config="config">
+        <VisXYContainer :data="data">
           <VisArea
-            :x="(d: Data) => d.month"
-            :y="[(d: Data) => d.mobile, (d: Data) => d.desktop]"
+            :x="(d) => d.month"
+            :y="[(d) => d.mobile, (d) => d.desktop]"
             :color="
-              (d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i]
+              (d, i) => [config.mobile.color, config.desktop.color][i]
             "
             :opacity="0.4"
           />
           <VisLine
-            :x="(d: Data) => d.month"
-            :y="[(d: Data) => d.mobile, (d: Data) => d.mobile + d.desktop]"
+            :x="(d) => d.month"
+            :y="[(d) => d.mobile, (d) => d.mobile + d.desktop]"
             :color="
-              (d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i]
+              (d, i) => [config.mobile.color, config.desktop.color][i]
             "
             :line-width="1"
           />
           <VisAxis
             type="x"
-            :x="(d: Data) => d.month"
+            :x="(d) => d.month"
             :tick-line="false"
             :domain-line="false"
             :grid-line="false"
             :num-ticks="6"
             :tick-format="
-              (d: number, index: number) => {
-                return chartData[index].monthLabel.slice(0, 3);
+              (d, index) => {
+                return data[index].monthLabel.slice(0, 3);
               }
             "
           />
@@ -86,10 +92,10 @@ const chartConfig = {
           <ChartTooltip />
           <ChartCrosshair
             :template="
-              componentToString(chartConfig, ChartTooltipContent, { labelKey: 'monthLabel' })
+              componentToString(config, ChartTooltipContent, { labelKey: 'monthLabel' })
             "
             :color="
-              (d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i % 2]
+              (d, i) => [config.mobile.color, config.desktop.color][i % 2]
             "
           />
         </VisXYContainer>
@@ -99,10 +105,10 @@ const chartConfig = {
       <div class="flex w-full items-start gap-2 text-sm">
         <div class="grid gap-2">
           <div class="flex items-center gap-2 leading-none font-medium">
-            Trending up by 5.2% this month <TrendingUp class="h-4 w-4" />
+            {{ footerText }} <component :is="footerIcon" class="h-4 w-4" />
           </div>
           <div class="text-muted-foreground flex items-center gap-2 leading-none">
-            January - June 2024
+            {{ footerSubtext }}
           </div>
         </div>
       </div>

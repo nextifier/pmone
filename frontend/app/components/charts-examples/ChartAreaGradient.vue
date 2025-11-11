@@ -1,4 +1,5 @@
-<script setup>
+<script setup lang="ts">
+import type { ChartConfig } from "@/components/ui/chart";
 import { VisArea, VisAxis, VisLine, VisXYContainer } from "@unovis/vue";
 
 import {
@@ -18,36 +19,29 @@ import {
 } from "@/components/ui/chart";
 import { TrendingUp } from "lucide-vue-next";
 
-const props = defineProps({
-  data: {
-    type: Array,
-    required: true
+const description = "An area chart with axes";
+
+const chartData = [
+  { month: 1, monthLabel: "January", desktop: 186, mobile: 80 },
+  { month: 2, monthLabel: "February", desktop: 305, mobile: 200 },
+  { month: 3, monthLabel: "March", desktop: 237, mobile: 120 },
+  { month: 4, monthLabel: "April", desktop: 73, mobile: 190 },
+  { month: 5, monthLabel: "May", desktop: 209, mobile: 130 },
+  { month: 6, monthLabel: "June", desktop: 214, mobile: 140 },
+];
+
+type Data = (typeof chartData)[number];
+
+const chartConfig = {
+  desktop: {
+    label: "Desktop",
+    color: "var(--chart-1)",
   },
-  config: {
-    type: Object,
-    required: true
+  mobile: {
+    label: "Mobile",
+    color: "var(--chart-2)",
   },
-  title: {
-    type: String,
-    default: 'Area Chart - Gradient'
-  },
-  description: {
-    type: String,
-    default: 'Showing total visitors for the last 6 months'
-  },
-  footerText: {
-    type: String,
-    default: 'Trending up by 5.2% this month'
-  },
-  footerIcon: {
-    type: Object,
-    default: () => TrendingUp
-  },
-  footerSubtext: {
-    type: String,
-    default: 'January - June 2024'
-  }
-});
+} satisfies ChartConfig;
 
 const svgDefs = `
   <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
@@ -64,51 +58,51 @@ const svgDefs = `
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>{{ title }}</CardTitle>
-      <CardDescription>{{ description }}</CardDescription>
+      <CardTitle>Area Chart - Gradient</CardTitle>
+      <CardDescription>Showing total visitors for the last 6 months</CardDescription>
     </CardHeader>
     <CardContent
       class="overflow-hidden !px-0 [&_svg>g]:!origin-center [&_svg>g]:not-first:scale-x-110 [&_svg>g]:first:!scale-x-90"
     >
-      <ChartContainer :config="config">
-        <VisXYContainer :data="data" :svg-defs="svgDefs">
+      <ChartContainer :config="chartConfig">
+        <VisXYContainer :data="chartData" :svg-defs="svgDefs">
           <VisArea
-            :x="(d) => d.month"
-            :y="[(d) => d.mobile, (d) => d.desktop]"
-            :color="(d, i) => ['url(#fillMobile)', 'url(#fillDesktop)'][i]"
+            :x="(d: Data) => d.month"
+            :y="[(d: Data) => d.mobile, (d: Data) => d.desktop]"
+            :color="(d: Data, i: number) => ['url(#fillMobile)', 'url(#fillDesktop)'][i]"
             :opacity="0.4"
           />
           <VisLine
-            :x="(d) => d.month"
-            :y="[(d) => d.mobile, (d) => d.mobile + d.desktop]"
+            :x="(d: Data) => d.month"
+            :y="[(d: Data) => d.mobile, (d: Data) => d.mobile + d.desktop]"
             :color="
-              (d, i) => [config.mobile.color, config.desktop.color][i]
+              (d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i]
             "
             :line-width="1"
           />
           <VisAxis
             type="x"
-            :x="(d) => d.month"
+            :x="(d: Data) => d.month"
             :tick-line="false"
             :domain-line="false"
             :grid-line="false"
             :num-ticks="6"
-            :tick-format="(d, index) => data[index].monthLabel.slice(0, 3)"
+            :tick-format="(d: number, index: number) => chartData[index].monthLabel.slice(0, 3)"
           />
           <VisAxis
             type="y"
             :num-ticks="3"
             :tick-line="false"
             :domain-line="false"
-            :tick-format="(d) => ''"
+            :tick-format="(d: number) => ''"
           />
           <ChartTooltip />
           <ChartCrosshair
             :template="
-              componentToString(config, ChartTooltipContent, { labelKey: 'monthLabel' })
+              componentToString(chartConfig, ChartTooltipContent, { labelKey: 'monthLabel' })
             "
             :color="
-              (d, i) => [config.mobile.color, config.desktop.color][i % 2]
+              (d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i % 2]
             "
           />
         </VisXYContainer>
@@ -118,10 +112,10 @@ const svgDefs = `
       <div class="flex w-full items-start gap-2 text-sm">
         <div class="grid gap-2">
           <div class="flex items-center gap-2 leading-none font-medium">
-            {{ footerText }} <component :is="footerIcon" class="h-4 w-4" />
+            Trending up by 5.2% this month <TrendingUp class="h-4 w-4" />
           </div>
           <div class="text-muted-foreground flex items-center gap-2 leading-none">
-            {{ footerSubtext }}
+            January - June 2024
           </div>
         </div>
       </div>

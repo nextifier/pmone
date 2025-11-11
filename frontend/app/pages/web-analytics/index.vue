@@ -189,7 +189,7 @@
           {{ propertyBreakdown.length === 1 ? "property" : "properties" }}.
         </p>
 
-        <div class="mt-4 grid gap-4">
+        <div class="mt-4 grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-x-4 gap-y-8">
           <AnalyticsPropertyCard
             v-for="property in propertyBreakdown"
             :key="property.property_id"

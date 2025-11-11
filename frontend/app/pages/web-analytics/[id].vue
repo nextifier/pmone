@@ -1,14 +1,9 @@
 <template>
   <div class="mx-auto max-w-7xl space-y-6">
     <!-- Header -->
-    <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
-      <div class="flex shrink-0 items-center gap-x-2.5">
-        <NuxtLink
-          to="/web-analytics"
-          class="text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <Icon name="hugeicons:arrow-left-01" class="size-5 sm:size-6" />
-        </NuxtLink>
+    <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-6">
+      <div class="flex flex-col items-start gap-y-4">
+        <BackButton destination="/web-analytics" />
         <div>
           <h1 class="page-title">
             {{ propertyData?.property?.name || "Property Analytics" }}
