@@ -33,27 +33,29 @@ return [
 
     /*
      * Smart caching configuration
+     * NOTE: With daily aggregation system, these settings are less critical
+     * as we fetch 365 days once and aggregate on-demand
      */
     'smart_cache' => [
         /*
          * Minimum cache duration in minutes
          */
-        'min_duration' => 5,
+        'min_duration' => 10,
 
         /*
          * Maximum cache duration in minutes
          */
-        'max_duration' => 30,
+        'max_duration' => 60,
 
         /*
          * Cache freshness during peak hours (in minutes)
          */
-        'peak_hours_freshness' => 10,
+        'peak_hours_freshness' => 15,
 
         /*
          * Cache freshness during off-peak hours (in minutes)
          */
-        'off_peak_freshness' => 30,
+        'off_peak_freshness' => 60,
 
         /*
          * Peak hours range (9am to 5pm)
@@ -64,7 +66,7 @@ return [
         /*
          * Rate limit per property per hour
          */
-        'rate_limit_per_hour' => 120,
+        'rate_limit_per_hour' => 100,
     ],
 
     /*

@@ -1,11 +1,6 @@
 <script setup lang="ts">
-import type {
-  ChartConfig,
-} from "@/components/ui/chart"
+import type { ChartConfig } from "@/components/ui/chart";
 
-import { Donut } from "@unovis/ts"
-import { VisDonut, VisSingleContainer } from "@unovis/vue"
-import { TrendingUp } from "lucide-vue-next"
 import {
   Card,
   CardContent,
@@ -13,15 +8,18 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   componentToString,
-} from "@/components/ui/chart"
+} from "@/components/ui/chart";
+import { Donut } from "@unovis/ts";
+import { VisDonut, VisSingleContainer } from "@unovis/vue";
+import { TrendingUp } from "lucide-vue-next";
 
-const description = "A pie chart with stacked sections"
+const description = "A pie chart with stacked sections";
 
 const desktopData = [
   { month: "january", desktop: 186, fill: "var(--color-january)" },
@@ -29,17 +27,17 @@ const desktopData = [
   { month: "march", desktop: 237, fill: "var(--color-march)" },
   { month: "april", desktop: 173, fill: "var(--color-april)" },
   { month: "may", desktop: 209, fill: "var(--color-may)" },
-]
+];
 const mobileData = [
   { month: "january", mobile: 80, fill: "var(--color-january)" },
   { month: "february", mobile: 200, fill: "var(--color-february)" },
   { month: "march", mobile: 120, fill: "var(--color-march)" },
   { month: "april", mobile: 190, fill: "var(--color-april)" },
   { month: "may", mobile: 130, fill: "var(--color-may)" },
-]
+];
 
-type DesktopData = typeof desktopData[number]
-type MobileData = typeof mobileData[number]
+type DesktopData = (typeof desktopData)[number];
+type MobileData = (typeof mobileData)[number];
 
 const chartConfig = {
   visitors: {
@@ -74,7 +72,7 @@ const chartConfig = {
     label: "May",
     color: "var(--chart-5)",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 </script>
 
 <template>
@@ -86,11 +84,9 @@ const chartConfig = {
     <CardContent class="flex-1 pb-0">
       <ChartContainer
         :config="chartConfig"
-        class="min-h-[200px] w-full relative mx-auto aspect-square max-h-[250px] [&_[data-vis-single-container]]:!absolute"
+        class="relative [&_[data-vis-single-container]]:!absolute"
       >
-        <VisSingleContainer
-          :margin="{ top: 30, bottom: 30 }"
-        >
+        <VisSingleContainer :margin="{ top: 30, bottom: 30 }">
           <VisDonut
             :data="mobileData"
             :value="(d: MobileData) => d.mobile"
@@ -99,13 +95,13 @@ const chartConfig = {
           />
           <ChartTooltip
             :triggers="{
-              [Donut.selectors.segment]: componentToString(chartConfig, ChartTooltipContent, { hideLabel: true })!,
+              [Donut.selectors.segment]: componentToString(chartConfig, ChartTooltipContent, {
+                hideLabel: true,
+              })!,
             }"
           />
         </VisSingleContainer>
-        <VisSingleContainer
-          :margin="{ top: 30, bottom: 30 }"
-        >
+        <VisSingleContainer :margin="{ top: 30, bottom: 30 }">
           <VisDonut
             :data="desktopData"
             :value="(d: DesktopData) => d.desktop"
@@ -115,17 +111,19 @@ const chartConfig = {
           />
           <ChartTooltip
             :triggers="{
-              [Donut.selectors.segment]: componentToString(chartConfig, ChartTooltipContent, { hideLabel: true })!,
+              [Donut.selectors.segment]: componentToString(chartConfig, ChartTooltipContent, {
+                hideLabel: true,
+              })!,
             }"
           />
         </VisSingleContainer>
       </ChartContainer>
     </CardContent>
     <CardFooter class="flex-col gap-2 text-sm">
-      <div class="flex items-center gap-2 font-medium leading-none">
+      <div class="flex items-center gap-2 leading-none font-medium">
         Trending up by 5.2% this month <TrendingUp class="h-4 w-4" />
       </div>
-      <div class="leading-none text-muted-foreground">
+      <div class="text-muted-foreground leading-none">
         Showing total visitors for the last 5 months
       </div>
     </CardFooter>

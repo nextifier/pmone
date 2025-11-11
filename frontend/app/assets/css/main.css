@@ -139,11 +139,11 @@
     --sidebar-border: var(--color-gray-200);
     --sidebar-ring: var(--color-gray-400);
 
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
+    --chart-1: var(--color-emerald-500);
+    --chart-2: var(--color-indigo-500);
+    --chart-3: var(--color-yellow-400);
+    --chart-4: var(--color-orange-500);
+    --chart-5: var(--color-rose-500);
 
     --radius: 0.625rem;
   }
@@ -180,7 +180,7 @@
     --destructive: var(--color-red-500);
     --destructive-foreground: var(--color-red-400);
 
-    --card: var(--color-gray-950);
+    --card: --alpha(var(--color-gray-900) / 50%);
     --card-foreground: var(--color-gray-300);
 
     --popover: var(--color-gray-950);
@@ -195,11 +195,11 @@
     --sidebar-border: var(--color-gray-800);
     --sidebar-ring: var(--color-gray-600);
 
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
+    --chart-1: var(--color-emerald-500);
+    --chart-2: var(--color-indigo-500);
+    --chart-3: var(--color-yellow-400);
+    --chart-4: var(--color-orange-500);
+    --chart-5: var(--color-rose-500);
   }
 }
 
@@ -875,9 +875,11 @@ img.pswp__img {
   }
 }
 
-label:has(+ input:required)::after,
-label:has(+ select:required)::after,
-label:has(+ textarea:required)::after {
-  /* content: " *"; */
-  @apply text-destructive ml-0 content-['*'];
+#layout-app {
+  & label:has(+ input:required)::after,
+  & label:has(+ select:required)::after,
+  & label:has(+ textarea:required)::after {
+    /* content: " *"; */
+    @apply text-destructive ml-0 content-['*'];
+  }
 }

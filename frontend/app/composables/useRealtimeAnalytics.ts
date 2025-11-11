@@ -1,6 +1,7 @@
 /**
  * Composable for fetching realtime analytics data.
  * Shows active users in the last 30 minutes.
+ * Uses cache fallback for instant display with stale data.
  */
 export function useRealtimeAnalytics() {
   const client = useSanctumClient();
@@ -10,15 +11,20 @@ export function useRealtimeAnalytics() {
   const loading = ref(false);
   const error = ref<string | null>(null);
 
-  // Auto-refresh interval (every 30 seconds)
+  // Auto-refresh interval (every 60 seconds to reduce API calls)
   let refreshInterval: NodeJS.Timeout | null = null;
 
   /**
    * Fetch realtime active users.
+   * Backend will return cached data instantly if available,
+   * and refresh in background if stale.
    */
-  async function fetchRealtimeUsers(propertyIds?: string[]) {
+  async function fetchRealtimeUsers(propertyIds?: string[], silent: boolean = false) {
+    // Only show loading if not silent refresh and no data yet
+    const showLoading = !realtimeData.value && !silent;
+
     try {
-      loading.value = true;
+      if (showLoading) loading.value = true;
       error.value = null;
 
       const params = propertyIds ? { property_ids: propertyIds } : {};
@@ -30,33 +36,39 @@ export function useRealtimeAnalytics() {
       // Handle response - client might return { data } or just the data directly
       const data = response?.data || response;
 
+      // Always update with the response (could be fresh or from cache)
       realtimeData.value = data;
 
       return data;
     } catch (err: any) {
       console.error('Error fetching realtime analytics:', err);
-      error.value =
-        err.data?.message || err.message || 'Failed to load realtime data';
+
+      // Only show error if we don't have fallback data
+      if (!realtimeData.value) {
+        error.value =
+          err.data?.message || err.message || 'Failed to load realtime data';
+      }
+
       throw err;
     } finally {
-      loading.value = false;
+      if (showLoading) loading.value = false;
     }
   }
 
   /**
-   * Start auto-refresh (every 30 seconds).
+   * Start auto-refresh (every 60 seconds).
    */
   function startAutoRefresh(propertyIds?: string[]) {
     // Clear any existing interval
     stopAutoRefresh();
 
-    // Fetch immediately
-    fetchRealtimeUsers(propertyIds);
+    // Fetch immediately (not silent - will show loading if no data)
+    fetchRealtimeUsers(propertyIds, false);
 
-    // Set up interval
+    // Set up interval - use silent refresh to avoid loading state
     refreshInterval = setInterval(() => {
-      fetchRealtimeUsers(propertyIds);
-    }, 30000); // 30 seconds
+      fetchRealtimeUsers(propertyIds, true);
+    }, 60000); // 60 seconds (reduced from 30s to save API quota)
   }
 
   /**

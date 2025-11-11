@@ -27,6 +27,7 @@ class GetAnalyticsRequest extends FormRequest
             'start_date' => ['nullable', 'date', 'before_or_equal:end_date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date', 'before_or_equal:today'],
             'days' => ['nullable', 'integer', 'min:1', 'max:365'],
+            'period' => ['nullable', 'string', 'in:today,yesterday,this_week,last_week,this_month,last_month,this_year'],
         ];
     }
 

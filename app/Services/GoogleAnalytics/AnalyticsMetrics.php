@@ -10,8 +10,6 @@ use Illuminate\Support\Facades\DB;
  *
  * Tracks API calls, cache performance, quota usage, and system health metrics
  * for the Google Analytics integration.
- *
- * @package App\Services\GoogleAnalytics
  */
 class AnalyticsMetrics
 {
@@ -46,13 +44,13 @@ class AnalyticsMetrics
 
         // Update hourly counters in cache for quick access
         $hourKey = $this->getHourlyKey('api_calls', $propertyId);
-        Cache::increment($hourKey);
-        Cache::expire($hourKey, 3600); // 1 hour
+        $currentValue = Cache::get($hourKey, 0);
+        Cache::put($hourKey, $currentValue + 1, 3600); // 1 hour
 
         if (! $success) {
             $errorKey = $this->getHourlyKey('api_errors', $propertyId);
-            Cache::increment($errorKey);
-            Cache::expire($errorKey, 3600);
+            $currentErrorValue = Cache::get($errorKey, 0);
+            Cache::put($errorKey, $currentErrorValue + 1, 3600);
         }
     }
 
@@ -62,8 +60,8 @@ class AnalyticsMetrics
     public function recordCacheHit(string $cacheType, ?string $propertyId = null): void
     {
         $key = $this->getHourlyKey('cache_hits', $propertyId ?? 'aggregate');
-        Cache::increment($key);
-        Cache::expire($key, 3600);
+        $currentValue = Cache::get($key, 0);
+        Cache::put($key, $currentValue + 1, 3600);
 
         // Store in database for historical analysis
         DB::table('analytics_metrics')->insert([
@@ -82,8 +80,8 @@ class AnalyticsMetrics
     public function recordCacheMiss(string $cacheType, ?string $propertyId = null): void
     {
         $key = $this->getHourlyKey('cache_misses', $propertyId ?? 'aggregate');
-        Cache::increment($key);
-        Cache::expire($key, 3600);
+        $currentValue = Cache::get($key, 0);
+        Cache::put($key, $currentValue + 1, 3600);
 
         // Store in database
         DB::table('analytics_metrics')->insert([
@@ -103,8 +101,8 @@ class AnalyticsMetrics
     {
         $dailyKey = $this->getDailyKey('quota_usage', $propertyId);
 
-        Cache::increment($dailyKey, $tokens);
-        Cache::expire($dailyKey, 86400); // 24 hours
+        $currentValue = Cache::get($dailyKey, 0);
+        Cache::put($dailyKey, $currentValue + $tokens, 86400); // 24 hours
 
         // Store in database
         DB::table('analytics_metrics')->insert([

@@ -1,23 +1,23 @@
-<script setup lang="ts">
-import ChartAreaGradient from '@/components/charts/ChartAreaGradient.vue'
-import ChartAreaInteractive from '@/components/charts/ChartAreaInteractive.vue'
-import ChartAreaAxes from '@/components/charts/ChartAreaAxes.vue'
-import ChartAreaIcons from '@/components/charts/ChartAreaIcons.vue'
-import ChartBarDefault from '@/components/charts/ChartBarDefault.vue'
-import ChartBarMultiple from '@/components/charts/ChartBarMultiple.vue'
-import ChartBarHorizontal from '@/components/charts/ChartBarHorizontal.vue'
-import ChartLineDefault from '@/components/charts/ChartLineDefault.vue'
-import ChartLineStep from '@/components/charts/ChartLineStep.vue'
-import ChartLineLinear from '@/components/charts/ChartLineLinear.vue'
-import ChartPieDonut from '@/components/charts/ChartPieDonut.vue'
-import ChartPieStacked from '@/components/charts/ChartPieStacked.vue'
-import ChartPieDonutText from '@/components/charts/ChartPieDonutText.vue'
-import ChartPieSimple from '@/components/charts/ChartPieSimple.vue'
+<script setup>
+import ChartAreaAxes from "@/components/charts/ChartAreaAxes.vue";
+import ChartAreaGradient from "@/components/charts/ChartAreaGradient.vue";
+import ChartAreaIcons from "@/components/charts/ChartAreaIcons.vue";
+import ChartAreaInteractive from "@/components/charts/ChartAreaInteractive.vue";
+import ChartBarDefault from "@/components/charts/ChartBarDefault.vue";
+import ChartBarHorizontal from "@/components/charts/ChartBarHorizontal.vue";
+import ChartBarMultiple from "@/components/charts/ChartBarMultiple.vue";
+import ChartLineDefault from "@/components/charts/ChartLineDefault.vue";
+import ChartLineLinear from "@/components/charts/ChartLineLinear.vue";
+import ChartLineStep from "@/components/charts/ChartLineStep.vue";
+import ChartPieDonut from "@/components/charts/ChartPieDonut.vue";
+import ChartPieDonutText from "@/components/charts/ChartPieDonutText.vue";
+import ChartPieSimple from "@/components/charts/ChartPieSimple.vue";
+import ChartPieStacked from "@/components/charts/ChartPieStacked.vue";
 
-definePageMeta({
-  title: 'Charts',
-  description: 'A collection of chart components built with Unovis',
-})
+usePageMeta("", {
+  title: "Charts",
+  description: "A collection of chart components built with Unovis",
+});
 </script>
 
 <template>
@@ -29,7 +29,7 @@ definePageMeta({
       </p>
     </div>
 
-    <div class="grid gap-10 md:gap-12">
+    <div class="grid gap-10 tracking-tight md:gap-12">
       <!-- Area Charts Section -->
       <section class="space-y-6">
         <div class="space-y-2">

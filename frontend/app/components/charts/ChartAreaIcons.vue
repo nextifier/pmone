@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import type {
-  ChartConfig,
-} from "@/components/ui/chart"
+import type { ChartConfig } from "@/components/ui/chart";
 // import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
-import { VisArea, VisAxis, VisLine, VisXYContainer } from "@unovis/vue"
-import { TrendingDown, TrendingUp } from "lucide-vue-next"
+import { VisArea, VisAxis, VisLine, VisXYContainer } from "@unovis/vue";
+import { TrendingDown, TrendingUp } from "lucide-vue-next";
 
 import {
   Card,
@@ -13,7 +11,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartCrosshair,
@@ -21,9 +19,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   componentToString,
-} from "@/components/ui/chart"
+} from "@/components/ui/chart";
 
-const description = "An area chart with axes"
+const description = "An area chart with axes";
 
 const chartData = [
   { month: 1, monthLabel: "January", desktop: 186, mobile: 80 },
@@ -32,9 +30,9 @@ const chartData = [
   { month: 4, monthLabel: "April", desktop: 73, mobile: 190 },
   { month: 5, monthLabel: "May", desktop: 209, mobile: 130 },
   { month: 6, monthLabel: "June", desktop: 214, mobile: 140 },
-]
+];
 
-type Data = typeof chartData[number]
+type Data = (typeof chartData)[number];
 
 const chartConfig = {
   mobile: {
@@ -47,30 +45,32 @@ const chartConfig = {
     color: "var(--chart-1)",
     icon: TrendingDown,
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 </script>
 
 <template>
   <Card>
     <CardHeader>
       <CardTitle>Area Chart - Icons</CardTitle>
-      <CardDescription>
-        Showing total visitors for the last 6 months
-      </CardDescription>
+      <CardDescription> Showing total visitors for the last 6 months </CardDescription>
     </CardHeader>
     <CardContent>
-      <ChartContainer :config="chartConfig" class="min-h-[200px] w-full">
+      <ChartContainer :config="chartConfig">
         <VisXYContainer :data="chartData" :margin="{ top: 10, bottom: 10 }">
           <VisArea
             :x="(d: Data) => d.month"
             :y="[(d: Data) => d.mobile, (d: Data) => d.desktop]"
-            :color="(d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i]"
+            :color="
+              (d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i]
+            "
             :opacity="0.4"
           />
           <VisLine
             :x="(d: Data) => d.month"
             :y="[(d: Data) => d.mobile, (d: Data) => d.mobile + d.desktop]"
-            :color="(d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i]"
+            :color="
+              (d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i]
+            "
             :line-width="1"
           />
           <VisAxis
@@ -80,9 +80,11 @@ const chartConfig = {
             :domain-line="false"
             :grid-line="false"
             :num-ticks="6"
-            :tick-format="(d: number, index: number) => {
-              return chartData[index].monthLabel.slice(0, 3)
-            }"
+            :tick-format="
+              (d: number, index: number) => {
+                return chartData[index].monthLabel.slice(0, 3);
+              }
+            "
           />
           <VisAxis
             type="y"
@@ -93,8 +95,15 @@ const chartConfig = {
           />
           <ChartTooltip />
           <ChartCrosshair
-            :template="componentToString(chartConfig, ChartTooltipContent, { labelKey: 'monthLabel', indicator: 'line' })"
-            :color="(d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i % 2]"
+            :template="
+              componentToString(chartConfig, ChartTooltipContent, {
+                labelKey: 'monthLabel',
+                indicator: 'line',
+              })
+            "
+            :color="
+              (d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i % 2]
+            "
           />
         </VisXYContainer>
 

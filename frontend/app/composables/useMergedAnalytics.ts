@@ -2,9 +2,9 @@
  * Composable that merges aggregate analytics data with realtime data.
  * Adds 'onlineUsers' field to totals and property_breakdown from realtime data.
  */
-export function useMergedAnalytics(initialDays: number = 30) {
+export function useMergedAnalytics(initialPeriod: string | number = 30) {
   const { aggregateData, loading, error, cacheInfo, fetchAnalytics, changeDateRange, refreshData } =
-    useAnalyticsData(initialDays);
+    useAnalyticsData(initialPeriod);
   const { realtimeData, startAutoRefresh: startRealtimeRefresh } = useRealtimeAnalytics();
 
   const mergedData = computed(() => {

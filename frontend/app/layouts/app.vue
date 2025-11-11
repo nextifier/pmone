@@ -1,5 +1,5 @@
 <template>
-  <SidebarProvider variant="sidebar" :defaultOpen="defaultOpen">
+  <SidebarProvider variant="sidebar" :defaultOpen="defaultOpen" id="layout-app">
     <AppSidebar class="select-none" />
 
     <SidebarInset class="mx-auto min-h-screen max-w-[1920px]">

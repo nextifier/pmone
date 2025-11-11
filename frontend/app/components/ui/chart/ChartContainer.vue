@@ -1,33 +1,35 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import type { ChartConfig } from "."
-import { useId } from "reka-ui"
-import { cn } from "@/lib/utils"
-import { provideChartContext } from "."
-import ChartStyle from "./ChartStyle.vue"
+import { cn } from "@/lib/utils";
+import { useId } from "reka-ui";
+import type { HTMLAttributes } from "vue";
+import type { ChartConfig } from ".";
+import { provideChartContext } from ".";
+import ChartStyle from "./ChartStyle.vue";
 
 const props = defineProps<{
-  id?: HTMLAttributes["id"]
-  class?: HTMLAttributes["class"]
-  config: ChartConfig
-  cursor?: boolean
-}>()
+  id?: HTMLAttributes["id"];
+  class?: HTMLAttributes["class"];
+  config: ChartConfig;
+  cursor?: boolean;
+}>();
 
-const { config } = toRefs(props)
-const uniqueId = useId()
-const chartId = computed(() => `chart-${props.id || uniqueId.replace(/:/g, "")}`)
+const { config } = toRefs(props);
+const uniqueId = useId();
+const chartId = computed(() => `chart-${props.id || uniqueId.replace(/:/g, "")}`);
 
-provideChartContext({ id: uniqueId, config })
+provideChartContext({ id: uniqueId, config });
 </script>
 
 <template>
   <div
     data-slot="chart"
     :data-chart="chartId"
-    :class="cn(
-      '[&_.tick_text]:!fill-muted-foreground [&_.tick_line]:!stroke-border/50 flex flex-col aspect-video justify-center text-xs h-full w-full',
-      props.class,
-    )"
+    :class="
+      cn(
+        '[&_.tick_text]:!fill-muted-foreground [&_.tick_line]:!stroke-border/50 flex aspect-auto h-[40vh] w-full flex-col justify-center text-xs tracking-tight',
+        props.class
+      )
+    "
     :style="{
       '--vis-tooltip-padding': '0px',
       '--vis-tooltip-background-color': 'transparent',
@@ -37,6 +39,8 @@ provideChartContext({ id: uniqueId, config })
     }"
   >
     <slot :id="uniqueId" :config="config" />
-    <ChartStyle :id="chartId" />
+    <ClientOnly>
+      <ChartStyle :id="chartId" />
+    </ClientOnly>
   </div>
 </template>

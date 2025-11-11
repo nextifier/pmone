@@ -451,6 +451,10 @@ definePageMeta({
   layout: "app",
 });
 
+defineOptions({
+  name: "web-analytics-id",
+});
+
 // State
 const loading = ref(false);
 const error = ref(null);

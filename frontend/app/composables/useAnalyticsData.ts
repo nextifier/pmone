@@ -2,14 +2,14 @@
  * Composable for managing analytics data fetching and caching.
  * Provides reactive state and auto-refresh capabilities.
  */
-export function useAnalyticsData(initialDays: number = 30) {
+export function useAnalyticsData(initialPeriod: string | number = 30) {
   const client = useSanctumClient();
 
   // State
   const aggregateData = ref<any>(null);
-  const loading = ref(false);
+  const loading = ref(true); // Start with true for SSR hydration
   const error = ref<string | null>(null);
-  const selectedDays = ref(initialDays);
+  const selectedPeriod = ref(initialPeriod);
 
   // Auto-refresh management
   let autoRefreshTimeout: NodeJS.Timeout | null = null;
@@ -33,23 +33,43 @@ export function useAnalyticsData(initialDays: number = 30) {
   });
 
   /**
+   * Convert period to API parameters.
+   *
+   * For named periods (today, yesterday, etc.), we pass the period name to backend
+   * so backend can calculate dates using server timezone (Asia/Jakarta).
+   * This prevents timezone mismatch between client and server.
+   */
+  function getPeriodParams(period: string | number) {
+    // If numeric, use days parameter
+    if (typeof period === 'number' || !isNaN(Number(period))) {
+      return { days: Number(period) };
+    }
+
+    // For named periods, pass period name to backend
+    // Backend will calculate dates using server timezone (Asia/Jakarta)
+    return { period: period };
+  }
+
+  /**
    * Fetch analytics data.
    */
-  async function fetchAnalytics(silent: boolean = false) {
+  async function fetchAnalytics(silent: boolean = false, skipAutoRefresh: boolean = false) {
     // Clear any existing auto-refresh
     if (autoRefreshTimeout) {
       clearTimeout(autoRefreshTimeout);
       autoRefreshTimeout = null;
     }
 
-    // Only show loading if not silent refresh and no data
-    const showLoading = !aggregateData.value && !silent;
-    if (showLoading) loading.value = true;
+    // Show loading unless it's a silent background refresh
+    if (!silent) {
+      loading.value = true;
+    }
     error.value = null;
 
     try {
+      const params = getPeriodParams(selectedPeriod.value);
       const response = await client(`/api/google-analytics/aggregate`, {
-        params: { days: selectedDays.value },
+        params,
       });
 
       // Handle response - client might return { data } or just the data directly
@@ -62,16 +82,19 @@ export function useAnalyticsData(initialDays: number = 30) {
 
       aggregateData.value = data;
 
-      // Auto-refresh logic based on cache state
-      if (
-        data.cache_info?.initial_load ||
-        (data.cache_info?.is_updating && data.cache_info?.properties_count === 0)
-      ) {
-        // Initial load with empty data - refresh quickly
-        autoRefreshTimeout = setTimeout(() => fetchAnalytics(true), 5000);
-      } else if (data.cache_info?.is_updating) {
-        // Has data but updating in background - refresh slower
-        autoRefreshTimeout = setTimeout(() => fetchAnalytics(true), 15000);
+      // Only set up auto-refresh if not skipping (i.e., not a manual period change)
+      if (!skipAutoRefresh) {
+        // Auto-refresh logic based on cache state
+        if (
+          data.cache_info?.initial_load ||
+          (data.cache_info?.is_updating && data.cache_info?.properties_count === 0)
+        ) {
+          // Initial load with empty data - refresh quickly
+          autoRefreshTimeout = setTimeout(() => fetchAnalytics(true), 5000);
+        } else if (data.cache_info?.is_updating) {
+          // Has data but updating in background - refresh slower
+          autoRefreshTimeout = setTimeout(() => fetchAnalytics(true), 15000);
+        }
       }
 
       return data;
@@ -89,16 +112,20 @@ export function useAnalyticsData(initialDays: number = 30) {
 
       throw err;
     } finally {
-      if (showLoading) loading.value = false;
+      if (!silent) {
+        loading.value = false;
+      }
     }
   }
 
   /**
    * Change date range and refresh data.
    */
-  async function changeDateRange(days: number) {
-    selectedDays.value = days;
-    await fetchAnalytics();
+  async function changeDateRange(period: string | number) {
+    selectedPeriod.value = period;
+    // Fetch new data without auto-refresh (user initiated action)
+    // Don't clear aggregateData to null - let loading state handle UX
+    await fetchAnalytics(false, true);
   }
 
   /**
@@ -128,7 +155,7 @@ export function useAnalyticsData(initialDays: number = 30) {
     aggregateData: readonly(aggregateData),
     loading: readonly(loading),
     error: readonly(error),
-    selectedDays: readonly(selectedDays),
+    selectedPeriod: readonly(selectedPeriod),
 
     // Computed
     cacheInfo,

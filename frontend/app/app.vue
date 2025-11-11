@@ -6,7 +6,7 @@
       <NuxtLayout>
         <NuxtPage
           :keepalive="{
-            include: [],
+            include: ['web-analytics', 'web-analytics-id'],
           }"
         />
       </NuxtLayout>

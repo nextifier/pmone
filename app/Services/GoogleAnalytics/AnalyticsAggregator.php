@@ -11,7 +11,8 @@ class AnalyticsAggregator
     use CalculatesTotalsFromRows;
 
     public function __construct(
-        protected AnalyticsDataFetcher $dataFetcher
+        protected AnalyticsDataFetcher $dataFetcher,
+        protected DailyDataAggregator $dailyAggregator
     ) {}
 
     /**
@@ -38,9 +39,11 @@ class AnalyticsAggregator
 
         // Execute all property fetches in parallel for massive performance gain
         // Use sync driver to avoid serialization issues with process driver
+        // NOW USING DAILY AGGREGATION: Fetch 365-day cache once, aggregate on-demand
         $tasks = $properties->map(fn ($property) => fn () => (function () use ($property, $period) {
             try {
-                $data = $this->dataFetcher->fetchMetrics($property, $period);
+                // Use daily aggregator to get data from 365-day cache
+                $data = $this->dailyAggregator->getDataForPeriod($property, $period);
 
                 // Extract data from cache wrapper if present
                 $metricsData = $data['data'] ?? $data;
@@ -132,16 +135,18 @@ class AnalyticsAggregator
 
     /**
      * Aggregate top pages from multiple properties using parallel execution.
+     * NOW USING DAILY AGGREGATION: Fetch from 365-day cache and filter by period.
      */
     public function aggregateTopPages(Collection $properties, Period $period, int $limit = 10): array
     {
         $allPages = [];
         $errors = [];
 
-        // Execute all property fetches in parallel
+        // Execute all property fetches in parallel using daily aggregator
         $tasks = $properties->map(fn ($property) => fn () => (function () use ($property, $period, $limit) {
             try {
-                $pages = $this->dataFetcher->fetchTopPages($property, $period, $limit);
+                // Use daily aggregator to get top pages from 365-day cache
+                $pages = $this->dailyAggregator->getTopPagesForPeriod($property, $period, $limit);
 
                 return [
                     'success' => true,
@@ -191,16 +196,18 @@ class AnalyticsAggregator
 
     /**
      * Aggregate traffic sources from multiple properties using parallel execution.
+     * NOW USING DAILY AGGREGATION: Fetch from 365-day cache and filter by period.
      */
     public function aggregateTrafficSources(Collection $properties, Period $period): array
     {
         $sourcesByKey = [];
         $errors = [];
 
-        // Execute all property fetches in parallel
+        // Execute all property fetches in parallel using daily aggregator
         $tasks = $properties->map(fn ($property) => fn () => (function () use ($property, $period) {
             try {
-                $sources = $this->dataFetcher->fetchTrafficSources($property, $period);
+                // Use daily aggregator to get traffic sources from 365-day cache
+                $sources = $this->dailyAggregator->getTrafficSourcesForPeriod($property, $period);
 
                 return [
                     'success' => true,
@@ -265,16 +272,18 @@ class AnalyticsAggregator
 
     /**
      * Aggregate device data from multiple properties using parallel execution.
+     * NOW USING DAILY AGGREGATION: Fetch from 365-day cache and filter by period.
      */
     public function aggregateDevices(Collection $properties, Period $period): array
     {
         $devicesByCategory = [];
         $errors = [];
 
-        // Execute all property fetches in parallel
+        // Execute all property fetches in parallel using daily aggregator
         $tasks = $properties->map(fn ($property) => fn () => (function () use ($property, $period) {
             try {
-                $devices = $this->dataFetcher->fetchDevices($property, $period);
+                // Use daily aggregator to get devices from 365-day cache
+                $devices = $this->dailyAggregator->getDevicesForPeriod($property, $period);
 
                 return [
                     'success' => true,

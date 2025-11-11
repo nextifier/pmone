@@ -1,11 +1,6 @@
 <script setup lang="ts">
-import type {
-  ChartConfig,
-} from "@/components/ui/chart"
+import type { ChartConfig } from "@/components/ui/chart";
 
-import { Orientation } from "@unovis/ts"
-import { VisAxis, VisGroupedBar, VisXYContainer } from "@unovis/vue"
-import { TrendingUp } from "lucide-vue-next"
 import {
   Card,
   CardContent,
@@ -13,16 +8,19 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartCrosshair,
   ChartTooltip,
   ChartTooltipContent,
   componentToString,
-} from "@/components/ui/chart"
+} from "@/components/ui/chart";
+import { Orientation } from "@unovis/ts";
+import { VisAxis, VisGroupedBar, VisXYContainer } from "@unovis/vue";
+import { TrendingUp } from "lucide-vue-next";
 
-const description = "A line chart"
+const description = "A line chart";
 
 const chartData = [
   { date: new Date("2024-01-01"), desktop: 186 },
@@ -31,16 +29,16 @@ const chartData = [
   { date: new Date("2024-04-01"), desktop: 73 },
   { date: new Date("2024-05-01"), desktop: 209 },
   { date: new Date("2024-06-01"), desktop: 214 },
-]
+];
 
-type Data = typeof chartData[number]
+type Data = (typeof chartData)[number];
 
 const chartConfig = {
   desktop: {
     label: "Desktop",
     color: "var(--chart-1)",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 </script>
 
 <template>
@@ -50,10 +48,8 @@ const chartConfig = {
       <CardDescription>January - June 2024</CardDescription>
     </CardHeader>
     <CardContent>
-      <ChartContainer :config="chartConfig" class="min-h-[200px] w-full">
-        <VisXYContainer
-          :data="chartData"
-        >
+      <ChartContainer :config="chartConfig">
+        <VisXYContainer :data="chartData">
           <VisGroupedBar
             :x="(d: Data) => d.date"
             :y="(d: Data) => d.desktop"
@@ -67,13 +63,15 @@ const chartConfig = {
             :domain-line="false"
             :grid-line="false"
             :num-ticks="6"
-            :tick-format="(d: number) => {
-              const date = new Date(d)
-              return date.toLocaleDateString('en-US', {
-                month: 'short',
-              })
-            }"
-            :tick-values="chartData.map(d => d.date)"
+            :tick-format="
+              (d: number) => {
+                const date = new Date(d);
+                return date.toLocaleDateString('en-US', {
+                  month: 'short',
+                });
+              }
+            "
+            :tick-values="chartData.map((d) => d.date)"
           />
           <ChartTooltip />
           <ChartCrosshair
@@ -84,10 +82,10 @@ const chartConfig = {
       </ChartContainer>
     </CardContent>
     <CardFooter class="flex-col items-start gap-2 text-sm">
-      <div class="flex gap-2 font-medium leading-none">
+      <div class="flex gap-2 leading-none font-medium">
         Trending up by 5.2% this month <TrendingUp class="h-4 w-4" />
       </div>
-      <div class="leading-none text-muted-foreground">
+      <div class="text-muted-foreground leading-none">
         Showing total visitors for the last 6 months
       </div>
     </CardFooter>

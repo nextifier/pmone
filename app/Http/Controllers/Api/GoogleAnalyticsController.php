@@ -10,7 +10,6 @@ use App\Http\Requests\GoogleAnalytics\StoreGaPropertyRequest;
 use App\Http\Requests\GoogleAnalytics\SyncAnalyticsRequest;
 use App\Http\Requests\GoogleAnalytics\TriggerSyncRequest;
 use App\Http\Requests\GoogleAnalytics\UpdateGaPropertyRequest;
-use App\Http\Resources\GaPropertyCollection;
 use App\Http\Resources\GaPropertyResource;
 use App\Imports\GaPropertiesImport;
 use App\Jobs\AggregateAnalyticsData;
@@ -595,6 +594,11 @@ class GoogleAnalyticsController extends Controller
      */
     protected function applyAnalyticsRateLimit(Request $request): void
     {
+        // Skip rate limiting in local environment for development
+        if (app()->environment('local')) {
+            return;
+        }
+
         $userId = auth()->id() ?? $request->ip();
         $key = "analytics-request:{$userId}";
         $maxAttempts = config('analytics.rate_limiting.requests_per_minute', 60);
@@ -610,9 +614,15 @@ class GoogleAnalyticsController extends Controller
 
     /**
      * Create period from request parameters.
+     *
+     * Supports three formats:
+     * 1. start_date + end_date (custom range)
+     * 2. period name (today, yesterday, this_week, etc.)
+     * 3. days (last N days)
      */
     protected function createPeriodFromRequest(GetAnalyticsRequest $request)
     {
+        // Priority 1: Custom date range
         if ($request->has('start_date') && $request->has('end_date')) {
             return $this->analyticsService->createPeriodFromDates(
                 $request->input('start_date'),
@@ -620,6 +630,12 @@ class GoogleAnalyticsController extends Controller
             );
         }
 
+        // Priority 2: Named period (uses server timezone - Asia/Jakarta)
+        if ($request->has('period')) {
+            return $this->analyticsService->createPeriodFromName($request->input('period'));
+        }
+
+        // Priority 3: Days parameter (fallback)
         $days = $request->input('days', 7);
 
         return $this->analyticsService->createPeriodFromDays($days);

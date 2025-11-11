@@ -39,6 +39,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Aggregate analytics data for dashboard, run every 15 minutes
         $schedule->job(new \App\Jobs\AggregateAnalyticsData(null, 30))->everyFifteenMinutes();
+
+        // Refresh 365-day analytics cache for all properties, run hourly
+        // This ensures users always see fresh data without waiting
+        $schedule->command('analytics:refresh-cache')->hourly();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Force JSON response for API requests

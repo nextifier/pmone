@@ -34,10 +34,17 @@
             <SelectValue placeholder="Select date range" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="today">Today</SelectItem>
+            <SelectItem value="yesterday">Yesterday</SelectItem>
+            <SelectItem value="this_week">This week</SelectItem>
             <SelectItem value="7">Last 7 days</SelectItem>
-            <SelectItem value="14">Last 14 days</SelectItem>
+            <SelectItem value="last_week">Last week</SelectItem>
             <SelectItem value="30">Last 30 days</SelectItem>
+            <SelectItem value="this_month">This month</SelectItem>
+            <SelectItem value="last_month">Last month</SelectItem>
             <SelectItem value="90">Last 90 days</SelectItem>
+            <SelectItem value="this_year">This year</SelectItem>
+            <SelectItem value="365">Last 365 days</SelectItem>
           </SelectContent>
         </Select>
 
@@ -66,7 +73,7 @@
     </div>
 
     <div
-      v-if="loading"
+      v-if="loading && !aggregateData"
       class="border-border bg-pattern-diagonal flex grow items-center justify-center overflow-hidden rounded-xl border p-6"
     >
       <div class="flex items-center gap-2">
@@ -75,7 +82,7 @@
       </div>
     </div>
 
-    <div v-else-if="error" class="flex items-center justify-center p-6">
+    <div v-else-if="error && !aggregateData" class="flex items-center justify-center p-6">
       <div class="flex flex-col items-center gap-3 text-center">
         <Icon name="hugeicons:alert-circle" class="text-destructive size-6" />
         <div>
@@ -91,7 +98,39 @@
       </div>
     </div>
 
-    <div v-else-if="aggregateData" class="grid grid-cols-1 gap-y-10">
+    <div v-else-if="aggregateData" class="relative grid grid-cols-1 gap-y-10">
+      <!-- Loading overlay when changing date range -->
+      <div
+        v-if="loading"
+        class="bg-background/90 absolute inset-0 z-10 flex items-start justify-center pt-20 backdrop-blur-md"
+      >
+        <div
+          class="border-border bg-card flex items-center gap-3 rounded-lg border px-6 py-4 shadow-lg"
+        >
+          <Spinner class="size-5 shrink-0" />
+          <span class="text-sm font-medium tracking-tight"
+            >Loading
+            {{
+              selectedRange === "today"
+                ? "Today"
+                : selectedRange === "yesterday"
+                  ? "Yesterday"
+                  : selectedRange === "this_week"
+                    ? "This Week"
+                    : selectedRange === "last_week"
+                      ? "Last Week"
+                      : selectedRange === "this_month"
+                        ? "This Month"
+                        : selectedRange === "last_month"
+                          ? "Last Month"
+                          : selectedRange === "this_year"
+                            ? "This Year"
+                            : `Last ${selectedRange} days`
+            }}...</span
+          >
+        </div>
+      </div>
+
       <div
         v-if="aggregateData.errors && aggregateData.errors.length > 0"
         class="bg-destructive/5 border-destructive/20 flex flex-col gap-3 rounded-lg border p-4"
@@ -226,37 +265,6 @@
         v-if="aggregateData.devices?.length > 0"
         :devices="aggregateData.devices"
       />
-
-      <div v-if="aggregateData" class="space-y-4">
-        <div>
-          <h2 class="text-foreground text-lg font-semibold tracking-tighter">Data Visualizations</h2>
-          <p class="text-muted-foreground mt-1 text-sm tracking-tight">
-            Interactive charts and graphs for better insights
-          </p>
-        </div>
-
-        <div class="grid gap-6 lg:grid-cols-2">
-          <AnalyticsTopPagesChart
-            v-if="aggregateData.top_pages?.length > 0"
-            :top-pages="aggregateData.top_pages"
-          />
-
-          <AnalyticsTrafficSourcesChart
-            v-if="aggregateData.traffic_sources?.length > 0"
-            :traffic-sources="aggregateData.traffic_sources"
-          />
-
-          <AnalyticsDevicesChart
-            v-if="aggregateData.devices?.length > 0"
-            :devices="aggregateData.devices"
-          />
-
-          <AnalyticsPropertiesChart
-            v-if="propertyBreakdown.length > 0"
-            :properties="propertyBreakdown"
-          />
-        </div>
-      </div>
     </div>
 
     <div
@@ -291,6 +299,10 @@ definePageMeta({
   layout: "app",
 });
 
+defineOptions({
+  name: "web-analytics",
+});
+
 usePageMeta("", {
   title: "Web Analytics Dashboard",
   description: "View aggregated analytics data from all Google Analytics 4 properties",
@@ -306,10 +318,48 @@ const {
   fetchAnalytics,
   changeDateRange,
   startRealtimeRefresh,
-} = useMergedAnalytics(parseInt(selectedRange.value));
+} = useMergedAnalytics(selectedRange.value);
 
-const endDate = computed(() => $dayjs());
-const startDate = computed(() => $dayjs().subtract(parseInt(selectedRange.value), "day"));
+/**
+ * Calculate start and end dates based on the selected range
+ */
+const getDateRange = (range) => {
+  const today = $dayjs();
+
+  switch (range) {
+    case "today":
+      return { start: today.startOf("day"), end: today.endOf("day") };
+    case "yesterday":
+      return {
+        start: today.subtract(1, "day").startOf("day"),
+        end: today.subtract(1, "day").endOf("day"),
+      };
+    case "this_week":
+      return { start: today.startOf("week"), end: today.endOf("day") };
+    case "last_week":
+      return {
+        start: today.subtract(1, "week").startOf("week"),
+        end: today.subtract(1, "week").endOf("week"),
+      };
+    case "this_month":
+      return { start: today.startOf("month"), end: today.endOf("day") };
+    case "last_month":
+      return {
+        start: today.subtract(1, "month").startOf("month"),
+        end: today.subtract(1, "month").endOf("month"),
+      };
+    case "this_year":
+      return { start: today.startOf("year"), end: today.endOf("day") };
+    default:
+      // Numeric values like 7, 30, 90, 365 - "last N days"
+      const days = parseInt(range);
+      return { start: today.subtract(days - 1, "day").startOf("day"), end: today.endOf("day") };
+  }
+};
+
+const dateRange = computed(() => getDateRange(selectedRange.value));
+const startDate = computed(() => dateRange.value.start);
+const endDate = computed(() => dateRange.value.end);
 
 const summaryMetrics = computed(() => {
   if (!aggregateData.value?.totals) return [];
@@ -319,7 +369,7 @@ const summaryMetrics = computed(() => {
   return [
     {
       key: "onlineUsers",
-      label: "Online Visitors",
+      label: "Online Now",
       description: "People browsing your site right now.",
       value: totals.onlineUsers || 0,
       formattedValue: formatNumber(totals.onlineUsers || 0),
@@ -403,7 +453,7 @@ const propertyBreakdown = computed(() => {
 });
 
 const handleDateRangeChange = async (value) => {
-  await changeDateRange(parseInt(value));
+  await changeDateRange(value);
 };
 
 const refreshData = () => {
@@ -491,8 +541,14 @@ const clearRateLimit = async () => {
   }
 };
 
-onMounted(() => {
-  fetchAnalytics();
+onMounted(async () => {
+  // Start both fetches in parallel for faster initial load
+  // Realtime data will update independently via auto-refresh
   startRealtimeRefresh();
+
+  // Fetch aggregate data (will use cache if available)
+  // Backend now uses daily aggregation: fetches 365 days once, aggregates on-demand
+  // No need to preload multiple periods - all periods are instant!
+  await fetchAnalytics();
 });
 </script>

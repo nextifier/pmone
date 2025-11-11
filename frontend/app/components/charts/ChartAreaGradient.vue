@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import type {
-  ChartConfig,
-} from "@/components/ui/chart"
-import { VisArea, VisAxis, VisLine, VisXYContainer } from "@unovis/vue"
+import type { ChartConfig } from "@/components/ui/chart";
+import { VisArea, VisAxis, VisLine, VisXYContainer } from "@unovis/vue";
 
-import { TrendingUp } from "lucide-vue-next"
 import {
   Card,
   CardContent,
@@ -12,16 +9,17 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartCrosshair,
   ChartTooltip,
   ChartTooltipContent,
   componentToString,
-} from "@/components/ui/chart"
+} from "@/components/ui/chart";
+import { TrendingUp } from "lucide-vue-next";
 
-const description = "An area chart with axes"
+const description = "An area chart with axes";
 
 const chartData = [
   { month: 1, monthLabel: "January", desktop: 186, mobile: 80 },
@@ -30,9 +28,9 @@ const chartData = [
   { month: 4, monthLabel: "April", desktop: 73, mobile: 190 },
   { month: 5, monthLabel: "May", desktop: 209, mobile: 130 },
   { month: 6, monthLabel: "June", desktop: 214, mobile: 140 },
-]
+];
 
-type Data = typeof chartData[number]
+type Data = (typeof chartData)[number];
 
 const chartConfig = {
   desktop: {
@@ -43,7 +41,7 @@ const chartConfig = {
     label: "Mobile",
     color: "var(--chart-2)",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
 const svgDefs = `
   <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
@@ -54,7 +52,7 @@ const svgDefs = `
     <stop offset="5%" stop-color="var(--color-mobile)" stop-opacity="0.8" />
     <stop offset="95%" stop-color="var(--color-mobile)" stop-opacity="0.1" />
   </linearGradient>
-`
+`;
 </script>
 
 <template>
@@ -63,8 +61,10 @@ const svgDefs = `
       <CardTitle>Area Chart - Gradient</CardTitle>
       <CardDescription>Showing total visitors for the last 6 months</CardDescription>
     </CardHeader>
-    <CardContent>
-      <ChartContainer :config="chartConfig" class="min-h-[200px] w-full">
+    <CardContent
+      class="overflow-hidden !px-0 [&_svg>g]:!origin-center [&_svg>g]:not-first:scale-x-110 [&_svg>g]:first:!scale-x-90"
+    >
+      <ChartContainer :config="chartConfig">
         <VisXYContainer :data="chartData" :svg-defs="svgDefs">
           <VisArea
             :x="(d: Data) => d.month"
@@ -75,7 +75,9 @@ const svgDefs = `
           <VisLine
             :x="(d: Data) => d.month"
             :y="[(d: Data) => d.mobile, (d: Data) => d.mobile + d.desktop]"
-            :color="(d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i]"
+            :color="
+              (d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i]
+            "
             :line-width="1"
           />
           <VisAxis
@@ -87,11 +89,21 @@ const svgDefs = `
             :num-ticks="6"
             :tick-format="(d: number, index: number) => chartData[index].monthLabel.slice(0, 3)"
           />
-          <VisAxis type="y" :num-ticks="3" :tick-line="false" :domain-line="false" :tick-format="(d: number) => ''" />
+          <VisAxis
+            type="y"
+            :num-ticks="3"
+            :tick-line="false"
+            :domain-line="false"
+            :tick-format="(d: number) => ''"
+          />
           <ChartTooltip />
           <ChartCrosshair
-            :template="componentToString(chartConfig, ChartTooltipContent, { labelKey: 'monthLabel' })"
-            :color="(d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i % 2]"
+            :template="
+              componentToString(chartConfig, ChartTooltipContent, { labelKey: 'monthLabel' })
+            "
+            :color="
+              (d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i % 2]
+            "
           />
         </VisXYContainer>
       </ChartContainer>

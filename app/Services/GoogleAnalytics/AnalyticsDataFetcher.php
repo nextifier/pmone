@@ -3,7 +3,6 @@
 namespace App\Services\GoogleAnalytics;
 
 use App\Models\GaProperty;
-use App\Services\GoogleAnalytics\Period;
 use Google\Analytics\Data\V1beta\Client\BetaAnalyticsDataClient;
 use Google\Analytics\Data\V1beta\DateRange;
 use Google\Analytics\Data\V1beta\Dimension;
@@ -127,6 +126,7 @@ class AnalyticsDataFetcher
                     ]);
 
                     sleep($retryDelays[$attempt]);
+
                     continue;
                 }
 
@@ -266,8 +266,12 @@ class AnalyticsDataFetcher
 
         // Process rows
         foreach ($response->getRows() as $row) {
+            // Convert GA4 date format (YYYYMMDD) to standard Y-m-d format
+            $gaDate = $row->getDimensionValues()[0]->getValue();
+            $formattedDate = \Carbon\Carbon::createFromFormat('Ymd', $gaDate)->format('Y-m-d');
+
             $rowData = [
-                'date' => $row->getDimensionValues()[0]->getValue(),
+                'date' => $formattedDate,
             ];
 
             foreach ($metrics as $index => $metric) {
@@ -462,6 +466,150 @@ class AnalyticsDataFetcher
             \Log::warning("Failed to fetch realtime users for property {$property->name}: {$e->getMessage()}");
 
             return 0; // Return 0 instead of throwing, since realtime data is not critical
+        }
+    }
+
+    /**
+     * Fetch top pages with date dimension for daily aggregation.
+     * Returns per-day breakdown of top pages for filtering by date range.
+     */
+    public function fetchTopPagesDaily(GaProperty $property, Period $period, int $limit = 100): array
+    {
+        try {
+            $client = $this->createGA4Client($property);
+
+            $request = (new RunReportRequest)
+                ->setProperty('properties/'.$property->property_id)
+                ->setDateRanges([
+                    new DateRange([
+                        'start_date' => $period->startDate->format('Y-m-d'),
+                        'end_date' => $period->endDate->format('Y-m-d'),
+                    ]),
+                ])
+                ->setDimensions([
+                    new Dimension(['name' => 'date']),
+                    new Dimension(['name' => 'pageTitle']),
+                    new Dimension(['name' => 'pagePath']),
+                ])
+                ->setMetrics([
+                    new Metric(['name' => 'screenPageViews']),
+                ])
+                ->setLimit($limit);
+
+            $response = $client->runReport($request);
+
+            $pages = [];
+            foreach ($response->getRows() as $row) {
+                $gaDate = $row->getDimensionValues()[0]->getValue();
+                $formattedDate = \Carbon\Carbon::createFromFormat('Ymd', $gaDate)->format('Y-m-d');
+
+                $pages[] = [
+                    'date' => $formattedDate,
+                    'title' => $row->getDimensionValues()[1]->getValue(),
+                    'path' => $row->getDimensionValues()[2]->getValue(),
+                    'pageviews' => (int) $row->getMetricValues()[0]->getValue(),
+                ];
+            }
+
+            return $pages;
+        } catch (\Exception $e) {
+            throw new \Exception("Failed to fetch top pages daily: {$e->getMessage()}");
+        }
+    }
+
+    /**
+     * Fetch traffic sources with date dimension for daily aggregation.
+     * Returns per-day breakdown of traffic sources for filtering by date range.
+     */
+    public function fetchTrafficSourcesDaily(GaProperty $property, Period $period): array
+    {
+        try {
+            $client = $this->createGA4Client($property);
+
+            $request = (new RunReportRequest)
+                ->setProperty('properties/'.$property->property_id)
+                ->setDateRanges([
+                    new DateRange([
+                        'start_date' => $period->startDate->format('Y-m-d'),
+                        'end_date' => $period->endDate->format('Y-m-d'),
+                    ]),
+                ])
+                ->setDimensions([
+                    new Dimension(['name' => 'date']),
+                    new Dimension(['name' => 'sessionSource']),
+                    new Dimension(['name' => 'sessionMedium']),
+                ])
+                ->setMetrics([
+                    new Metric(['name' => 'sessions']),
+                    new Metric(['name' => 'activeUsers']),
+                ]);
+
+            $response = $client->runReport($request);
+
+            $sources = [];
+            foreach ($response->getRows() as $row) {
+                $gaDate = $row->getDimensionValues()[0]->getValue();
+                $formattedDate = \Carbon\Carbon::createFromFormat('Ymd', $gaDate)->format('Y-m-d');
+
+                $sources[] = [
+                    'date' => $formattedDate,
+                    'source' => $row->getDimensionValues()[1]->getValue(),
+                    'medium' => $row->getDimensionValues()[2]->getValue(),
+                    'sessions' => (int) $row->getMetricValues()[0]->getValue(),
+                    'users' => (int) $row->getMetricValues()[1]->getValue(),
+                ];
+            }
+
+            return $sources;
+        } catch (\Exception $e) {
+            throw new \Exception("Failed to fetch traffic sources daily: {$e->getMessage()}");
+        }
+    }
+
+    /**
+     * Fetch device categories with date dimension for daily aggregation.
+     * Returns per-day breakdown of device categories for filtering by date range.
+     */
+    public function fetchDevicesDaily(GaProperty $property, Period $period): array
+    {
+        try {
+            $client = $this->createGA4Client($property);
+
+            $request = (new RunReportRequest)
+                ->setProperty('properties/'.$property->property_id)
+                ->setDateRanges([
+                    new DateRange([
+                        'start_date' => $period->startDate->format('Y-m-d'),
+                        'end_date' => $period->endDate->format('Y-m-d'),
+                    ]),
+                ])
+                ->setDimensions([
+                    new Dimension(['name' => 'date']),
+                    new Dimension(['name' => 'deviceCategory']),
+                ])
+                ->setMetrics([
+                    new Metric(['name' => 'activeUsers']),
+                    new Metric(['name' => 'sessions']),
+                ]);
+
+            $response = $client->runReport($request);
+
+            $devices = [];
+            foreach ($response->getRows() as $row) {
+                $gaDate = $row->getDimensionValues()[0]->getValue();
+                $formattedDate = \Carbon\Carbon::createFromFormat('Ymd', $gaDate)->format('Y-m-d');
+
+                $devices[] = [
+                    'date' => $formattedDate,
+                    'device' => $row->getDimensionValues()[1]->getValue(),
+                    'users' => (int) $row->getMetricValues()[0]->getValue(),
+                    'sessions' => (int) $row->getMetricValues()[1]->getValue(),
+                ];
+            }
+
+            return $devices;
+        } catch (\Exception $e) {
+            throw new \Exception("Failed to fetch device data daily: {$e->getMessage()}");
         }
     }
 }

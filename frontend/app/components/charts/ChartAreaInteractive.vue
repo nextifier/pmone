@@ -1,30 +1,23 @@
 <script setup lang="ts">
-import type { ChartConfig } from "@/components/ui/chart"
-import { VisArea, VisAxis, VisLine, VisXYContainer } from "@unovis/vue"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import type { ChartConfig } from "@/components/ui/chart";
 import {
   ChartContainer,
   ChartCrosshair,
-  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
   componentToString,
-} from "@/components/ui/chart"
+} from "@/components/ui/chart";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
+import { VisArea, VisAxis, VisLine, VisXYContainer } from "@unovis/vue";
 
-const description = "An interactive area chart"
+const description = "An interactive area chart";
 
 const chartData = [
   { date: new Date("2024-04-01"), desktop: 222, mobile: 150 },
@@ -118,9 +111,9 @@ const chartData = [
   { date: new Date("2024-06-28"), desktop: 286, mobile: 290 },
   { date: new Date("2024-06-29"), desktop: 289, mobile: 342 },
   { date: new Date("2024-06-30"), desktop: 340, mobile: 297 },
-]
+];
 
-type Data = typeof chartData[number]
+type Data = (typeof chartData)[number];
 
 const chartConfig = {
   mobile: {
@@ -131,7 +124,7 @@ const chartConfig = {
     label: "Desktop",
     color: "var(--chart-1)",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
 const svgDefs = `
   <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
@@ -142,13 +135,13 @@ const svgDefs = `
     <stop offset="5%" stop-color="var(--color-mobile)" stop-opacity="0.8" />
     <stop offset="95%" stop-color="var(--color-mobile)" stop-opacity="0.1" />
   </linearGradient>
-`
+`;
 
-const timeRange = ref("90d")
+const timeRange = ref("90d");
 
 const filterRange = computed(() => {
   // Use the last date in the data as reference instead of today
-  const referenceDate = new Date("2024-06-30")
+  const referenceDate = new Date("2024-06-30");
   const dayCount =
     timeRange.value === "90d"
       ? 90
@@ -156,24 +149,22 @@ const filterRange = computed(() => {
         ? 30
         : timeRange.value === "7d"
           ? 7
-          : 1
+          : 1;
 
   return chartData.filter((item) => {
-    const date = item.date
-    const diff = (referenceDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
-    return diff >= 0 && diff <= dayCount
-  })
-})
+    const date = item.date;
+    const diff = (referenceDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+    return diff >= 0 && diff <= dayCount;
+  });
+});
 </script>
 
 <template>
   <Card>
     <CardHeader class="flex flex-row items-center border-b py-4">
-      <div class="flex flex-col gap-2 flex-1">
+      <div class="flex flex-1 flex-col gap-2">
         <CardTitle>Area Chart - Interactive</CardTitle>
-        <CardDescription>
-          Showing total visitors for the last 3 months
-        </CardDescription>
+        <CardDescription> Showing total visitors for the last 3 months </CardDescription>
       </div>
       <Select v-model="timeRange">
         <SelectTrigger class="w-[160px] rounded-lg">
@@ -187,7 +178,7 @@ const filterRange = computed(() => {
       </Select>
     </CardHeader>
     <CardContent class="px-2 pt-4 sm:px-6 sm:pt-6">
-      <ChartContainer :config="chartConfig" class="min-h-[200px] w-full aspect-auto h-[250px]">
+      <ChartContainer :config="chartConfig">
         <VisXYContainer :data="filterRange" :svg-defs="svgDefs">
           <VisArea
             :x="(d: Data) => d.date"
@@ -198,7 +189,9 @@ const filterRange = computed(() => {
           <VisLine
             :x="(d: Data) => d.date"
             :y="[(d: Data) => d.mobile, (d: Data) => d.desktop]"
-            :color="(d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i]"
+            :color="
+              (d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i]
+            "
             :line-width="2"
           />
           <VisAxis
@@ -208,13 +201,15 @@ const filterRange = computed(() => {
             :domain-line="false"
             :grid-line="false"
             :num-ticks="6"
-            :tick-format="(d: number) => {
-              const date = new Date(d)
-              return date.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-              })
-            }"
+            :tick-format="
+              (d: number) => {
+                const date = new Date(d);
+                return date.toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                });
+              }
+            "
           />
           <VisAxis
             type="y"
@@ -226,7 +221,9 @@ const filterRange = computed(() => {
           <ChartTooltip />
           <ChartCrosshair
             :template="componentToString(chartConfig, ChartTooltipContent, { labelKey: 'date' })"
-            :color="(d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i % 2]"
+            :color="
+              (d: Data, i: number) => [chartConfig.mobile.color, chartConfig.desktop.color][i % 2]
+            "
           />
         </VisXYContainer>
       </ChartContainer>

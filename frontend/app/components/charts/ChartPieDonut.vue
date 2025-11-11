@@ -1,11 +1,6 @@
 <script setup lang="ts">
-import type {
-  ChartConfig,
-} from "@/components/ui/chart"
+import type { ChartConfig } from "@/components/ui/chart";
 
-import { Donut } from "@unovis/ts"
-import { VisDonut, VisSingleContainer } from "@unovis/vue"
-import { TrendingUp } from "lucide-vue-next"
 import {
   Card,
   CardContent,
@@ -13,15 +8,18 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   componentToString,
-} from "@/components/ui/chart"
+} from "@/components/ui/chart";
+import { Donut } from "@unovis/ts";
+import { VisDonut, VisSingleContainer } from "@unovis/vue";
+import { TrendingUp } from "lucide-vue-next";
 
-const description = "A simple pie chart"
+const description = "A simple pie chart";
 
 const chartData = [
   { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
@@ -29,8 +27,8 @@ const chartData = [
   { browser: "firefox", visitors: 187, fill: "var(--color-firefox)" },
   { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
   { browser: "other", visitors: 90, fill: "var(--color-other)" },
-]
-type Data = typeof chartData[number]
+];
+type Data = (typeof chartData)[number];
 
 const chartConfig = {
   visitors: {
@@ -57,7 +55,7 @@ const chartConfig = {
     label: "Other",
     color: "var(--chart-5)",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 </script>
 
 <template>
@@ -67,14 +65,8 @@ const chartConfig = {
       <CardDescription>January - June 2024</CardDescription>
     </CardHeader>
     <CardContent class="flex-1 pb-0">
-      <ChartContainer
-        :config="chartConfig"
-        class="min-h-[200px] w-full mx-auto aspect-square max-h-[250px]"
-      >
-        <VisSingleContainer
-          :data="chartData"
-          :margin="{ top: 30, bottom: 30 }"
-        >
+      <ChartContainer :config="chartConfig">
+        <VisSingleContainer :data="chartData" :margin="{ top: 30, bottom: 30 }">
           <VisDonut
             :value="(d: Data) => d.visitors"
             :color="(d: Data) => chartConfig[d.browser as keyof typeof chartConfig].color"
@@ -82,17 +74,19 @@ const chartConfig = {
           />
           <ChartTooltip
             :triggers="{
-              [Donut.selectors.segment]: componentToString(chartConfig, ChartTooltipContent, { hideLabel: true })!,
+              [Donut.selectors.segment]: componentToString(chartConfig, ChartTooltipContent, {
+                hideLabel: true,
+              })!,
             }"
           />
         </VisSingleContainer>
       </ChartContainer>
     </CardContent>
     <CardFooter class="flex-col gap-2 text-sm">
-      <div class="flex items-center gap-2 font-medium leading-none">
+      <div class="flex items-center gap-2 leading-none font-medium">
         Trending up by 5.2% this month <TrendingUp class="h-4 w-4" />
       </div>
-      <div class="leading-none text-muted-foreground">
+      <div class="text-muted-foreground leading-none">
         Showing total visitors for the last 6 months
       </div>
     </CardFooter>
