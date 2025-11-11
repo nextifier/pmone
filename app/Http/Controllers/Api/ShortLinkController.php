@@ -24,7 +24,7 @@ class ShortLinkController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = ShortLink::query()->with(['user']);
+        $query = ShortLink::query()->with(['user'])->excludeProfileLinks();
         $clientOnly = $request->boolean('client_only', false);
 
         // Apply filters and sorting only if not client-only mode
@@ -312,7 +312,7 @@ class ShortLinkController extends Controller
 
     public function trash(Request $request): JsonResponse
     {
-        $query = ShortLink::onlyTrashed()->with(['user', 'deleter']);
+        $query = ShortLink::onlyTrashed()->with(['user', 'deleter'])->excludeProfileLinks();
         $clientOnly = $request->boolean('client_only', false);
 
         if (! $clientOnly) {

@@ -140,4 +140,13 @@ class ShortLink extends Model
     {
         return $query->where('is_active', true);
     }
+
+    /**
+     * Scope to exclude profile short links (user and project profiles).
+     */
+    public function scopeExcludeProfileLinks($query)
+    {
+        return $query->where('destination_url', 'not like', '%/users/%')
+            ->where('destination_url', 'not like', '%/projects/%');
+    }
 }
