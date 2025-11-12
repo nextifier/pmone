@@ -114,13 +114,14 @@ class GaProperty extends Model implements HasMedia
 
     /**
      * Scope a query to include properties that need syncing.
+     * PostgreSQL syntax for timestamp + interval calculation.
      */
     public function scopeNeedsSync($query)
     {
         return $query->where('is_active', true)
             ->where(function ($q) {
                 $q->whereNull('last_synced_at')
-                    ->orWhereRaw('last_synced_at < NOW() - INTERVAL sync_frequency MINUTE');
+                    ->orWhereRaw('last_synced_at + (sync_frequency || \' minutes\')::interval < NOW()');
             });
     }
 

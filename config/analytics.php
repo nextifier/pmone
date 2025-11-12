@@ -102,7 +102,7 @@ return [
     /*
      * API request timeout in seconds
      */
-    'timeout' => 120,
+    'timeout' => 300,
 
     /*
      * Rate limiting configuration for endpoints

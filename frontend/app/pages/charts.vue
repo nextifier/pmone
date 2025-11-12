@@ -25,14 +25,99 @@ const areaChartConfig = {
   },
 };
 
-// Area Interactive Chart Data (with Date objects)
+// Area Interactive Chart Data (with Date objects) - 91 days from April to June
 const areaInteractiveChartData = [
-  { date: new Date("2024-01-01"), desktop: 186, mobile: 80 },
-  { date: new Date("2024-02-01"), desktop: 305, mobile: 200 },
-  { date: new Date("2024-03-01"), desktop: 237, mobile: 120 },
-  { date: new Date("2024-04-01"), desktop: 73, mobile: 190 },
-  { date: new Date("2024-05-01"), desktop: 209, mobile: 130 },
-  { date: new Date("2024-06-01"), desktop: 214, mobile: 140 },
+  { date: new Date("2024-04-01"), desktop: 222, mobile: 150 },
+  { date: new Date("2024-04-02"), desktop: 97, mobile: 180 },
+  { date: new Date("2024-04-03"), desktop: 167, mobile: 120 },
+  { date: new Date("2024-04-04"), desktop: 242, mobile: 260 },
+  { date: new Date("2024-04-05"), desktop: 373, mobile: 290 },
+  { date: new Date("2024-04-06"), desktop: 301, mobile: 340 },
+  { date: new Date("2024-04-07"), desktop: 245, mobile: 180 },
+  { date: new Date("2024-04-08"), desktop: 409, mobile: 320 },
+  { date: new Date("2024-04-09"), desktop: 59, mobile: 110 },
+  { date: new Date("2024-04-10"), desktop: 261, mobile: 190 },
+  { date: new Date("2024-04-11"), desktop: 327, mobile: 330 },
+  { date: new Date("2024-04-12"), desktop: 292, mobile: 210 },
+  { date: new Date("2024-04-13"), desktop: 342, mobile: 380 },
+  { date: new Date("2024-04-14"), desktop: 137, mobile: 220 },
+  { date: new Date("2024-04-15"), desktop: 120, mobile: 170 },
+  { date: new Date("2024-04-16"), desktop: 138, mobile: 190 },
+  { date: new Date("2024-04-17"), desktop: 446, mobile: 360 },
+  { date: new Date("2024-04-18"), desktop: 364, mobile: 410 },
+  { date: new Date("2024-04-19"), desktop: 243, mobile: 180 },
+  { date: new Date("2024-04-20"), desktop: 89, mobile: 150 },
+  { date: new Date("2024-04-21"), desktop: 137, mobile: 200 },
+  { date: new Date("2024-04-22"), desktop: 224, mobile: 170 },
+  { date: new Date("2024-04-23"), desktop: 138, mobile: 230 },
+  { date: new Date("2024-04-24"), desktop: 387, mobile: 290 },
+  { date: new Date("2024-04-25"), desktop: 215, mobile: 250 },
+  { date: new Date("2024-04-26"), desktop: 75, mobile: 130 },
+  { date: new Date("2024-04-27"), desktop: 383, mobile: 330 },
+  { date: new Date("2024-04-28"), desktop: 122, mobile: 210 },
+  { date: new Date("2024-04-29"), desktop: 315, mobile: 270 },
+  { date: new Date("2024-04-30"), desktop: 235, mobile: 190 },
+  { date: new Date("2024-05-01"), desktop: 177, mobile: 100 },
+  { date: new Date("2024-05-02"), desktop: 82, mobile: 155 },
+  { date: new Date("2024-05-03"), desktop: 252, mobile: 200 },
+  { date: new Date("2024-05-04"), desktop: 294, mobile: 220 },
+  { date: new Date("2024-05-05"), desktop: 147, mobile: 170 },
+  { date: new Date("2024-05-06"), desktop: 247, mobile: 270 },
+  { date: new Date("2024-05-07"), desktop: 108, mobile: 210 },
+  { date: new Date("2024-05-08"), desktop: 191, mobile: 290 },
+  { date: new Date("2024-05-09"), desktop: 335, mobile: 250 },
+  { date: new Date("2024-05-10"), desktop: 197, mobile: 220 },
+  { date: new Date("2024-05-11"), desktop: 70, mobile: 240 },
+  { date: new Date("2024-05-12"), desktop: 290, mobile: 130 },
+  { date: new Date("2024-05-13"), desktop: 246, mobile: 200 },
+  { date: new Date("2024-05-14"), desktop: 195, mobile: 150 },
+  { date: new Date("2024-05-15"), desktop: 159, mobile: 120 },
+  { date: new Date("2024-05-16"), desktop: 355, mobile: 170 },
+  { date: new Date("2024-05-17"), desktop: 129, mobile: 80 },
+  { date: new Date("2024-05-18"), desktop: 340, mobile: 200 },
+  { date: new Date("2024-05-19"), desktop: 23, mobile: 120 },
+  { date: new Date("2024-05-20"), desktop: 85, mobile: 80 },
+  { date: new Date("2024-05-21"), desktop: 217, mobile: 270 },
+  { date: new Date("2024-05-22"), desktop: 237, mobile: 210 },
+  { date: new Date("2024-05-23"), desktop: 206, mobile: 180 },
+  { date: new Date("2024-05-24"), desktop: 215, mobile: 270 },
+  { date: new Date("2024-05-25"), desktop: 201, mobile: 250 },
+  { date: new Date("2024-05-26"), desktop: 117, mobile: 230 },
+  { date: new Date("2024-05-27"), desktop: 142, mobile: 240 },
+  { date: new Date("2024-05-28"), desktop: 213, mobile: 290 },
+  { date: new Date("2024-05-29"), desktop: 191, mobile: 200 },
+  { date: new Date("2024-05-30"), desktop: 179, mobile: 100 },
+  { date: new Date("2024-05-31"), desktop: 75, mobile: 228 },
+  { date: new Date("2024-06-01"), desktop: 383, mobile: 355 },
+  { date: new Date("2024-06-02"), desktop: 101, mobile: 171 },
+  { date: new Date("2024-06-03"), desktop: 323, mobile: 201 },
+  { date: new Date("2024-06-04"), desktop: 233, mobile: 247 },
+  { date: new Date("2024-06-05"), desktop: 136, mobile: 247 },
+  { date: new Date("2024-06-06"), desktop: 252, mobile: 290 },
+  { date: new Date("2024-06-07"), desktop: 292, mobile: 330 },
+  { date: new Date("2024-06-08"), desktop: 382, mobile: 350 },
+  { date: new Date("2024-06-09"), desktop: 321, mobile: 271 },
+  { date: new Date("2024-06-10"), desktop: 233, mobile: 187 },
+  { date: new Date("2024-06-11"), desktop: 105, mobile: 139 },
+  { date: new Date("2024-06-12"), desktop: 214, mobile: 290 },
+  { date: new Date("2024-06-13"), desktop: 188, mobile: 250 },
+  { date: new Date("2024-06-14"), desktop: 239, mobile: 210 },
+  { date: new Date("2024-06-15"), desktop: 322, mobile: 310 },
+  { date: new Date("2024-06-16"), desktop: 165, mobile: 270 },
+  { date: new Date("2024-06-17"), desktop: 171, mobile: 299 },
+  { date: new Date("2024-06-18"), desktop: 214, mobile: 315 },
+  { date: new Date("2024-06-19"), desktop: 182, mobile: 210 },
+  { date: new Date("2024-06-20"), desktop: 242, mobile: 285 },
+  { date: new Date("2024-06-21"), desktop: 191, mobile: 197 },
+  { date: new Date("2024-06-22"), desktop: 201, mobile: 202 },
+  { date: new Date("2024-06-23"), desktop: 344, mobile: 340 },
+  { date: new Date("2024-06-24"), desktop: 383, mobile: 370 },
+  { date: new Date("2024-06-25"), desktop: 392, mobile: 313 },
+  { date: new Date("2024-06-26"), desktop: 201, mobile: 245 },
+  { date: new Date("2024-06-27"), desktop: 193, mobile: 229 },
+  { date: new Date("2024-06-28"), desktop: 286, mobile: 290 },
+  { date: new Date("2024-06-29"), desktop: 289, mobile: 342 },
+  { date: new Date("2024-06-30"), desktop: 340, mobile: 297 },
 ];
 
 // Bar Chart Data
@@ -178,7 +263,7 @@ const pieStackedChartConfig = {
         </div>
         <div class="grid gap-6 md:grid-cols-2">
           <ChartAreaGradient v-if="areaChartData" :data="areaChartData" :config="areaChartConfig" />
-          <!-- <ChartAreaInteractive v-if="areaInteractiveChartData" :data="areaInteractiveChartData" :config="areaChartConfig" /> -->
+          <ChartAreaInteractive v-if="areaInteractiveChartData" :data="areaInteractiveChartData" :config="areaChartConfig" />
           <ChartAreaAxes v-if="areaChartData" :data="areaChartData" :config="areaChartConfig" />
           <ChartAreaIcons v-if="areaChartData" :data="areaChartData" :config="areaChartConfig" />
         </div>
@@ -223,14 +308,14 @@ const pieStackedChartConfig = {
           </p>
         </div>
         <div class="grid gap-6 md:grid-cols-2">
-          <!-- <ChartPieDonut v-if="pieChartData" :data="pieChartData" :config="pieChartConfig" /> -->
+          <ChartPieDonut v-if="pieChartData" :data="pieChartData" :config="pieChartConfig" />
           <ChartPieStacked
             v-if="pieStackedDesktopData && pieStackedMobileData"
             :desktop-data="pieStackedDesktopData"
             :mobile-data="pieStackedMobileData"
             :config="pieStackedChartConfig"
           />
-          <!-- <ChartPieDonutText v-if="pieChartData" :data="pieChartData" :config="pieChartConfig" /> -->
+          <ChartPieDonutText v-if="pieChartData" :data="pieChartData" :config="pieChartConfig" />
           <ChartPieSimple v-if="pieChartData" :data="pieChartData" :config="pieChartConfig" />
         </div>
       </section>

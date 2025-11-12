@@ -29,7 +29,7 @@ const props = defineProps({
   },
 });
 
-const totalVisitors = computed(() => data.reduce((acc, curr) => acc + curr.visitors, 0));
+const totalVisitors = computed(() => props.data.reduce((acc, curr) => acc + curr.visitors, 0));
 </script>
 
 <template>

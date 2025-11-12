@@ -3,7 +3,7 @@
     <div
       v-for="metric in metrics"
       :key="metric.key"
-      class="border-border bg-card flex flex-col gap-y-1 rounded-xl border p-5"
+      class="border-border bg-card flex flex-col gap-y-0 rounded-xl border p-5"
     >
       <div class="flex items-center justify-between">
         <div class="inline-flex items-center gap-x-2">
@@ -32,7 +32,7 @@
 
       <div>
         <NumberFlow
-          class="text-foreground text-3xl font-bold tracking-tighter"
+          class="text-foreground text-3xl !leading-none font-bold tracking-tighter"
           :class="{
             'cursor-pointer': !['percent', 'duration'].includes(metric.format),
           }"
@@ -54,7 +54,7 @@
         />
       </div>
 
-      <p class="text-muted-foreground mt-1 text-sm tracking-tight">
+      <p class="text-muted-foreground mt-1.5 text-xs tracking-tight">
         {{ metric.description }}
       </p>
     </div>

@@ -52,7 +52,7 @@ const filterRange = computed(() => {
           ? 7
           : 1;
 
-  return data.filter((item) => {
+  return props.data.filter((item) => {
     const date = item.date;
     const diff = (referenceDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
     return diff >= 0 && diff <= dayCount;

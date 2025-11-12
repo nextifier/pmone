@@ -28,6 +28,9 @@ class RefreshAnalyticsCache extends Command
      */
     public function handle(DailyDataAggregator $aggregator)
     {
+        // Increase execution time to prevent timeout
+        set_time_limit(config('analytics.timeout', 300));
+
         $this->info('Starting analytics cache refresh...');
 
         // Get properties to refresh
@@ -86,6 +89,29 @@ class RefreshAnalyticsCache extends Command
         $this->newLine();
         $this->info('Cache refresh completed!');
         $this->info("Success: {$successCount} | Failed: {$failCount}");
+
+        // Log summary for monitoring
+        $failureDetails = [
+            'success_count' => $successCount,
+            'fail_count' => $failCount,
+            'total_properties' => $properties->count(),
+            'success_rate' => round(($successCount / $properties->count()) * 100, 2).'%',
+        ];
+
+        if ($failCount > 0) {
+            \Log::warning('Analytics cache refresh completed with failures', $failureDetails);
+
+            // Send notification to admin users
+            $adminUsers = \App\Models\User::where('role', 'master')->get();
+            foreach ($adminUsers as $admin) {
+                $admin->notify(new \App\Notifications\AnalyticsSyncFailedNotification($failureDetails));
+            }
+        } else {
+            \Log::info('Analytics cache refresh completed successfully', [
+                'success_count' => $successCount,
+                'total_properties' => $properties->count(),
+            ]);
+        }
 
         return $failCount > 0 ? Command::FAILURE : Command::SUCCESS;
     }

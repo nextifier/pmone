@@ -53,13 +53,25 @@
         </div>
       </div>
 
-      <div class="text-muted-foreground flex items-center gap-x-1.5 text-sm tracking-tight">
+      <div class="text-muted-foreground flex items-center gap-x-2 text-sm tracking-tight">
         <div v-if="!cacheInfo || cacheInfo?.is_updating" class="flex items-center gap-x-1">
           <Spinner class="size-3.5 shrink-0" />
           <span>Updating..</span>
         </div>
-        <div v-else>
+        <div v-else class="flex items-center gap-x-2">
+          <!-- Cache age warning for "today" period -->
+          <div
+            v-if="selectedRange === 'today' && cacheInfo?.cache_age_minutes > 60"
+            class="bg-warning/10 text-warning-foreground border-warning/20 flex items-center gap-x-1.5 rounded-md border px-2 py-1"
+          >
+            <Icon name="hugeicons:alert-01" class="size-3.5 shrink-0" />
+            <span class="text-xs font-medium">Data may be outdated</span>
+          </div>
+
           <span
+            :class="{
+              'text-warning': selectedRange === 'today' && cacheInfo?.cache_age_minutes > 60,
+            }"
             >Last updated {{ formatCacheAge(cacheInfo?.cache_age_minutes) }}.
             <span v-if="cacheInfo?.next_update_in_minutes"
               >Next update in {{ Math.ceil(cacheInfo?.next_update_in_minutes) }} min<span
@@ -69,6 +81,24 @@
             </span></span
           >
         </div>
+
+        <!-- Force Refresh Button -->
+        <button
+          v-if="cacheInfo && !cacheInfo?.is_updating"
+          @click="forceRefresh"
+          :disabled="isRefreshing"
+          class="border-border hover:bg-muted disabled:opacity-50 flex items-center gap-x-1 rounded-md border px-2 py-1 text-xs font-medium tracking-tight transition-colors active:scale-98"
+          :class="{
+            'cursor-not-allowed': isRefreshing,
+          }"
+        >
+          <Icon
+            :name="isRefreshing ? 'hugeicons:loading-01' : 'hugeicons:refresh'"
+            class="size-3.5 shrink-0"
+            :class="{ 'animate-spin': isRefreshing }"
+          />
+          <span>{{ isRefreshing ? 'Refreshing...' : 'Refresh' }}</span>
+        </button>
       </div>
     </div>
 
@@ -458,6 +488,42 @@ const handleDateRangeChange = async (value) => {
 
 const refreshData = () => {
   fetchAnalytics(true);
+};
+
+const isRefreshing = ref(false);
+const forceRefresh = async () => {
+  if (isRefreshing.value) return;
+
+  isRefreshing.value = true;
+
+  try {
+    // Call the sync-now endpoint to force refresh
+    const days = selectedRange.value === "today" || selectedRange.value === "yesterday" ? 1 : parseInt(selectedRange.value) || 30;
+
+    await $fetch("/api/google-analytics/aggregate/sync-now", {
+      method: "POST",
+      body: { days },
+    });
+
+    // Refresh the displayed data
+    await fetchAnalytics(true);
+
+    // Show success message
+    useToast().add({
+      title: "Success",
+      description: "Analytics data refreshed successfully",
+      color: "green",
+    });
+  } catch (error) {
+    console.error("Force refresh failed:", error);
+    useToast().add({
+      title: "Error",
+      description: error.data?.message || "Failed to refresh analytics data",
+      color: "red",
+    });
+  } finally {
+    isRefreshing.value = false;
+  }
 };
 
 const formatNumber = (value) => {
