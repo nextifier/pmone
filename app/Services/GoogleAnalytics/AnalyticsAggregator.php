@@ -23,6 +23,7 @@ class AnalyticsAggregator
     {
         $aggregated = [
             'activeUsers' => 0,
+            'totalUsers' => 0,
             'newUsers' => 0,
             'sessions' => 0,
             'screenPageViews' => 0,
@@ -83,6 +84,7 @@ class AnalyticsAggregator
 
                 if (! empty($totals)) {
                     $aggregated['activeUsers'] += $totals['activeUsers'] ?? 0;
+                    $aggregated['totalUsers'] += $totals['totalUsers'] ?? 0;
                     $aggregated['newUsers'] += $totals['newUsers'] ?? 0;
                     $aggregated['sessions'] += $totals['sessions'] ?? 0;
                     $aggregated['screenPageViews'] += $totals['screenPageViews'] ?? 0;

@@ -50,10 +50,20 @@
 
         <!-- Active Users -->
         <div class="space-y-1">
-          <p class="text-muted-foreground text-xs font-medium">Total Visitors</p>
+          <p class="text-muted-foreground text-xs font-medium">Active Visitors</p>
           <NumberFlow
             class="text-foreground text-2xl font-bold tracking-tighter"
             :value="property.metrics?.activeUsers || 0"
+            :format="{ notation: 'compact' }"
+          />
+        </div>
+
+        <!-- Total Users -->
+        <div class="space-y-1">
+          <p class="text-muted-foreground text-xs font-medium">Total Visitors</p>
+          <NumberFlow
+            class="text-foreground text-2xl font-bold tracking-tighter"
+            :value="property.metrics?.totalUsers || 0"
             :format="{ notation: 'compact' }"
           />
         </div>

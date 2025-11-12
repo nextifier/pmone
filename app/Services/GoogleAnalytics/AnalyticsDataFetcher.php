@@ -302,6 +302,7 @@ class AnalyticsDataFetcher
 
         return $this->fetchPropertyData($property, $startDate, $endDate, [
             'activeUsers',
+            'totalUsers',
             'newUsers',
             'sessions',
             'screenPageViews',
