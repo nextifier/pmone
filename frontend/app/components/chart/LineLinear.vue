@@ -1,5 +1,4 @@
-<script setup lang="ts">
-import type { ChartConfig } from "@/components/ui/chart";
+<script setup>
 import { CurveType } from "@unovis/ts";
 
 import {
@@ -20,64 +19,55 @@ import {
 import { VisAxis, VisLine, VisXYContainer } from "@unovis/vue";
 import { TrendingUp } from "lucide-vue-next";
 
-const description = "A line chart";
-
-const chartData = [
-  { date: new Date("2024-01-01"), desktop: 186 },
-  { date: new Date("2024-02-01"), desktop: 305 },
-  { date: new Date("2024-03-01"), desktop: 237 },
-  { date: new Date("2024-04-01"), desktop: 73 },
-  { date: new Date("2024-05-01"), desktop: 209 },
-  { date: new Date("2024-06-01"), desktop: 214 },
-];
-
-type Data = (typeof chartData)[number];
-
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--chart-1)",
+const props = defineProps({
+  data: {
+    type: Array,
+    required: true,
   },
-} satisfies ChartConfig;
+  config: {
+    type: Object,
+    required: true,
+  },
+});
 </script>
 
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>Line Chart</CardTitle>
+      <CardTitle>Line Chart - Linear</CardTitle>
       <CardDescription>January - June 2024</CardDescription>
     </CardHeader>
     <CardContent>
-      <ChartContainer :config="chartConfig">
-        <VisXYContainer :data="chartData" :margin="{ left: -24 }" :y-domain="[0, undefined]">
+      <ChartContainer :config="config">
+        <VisXYContainer :data="data" :margin="{ left: -24 }" :y-domain="[0, undefined]">
           <VisLine
-            :x="(d: Data) => d.date"
-            :y="(d: Data) => d.desktop"
-            :color="chartConfig.desktop.color"
-            :curve-type="CurveType.Natural"
+            :x="(d) => d.date"
+            :y="(d) => d.desktop"
+            :color="config.desktop.color"
+            :curve-type="CurveType.Linear"
           />
           <VisAxis
             type="x"
-            :x="(d: Data) => d.date"
+            :x="(d) => d.date"
             :tick-line="false"
             :domain-line="false"
             :grid-line="false"
             :num-ticks="6"
             :tick-format="
-              (d: number) => {
+              (d) => {
                 const date = new Date(d);
                 return date.toLocaleDateString('en-US', {
                   month: 'short',
                 });
               }
             "
-            :tick-values="chartData.map((d) => d.date)"
+            :tick-values="data.map((d) => d.date)"
           />
           <VisAxis type="y" :num-ticks="3" :tick-line="false" :domain-line="false" />
           <ChartTooltip />
           <ChartCrosshair
-            :template="componentToString(chartConfig, ChartTooltipContent, { hideLabel: true })"
-            :color="chartConfig.desktop.color"
+            :template="componentToString(config, ChartTooltipContent, { hideLabel: true })"
+            :color="config.desktop.color"
           />
         </VisXYContainer>
       </ChartContainer>

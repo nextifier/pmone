@@ -14,61 +14,40 @@ import {
   ChartTooltipContent,
   componentToString,
 } from "@/components/ui/chart";
+import { Orientation } from "@unovis/ts";
 import { VisAxis, VisGroupedBar, VisXYContainer } from "@unovis/vue";
 import { TrendingUp } from "lucide-vue-next";
 
 const props = defineProps({
   data: {
     type: Array,
-    required: true
+    required: true,
   },
   config: {
     type: Object,
-    required: true
+    required: true,
   },
-  title: {
-    type: String,
-    default: 'Bar Chart - Multiple'
-  },
-  description: {
-    type: String,
-    default: 'January - June 2024'
-  },
-  footerText: {
-    type: String,
-    default: 'Trending up by 5.2% this month'
-  },
-  footerIcon: {
-    type: Object,
-    default: () => TrendingUp
-  },
-  footerSubtext: {
-    type: String,
-    default: 'Showing total visitors for the last 6 months'
-  }
 });
 </script>
 
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>{{ title }}</CardTitle>
-      <CardDescription>{{ description }}</CardDescription>
+      <CardTitle>Bar Chart - Horizontal</CardTitle>
+      <CardDescription>January - June 2024</CardDescription>
     </CardHeader>
     <CardContent>
       <ChartContainer :config="config">
         <VisXYContainer :data="data">
           <VisGroupedBar
             :x="(d) => d.date"
-            :y="[(d) => d.desktop, (d) => d.mobile]"
-            :color="[config.desktop.color, config.mobile.color]"
-            :rounded-corners="4"
-            bar-padding="0.15"
-            group-padding="0"
+            :y="(d) => d.desktop"
+            :color="config.desktop.color"
+            :rounded-corners="5"
+            :orientation="Orientation.Horizontal"
           />
           <VisAxis
-            type="x"
-            :x="(d) => d.date"
+            type="y"
             :tick-line="false"
             :domain-line="false"
             :grid-line="false"
@@ -83,15 +62,9 @@ const props = defineProps({
             "
             :tick-values="data.map((d) => d.date)"
           />
-          <VisAxis type="y" :num-ticks="3" :tick-line="false" :domain-line="false" />
           <ChartTooltip />
           <ChartCrosshair
-            :template="
-              componentToString(config, ChartTooltipContent, {
-                indicator: 'dashed',
-                hideLabel: true,
-              })
-            "
+            :template="componentToString(config, ChartTooltipContent, { hideLabel: true })"
             color="#0000"
           />
         </VisXYContainer>
@@ -99,10 +72,10 @@ const props = defineProps({
     </CardContent>
     <CardFooter class="flex-col items-start gap-2 text-sm">
       <div class="flex gap-2 leading-none font-medium">
-        {{ footerText }} <component :is="footerIcon" class="h-4 w-4" />
+        Trending up by 5.2% this month <TrendingUp class="h-4 w-4" />
       </div>
       <div class="text-muted-foreground leading-none">
-        {{ footerSubtext }}
+        Showing total visitors for the last 6 months
       </div>
     </CardFooter>
   </Card>

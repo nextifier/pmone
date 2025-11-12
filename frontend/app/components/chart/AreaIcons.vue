@@ -22,40 +22,20 @@ import {
 const props = defineProps({
   data: {
     type: Array,
-    required: true
+    required: true,
   },
   config: {
     type: Object,
-    required: true
+    required: true,
   },
-  title: {
-    type: String,
-    default: 'Area Chart - Icons'
-  },
-  description: {
-    type: String,
-    default: 'Showing total visitors for the last 6 months'
-  },
-  footerText: {
-    type: String,
-    default: 'Trending up by 5.2% this month'
-  },
-  footerIcon: {
-    type: Object,
-    default: () => TrendingUp
-  },
-  footerSubtext: {
-    type: String,
-    default: 'January - June 2024'
-  }
 });
 </script>
 
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>{{ title }}</CardTitle>
-      <CardDescription>{{ description }}</CardDescription>
+      <CardTitle>Area Chart - Icons</CardTitle>
+      <CardDescription> Showing total visitors for the last 6 months </CardDescription>
     </CardHeader>
     <CardContent>
       <ChartContainer :config="config">
@@ -117,10 +97,10 @@ const props = defineProps({
       <div class="flex w-full items-start gap-2 text-sm">
         <div class="grid gap-2">
           <div class="flex items-center gap-2 leading-none font-medium">
-            {{ footerText }} <component :is="footerIcon" class="h-4 w-4" />
+            Trending up by 5.2% this month <TrendingUp class="h-4 w-4" />
           </div>
           <div class="text-muted-foreground flex items-center gap-2 leading-none">
-            {{ footerSubtext }}
+            January - June 2024
           </div>
         </div>
       </div>

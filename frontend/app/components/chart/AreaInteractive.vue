@@ -15,29 +15,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { VisArea, VisAxis, VisLine, VisXYContainer } from "@unovis/vue";
-import { computed, ref } from "vue";
 
 const props = defineProps({
   data: {
     type: Array,
-    required: true
+    required: true,
   },
   config: {
     type: Object,
-    required: true
+    required: true,
   },
-  title: {
-    type: String,
-    default: 'Area Chart - Interactive'
-  },
-  description: {
-    type: String,
-    default: 'Showing total visitors for the last 3 months'
-  },
-  enableTimeRange: {
-    type: Boolean,
-    default: true
-  }
 });
 
 const svgDefs = `
@@ -54,7 +41,8 @@ const svgDefs = `
 const timeRange = ref("90d");
 
 const filterRange = computed(() => {
-  const referenceDate = new Date(props.data[props.data.length - 1].date);
+  // Use the last date in the data as reference instead of today
+  const referenceDate = new Date("2024-06-30");
   const dayCount =
     timeRange.value === "90d"
       ? 90
@@ -64,7 +52,7 @@ const filterRange = computed(() => {
           ? 7
           : 1;
 
-  return props.data.filter((item) => {
+  return data.filter((item) => {
     const date = item.date;
     const diff = (referenceDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
     return diff >= 0 && diff <= dayCount;
@@ -76,10 +64,10 @@ const filterRange = computed(() => {
   <Card>
     <CardHeader class="flex flex-row items-center border-b py-4">
       <div class="flex flex-1 flex-col gap-2">
-        <CardTitle>{{ title }}</CardTitle>
-        <CardDescription>{{ description }}</CardDescription>
+        <CardTitle>Area Chart - Interactive</CardTitle>
+        <CardDescription> Showing total visitors for the last 3 months </CardDescription>
       </div>
-      <Select v-if="enableTimeRange" v-model="timeRange">
+      <Select v-model="timeRange">
         <SelectTrigger class="w-[160px] rounded-lg">
           <SelectValue />
         </SelectTrigger>

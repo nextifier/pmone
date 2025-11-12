@@ -1,4 +1,6 @@
 <script setup>
+import { CurveType } from "@unovis/ts";
+
 import {
   Card,
   CardContent,
@@ -14,55 +16,35 @@ import {
   ChartTooltipContent,
   componentToString,
 } from "@/components/ui/chart";
-import { VisAxis, VisGroupedBar, VisXYContainer } from "@unovis/vue";
+import { VisAxis, VisLine, VisXYContainer } from "@unovis/vue";
 import { TrendingUp } from "lucide-vue-next";
 
 const props = defineProps({
   data: {
     type: Array,
-    required: true
+    required: true,
   },
   config: {
     type: Object,
-    required: true
+    required: true,
   },
-  title: {
-    type: String,
-    default: 'Bar Chart'
-  },
-  description: {
-    type: String,
-    default: 'January - June 2024'
-  },
-  footerText: {
-    type: String,
-    default: 'Trending up by 5.2% this month'
-  },
-  footerIcon: {
-    type: Object,
-    default: () => TrendingUp
-  },
-  footerSubtext: {
-    type: String,
-    default: 'Showing total visitors for the last 6 months'
-  }
 });
 </script>
 
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>{{ title }}</CardTitle>
-      <CardDescription>{{ description }}</CardDescription>
+      <CardTitle>Line Chart</CardTitle>
+      <CardDescription>January - June 2024</CardDescription>
     </CardHeader>
     <CardContent>
       <ChartContainer :config="config">
         <VisXYContainer :data="data" :margin="{ left: -24 }" :y-domain="[0, undefined]">
-          <VisGroupedBar
+          <VisLine
             :x="(d) => d.date"
             :y="(d) => d.desktop"
             :color="config.desktop.color"
-            :rounded-corners="10"
+            :curve-type="CurveType.Natural"
           />
           <VisAxis
             type="x"
@@ -85,17 +67,17 @@ const props = defineProps({
           <ChartTooltip />
           <ChartCrosshair
             :template="componentToString(config, ChartTooltipContent, { hideLabel: true })"
-            color="#0000"
+            :color="config.desktop.color"
           />
         </VisXYContainer>
       </ChartContainer>
     </CardContent>
     <CardFooter class="flex-col items-start gap-2 text-sm">
       <div class="flex gap-2 leading-none font-medium">
-        {{ footerText }} <component :is="footerIcon" class="h-4 w-4" />
+        Trending up by 5.2% this month <TrendingUp class="h-4 w-4" />
       </div>
       <div class="text-muted-foreground leading-none">
-        {{ footerSubtext }}
+        Showing total visitors for the last 6 months
       </div>
     </CardFooter>
   </Card>

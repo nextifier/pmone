@@ -437,7 +437,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 const { $dayjs } = useNuxtApp();
 const route = useRoute();
 
@@ -579,7 +579,7 @@ const fetchPropertyAnalytics = async () => {
     );
 
     propertyData.value = data;
-  } catch (err: any) {
+  } catch (err) {
     console.error("Error fetching property analytics:", err);
 
     // Handle rate limit errors specifically

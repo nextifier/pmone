@@ -9,7 +9,6 @@
         <button
           class="bg-muted text-foreground hover:bg-border flex shrink-0 items-center justify-center gap-x-1.5 rounded-full p-2.5 text-sm font-medium tracking-tight transition active:scale-98"
         >
-          <!-- <span>View Analytics</span> -->
           <Icon name="hugeicons:arrow-right-02" class="size-4 shrink-0" />
         </button>
       </NuxtLink>

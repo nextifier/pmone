@@ -1,6 +1,4 @@
-<script setup lang="ts">
-import type { ChartConfig } from "@/components/ui/chart";
-
+<script setup>
 import {
   Card,
   CardContent,
@@ -20,45 +18,18 @@ import { VisDonut, VisSingleContainer } from "@unovis/vue";
 import { TrendingUp } from "lucide-vue-next";
 import { computed } from "vue";
 
-const description = "A simple pie chart";
+const props = defineProps({
+  data: {
+    type: Array,
+    required: true,
+  },
+  config: {
+    type: Object,
+    required: true,
+  },
+});
 
-const chartData = [
-  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 287, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 190, fill: "var(--color-other)" },
-];
-type Data = (typeof chartData)[number];
-
-const chartConfig = {
-  visitors: {
-    label: "Visitors",
-    color: undefined,
-  },
-  chrome: {
-    label: "Chrome",
-    color: "var(--chart-1)",
-  },
-  safari: {
-    label: "Safari",
-    color: "var(--chart-2)",
-  },
-  firefox: {
-    label: "Firefox",
-    color: "var(--chart-3)",
-  },
-  edge: {
-    label: "Edge",
-    color: "var(--chart-4)",
-  },
-  other: {
-    label: "Other",
-    color: "var(--chart-5)",
-  },
-} satisfies ChartConfig;
-
-const totalVisitors = computed(() => chartData.reduce((acc, curr) => acc + curr.visitors, 0));
+const totalVisitors = computed(() => data.reduce((acc, curr) => acc + curr.visitors, 0));
 </script>
 
 <template>
@@ -69,7 +40,7 @@ const totalVisitors = computed(() => chartData.reduce((acc, curr) => acc + curr.
     </CardHeader>
     <CardContent class="flex-1 pb-0">
       <ChartContainer
-        :config="chartConfig"
+        :config="config"
         :style="{
           '--vis-donut-central-label-font-size': 'var(--text-3xl)',
           '--vis-donut-central-label-font-weight': 'var(--font-weight-bold)',
@@ -77,10 +48,10 @@ const totalVisitors = computed(() => chartData.reduce((acc, curr) => acc + curr.
           '--vis-donut-central-sub-label-text-color': 'var(--muted-foreground)',
         }"
       >
-        <VisSingleContainer :data="chartData" :margin="{ top: 30, bottom: 30 }">
+        <VisSingleContainer :data="data" :margin="{ top: 30, bottom: 30 }">
           <VisDonut
-            :value="(d: Data) => d.visitors"
-            :color="(d: Data) => chartConfig[d.browser as keyof typeof chartConfig].color"
+            :value="(d) => d.visitors"
+            :color="(d) => config[d.browser].color"
             :arc-width="30"
             :central-label-offset-y="10"
             :central-label="totalVisitors.toLocaleString()"
@@ -88,9 +59,9 @@ const totalVisitors = computed(() => chartData.reduce((acc, curr) => acc + curr.
           />
           <ChartTooltip
             :triggers="{
-              [Donut.selectors.segment]: componentToString(chartConfig, ChartTooltipContent, {
+              [Donut.selectors.segment]: componentToString(config, ChartTooltipContent, {
                 hideLabel: true,
-              })!,
+              }),
             }"
           />
         </VisSingleContainer>
