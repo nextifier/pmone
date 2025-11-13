@@ -23,14 +23,14 @@ export function useMergedAnalytics(initialPeriod: string | number = 30) {
     if (data.property_breakdown && realtime?.property_breakdown) {
       const realtimeMap = new Map();
       realtime.property_breakdown.forEach((rt: any) => {
-        realtimeMap.set(rt.property_id, rt.active_users);
+        realtimeMap.set(rt.property_id, rt);
       });
 
       data.property_breakdown = data.property_breakdown.map((property: any) => ({
         ...property,
         metrics: {
           ...property.metrics,
-          onlineUsers: realtimeMap.get(property.property_id) || 0,
+          onlineUsers: realtimeMap.get(property.property_id)?.active_users || 0,
         },
       }));
     }

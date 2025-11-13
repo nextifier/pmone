@@ -60,7 +60,7 @@
 
       <!-- Property Breakdown -->
       <div
-        v-if="propertyBreakdown && propertyBreakdown.length > 0 && metric.key !== 'onlineUsers'"
+        v-if="propertyBreakdown && propertyBreakdown.length > 0"
         class="mt-3 space-y-1.5 border-t border-border pt-3"
       >
         <div
@@ -114,6 +114,7 @@ const getPropertyBreakdownForMetric = (metricKey) => {
 
   // Map metric keys to their property names
   const metricMap = {
+    onlineUsers: 'onlineUsers',
     activeUsers: 'activeUsers',
     totalUsers: 'totalUsers',
     newUsers: 'newUsers',
