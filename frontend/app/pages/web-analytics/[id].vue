@@ -1,22 +1,38 @@
 <template>
-  <div class="mx-auto max-w-7xl space-y-6 pt-4 pb-16">
-    <!-- Header -->
-    <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-6">
-      <div class="flex flex-col items-start gap-y-4">
-        <BackButton destination="/web-analytics" />
-        <div>
+  <div class="min-h-screen-offset mx-auto flex max-w-7xl flex-col gap-y-4 py-4">
+    <div class="flex">
+      <BackButton destination="/web-analytics" />
+    </div>
+    <div class="my-2 flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
+      <div class="flex items-center gap-x-2.5">
+        <Avatar
+          v-if="propertyData?.property?.project?.profile_image"
+          :model="propertyData.property.project"
+          class="size-12 shrink-0"
+        />
+        <div class="flex flex-col gap-y-1">
           <h1 class="page-title">
             {{ propertyData?.property?.name || "Property Analytics" }}
           </h1>
-          <p class="text-muted-foreground text-sm">Property ID: {{ route.params.id }}</p>
+          <ClientOnly>
+            <span
+              v-if="formatDate(startDate) && formatDate(endDate)"
+              class="text-foreground/70 text-sm font-medium tracking-tighter"
+            >
+              {{ formatDate(startDate) }}
+              <span v-if="formatDate(startDate) !== formatDate(endDate)">
+                - {{ formatDate(endDate) }}</span
+              >
+            </span>
+          </ClientOnly>
         </div>
       </div>
 
-      <div class="ml-auto flex shrink-0 gap-2">
-        <button
+      <div class="ml-auto flex shrink-0 items-center gap-2">
+        <!-- <button
           @click="refreshData"
           :disabled="loading"
-          class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+          class="border-border hover:bg-muted flex h-8 items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Icon
             name="hugeicons:refresh"
@@ -24,51 +40,37 @@
             :class="{ 'animate-spin': loading }"
           />
           <span>Refresh</span>
+        </button> -->
+
+        <button
+          class="border-border hover:bg-muted flex h-8 items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Icon name="hugeicons:file-export" class="size-4 shrink-0" />
+          <span>Export</span>
         </button>
+
+        <ClientOnly>
+          <DateRangeSelect v-model="selectedRange" />
+        </ClientOnly>
       </div>
     </div>
 
-    <!-- Date Range Selector -->
-    <div class="border-border bg-card rounded-lg border p-4">
-      <div class="flex flex-wrap items-center gap-4">
-        <div class="flex items-center gap-2">
-          <label class="text-muted-foreground text-sm font-medium"> Date Range: </label>
-          <select
-            v-model="selectedRange"
-            @change="handleDateRangeChange"
-            class="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
-          >
-            <option value="7">Last 7 days</option>
-            <option value="14">Last 14 days</option>
-            <option value="30">Last 30 days</option>
-            <option value="90">Last 90 days</option>
-          </select>
-        </div>
-
-        <div class="text-muted-foreground text-sm">
-          {{ formatDate(startDate) }} - {{ formatDate(endDate) }}
-        </div>
-      </div>
-    </div>
-
-    <!-- Loading State -->
     <div
-      v-if="loading"
-      class="border-border bg-card flex items-center justify-center rounded-lg border p-12"
+      v-if="loading && !propertyData"
+      class="border-border bg-pattern-diagonal flex grow items-center justify-center overflow-hidden rounded-xl border p-6"
     >
-      <div class="flex flex-col items-center gap-3">
-        <Icon name="hugeicons:loading-03" class="text-primary size-8 animate-spin" />
-        <p class="text-muted-foreground text-sm">Loading property analytics...</p>
+      <div class="flex items-center gap-2">
+        <Spinner class="size-5 shrink-0" />
+        <span class="text-sm tracking-tight">Loading property analytics..</span>
       </div>
     </div>
 
-    <!-- Error State -->
-    <div v-else-if="error" class="border-border bg-card rounded-lg border p-6">
+    <div v-else-if="error && !propertyData" class="flex items-center justify-center p-6">
       <div class="flex flex-col items-center gap-3 text-center">
-        <Icon name="hugeicons:alert-circle" class="text-destructive size-8" />
+        <Icon name="hugeicons:alert-circle" class="text-destructive size-6" />
         <div>
-          <h3 class="text-foreground mb-1 font-semibold">Failed to load property analytics</h3>
-          <p class="text-muted-foreground text-sm">{{ error }}</p>
+          <h3 class="text-foreground font-semibold tracking-tighter">Failed to load analytics</h3>
+          <p class="text-muted-foreground mt-1 text-sm tracking-tight">{{ error }}</p>
         </div>
         <button
           @click="refreshData"
@@ -79,365 +81,181 @@
       </div>
     </div>
 
-    <!-- Data Display -->
-    <template v-else-if="propertyData">
-      <!-- Property Info Card -->
-      <div class="border-border bg-card rounded-lg border p-5">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-          <div class="flex-1">
-            <h2 class="text-foreground mb-1 text-lg font-semibold">
-              {{ propertyData.property.name }}
-            </h2>
-            <p class="text-muted-foreground text-sm">
-              {{ propertyData.property.account_name }}
-            </p>
-            <div class="mt-2 flex flex-wrap items-center gap-3">
-              <div class="flex items-center gap-1.5 text-sm">
-                <Icon name="hugeicons:checkmark-badge-01" class="size-4" />
-                <span class="text-muted-foreground">
-                  Property ID: {{ propertyData.property.property_id }}
-                </span>
-              </div>
-              <div
-                v-if="propertyData.property.last_synced_at"
-                class="flex items-center gap-1.5 text-sm"
-              >
-                <Icon name="hugeicons:clock-03" class="size-4" />
-                <span class="text-muted-foreground">
-                  Last synced: {{ formatRelativeTime(propertyData.property.last_synced_at) }}
-                </span>
-              </div>
-              <span
-                v-if="propertyData.property.is_active"
-                class="rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400"
-              >
-                Active
-              </span>
-            </div>
-          </div>
+    <div v-else-if="propertyData" class="relative grid grid-cols-1 gap-y-10">
+      <div
+        v-if="loading"
+        class="bg-background/90 absolute inset-0 z-10 flex items-start justify-center pt-20 backdrop-blur-md"
+      >
+        <div
+          class="border-border bg-card flex items-center gap-3 rounded-lg border px-6 py-4 shadow-lg"
+        >
+          <Spinner class="size-5 shrink-0" />
+          <span class="text-sm font-medium tracking-tight"
+            >Loading {{ getDateRangeLabel() }}...</span
+          >
         </div>
       </div>
 
-      <!-- Main Metrics Cards -->
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div
-          v-for="metric in mainMetrics"
-          :key="metric.key"
-          class="border-border bg-card hover:bg-muted/50 rounded-lg border p-5 transition-colors"
-        >
-          <div class="flex items-center justify-between">
-            <p class="text-muted-foreground text-sm font-medium">
-              {{ metric.label }}
-            </p>
-            <div
-              class="flex size-10 items-center justify-center rounded-lg"
-              :class="metric.bgClass"
-            >
-              <Icon :name="metric.icon" class="size-5" :class="metric.iconClass" />
-            </div>
-          </div>
-          <div class="mt-3">
-            <p class="text-foreground text-3xl font-bold tracking-tight">
-              {{ formatMetricValue(metric.key, metric.value) }}
-            </p>
-            <p class="text-muted-foreground mt-1 text-xs">
-              {{ metric.description }}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Additional Metrics Grid -->
-      <div class="grid gap-4 sm:grid-cols-2">
-        <div
-          v-for="metric in additionalMetrics"
-          :key="metric.key"
-          class="border-border bg-card rounded-lg border p-4"
-        >
-          <div class="flex items-center gap-2">
-            <Icon :name="metric.icon" class="text-muted-foreground size-5" />
-            <p class="text-muted-foreground text-sm font-medium">
-              {{ metric.label }}
-            </p>
-          </div>
-          <p class="text-foreground mt-2 text-2xl font-bold">
-            {{ formatMetricValue(metric.key, metric.value) }}
+      <div class="flex flex-col gap-y-4">
+        <div class="flex flex-col gap-y-1">
+          <h2 class="text-foreground text-lg font-semibold tracking-tighter">
+            Property Performance
+          </h2>
+          <p class="text-muted-foreground text-sm tracking-tight">
+            Analytics metrics for {{ propertyData.property.name }}.
           </p>
         </div>
+
+        <ChartLineDefault
+          v-if="propertyChartData?.length >= 2"
+          :data="propertyChartData"
+          :config="propertyChartConfig"
+          data-key="activeUsers"
+          class="h-auto! overflow-hidden rounded-xl border py-2.5"
+        />
+
+        <div
+          v-else-if="propertyChartData?.length === 1"
+          class="border-border bg-muted/30 flex items-center justify-center rounded-xl border p-8"
+        >
+          <p class="text-muted-foreground text-sm">
+            Chart requires at least 2 days of data. Select a longer period to view the trend.
+          </p>
+        </div>
+
+        <AnalyticsSummaryCards :metrics="summaryMetrics" :property-breakdown="[]" />
       </div>
 
-      <!-- Daily Growth Chart -->
-      <div v-if="chartData.length > 0" class="border-border bg-card rounded-lg border">
-        <div class="border-border border-b p-4">
-          <h2 class="text-foreground flex items-center gap-2 font-semibold">
-            <Icon name="hugeicons:chart-line-data-03" class="size-5" />
-            Daily Growth
-          </h2>
-          <p class="text-muted-foreground text-sm">Page views and users over time</p>
-        </div>
-
-        <!-- Legend -->
-        <div class="border-border flex flex-wrap items-center gap-4 border-b px-4 py-3">
-          <div class="flex items-center gap-2">
-            <div class="size-3 rounded bg-purple-500"></div>
-            <span class="text-muted-foreground text-sm">Page Views</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <div class="size-3 rounded bg-blue-500"></div>
-            <span class="text-muted-foreground text-sm">Active Users</span>
-          </div>
-        </div>
-
-        <!-- Chart -->
-        <div class="p-4">
-          <div class="space-y-3">
-            <div v-for="(row, index) in chartData" :key="index" class="space-y-2">
-              <!-- Date Label -->
-              <div class="flex items-center justify-between">
-                <span class="text-muted-foreground text-xs font-medium">
-                  {{ row.formattedDate }}
-                </span>
-                <div class="flex items-center gap-3 text-xs">
-                  <span class="text-purple-600 dark:text-purple-400">
-                    {{ formatNumber(row.pageViews) }} views
-                  </span>
-                  <span class="text-blue-600 dark:text-blue-400">
-                    {{ formatNumber(row.users) }} users
-                  </span>
-                </div>
-              </div>
-
-              <!-- Page Views Bar -->
-              <div class="space-y-1">
-                <div class="bg-muted h-2 overflow-hidden rounded-full">
-                  <div
-                    class="h-full bg-purple-500 transition-all duration-500"
-                    :style="{ width: `${row.pageViewsPercent}%` }"
-                  ></div>
-                </div>
-              </div>
-
-              <!-- Users Bar -->
-              <div class="space-y-1">
-                <div class="bg-muted h-2 overflow-hidden rounded-full">
-                  <div
-                    class="h-full bg-blue-500 transition-all duration-500"
-                    :style="{ width: `${row.usersPercent}%` }"
-                  ></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Top Pages -->
-      <div
-        v-if="propertyData.top_pages?.length > 0"
-        class="border-border bg-card rounded-lg border"
-      >
-        <div class="border-border border-b p-4">
+      <div v-if="propertyData.top_pages?.length > 0" class="space-y-4">
+        <div>
           <h2 class="text-foreground flex items-center gap-2 font-semibold">
             <Icon name="hugeicons:file-star" class="size-5" />
             Top Pages
           </h2>
           <p class="text-muted-foreground text-sm">Most visited pages for this property</p>
         </div>
-        <div class="divide-border divide-y">
-          <div
-            v-for="(page, index) in propertyData.top_pages"
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <AnalyticsTopPagesCard
+            v-for="(page, index) in displayedTopPages"
             :key="index"
-            class="hover:bg-muted/30 p-4 transition-colors"
-          >
-            <div class="flex items-start justify-between gap-4">
-              <div class="flex-1">
-                <div class="flex items-center gap-2">
-                  <span
-                    class="bg-primary/10 text-primary flex size-6 items-center justify-center rounded-full text-xs font-bold"
-                  >
-                    {{ index + 1 }}
-                  </span>
-                  <p class="text-foreground font-medium">{{ page.title }}</p>
-                </div>
-                <p class="text-muted-foreground mt-1 ml-8 text-sm">
-                  {{ page.path }}
-                </p>
-              </div>
-              <div class="text-right">
-                <p class="text-foreground text-lg font-semibold">
-                  {{ formatNumber(page.pageviews) }}
-                </p>
-                <p class="text-muted-foreground text-xs">views</p>
-              </div>
-            </div>
-          </div>
+            :page="page"
+            :rank="index + 1"
+          />
         </div>
+        <button
+          v-if="propertyData.top_pages.length > topPagesLimit"
+          @click="toggleTopPages"
+          class="hover:bg-muted mx-auto flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
+        >
+          <Icon
+            :name="showAllTopPages ? 'hugeicons:arrow-up-01' : 'hugeicons:arrow-down-01'"
+            class="size-4"
+          />
+          <span>{{
+            showAllTopPages ? "Show Less" : `Show All (${propertyData.top_pages.length})`
+          }}</span>
+        </button>
       </div>
 
-      <!-- Traffic Sources & Devices Grid -->
-      <div class="grid gap-4 lg:grid-cols-2">
-        <!-- Traffic Sources -->
-        <div
-          v-if="propertyData.traffic_sources?.length > 0"
-          class="border-border bg-card rounded-lg border"
-        >
-          <div class="border-border border-b p-4">
-            <h2 class="text-foreground flex items-center gap-2 font-semibold">
-              <Icon name="hugeicons:link-square-02" class="size-5" />
-              Traffic Sources
-            </h2>
-            <p class="text-muted-foreground text-sm">Where your visitors come from</p>
-          </div>
-          <div class="divide-border divide-y">
-            <div
-              v-for="(source, index) in propertyData.traffic_sources"
-              :key="index"
-              class="hover:bg-muted/30 p-4 transition-colors"
-            >
-              <div class="flex items-center justify-between">
-                <div class="flex-1">
-                  <p class="text-foreground font-medium">{{ source.source }}</p>
-                  <p class="text-muted-foreground text-sm">{{ source.medium }}</p>
-                </div>
-                <div class="text-right">
-                  <p class="text-foreground font-semibold">
-                    {{ formatNumber(source.sessions) }}
-                  </p>
-                  <p class="text-muted-foreground text-xs">sessions</p>
-                  <p class="text-muted-foreground text-xs">
-                    {{ formatNumber(source.users) }} users
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Device Categories -->
-        <div
-          v-if="propertyData.devices?.length > 0"
-          class="border-border bg-card rounded-lg border"
-        >
-          <div class="border-border border-b p-4">
-            <h2 class="text-foreground flex items-center gap-2 font-semibold">
-              <Icon name="hugeicons:monitor-01" class="size-5" />
-              Devices
-            </h2>
-            <p class="text-muted-foreground text-sm">Device breakdown of your visitors</p>
-          </div>
-          <div class="p-4">
-            <div class="space-y-4">
-              <div v-for="(device, index) in propertyData.devices" :key="index" class="space-y-2">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <Icon
-                      :name="getDeviceIcon(device.device)"
-                      class="text-muted-foreground size-4"
-                    />
-                    <span class="text-foreground capitalize">{{ device.device }}</span>
-                  </div>
-                  <div class="text-right">
-                    <p class="text-foreground font-semibold">
-                      {{ formatNumber(device.users) }}
-                    </p>
-                    <p class="text-muted-foreground text-xs">
-                      {{ formatNumber(device.sessions) }} sessions
-                    </p>
-                  </div>
-                </div>
-                <div class="bg-muted h-2 overflow-hidden rounded-full">
-                  <div
-                    class="bg-primary h-full transition-all duration-500"
-                    :style="{
-                      width: `${calculatePercentage(device.users, totalDeviceUsers)}%`,
-                    }"
-                  ></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Daily Metrics Table -->
-      <div v-if="propertyData.rows?.length > 0" class="border-border bg-card rounded-lg border">
-        <div class="border-border border-b p-4">
+      <div v-if="propertyData.traffic_sources?.length > 0" class="space-y-4">
+        <div>
           <h2 class="text-foreground flex items-center gap-2 font-semibold">
-            <Icon name="hugeicons:chart-line-data-03" class="size-5" />
-            Daily Metrics
+            <Icon name="hugeicons:link-square-02" class="size-5" />
+            Traffic Sources
           </h2>
-          <p class="text-muted-foreground text-sm">Day-by-day breakdown of metrics</p>
+          <p class="text-muted-foreground text-sm">Where your visitors come from</p>
         </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead class="bg-muted/30">
-              <tr class="border-border border-b">
-                <th class="text-muted-foreground px-4 py-3 text-left font-medium">Date</th>
-                <th class="text-muted-foreground px-4 py-3 text-right font-medium">Active Users</th>
-                <th class="text-muted-foreground px-4 py-3 text-right font-medium">Sessions</th>
-                <th class="text-muted-foreground px-4 py-3 text-right font-medium">Page Views</th>
-                <th class="text-muted-foreground px-4 py-3 text-right font-medium">Bounce Rate</th>
-              </tr>
-            </thead>
-            <tbody class="divide-border divide-y">
-              <tr
-                v-for="(row, index) in propertyData.rows.slice().reverse()"
-                :key="index"
-                class="hover:bg-muted/30 transition-colors"
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <AnalyticsTrafficSourceCard
+            v-for="(source, index) in displayedTrafficSources"
+            :key="index"
+            :source="source"
+          />
+        </div>
+        <button
+          v-if="propertyData.traffic_sources.length > trafficSourcesLimit"
+          @click="toggleTrafficSources"
+          class="hover:bg-muted mx-auto flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
+        >
+          <Icon
+            :name="showAllTrafficSources ? 'hugeicons:arrow-up-01' : 'hugeicons:arrow-down-01'"
+            class="size-4"
+          />
+          <span>{{
+            showAllTrafficSources
+              ? "Show Less"
+              : `Show All (${propertyData.traffic_sources.length})`
+          }}</span>
+        </button>
+      </div>
+
+      <AnalyticsDevicesBreakdown
+        v-if="propertyData.devices?.length > 0"
+        :devices="propertyData.devices"
+      />
+
+      <div class="flex flex-col items-center justify-center gap-y-6 pb-6">
+        <div class="flex flex-wrap items-center justify-center gap-2">
+          <NuxtLink
+            to="/web-analytics/docs"
+            class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+          >
+            <Icon name="hugeicons:book-02" class="size-4 shrink-0" />
+            <span>Documentation</span>
+          </NuxtLink>
+
+          <DialogResponsive dialog-max-width="500px" :overflow-content="true">
+            <template #trigger="{ open }">
+              <button
+                class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+                @click="open()"
               >
-                <td class="text-foreground px-4 py-3">
-                  {{ formatRowDate(row.date) }}
-                </td>
-                <td class="text-foreground px-4 py-3 text-right font-medium">
-                  {{ formatNumber(row.activeUsers || 0) }}
-                </td>
-                <td class="text-foreground px-4 py-3 text-right font-medium">
-                  {{ formatNumber(row.sessions || 0) }}
-                </td>
-                <td class="text-foreground px-4 py-3 text-right font-medium">
-                  {{ formatNumber(row.screenPageViews || 0) }}
-                </td>
-                <td class="text-foreground px-4 py-3 text-right font-medium">
-                  {{ formatPercent(row.bounceRate || 0) }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                <Icon name="hugeicons:raw-01" class="size-4 shrink-0" />
+                <span>View Raw</span>
+              </button>
+            </template>
+
+            <template #default>
+              <div class="px-4 pb-10 md:px-6 md:py-5">
+                <pre
+                  class="text-muted-foreground h-full w-full overflow-auto text-left text-xs leading-normal!"
+                  >{{ propertyData }}</pre
+                >
+              </div>
+            </template>
+          </DialogResponsive>
+        </div>
+
+        <div
+          v-if="propertyData.period"
+          class="text-muted-foreground flex items-center justify-center gap-2 text-center text-sm tracking-tight"
+        >
+          <span
+            >Data period: {{ propertyData.period.start_date }} to
+            {{ propertyData.period.end_date }}</span
+          >
         </div>
       </div>
+    </div>
 
-      <!-- Period Info -->
-      <div class="border-border bg-muted/30 rounded-lg border p-4">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p class="text-foreground text-sm font-medium">Data Period</p>
-            <p class="text-muted-foreground text-xs">
-              {{ propertyData.period?.start_date }} to {{ propertyData.period?.end_date }}
-            </p>
-          </div>
-        </div>
-      </div>
-    </template>
-
-    <!-- Empty State -->
     <div
       v-else
-      class="border-border bg-card flex items-center justify-center rounded-lg border p-12"
+      class="border-border bg-pattern-diagonal flex grow items-center justify-center overflow-hidden rounded-xl border p-6"
     >
-      <div class="flex flex-col items-center gap-3 text-center">
-        <Icon name="hugeicons:database-01" class="text-muted-foreground size-12" />
-        <div>
-          <h3 class="text-foreground mb-1 font-semibold">No data available</h3>
-          <p class="text-muted-foreground text-sm">
-            Property analytics data will appear here once loaded
-          </p>
-        </div>
+      <div class="flex flex-col items-center gap-2 text-center">
+        <h3 class="text-foreground text-lg font-semibold tracking-tighter">No data available</h3>
+        <p class="text-muted-foreground text-sm tracking-tight">
+          Property analytics data will appear here once loaded.
+        </p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
+import ChartLineDefault from "@/components/chart/LineDefault.vue";
+
 const { $dayjs } = useNuxtApp();
 const route = useRoute();
 
@@ -450,15 +268,72 @@ defineOptions({
   name: "web-analytics-id",
 });
 
+// Load selected range from localStorage immediately (client-side only)
+// Use same key as index page for consistency
+const getInitialRange = () => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("analytics_selected_range") || "30";
+  }
+  return "30";
+};
+
 // State
-const loading = ref(false);
+const loading = ref(true); // Start with true to prevent empty state flash during SSR
 const error = ref(null);
 const propertyData = ref(null);
-const selectedRange = ref("30");
+const selectedRange = ref(getInitialRange());
 
-// Computed
-const endDate = computed(() => $dayjs());
-const startDate = computed(() => $dayjs().subtract(parseInt(selectedRange.value), "day"));
+// Realtime data
+const { realtimeData, startAutoRefresh } = useRealtimeAnalytics();
+
+// Watch for changes and save to localStorage
+watch(selectedRange, (newValue) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("analytics_selected_range", newValue);
+  }
+  fetchPropertyAnalytics();
+});
+
+/**
+ * Calculate start and end dates based on the selected range
+ */
+const getDateRange = (range) => {
+  const today = $dayjs();
+
+  switch (range) {
+    case "today":
+      return { start: today.startOf("day"), end: today.endOf("day") };
+    case "yesterday":
+      return {
+        start: today.subtract(1, "day").startOf("day"),
+        end: today.subtract(1, "day").endOf("day"),
+      };
+    case "this_week":
+      return { start: today.startOf("week"), end: today.endOf("day") };
+    case "last_week":
+      return {
+        start: today.subtract(1, "week").startOf("week"),
+        end: today.subtract(1, "week").endOf("week"),
+      };
+    case "this_month":
+      return { start: today.startOf("month"), end: today.endOf("day") };
+    case "last_month":
+      return {
+        start: today.subtract(1, "month").startOf("month"),
+        end: today.subtract(1, "month").endOf("month"),
+      };
+    case "this_year":
+      return { start: today.startOf("year"), end: today.endOf("day") };
+    default:
+      // Numeric values like 7, 30, 90, 365 - "last N days"
+      const days = parseInt(range);
+      return { start: today.subtract(days - 1, "day").startOf("day"), end: today.endOf("day") };
+  }
+};
+
+const dateRange = computed(() => getDateRange(selectedRange.value));
+const startDate = computed(() => dateRange.value.start);
+const endDate = computed(() => dateRange.value.end);
 
 // Dynamic page title
 const pageTitle = computed(() => {
@@ -468,100 +343,157 @@ const pageTitle = computed(() => {
   return "Property Analytics";
 });
 
-// Set initial meta and watch for changes
 useSeoMeta({
   title: pageTitle,
   description: "Detailed analytics for Google Analytics property",
 });
 
-const mainMetrics = computed(() => {
+const METRIC_CONFIGS = [
+  {
+    key: "onlineUsers",
+    label: "Online Now",
+    description: "People viewing your site right now",
+    icon: "hugeicons:wifi-02",
+    bgClass: "bg-green-500/10",
+    iconClass: "text-green-700 dark:text-green-400",
+  },
+  {
+    key: "activeUsers",
+    label: "Active Visitors",
+    description: "Visitors who truly engaged with your site",
+    icon: "hugeicons:user-multiple-02",
+    bgClass: "bg-blue-500/10",
+    iconClass: "text-blue-700 dark:text-blue-400",
+  },
+  {
+    key: "newUsers",
+    label: "New Visitors",
+    description: "First-time visitors to your site",
+    icon: "hugeicons:user-add-02",
+    bgClass: "bg-sky-500/10",
+    iconClass: "text-sky-700 dark:text-sky-400",
+  },
+  {
+    key: "totalUsers",
+    label: "Total Visitors",
+    description: "All unique visitors who ever came",
+    icon: "hugeicons:user-group",
+    bgClass: "bg-purple-500/10",
+    iconClass: "text-purple-700 dark:text-purple-400",
+  },
+  {
+    key: "sessions",
+    label: "Total Sessions",
+    description: "How many times your site was opened",
+    icon: "hugeicons:cursor-pointer-02",
+    bgClass: "bg-indigo-500/10",
+    iconClass: "text-indigo-700 dark:text-indigo-400",
+  },
+  {
+    key: "screenPageViews",
+    label: "Page Views",
+    description: "Total count of pages being viewed",
+    icon: "hugeicons:view",
+    bgClass: "bg-pink-500/10",
+    iconClass: "text-pink-700 dark:text-pink-400",
+  },
+  {
+    key: "bounceRate",
+    label: "Bounce Rate",
+    description: "Visitors who left immediately",
+    format: "percent",
+    icon: "hugeicons:undo-02",
+    bgClass: "bg-red-500/10",
+    iconClass: "text-red-700 dark:text-red-400",
+  },
+  {
+    key: "averageSessionDuration",
+    label: "Average Duration",
+    description: "How long visitors stay on your site",
+    format: "duration",
+    icon: "hugeicons:time-quarter-02",
+    bgClass: "bg-yellow-500/10",
+    iconClass: "text-yellow-700 dark:text-yellow-400",
+  },
+];
+
+// Format helpers (defined early for use in computed properties)
+const formatNumber = (value) => {
+  if (value == null) return "0";
+  return new Intl.NumberFormat().format(Math.round(value));
+};
+
+const formatPercent = (value) => {
+  if (value == null) return "0%";
+  return `${(value * 100).toFixed(1)}%`;
+};
+
+const formatDuration = (seconds) => {
+  if (!seconds) return "0m 0s";
+  const minutes = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${minutes}m ${secs}s`;
+};
+
+const formatDate = (date) => date.format("MMM D");
+
+const summaryMetrics = computed(() => {
   if (!propertyData.value?.metrics) return [];
 
-  return [
-    {
-      key: "activeUsers",
-      label: "Active Users",
-      value: propertyData.value.metrics.activeUsers || 0,
-      icon: "hugeicons:user-multiple-02",
-      bgClass: "bg-blue-500/10",
-      iconClass: "text-blue-600 dark:text-blue-400",
-      description: "Unique visitors",
-    },
-    {
-      key: "sessions",
-      label: "Sessions",
-      value: propertyData.value.metrics.sessions || 0,
-      icon: "hugeicons:cursor-pointer-02",
-      bgClass: "bg-green-500/10",
-      iconClass: "text-green-600 dark:text-green-400",
-      description: "Total browsing sessions",
-    },
-    {
-      key: "screenPageViews",
-      label: "Page Views",
-      value: propertyData.value.metrics.screenPageViews || 0,
-      icon: "hugeicons:view",
-      bgClass: "bg-purple-500/10",
-      iconClass: "text-purple-600 dark:text-purple-400",
-      description: "Total pages viewed",
-    },
-    {
-      key: "bounceRate",
-      label: "Bounce Rate",
-      value: propertyData.value.metrics.bounceRate || 0,
-      icon: "hugeicons:arrow-turn-backward",
-      bgClass: "bg-orange-500/10",
-      iconClass: "text-orange-600 dark:text-orange-400",
-      description: "Single-page sessions",
-    },
-  ];
-});
+  const metrics = propertyData.value.metrics;
+  const propertyId = String(route.params.id);
 
-const additionalMetrics = computed(() => {
-  if (!propertyData.value?.metrics) return [];
+  return METRIC_CONFIGS.map((config) => {
+    let value = metrics[config.key] || 0;
 
-  return [
-    {
-      key: "newUsers",
-      label: "New Users",
-      value: propertyData.value.metrics.newUsers || 0,
-      icon: "hugeicons:user-add-01",
-    },
-    {
-      key: "averageSessionDuration",
-      label: "Avg Session Duration",
-      value: propertyData.value.metrics.averageSessionDuration || 0,
-      icon: "hugeicons:time-03",
-    },
-  ];
-});
+    // Get onlineUsers from realtime data
+    if (config.key === "onlineUsers" && realtimeData.value?.property_breakdown) {
+      const realtimeProperty = realtimeData.value.property_breakdown.find(
+        (p) => String(p.property_id) === propertyId
+      );
+      value = realtimeProperty?.active_users || 0;
+    }
 
-const chartData = computed(() => {
-  if (!propertyData.value?.rows?.length) return [];
-
-  const rows = [...propertyData.value.rows].sort((a, b) => a.date - b.date);
-  const maxPageViews = Math.max(...rows.map((r) => r.screenPageViews || 0));
-  const maxUsers = Math.max(...rows.map((r) => r.activeUsers || 0));
-
-  return rows.map((row) => {
-    const pageViews = row.screenPageViews || 0;
-    const users = row.activeUsers || 0;
+    const computedValue = config.format === "percent" ? value * 100 : value;
+    const formattedValue =
+      config.format === "percent"
+        ? formatPercent(value)
+        : config.format === "duration"
+          ? formatDuration(value)
+          : formatNumber(value);
 
     return {
-      date: row.date,
-      formattedDate: formatRowDate(row.date),
-      pageViews,
-      users,
-      pageViewsPercent: maxPageViews > 0 ? (pageViews / maxPageViews) * 100 : 0,
-      usersPercent: maxUsers > 0 ? (users / maxUsers) * 100 : 0,
+      ...config,
+      value: computedValue,
+      formattedValue,
     };
   });
 });
 
-const totalDeviceUsers = computed(() => {
-  if (!propertyData.value?.devices) return 0;
-  return propertyData.value.devices.reduce((sum, device) => sum + (device.users || 0), 0);
+// Chart data for ChartLineDefault
+const propertyChartData = computed(() => {
+  if (!propertyData.value?.rows || !Array.isArray(propertyData.value.rows)) {
+    return [];
+  }
+
+  return propertyData.value.rows
+    .map((item) => {
+      // Backend returns date in YYYY-MM-DD format already
+      return {
+        date: new Date(item.date),
+        activeUsers: item.activeUsers || 0,
+      };
+    })
+    .filter((item) => !isNaN(item.date.getTime()))
+    .sort((a, b) => a.date - b.date);
 });
+
+const propertyChartConfig = {
+  activeUsers: {
+    label: "Active Visitors",
+    color: "var(--chart-1)",
+  },
+};
 
 // Fetch property analytics
 const fetchPropertyAnalytics = async () => {
@@ -582,7 +514,6 @@ const fetchPropertyAnalytics = async () => {
   } catch (err) {
     console.error("Error fetching property analytics:", err);
 
-    // Handle rate limit errors specifically
     if (err.status === 429 || err.statusCode === 429) {
       error.value = "Too many requests. Please wait a moment and try again.";
     } else {
@@ -594,50 +525,61 @@ const fetchPropertyAnalytics = async () => {
 };
 
 // Handlers
-const handleDateRangeChange = () => fetchPropertyAnalytics();
 const refreshData = () => fetchPropertyAnalytics();
 
-// Format helpers
-const formatNumber = (value) => {
-  if (value === null || value === undefined) return "0";
-  return new Intl.NumberFormat().format(Math.round(value));
+const DATE_RANGE_LABELS = {
+  today: "Today",
+  yesterday: "Yesterday",
+  this_week: "This Week",
+  last_week: "Last Week",
+  this_month: "This Month",
+  last_month: "Last Month",
+  this_year: "This Year",
 };
 
-const formatPercent = (value) => {
-  if (value === null || value === undefined) return "0%";
-  return `${(value * 100).toFixed(1)}%`;
+const getDateRangeLabel = () => {
+  return DATE_RANGE_LABELS[selectedRange.value] || `Last ${selectedRange.value} days`;
 };
 
-const formatDate = (date) => date.format("MMM DD, YYYY");
+const showAllTopPages = ref(false);
+const topPagesLimit = 9;
+const displayedTopPages = computed(() => {
+  if (!propertyData.value?.top_pages) return [];
+  const pages = propertyData.value.top_pages;
+  return showAllTopPages.value ? pages : pages.slice(0, topPagesLimit);
+});
 
-const formatRowDate = (dateString) => {
-  const year = dateString.substring(0, 4);
-  const month = dateString.substring(4, 6);
-  const day = dateString.substring(6, 8);
-  return $dayjs(`${year}-${month}-${day}`).format("MMM DD, YYYY");
+const toggleTopPages = () => {
+  showAllTopPages.value = !showAllTopPages.value;
 };
 
-const formatMetricValue = (key, value) => {
-  if (key.toLowerCase().includes("rate")) return formatPercent(value);
-  if (key.toLowerCase().includes("duration")) return `${formatNumber(value)}s`;
-  return formatNumber(value);
-};
+const showAllTrafficSources = ref(false);
+const trafficSourcesLimit = 8;
+const displayedTrafficSources = computed(() => {
+  if (!propertyData.value?.traffic_sources) return [];
+  const sources = propertyData.value.traffic_sources;
+  return showAllTrafficSources.value ? sources : sources.slice(0, trafficSourcesLimit);
+});
 
-const formatRelativeTime = (dateString) => $dayjs(dateString).fromNow();
-
-const calculatePercentage = (value, total) => {
-  if (!total) return 0;
-  return ((value / total) * 100).toFixed(1);
-};
-
-const getDeviceIcon = (device) => {
-  const deviceLower = device.toLowerCase();
-  if (deviceLower.includes("mobile")) return "hugeicons:smart-phone-01";
-  if (deviceLower.includes("tablet")) return "hugeicons:tablet-01";
-  if (deviceLower.includes("desktop")) return "hugeicons:monitor-01";
-  return "hugeicons:device-access";
+const toggleTrafficSources = () => {
+  showAllTrafficSources.value = !showAllTrafficSources.value;
 };
 
 // Lifecycle
-onMounted(() => fetchPropertyAnalytics());
+onMounted(async () => {
+  // Fetch property analytics first
+  await fetchPropertyAnalytics();
+
+  // Start realtime refresh for this property after we have property data
+  // Use the actual property_id from the response, not the route param
+  if (propertyData.value?.property?.property_id) {
+    const propertyId = String(propertyData.value.property.property_id);
+    try {
+      startAutoRefresh([propertyId]);
+    } catch (err) {
+      console.error("Error starting realtime refresh:", err);
+      // Continue without realtime data
+    }
+  }
+});
 </script>

@@ -71,6 +71,11 @@ class AnalyticsService
      */
     public function getPropertyAnalytics(GaProperty $property, Period $period): array
     {
+        // Load project relationship if not already loaded
+        if (! $property->relationLoaded('project')) {
+            $property->load('project');
+        }
+
         // Use daily aggregator to get data from 365-day cache
         $metricsData = $this->dailyAggregator->getDataForPeriod($property, $period);
 
@@ -82,14 +87,26 @@ class AnalyticsService
             $metrics['totals'] = $this->calculateTotalsFromRows($metrics['rows']);
         }
 
+        // Build property data
+        $propertyData = [
+            'id' => $property->id,
+            'name' => $property->name,
+            'property_id' => $property->property_id,
+            'last_synced_at' => $property->last_synced_at,
+            'next_sync_at' => $property->next_sync_at,
+        ];
+
+        // Add project data if available
+        if ($property->project) {
+            $propertyData['project'] = [
+                'id' => $property->project->id,
+                'name' => $property->project->name,
+                'profile_image' => $property->project->profile_image,
+            ];
+        }
+
         return [
-            'property' => [
-                'id' => $property->id,
-                'name' => $property->name,
-                'property_id' => $property->property_id,
-                'last_synced_at' => $property->last_synced_at,
-                'next_sync_at' => $property->next_sync_at,
-            ],
+            'property' => $propertyData,
             'metrics' => $metrics['totals'] ?? [],
             'rows' => $metrics['rows'] ?? [],
             'top_pages' => $this->dailyAggregator->getTopPagesForPeriod($property, $period, 20),

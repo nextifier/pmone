@@ -27,11 +27,14 @@ export function useRealtimeAnalytics() {
       if (showLoading) loading.value = true;
       error.value = null;
 
-      const params = propertyIds ? { property_ids: propertyIds } : {};
+      // Build query string manually to ensure array is passed correctly for Laravel
+      let url = '/api/google-analytics/realtime';
+      if (propertyIds && propertyIds.length > 0) {
+        const queryParams = propertyIds.map((id, index) => `property_ids[${index}]=${encodeURIComponent(id)}`).join('&');
+        url += `?${queryParams}`;
+      }
 
-      const response = await client('/api/google-analytics/realtime', {
-        params,
-      });
+      const response = await client(url);
 
       // Handle response - client might return { data } or just the data directly
       const data = response?.data || response;
@@ -63,11 +66,16 @@ export function useRealtimeAnalytics() {
     stopAutoRefresh();
 
     // Fetch immediately (not silent - will show loading if no data)
-    fetchRealtimeUsers(propertyIds, false);
+    fetchRealtimeUsers(propertyIds, false).catch((err) => {
+      console.error('Initial realtime fetch failed:', err);
+      // Continue anyway - interval will retry
+    });
 
     // Set up interval - use silent refresh to avoid loading state
     refreshInterval = setInterval(() => {
-      fetchRealtimeUsers(propertyIds, true);
+      fetchRealtimeUsers(propertyIds, true).catch(() => {
+        // Silent failure for interval refreshes
+      });
     }, 60000); // 60 seconds (reduced from 30s to save API quota)
   }
 

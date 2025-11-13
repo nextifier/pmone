@@ -28,28 +28,7 @@
         </button>
 
         <ClientOnly>
-          <Select
-            class="focus-visible:outline-hidden"
-            v-model="selectedRange"
-            @update:model-value="handleDateRangeChange"
-          >
-            <SelectTrigger data-size="sm" class="w-40">
-              <SelectValue placeholder="Select date range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="today">Today</SelectItem>
-              <SelectItem value="yesterday">Yesterday</SelectItem>
-              <SelectItem value="this_week">This week</SelectItem>
-              <SelectItem value="7">Last 7 days</SelectItem>
-              <SelectItem value="last_week">Last week</SelectItem>
-              <SelectItem value="30">Last 30 days</SelectItem>
-              <SelectItem value="this_month">This month</SelectItem>
-              <SelectItem value="last_month">Last month</SelectItem>
-              <SelectItem value="90">Last 90 days</SelectItem>
-              <SelectItem value="this_year">This year</SelectItem>
-              <SelectItem value="365">Last 365 days</SelectItem>
-            </SelectContent>
-          </Select>
+          <DateRangeSelect v-model="selectedRange" />
         </ClientOnly>
       </div>
     </div>
@@ -347,14 +326,8 @@
 </template>
 
 <script setup>
+import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
 import ChartLineDefault from "@/components/chart/LineDefault.vue";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "vue-sonner";
 
 const { $dayjs } = useNuxtApp();
@@ -385,10 +358,11 @@ const getInitialRange = () => {
 const selectedRange = ref(getInitialRange());
 
 // Watch for changes and save to localStorage
-watch(selectedRange, (newValue) => {
+watch(selectedRange, async (newValue) => {
   if (typeof window !== "undefined") {
     localStorage.setItem("analytics_selected_range", newValue);
   }
+  await changeDateRange(newValue);
 });
 
 const {
@@ -582,10 +556,6 @@ const aggregatedChartConfig = {
     label: "Active Visitors",
     color: "var(--chart-1)",
   },
-};
-
-const handleDateRangeChange = async (value) => {
-  await changeDateRange(value);
 };
 
 const refreshData = () => {

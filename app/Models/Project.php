@@ -125,6 +125,14 @@ class Project extends Model implements HasMedia, Sortable
     }
 
     /**
+     * Get profile image URLs for the project.
+     */
+    public function getProfileImageAttribute(): ?array
+    {
+        return $this->getMediaUrls('profile_image');
+    }
+
+    /**
      * Set the project's username (normalize to lowercase if provided).
      */
     public function setUsernameAttribute(?string $value): void
