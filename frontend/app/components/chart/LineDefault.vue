@@ -50,19 +50,7 @@
       />
       <ChartTooltip />
       <ChartCrosshair
-        :template="
-          componentToString(config, ChartTooltipContent, {
-            hideLabel: false,
-            labelFormatter: (d) => {
-              const date = new Date(d);
-              return date.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              });
-            },
-          })
-        "
+        :template="tooltipTemplate"
         :color="config[dataKey]?.color || 'var(--chart-1)'"
       />
     </VisXYContainer>
@@ -93,6 +81,23 @@ const props = defineProps({
   dataKey: {
     type: String,
     default: "value",
+  },
+});
+
+// Create a reactive computed for config that the template function can access
+const currentConfig = computed(() => props.config);
+
+// Call componentToString ONCE during setup - it returns a function
+// This function will be called by Unovis with data, and it will use currentConfig
+const tooltipTemplate = componentToString(currentConfig, ChartTooltipContent, {
+  hideLabel: false,
+  labelFormatter: (d) => {
+    const date = new Date(d);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   },
 });
 </script>

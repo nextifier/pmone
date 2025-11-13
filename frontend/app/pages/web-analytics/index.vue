@@ -125,13 +125,41 @@
           </p>
         </div>
 
-        <ChartLineDefault
-          v-if="aggregatedChartData?.length >= 2"
-          :data="aggregatedChartData"
-          :config="aggregatedChartConfig"
-          data-key="activeUsers"
-          class="h-auto! overflow-hidden rounded-xl border py-2.5"
-        />
+        <div v-if="aggregatedChartData?.length >= 2" class="frame">
+          <div class="frame-header">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex flex-col gap-y-1">
+                <h6 class="text-foreground text-base font-medium tracking-tighter">
+                  {{ selectedMetricInfo?.label }}
+                </h6>
+                <p class="text-muted-foreground xs:block hidden text-xs tracking-tight">
+                  {{ selectedMetricInfo?.description }}
+                </p>
+              </div>
+              <Select v-model="selectedMetric" class="absolute top-2 right-2">
+                <SelectTrigger data-size="sm" class="w-36">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="option in metricOptions"
+                    :key="option.value"
+                    :value="option.value"
+                  >
+                    {{ option.label }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <ChartLineDefault
+            :data="aggregatedChartData"
+            :config="aggregatedChartConfig"
+            :data-key="selectedMetric"
+            class="h-auto! overflow-hidden rounded-xl border py-2.5"
+          />
+        </div>
 
         <AnalyticsSummaryCards :metrics="summaryMetrics" :property-breakdown="propertyBreakdown" />
       </div>
@@ -328,6 +356,13 @@
 <script setup>
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
 import ChartLineDefault from "@/components/chart/LineDefault.vue";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "vue-sonner";
 
 const { $dayjs } = useNuxtApp();
@@ -356,6 +391,43 @@ const getInitialRange = () => {
 };
 
 const selectedRange = ref(getInitialRange());
+
+// Selected metric for chart
+const selectedMetric = ref("activeUsers");
+
+// Metric options for chart
+const metricOptions = [
+  {
+    value: "activeUsers",
+    label: "Active Visitors",
+    description: "Visitors who truly engaged with your site",
+  },
+  {
+    value: "totalUsers",
+    label: "Total Visitors",
+    description: "All unique visitors who ever came",
+  },
+  {
+    value: "newUsers",
+    label: "New Visitors",
+    description: "First-time visitors to your site",
+  },
+  {
+    value: "sessions",
+    label: "Sessions",
+    description: "How many times your site was opened",
+  },
+  {
+    value: "screenPageViews",
+    label: "Page Views",
+    description: "Total count of pages being viewed",
+  },
+];
+
+// Get selected metric info
+const selectedMetricInfo = computed(() => {
+  return metricOptions.find((m) => m.value === selectedMetric.value);
+});
 
 // Watch for changes and save to localStorage
 watch(selectedRange, async (newValue) => {
@@ -524,39 +596,52 @@ const aggregatedChartData = computed(() => {
     return [];
   }
 
-  // Collect all daily data from all properties
+  // Collect all daily data from all properties for ALL metrics
   const dailyDataMap = new Map();
 
   propertyBreakdown.value.forEach((property) => {
     if (property.rows && Array.isArray(property.rows)) {
       property.rows.forEach((row) => {
         const date = row.date;
-        const activeUsers = row.activeUsers || 0;
 
-        if (dailyDataMap.has(date)) {
-          dailyDataMap.set(date, dailyDataMap.get(date) + activeUsers);
-        } else {
-          dailyDataMap.set(date, activeUsers);
+        if (!dailyDataMap.has(date)) {
+          dailyDataMap.set(date, {
+            activeUsers: 0,
+            totalUsers: 0,
+            newUsers: 0,
+            sessions: 0,
+            screenPageViews: 0,
+          });
         }
+
+        const existing = dailyDataMap.get(date);
+        existing.activeUsers += row.activeUsers || 0;
+        existing.totalUsers += row.totalUsers || 0;
+        existing.newUsers += row.newUsers || 0;
+        existing.sessions += row.sessions || 0;
+        existing.screenPageViews += row.screenPageViews || 0;
       });
     }
   });
 
   // Convert map to array and sort by date
   return Array.from(dailyDataMap.entries())
-    .map(([date, activeUsers]) => ({
+    .map(([date, metrics]) => ({
       date: new Date(date),
-      activeUsers,
+      ...metrics,
     }))
     .sort((a, b) => a.date - b.date);
 });
 
-const aggregatedChartConfig = {
-  activeUsers: {
-    label: "Active Visitors",
-    color: "var(--chart-1)",
-  },
-};
+const aggregatedChartConfig = computed(() => {
+  const metricConfig = metricOptions.find((m) => m.value === selectedMetric.value);
+  return {
+    [selectedMetric.value]: {
+      label: metricConfig?.label || "Metric",
+      color: "var(--chart-1)",
+    },
+  };
+});
 
 const refreshData = () => {
   fetchAnalytics(true);
