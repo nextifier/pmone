@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-3xl space-y-6">
+  <div class="mx-auto max-w-3xl space-y-6 pt-4 pb-16">
     <div class="flex items-center gap-x-2.5">
       <Icon name="hugeicons:dashboard-circle" class="size-5 sm:size-6" />
       <h1 class="page-title">Dashboard</h1>

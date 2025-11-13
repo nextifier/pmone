@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen-offset mx-auto max-w-xl">
+  <div class="min-h-screen-offset mx-auto max-w-xl pt-4 pb-16">
     <template v-if="project">
       <div class="flex flex-col gap-y-6">
         <div class="flex w-full items-center justify-between">

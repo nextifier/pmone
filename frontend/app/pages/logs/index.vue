@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-7xl space-y-6">
+  <div class="mx-auto max-w-7xl space-y-6 pt-4 pb-16">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-x-2.5">
         <Icon name="hugeicons:analysis-text-link" class="size-5 sm:size-6" />

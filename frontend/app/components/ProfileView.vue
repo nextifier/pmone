@@ -9,7 +9,10 @@
 
     <ErrorState v-else-if="error" :error="error" />
 
-    <div v-else-if="profile" class="min-h-screen-offset mx-auto flex max-w-xl flex-col px-4">
+    <div
+      v-else-if="profile"
+      class="min-h-screen-offset mx-auto flex max-w-xl flex-col px-4 pt-4 pb-16"
+    >
       <div class="relative -mx-3">
         <div
           class="aspect-[3/1] overflow-hidden rounded-xl"
@@ -296,15 +299,13 @@ const analyticsUrl = computed(() => {
 
 const qrCodeUrl = computed(() => {
   if (!props.profile?.username) return "";
-  const prefix = props.profileType === "project" ? "/p" : "";
-  return `${window.location.origin}${prefix}/${props.profile.username}`;
+  return `${window.location.origin}/${props.profile.username}`;
 });
 
 const qrCodeText = computed(() => {
   if (!props.profile?.username) return "";
   const siteUrl = useRuntimeConfig().public.siteUrl.replace(/^https?:\/\//, "");
-  const prefix = props.profileType === "project" ? "/p" : "";
-  return `${siteUrl}${prefix}/${props.profile.username}`;
+  return `${siteUrl}/${props.profile.username}`;
 });
 
 const { socialLinks, customLinks } = computed(() => {

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen-offset mx-auto max-w-4xl">
+  <div class="min-h-screen-offset mx-auto max-w-4xl pt-4 pb-16">
     <div
       v-if="loading || (user && !visitsData)"
       class="min-h-screen-offset flex items-center justify-center"

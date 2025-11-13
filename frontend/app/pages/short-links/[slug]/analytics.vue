@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-4xl space-y-6">
+  <div class="mx-auto max-w-4xl space-y-6 pt-4 pb-16">
     <div class="flex flex-col items-start gap-y-6">
       <BackButton destination="/short-links" />
 

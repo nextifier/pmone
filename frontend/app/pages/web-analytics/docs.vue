@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-5xl space-y-6 tracking-tight">
+  <div class="mx-auto max-w-5xl space-y-6 pt-4 pb-16 tracking-tight">
     <div class="flex items-center justify-between gap-4">
       <div class="flex items-center gap-x-2.5">
         <Icon name="hugeicons:book-02" class="size-5 sm:size-6" />

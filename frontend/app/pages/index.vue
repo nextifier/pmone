@@ -5,6 +5,8 @@
 </template>
 
 <script setup>
-const { isAuthenticated } = useSanctumAuth()
-usePageMeta('home')
+definePageMeta({
+  middleware: ["sanctum:guest"],
+});
+usePageMeta("home");
 </script>

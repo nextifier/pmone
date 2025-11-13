@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-7xl space-y-6">
+  <div class="mx-auto max-w-7xl space-y-6 pt-4 pb-16">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:clock-03" class="size-5 sm:size-6" />
@@ -34,25 +34,33 @@
         <p class="text-muted-foreground text-sm">Total Syncs</p>
         <p class="text-foreground mt-1 text-2xl font-bold">{{ syncStats.total_syncs }}</p>
       </div>
-      <div class="border-border rounded-lg border bg-gradient-to-br from-green-500/5 to-green-500/10 p-4">
+      <div
+        class="border-border rounded-lg border bg-gradient-to-br from-green-500/5 to-green-500/10 p-4"
+      >
         <p class="text-sm text-green-700 dark:text-green-400">Successful</p>
         <p class="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">
           {{ syncStats.successful_syncs }}
         </p>
       </div>
-      <div class="border-border rounded-lg border bg-gradient-to-br from-red-500/5 to-red-500/10 p-4">
+      <div
+        class="border-border rounded-lg border bg-gradient-to-br from-red-500/5 to-red-500/10 p-4"
+      >
         <p class="text-sm text-red-700 dark:text-red-400">Failed</p>
         <p class="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">
           {{ syncStats.failed_syncs }}
         </p>
       </div>
-      <div class="border-border rounded-lg border bg-gradient-to-br from-blue-500/5 to-blue-500/10 p-4">
+      <div
+        class="border-border rounded-lg border bg-gradient-to-br from-blue-500/5 to-blue-500/10 p-4"
+      >
         <p class="text-sm text-blue-700 dark:text-blue-400">Success Rate</p>
         <p class="mt-1 text-2xl font-bold text-blue-600 dark:text-blue-400">
           {{ syncStats.success_rate }}%
         </p>
       </div>
-      <div class="border-border rounded-lg border bg-gradient-to-br from-purple-500/5 to-purple-500/10 p-4">
+      <div
+        class="border-border rounded-lg border bg-gradient-to-br from-purple-500/5 to-purple-500/10 p-4"
+      >
         <p class="text-sm text-purple-700 dark:text-purple-400">Avg Duration</p>
         <p class="mt-1 text-2xl font-bold text-purple-600 dark:text-purple-400">
           {{ syncStats.avg_duration_seconds ? Math.round(syncStats.avg_duration_seconds) : 0 }}s
@@ -152,7 +160,7 @@
                       />
                       <Label
                         :for="`status-${status}`"
-                        class="grow cursor-pointer font-normal capitalize tracking-tight"
+                        class="grow cursor-pointer font-normal tracking-tight capitalize"
                       >
                         {{ status.replace("_", " ") }}
                       </Label>
@@ -171,7 +179,9 @@
       <div v-else class="p-12 text-center">
         <Icon name="hugeicons:database-01" class="text-muted-foreground mx-auto size-12" />
         <p class="text-foreground mt-3 font-medium">No sync history found</p>
-        <p class="text-muted-foreground text-sm">Sync logs will appear here after background jobs run</p>
+        <p class="text-muted-foreground text-sm">
+          Sync logs will appear here after background jobs run
+        </p>
       </div>
     </div>
   </div>

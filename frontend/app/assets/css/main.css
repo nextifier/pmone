@@ -330,6 +330,10 @@
   @apply bg-border animate-pulse rounded-xl;
 }
 
+@utility h-screen-offset {
+  @apply h-[calc(100svh-var(--navbar-height-mobile))] lg:h-[calc(100lvh-var(--navbar-height-desktop))];
+}
+
 @utility min-h-screen-offset {
   @apply min-h-[calc(100svh-var(--navbar-height-mobile))] lg:min-h-[calc(100lvh-var(--navbar-height-desktop))];
 }

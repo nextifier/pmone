@@ -34,10 +34,10 @@
               </p>
             </div>
 
-            <Icon :name="metric.icon" class="size-4 shrink-0" :class="metric.iconClass" />
+            <Icon :name="metric.icon" class="size-4.5 shrink-0" :class="metric.iconClass" />
           </div>
 
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between select-none">
             <div class="text-foreground shrink-0 font-semibold tracking-tighter">
               <span v-if="metric.format === 'percent'">
                 {{ formatPercent(metric.value) }}
@@ -146,15 +146,8 @@ const metrics = computed(() => [
   },
 ]);
 
-const formatNumber = (value) => {
-  if (value === null || value === undefined) return "0";
-  return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(
-    value
-  );
-};
-
 const formatPercent = (value) => {
-  if (value === null || value === undefined) return "0%";
+  if (value == null) return "0%";
   return `${(value * 100).toFixed(1)}%`;
 };
 
@@ -162,7 +155,6 @@ const formatDuration = (seconds) => {
   if (!seconds) return "0s";
   const minutes = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
-  if (minutes === 0) return `${secs}s`;
-  return `${minutes}m ${secs}s`;
+  return minutes === 0 ? `${secs}s` : `${minutes}m ${secs}s`;
 };
 </script>

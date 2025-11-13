@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen-offset mx-auto flex max-w-7xl flex-col gap-y-6 pb-12">
+  <div class="min-h-screen-offset mx-auto flex max-w-7xl flex-col gap-y-4 py-4">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:analysis-text-link" class="size-5 sm:size-6" />
@@ -24,13 +24,6 @@
           <Icon name="hugeicons:file-export" class="size-4 shrink-0" />
           <span>Export</span>
         </button>
-
-        <!-- <div class="text-sm font-medium tracking-tighter">
-          {{ formatDate(startDate) }}
-          <span v-if="formatDate(startDate) !== formatDate(endDate)">
-            - {{ formatDate(endDate) }}</span
-          >
-        </div> -->
 
         <Select
           class="focus-visible:outline-hidden"
@@ -93,24 +86,7 @@
         >
           <Spinner class="size-5 shrink-0" />
           <span class="text-sm font-medium tracking-tight"
-            >Loading
-            {{
-              selectedRange === "today"
-                ? "Today"
-                : selectedRange === "yesterday"
-                  ? "Yesterday"
-                  : selectedRange === "this_week"
-                    ? "This Week"
-                    : selectedRange === "last_week"
-                      ? "Last Week"
-                      : selectedRange === "this_month"
-                        ? "This Month"
-                        : selectedRange === "last_month"
-                          ? "Last Month"
-                          : selectedRange === "this_year"
-                            ? "This Year"
-                            : `Last ${selectedRange} days`
-            }}...</span
+            >Loading {{ getDateRangeLabel() }}...</span
           >
         </div>
       </div>
@@ -254,7 +230,7 @@
         :devices="aggregateData.devices"
       />
 
-      <div class="flex flex-col items-center justify-center gap-y-6">
+      <div class="flex flex-col items-center justify-center gap-y-6 pb-6">
         <div class="flex flex-wrap items-center justify-center gap-2">
           <NuxtLink
             to="/web-analytics/docs"
@@ -437,95 +413,96 @@ const dateRange = computed(() => getDateRange(selectedRange.value));
 const startDate = computed(() => dateRange.value.start);
 const endDate = computed(() => dateRange.value.end);
 
+const METRIC_CONFIGS = [
+  {
+    key: "onlineUsers",
+    label: "Online Now",
+    description: "People viewing your site right now",
+    icon: "hugeicons:wifi-02",
+    bgClass: "bg-green-500/10",
+    iconClass: "text-green-700 dark:text-green-400",
+  },
+  {
+    key: "activeUsers",
+    label: "Active Visitors",
+    description: "Visitors who truly engaged with your site",
+    icon: "hugeicons:user-multiple-02",
+    bgClass: "bg-blue-500/10",
+    iconClass: "text-blue-700 dark:text-blue-400",
+  },
+  {
+    key: "newUsers",
+    label: "New Visitors",
+    description: "First-time visitors to your site",
+    icon: "hugeicons:user-add-02",
+    bgClass: "bg-sky-500/10",
+    iconClass: "text-sky-700 dark:text-sky-400",
+  },
+  {
+    key: "totalUsers",
+    label: "Total Visitors",
+    description: "All unique visitors who ever came",
+    icon: "hugeicons:user-group",
+    bgClass: "bg-purple-500/10",
+    iconClass: "text-purple-700 dark:text-purple-400",
+  },
+  {
+    key: "sessions",
+    label: "Total Sessions",
+    description: "How many times your site was opened",
+    icon: "hugeicons:cursor-pointer-02",
+    bgClass: "bg-indigo-500/10",
+    iconClass: "text-indigo-700 dark:text-indigo-400",
+  },
+  {
+    key: "screenPageViews",
+    label: "Page Views",
+    description: "Total count of pages being viewed",
+    icon: "hugeicons:view",
+    bgClass: "bg-pink-500/10",
+    iconClass: "text-pink-700 dark:text-pink-400",
+  },
+  {
+    key: "bounceRate",
+    label: "Bounce Rate",
+    description: "Visitors who left immediately",
+    format: "percent",
+    icon: "hugeicons:undo-02",
+    bgClass: "bg-red-500/10",
+    iconClass: "text-red-700 dark:text-red-400",
+  },
+  {
+    key: "averageSessionDuration",
+    label: "Average Duration",
+    description: "How long visitors stay on your site",
+    format: "duration",
+    icon: "hugeicons:time-quarter-02",
+    bgClass: "bg-yellow-500/10",
+    iconClass: "text-yellow-700 dark:text-yellow-400",
+  },
+];
+
 const summaryMetrics = computed(() => {
   if (!aggregateData.value?.totals) return [];
 
   const totals = aggregateData.value.totals;
 
-  return [
-    {
-      key: "onlineUsers",
-      label: "Online Now",
-      description: "People viewing your site right now",
-      value: totals.onlineUsers || 0,
-      formattedValue: formatNumber(totals.onlineUsers || 0),
-      icon: "hugeicons:wifi-02",
-      bgClass: "bg-green-500/10",
-      iconClass: "text-green-700 dark:text-green-400",
-    },
-    {
-      key: "activeUsers",
-      label: "Active Visitors",
-      description: "Visitors who truly engaged with your site",
-      value: totals.activeUsers || 0,
-      formattedValue: formatNumber(totals.activeUsers || 0),
-      icon: "hugeicons:user-multiple-02",
-      bgClass: "bg-blue-500/10",
-      iconClass: "text-blue-700 dark:text-blue-400",
-    },
-    {
-      key: "newUsers",
-      label: "New Visitors",
-      description: "First-time visitors to your site",
-      value: totals.newUsers || 0,
-      formattedValue: formatNumber(totals.newUsers || 0),
-      icon: "hugeicons:user-add-02",
-      bgClass: "bg-sky-500/10",
-      iconClass: "text-sky-700 dark:text-sky-400",
-    },
-    {
-      key: "totalUsers",
-      label: "Total Visitors",
-      description: "All unique visitors who ever came",
-      value: totals.totalUsers || 0,
-      formattedValue: formatNumber(totals.totalUsers || 0),
-      icon: "hugeicons:user-group",
-      bgClass: "bg-purple-500/10",
-      iconClass: "text-purple-700 dark:text-purple-400",
-    },
-    {
-      key: "sessions",
-      label: "Total Sessions",
-      description: "How many times your site was opened",
-      value: totals.sessions || 0,
-      formattedValue: formatNumber(totals.sessions || 0),
-      icon: "hugeicons:cursor-pointer-02",
-      bgClass: "bg-indigo-500/10",
-      iconClass: "text-indigo-700 dark:text-indigo-400",
-    },
-    {
-      key: "screenPageViews",
-      label: "Page Views",
-      description: "Total count of pages being viewed",
-      value: totals.screenPageViews || 0,
-      formattedValue: formatNumber(totals.screenPageViews || 0),
-      icon: "hugeicons:view",
-      bgClass: "bg-pink-500/10",
-      iconClass: "text-pink-700 dark:text-pink-400",
-    },
-    {
-      key: "bounceRate",
-      label: "Bounce Rate",
-      description: "Visitors who left immediately",
-      value: (totals.bounceRate || 0) * 100,
-      formattedValue: formatPercent(totals.bounceRate || 0),
-      format: "percent",
-      icon: "hugeicons:undo-02",
-      bgClass: "bg-red-500/10",
-      iconClass: "text-red-700 dark:text-red-400",
-    },
-    {
-      key: "averageSessionDuration",
-      label: "Average Duration",
-      description: "How long visitors stay on your site",
-      value: totals.averageSessionDuration || 0,
-      formattedValue: formatDuration(totals.averageSessionDuration || 0),
-      format: "duration",
-      icon: "hugeicons:time-quarter-02",
-      bgClass: "bg-yellow-500/10",
-      iconClass: "text-yellow-700 dark:text-yellow-400",
-    },
-  ];
+  return METRIC_CONFIGS.map((config) => {
+    const value = totals[config.key] || 0;
+    const computedValue = config.format === "percent" ? value * 100 : value;
+    const formattedValue =
+      config.format === "percent"
+        ? formatPercent(value)
+        : config.format === "duration"
+          ? formatDuration(value)
+          : formatNumber(value);
+
+    return {
+      ...config,
+      value: computedValue,
+      formattedValue,
+    };
+  });
 });
 
 const propertyBreakdown = computed(() => {
@@ -547,27 +524,24 @@ const refreshData = () => {
 };
 
 const isRefreshing = ref(false);
+
+const getDaysFromRange = (range) => {
+  return range === "today" || range === "yesterday" ? 1 : parseInt(range) || 30;
+};
+
 const forceRefresh = async () => {
   if (isRefreshing.value) return;
 
   isRefreshing.value = true;
 
   try {
-    // Call the sync-now endpoint to force refresh
-    const days =
-      selectedRange.value === "today" || selectedRange.value === "yesterday"
-        ? 1
-        : parseInt(selectedRange.value) || 30;
-
     await $fetch("/api/google-analytics/aggregate/sync-now", {
       method: "POST",
-      body: { days },
+      body: { days: getDaysFromRange(selectedRange.value) },
     });
 
-    // Refresh the displayed data
     await fetchAnalytics(true);
 
-    // Show success message
     useToast().add({
       title: "Success",
       description: "Analytics data refreshed successfully",
@@ -585,13 +559,27 @@ const forceRefresh = async () => {
   }
 };
 
+const DATE_RANGE_LABELS = {
+  today: "Today",
+  yesterday: "Yesterday",
+  this_week: "This Week",
+  last_week: "Last Week",
+  this_month: "This Month",
+  last_month: "Last Month",
+  this_year: "This Year",
+};
+
+const getDateRangeLabel = () => {
+  return DATE_RANGE_LABELS[selectedRange.value] || `Last ${selectedRange.value} days`;
+};
+
 const formatNumber = (value) => {
-  if (value === null || value === undefined) return "0";
+  if (value == null) return "0";
   return new Intl.NumberFormat().format(Math.round(value));
 };
 
 const formatPercent = (value) => {
-  if (value === null || value === undefined) return "0%";
+  if (value == null) return "0%";
   return `${(value * 100).toFixed(1)}%`;
 };
 

@@ -71,7 +71,7 @@
         <div
           v-for="property in getPropertyBreakdownForMetric(metric.key)"
           :key="property.property_id"
-          class="text-muted-foreground hover:text-foreground flex items-center justify-between gap-2 text-xs tracking-tight transition"
+          class="text-muted-foreground hover:text-foreground flex items-center justify-between gap-2 text-xs tracking-tight transition select-none"
         >
           <NuxtLink
             :to="`/web-analytics/${property.property_id}`"
@@ -123,45 +123,22 @@ const props = defineProps({
 const isExpanded = ref(false);
 
 const getPropertyBreakdownForMetric = (metricKey) => {
-  if (!props.propertyBreakdown || props.propertyBreakdown.length === 0) return [];
+  if (!props.propertyBreakdown?.length) return [];
 
-  // Map metric keys to their property names
-  const metricMap = {
-    onlineUsers: "onlineUsers",
-    activeUsers: "activeUsers",
-    totalUsers: "totalUsers",
-    newUsers: "newUsers",
-    sessions: "sessions",
-    screenPageViews: "screenPageViews",
-    bounceRate: "bounceRate",
-    averageSessionDuration: "averageSessionDuration",
-  };
-
-  const metricName = metricMap[metricKey];
-  if (!metricName) return [];
-
-  // Extract and sort property values for this metric
   return props.propertyBreakdown
     .map((property) => ({
       property_id: property.property_id,
       property_name: property.property_name,
       project: property.project,
-      value: property.metrics?.[metricName] || 0,
+      value: property.metrics?.[metricKey] || 0,
     }))
     .filter((property) => property.value > 0)
     .sort((a, b) => b.value - a.value)
-    .slice(0, 5); // Show top 5 properties
-};
-
-const formatNumber = (value) => {
-  if (value === null || value === undefined) return "0";
-  return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(
-    value
-  );
+    .slice(0, 5);
 };
 
 const formatPercent = (value) => {
-  if (value === null || value === undefined) return "0%";
+  if (value == null) return "0%";
   return `${(value * 100).toFixed(1)}%`;
 };
 
@@ -169,7 +146,6 @@ const formatDuration = (seconds) => {
   if (!seconds) return "0s";
   const minutes = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
-  if (minutes === 0) return `${secs}s`;
-  return `${minutes}m ${secs}s`;
+  return minutes === 0 ? `${secs}s` : `${minutes}m ${secs}s`;
 };
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-4xl space-y-6">
+  <div class="mx-auto max-w-4xl space-y-6 pt-4 pb-16">
     <div class="flex items-center justify-between gap-x-2.5">
       <div class="flex items-center gap-x-2.5">
         <Icon name="hugeicons:delete-01" class="size-5 sm:size-6" />

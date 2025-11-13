@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-4xl space-y-6">
+  <div class="mx-auto max-w-4xl space-y-6 pt-4 pb-16">
     <!-- <div class="border-border text-foreground w-full overflow-x-scroll rounded-xl border p-4">
       <pre class="text-foreground/80 text-sm !leading-[1.5]">{{ data }}</pre>
     </div> -->

@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-lg space-y-6">
+  <div class="mx-auto max-w-lg space-y-6 pt-4 pb-16">
     <div class="flex flex-col items-start gap-y-6">
       <BackButton destination="/roles" />
 
@@ -39,8 +39,8 @@ usePageMeta("", {
 const { user } = useSanctumAuth();
 
 // Check if user has master role
-if (!user.value?.roles?.includes('master')) {
-  navigateTo('/dashboard');
+if (!user.value?.roles?.includes("master")) {
+  navigateTo("/dashboard");
 }
 
 const sanctumFetch = useSanctumClient();

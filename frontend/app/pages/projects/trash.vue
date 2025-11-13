@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-xl space-y-6">
+  <div class="mx-auto max-w-xl space-y-6 pt-4 pb-16">
     <ProjectsHeader title="Project Trash" icon="hugeicons:delete-01">
       <template #actions>
         <nuxt-link

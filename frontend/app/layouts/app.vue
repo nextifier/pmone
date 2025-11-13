@@ -4,7 +4,7 @@
 
     <SidebarInset class="mx-auto min-h-screen max-w-[1920px]">
       <AppHeader />
-      <main class="grow overflow-x-hidden px-4 pt-6 pb-16">
+      <main class="grow overflow-x-hidden px-4">
         <slot />
       </main>
     </SidebarInset>

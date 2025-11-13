@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-4xl space-y-6">
+  <div class="mx-auto max-w-4xl space-y-6 pt-4 pb-16">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:user-group" class="size-5 sm:size-6" />
@@ -63,7 +63,8 @@
               <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This action can't be undone. This will permanently delete
-                {{ selectedRows.length }} selected {{ selectedRows.length === 1 ? "role" : "roles" }}.
+                {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "role" : "roles" }}.
               </p>
               <div class="mt-3 flex justify-end gap-2">
                 <button
@@ -121,8 +122,8 @@ const { user } = useSanctumAuth();
 const { $dayjs } = useNuxtApp();
 
 // Check if user has master role
-if (!user.value?.roles?.includes('master')) {
-  navigateTo('/dashboard');
+if (!user.value?.roles?.includes("master")) {
+  navigateTo("/dashboard");
 }
 
 // Table state

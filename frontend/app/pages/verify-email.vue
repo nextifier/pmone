@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto flex h-full max-w-md items-center justify-center">
+  <div class="mx-auto flex h-full max-w-md items-center justify-center pt-4 pb-16">
     <div class="border-border grid gap-6 rounded-xl border p-6">
       <div class="flex flex-col items-center gap-y-4 text-center">
         <Icon name="hugeicons:checkmark-badge-02" class="text-primary size-9" />
