@@ -17,11 +17,12 @@
       />
       <VisAxis
         type="x"
+        :num-ticks="10"
+        :tickTextHideOverlapping="true"
         :x="(d) => d.date"
         :tick-line="false"
         :domain-line="false"
         :grid-line="false"
-        :num-ticks="6"
         :tick-format="
           (d) => {
             const date = new Date(d);
@@ -34,7 +35,8 @@
       />
       <VisAxis
         type="y"
-        :num-ticks="3"
+        :num-ticks="5"
+        :tickTextHideOverlapping="true"
         :tick-line="false"
         :domain-line="false"
         :tick-format="
@@ -48,7 +50,19 @@
       />
       <ChartTooltip />
       <ChartCrosshair
-        :template="componentToString(config, ChartTooltipContent, { hideLabel: true })"
+        :template="
+          componentToString(config, ChartTooltipContent, {
+            hideLabel: false,
+            labelFormatter: (d) => {
+              const date = new Date(d);
+              return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              });
+            },
+          })
+        "
         :color="config[dataKey]?.color || 'var(--chart-1)'"
       />
     </VisXYContainer>

@@ -137,6 +137,15 @@
         <p class="text-muted-foreground mt-1 text-sm tracking-tight">
           Combined metrics from all properties.
         </p>
+
+        <ChartLineDefault
+          v-if="aggregatedChartData?.length"
+          :data="aggregatedChartData"
+          :config="aggregatedChartConfig"
+          data-key="activeUsers"
+          class="mt-4 h-auto! overflow-hidden rounded-xl border pb-2.5"
+        />
+
         <AnalyticsSummaryCards
           :metrics="summaryMetrics"
           :property-breakdown="propertyBreakdown"
@@ -334,6 +343,7 @@
 </template>
 
 <script setup>
+import ChartLineDefault from "@/components/chart/LineDefault.vue";
 import {
   Select,
   SelectContent,
@@ -514,6 +524,46 @@ const propertyBreakdown = computed(() => {
     return bUsers - aUsers;
   });
 });
+
+// Aggregate daily chart data from all properties
+const aggregatedChartData = computed(() => {
+  if (!propertyBreakdown.value || propertyBreakdown.value.length === 0) {
+    return [];
+  }
+
+  // Collect all daily data from all properties
+  const dailyDataMap = new Map();
+
+  propertyBreakdown.value.forEach((property) => {
+    if (property.rows && Array.isArray(property.rows)) {
+      property.rows.forEach((row) => {
+        const date = row.date;
+        const activeUsers = row.activeUsers || 0;
+
+        if (dailyDataMap.has(date)) {
+          dailyDataMap.set(date, dailyDataMap.get(date) + activeUsers);
+        } else {
+          dailyDataMap.set(date, activeUsers);
+        }
+      });
+    }
+  });
+
+  // Convert map to array and sort by date
+  return Array.from(dailyDataMap.entries())
+    .map(([date, activeUsers]) => ({
+      date: new Date(date),
+      activeUsers,
+    }))
+    .sort((a, b) => a.date - b.date);
+});
+
+const aggregatedChartConfig = {
+  activeUsers: {
+    label: "Active Visitors",
+    color: "var(--chart-1)",
+  },
+};
 
 const handleDateRangeChange = async (value) => {
   await changeDateRange(value);
