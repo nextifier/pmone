@@ -1,5 +1,5 @@
 <template>
-  <div class="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-x-2.5 gap-y-4">
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-x-2.5 gap-y-4">
     <div
       v-for="metric in metrics"
       :key="metric.key"
@@ -26,7 +26,11 @@
               <span>LIVE</span>
             </div>
           </div>
-          <div class="flex size-8 items-center justify-center rounded-lg" :class="metric.bgClass">
+
+          <div
+            class="flex size-8 translate-x-1 items-center justify-center rounded-lg"
+            :class="metric.bgClass"
+          >
             <Icon :name="metric.icon" class="size-5 shrink-0" :class="metric.iconClass" />
           </div>
         </div>
@@ -67,9 +71,12 @@
         <div
           v-for="property in getPropertyBreakdownForMetric(metric.key)"
           :key="property.property_id"
-          class="text-muted-foreground flex items-center justify-between gap-2 text-xs tracking-tight"
+          class="text-muted-foreground hover:text-foreground flex items-center justify-between gap-2 text-xs tracking-tight transition"
         >
-          <div class="flex items-center gap-1.5">
+          <NuxtLink
+            :to="`/web-analytics/${property.property_id}`"
+            class="flex items-center gap-1.5"
+          >
             <Avatar
               v-if="property.project?.profile_image"
               :model="property.project"
@@ -78,7 +85,7 @@
             <span class="line-clamp-1">
               {{ property.property_name }}
             </span>
-          </div>
+          </NuxtLink>
           <div class="text-foreground shrink-0 font-medium">
             <span v-if="metric.format === 'percent'">
               {{ formatPercent(property.value) }}
@@ -86,8 +93,13 @@
             <span v-else-if="metric.format === 'duration'">
               {{ formatDuration(property.value) }}
             </span>
-            <span v-else>
-              {{ formatNumber(property.value) }}
+            <span v-else @click="isExpanded = !isExpanded" class="cursor-pointer">
+              {{
+                new Intl.NumberFormat("en-US", {
+                  notation: isExpanded ? "standard" : "compact",
+                  maximumFractionDigits: 1,
+                }).format(property.value)
+              }}
             </span>
           </div>
         </div>

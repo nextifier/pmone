@@ -1,36 +1,43 @@
 <template>
   <div class="min-h-screen-offset mx-auto flex max-w-7xl flex-col gap-y-6 pb-12">
-    <!-- <pre v-if="aggregateData">
-        {{ aggregateData }}
-    </pre> -->
-    <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:analysis-text-link" class="size-5 sm:size-6" />
-        <h1 class="page-title">Web Analytics Dashboard</h1>
+        <h1 class="page-title">
+          Web Analytics
+          <span
+            v-if="formatDate(startDate) && formatDate(endDate)"
+            class="text-foreground/70 ml-1 text-sm font-medium tracking-tighter"
+          >
+            {{ formatDate(startDate) }}
+            <span v-if="formatDate(startDate) !== formatDate(endDate)">
+              - {{ formatDate(endDate) }}</span
+            >
+          </span>
+        </h1>
       </div>
 
-      <div class="flex shrink-0 gap-1 sm:ml-auto sm:gap-2">
-        <NuxtLink
-          to="/web-analytics/docs"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+      <div class="ml-auto flex shrink-0 items-center gap-2">
+        <button
+          class="border-border hover:bg-muted flex h-8 items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Icon name="hugeicons:book-02" class="size-4 shrink-0" />
-          <span>Documentation</span>
-        </NuxtLink>
-        <NuxtLink
-          to="/web-analytics/sync-history"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="hugeicons:clock-03" class="size-4 shrink-0" />
-          <span>Sync History</span>
-        </NuxtLink>
-      </div>
-    </div>
+          <Icon name="hugeicons:file-export" class="size-4 shrink-0" />
+          <span>Export</span>
+        </button>
 
-    <div class="flex flex-wrap items-center justify-between gap-6">
-      <div class="flex flex-wrap items-center gap-3">
-        <Select v-model="selectedRange" @update:model-value="handleDateRangeChange">
-          <SelectTrigger class="w-40">
+        <!-- <div class="text-sm font-medium tracking-tighter">
+          {{ formatDate(startDate) }}
+          <span v-if="formatDate(startDate) !== formatDate(endDate)">
+            - {{ formatDate(endDate) }}</span
+          >
+        </div> -->
+
+        <Select
+          class="focus-visible:outline-hidden"
+          v-model="selectedRange"
+          @update:model-value="handleDateRangeChange"
+        >
+          <SelectTrigger data-size="sm" class="w-40">
             <SelectValue placeholder="Select date range" />
           </SelectTrigger>
           <SelectContent>
@@ -47,58 +54,6 @@
             <SelectItem value="365">Last 365 days</SelectItem>
           </SelectContent>
         </Select>
-
-        <div class="text-muted-foreground text-sm font-medium tracking-tighter">
-          {{ formatDate(startDate) }} - {{ formatDate(endDate) }}
-        </div>
-      </div>
-
-      <div class="text-muted-foreground flex items-center gap-x-2 text-sm tracking-tight">
-        <div v-if="!cacheInfo || cacheInfo?.is_updating" class="flex items-center gap-x-1">
-          <Spinner class="size-3.5 shrink-0" />
-          <span>Updating..</span>
-        </div>
-        <div v-else class="flex items-center gap-x-2">
-          <!-- Cache age warning for "today" period -->
-          <div
-            v-if="selectedRange === 'today' && cacheInfo?.cache_age_minutes > 60"
-            class="bg-warning/10 text-warning-foreground border-warning/20 flex items-center gap-x-1.5 rounded-md border px-2 py-1"
-          >
-            <Icon name="hugeicons:alert-01" class="size-3.5 shrink-0" />
-            <span class="text-xs font-medium">Data may be outdated</span>
-          </div>
-
-          <span
-            :class="{
-              'text-warning': selectedRange === 'today' && cacheInfo?.cache_age_minutes > 60,
-            }"
-            >Last updated {{ formatCacheAge(cacheInfo?.cache_age_minutes) }}.
-            <span v-if="cacheInfo?.next_update_in_minutes"
-              >Next update in {{ Math.ceil(cacheInfo?.next_update_in_minutes) }} min<span
-                v-if="Math.ceil(cacheInfo?.next_update_in_minutes) > 1"
-                >s</span
-              >.
-            </span></span
-          >
-        </div>
-
-        <!-- Force Refresh Button -->
-        <button
-          v-if="cacheInfo && !cacheInfo?.is_updating"
-          @click="forceRefresh"
-          :disabled="isRefreshing"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-xs font-medium tracking-tight transition-colors active:scale-98 disabled:opacity-50"
-          :class="{
-            'cursor-not-allowed': isRefreshing,
-          }"
-        >
-          <Icon
-            :name="isRefreshing ? 'hugeicons:loading-01' : 'hugeicons:refresh'"
-            class="size-3.5 shrink-0"
-            :class="{ 'animate-spin': isRefreshing }"
-          />
-          <span>{{ isRefreshing ? "Refreshing..." : "Refresh" }}</span>
-        </button>
       </div>
     </div>
 
@@ -129,7 +84,6 @@
     </div>
 
     <div v-else-if="aggregateData" class="relative grid grid-cols-1 gap-y-10">
-      <!-- Loading overlay when changing date range -->
       <div
         v-if="loading"
         class="bg-background/90 absolute inset-0 z-10 flex items-start justify-center pt-20 backdrop-blur-md"
@@ -299,6 +253,94 @@
         v-if="aggregateData.devices?.length > 0"
         :devices="aggregateData.devices"
       />
+
+      <div class="flex flex-col items-center justify-center gap-y-6">
+        <div class="flex flex-wrap items-center justify-center gap-2">
+          <NuxtLink
+            to="/web-analytics/docs"
+            class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+          >
+            <Icon name="hugeicons:book-02" class="size-4 shrink-0" />
+            <span>Documentation</span>
+          </NuxtLink>
+          <NuxtLink
+            to="/web-analytics/sync-history"
+            class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+          >
+            <Icon name="hugeicons:clock-03" class="size-4 shrink-0" />
+            <span>Sync History</span>
+          </NuxtLink>
+
+          <DialogResponsive dialog-max-width="500px" :overflow-content="true">
+            <template #trigger="{ open }">
+              <button
+                class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+                @click="open()"
+              >
+                <Icon name="hugeicons:raw-01" class="size-4 shrink-0" />
+                <span>View Raw</span>
+              </button>
+            </template>
+
+            <template #default>
+              <div class="px-4 pb-10 md:px-6 md:py-5">
+                <pre
+                  class="text-muted-foreground h-full w-full overflow-auto text-left text-xs leading-normal!"
+                  >{{ aggregateData }}</pre
+                >
+              </div>
+            </template>
+          </DialogResponsive>
+        </div>
+
+        <div
+          class="text-muted-foreground flex flex-wrap items-center justify-center gap-2 text-center text-sm tracking-tight"
+        >
+          <div v-if="!cacheInfo || cacheInfo?.is_updating" class="flex items-center gap-x-1">
+            <Spinner class="size-3.5 shrink-0" />
+            <span>Updating..</span>
+          </div>
+          <div v-else class="flex items-center gap-x-2">
+            <div
+              v-if="selectedRange === 'today' && cacheInfo?.cache_age_minutes > 60"
+              class="bg-warning/10 text-warning-foreground border-warning/20 flex items-center gap-x-1.5 rounded-md border px-2 py-1"
+            >
+              <Icon name="hugeicons:alert-01" class="size-3.5 shrink-0" />
+              <span class="text-xs font-medium">Data may be outdated</span>
+            </div>
+
+            <span
+              :class="{
+                'text-warning': selectedRange === 'today' && cacheInfo?.cache_age_minutes > 60,
+              }"
+              >Last updated {{ formatCacheAge(cacheInfo?.cache_age_minutes) }}.
+              <span v-if="cacheInfo?.next_update_in_minutes"
+                >Next update in {{ Math.ceil(cacheInfo?.next_update_in_minutes) }} min<span
+                  v-if="Math.ceil(cacheInfo?.next_update_in_minutes) > 1"
+                  >s</span
+                >.
+              </span></span
+            >
+          </div>
+
+          <button
+            v-if="cacheInfo && !cacheInfo?.is_updating"
+            @click="forceRefresh"
+            :disabled="isRefreshing"
+            class="text-foreground border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+            :class="{
+              'cursor-not-allowed': isRefreshing,
+            }"
+          >
+            <Icon
+              :name="isRefreshing ? 'hugeicons:loading-01' : 'hugeicons:refresh'"
+              class="size-3.5 shrink-0"
+              :class="{ 'animate-spin': isRefreshing }"
+            />
+            <span>{{ isRefreshing ? "Refreshing..." : "Force Refresh" }}</span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <div
@@ -422,16 +464,6 @@ const summaryMetrics = computed(() => {
       iconClass: "text-blue-700 dark:text-blue-400",
     },
     {
-      key: "totalUsers",
-      label: "Total Visitors",
-      description: "All unique visitors who ever came",
-      value: totals.totalUsers || 0,
-      formattedValue: formatNumber(totals.totalUsers || 0),
-      icon: "hugeicons:user-group",
-      bgClass: "bg-purple-500/10",
-      iconClass: "text-purple-700 dark:text-purple-400",
-    },
-    {
       key: "newUsers",
       label: "New Visitors",
       description: "First-time visitors to your site",
@@ -440,6 +472,16 @@ const summaryMetrics = computed(() => {
       icon: "hugeicons:user-add-02",
       bgClass: "bg-sky-500/10",
       iconClass: "text-sky-700 dark:text-sky-400",
+    },
+    {
+      key: "totalUsers",
+      label: "Total Visitors",
+      description: "All unique visitors who ever came",
+      value: totals.totalUsers || 0,
+      formattedValue: formatNumber(totals.totalUsers || 0),
+      icon: "hugeicons:user-group",
+      bgClass: "bg-purple-500/10",
+      iconClass: "text-purple-700 dark:text-purple-400",
     },
     {
       key: "sessions",
