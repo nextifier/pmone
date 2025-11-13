@@ -1,6 +1,6 @@
 <template>
-  <div class="frame">
-    <div class="frame-header bg-background !px-3">
+  <div class="flex flex-col overflow-hidden rounded-xl border">
+    <div class="p-3">
       <NuxtLink
         :to="`/web-analytics/${property.property_id}`"
         class="flex items-center justify-between gap-2 overflow-hidden"
@@ -20,104 +20,55 @@
       :property-name="property.property_id"
     /> -->
 
-    <div class="frame-panel !p-3">
-      <div
-        class="*:bg-muted/50 grid grid-cols-2 gap-2 *:flex *:flex-col *:gap-y-1 *:rounded-lg *:p-3 *:tracking-tight"
-      >
-        <div class="space-y-1">
-          <p class="text-muted-foreground text-xs font-medium">Online Now</p>
-          <div class="flex items-baseline gap-2">
-            <NumberFlow
-              class="text-foreground text-2xl font-bold tracking-tighter"
-              :value="property.metrics?.onlineUsers || 0"
-              :format="{ notation: 'compact' }"
-            />
+    <div class="bg-border border-t">
+      <div class="grid grid-cols-2 gap-px">
+        <div
+          v-for="metric in metrics"
+          :key="metric.key"
+          class="bg-background flex flex-col gap-y-1 p-3"
+        >
+          <div class="flex items-center justify-between gap-x-2">
+            <div class="inline-flex shrink-0 items-center gap-x-2">
+              <p class="text-foreground/70 text-xs font-medium tracking-tight">
+                {{ metric.label }}
+              </p>
+            </div>
 
-            <!-- <div
-            v-if="property.metrics?.onlineUsers > 0"
-            class="inline-flex items-center gap-1.5 rounded-full bg-green-500/20 px-2.5 py-1 text-xs font-medium text-green-700 dark:text-green-300"
-          >
-            <span class="relative flex size-2">
-              <span
-                class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75"
-              ></span>
-              <span class="relative inline-flex size-2 rounded-full bg-green-500"></span>
-            </span>
-            LIVE
-          </div> -->
+            <Icon :name="metric.icon" class="size-4 shrink-0" :class="metric.iconClass" />
           </div>
-        </div>
 
-        <!-- Active Users -->
-        <div class="space-y-1">
-          <p class="text-muted-foreground text-xs font-medium">Active Visitors</p>
-          <NumberFlow
-            class="text-foreground text-2xl font-bold tracking-tighter"
-            :value="property.metrics?.activeUsers || 0"
-            :format="{ notation: 'compact' }"
-          />
-        </div>
+          <div class="flex items-center justify-between">
+            <div class="text-foreground shrink-0 font-semibold tracking-tighter">
+              <span v-if="metric.format === 'percent'">
+                {{ formatPercent(metric.value) }}
+              </span>
+              <span v-else-if="metric.format === 'duration'">
+                {{ formatDuration(metric.value) }}
+              </span>
+              <span v-else @click="isExpanded = !isExpanded" class="cursor-pointer">
+                {{
+                  new Intl.NumberFormat("en-US", {
+                    notation: isExpanded ? "standard" : "compact",
+                    maximumFractionDigits: 1,
+                  }).format(metric.value)
+                }}
+              </span>
+            </div>
 
-        <!-- Total Users -->
-        <div class="space-y-1">
-          <p class="text-muted-foreground text-xs font-medium">Total Visitors</p>
-          <NumberFlow
-            class="text-foreground text-2xl font-bold tracking-tighter"
-            :value="property.metrics?.totalUsers || 0"
-            :format="{ notation: 'compact' }"
-          />
-        </div>
+            <div
+              v-if="metric.key === 'onlineUsers'"
+              class="text-success-foreground inline-flex shrink-0 items-center gap-1 text-[11px] font-medium"
+            >
+              <span class="relative flex size-1.5">
+                <span
+                  class="animate-ping-slow bg-success absolute inline-flex size-full rounded-full opacity-75"
+                ></span>
+                <span class="bg-success relative inline-flex size-full rounded-full"></span>
+              </span>
 
-        <!-- New Users -->
-        <div class="space-y-1">
-          <p class="text-muted-foreground text-xs font-medium">New Visitors</p>
-          <NumberFlow
-            class="text-foreground text-2xl font-bold tracking-tighter"
-            :value="property.metrics?.newUsers || 0"
-            :format="{ notation: 'compact' }"
-          />
-        </div>
-
-        <!-- Sessions -->
-        <div class="space-y-1">
-          <p class="text-muted-foreground text-xs font-medium">Sessions</p>
-          <NumberFlow
-            class="text-foreground text-2xl font-bold tracking-tighter"
-            :value="property.metrics?.sessions || 0"
-            :format="{ notation: 'compact' }"
-          />
-        </div>
-
-        <!-- Page Views -->
-        <div class="space-y-1">
-          <p class="text-muted-foreground text-xs font-medium">Page Views</p>
-          <NumberFlow
-            class="text-foreground text-2xl font-bold tracking-tighter"
-            :value="property.metrics?.screenPageViews || 0"
-            :format="{ notation: 'compact' }"
-          />
-        </div>
-
-        <!-- Bounce Rate -->
-        <div class="space-y-1">
-          <p class="text-muted-foreground text-xs font-medium">Bounce Rate</p>
-          <NumberFlow
-            class="text-foreground text-2xl font-bold tracking-tighter"
-            :value="(property.metrics?.bounceRate || 0) * 100"
-            :format="{ notation: 'standard', minimumFractionDigits: 1, maximumFractionDigits: 1 }"
-            suffix="%"
-          />
-        </div>
-
-        <!-- Average Duration -->
-        <div class="space-y-1">
-          <p class="text-muted-foreground text-xs font-medium">Average Duration</p>
-          <NumberFlow
-            class="text-foreground text-2xl font-bold tracking-tighter"
-            :value="property.metrics?.averageSessionDuration || 0"
-            :format="{ notation: 'standard', minimumFractionDigits: 0, maximumFractionDigits: 0 }"
-            suffix="s"
-          />
+              <span>LIVE</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -125,8 +76,6 @@
 </template>
 
 <script setup>
-const { $dayjs } = useNuxtApp();
-
 const props = defineProps({
   property: {
     type: Object,
@@ -134,9 +83,74 @@ const props = defineProps({
   },
 });
 
+const isExpanded = ref(false);
+
+const metrics = computed(() => [
+  {
+    key: "onlineUsers",
+    label: "Online Now",
+    value: props.property.metrics?.onlineUsers || 0,
+    icon: "hugeicons:wifi-02",
+    iconClass: "text-green-700 dark:text-green-400",
+  },
+  {
+    key: "activeUsers",
+    label: "Active Visitors",
+    value: props.property.metrics?.activeUsers || 0,
+    icon: "hugeicons:user-multiple-02",
+    iconClass: "text-blue-700 dark:text-blue-400",
+  },
+  {
+    key: "newUsers",
+    label: "New Visitors",
+    value: props.property.metrics?.newUsers || 0,
+    icon: "hugeicons:user-add-02",
+    iconClass: "text-sky-700 dark:text-sky-400",
+  },
+  {
+    key: "totalUsers",
+    label: "Total Visitors",
+    value: props.property.metrics?.totalUsers || 0,
+    icon: "hugeicons:user-group",
+    iconClass: "text-purple-700 dark:text-purple-400",
+  },
+  {
+    key: "sessions",
+    label: "Total Sessions",
+    value: props.property.metrics?.sessions || 0,
+    icon: "hugeicons:cursor-pointer-02",
+    iconClass: "text-indigo-700 dark:text-indigo-400",
+  },
+  {
+    key: "screenPageViews",
+    label: "Page Views",
+    value: props.property.metrics?.screenPageViews || 0,
+    icon: "hugeicons:view",
+    iconClass: "text-pink-700 dark:text-pink-400",
+  },
+  {
+    key: "bounceRate",
+    label: "Bounce Rate",
+    value: props.property.metrics?.bounceRate || 0,
+    format: "percent",
+    icon: "hugeicons:undo-02",
+    iconClass: "text-red-700 dark:text-red-400",
+  },
+  {
+    key: "averageSessionDuration",
+    label: "Average Duration",
+    value: props.property.metrics?.averageSessionDuration || 0,
+    format: "duration",
+    icon: "hugeicons:time-quarter-02",
+    iconClass: "text-yellow-700 dark:text-yellow-400",
+  },
+]);
+
 const formatNumber = (value) => {
   if (value === null || value === undefined) return "0";
-  return new Intl.NumberFormat().format(Math.round(value));
+  return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(
+    value
+  );
 };
 
 const formatPercent = (value) => {
@@ -145,11 +159,10 @@ const formatPercent = (value) => {
 };
 
 const formatDuration = (seconds) => {
-  if (!seconds) return "0m 0s";
+  if (!seconds) return "0s";
   const minutes = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
+  if (minutes === 0) return `${secs}s`;
   return `${minutes}m ${secs}s`;
 };
-
-const formatRelativeTime = (dateString) => $dayjs(dateString).fromNow();
 </script>
