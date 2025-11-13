@@ -15,7 +15,7 @@
     </div>
 
     <ChartLineDefault
-      v-if="chartData && chartData.length > 0"
+      v-if="chartData?.length >= 2"
       :data="chartData"
       :config="chartConfig"
       data-key="activeUsers"

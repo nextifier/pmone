@@ -5,15 +5,17 @@
         <Icon name="hugeicons:analysis-text-link" class="size-5 sm:size-6" />
         <h1 class="page-title">
           Web Analytics
-          <span
-            v-if="formatDate(startDate) && formatDate(endDate)"
-            class="text-foreground/70 ml-1 text-sm font-medium tracking-tighter"
-          >
-            {{ formatDate(startDate) }}
-            <span v-if="formatDate(startDate) !== formatDate(endDate)">
-              - {{ formatDate(endDate) }}</span
+          <ClientOnly>
+            <span
+              v-if="formatDate(startDate) && formatDate(endDate)"
+              class="text-foreground/70 ml-1 text-sm font-medium tracking-tighter"
             >
-          </span>
+              {{ formatDate(startDate) }}
+              <span v-if="formatDate(startDate) !== formatDate(endDate)">
+                - {{ formatDate(endDate) }}</span
+              >
+            </span>
+          </ClientOnly>
         </h1>
       </div>
 
@@ -25,28 +27,30 @@
           <span>Export</span>
         </button>
 
-        <Select
-          class="focus-visible:outline-hidden"
-          v-model="selectedRange"
-          @update:model-value="handleDateRangeChange"
-        >
-          <SelectTrigger data-size="sm" class="w-40">
-            <SelectValue placeholder="Select date range" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="today">Today</SelectItem>
-            <SelectItem value="yesterday">Yesterday</SelectItem>
-            <SelectItem value="this_week">This week</SelectItem>
-            <SelectItem value="7">Last 7 days</SelectItem>
-            <SelectItem value="last_week">Last week</SelectItem>
-            <SelectItem value="30">Last 30 days</SelectItem>
-            <SelectItem value="this_month">This month</SelectItem>
-            <SelectItem value="last_month">Last month</SelectItem>
-            <SelectItem value="90">Last 90 days</SelectItem>
-            <SelectItem value="this_year">This year</SelectItem>
-            <SelectItem value="365">Last 365 days</SelectItem>
-          </SelectContent>
-        </Select>
+        <ClientOnly>
+          <Select
+            class="focus-visible:outline-hidden"
+            v-model="selectedRange"
+            @update:model-value="handleDateRangeChange"
+          >
+            <SelectTrigger data-size="sm" class="w-40">
+              <SelectValue placeholder="Select date range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="yesterday">Yesterday</SelectItem>
+              <SelectItem value="this_week">This week</SelectItem>
+              <SelectItem value="7">Last 7 days</SelectItem>
+              <SelectItem value="last_week">Last week</SelectItem>
+              <SelectItem value="30">Last 30 days</SelectItem>
+              <SelectItem value="this_month">This month</SelectItem>
+              <SelectItem value="last_month">Last month</SelectItem>
+              <SelectItem value="90">Last 90 days</SelectItem>
+              <SelectItem value="this_year">This year</SelectItem>
+              <SelectItem value="365">Last 365 days</SelectItem>
+            </SelectContent>
+          </Select>
+        </ClientOnly>
       </div>
     </div>
 
@@ -132,25 +136,25 @@
         </div>
       </div>
 
-      <div>
-        <h2 class="text-foreground text-lg font-semibold tracking-tighter">Overall Performance</h2>
-        <p class="text-muted-foreground mt-1 text-sm tracking-tight">
-          Combined metrics from all properties.
-        </p>
+      <div class="flex flex-col gap-y-4">
+        <div class="flex flex-col gap-y-1">
+          <h2 class="text-foreground text-lg font-semibold tracking-tighter">
+            Overall Performance
+          </h2>
+          <p class="text-muted-foreground text-sm tracking-tight">
+            Combined metrics from all properties.
+          </p>
+        </div>
 
         <ChartLineDefault
-          v-if="aggregatedChartData?.length"
+          v-if="aggregatedChartData?.length >= 2"
           :data="aggregatedChartData"
           :config="aggregatedChartConfig"
           data-key="activeUsers"
-          class="mt-4 h-auto! overflow-hidden rounded-xl border pb-2.5"
+          class="h-auto! overflow-hidden rounded-xl border py-2.5"
         />
 
-        <AnalyticsSummaryCards
-          :metrics="summaryMetrics"
-          :property-breakdown="propertyBreakdown"
-          class="mt-4"
-        />
+        <AnalyticsSummaryCards :metrics="summaryMetrics" :property-breakdown="propertyBreakdown" />
       </div>
 
       <div v-if="propertyBreakdown.length > 0">
@@ -370,7 +374,22 @@ usePageMeta("", {
   description: "View aggregated analytics data from all Google Analytics 4 properties",
 });
 
-const selectedRange = ref("30");
+// Load selected range from localStorage immediately (client-side only)
+const getInitialRange = () => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("analytics_selected_range") || "30";
+  }
+  return "30";
+};
+
+const selectedRange = ref(getInitialRange());
+
+// Watch for changes and save to localStorage
+watch(selectedRange, (newValue) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("analytics_selected_range", newValue);
+  }
+});
 
 const {
   aggregateData,
