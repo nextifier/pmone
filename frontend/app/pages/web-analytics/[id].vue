@@ -106,13 +106,41 @@
           </p>
         </div>
 
-        <ChartLineDefault
-          v-if="propertyChartData?.length >= 2"
-          :data="propertyChartData"
-          :config="propertyChartConfig"
-          data-key="activeUsers"
-          class="h-auto! overflow-hidden rounded-xl border py-2.5"
-        />
+        <div v-if="propertyChartData?.length >= 2" class="frame">
+          <div class="frame-header">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex flex-col gap-y-1">
+                <h6 class="text-foreground text-base font-medium tracking-tighter">
+                  {{ selectedMetricInfo?.label }}
+                </h6>
+                <p class="text-muted-foreground xs:block hidden text-xs tracking-tight">
+                  {{ selectedMetricInfo?.description }}
+                </p>
+              </div>
+              <Select v-model="selectedMetric" class="absolute top-2 right-2">
+                <SelectTrigger data-size="sm" class="w-36">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="option in metricOptions"
+                    :key="option.value"
+                    :value="option.value"
+                  >
+                    {{ option.label }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <ChartLineDefault
+            :data="propertyChartData"
+            :config="propertyChartConfig"
+            :data-key="selectedMetric"
+            class="h-auto! overflow-hidden rounded-xl border py-2.5"
+          />
+        </div>
 
         <div
           v-else-if="propertyChartData?.length === 1"
@@ -255,6 +283,13 @@
 <script setup>
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
 import ChartLineDefault from "@/components/chart/LineDefault.vue";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const { $dayjs } = useNuxtApp();
 const route = useRoute();
@@ -277,11 +312,62 @@ const getInitialRange = () => {
   return "30";
 };
 
+const getInitialMetric = () => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("analytics_detail_metric") || "activeUsers";
+  }
+  return "activeUsers";
+};
+
 // State
 const loading = ref(true); // Start with true to prevent empty state flash during SSR
 const error = ref(null);
 const propertyData = ref(null);
 const selectedRange = ref(getInitialRange());
+
+// Selected metric for chart
+const selectedMetric = ref(getInitialMetric());
+
+// Metric options for chart
+const metricOptions = [
+  {
+    value: "activeUsers",
+    label: "Active Visitors",
+    description: "Visitors who truly engaged with your site",
+  },
+  {
+    value: "totalUsers",
+    label: "Total Visitors",
+    description: "All unique visitors who ever came",
+  },
+  {
+    value: "newUsers",
+    label: "New Visitors",
+    description: "First-time visitors to your site",
+  },
+  {
+    value: "sessions",
+    label: "Sessions",
+    description: "How many times your site was opened",
+  },
+  {
+    value: "screenPageViews",
+    label: "Page Views",
+    description: "Total count of pages being viewed",
+  },
+];
+
+// Get selected metric info
+const selectedMetricInfo = computed(() => {
+  return metricOptions.find((m) => m.value === selectedMetric.value);
+});
+
+// Watch selectedMetric and save to localStorage
+watch(selectedMetric, (newValue) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("analytics_detail_metric", newValue);
+  }
+});
 
 // Realtime data
 const { realtimeData, startAutoRefresh } = useRealtimeAnalytics();
@@ -470,7 +556,7 @@ const summaryMetrics = computed(() => {
   });
 });
 
-// Chart data for ChartLineDefault
+// Chart data for ChartLineDefault - All metrics
 const propertyChartData = computed(() => {
   if (!propertyData.value?.rows || !Array.isArray(propertyData.value.rows)) {
     return [];
@@ -482,18 +568,25 @@ const propertyChartData = computed(() => {
       return {
         date: new Date(item.date),
         activeUsers: item.activeUsers || 0,
+        totalUsers: item.totalUsers || 0,
+        newUsers: item.newUsers || 0,
+        sessions: item.sessions || 0,
+        screenPageViews: item.screenPageViews || 0,
       };
     })
     .filter((item) => !isNaN(item.date.getTime()))
     .sort((a, b) => a.date - b.date);
 });
 
-const propertyChartConfig = {
-  activeUsers: {
-    label: "Active Visitors",
-    color: "var(--chart-1)",
-  },
-};
+const propertyChartConfig = computed(() => {
+  const metricConfig = metricOptions.find((m) => m.value === selectedMetric.value);
+  return {
+    [selectedMetric.value]: {
+      label: metricConfig?.label || "Metric",
+      color: "var(--chart-1)",
+    },
+  };
+});
 
 // Fetch property analytics
 const fetchPropertyAnalytics = async () => {

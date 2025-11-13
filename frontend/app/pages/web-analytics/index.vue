@@ -390,10 +390,17 @@ const getInitialRange = () => {
   return "30";
 };
 
+const getInitialMetric = () => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("analytics_selected_metric") || "activeUsers";
+  }
+  return "activeUsers";
+};
+
 const selectedRange = ref(getInitialRange());
 
 // Selected metric for chart
-const selectedMetric = ref("activeUsers");
+const selectedMetric = ref(getInitialMetric());
 
 // Metric options for chart
 const metricOptions = [
@@ -435,6 +442,13 @@ watch(selectedRange, async (newValue) => {
     localStorage.setItem("analytics_selected_range", newValue);
   }
   await changeDateRange(newValue);
+});
+
+// Watch selectedMetric and save to localStorage
+watch(selectedMetric, (newValue) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("analytics_selected_metric", newValue);
+  }
 });
 
 const {

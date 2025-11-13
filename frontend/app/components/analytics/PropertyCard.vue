@@ -14,13 +14,27 @@
       </NuxtLink>
     </div>
 
-    <ChartLineDefault
-      v-if="chartData?.length >= 2"
-      :data="chartData"
-      :config="chartConfig"
-      data-key="activeUsers"
-      class="h-auto! pb-2.5"
-    />
+    <div v-if="chartData?.length >= 2" class="">
+      <div class="flex justify-end px-2.5!">
+        <Select v-model="selectedMetric">
+          <SelectTrigger data-size="sm" class="w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="option in metricOptions" :key="option.value" :value="option.value">
+              {{ option.label }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <ChartLineDefault
+        :data="chartData"
+        :config="chartConfig"
+        :data-key="selectedMetric"
+        class="h-auto! overflow-hidden py-2.5"
+      />
+    </div>
 
     <div class="bg-background -m-px grid grid-cols-2 gap-px gap-y-5 rounded-xl border px-4 py-5">
       <div v-for="metric in metrics" :key="metric.key" class="flex flex-col gap-y-1">
@@ -137,6 +151,13 @@
 
 <script setup>
 import ChartLineDefault from "@/components/chart/LineDefault.vue";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const props = defineProps({
   property: {
@@ -146,6 +167,57 @@ const props = defineProps({
 });
 
 const isExpanded = ref(false);
+
+// Load selected metric from localStorage
+const getInitialMetric = () => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("analytics_property_metric") || "activeUsers";
+  }
+  return "activeUsers";
+};
+
+const selectedMetric = ref(getInitialMetric());
+
+// Metric options for chart
+const metricOptions = [
+  {
+    value: "activeUsers",
+    label: "Active Visitors",
+    description: "Visitors who truly engaged with your site",
+  },
+  {
+    value: "totalUsers",
+    label: "Total Visitors",
+    description: "All unique visitors who ever came",
+  },
+  {
+    value: "newUsers",
+    label: "New Visitors",
+    description: "First-time visitors to your site",
+  },
+  {
+    value: "sessions",
+    label: "Sessions",
+    description: "How many times your site was opened",
+  },
+  {
+    value: "screenPageViews",
+    label: "Page Views",
+    description: "Total count of pages being viewed",
+  },
+];
+
+// Get selected metric info
+const selectedMetricInfo = computed(() => {
+  return metricOptions.find((m) => m.value === selectedMetric.value);
+});
+
+// Watch selectedMetric and save to localStorage
+watch(selectedMetric, (newValue) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("analytics_property_metric", newValue);
+  }
+});
 
 const metrics = computed(() => [
   {
@@ -220,7 +292,7 @@ const formatDuration = (seconds) => {
   return minutes === 0 ? `${secs}s` : `${minutes}m ${secs}s`;
 };
 
-// Chart data: Daily activeUsers for the current period
+// Chart data: All metrics for the current period
 const chartData = computed(() => {
   if (!props.property.rows || !Array.isArray(props.property.rows)) {
     return [];
@@ -230,14 +302,21 @@ const chartData = computed(() => {
     .map((item) => ({
       date: new Date(item.date),
       activeUsers: item.activeUsers || 0,
+      totalUsers: item.totalUsers || 0,
+      newUsers: item.newUsers || 0,
+      sessions: item.sessions || 0,
+      screenPageViews: item.screenPageViews || 0,
     }))
     .sort((a, b) => a.date - b.date);
 });
 
-const chartConfig = {
-  activeUsers: {
-    label: "Active Visitors",
-    color: "var(--chart-1)",
-  },
-};
+const chartConfig = computed(() => {
+  const metricConfig = metricOptions.find((m) => m.value === selectedMetric.value);
+  return {
+    [selectedMetric.value]: {
+      label: metricConfig?.label || "Metric",
+      color: "var(--chart-1)",
+    },
+  };
+});
 </script>
