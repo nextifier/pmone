@@ -26,7 +26,7 @@ provideChartContext({ id: uniqueId, config });
     :data-chart="chartId"
     :class="
       cn(
-        '[&_.tick_text]:!fill-muted-foreground [&_.tick_line]:!stroke-border/50 flex aspect-auto h-[40vh] w-full flex-col justify-center text-xs tracking-tight',
+        '[&_.tick_text]:fill-muted-foreground! [&_.tick_line]:stroke-border/50! flex aspect-auto h-[40vh] w-full flex-col justify-center text-xs tracking-tight [&_.tick_text]:tracking-tight',
         props.class
       )
     "

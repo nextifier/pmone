@@ -1,3 +1,128 @@
+<template>
+  <div class="container pt-4 pb-16">
+    <div class="space-y-2">
+      <h1 class="page-title">Charts</h1>
+      <p class="page-description">
+        A collection of reusable chart components built with Unovis visualization library
+      </p>
+    </div>
+
+    <div v-if="areaChartData.length > 0" class="mt-12 space-y-12">
+      <!-- Area Charts -->
+      <section class="space-y-6">
+        <div class="space-y-2">
+          <h2 class="text-2xl font-semibold tracking-tight">Area Charts</h2>
+          <p class="text-muted-foreground text-sm">
+            Area charts with gradient fills and interactive filters
+          </p>
+        </div>
+        <div class="grid gap-6 md:grid-cols-2">
+          <Card v-if="areaChartData">
+            <CardHeader>
+              <CardTitle>Area Chart - Gradient</CardTitle>
+              <CardDescription>Showing total visitors for the last 6 months</CardDescription>
+            </CardHeader>
+            <CardContent
+              class="overflow-hidden px-0! [&_svg>g]:origin-center! [&_svg>g]:not-first:scale-x-110 [&_svg>g]:first:scale-x-90!"
+            >
+              <ChartAreaGradient :data="areaChartData" :config="areaChartConfig" />
+            </CardContent>
+
+            <CardFooter>
+              <div class="flex w-full items-start gap-2 text-sm">
+                <div class="grid gap-2">
+                  <div class="flex items-center gap-2 leading-none font-medium">
+                    Trending up by 5.2% this month <Icon name="lucide:trending-up" class="size-4" />
+                  </div>
+                  <div class="text-muted-foreground flex items-center gap-2 leading-none">
+                    January - June 2024
+                  </div>
+                </div>
+              </div>
+            </CardFooter>
+          </Card>
+
+          <ChartAreaInteractive
+            v-if="areaInteractiveChartData"
+            :data="areaInteractiveChartData"
+            :config="areaChartConfig"
+          />
+          <ChartAreaAxes v-if="areaChartData" :data="areaChartData" :config="areaChartConfig" />
+          <ChartAreaIcons v-if="areaChartData" :data="areaChartData" :config="areaChartConfig" />
+        </div>
+      </section>
+
+      <!-- Bar Charts -->
+      <section class="space-y-6">
+        <div class="space-y-2">
+          <h2 class="text-2xl font-semibold tracking-tight">Bar Charts</h2>
+          <p class="text-muted-foreground text-sm">
+            Vertical and horizontal bar charts for comparing data
+          </p>
+        </div>
+        <div class="grid gap-6 md:grid-cols-2">
+          <ChartBarDefault v-if="barChartData" :data="barChartData" :config="barChartConfig" />
+          <ChartBarMultiple v-if="barChartData" :data="barChartData" :config="barChartConfig" />
+          <ChartBarHorizontal v-if="barChartData" :data="barChartData" :config="barChartConfig" />
+        </div>
+      </section>
+
+      <!-- Line Charts -->
+      <section class="space-y-6">
+        <div class="space-y-2">
+          <h2 class="text-2xl font-semibold tracking-tight">Line Charts</h2>
+          <p class="text-muted-foreground text-sm">
+            Line charts with natural curves, linear, and step styles
+          </p>
+        </div>
+        <div class="grid gap-6 md:grid-cols-2">
+          <Card v-if="lineChartData">
+            <CardHeader>
+              <CardTitle>Line Chart</CardTitle>
+              <CardDescription>January - June 2024</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartLineDefault :data="lineChartData" :config="lineChartConfig" />
+            </CardContent>
+            <CardFooter class="flex-col items-start gap-2 text-sm">
+              <div class="flex gap-2 leading-none font-medium">
+                Trending up by 5.2% this month <Icon name="lucide:trending-up" class="size-4" />
+              </div>
+              <div class="text-muted-foreground leading-none">
+                Showing total visitors for the last 6 months
+              </div>
+            </CardFooter>
+          </Card>
+
+          <ChartLineStep v-if="lineChartData" :data="lineChartData" :config="lineChartConfig" />
+          <ChartLineLinear v-if="lineChartData" :data="lineChartData" :config="lineChartConfig" />
+        </div>
+      </section>
+
+      <!-- Pie Charts -->
+      <section class="space-y-6">
+        <div class="space-y-2">
+          <h2 class="text-2xl font-semibold tracking-tight">Pie Charts</h2>
+          <p class="text-muted-foreground text-sm">
+            Donut and pie charts with various styles and nested sections
+          </p>
+        </div>
+        <div class="grid gap-6 md:grid-cols-2">
+          <ChartPieDonut v-if="pieChartData" :data="pieChartData" :config="pieChartConfig" />
+          <ChartPieStacked
+            v-if="pieStackedDesktopData && pieStackedMobileData"
+            :desktop-data="pieStackedDesktopData"
+            :mobile-data="pieStackedMobileData"
+            :config="pieStackedChartConfig"
+          />
+          <ChartPieDonutText v-if="pieChartData" :data="pieChartData" :config="pieChartConfig" />
+          <ChartPieSimple v-if="pieChartData" :data="pieChartData" :config="pieChartConfig" />
+        </div>
+      </section>
+    </div>
+  </div>
+</template>
+
 <script setup>
 usePageMeta("", {
   title: "Charts",
@@ -242,83 +367,3 @@ const pieStackedChartConfig = {
   },
 };
 </script>
-
-<template>
-  <div class="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
-    <div class="space-y-2">
-      <h1 class="page-title">Charts</h1>
-      <p class="page-description">
-        A collection of reusable chart components built with Unovis visualization library
-      </p>
-    </div>
-
-    <div v-if="areaChartData.length > 0" class="space-y-12">
-      <!-- Area Charts -->
-      <section class="space-y-6">
-        <div class="space-y-2">
-          <h2 class="text-2xl font-semibold tracking-tight">Area Charts</h2>
-          <p class="text-muted-foreground text-sm">
-            Area charts with gradient fills and interactive filters
-          </p>
-        </div>
-        <div class="grid gap-6 md:grid-cols-2">
-          <ChartAreaGradient v-if="areaChartData" :data="areaChartData" :config="areaChartConfig" />
-          <ChartAreaInteractive v-if="areaInteractiveChartData" :data="areaInteractiveChartData" :config="areaChartConfig" />
-          <ChartAreaAxes v-if="areaChartData" :data="areaChartData" :config="areaChartConfig" />
-          <ChartAreaIcons v-if="areaChartData" :data="areaChartData" :config="areaChartConfig" />
-        </div>
-      </section>
-
-      <!-- Bar Charts -->
-      <section class="space-y-6">
-        <div class="space-y-2">
-          <h2 class="text-2xl font-semibold tracking-tight">Bar Charts</h2>
-          <p class="text-muted-foreground text-sm">
-            Vertical and horizontal bar charts for comparing data
-          </p>
-        </div>
-        <div class="grid gap-6 md:grid-cols-2">
-          <ChartBarDefault v-if="barChartData" :data="barChartData" :config="barChartConfig" />
-          <ChartBarMultiple v-if="barChartData" :data="barChartData" :config="barChartConfig" />
-          <ChartBarHorizontal v-if="barChartData" :data="barChartData" :config="barChartConfig" />
-        </div>
-      </section>
-
-      <!-- Line Charts -->
-      <section class="space-y-6">
-        <div class="space-y-2">
-          <h2 class="text-2xl font-semibold tracking-tight">Line Charts</h2>
-          <p class="text-muted-foreground text-sm">
-            Line charts with natural curves, linear, and step styles
-          </p>
-        </div>
-        <div class="grid gap-6 md:grid-cols-2">
-          <ChartLineDefault v-if="lineChartData" :data="lineChartData" :config="lineChartConfig" />
-          <ChartLineStep v-if="lineChartData" :data="lineChartData" :config="lineChartConfig" />
-          <ChartLineLinear v-if="lineChartData" :data="lineChartData" :config="lineChartConfig" />
-        </div>
-      </section>
-
-      <!-- Pie Charts -->
-      <section class="space-y-6">
-        <div class="space-y-2">
-          <h2 class="text-2xl font-semibold tracking-tight">Pie Charts</h2>
-          <p class="text-muted-foreground text-sm">
-            Donut and pie charts with various styles and nested sections
-          </p>
-        </div>
-        <div class="grid gap-6 md:grid-cols-2">
-          <ChartPieDonut v-if="pieChartData" :data="pieChartData" :config="pieChartConfig" />
-          <ChartPieStacked
-            v-if="pieStackedDesktopData && pieStackedMobileData"
-            :desktop-data="pieStackedDesktopData"
-            :mobile-data="pieStackedMobileData"
-            :config="pieStackedChartConfig"
-          />
-          <ChartPieDonutText v-if="pieChartData" :data="pieChartData" :config="pieChartConfig" />
-          <ChartPieSimple v-if="pieChartData" :data="pieChartData" :config="pieChartConfig" />
-        </div>
-      </section>
-    </div>
-  </div>
-</template>

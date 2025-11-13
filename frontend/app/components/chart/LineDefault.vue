@@ -1,14 +1,63 @@
+<template>
+  <ChartContainer
+    :config="config"
+    class="[&_text_&_tspan]:text-info! [&_.domain]:stroke-gray-200 dark:[&_.domain]:stroke-gray-800!"
+  >
+    <VisXYContainer
+      :data="data"
+      :margin="{ left: 4 }"
+      :padding="{ top: 12, bottom: 12 }"
+      :y-domain="[0, undefined]"
+    >
+      <VisLine
+        :x="(d) => d.date"
+        :y="(d) => d[dataKey]"
+        :color="config[dataKey]?.color || 'var(--chart-1)'"
+        :curve-type="CurveType.Natural"
+      />
+      <VisAxis
+        type="x"
+        :x="(d) => d.date"
+        :tick-line="false"
+        :domain-line="false"
+        :grid-line="false"
+        :num-ticks="6"
+        :tick-format="
+          (d) => {
+            const date = new Date(d);
+            return date.toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+            });
+          }
+        "
+      />
+      <VisAxis
+        type="y"
+        :num-ticks="3"
+        :tick-line="false"
+        :domain-line="false"
+        :tick-format="
+          (d) => {
+            return new Intl.NumberFormat('en-US', {
+              notation: 'compact',
+              maximumFractionDigits: 1,
+            }).format(d);
+          }
+        "
+      />
+      <ChartTooltip />
+      <ChartCrosshair
+        :template="componentToString(config, ChartTooltipContent, { hideLabel: true })"
+        :color="config[dataKey]?.color || 'var(--chart-1)'"
+      />
+    </VisXYContainer>
+  </ChartContainer>
+</template>
+
 <script setup>
 import { CurveType } from "@unovis/ts";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartCrosshair,
@@ -17,7 +66,6 @@ import {
   componentToString,
 } from "@/components/ui/chart";
 import { VisAxis, VisLine, VisXYContainer } from "@unovis/vue";
-import { TrendingUp } from "lucide-vue-next";
 
 const props = defineProps({
   data: {
@@ -28,57 +76,9 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  dataKey: {
+    type: String,
+    default: "value",
+  },
 });
 </script>
-
-<template>
-  <Card>
-    <CardHeader>
-      <CardTitle>Line Chart</CardTitle>
-      <CardDescription>January - June 2024</CardDescription>
-    </CardHeader>
-    <CardContent>
-      <ChartContainer :config="config">
-        <VisXYContainer :data="data" :margin="{ left: -24 }" :y-domain="[0, undefined]">
-          <VisLine
-            :x="(d) => d.date"
-            :y="(d) => d.desktop"
-            :color="config.desktop.color"
-            :curve-type="CurveType.Natural"
-          />
-          <VisAxis
-            type="x"
-            :x="(d) => d.date"
-            :tick-line="false"
-            :domain-line="false"
-            :grid-line="false"
-            :num-ticks="6"
-            :tick-format="
-              (d) => {
-                const date = new Date(d);
-                return date.toLocaleDateString('en-US', {
-                  month: 'short',
-                });
-              }
-            "
-            :tick-values="data.map((d) => d.date)"
-          />
-          <VisAxis type="y" :num-ticks="3" :tick-line="false" :domain-line="false" />
-          <ChartTooltip />
-          <ChartCrosshair
-            :template="componentToString(config, ChartTooltipContent, { hideLabel: true })"
-            :color="config.desktop.color"
-          />
-        </VisXYContainer>
-      </ChartContainer>
-    </CardContent>
-    <CardFooter class="flex-col items-start gap-2 text-sm">
-      <div class="flex gap-2 leading-none font-medium">
-        Trending up by 5.2% this month <TrendingUp class="h-4 w-4" />
-      </div>
-      <div class="text-muted-foreground leading-none">
-        Showing total visitors for the last 6 months
-      </div>
-    </CardFooter>
-  </Card>
-</template>
