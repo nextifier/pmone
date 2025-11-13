@@ -87,7 +87,7 @@
           v-if="cacheInfo && !cacheInfo?.is_updating"
           @click="forceRefresh"
           :disabled="isRefreshing"
-          class="border-border hover:bg-muted disabled:opacity-50 flex items-center gap-x-1 rounded-md border px-2 py-1 text-xs font-medium tracking-tight transition-colors active:scale-98"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-xs font-medium tracking-tight transition-colors active:scale-98 disabled:opacity-50"
           :class="{
             'cursor-not-allowed': isRefreshing,
           }"
@@ -97,7 +97,7 @@
             class="size-3.5 shrink-0"
             :class="{ 'animate-spin': isRefreshing }"
           />
-          <span>{{ isRefreshing ? 'Refreshing...' : 'Refresh' }}</span>
+          <span>{{ isRefreshing ? "Refreshing..." : "Refresh" }}</span>
         </button>
       </div>
     </div>
@@ -207,7 +207,11 @@
         <p class="text-muted-foreground mt-1 text-sm tracking-tight">
           Combined metrics from all properties.
         </p>
-        <AnalyticsSummaryCards :metrics="summaryMetrics" :property-breakdown="propertyBreakdown" class="mt-4" />
+        <AnalyticsSummaryCards
+          :metrics="summaryMetrics"
+          :property-breakdown="propertyBreakdown"
+          class="mt-4"
+        />
       </div>
 
       <div v-if="propertyBreakdown.length > 0">
@@ -400,7 +404,7 @@ const summaryMetrics = computed(() => {
     {
       key: "onlineUsers",
       label: "Online Now",
-      description: "People browsing your site right now.",
+      description: "People viewing your site right now",
       value: totals.onlineUsers || 0,
       formattedValue: formatNumber(totals.onlineUsers || 0),
       icon: "hugeicons:wifi-02",
@@ -410,7 +414,7 @@ const summaryMetrics = computed(() => {
     {
       key: "activeUsers",
       label: "Active Visitors",
-      description: "Users who had at least one session during the period.",
+      description: "Visitors who truly engaged with your site",
       value: totals.activeUsers || 0,
       formattedValue: formatNumber(totals.activeUsers || 0),
       icon: "hugeicons:user-multiple-02",
@@ -420,7 +424,7 @@ const summaryMetrics = computed(() => {
     {
       key: "totalUsers",
       label: "Total Visitors",
-      description: "Total unique users who logged at least one event.",
+      description: "All unique visitors who ever came",
       value: totals.totalUsers || 0,
       formattedValue: formatNumber(totals.totalUsers || 0),
       icon: "hugeicons:user-group",
@@ -430,7 +434,7 @@ const summaryMetrics = computed(() => {
     {
       key: "newUsers",
       label: "New Visitors",
-      description: "First-time visitors to your site.",
+      description: "First-time visitors to your site",
       value: totals.newUsers || 0,
       formattedValue: formatNumber(totals.newUsers || 0),
       icon: "hugeicons:user-add-02",
@@ -440,7 +444,7 @@ const summaryMetrics = computed(() => {
     {
       key: "sessions",
       label: "Total Sessions",
-      description: "Number of times people opened your site.",
+      description: "How many times your site was opened",
       value: totals.sessions || 0,
       formattedValue: formatNumber(totals.sessions || 0),
       icon: "hugeicons:cursor-pointer-02",
@@ -450,7 +454,7 @@ const summaryMetrics = computed(() => {
     {
       key: "screenPageViews",
       label: "Page Views",
-      description: "Total pages viewed by visitors.",
+      description: "Total count of pages being viewed",
       value: totals.screenPageViews || 0,
       formattedValue: formatNumber(totals.screenPageViews || 0),
       icon: "hugeicons:view",
@@ -460,7 +464,7 @@ const summaryMetrics = computed(() => {
     {
       key: "bounceRate",
       label: "Bounce Rate",
-      description: "Visitors who left immediately.",
+      description: "Visitors who left immediately",
       value: (totals.bounceRate || 0) * 100,
       formattedValue: formatPercent(totals.bounceRate || 0),
       format: "percent",
@@ -471,7 +475,7 @@ const summaryMetrics = computed(() => {
     {
       key: "averageSessionDuration",
       label: "Average Duration",
-      description: "How long visitors stay on your site.",
+      description: "How long visitors stay on your site",
       value: totals.averageSessionDuration || 0,
       formattedValue: formatDuration(totals.averageSessionDuration || 0),
       format: "duration",
@@ -508,7 +512,10 @@ const forceRefresh = async () => {
 
   try {
     // Call the sync-now endpoint to force refresh
-    const days = selectedRange.value === "today" || selectedRange.value === "yesterday" ? 1 : parseInt(selectedRange.value) || 30;
+    const days =
+      selectedRange.value === "today" || selectedRange.value === "yesterday"
+        ? 1
+        : parseInt(selectedRange.value) || 30;
 
     await $fetch("/api/google-analytics/aggregate/sync-now", {
       method: "POST",

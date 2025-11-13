@@ -14,11 +14,11 @@
       </NuxtLink>
     </div>
 
-    <AnalyticsPropertyChartArea
+    <!-- <AnalyticsPropertyChartArea
       v-if="property.rows && property.rows.length > 0"
       :rows="property.rows"
       :property-name="property.property_id"
-    />
+    /> -->
 
     <div class="frame-panel !p-3">
       <div
