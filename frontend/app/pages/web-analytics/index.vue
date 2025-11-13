@@ -207,7 +207,7 @@
         <p class="text-muted-foreground mt-1 text-sm tracking-tight">
           Combined metrics from all properties.
         </p>
-        <AnalyticsSummaryCards :metrics="summaryMetrics" class="mt-4" />
+        <AnalyticsSummaryCards :metrics="summaryMetrics" :property-breakdown="propertyBreakdown" class="mt-4" />
       </div>
 
       <div v-if="propertyBreakdown.length > 0">
@@ -409,13 +409,23 @@ const summaryMetrics = computed(() => {
     },
     {
       key: "activeUsers",
-      label: "Total Visitors",
-      description: "Everyone who visited your site.",
+      label: "Active Visitors",
+      description: "Users who had at least one session during the period.",
       value: totals.activeUsers || 0,
       formattedValue: formatNumber(totals.activeUsers || 0),
       icon: "hugeicons:user-multiple-02",
       bgClass: "bg-blue-500/10",
       iconClass: "text-blue-700 dark:text-blue-400",
+    },
+    {
+      key: "totalUsers",
+      label: "Total Visitors",
+      description: "Total unique users who logged at least one event.",
+      value: totals.totalUsers || 0,
+      formattedValue: formatNumber(totals.totalUsers || 0),
+      icon: "hugeicons:user-group",
+      bgClass: "bg-purple-500/10",
+      iconClass: "text-purple-700 dark:text-purple-400",
     },
     {
       key: "newUsers",

@@ -57,6 +57,40 @@
       <p class="text-muted-foreground mt-1.5 text-xs tracking-tight">
         {{ metric.description }}
       </p>
+
+      <!-- Property Breakdown -->
+      <div
+        v-if="propertyBreakdown && propertyBreakdown.length > 0 && metric.key !== 'onlineUsers'"
+        class="mt-3 space-y-1.5 border-t border-border pt-3"
+      >
+        <div
+          v-for="property in getPropertyBreakdownForMetric(metric.key)"
+          :key="property.property_id"
+          class="flex items-center justify-between gap-2"
+        >
+          <div class="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+            <div class="flex min-w-0 items-center gap-x-1.5 tracking-tight">
+              <Avatar v-if="property.project?.profile_image" :model="property" class="size-6 shrink-0" />
+              <div class="flex min-w-0 flex-col text-left text-xs leading-tight">
+                <span class="text-foreground truncate font-medium">
+                  {{ property.property_name }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="text-foreground shrink-0 text-xs font-medium tabular-nums">
+            <span v-if="metric.format === 'percent'">
+              {{ formatPercent(property.value) }}
+            </span>
+            <span v-else-if="metric.format === 'duration'">
+              {{ formatDuration(property.value) }}
+            </span>
+            <span v-else>
+              {{ formatNumber(property.value) }}
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -67,7 +101,59 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  propertyBreakdown: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const isExpanded = ref(false);
+
+const getPropertyBreakdownForMetric = (metricKey) => {
+  if (!props.propertyBreakdown || props.propertyBreakdown.length === 0) return [];
+
+  // Map metric keys to their property names
+  const metricMap = {
+    activeUsers: 'activeUsers',
+    totalUsers: 'totalUsers',
+    newUsers: 'newUsers',
+    sessions: 'sessions',
+    screenPageViews: 'screenPageViews',
+    bounceRate: 'bounceRate',
+    averageSessionDuration: 'averageSessionDuration',
+  };
+
+  const metricName = metricMap[metricKey];
+  if (!metricName) return [];
+
+  // Extract and sort property values for this metric
+  return props.propertyBreakdown
+    .map((property) => ({
+      property_id: property.property_id,
+      property_name: property.property_name,
+      project: property.project,
+      value: property.metrics?.[metricName] || 0,
+    }))
+    .filter((property) => property.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 5); // Show top 5 properties
+};
+
+const formatNumber = (value) => {
+  if (value === null || value === undefined) return '0';
+  return new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
+};
+
+const formatPercent = (value) => {
+  if (value === null || value === undefined) return '0%';
+  return `${(value * 100).toFixed(1)}%`;
+};
+
+const formatDuration = (seconds) => {
+  if (!seconds) return '0s';
+  const minutes = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  if (minutes === 0) return `${secs}s`;
+  return `${minutes}m ${secs}s`;
+};
 </script>
