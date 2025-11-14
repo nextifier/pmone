@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AnalyticsController;
+use App\Http\Controllers\Api\ApiConsumerController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\PostController;
@@ -203,6 +204,18 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('categories')->group(fun
     Route::get('/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
     Route::put('/{category:slug}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('/{category:slug}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+});
+
+// API Consumer management endpoints (authenticated + verified, admin/master only)
+Route::middleware(['auth:sanctum', 'verified'])->prefix('api-consumers')->group(function () {
+    Route::get('/', [ApiConsumerController::class, 'index'])->name('api-consumers.index');
+    Route::post('/', [ApiConsumerController::class, 'store'])->name('api-consumers.store');
+    Route::get('/{apiConsumer}', [ApiConsumerController::class, 'show'])->name('api-consumers.show');
+    Route::put('/{apiConsumer}', [ApiConsumerController::class, 'update'])->name('api-consumers.update');
+    Route::delete('/{apiConsumer}', [ApiConsumerController::class, 'destroy'])->name('api-consumers.destroy');
+    Route::post('/{apiConsumer}/regenerate-key', [ApiConsumerController::class, 'regenerateKey'])->name('api-consumers.regenerate-key');
+    Route::post('/{apiConsumer}/toggle-status', [ApiConsumerController::class, 'toggleStatus'])->name('api-consumers.toggle-status');
+    Route::get('/{apiConsumer}/statistics', [ApiConsumerController::class, 'statistics'])->name('api-consumers.statistics');
 });
 
 // Public Blog API endpoints (API key authentication for consumption by multiple websites)
