@@ -491,6 +491,14 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         return $this->hasMany(Visit::class, 'visitor_id');
     }
 
+    public function posts(): BelongsToMany
+    {
+        return $this->belongsToMany(Post::class, 'post_user')
+            ->withPivot(['role', 'order'])
+            ->withTimestamps()
+            ->orderBy('post_user.order');
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
