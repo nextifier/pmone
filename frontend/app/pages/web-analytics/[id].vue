@@ -160,70 +160,19 @@
         <AnalyticsSummaryCards :metrics="summaryMetrics" :property-breakdown="[]" />
       </div>
 
-      <div v-if="propertyData.top_pages?.length > 0" class="space-y-4">
-        <div>
-          <h2 class="text-foreground flex items-center gap-2 font-semibold">
-            <Icon name="hugeicons:file-star" class="size-5" />
-            Top Pages
-          </h2>
-          <p class="text-muted-foreground text-sm">Most visited pages for this property</p>
-        </div>
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <AnalyticsTopPagesCard
-            v-for="(page, index) in displayedTopPages"
-            :key="index"
-            :page="page"
-            :rank="index + 1"
-          />
-        </div>
-        <button
-          v-if="propertyData.top_pages.length > topPagesLimit"
-          @click="toggleTopPages"
-          class="hover:bg-muted mx-auto flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
-        >
-          <Icon
-            :name="showAllTopPages ? 'hugeicons:arrow-up-01' : 'hugeicons:arrow-down-01'"
-            class="size-4"
-          />
-          <span>{{
-            showAllTopPages ? "Show Less" : `Show All (${propertyData.top_pages.length})`
-          }}</span>
-        </button>
-      </div>
+      <AnalyticsTopPagesList
+        v-if="propertyData.top_pages?.length > 0"
+        :pages="propertyData.top_pages"
+        :limit="10"
+      />
 
-      <div v-if="propertyData.traffic_sources?.length > 0" class="space-y-4">
-        <div>
-          <h2 class="text-foreground flex items-center gap-2 font-semibold">
-            <Icon name="hugeicons:link-square-02" class="size-5" />
-            Traffic Sources
-          </h2>
-          <p class="text-muted-foreground text-sm">Where your visitors come from</p>
-        </div>
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <AnalyticsTrafficSourceCard
-            v-for="(source, index) in displayedTrafficSources"
-            :key="index"
-            :source="source"
-          />
-        </div>
-        <button
-          v-if="propertyData.traffic_sources.length > trafficSourcesLimit"
-          @click="toggleTrafficSources"
-          class="hover:bg-muted mx-auto flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
-        >
-          <Icon
-            :name="showAllTrafficSources ? 'hugeicons:arrow-up-01' : 'hugeicons:arrow-down-01'"
-            class="size-4"
-          />
-          <span>{{
-            showAllTrafficSources
-              ? "Show Less"
-              : `Show All (${propertyData.traffic_sources.length})`
-          }}</span>
-        </button>
-      </div>
+      <AnalyticsTrafficSourcesList
+        v-if="propertyData.traffic_sources?.length > 0"
+        :sources="propertyData.traffic_sources"
+        :limit="12"
+      />
 
-      <AnalyticsDevicesBreakdown
+      <AnalyticsDevicesList
         v-if="propertyData.devices?.length > 0"
         :devices="propertyData.devices"
       />
@@ -289,6 +238,9 @@
 <script setup>
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
 import ChartLineDefault from "@/components/chart/LineDefault.vue";
+import AnalyticsTopPagesList from "@/components/analytics/TopPagesList.vue";
+import AnalyticsTrafficSourcesList from "@/components/analytics/TrafficSourcesList.vue";
+import AnalyticsDevicesList from "@/components/analytics/DevicesList.vue";
 import {
   Select,
   SelectContent,
@@ -640,30 +592,6 @@ const DATE_RANGE_LABELS = {
 
 const getDateRangeLabel = () => {
   return DATE_RANGE_LABELS[selectedRange.value] || `Last ${selectedRange.value} days`;
-};
-
-const showAllTopPages = ref(false);
-const topPagesLimit = 9;
-const displayedTopPages = computed(() => {
-  if (!propertyData.value?.top_pages) return [];
-  const pages = propertyData.value.top_pages;
-  return showAllTopPages.value ? pages : pages.slice(0, topPagesLimit);
-});
-
-const toggleTopPages = () => {
-  showAllTopPages.value = !showAllTopPages.value;
-};
-
-const showAllTrafficSources = ref(false);
-const trafficSourcesLimit = 8;
-const displayedTrafficSources = computed(() => {
-  if (!propertyData.value?.traffic_sources) return [];
-  const sources = propertyData.value.traffic_sources;
-  return showAllTrafficSources.value ? sources : sources.slice(0, trafficSourcesLimit);
-});
-
-const toggleTrafficSources = () => {
-  showAllTrafficSources.value = !showAllTrafficSources.value;
 };
 
 // Export analytics

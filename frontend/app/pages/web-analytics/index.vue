@@ -188,70 +188,19 @@
         </div>
       </div>
 
-      <div v-if="aggregateData.top_pages?.length > 0" class="space-y-4">
-        <div>
-          <h2 class="text-foreground flex items-center gap-2 font-semibold">
-            <Icon name="hugeicons:file-star" class="size-5" />
-            Top Pages
-          </h2>
-          <p class="text-muted-foreground text-sm">Most visited pages across all properties</p>
-        </div>
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <AnalyticsTopPagesCard
-            v-for="(page, index) in displayedTopPages"
-            :key="index"
-            :page="page"
-            :rank="index + 1"
-          />
-        </div>
-        <button
-          v-if="aggregateData.top_pages.length > topPagesLimit"
-          @click="toggleTopPages"
-          class="hover:bg-muted mx-auto flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
-        >
-          <Icon
-            :name="showAllTopPages ? 'hugeicons:arrow-up-01' : 'hugeicons:arrow-down-01'"
-            class="size-4"
-          />
-          <span>{{
-            showAllTopPages ? "Show Less" : `Show All (${aggregateData.top_pages.length})`
-          }}</span>
-        </button>
-      </div>
+      <AnalyticsTopPagesList
+        v-if="aggregateData.top_pages?.length > 0"
+        :pages="aggregateData.top_pages"
+        :limit="10"
+      />
 
-      <div v-if="aggregateData.traffic_sources?.length > 0" class="space-y-4">
-        <div>
-          <h2 class="text-foreground flex items-center gap-2 font-semibold">
-            <Icon name="hugeicons:link-square-02" class="size-5" />
-            Traffic Sources
-          </h2>
-          <p class="text-muted-foreground text-sm">Where your visitors come from</p>
-        </div>
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <AnalyticsTrafficSourceCard
-            v-for="(source, index) in displayedTrafficSources"
-            :key="index"
-            :source="source"
-          />
-        </div>
-        <button
-          v-if="aggregateData.traffic_sources.length > trafficSourcesLimit"
-          @click="toggleTrafficSources"
-          class="hover:bg-muted mx-auto flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
-        >
-          <Icon
-            :name="showAllTrafficSources ? 'hugeicons:arrow-up-01' : 'hugeicons:arrow-down-01'"
-            class="size-4"
-          />
-          <span>{{
-            showAllTrafficSources
-              ? "Show Less"
-              : `Show All (${aggregateData.traffic_sources.length})`
-          }}</span>
-        </button>
-      </div>
+      <AnalyticsTrafficSourcesList
+        v-if="aggregateData.traffic_sources?.length > 0"
+        :sources="aggregateData.traffic_sources"
+        :limit="12"
+      />
 
-      <AnalyticsDevicesBreakdown
+      <AnalyticsDevicesList
         v-if="aggregateData.devices?.length > 0"
         :devices="aggregateData.devices"
       />
@@ -362,6 +311,9 @@
 <script setup>
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
 import ChartLineDefault from "@/components/chart/LineDefault.vue";
+import AnalyticsTopPagesList from "@/components/analytics/TopPagesList.vue";
+import AnalyticsTrafficSourcesList from "@/components/analytics/TrafficSourcesList.vue";
+import AnalyticsDevicesList from "@/components/analytics/DevicesList.vue";
 import {
   Select,
   SelectContent,
@@ -742,30 +694,6 @@ const formatCacheAge = (minutes) => {
   if (minutes < 60) return `${Math.floor(minutes)} minutes ago`;
   const hours = Math.floor(minutes / 60);
   return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
-};
-
-const showAllTopPages = ref(false);
-const topPagesLimit = 9;
-const displayedTopPages = computed(() => {
-  if (!aggregateData.value?.top_pages) return [];
-  const pages = aggregateData.value.top_pages;
-  return showAllTopPages.value ? pages : pages.slice(0, topPagesLimit);
-});
-
-const toggleTopPages = () => {
-  showAllTopPages.value = !showAllTopPages.value;
-};
-
-const showAllTrafficSources = ref(false);
-const trafficSourcesLimit = 8;
-const displayedTrafficSources = computed(() => {
-  if (!aggregateData.value?.traffic_sources) return [];
-  const sources = aggregateData.value.traffic_sources;
-  return showAllTrafficSources.value ? sources : sources.slice(0, trafficSourcesLimit);
-});
-
-const toggleTrafficSources = () => {
-  showAllTrafficSources.value = !showAllTrafficSources.value;
 };
 
 // Rate limit handling
