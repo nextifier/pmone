@@ -162,7 +162,7 @@
                     <Button
                       variant="ghost"
                       size="icon"
-                      @click="navigateTo(`/categories/edit/${category.id}`)"
+                      @click="navigateTo(`/categories/edit/${category.slug}`)"
                       title="Edit"
                     >
                       <Icon name="lucide:edit" class="h-4 w-4" />
@@ -310,7 +310,7 @@ async function deleteCategory(category) {
   }
 
   try {
-    await $api(`/categories/${category.id}`, {
+    await $api(`/categories/${category.slug}`, {
       method: "DELETE",
     });
 

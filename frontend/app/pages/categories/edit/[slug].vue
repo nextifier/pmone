@@ -88,7 +88,6 @@
                       v-for="category in availableParents"
                       :key="category.id"
                       :value="category.id"
-                      :disabled="category.id === categoryId"
                     >
                       {{ category.name }}
                     </SelectItem>
@@ -255,7 +254,7 @@ usePageMeta("categories");
 
 const route = useRoute();
 const { $api } = useNuxtApp();
-const categoryId = route.params.id;
+const categorySlug = route.params.slug;
 
 const form = reactive({
   name: "",
@@ -302,7 +301,7 @@ function slugify(text) {
 
 async function loadCategory() {
   try {
-    const response = await $api(`/categories/${categoryId}`);
+    const response = await $api(`/categories/${categorySlug}`);
     const category = response.data;
 
     // Populate form
@@ -334,7 +333,7 @@ async function loadParentCategories() {
     const response = await $api("/categories?per_page=100");
     // Filter out current category and its descendants
     availableParents.value = response.data.filter(
-      (cat) => cat.id !== categoryId
+      (cat) => cat.slug !== categorySlug
     );
   } catch (error) {
     console.error("Failed to load parent categories:", error);
@@ -356,7 +355,7 @@ async function handleSubmit() {
       meta_description: form.meta_description,
     };
 
-    await $api(`/categories/${categoryId}`, {
+    await $api(`/categories/${categorySlug}`, {
       method: "PUT",
       body: categoryData,
     });
