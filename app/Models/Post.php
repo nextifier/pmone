@@ -177,6 +177,7 @@ class Post extends Model implements HasMedia
 
     public function registerMediaConversions($media = null): void
     {
+        // Featured image conversions (crop for consistent aspect ratio)
         $this->addMediaConversion('lqip')
             ->width(20)
             ->height(20)
@@ -205,6 +206,28 @@ class Post extends Model implements HasMedia
             ->fit(Fit::Crop, 1500, 1000)
             ->quality(95)
             ->performOnCollections('featured_image');
+
+        // Content images conversions (maintain aspect ratio, no crop)
+        $this->addMediaConversion('sm')
+            ->width(450)
+            ->quality(85)
+            ->performOnCollections('content_images')
+            ->nonQueued();
+
+        $this->addMediaConversion('md')
+            ->width(900)
+            ->quality(90)
+            ->performOnCollections('content_images');
+
+        $this->addMediaConversion('lg')
+            ->width(1200)
+            ->quality(90)
+            ->performOnCollections('content_images');
+
+        $this->addMediaConversion('xl')
+            ->width(1500)
+            ->quality(95)
+            ->performOnCollections('content_images');
     }
 
     public function getMediaCollections(): array
@@ -213,6 +236,12 @@ class Post extends Model implements HasMedia
             'featured_image' => [
                 'single_file' => true,
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
+                'max_size' => 10240, // 10MB
+            ],
+            'content_images' => [
+                'single_file' => false,
+                'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'],
+                'max_size' => 5120, // 5MB per image
             ],
         ];
     }
