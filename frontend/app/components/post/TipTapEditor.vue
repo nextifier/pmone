@@ -289,6 +289,8 @@ const handleImageUpload = async (event) => {
 </script>
 
 <style scoped>
+@reference "../../assets/css/main.css";
+
 .tiptap-editor {
   @apply border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden;
 }
