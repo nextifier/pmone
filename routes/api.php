@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\AnalyticsController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\LogController;
+use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\RoleController;
@@ -182,4 +184,22 @@ Route::middleware(['auth:sanctum'])->prefix('google-analytics')->group(function 
     // Sync logs endpoints
     Route::get('/sync-logs', [\App\Http\Controllers\Api\AnalyticsSyncLogController::class, 'index']);
     Route::get('/sync-logs/stats', [\App\Http\Controllers\Api\AnalyticsSyncLogController::class, 'stats']);
+});
+
+// Post management endpoints (authenticated + verified)
+Route::middleware(['auth:sanctum', 'verified'])->prefix('posts')->group(function () {
+    Route::get('/', [PostController::class, 'index'])->name('posts.index');
+    Route::post('/', [PostController::class, 'store'])->name('posts.store');
+    Route::get('/{post:slug}', [PostController::class, 'show'])->name('posts.show');
+    Route::put('/{post:slug}', [PostController::class, 'update'])->name('posts.update');
+    Route::delete('/{post:slug}', [PostController::class, 'destroy'])->name('posts.destroy');
+});
+
+// Category management endpoints (authenticated + verified)
+Route::middleware(['auth:sanctum', 'verified'])->prefix('categories')->group(function () {
+    Route::get('/', [CategoryController::class, 'index'])->name('categories.index');
+    Route::post('/', [CategoryController::class, 'store'])->name('categories.store');
+    Route::get('/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
+    Route::put('/{category:slug}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/{category:slug}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 });
