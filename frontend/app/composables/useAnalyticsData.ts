@@ -1,18 +1,24 @@
 /**
  * Composable for managing analytics data fetching and caching.
  * Provides reactive state and auto-refresh capabilities.
+ * Uses Pinia store for cross-page caching.
  */
 export function useAnalyticsData(initialPeriod: string | number = 30) {
   const client = useSanctumClient();
+  const analyticsStore = useAnalyticsStore();
 
   // State
-  const aggregateData = ref<any>(null);
   const loading = ref(true); // Start with true for SSR hydration
   const error = ref<string | null>(null);
   const selectedPeriod = ref(initialPeriod);
 
   // Auto-refresh management
   let autoRefreshTimeout: NodeJS.Timeout | null = null;
+
+  // Get aggregate data from store
+  const aggregateData = computed(() => {
+    return analyticsStore.getAggregate(String(selectedPeriod.value));
+  });
 
   // Computed
   const cacheInfo = computed(() => {
@@ -52,8 +58,17 @@ export function useAnalyticsData(initialPeriod: string | number = 30) {
 
   /**
    * Fetch analytics data.
+   * First checks store cache, then fetches if needed.
    */
   async function fetchAnalytics(silent: boolean = false, skipAutoRefresh: boolean = false) {
+    const period = String(selectedPeriod.value);
+
+    // Check if we have fresh data in store
+    if (analyticsStore.isAggregateFresh(period)) {
+      loading.value = false;
+      return analyticsStore.getAggregate(period);
+    }
+
     // Clear any existing auto-refresh
     if (autoRefreshTimeout) {
       clearTimeout(autoRefreshTimeout);
@@ -80,7 +95,8 @@ export function useAnalyticsData(initialPeriod: string | number = 30) {
         throw new Error('Invalid response format from API');
       }
 
-      aggregateData.value = data;
+      // Store in Pinia
+      analyticsStore.setAggregate(period, data);
 
       // Only set up auto-refresh if not skipping (i.e., not a manual period change)
       if (!skipAutoRefresh) {

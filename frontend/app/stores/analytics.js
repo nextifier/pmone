@@ -3,8 +3,11 @@ export const useAnalyticsStore = defineStore("analytics", {
     // Use plain objects instead of Map for better serialization
     propertiesCache: {},
     timestamps: {},
-    aggregateData: null,
-    aggregateTimestamp: null,
+    // Store aggregate data per period to avoid unnecessary refetch
+    aggregateCache: {}, // key: period-string, value: { data, timestamp, cacheTTL }
+    // Realtime data (separate from aggregate)
+    realtimeData: null,
+    realtimeTimestamp: null,
   }),
 
   getters: {
@@ -36,15 +39,37 @@ export const useAnalyticsStore = defineStore("analytics", {
     },
 
     /**
-     * Check if aggregate data is fresh
+     * Check if aggregate data is fresh for specific period
+     * Uses backend's cache_ttl_minutes if available, otherwise defaults to 5 minutes
      */
-    isAggregateFresh: (state) => {
-      if (!state.aggregateTimestamp) return false;
+    isAggregateFresh: (state) => (period = "30") => {
+      const cacheKey = `period_${period}`;
+      const cached = state.aggregateCache[cacheKey];
 
-      const age = Date.now() - state.aggregateTimestamp;
-      const maxAge = 5 * 60 * 1000; // 5 minutes
+      if (!cached || !cached.timestamp) return false;
+
+      const age = (Date.now() - cached.timestamp) / 1000 / 60; // in minutes
+      // Use backend's cacheTTL if available, otherwise default to 5 minutes
+      const maxAge = cached.data?.cache_info?.cache_ttl_minutes || 5;
 
       return age < maxAge;
+    },
+
+    /**
+     * Get aggregate data for specific period
+     */
+    getAggregate: (state) => (period = "30") => {
+      const cacheKey = `period_${period}`;
+      return state.aggregateCache[cacheKey]?.data || null;
+    },
+
+    /**
+     * Check if realtime data is fresh (less than 1 minute old)
+     */
+    isRealtimeFresh: (state) => {
+      if (!state.realtimeTimestamp) return false;
+      const age = Date.now() - state.realtimeTimestamp;
+      return age < 60 * 1000; // 1 minute
     },
 
     /**
@@ -72,11 +97,14 @@ export const useAnalyticsStore = defineStore("analytics", {
     },
 
     /**
-     * Set aggregate data
+     * Set aggregate data for specific period
      */
-    setAggregate(data) {
-      this.aggregateData = data;
-      this.aggregateTimestamp = Date.now();
+    setAggregate(period = "30", data) {
+      const cacheKey = `period_${period}`;
+      this.aggregateCache[cacheKey] = {
+        data,
+        timestamp: Date.now(),
+      };
 
       // Also populate individual properties from aggregate breakdown
       if (data?.property_breakdown && Array.isArray(data.property_breakdown)) {
@@ -101,6 +129,14 @@ export const useAnalyticsStore = defineStore("analytics", {
     },
 
     /**
+     * Set realtime data (online users)
+     */
+    setRealtimeData(data) {
+      this.realtimeData = data;
+      this.realtimeTimestamp = Date.now();
+    },
+
+    /**
      * Clear specific property from cache
      */
     clearProperty(propertyId) {
@@ -109,12 +145,21 @@ export const useAnalyticsStore = defineStore("analytics", {
     },
 
     /**
-     * Clear stale entries (older than 30 minutes)
+     * Clear specific period aggregate from cache
+     */
+    clearAggregate(period = "30") {
+      const cacheKey = `period_${period}`;
+      delete this.aggregateCache[cacheKey];
+    },
+
+    /**
+     * Clear stale entries based on their individual TTL
      */
     clearStale() {
       const now = Date.now();
-      const maxAge = 30 * 60 * 1000; // 30 minutes
+      const maxAge = 30 * 60 * 1000; // 30 minutes for properties
 
+      // Clear stale properties
       Object.keys(this.timestamps).forEach((id) => {
         if (now - this.timestamps[id] > maxAge) {
           delete this.propertiesCache[id];
@@ -122,10 +167,26 @@ export const useAnalyticsStore = defineStore("analytics", {
         }
       });
 
-      // Clear stale aggregate
-      if (this.aggregateTimestamp && now - this.aggregateTimestamp > maxAge) {
-        this.aggregateData = null;
-        this.aggregateTimestamp = null;
+      // Clear stale aggregates based on their cache_ttl_minutes
+      Object.keys(this.aggregateCache).forEach((cacheKey) => {
+        const cached = this.aggregateCache[cacheKey];
+        if (!cached || !cached.timestamp) {
+          delete this.aggregateCache[cacheKey];
+          return;
+        }
+
+        const age = (now - cached.timestamp) / 1000 / 60; // in minutes
+        const maxAge = cached.data?.cache_info?.cache_ttl_minutes || 5;
+
+        if (age >= maxAge) {
+          delete this.aggregateCache[cacheKey];
+        }
+      });
+
+      // Clear stale realtime data (older than 1 minute)
+      if (this.realtimeTimestamp && now - this.realtimeTimestamp > 60 * 1000) {
+        this.realtimeData = null;
+        this.realtimeTimestamp = null;
       }
     },
 
@@ -135,8 +196,9 @@ export const useAnalyticsStore = defineStore("analytics", {
     clearAll() {
       this.propertiesCache = {};
       this.timestamps = {};
-      this.aggregateData = null;
-      this.aggregateTimestamp = null;
+      this.aggregateCache = {};
+      this.realtimeData = null;
+      this.realtimeTimestamp = null;
     },
 
     /**

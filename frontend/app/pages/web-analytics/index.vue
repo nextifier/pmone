@@ -163,7 +163,7 @@
             :data="aggregatedChartData"
             :config="aggregatedChartConfig"
             :data-key="selectedMetric"
-            class="h-auto! overflow-hidden rounded-xl border py-2.5"
+            class="bg-background h-auto! overflow-hidden rounded-xl border py-2.5"
           />
         </div>
 
@@ -236,7 +236,7 @@
             <template #default>
               <div class="px-4 pb-10 md:px-6 md:py-5">
                 <pre
-                  class="text-muted-foreground h-full w-full overflow-auto text-left text-xs leading-normal!"
+                  class="text-muted-foreground h-full w-full text-left text-xs leading-normal!"
                   >{{ aggregateData }}</pre
                 >
               </div>
@@ -310,10 +310,10 @@
 
 <script setup>
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
-import ChartLineDefault from "@/components/chart/LineDefault.vue";
+import AnalyticsDevicesList from "@/components/analytics/DevicesList.vue";
 import AnalyticsTopPagesList from "@/components/analytics/TopPagesList.vue";
 import AnalyticsTrafficSourcesList from "@/components/analytics/TrafficSourcesList.vue";
-import AnalyticsDevicesList from "@/components/analytics/DevicesList.vue";
+import ChartLineDefault from "@/components/chart/LineDefault.vue";
 import {
   Select,
   SelectContent,

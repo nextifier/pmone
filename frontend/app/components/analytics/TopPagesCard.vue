@@ -1,8 +1,10 @@
 <template>
-  <div class="border-border bg-card group relative rounded-lg border p-4 transition-all hover:bg-muted/50">
+  <div
+    class="border-border bg-card group hover:bg-muted/50 relative rounded-lg border p-4 transition-all"
+  >
     <div class="flex items-start gap-3">
       <div
-        class="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+        class="bg-muted text-foreground flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold"
       >
         {{ rank }}
       </div>

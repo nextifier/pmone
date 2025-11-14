@@ -122,8 +122,39 @@ class AnalyticsService
     }
 
     /**
+     * Calculate dynamic cache TTL based on period length.
+     * - Today/Yesterday: 15 minutes (fresh data needed)
+     * - Last 2-30 days: 60 minutes (1 hour)
+     * - Last 31-90 days: 360 minutes (6 hours)
+     * - Last 91+ days: 720 minutes (12 hours)
+     */
+    protected function getDynamicCacheTTL(Period $period): int
+    {
+        $daysDiff = $period->startDate->diffInDays($period->endDate);
+
+        // Today/Yesterday (0-1 days) - 15 minutes
+        if ($daysDiff < 2) {
+            return 15;
+        }
+
+        // Last 2-30 days - 1 hour
+        if ($daysDiff < 31) {
+            return 60;
+        }
+
+        // Last 31-90 days - 6 hours
+        if ($daysDiff < 91) {
+            return 360;
+        }
+
+        // 91+ days - 12 hours
+        return 720;
+    }
+
+    /**
      * Get aggregated analytics from all active properties with cache-first strategy.
      * CRITICAL: Always return cache immediately if available, NEVER wait for fresh data.
+     * Uses dynamic cache TTL based on period length for optimal performance.
      */
     public function getAggregatedAnalytics(Period $period, ?array $propertyIds = null): array
     {
@@ -132,9 +163,14 @@ class AnalyticsService
         $cacheTimestampKey = CacheKey::timestamp($cacheKey);
         $lastSuccessKey = CacheKey::lastSuccess($cacheKey);
 
+        // Get dynamic TTL based on period
+        $cacheTTL = $this->getDynamicCacheTTL($period);
+
         \Log::info('Fetching aggregate analytics', [
             'cache_key' => $cacheKey,
             'last_success_key' => $lastSuccessKey,
+            'cache_ttl_minutes' => $cacheTTL,
+            'period_days' => $period->startDate->diffInDays($period->endDate),
         ]);
 
         // Get cached data and timestamp
@@ -151,10 +187,10 @@ class AnalyticsService
         // CACHE-FIRST PRIORITY 1: Return fresh cache if available
         if ($cachedData) {
             $cacheAge = $cacheTimestamp ? abs(now()->diffInMinutes($cacheTimestamp, false)) : null;
-            $isFresh = $cacheAge !== null && $cacheAge < 30;
+            $isFresh = $cacheAge !== null && $cacheAge < $cacheTTL;
 
-            // Calculate next update
-            $nextUpdate = $cacheTimestamp ? $cacheTimestamp->copy()->addMinutes(30) : null;
+            // Calculate next update based on dynamic TTL
+            $nextUpdate = $cacheTimestamp ? $cacheTimestamp->copy()->addMinutes($cacheTTL) : null;
             $nextUpdateIn = $nextUpdate ? max(0, now()->diffInMinutes($nextUpdate, false)) : 0;
 
             // Get last_synced_at from most recent property
@@ -162,7 +198,10 @@ class AnalyticsService
 
             // If cache is stale and not currently refreshing, dispatch background refresh
             if (! $isFresh && ! Cache::has(CacheKey::refreshing($cacheKey))) {
-                \Log::info('Cache is stale, dispatching background refresh');
+                \Log::info('Cache is stale, dispatching background refresh', [
+                    'cache_age_minutes' => $cacheAge,
+                    'cache_ttl_minutes' => $cacheTTL,
+                ]);
                 $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
             }
 
@@ -171,6 +210,7 @@ class AnalyticsService
                     'last_updated' => $cacheTimestamp ? $cacheTimestamp->toIso8601String() : ($lastSyncedAt ? $lastSyncedAt->toIso8601String() : null),
                     'cache_age_minutes' => $cacheAge, // Use actual cache age, not property sync time
                     'next_update_in_minutes' => abs($nextUpdateIn),
+                    'cache_ttl_minutes' => $cacheTTL,
                     'is_fresh' => $isFresh,
                     'is_updating' => ! $isFresh,
                 ],
@@ -226,18 +266,24 @@ class AnalyticsService
             // Fetch data from daily cache (should be instant!)
             $data = $this->aggregator->getDashboardData($properties, $period);
 
-            // Store with 30-minute expiry
-            Cache::put($cacheKey, $data, now()->addMinutes(30));
-            Cache::put(CacheKey::timestamp($cacheKey), now(), now()->addMinutes(30));
+            // Store with dynamic TTL based on period
+            Cache::put($cacheKey, $data, now()->addMinutes($cacheTTL));
+            Cache::put(CacheKey::timestamp($cacheKey), now(), now()->addMinutes($cacheTTL));
 
             // Store as "last known good data" for fallback
             Cache::put(CacheKey::lastSuccess($cacheKey), $data, now()->addYears(10));
+
+            \Log::info('Cached aggregate data', [
+                'cache_ttl_minutes' => $cacheTTL,
+                'properties_count' => $properties->count(),
+            ]);
 
             return array_merge($data, [
                 'cache_info' => [
                     'last_updated' => now()->toIso8601String(),
                     'cache_age_minutes' => 0,
-                    'next_update_in_minutes' => 30,
+                    'next_update_in_minutes' => $cacheTTL,
+                    'cache_ttl_minutes' => $cacheTTL,
                     'is_fresh' => true,
                     'is_updating' => false,
                 ],

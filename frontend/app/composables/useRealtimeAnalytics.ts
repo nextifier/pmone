@@ -1,15 +1,18 @@
 /**
  * Composable for fetching realtime analytics data.
  * Shows active users in the last 30 minutes.
- * Uses cache fallback for instant display with stale data.
+ * Uses Pinia store for caching.
  */
 export function useRealtimeAnalytics() {
   const client = useSanctumClient();
+  const analyticsStore = useAnalyticsStore();
 
   // State
-  const realtimeData = ref<any>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
+
+  // Get realtime data from store (access state directly, not via getter)
+  const realtimeData = computed(() => analyticsStore.$state.realtimeData);
 
   // Auto-refresh interval (every 60 seconds to reduce API calls)
   let refreshInterval: NodeJS.Timeout | null = null;
@@ -39,8 +42,8 @@ export function useRealtimeAnalytics() {
       // Handle response - client might return { data } or just the data directly
       const data = response?.data || response;
 
-      // Always update with the response (could be fresh or from cache)
-      realtimeData.value = data;
+      // Store in Pinia
+      analyticsStore.setRealtimeData(data);
 
       return data;
     } catch (err: any) {

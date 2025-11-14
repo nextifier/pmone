@@ -17,8 +17,10 @@ export default defineNuxtConfig({
   app: {
     head: {
       title: "PM One",
+      meta: [{ name: "google", content: "notranslate" }],
       htmlAttrs: {
         lang: "en",
+        translate: "no",
       },
       link: [
         {

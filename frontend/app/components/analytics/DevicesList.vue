@@ -3,7 +3,6 @@
     <div class="flex items-center justify-between">
       <div>
         <h2 class="text-foreground flex items-center gap-2 text-lg font-semibold tracking-tighter">
-          <Icon name="hugeicons:laptop-phone-sync" class="size-5" />
           Devices
         </h2>
         <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">
@@ -27,10 +26,13 @@
                 :class="getDeviceColorClass(device.category || device.deviceCategory)"
                 class="flex size-12 shrink-0 items-center justify-center rounded-lg"
               >
-                <Icon :name="getDeviceIcon(device.category || device.deviceCategory)" class="size-6" />
+                <Icon
+                  :name="getDeviceIcon(device.category || device.deviceCategory)"
+                  class="size-6"
+                />
               </div>
               <div class="min-w-0 flex-1">
-                <h3 class="text-foreground truncate font-semibold capitalize tracking-tight">
+                <h3 class="text-foreground truncate font-semibold tracking-tight capitalize">
                   {{ device.category || device.deviceCategory }}
                 </h3>
                 <p class="text-muted-foreground text-xs">
@@ -74,25 +76,40 @@
         <table class="w-full">
           <thead class="bg-muted/50 border-border border-b">
             <tr>
-              <th class="text-muted-foreground px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
+              <th
+                class="text-muted-foreground px-4 py-3 text-left text-xs font-medium tracking-wider uppercase"
+              >
                 Device
               </th>
-              <th class="text-muted-foreground px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">
+              <th
+                class="text-muted-foreground px-4 py-3 text-right text-xs font-medium tracking-wider uppercase"
+              >
                 Users
               </th>
-              <th class="text-muted-foreground px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">
+              <th
+                class="text-muted-foreground px-4 py-3 text-right text-xs font-medium tracking-wider uppercase"
+              >
                 Sessions
               </th>
-              <th class="text-muted-foreground px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">
+              <th
+                class="text-muted-foreground px-4 py-3 text-right text-xs font-medium tracking-wider uppercase"
+              >
                 Percentage
               </th>
             </tr>
           </thead>
           <tbody class="divide-border divide-y">
-            <tr v-for="(device, index) in devices" :key="index" class="hover:bg-muted/30 transition">
+            <tr
+              v-for="(device, index) in devices"
+              :key="index"
+              class="hover:bg-muted/30 transition"
+            >
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
-                  <Icon :name="getDeviceIcon(device.category || device.deviceCategory)" class="text-muted-foreground size-4" />
+                  <Icon
+                    :name="getDeviceIcon(device.category || device.deviceCategory)"
+                    class="text-muted-foreground size-4"
+                  />
                   <span class="text-foreground text-sm font-medium capitalize">
                     {{ device.category || device.deviceCategory }}
                   </span>

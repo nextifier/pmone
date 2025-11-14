@@ -3,7 +3,6 @@
     <div class="flex items-center justify-between">
       <div>
         <h2 class="text-foreground flex items-center gap-2 text-lg font-semibold tracking-tighter">
-          <Icon name="hugeicons:file-star" class="size-5" />
           Top Pages
         </h2>
         <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">
@@ -21,7 +20,7 @@
         <div class="flex items-center gap-4 p-4">
           <!-- Rank Badge -->
           <div
-            class="bg-primary/10 text-primary flex size-12 shrink-0 items-center justify-center rounded-lg text-lg font-bold"
+            class="bg-muted text-foreground flex size-12 shrink-0 items-center justify-center rounded-lg text-lg font-semibold"
           >
             {{ index + 1 }}
           </div>
@@ -48,10 +47,7 @@
               </span>
               <span class="text-muted-foreground text-xs font-medium">views</span>
             </div>
-            <div
-              v-if="page.activeUsers"
-              class="flex items-baseline gap-1.5"
-            >
+            <div v-if="page.activeUsers" class="flex items-baseline gap-1.5">
               <Icon name="hugeicons:user-multiple-02" class="text-muted-foreground size-3.5" />
               <span class="text-muted-foreground text-xs tabular-nums">
                 {{ formatNumber(page.activeUsers) }} users

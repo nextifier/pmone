@@ -3,7 +3,6 @@
     <div class="flex items-center justify-between">
       <div>
         <h2 class="text-foreground flex items-center gap-2 text-lg font-semibold tracking-tighter">
-          <Icon name="hugeicons:link-square-02" class="size-5" />
           Traffic Sources
         </h2>
         <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">
@@ -16,13 +15,13 @@
       <div
         v-for="(source, index) in displayedSources"
         :key="index"
-        class="border-border bg-card hover:border-foreground/20 group overflow-hidden rounded-lg border transition-all"
+        class="border-border bg-card hover:border-foreground/20 group bg-hidden rounded-lg border transition-all"
       >
         <div class="flex flex-col gap-3 p-4">
           <!-- Header -->
           <div class="flex items-start gap-3">
             <div
-              class="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-lg"
+              class="bg-muted text-foreground flex size-10 shrink-0 items-center justify-center rounded-lg"
             >
               <Icon :name="getSourceIcon(source)" class="size-5" />
             </div>
@@ -58,7 +57,7 @@
       <button
         v-if="sources.length > limit"
         @click="toggleShowAll"
-        class="hover:bg-muted border-border sm:col-span-2 lg:col-span-3 mx-auto flex items-center gap-x-1.5 rounded-md border px-4 py-2 text-sm font-medium tracking-tight transition active:scale-98"
+        class="hover:bg-muted border-border mx-auto flex items-center gap-x-1.5 rounded-md border px-4 py-2 text-sm font-medium tracking-tight transition active:scale-98 sm:col-span-2 lg:col-span-3"
       >
         <Icon
           :name="showAll ? 'hugeicons:arrow-up-01' : 'hugeicons:arrow-down-01'"
@@ -119,14 +118,16 @@ const getSourceIcon = (source) => {
 
   if (sourceName.includes("google")) return "hugeicons:google";
   if (sourceName.includes("facebook") || sourceName.includes("fb")) return "hugeicons:facebook-01";
-  if (sourceName.includes("twitter") || sourceName.includes("x.com")) return "hugeicons:new-twitter";
+  if (sourceName.includes("twitter") || sourceName.includes("x.com"))
+    return "hugeicons:new-twitter";
   if (sourceName.includes("instagram")) return "hugeicons:instagram";
   if (sourceName.includes("linkedin")) return "hugeicons:linkedin-01";
   if (sourceName.includes("youtube")) return "hugeicons:youtube";
   if (sourceName.includes("tiktok")) return "hugeicons:tiktok";
   if (sourceName.includes("pinterest")) return "hugeicons:pinterest";
   if (sourceName.includes("reddit")) return "hugeicons:reddit";
-  if (sourceName.includes("direct") || sourceName === "(direct)") return "hugeicons:cursor-pointer-02";
+  if (sourceName.includes("direct") || sourceName === "(direct)")
+    return "hugeicons:cursor-pointer-02";
   if (sourceName.includes("email") || sourceName.includes("mail")) return "hugeicons:mail-01";
   if (sourceName.includes("referral")) return "hugeicons:link-square-02";
   if (sourceName.includes("search") || sourceName.includes("organic")) return "hugeicons:search-01";

@@ -201,7 +201,7 @@
             <template #default>
               <div class="px-4 pb-10 md:px-6 md:py-5">
                 <pre
-                  class="text-muted-foreground h-full w-full overflow-auto text-left text-xs leading-normal!"
+                  class="text-muted-foreground h-full w-full text-left text-xs leading-normal!"
                   >{{ propertyData }}</pre
                 >
               </div>
@@ -237,10 +237,10 @@
 
 <script setup>
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
-import ChartLineDefault from "@/components/chart/LineDefault.vue";
+import AnalyticsDevicesList from "@/components/analytics/DevicesList.vue";
 import AnalyticsTopPagesList from "@/components/analytics/TopPagesList.vue";
 import AnalyticsTrafficSourcesList from "@/components/analytics/TrafficSourcesList.vue";
-import AnalyticsDevicesList from "@/components/analytics/DevicesList.vue";
+import ChartLineDefault from "@/components/chart/LineDefault.vue";
 import {
   Select,
   SelectContent,
