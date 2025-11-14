@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\PublicBlogController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ShortLinkController;
 use App\Http\Controllers\Api\TemporaryUploadController;
@@ -202,4 +203,24 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('categories')->group(fun
     Route::get('/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
     Route::put('/{category:slug}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('/{category:slug}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+});
+
+// Public Blog API endpoints (API key authentication for consumption by multiple websites)
+Route::middleware(['api.key'])->prefix('public/blog')->group(function () {
+    // Posts endpoints
+    Route::get('/posts', [PublicBlogController::class, 'posts']);
+    Route::get('/posts/{slug}', [PublicBlogController::class, 'post']);
+    Route::get('/posts/featured', [PublicBlogController::class, 'featured']);
+    Route::get('/posts/search', [PublicBlogController::class, 'search']);
+
+    // Categories endpoints
+    Route::get('/categories', [PublicBlogController::class, 'categories']);
+    Route::get('/categories/{slug}', [PublicBlogController::class, 'category']);
+    Route::get('/categories/{slug}/posts', [PublicBlogController::class, 'postsByCategory']);
+
+    // Tags endpoints
+    Route::get('/tags/{tag}/posts', [PublicBlogController::class, 'postsByTag']);
+
+    // Authors endpoints
+    Route::get('/authors/{username}/posts', [PublicBlogController::class, 'postsByAuthor']);
 });

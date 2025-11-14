@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             ShortLinkSeeder::class,
             CategorySeeder::class,
             PostSeeder::class,
+            ApiConsumerSeeder::class,
         ]);
     }
 }

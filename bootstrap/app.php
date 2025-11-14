@@ -22,9 +22,15 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\UpdateLastSeen::class,
         ]);
 
+        // Register middleware aliases
+        $middleware->alias([
+            'api.key' => \App\Http\Middleware\ValidateApiKey::class,
+        ]);
+
         // Exclude tracking endpoints from CSRF verification (for anonymous tracking)
         $middleware->validateCsrfTokens(except: [
             'api/track/*',
+            'api/public/*',
         ]);
     })
     ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule): void {
