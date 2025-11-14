@@ -1,361 +1,250 @@
 <template>
-  <div class="container max-w-6xl mx-auto py-8 px-4">
-    <div class="mb-8 flex items-center justify-between">
-      <div>
-        <h1 class="text-3xl font-bold">Edit Post</h1>
-        <p class="text-muted-foreground mt-2">
-          Update your blog post
-        </p>
+  <div class="container max-w-5xl mx-auto py-8 px-4">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold">Edit Post</h1>
+      <p class="text-muted-foreground mt-2">
+        Update your blog post
+      </p>
+    </div>
+
+    <div v-if="loadingPost" class="text-center py-12">
+      <Spinner class="mx-auto" />
+      <p class="text-muted-foreground mt-4">Loading post...</p>
+    </div>
+
+    <form v-else-if="post" @submit.prevent="handleSubmit" class="grid gap-y-8">
+      <!-- Featured Image -->
+      <div class="frame">
+        <div class="frame-header">
+          <div class="frame-title">Featured Image</div>
+        </div>
+        <div class="frame-panel">
+          <div class="space-y-4">
+            <Label>Featured Image</Label>
+            <InputFileImage
+              ref="featuredImageInputRef"
+              v-model="imageFiles.featured_image"
+              :initial-image="post.featured_image"
+              v-model:delete-flag="deleteFlags.featured_image"
+              container-class="relative isolate aspect-video w-full"
+            />
+            <InputErrorMessage :errors="errors.tmp_featured_image" />
+          </div>
+        </div>
       </div>
-      <Button variant="outline" @click="navigateTo('/posts')">
-        <Icon name="lucide:arrow-left" class="mr-2 h-4 w-4" />
-        Back to Posts
-      </Button>
-    </div>
 
-    <div v-if="loading" class="flex items-center justify-center py-12">
-      <Spinner class="h-8 w-8" />
-    </div>
+      <!-- Post Content -->
+      <div class="frame">
+        <div class="frame-header">
+          <div class="frame-title">Post Content</div>
+        </div>
+        <div class="frame-panel">
+          <div class="grid grid-cols-1 gap-y-6">
+            <div class="space-y-2">
+              <Label for="title">Title <span class="text-destructive">*</span></Label>
+              <Input id="title" v-model="form.title" type="text" required />
+              <InputErrorMessage :errors="errors.title" />
+            </div>
 
-    <form v-else @submit.prevent="handleSubmit" class="space-y-6">
-      <Tabs default-value="content" class="w-full">
-        <TabsList class="grid w-full grid-cols-3">
-          <TabsTrigger value="content">Content</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-          <TabsTrigger value="seo">SEO & Meta</TabsTrigger>
-        </TabsList>
+            <div class="space-y-2">
+              <Label for="excerpt">Excerpt</Label>
+              <Textarea id="excerpt" v-model="form.excerpt" maxlength="500" />
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Brief description of the post (max 500 characters)
+              </p>
+              <InputErrorMessage :errors="errors.excerpt" />
+            </div>
 
-        <!-- Content Tab -->
-        <TabsContent value="content" class="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Post Content</CardTitle>
-              <CardDescription>
-                Write and edit your post content
-              </CardDescription>
-            </CardHeader>
-            <CardContent class="space-y-6">
-              <!-- Title -->
-              <div class="space-y-2">
-                <Label for="title">
-                  Title <span class="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="title"
-                  v-model="form.title"
-                  placeholder="Enter post title..."
-                  required
-                />
-              </div>
-
-              <!-- Slug -->
-              <div class="space-y-2">
-                <Label for="slug">
-                  Slug
-                  <span class="text-sm text-muted-foreground ml-2">
-                    (Auto-generated from title)
-                  </span>
-                </Label>
-                <Input
-                  id="slug"
-                  v-model="form.slug"
-                  placeholder="post-slug"
-                />
-              </div>
-
-              <!-- Excerpt -->
-              <div class="space-y-2">
-                <Label for="excerpt">Excerpt</Label>
-                <Textarea
-                  id="excerpt"
-                  v-model="form.excerpt"
-                  placeholder="Brief description of the post..."
-                  rows="3"
-                />
-              </div>
-
-              <!-- Featured Image -->
-              <div class="space-y-2">
-                <Label>Featured Image</Label>
-                <InputFileImage
-                  ref="featuredImageRef"
-                  v-model="form.featured_image"
-                  :initial-image="initialFeaturedImage"
-                  :delete-flag="featuredImageDeleted"
-                  @update:delete-flag="featuredImageDeleted = $event"
-                  container-class="relative isolate aspect-video w-full max-w-2xl"
-                />
-              </div>
-
-              <Separator />
-
-              <!-- Content Editor -->
-              <div class="space-y-2">
-                <Label>
-                  Content <span class="text-destructive">*</span>
-                </Label>
-                <PostTipTapEditor
-                  v-model="form.content"
-                  :post-id="postId"
-                  placeholder="Start writing your post content..."
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <!-- Settings Tab -->
-        <TabsContent value="settings" class="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Post Settings</CardTitle>
-              <CardDescription>
-                Configure post status, visibility, and publishing options
-              </CardDescription>
-            </CardHeader>
-            <CardContent class="space-y-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Status -->
-                <div class="space-y-2">
-                  <Label for="status">Status</Label>
-                  <Select v-model="form.status">
-                    <SelectTrigger id="status">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="published">Published</SelectItem>
-                      <SelectItem value="scheduled">Scheduled</SelectItem>
-                      <SelectItem value="archived">Archived</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <!-- Visibility -->
-                <div class="space-y-2">
-                  <Label for="visibility">Visibility</Label>
-                  <Select v-model="form.visibility">
-                    <SelectTrigger id="visibility">
-                      <SelectValue placeholder="Select visibility" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="public">Public</SelectItem>
-                      <SelectItem value="private">Private</SelectItem>
-                      <SelectItem value="members_only">Members Only</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <!-- Published At (for scheduled posts) -->
-              <div v-if="form.status === 'scheduled'" class="space-y-2">
-                <Label for="published_at">Publish Date & Time</Label>
-                <Input
-                  id="published_at"
-                  v-model="form.published_at"
-                  type="datetime-local"
-                />
-              </div>
-
-              <Separator />
-
-              <!-- Featured Toggle -->
-              <div class="flex items-center justify-between">
-                <div class="space-y-0.5">
-                  <Label>Featured Post</Label>
-                  <p class="text-sm text-muted-foreground">
-                    Mark this post as featured
-                  </p>
-                </div>
-                <Switch
-                  :checked="form.featured"
-                  @update:checked="form.featured = $event"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <!-- Authors & Categories -->
-          <Card>
-            <CardHeader>
-              <CardTitle>Authors & Categories</CardTitle>
-              <CardDescription>
-                Manage post authors and assign categories
-              </CardDescription>
-            </CardHeader>
-            <CardContent class="space-y-6">
-              <!-- Authors -->
-              <PostAuthorsManager
-                v-model="form.authors"
-                :available-users="availableUsers"
+            <div class="space-y-2">
+              <Label>Content <span class="text-destructive">*</span></Label>
+              <PostTipTapEditor
+                v-model="form.content"
+                :post-id="post.id"
+                placeholder="Start writing your post content..."
               />
+              <InputErrorMessage :errors="errors.content" />
+              <p v-if="autoSaving" class="text-muted-foreground text-xs tracking-tight">
+                <Spinner class="inline h-3 w-3" /> Auto-saving...
+              </p>
+              <p v-else class="text-muted-foreground text-xs tracking-tight">
+                Changes saved
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-              <Separator />
+      <!-- Authors & Tags -->
+      <div class="frame">
+        <div class="frame-header">
+          <div class="frame-title">Authors & Tags</div>
+        </div>
+        <div class="frame-panel">
+          <div class="grid grid-cols-1 gap-y-6">
+            <div class="space-y-2">
+              <Label>Authors</Label>
+              <UserMultiSelect
+                :users="availableUsers"
+                v-model="selectedAuthors"
+                v-model:query="authorQuery"
+                placeholder="Search authors..."
+                :hide-clear-all-button="true"
+              />
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Select authors for this post
+              </p>
+              <InputErrorMessage :errors="errors.author_ids" />
+            </div>
 
-              <!-- Categories -->
+            <div class="space-y-2">
+              <Label for="tags">Tags</Label>
+              <TagsInputComponent v-model="form.tags" placeholder="Add tags..." />
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Press Enter to add a tag
+              </p>
+              <InputErrorMessage :errors="errors.tags" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Post Settings -->
+      <div class="frame">
+        <div class="frame-header">
+          <div class="frame-title">Post Settings</div>
+        </div>
+        <div class="frame-panel">
+          <div class="grid grid-cols-1 gap-y-6">
+            <div class="grid grid-cols-2 gap-3">
               <div class="space-y-2">
-                <Label>Categories</Label>
-                <div class="flex flex-wrap gap-2">
-                  <div
-                    v-for="category in availableCategories"
-                    :key="category.id"
-                    class="flex items-center"
-                  >
-                    <input
-                      :id="`category-${category.id}`"
-                      v-model="form.category_ids"
-                      type="checkbox"
-                      :value="category.id"
-                      class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <label
-                      :for="`category-${category.id}`"
-                      class="ml-2 text-sm"
-                    >
-                      {{ category.name }}
-                    </label>
-                  </div>
-                </div>
-                <p v-if="availableCategories.length === 0" class="text-sm text-muted-foreground italic">
-                  No categories available.
-                  <Button
-                    variant="link"
-                    size="sm"
-                    @click="navigateTo('/categories/create')"
-                    class="p-0 h-auto"
-                  >
-                    Create one
-                  </Button>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <!-- SEO Tab -->
-        <TabsContent value="seo" class="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>SEO & Meta Tags</CardTitle>
-              <CardDescription>
-                Optimize your post for search engines
-              </CardDescription>
-            </CardHeader>
-            <CardContent class="space-y-6">
-              <!-- Meta Title -->
-              <div class="space-y-2">
-                <Label for="meta_title">
-                  Meta Title
-                  <span class="text-sm text-muted-foreground ml-2">
-                    (Max 60 characters)
-                  </span>
-                </Label>
-                <Input
-                  id="meta_title"
-                  v-model="form.meta_title"
-                  placeholder="SEO-optimized title..."
-                  maxlength="60"
-                />
-                <p class="text-xs text-muted-foreground">
-                  {{ form.meta_title?.length || 0 }}/60 characters
-                </p>
-              </div>
-
-              <!-- Meta Description -->
-              <div class="space-y-2">
-                <Label for="meta_description">
-                  Meta Description
-                  <span class="text-sm text-muted-foreground ml-2">
-                    (Max 160 characters)
-                  </span>
-                </Label>
-                <Textarea
-                  id="meta_description"
-                  v-model="form.meta_description"
-                  placeholder="Brief SEO description..."
-                  rows="3"
-                  maxlength="160"
-                />
-                <p class="text-xs text-muted-foreground">
-                  {{ form.meta_description?.length || 0 }}/160 characters
-                </p>
-              </div>
-
-              <Separator />
-
-              <!-- OG Image URL -->
-              <div class="space-y-2">
-                <Label for="og_image">Open Graph Image URL</Label>
-                <Input
-                  id="og_image"
-                  v-model="form.og_image"
-                  placeholder="https://example.com/image.jpg"
-                  type="url"
-                />
-                <p class="text-xs text-muted-foreground">
-                  URL for social media sharing preview
-                </p>
-              </div>
-
-              <!-- OG Type -->
-              <div class="space-y-2">
-                <Label for="og_type">Open Graph Type</Label>
-                <Select v-model="form.og_type">
-                  <SelectTrigger id="og_type">
-                    <SelectValue placeholder="Select type" />
+                <Label for="status">Status</Label>
+                <Select v-model="form.status">
+                  <SelectTrigger class="w-full">
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="article">Article</SelectItem>
-                    <SelectItem value="website">Website</SelectItem>
-                    <SelectItem value="blog">Blog</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="published">Published</SelectItem>
+                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                    <SelectItem value="archived">Archived</SelectItem>
                   </SelectContent>
                 </Select>
+                <InputErrorMessage :errors="errors.status" />
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+
+              <div class="space-y-2">
+                <Label for="visibility">Visibility</Label>
+                <Select v-model="form.visibility">
+                  <SelectTrigger class="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="public">Public</SelectItem>
+                    <SelectItem value="private">Private</SelectItem>
+                    <SelectItem value="members_only">Members Only</SelectItem>
+                  </SelectContent>
+                </Select>
+                <InputErrorMessage :errors="errors.visibility" />
+              </div>
+            </div>
+
+            <div v-if="form.status === 'scheduled'" class="space-y-2">
+              <Label for="published_at">Publish Date & Time</Label>
+              <Input
+                id="published_at"
+                v-model="form.published_at"
+                type="datetime-local"
+              />
+              <InputErrorMessage :errors="errors.published_at" />
+            </div>
+
+            <div class="flex items-center gap-2">
+              <input
+                id="featured"
+                v-model="form.featured"
+                type="checkbox"
+                class="h-4 w-4 rounded border-input"
+              />
+              <Label for="featured" class="font-normal cursor-pointer">
+                Mark as featured post
+              </Label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEO Meta -->
+      <div class="frame">
+        <div class="frame-header">
+          <div class="frame-title">SEO & Meta</div>
+        </div>
+        <div class="frame-panel">
+          <div class="grid grid-cols-1 gap-y-6">
+            <div class="space-y-2">
+              <Label for="meta_title">Meta Title</Label>
+              <Input id="meta_title" v-model="form.meta_title" type="text" maxlength="60" />
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Max 60 characters (Leave empty to auto-generate from title)
+              </p>
+              <InputErrorMessage :errors="errors.meta_title" />
+            </div>
+
+            <div class="space-y-2">
+              <Label for="meta_description">Meta Description</Label>
+              <Textarea id="meta_description" v-model="form.meta_description" maxlength="160" />
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Max 160 characters (Leave empty to auto-generate from excerpt)
+              </p>
+              <InputErrorMessage :errors="errors.meta_description" />
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Actions -->
-      <Card>
-        <CardContent class="pt-6">
-          <div class="flex items-center gap-4">
-            <Button
-              type="submit"
-              :disabled="saving || !form.title || !form.content"
-            >
-              <Icon
-                v-if="saving"
-                name="lucide:loader-2"
-                class="mr-2 h-4 w-4 animate-spin"
-              />
-              {{ saving ? "Saving..." : "Update Post" }}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              @click="navigateTo('/posts')"
-            >
-              Cancel
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div class="flex justify-end gap-3">
+        <button
+          type="button"
+          @click="navigateTo('/posts')"
+          class="border-input hover:bg-accent hover:text-accent-foreground rounded-lg border px-4 py-2 text-sm font-semibold tracking-tighter transition"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          :disabled="loading || !form.title || !form.content || hasFilesUploading()"
+          class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-semibold tracking-tighter transition disabled:opacity-50"
+        >
+          <Spinner v-if="loading" />
+          {{ loading ? "Updating..." : "Update Post" }}
+        </button>
+      </div>
     </form>
+
+    <div v-else class="text-center py-12">
+      <p class="text-muted-foreground">Post not found</p>
+      <button
+        @click="navigateTo('/posts')"
+        class="text-primary hover:text-primary/80 mt-4 underline"
+      >
+        Back to Posts
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Spinner } from "@/components/ui/spinner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -364,20 +253,28 @@ definePageMeta({
 
 usePageMeta("posts");
 
-const route = useRoute();
-const { $api } = useNuxtApp();
-const slug = route.params.slug;
+const FILE_STATUS = {
+  PROCESSING: 3,
+};
 
-const loading = ref(true);
-const saving = ref(false);
-const postId = ref(null);
-const featuredImageRef = ref(null);
-const featuredImageDeleted = ref(false);
-const initialFeaturedImage = ref(null);
+const route = useRoute();
+const postSlug = route.params.slug;
+
+const { $api } = useNuxtApp();
+const featuredImageInputRef = ref(null);
+const authorQuery = ref("");
+const selectedAuthors = ref([]);
+
+const deleteFlags = ref({
+  featured_image: false,
+});
+
+const imageFiles = ref({
+  featured_image: [],
+});
 
 const form = reactive({
   title: "",
-  slug: "",
   excerpt: "",
   content: "",
   status: "draft",
@@ -386,76 +283,61 @@ const form = reactive({
   featured: false,
   meta_title: "",
   meta_description: "",
-  og_image: "",
-  og_type: "article",
-  featured_image: [],
-  authors: [],
-  category_ids: [],
+  tags: [],
+  author_ids: [],
 });
 
+const loading = ref(false);
+const loadingPost = ref(true);
+const autoSaving = ref(false);
+const errors = ref({});
+const post = ref(null);
 const availableUsers = ref([]);
-const availableCategories = ref([]);
+let autoSaveTimeout = null;
 
 onMounted(async () => {
-  await Promise.all([
-    loadPost(),
-    loadUsers(),
-    loadCategories(),
-  ]);
+  await Promise.all([loadPost(), loadUsers()]);
 });
 
 async function loadPost() {
-  try {
-    const response = await $api(`/posts/${slug}`);
-    const post = response.data;
+  loadingPost.value = true;
 
-    postId.value = post.id;
+  try {
+    const response = await $api(`/posts/${postSlug}`);
+    post.value = response.data;
 
     // Populate form
-    form.title = post.title;
-    form.slug = post.slug;
-    form.excerpt = post.excerpt || "";
-    form.content = post.content;
-    form.status = post.status;
-    form.visibility = post.visibility;
-    form.featured = post.featured;
-    form.meta_title = post.meta_title || "";
-    form.meta_description = post.meta_description || "";
-    form.og_image = post.og_image || "";
-    form.og_type = post.og_type || "article";
+    form.title = post.value.title || "";
+    form.excerpt = post.value.excerpt || "";
+    form.content = post.value.content || "";
+    form.status = post.value.status || "draft";
+    form.visibility = post.value.visibility || "public";
+    form.featured = post.value.featured || false;
+    form.meta_title = post.value.meta_title || "";
+    form.meta_description = post.value.meta_description || "";
 
-    // Format published_at for datetime-local input
-    if (post.published_at) {
-      const date = new Date(post.published_at);
+    // Handle published_at for scheduled posts
+    if (post.value.published_at) {
+      const date = new Date(post.value.published_at);
+      // Format to datetime-local format: YYYY-MM-DDTHH:MM
       form.published_at = date.toISOString().slice(0, 16);
     }
 
-    // Set initial featured image
-    if (post.featured_image) {
-      initialFeaturedImage.value = post.featured_image.conversions || {
-        sm: post.featured_image.url,
-      };
+    // Handle tags
+    if (post.value.tags && Array.isArray(post.value.tags)) {
+      form.tags = post.value.tags.map((tag) => tag.name || tag);
     }
 
-    // Populate authors
-    if (post.authors && Array.isArray(post.authors)) {
-      form.authors = post.authors.map(author => ({
-        user_id: author.id,
-        role: author.pivot?.role || "co_author",
-        order: author.pivot?.order || 0,
-      }));
-    }
-
-    // Populate categories
-    if (post.categories && Array.isArray(post.categories)) {
-      form.category_ids = post.categories.map(category => category.id);
+    // Handle authors
+    if (post.value.authors && Array.isArray(post.value.authors)) {
+      selectedAuthors.value = post.value.authors;
+      form.author_ids = post.value.authors.map((author) => author.id);
     }
   } catch (error) {
     console.error("Failed to load post:", error);
-    alert("Failed to load post. Redirecting to posts list.");
-    await navigateTo("/posts");
+    toast.error("Failed to load post");
   } finally {
-    loading.value = false;
+    loadingPost.value = false;
   }
 }
 
@@ -468,97 +350,126 @@ async function loadUsers() {
   }
 }
 
-async function loadCategories() {
-  try {
-    const response = await $api("/categories?per_page=100");
-    availableCategories.value = response.data;
-  } catch (error) {
-    console.error("Failed to load categories:", error);
-  }
-}
-
-// Auto-generate slug from title
+// Watch selectedAuthors and sync with form.author_ids
 watch(
-  () => form.title,
-  (newTitle) => {
-    if (!form.slug || form.slug === slugify(form.title)) {
-      form.slug = slugify(newTitle);
+  selectedAuthors,
+  (newValue) => {
+    form.author_ids = newValue.map((user) => user.id);
+  },
+  { deep: true }
+);
+
+// Auto-save when content changes
+watch(
+  () => [form.title, form.content, form.excerpt],
+  () => {
+    if (post.value) {
+      debouncedAutoSave();
     }
   }
 );
 
-function slugify(text) {
-  return text
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w\-]+/g, "")
-    .replace(/\-\-+/g, "-");
+function debouncedAutoSave() {
+  clearTimeout(autoSaveTimeout);
+  autoSaveTimeout = setTimeout(() => {
+    autoSavePost();
+  }, 2000); // Auto-save after 2 seconds of inactivity
+}
+
+async function autoSavePost() {
+  if (loading.value || !post.value) return;
+
+  autoSaving.value = true;
+
+  try {
+    const payload = {
+      title: form.title || post.value.title,
+      content: form.content || "",
+      content_format: "html",
+      excerpt: form.excerpt,
+    };
+
+    await $api(`/posts/${postSlug}`, {
+      method: "PUT",
+      body: payload,
+    });
+  } catch (error) {
+    console.error("Auto-save failed:", error);
+    // Don't show error toast for auto-save failures
+  } finally {
+    autoSaving.value = false;
+  }
+}
+
+// Check if any files are currently uploading
+function hasFilesUploading() {
+  return [featuredImageInputRef].some((ref) =>
+    ref.value?.pond?.getFiles().some((file) => file.status === FILE_STATUS.PROCESSING)
+  );
 }
 
 async function handleSubmit() {
-  saving.value = true;
+  // Check if any files are still uploading
+  if (hasFilesUploading()) {
+    toast.error("Please wait until all files are uploaded");
+    return;
+  }
+
+  loading.value = true;
+  errors.value = {};
 
   try {
-    // Update post data
-    const postData = {
+    const payload = {
       title: form.title,
-      slug: form.slug,
       excerpt: form.excerpt,
       content: form.content,
       content_format: "html",
       status: form.status,
       visibility: form.visibility,
       featured: form.featured,
-      meta_title: form.meta_title,
-      meta_description: form.meta_description,
-      og_image: form.og_image,
-      og_type: form.og_type,
+      meta_title: form.meta_title || null,
+      meta_description: form.meta_description || null,
       published_at:
         form.status === "scheduled" && form.published_at
           ? new Date(form.published_at).toISOString()
           : null,
-      authors: form.authors,
-      category_ids: form.category_ids,
+      author_ids: form.author_ids,
+      tags: form.tags,
     };
 
-    await $api(`/posts/${slug}`, {
+    // Handle featured image
+    const featuredValue = imageFiles.value.featured_image?.[0];
+    if (featuredValue && featuredValue.startsWith("tmp-")) {
+      payload.tmp_featured_image = featuredValue;
+    } else if (deleteFlags.value.featured_image && !featuredValue) {
+      payload.delete_featured_image = true;
+    }
+
+    await $api(`/posts/${postSlug}`, {
       method: "PUT",
-      body: postData,
+      body: payload,
     });
 
-    // Handle featured image upload/delete
-    if (featuredImageDeleted.value && initialFeaturedImage.value) {
-      // Delete existing featured image
-      // (API will handle this via media collection clear)
-    }
-
-    if (form.featured_image.length > 0 && featuredImageRef.value?.pond) {
-      const pond = featuredImageRef.value.pond;
-      const formData = new FormData();
-      const files = pond.getFiles();
-
-      if (files.length > 0) {
-        formData.append("file", files[0].file);
-        formData.append("model_type", "App\\Models\\Post");
-        formData.append("model_id", postId.value);
-        formData.append("collection", "featured_image");
-
-        await $api("/media/upload", {
-          method: "POST",
-          body: formData,
-        });
-      }
-    }
-
-    // Success
+    toast.success("Post updated successfully!");
     await navigateTo("/posts");
   } catch (error) {
     console.error("Failed to update post:", error);
-    alert(error?.data?.message || "Failed to update post. Please try again.");
+
+    if (error?.data?.errors) {
+      errors.value = error.data.errors;
+    }
+
+    toast.error(error?.data?.message || "Failed to update post. Please try again.");
   } finally {
-    saving.value = false;
+    loading.value = false;
   }
 }
+
+defineShortcuts({
+  meta_s: {
+    handler: () => {
+      handleSubmit();
+    },
+  },
+});
 </script>

@@ -58,6 +58,12 @@
                 placeholder="Start writing your post content..."
               />
               <InputErrorMessage :errors="errors.content" />
+              <p v-if="autoSaving" class="text-muted-foreground text-xs tracking-tight">
+                <Spinner class="inline h-3 w-3" /> Auto-saving draft...
+              </p>
+              <p v-else-if="savedPostId" class="text-muted-foreground text-xs tracking-tight">
+                Draft saved
+              </p>
             </div>
           </div>
         </div>
@@ -204,7 +210,7 @@
           class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-semibold tracking-tighter transition disabled:opacity-50"
         >
           <Spinner v-if="loading" />
-          {{ loading ? "Creating..." : "Create Post" }}
+          {{ loading ? (savedPostId ? "Publishing..." : "Creating...") : (savedPostId ? "Publish Post" : "Create Post") }}
         </button>
       </div>
     </form>
@@ -263,9 +269,11 @@ const form = reactive({
 });
 
 const loading = ref(false);
+const autoSaving = ref(false);
 const errors = ref({});
 const savedPostId = ref(null);
 const availableUsers = ref([]);
+let autoSaveTimeout = null;
 
 onMounted(async () => {
   await loadUsers();
@@ -288,6 +296,67 @@ watch(
   },
   { deep: true }
 );
+
+// Auto-save draft when title or content changes
+watch(
+  () => [form.title, form.content],
+  () => {
+    if (form.title || form.content) {
+      debouncedAutoSave();
+    }
+  }
+);
+
+function debouncedAutoSave() {
+  clearTimeout(autoSaveTimeout);
+  autoSaveTimeout = setTimeout(() => {
+    autoSaveDraft();
+  }, 2000); // Auto-save after 2 seconds of inactivity
+}
+
+async function autoSaveDraft() {
+  if (!form.title && !form.content) return;
+  if (loading.value) return;
+
+  autoSaving.value = true;
+
+  try {
+    const payload = {
+      title: form.title || "Untitled Post",
+      content: form.content || "",
+      content_format: "html",
+      status: "draft",
+      excerpt: form.excerpt,
+      visibility: form.visibility,
+      featured: form.featured,
+      meta_title: form.meta_title || null,
+      meta_description: form.meta_description || null,
+      author_ids: form.author_ids,
+      tags: form.tags,
+    };
+
+    if (savedPostId.value) {
+      // Update existing draft
+      await $api(`/posts/${savedPostId.value}`, {
+        method: "PUT",
+        body: payload,
+      });
+    } else {
+      // Create new draft
+      const response = await $api("/posts", {
+        method: "POST",
+        body: payload,
+      });
+      savedPostId.value = response.data.id;
+      toast.success("Draft created automatically");
+    }
+  } catch (error) {
+    console.error("Auto-save failed:", error);
+    // Don't show error toast for auto-save failures to avoid annoying user
+  } finally {
+    autoSaving.value = false;
+  }
+}
 
 // Check if any files are currently uploading
 function hasFilesUploading() {
@@ -333,23 +402,32 @@ async function handleSubmit() {
       payload.delete_featured_image = true;
     }
 
-    const response = await $api("/posts", {
-      method: "POST",
-      body: payload,
-    });
+    if (savedPostId.value) {
+      // Update existing draft
+      const response = await $api(`/posts/${savedPostId.value}`, {
+        method: "PUT",
+        body: payload,
+      });
+      toast.success("Post updated successfully!");
+    } else {
+      // Create new post (shouldn't happen with auto-save, but just in case)
+      const response = await $api("/posts", {
+        method: "POST",
+        body: payload,
+      });
+      savedPostId.value = response.data.id;
+      toast.success("Post created successfully!");
+    }
 
-    savedPostId.value = response.data.id;
-
-    toast.success("Post created successfully!");
     await navigateTo("/posts");
   } catch (error) {
-    console.error("Failed to create post:", error);
+    console.error("Failed to save post:", error);
 
     if (error?.data?.errors) {
       errors.value = error.data.errors;
     }
 
-    toast.error(error?.data?.message || "Failed to create post. Please try again.");
+    toast.error(error?.data?.message || "Failed to save post. Please try again.");
   } finally {
     loading.value = false;
   }
