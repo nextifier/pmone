@@ -43,6 +43,13 @@ class UpdatePostRequest extends FormRequest
             // Relationships
             'author_ids' => ['sometimes', 'array'],
             'author_ids.*' => ['exists:users,id'],
+
+            // Authors with roles (alternative to simple author_ids)
+            'authors' => ['sometimes', 'array'],
+            'authors.*.user_id' => ['required', 'exists:users,id'],
+            'authors.*.role' => ['required', 'string', 'in:primary_author,co_author,contributor,editor'],
+            'authors.*.order' => ['sometimes', 'integer', 'min:0'],
+
             'category_ids' => ['sometimes', 'array'],
             'category_ids.*' => ['exists:categories,id'],
             'tags' => ['sometimes', 'array'],

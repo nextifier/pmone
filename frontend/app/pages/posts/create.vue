@@ -135,6 +135,53 @@
         </label>
       </div>
 
+      <!-- Authors & Categories -->
+      <div class="space-y-6 pt-6 border-t">
+        <h3 class="text-lg font-semibold">Authors & Categories</h3>
+
+        <!-- Authors -->
+        <PostAuthorsManager
+          v-model="form.authors"
+          :available-users="availableUsers"
+        />
+
+        <!-- Categories -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium">Categories</label>
+          <div class="flex flex-wrap gap-4">
+            <div
+              v-for="category in availableCategories"
+              :key="category.id"
+              class="flex items-center"
+            >
+              <input
+                :id="`category-${category.id}`"
+                v-model="form.category_ids"
+                type="checkbox"
+                :value="category.id"
+                class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label
+                :for="`category-${category.id}`"
+                class="ml-2 text-sm"
+              >
+                {{ category.name }}
+              </label>
+            </div>
+          </div>
+          <p v-if="availableCategories.length === 0" class="text-sm text-gray-500 italic">
+            No categories available.
+            <button
+              type="button"
+              @click="navigateTo('/categories/create')"
+              class="text-blue-600 hover:underline"
+            >
+              Create one
+            </button>
+          </p>
+        </div>
+      </div>
+
       <!-- Actions -->
       <div class="flex items-center gap-4 pt-6 border-t">
         <button
@@ -177,10 +224,39 @@ const form = reactive({
   published_at: null,
   featured: false,
   featured_image: [],
+  authors: [],
+  category_ids: [],
 });
 
 const loading = ref(false);
 const savedPostId = ref(null);
+const availableUsers = ref([]);
+const availableCategories = ref([]);
+
+onMounted(async () => {
+  await Promise.all([
+    loadUsers(),
+    loadCategories(),
+  ]);
+});
+
+async function loadUsers() {
+  try {
+    const response = await $api("/users?per_page=100");
+    availableUsers.value = response.data;
+  } catch (error) {
+    console.error("Failed to load users:", error);
+  }
+}
+
+async function loadCategories() {
+  try {
+    const response = await $api("/categories?per_page=100");
+    availableCategories.value = response.data;
+  } catch (error) {
+    console.error("Failed to load categories:", error);
+  }
+}
 
 // Auto-generate slug from title
 watch(
@@ -220,6 +296,8 @@ async function handleSubmit() {
         form.status === "scheduled" && form.published_at
           ? new Date(form.published_at).toISOString()
           : null,
+      authors: form.authors,
+      category_ids: form.category_ids,
     };
 
     const response = await $api("/posts", {

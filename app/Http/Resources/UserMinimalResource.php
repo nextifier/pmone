@@ -24,6 +24,13 @@ class UserMinimalResource extends JsonResource
                 $this->hasMedia('profile_image'),
                 $this->getMediaUrls('profile_image')
             ),
+            'pivot' => $this->when(
+                isset($this->pivot),
+                [
+                    'role' => $this->pivot->role ?? null,
+                    'order' => $this->pivot->order ?? 0,
+                ]
+            ),
         ];
     }
 }
