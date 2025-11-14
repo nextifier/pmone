@@ -216,4 +216,257 @@ class PostController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get post revisions history
+     */
+    public function revisions(Post $post): JsonResponse
+    {
+        $this->authorize('view', $post);
+
+        $revisions = $post->revisions()
+            ->with('creator')
+            ->orderBy('revision_number', 'desc')
+            ->get();
+
+        return response()->json([
+            'data' => $revisions->map(function ($revision) {
+                return [
+                    'id' => $revision->id,
+                    'revision_number' => $revision->revision_number,
+                    'title' => $revision->title,
+                    'excerpt' => $revision->excerpt,
+                    'content' => $revision->content,
+                    'created_at' => $revision->created_at->toIso8601String(),
+                    'creator' => $revision->creator ? [
+                        'id' => $revision->creator->id,
+                        'name' => $revision->creator->name,
+                        'username' => $revision->creator->username,
+                    ] : null,
+                ];
+            }),
+        ]);
+    }
+
+    /**
+     * Compare two revisions
+     */
+    public function compareRevisions(Post $post, Request $request): JsonResponse
+    {
+        $this->authorize('view', $post);
+
+        $request->validate([
+            'from_revision' => 'required|integer|exists:post_revisions,id',
+            'to_revision' => 'required|integer|exists:post_revisions,id',
+        ]);
+
+        $fromRevision = $post->revisions()->findOrFail($request->from_revision);
+        $toRevision = $post->revisions()->findOrFail($request->to_revision);
+
+        return response()->json([
+            'data' => [
+                'from' => [
+                    'id' => $fromRevision->id,
+                    'revision_number' => $fromRevision->revision_number,
+                    'title' => $fromRevision->title,
+                    'excerpt' => $fromRevision->excerpt,
+                    'content' => $fromRevision->content,
+                    'created_at' => $fromRevision->created_at->toIso8601String(),
+                ],
+                'to' => [
+                    'id' => $toRevision->id,
+                    'revision_number' => $toRevision->revision_number,
+                    'title' => $toRevision->title,
+                    'excerpt' => $toRevision->excerpt,
+                    'content' => $toRevision->content,
+                    'created_at' => $toRevision->created_at->toIso8601String(),
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * Get trashed posts
+     */
+    public function trash(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', Post::class);
+
+        $query = Post::onlyTrashed()
+            ->with(['primaryAuthor', 'deleter']);
+
+        // Search filter
+        if ($searchTerm = $request->input('filter_search')) {
+            $query->search($searchTerm);
+        }
+
+        $posts = $query->orderBy('deleted_at', 'desc')
+            ->paginate($request->input('per_page', 15));
+
+        return response()->json([
+            'data' => PostResource::collection($posts->items()),
+            'meta' => [
+                'current_page' => $posts->currentPage(),
+                'last_page' => $posts->lastPage(),
+                'per_page' => $posts->perPage(),
+                'total' => $posts->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Restore a trashed post
+     */
+    public function restore(int $id): JsonResponse
+    {
+        $post = Post::onlyTrashed()->findOrFail($id);
+        $this->authorize('restore', $post);
+
+        $post->restore();
+
+        return response()->json([
+            'message' => 'Post restored successfully',
+            'data' => new PostResource($post->fresh()),
+        ]);
+    }
+
+    /**
+     * Permanently delete a post
+     */
+    public function forceDestroy(int $id): JsonResponse
+    {
+        $post = Post::onlyTrashed()->findOrFail($id);
+        $this->authorize('forceDelete', $post);
+
+        $post->forceDelete();
+
+        return response()->json([
+            'message' => 'Post permanently deleted',
+        ]);
+    }
+
+    /**
+     * Bulk delete posts
+     */
+    public function bulkDestroy(Request $request): JsonResponse
+    {
+        $this->authorize('delete', Post::class);
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:posts,id',
+        ]);
+
+        $posts = Post::whereIn('id', $request->ids)->get();
+
+        foreach ($posts as $post) {
+            $this->authorize('delete', $post);
+        }
+
+        Post::whereIn('id', $request->ids)->delete();
+
+        return response()->json([
+            'message' => count($request->ids).' posts deleted successfully',
+        ]);
+    }
+
+    /**
+     * Bulk restore posts
+     */
+    public function bulkRestore(Request $request): JsonResponse
+    {
+        $this->authorize('restore', Post::class);
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:posts,id',
+        ]);
+
+        Post::onlyTrashed()->whereIn('id', $request->ids)->restore();
+
+        return response()->json([
+            'message' => count($request->ids).' posts restored successfully',
+        ]);
+    }
+
+    /**
+     * Bulk force delete posts
+     */
+    public function bulkForceDestroy(Request $request): JsonResponse
+    {
+        $this->authorize('forceDelete', Post::class);
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:posts,id',
+        ]);
+
+        Post::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
+
+        return response()->json([
+            'message' => count($request->ids).' posts permanently deleted',
+        ]);
+    }
+
+    /**
+     * Bulk update status
+     */
+    public function bulkUpdateStatus(Request $request): JsonResponse
+    {
+        $this->authorize('update', Post::class);
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:posts,id',
+            'status' => 'required|in:draft,published,scheduled,archived',
+        ]);
+
+        $posts = Post::whereIn('id', $request->ids)->get();
+
+        foreach ($posts as $post) {
+            $this->authorize('update', $post);
+        }
+
+        Post::whereIn('id', $request->ids)->update(['status' => $request->status]);
+
+        return response()->json([
+            'message' => count($request->ids).' posts updated successfully',
+        ]);
+    }
+
+    /**
+     * Get post analytics (visits)
+     */
+    public function analytics(Post $post, Request $request): JsonResponse
+    {
+        $this->authorize('view', $post);
+
+        $days = $request->input('days', 30);
+
+        $visits = $post->visits()
+            ->lastDays($days)
+            ->orderBy('visited_at', 'desc')
+            ->get();
+
+        $totalVisits = $visits->count();
+        $uniqueVisitors = $visits->unique('visitor_id')->count();
+        $anonymousVisits = $visits->where('visitor_id', null)->count();
+
+        // Group by date
+        $visitsByDate = $visits->groupBy(function ($visit) {
+            return $visit->visited_at->format('Y-m-d');
+        })->map(function ($dayVisits) {
+            return $dayVisits->count();
+        });
+
+        return response()->json([
+            'data' => [
+                'total_visits' => $totalVisits,
+                'unique_visitors' => $uniqueVisitors,
+                'anonymous_visits' => $anonymousVisits,
+                'cached_view_count' => $post->view_count,
+                'visits_by_date' => $visitsByDate,
+            ],
+        ]);
+    }
 }

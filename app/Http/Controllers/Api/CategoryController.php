@@ -165,4 +165,131 @@ class CategoryController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get trashed categories
+     */
+    public function trash(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', Category::class);
+
+        $query = Category::onlyTrashed()
+            ->with(['parent', 'deleter']);
+
+        // Search filter
+        if ($searchTerm = $request->input('filter_search')) {
+            $query->where(function ($q) use ($searchTerm) {
+                $searchTerm = strtolower($searchTerm);
+                $q->whereRaw('LOWER(name) LIKE ?', ["%{$searchTerm}%"])
+                    ->orWhereRaw('LOWER(description) LIKE ?', ["%{$searchTerm}%"]);
+            });
+        }
+
+        $categories = $query->orderBy('deleted_at', 'desc')
+            ->paginate($request->input('per_page', 15));
+
+        return response()->json([
+            'data' => CategoryResource::collection($categories->items()),
+            'meta' => [
+                'current_page' => $categories->currentPage(),
+                'last_page' => $categories->lastPage(),
+                'per_page' => $categories->perPage(),
+                'total' => $categories->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Restore a trashed category
+     */
+    public function restore(int $id): JsonResponse
+    {
+        $category = Category::onlyTrashed()->findOrFail($id);
+        $this->authorize('restore', $category);
+
+        $category->restore();
+
+        return response()->json([
+            'message' => 'Category restored successfully',
+            'data' => new CategoryResource($category->fresh()),
+        ]);
+    }
+
+    /**
+     * Permanently delete a category
+     */
+    public function forceDestroy(int $id): JsonResponse
+    {
+        $category = Category::onlyTrashed()->findOrFail($id);
+        $this->authorize('forceDelete', $category);
+
+        $category->forceDelete();
+
+        return response()->json([
+            'message' => 'Category permanently deleted',
+        ]);
+    }
+
+    /**
+     * Bulk delete categories
+     */
+    public function bulkDestroy(Request $request): JsonResponse
+    {
+        $this->authorize('delete', Category::class);
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:categories,id',
+        ]);
+
+        $categories = Category::whereIn('id', $request->ids)->get();
+
+        foreach ($categories as $category) {
+            $this->authorize('delete', $category);
+        }
+
+        Category::whereIn('id', $request->ids)->delete();
+
+        return response()->json([
+            'message' => count($request->ids).' categories deleted successfully',
+        ]);
+    }
+
+    /**
+     * Bulk restore categories
+     */
+    public function bulkRestore(Request $request): JsonResponse
+    {
+        $this->authorize('restore', Category::class);
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:categories,id',
+        ]);
+
+        Category::onlyTrashed()->whereIn('id', $request->ids)->restore();
+
+        return response()->json([
+            'message' => count($request->ids).' categories restored successfully',
+        ]);
+    }
+
+    /**
+     * Bulk force delete categories
+     */
+    public function bulkForceDestroy(Request $request): JsonResponse
+    {
+        $this->authorize('forceDelete', Category::class);
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:categories,id',
+        ]);
+
+        Category::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
+
+        return response()->json([
+            'message' => count($request->ids).' categories permanently deleted',
+        ]);
+    }
 }

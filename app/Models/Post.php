@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
@@ -25,8 +26,8 @@ class Post extends Model implements HasMedia
     use HasTags;
     use InteractsWithMedia;
     use LogsActivity;
-    use SoftDeletes;
     use Sluggable;
+    use SoftDeletes;
 
     protected $fillable = [
         'title',
@@ -263,6 +264,22 @@ class Post extends Model implements HasMedia
     }
 
     /**
+     * Get the post's visits (polymorphic)
+     */
+    public function visits(): MorphMany
+    {
+        return $this->morphMany(Visit::class, 'visitable');
+    }
+
+    /**
+     * Get computed visits count from relationship
+     */
+    public function getVisitsCountAttribute(): int
+    {
+        return $this->visits()->count();
+    }
+
+    /**
      * Audit trail relationships
      */
     public function creator(): BelongsTo
@@ -379,11 +396,21 @@ class Post extends Model implements HasMedia
     }
 
     /**
-     * Increment view count
+     * Increment cached view count (for performance)
+     * For detailed analytics, use visits() relationship
+     * This count can be synced from visits via scheduled job
      */
     public function incrementViewCount(): void
     {
         $this->increment('view_count');
+    }
+
+    /**
+     * Sync cached view_count from actual visits
+     */
+    public function syncViewCount(): void
+    {
+        $this->update(['view_count' => $this->visits()->count()]);
     }
 
     /**

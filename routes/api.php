@@ -192,7 +192,17 @@ Route::middleware(['auth:sanctum'])->prefix('google-analytics')->group(function 
 Route::middleware(['auth:sanctum', 'verified'])->prefix('posts')->group(function () {
     Route::get('/', [PostController::class, 'index'])->name('posts.index');
     Route::post('/', [PostController::class, 'store'])->name('posts.store');
+    Route::delete('/bulk', [PostController::class, 'bulkDestroy'])->name('posts.bulk-destroy');
+    Route::post('/bulk/status', [PostController::class, 'bulkUpdateStatus'])->name('posts.bulk-update-status');
+    Route::get('/trash', [PostController::class, 'trash'])->name('posts.trash');
+    Route::post('/trash/restore/bulk', [PostController::class, 'bulkRestore'])->name('posts.bulk-restore');
+    Route::post('/trash/{id}/restore', [PostController::class, 'restore'])->name('posts.restore');
+    Route::delete('/trash/bulk', [PostController::class, 'bulkForceDestroy'])->name('posts.bulk-force-destroy');
+    Route::delete('/trash/{id}', [PostController::class, 'forceDestroy'])->name('posts.force-destroy');
     Route::get('/{post:slug}', [PostController::class, 'show'])->name('posts.show');
+    Route::get('/{post:slug}/revisions', [PostController::class, 'revisions'])->name('posts.revisions');
+    Route::post('/{post:slug}/revisions/compare', [PostController::class, 'compareRevisions'])->name('posts.compare-revisions');
+    Route::get('/{post:slug}/analytics', [PostController::class, 'analytics'])->name('posts.analytics');
     Route::put('/{post:slug}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/{post:slug}', [PostController::class, 'destroy'])->name('posts.destroy');
 });
@@ -201,6 +211,12 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('posts')->group(function
 Route::middleware(['auth:sanctum', 'verified'])->prefix('categories')->group(function () {
     Route::get('/', [CategoryController::class, 'index'])->name('categories.index');
     Route::post('/', [CategoryController::class, 'store'])->name('categories.store');
+    Route::delete('/bulk', [CategoryController::class, 'bulkDestroy'])->name('categories.bulk-destroy');
+    Route::get('/trash', [CategoryController::class, 'trash'])->name('categories.trash');
+    Route::post('/trash/restore/bulk', [CategoryController::class, 'bulkRestore'])->name('categories.bulk-restore');
+    Route::post('/trash/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
+    Route::delete('/trash/bulk', [CategoryController::class, 'bulkForceDestroy'])->name('categories.bulk-force-destroy');
+    Route::delete('/trash/{id}', [CategoryController::class, 'forceDestroy'])->name('categories.force-destroy');
     Route::get('/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
     Route::put('/{category:slug}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('/{category:slug}', [CategoryController::class, 'destroy'])->name('categories.destroy');
