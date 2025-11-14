@@ -2,201 +2,209 @@
   <div class="container max-w-5xl mx-auto py-8 px-4">
     <div class="mb-8">
       <h1 class="text-3xl font-bold">Create New Post</h1>
-      <p class="text-gray-600 dark:text-gray-400 mt-2">
+      <p class="text-muted-foreground mt-2">
         Write and publish a new blog post
       </p>
     </div>
 
-    <form @submit.prevent="handleSubmit" class="space-y-6">
-      <!-- Title -->
-      <div>
-        <label for="title" class="block text-sm font-medium mb-2">
-          Title <span class="text-red-500">*</span>
-        </label>
-        <input
-          id="title"
-          v-model="form.title"
-          type="text"
-          required
-          placeholder="Enter post title..."
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-        />
-      </div>
-
-      <!-- Slug -->
-      <div>
-        <label for="slug" class="block text-sm font-medium mb-2">
-          Slug
-          <span class="text-sm text-gray-500">(Auto-generated from title)</span>
-        </label>
-        <input
-          id="slug"
-          v-model="form.slug"
-          type="text"
-          placeholder="post-slug"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-        />
-      </div>
-
-      <!-- Excerpt -->
-      <div>
-        <label for="excerpt" class="block text-sm font-medium mb-2">
-          Excerpt
-        </label>
-        <textarea
-          id="excerpt"
-          v-model="form.excerpt"
-          rows="3"
-          placeholder="Brief description of the post..."
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-        ></textarea>
-      </div>
-
+    <form @submit.prevent="handleSubmit" class="grid gap-y-8">
       <!-- Featured Image -->
-      <div>
-        <label class="block text-sm font-medium mb-2">Featured Image</label>
-        <InputFileImage
-          ref="featuredImageRef"
-          v-model="form.featured_image"
-          :initial-image="null"
-          :delete-flag="false"
-          container-class="relative isolate aspect-video w-full max-w-2xl"
-        />
-      </div>
-
-      <!-- Content Editor -->
-      <div>
-        <label class="block text-sm font-medium mb-2">
-          Content <span class="text-red-500">*</span>
-        </label>
-        <PostTipTapEditor
-          v-model="form.content"
-          :post-id="savedPostId"
-          placeholder="Start writing your post content..."
-        />
-      </div>
-
-      <!-- Status & Visibility -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label for="status" class="block text-sm font-medium mb-2">
-            Status
-          </label>
-          <select
-            id="status"
-            v-model="form.status"
-            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-          >
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-            <option value="scheduled">Scheduled</option>
-          </select>
+      <div class="frame">
+        <div class="frame-header">
+          <div class="frame-title">Featured Image</div>
         </div>
-
-        <div>
-          <label for="visibility" class="block text-sm font-medium mb-2">
-            Visibility
-          </label>
-          <select
-            id="visibility"
-            v-model="form.visibility"
-            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-          >
-            <option value="public">Public</option>
-            <option value="private">Private</option>
-            <option value="members_only">Members Only</option>
-          </select>
+        <div class="frame-panel">
+          <div class="space-y-4">
+            <Label>Featured Image</Label>
+            <InputFileImage
+              ref="featuredImageInputRef"
+              v-model="imageFiles.featured_image"
+              :initial-image="null"
+              v-model:delete-flag="deleteFlags.featured_image"
+              container-class="relative isolate aspect-video w-full"
+            />
+            <InputErrorMessage :errors="errors.tmp_featured_image" />
+          </div>
         </div>
       </div>
 
-      <!-- Published At (for scheduled posts) -->
-      <div v-if="form.status === 'scheduled'">
-        <label for="published_at" class="block text-sm font-medium mb-2">
-          Publish Date & Time
-        </label>
-        <input
-          id="published_at"
-          v-model="form.published_at"
-          type="datetime-local"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-        />
-      </div>
+      <!-- Post Content -->
+      <div class="frame">
+        <div class="frame-header">
+          <div class="frame-title">Post Content</div>
+        </div>
+        <div class="frame-panel">
+          <div class="grid grid-cols-1 gap-y-6">
+            <div class="space-y-2">
+              <Label for="title">Title <span class="text-destructive">*</span></Label>
+              <Input id="title" v-model="form.title" type="text" required />
+              <InputErrorMessage :errors="errors.title" />
+            </div>
 
-      <!-- Featured Toggle -->
-      <div class="flex items-center gap-2">
-        <input
-          id="featured"
-          v-model="form.featured"
-          type="checkbox"
-          class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-        />
-        <label for="featured" class="text-sm font-medium">
-          Mark as featured post
-        </label>
-      </div>
+            <div class="space-y-2">
+              <Label for="excerpt">Excerpt</Label>
+              <Textarea id="excerpt" v-model="form.excerpt" maxlength="500" />
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Brief description of the post (max 500 characters)
+              </p>
+              <InputErrorMessage :errors="errors.excerpt" />
+            </div>
 
-      <!-- Authors & Categories -->
-      <div class="space-y-6 pt-6 border-t">
-        <h3 class="text-lg font-semibold">Authors & Categories</h3>
-
-        <!-- Authors -->
-        <PostAuthorsManager
-          v-model="form.authors"
-          :available-users="availableUsers"
-        />
-
-        <!-- Categories -->
-        <div class="space-y-2">
-          <label class="block text-sm font-medium">Categories</label>
-          <div class="flex flex-wrap gap-4">
-            <div
-              v-for="category in availableCategories"
-              :key="category.id"
-              class="flex items-center"
-            >
-              <input
-                :id="`category-${category.id}`"
-                v-model="form.category_ids"
-                type="checkbox"
-                :value="category.id"
-                class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            <div class="space-y-2">
+              <Label>Content <span class="text-destructive">*</span></Label>
+              <PostTipTapEditor
+                v-model="form.content"
+                :post-id="savedPostId"
+                placeholder="Start writing your post content..."
               />
-              <label
-                :for="`category-${category.id}`"
-                class="ml-2 text-sm"
-              >
-                {{ category.name }}
-              </label>
+              <InputErrorMessage :errors="errors.content" />
             </div>
           </div>
-          <p v-if="availableCategories.length === 0" class="text-sm text-gray-500 italic">
-            No categories available.
-            <button
-              type="button"
-              @click="navigateTo('/categories/create')"
-              class="text-blue-600 hover:underline"
-            >
-              Create one
-            </button>
-          </p>
+        </div>
+      </div>
+
+      <!-- Authors & Tags -->
+      <div class="frame">
+        <div class="frame-header">
+          <div class="frame-title">Authors & Tags</div>
+        </div>
+        <div class="frame-panel">
+          <div class="grid grid-cols-1 gap-y-6">
+            <div class="space-y-2">
+              <Label>Authors</Label>
+              <UserMultiSelect
+                :users="availableUsers"
+                v-model="selectedAuthors"
+                v-model:query="authorQuery"
+                placeholder="Search authors..."
+                :hide-clear-all-button="true"
+              />
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Select authors for this post
+              </p>
+              <InputErrorMessage :errors="errors.author_ids" />
+            </div>
+
+            <div class="space-y-2">
+              <Label for="tags">Tags</Label>
+              <TagsInputComponent v-model="form.tags" placeholder="Add tags..." />
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Press Enter to add a tag
+              </p>
+              <InputErrorMessage :errors="errors.tags" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Post Settings -->
+      <div class="frame">
+        <div class="frame-header">
+          <div class="frame-title">Post Settings</div>
+        </div>
+        <div class="frame-panel">
+          <div class="grid grid-cols-1 gap-y-6">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-2">
+                <Label for="status">Status</Label>
+                <Select v-model="form.status">
+                  <SelectTrigger class="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="published">Published</SelectItem>
+                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                  </SelectContent>
+                </Select>
+                <InputErrorMessage :errors="errors.status" />
+              </div>
+
+              <div class="space-y-2">
+                <Label for="visibility">Visibility</Label>
+                <Select v-model="form.visibility">
+                  <SelectTrigger class="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="public">Public</SelectItem>
+                    <SelectItem value="private">Private</SelectItem>
+                    <SelectItem value="members_only">Members Only</SelectItem>
+                  </SelectContent>
+                </Select>
+                <InputErrorMessage :errors="errors.visibility" />
+              </div>
+            </div>
+
+            <div v-if="form.status === 'scheduled'" class="space-y-2">
+              <Label for="published_at">Publish Date & Time</Label>
+              <Input
+                id="published_at"
+                v-model="form.published_at"
+                type="datetime-local"
+              />
+              <InputErrorMessage :errors="errors.published_at" />
+            </div>
+
+            <div class="flex items-center gap-2">
+              <input
+                id="featured"
+                v-model="form.featured"
+                type="checkbox"
+                class="h-4 w-4 rounded border-input"
+              />
+              <Label for="featured" class="font-normal cursor-pointer">
+                Mark as featured post
+              </Label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEO Meta -->
+      <div class="frame">
+        <div class="frame-header">
+          <div class="frame-title">SEO & Meta</div>
+        </div>
+        <div class="frame-panel">
+          <div class="grid grid-cols-1 gap-y-6">
+            <div class="space-y-2">
+              <Label for="meta_title">Meta Title</Label>
+              <Input id="meta_title" v-model="form.meta_title" type="text" maxlength="60" />
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Max 60 characters (Leave empty to auto-generate from title)
+              </p>
+              <InputErrorMessage :errors="errors.meta_title" />
+            </div>
+
+            <div class="space-y-2">
+              <Label for="meta_description">Meta Description</Label>
+              <Textarea id="meta_description" v-model="form.meta_description" maxlength="160" />
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Max 160 characters (Leave empty to auto-generate from excerpt)
+              </p>
+              <InputErrorMessage :errors="errors.meta_description" />
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Actions -->
-      <div class="flex items-center gap-4 pt-6 border-t">
-        <button
-          type="submit"
-          :disabled="loading || !form.title || !form.content"
-          class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {{ loading ? "Saving..." : "Create Post" }}
-        </button>
+      <div class="flex justify-end gap-3">
         <button
           type="button"
           @click="navigateTo('/posts')"
-          class="px-6 py-2 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+          class="border-input hover:bg-accent hover:text-accent-foreground rounded-lg border px-4 py-2 text-sm font-semibold tracking-tighter transition"
         >
           Cancel
+        </button>
+        <button
+          type="submit"
+          :disabled="loading || !form.title || !form.content || hasFilesUploading()"
+          class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-semibold tracking-tighter transition disabled:opacity-50"
+        >
+          <Spinner v-if="loading" />
+          {{ loading ? "Creating..." : "Create Post" }}
         </button>
       </div>
     </form>
@@ -204,6 +212,18 @@
 </template>
 
 <script setup>
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "vue-sonner";
+
 definePageMeta({
   middleware: ["sanctum:auth"],
   layout: "app",
@@ -211,33 +231,44 @@ definePageMeta({
 
 usePageMeta("posts");
 
+const FILE_STATUS = {
+  PROCESSING: 3,
+};
+
 const { $api } = useNuxtApp();
-const featuredImageRef = ref(null);
+const featuredImageInputRef = ref(null);
+const authorQuery = ref("");
+const selectedAuthors = ref([]);
+
+const deleteFlags = ref({
+  featured_image: false,
+});
+
+const imageFiles = ref({
+  featured_image: [],
+});
 
 const form = reactive({
   title: "",
-  slug: "",
   excerpt: "",
   content: "",
   status: "draft",
   visibility: "public",
   published_at: null,
   featured: false,
-  featured_image: [],
-  authors: [],
-  category_ids: [],
+  meta_title: "",
+  meta_description: "",
+  tags: [],
+  author_ids: [],
 });
 
 const loading = ref(false);
+const errors = ref({});
 const savedPostId = ref(null);
 const availableUsers = ref([]);
-const availableCategories = ref([]);
 
 onMounted(async () => {
-  await Promise.all([
-    loadUsers(),
-    loadCategories(),
-  ]);
+  await loadUsers();
 });
 
 async function loadUsers() {
@@ -249,91 +280,86 @@ async function loadUsers() {
   }
 }
 
-async function loadCategories() {
-  try {
-    const response = await $api("/categories?per_page=100");
-    availableCategories.value = response.data;
-  } catch (error) {
-    console.error("Failed to load categories:", error);
-  }
-}
-
-// Auto-generate slug from title
+// Watch selectedAuthors and sync with form.author_ids
 watch(
-  () => form.title,
-  (newTitle) => {
-    if (!form.slug || form.slug === slugify(form.title)) {
-      form.slug = slugify(newTitle);
-    }
-  }
+  selectedAuthors,
+  (newValue) => {
+    form.author_ids = newValue.map((user) => user.id);
+  },
+  { deep: true }
 );
 
-function slugify(text) {
-  return text
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w\-]+/g, "")
-    .replace(/\-\-+/g, "-");
+// Check if any files are currently uploading
+function hasFilesUploading() {
+  return [featuredImageInputRef].some((ref) =>
+    ref.value?.pond?.getFiles().some((file) => file.status === FILE_STATUS.PROCESSING)
+  );
 }
 
 async function handleSubmit() {
+  // Check if any files are still uploading
+  if (hasFilesUploading()) {
+    toast.error("Please wait until all files are uploaded");
+    return;
+  }
+
   loading.value = true;
+  errors.value = {};
 
   try {
-    // Step 1: Create the post first
-    const postData = {
+    const payload = {
       title: form.title,
-      slug: form.slug,
       excerpt: form.excerpt,
       content: form.content,
       content_format: "html",
       status: form.status,
       visibility: form.visibility,
       featured: form.featured,
+      meta_title: form.meta_title || null,
+      meta_description: form.meta_description || null,
       published_at:
         form.status === "scheduled" && form.published_at
           ? new Date(form.published_at).toISOString()
           : null,
-      authors: form.authors,
-      category_ids: form.category_ids,
+      author_ids: form.author_ids,
+      tags: form.tags,
     };
+
+    // Handle featured image
+    const featuredValue = imageFiles.value.featured_image?.[0];
+    if (featuredValue && featuredValue.startsWith("tmp-")) {
+      payload.tmp_featured_image = featuredValue;
+    } else if (deleteFlags.value.featured_image && !featuredValue) {
+      payload.delete_featured_image = true;
+    }
 
     const response = await $api("/posts", {
       method: "POST",
-      body: postData,
+      body: payload,
     });
 
     savedPostId.value = response.data.id;
 
-    // Step 2: Upload featured image if exists
-    if (form.featured_image.length > 0 && featuredImageRef.value?.pond) {
-      const pond = featuredImageRef.value.pond;
-      const formData = new FormData();
-
-      // Get actual file from FilePond
-      const files = pond.getFiles();
-      if (files.length > 0) {
-        formData.append("file", files[0].file);
-        formData.append("model_type", "App\\Models\\Post");
-        formData.append("model_id", savedPostId.value);
-        formData.append("collection", "featured_image");
-
-        await $api("/media/upload", {
-          method: "POST",
-          body: formData,
-        });
-      }
-    }
-
-    // Success - navigate to posts list
+    toast.success("Post created successfully!");
     await navigateTo("/posts");
   } catch (error) {
     console.error("Failed to create post:", error);
-    alert(error?.data?.message || "Failed to create post. Please try again.");
+
+    if (error?.data?.errors) {
+      errors.value = error.data.errors;
+    }
+
+    toast.error(error?.data?.message || "Failed to create post. Please try again.");
   } finally {
     loading.value = false;
   }
 }
+
+defineShortcuts({
+  meta_s: {
+    handler: () => {
+      handleSubmit();
+    },
+  },
+});
 </script>

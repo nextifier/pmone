@@ -144,7 +144,10 @@ class PostController extends Controller
                 $post->syncTags($data['tags']);
             }
 
-            $post->load(['primaryAuthor', 'authors', 'categories', 'tags']);
+            // Handle featured image upload from temporary storage
+            $this->handleTemporaryUpload($request, $post, 'tmp_featured_image', 'featured_image');
+
+            $post->load(['primaryAuthor', 'authors', 'categories', 'tags', 'media']);
 
             return response()->json([
                 'message' => 'Post created successfully',
@@ -197,7 +200,10 @@ class PostController extends Controller
                 $post->syncTags($data['tags']);
             }
 
-            $post->load(['primaryAuthor', 'authors', 'categories', 'tags']);
+            // Handle featured image upload from temporary storage
+            $this->handleTemporaryUpload($request, $post, 'tmp_featured_image', 'featured_image');
+
+            $post->load(['primaryAuthor', 'authors', 'categories', 'tags', 'media']);
 
             return response()->json([
                 'message' => 'Post updated successfully',
@@ -490,5 +496,41 @@ class PostController extends Controller
                 'visits_by_date' => $visitsByDate,
             ],
         ]);
+    }
+
+    private function handleTemporaryUpload(Request $request, Post $post, string $fieldName, string $collection): void
+    {
+        // Check for delete flag first
+        $deleteFieldName = 'delete_'.str_replace('tmp_', '', $fieldName);
+        if ($request->has($deleteFieldName) && $request->input($deleteFieldName) === true) {
+            $post->clearMediaCollection($collection);
+
+            return;
+        }
+
+        // If field is not present, do nothing (keep existing media)
+        if (! $request->has($fieldName)) {
+            return;
+        }
+
+        $value = $request->input($fieldName);
+
+        // If value is null/empty, skip (already handled by delete flag above)
+        if (! $value) {
+            return;
+        }
+
+        // If value doesn't start with 'tmp-', it's an existing media URL, skip
+        if (! \Illuminate\Support\Str::startsWith($value, 'tmp-')) {
+            return;
+        }
+
+        // Clear existing media from collection first
+        $post->clearMediaCollection($collection);
+
+        // Move file from temp storage to permanent storage
+        $post->addMediaFromDisk($value, 'tmp')
+            ->usingName(pathinfo($value, PATHINFO_FILENAME))
+            ->toMediaCollection($collection);
     }
 }

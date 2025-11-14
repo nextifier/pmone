@@ -53,6 +53,10 @@ class StorePostRequest extends FormRequest
             'category_ids.*' => ['exists:categories,id'],
             'tags' => ['sometimes', 'array'],
             'tags.*' => ['string', 'max:50'],
+
+            // Media uploads
+            'tmp_featured_image' => ['nullable', 'string'],
+            'delete_featured_image' => ['nullable', 'boolean'],
         ];
     }
 
