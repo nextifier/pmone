@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exports\AggregatedAnalyticsExport;
 use App\Exports\GaPropertiesExport;
 use App\Exports\GaPropertiesTemplateExport;
+use App\Exports\PropertyAnalyticsExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GoogleAnalytics\GetAnalyticsRequest;
 use App\Http\Requests\GoogleAnalytics\StoreGaPropertyRequest;
@@ -587,6 +589,62 @@ class GoogleAnalyticsController extends Controller
         $health = $metrics->getSystemHealth();
 
         return response()->json($health);
+    }
+
+    /**
+     * Export aggregated analytics to Excel.
+     */
+    public function exportAggregatedAnalytics(GetAnalyticsRequest $request): BinaryFileResponse
+    {
+        // Rate limiting for analytics endpoints
+        $this->applyAnalyticsRateLimit($request);
+
+        // Increase execution time for API requests
+        set_time_limit(config('analytics.timeout', 120));
+
+        $period = $this->createPeriodFromRequest($request);
+        $propertyIds = $request->input('property_ids');
+
+        $analytics = $this->analyticsService->getAggregatedAnalytics($period, $propertyIds);
+
+        $export = new AggregatedAnalyticsExport(
+            $analytics,
+            $period->startDate->format('Y-m-d'),
+            $period->endDate->format('Y-m-d')
+        );
+
+        $filename = 'aggregated_analytics_'.$period->startDate->format('Y-m-d').'_to_'.$period->endDate->format('Y-m-d').'.xlsx';
+
+        return Excel::download($export, $filename);
+    }
+
+    /**
+     * Export property analytics to Excel.
+     */
+    public function exportPropertyAnalytics(GetAnalyticsRequest $request, string $id): BinaryFileResponse
+    {
+        // Rate limiting for analytics endpoints
+        $this->applyAnalyticsRateLimit($request);
+
+        // Increase execution time for API requests
+        set_time_limit(config('analytics.timeout', 120));
+
+        // Find property by property_id (Google Analytics Property ID), not database id
+        $property = GaProperty::where('property_id', $id)->firstOrFail();
+
+        $period = $this->createPeriodFromRequest($request);
+
+        $analytics = $this->analyticsService->getPropertyAnalytics($property, $period);
+
+        $export = new PropertyAnalyticsExport(
+            $analytics,
+            $period->startDate->format('Y-m-d'),
+            $period->endDate->format('Y-m-d')
+        );
+
+        $filename = 'property_analytics_'.$property->property_id.'_'.$period->startDate->format('Y-m-d').'_to_'.$period->endDate->format('Y-m-d').'.xlsx';
+
+        return Excel::download($export, $filename);
     }
 
     /**

@@ -167,7 +167,9 @@ Route::middleware(['auth:sanctum'])->prefix('google-analytics')->group(function 
     // Analytics data endpoints
     Route::get('/properties', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getProperties']);
     Route::get('/properties/{id}/analytics', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getPropertyAnalytics']);
+    Route::get('/properties/{id}/analytics/export', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'exportPropertyAnalytics']);
     Route::get('/aggregate', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getAggregatedAnalytics']);
+    Route::get('/aggregate/export', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'exportAggregatedAnalytics']);
     Route::get('/realtime', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getRealtimeActiveUsers']);
     Route::post('/sync', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'sync']);
     Route::post('/aggregate', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'aggregate']);
