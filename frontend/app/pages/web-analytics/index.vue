@@ -21,10 +21,16 @@
 
       <div class="ml-auto flex shrink-0 items-center gap-2">
         <button
+          @click="exportAnalytics"
+          :disabled="isExporting || loading"
           class="border-border hover:bg-muted flex h-8 items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Icon name="hugeicons:file-export" class="size-4 shrink-0" />
-          <span>Export</span>
+          <Icon
+            :name="isExporting ? 'hugeicons:loading-01' : 'hugeicons:file-export'"
+            class="size-4 shrink-0"
+            :class="{ 'animate-spin': isExporting }"
+          />
+          <span>{{ isExporting ? "Exporting..." : "Export" }}</span>
         </button>
 
         <ClientOnly>
@@ -789,6 +795,52 @@ const clearRateLimit = async () => {
     });
   } finally {
     clearingRateLimit.value = false;
+  }
+};
+
+// Export analytics
+const isExporting = ref(false);
+
+const exportAnalytics = async () => {
+  if (isExporting.value) return;
+
+  isExporting.value = true;
+
+  try {
+    const startDateStr = startDate.value.format("YYYY-MM-DD");
+    const endDateStr = endDate.value.format("YYYY-MM-DD");
+
+    // Create download link
+    const url = `/api/google-analytics/aggregate/export?start_date=${startDateStr}&end_date=${endDateStr}`;
+
+    // Use sanctumFetch to download the file
+    const response = await sanctumFetch(url, {
+      method: "GET",
+    });
+
+    // Create blob from response
+    const blob = new Blob([response], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    // Create download link
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.download = `aggregated_analytics_${startDateStr}_to_${endDateStr}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
+
+    toast.success("Analytics exported successfully");
+  } catch (error) {
+    console.error("Error exporting analytics:", error);
+    toast.error("Failed to export analytics", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    isExporting.value = false;
   }
 };
 
