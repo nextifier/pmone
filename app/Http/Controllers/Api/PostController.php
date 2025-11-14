@@ -121,7 +121,18 @@ class PostController extends Controller
             $post = Post::create($data);
 
             // Attach relationships
-            if (isset($data['author_ids'])) {
+            if (isset($data['authors'])) {
+                // Sync authors with pivot data (role and order)
+                $authorsData = [];
+                foreach ($data['authors'] as $author) {
+                    $authorsData[$author['user_id']] = [
+                        'role' => $author['role'],
+                        'order' => $author['order'] ?? 0,
+                    ];
+                }
+                $post->authors()->sync($authorsData);
+            } elseif (isset($data['author_ids'])) {
+                // Fallback to simple author_ids
                 $post->authors()->sync($data['author_ids']);
             }
 
@@ -163,7 +174,18 @@ class PostController extends Controller
             $post->update($data);
 
             // Update relationships if provided
-            if (isset($data['author_ids'])) {
+            if (isset($data['authors'])) {
+                // Sync authors with pivot data (role and order)
+                $authorsData = [];
+                foreach ($data['authors'] as $author) {
+                    $authorsData[$author['user_id']] = [
+                        'role' => $author['role'],
+                        'order' => $author['order'] ?? 0,
+                    ];
+                }
+                $post->authors()->sync($authorsData);
+            } elseif (isset($data['author_ids'])) {
+                // Fallback to simple author_ids
                 $post->authors()->sync($data['author_ids']);
             }
 
