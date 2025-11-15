@@ -33,7 +33,7 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => false, // Use custom storage route for CORS support
+            'serve' => true,
             'throw' => false,
             'report' => false,
         ],
