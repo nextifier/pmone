@@ -25,6 +25,13 @@ class StorageController extends Controller
 
         abort_if(! file_exists($filePath), 404);
 
-        return response()->file($filePath);
+        $response = response()->file($filePath);
+
+        // Add CORS headers to allow PDF export from frontend
+        $response->headers->set('Access-Control-Allow-Origin', '*');
+        $response->headers->set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        $response->headers->set('Access-Control-Allow-Headers', 'Content-Type');
+
+        return $response;
     }
 }
