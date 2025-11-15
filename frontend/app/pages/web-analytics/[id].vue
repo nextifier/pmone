@@ -696,19 +696,17 @@ const exportToPDF = async () => {
     container.appendChild(clone);
     document.body.appendChild(container);
 
-    // Reload images with crossOrigin to prevent tainted canvas
+    // Remove external images (profile images) that cause tainted canvas
+    // Keep only data URLs and remove others to prevent CORS issues
     const images = container.querySelectorAll("img");
-    for (const img of images) {
+    images.forEach((img) => {
       if (img.src && !img.src.startsWith("data:")) {
-        const src = img.src;
-        img.crossOrigin = "anonymous";
-        img.src = ""; // Clear
-        img.src = src; // Reload with crossOrigin
+        // Remove profile images and other external images
+        img.remove();
       }
-    }
+    });
 
-    // Wait for images to reload
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Dynamic import for client-side only libraries
     const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
@@ -719,8 +717,8 @@ const exportToPDF = async () => {
     // Convert element to canvas
     const canvas = await html2canvas(clone, {
       scale: 2,
-      useCORS: true,
-      allowTaint: false,
+      allowTaint: true,
+      useCORS: false,
       logging: false,
       backgroundColor: "#ffffff",
     });
