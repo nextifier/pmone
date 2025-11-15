@@ -686,17 +686,56 @@ const exportToPDF = async () => {
     );
     elementsToRemove.forEach((el) => el.remove());
 
+    // Create a temporary container for the clone
+    const container = document.createElement("div");
+    container.style.position = "absolute";
+    container.style.left = "-9999px";
+    container.style.top = "0";
+    container.style.width = "1200px";
+    container.appendChild(clone);
+    document.body.appendChild(container);
+
+    // Get all computed styles and convert oklch to rgb
+    const allElements = container.querySelectorAll("*");
+    allElements.forEach((el) => {
+      const computed = window.getComputedStyle(el);
+
+      // Convert background color
+      if (computed.backgroundColor && computed.backgroundColor.includes("oklch")) {
+        el.style.backgroundColor = computed.backgroundColor;
+      }
+
+      // Convert text color
+      if (computed.color && computed.color.includes("oklch")) {
+        el.style.color = computed.color;
+      }
+
+      // Convert border color
+      if (computed.borderColor && computed.borderColor.includes("oklch")) {
+        el.style.borderColor = computed.borderColor;
+      }
+    });
+
     // Configure PDF options
     const opt = {
       margin: 10,
       filename: `${propertyName}_analytics_${startDateStr}_to_${endDateStr}.pdf`,
       image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        allowTaint: true,
+        backgroundColor: "#ffffff"
+      },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
     };
 
     // Generate and download PDF
     await html2pdf().set(opt).from(clone).save();
+
+    // Clean up
+    document.body.removeChild(container);
 
     toast.success("Analytics exported to PDF successfully");
   } catch (error) {
