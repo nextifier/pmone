@@ -696,6 +696,26 @@ const exportToPDF = async () => {
     container.appendChild(clone);
     document.body.appendChild(container);
 
+    // Convert images to data URLs to prevent tainted canvas (especially profile images from CDN)
+    const images = container.querySelectorAll("img");
+    for (const img of images) {
+      if (!img.src || img.src.startsWith("data:")) continue;
+
+      try {
+        const response = await fetch(img.src, { mode: "cors", credentials: "same-origin" });
+        const blob = await response.blob();
+        const reader = new FileReader();
+        const dataUrl = await new Promise((resolve) => {
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+        img.src = dataUrl;
+      } catch (e) {
+        // If fetch fails, hide the image
+        img.style.display = "none";
+      }
+    }
+
     // Wait for content to render
     await new Promise((resolve) => setTimeout(resolve, 500));
 
