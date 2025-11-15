@@ -827,21 +827,21 @@ const exportToPDF = async () => {
     // Get all computed styles and convert oklch to rgb
     const allElements = container.querySelectorAll("*");
     allElements.forEach((el) => {
-      const computed = window.getComputedStyle(el);
+      const styles = window.getComputedStyle(el);
 
       // Convert background color
-      if (computed.backgroundColor && computed.backgroundColor.includes("oklch")) {
-        el.style.backgroundColor = computed.backgroundColor;
+      if (styles.backgroundColor && styles.backgroundColor.includes("oklch")) {
+        el.style.backgroundColor = styles.backgroundColor;
       }
 
       // Convert text color
-      if (computed.color && computed.color.includes("oklch")) {
-        el.style.color = computed.color;
+      if (styles.color && styles.color.includes("oklch")) {
+        el.style.color = styles.color;
       }
 
       // Convert border color
-      if (computed.borderColor && computed.borderColor.includes("oklch")) {
-        el.style.borderColor = computed.borderColor;
+      if (styles.borderColor && styles.borderColor.includes("oklch")) {
+        el.style.borderColor = styles.borderColor;
       }
     });
 
