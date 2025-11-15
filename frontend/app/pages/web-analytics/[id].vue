@@ -669,151 +669,36 @@ const exportToPDF = async () => {
     const propertyId = route.params.id;
     const startDateStr = startDate.value.format("YYYY-MM-DD");
     const endDateStr = endDate.value.format("YYYY-MM-DD");
-    const propertyName = propertyData.value?.property?.name || "property";
 
-    // Get the page content for PDF
-    const element = document.querySelector(".min-h-screen-offset");
-    if (!element) {
-      throw new Error("Content element not found");
-    }
+    // Create download link to backend API
+    const url = `/api/google-analytics/properties/${propertyId}/analytics/export-pdf?start_date=${startDateStr}&end_date=${endDateStr}`;
 
-    const clone = element.cloneNode(true);
-
-    // Remove interactive elements and buttons from the clone
-    const elementsToRemove = clone.querySelectorAll(
-      "button, .border-border.hover\\:bg-muted, [data-slot='dropdown-menu']"
-    );
-    elementsToRemove.forEach((el) => el.remove());
-
-    // Create a temporary container for the clone
-    const container = document.createElement("div");
-    container.style.position = "absolute";
-    container.style.left = "-9999px";
-    container.style.top = "0";
-    container.style.width = "800px"; // Optimal width for A4 PDF
-    container.style.padding = "20px";
-    container.style.backgroundColor = "#ffffff";
-    container.appendChild(clone);
-    document.body.appendChild(container);
-
-    // Remove external images (profile images) that cause tainted canvas
-    // Keep only data URLs and remove others to prevent CORS issues
-    const images = container.querySelectorAll("img");
-    images.forEach((img) => {
-      if (img.src && !img.src.startsWith("data:")) {
-        // Remove profile images and other external images
-        img.remove();
-      }
+    // Use sanctumFetch to download the file with authentication
+    const response = await sanctumFetch(url, {
+      method: "GET",
+      responseType: "blob",
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // Dynamic import for client-side only libraries
-    const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
-      import("html2canvas-pro"),
-      import("jspdf"),
-    ]);
-
-    // Convert element to canvas
-    const canvas = await html2canvas(clone, {
-      scale: 2,
-      allowTaint: true,
-      useCORS: false,
-      logging: false,
-      backgroundColor: "#ffffff",
+    // Create blob from response
+    const blob = new Blob([response], {
+      type: "application/pdf",
     });
 
-    // Clean up temporary container
-    document.body.removeChild(container);
-
-    // PDF configuration
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-
-    // Margins (in mm)
-    const margin = 15;
-    const contentWidth = pdfWidth - margin * 2;
-    const contentHeight = pdfHeight - margin * 2;
-
-    // Calculate image dimensions to fit within margins
-    const imgWidth = contentWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    // Simple multi-page approach: split canvas into pages based on A4 height
-    if (imgHeight <= contentHeight) {
-      // Single page - content fits
-      pdf.addImage(
-        canvas.toDataURL("image/jpeg", 0.95),
-        "JPEG",
-        margin,
-        margin,
-        imgWidth,
-        imgHeight
-      );
-    } else {
-      // Multiple pages needed
-      // Calculate how much canvas height fits in one PDF page (accounting for scale=2)
-      const pageHeightInCanvas = (contentHeight * canvas.width) / imgWidth;
-      let currentY = 0;
-      let pageNumber = 0;
-
-      while (currentY < canvas.height) {
-        if (pageNumber > 0) {
-          pdf.addPage();
-        }
-
-        // Calculate slice height for this page
-        const remainingHeight = canvas.height - currentY;
-        const sliceHeight = Math.min(pageHeightInCanvas, remainingHeight);
-
-        // Create temporary canvas for this page
-        const pageCanvas = document.createElement("canvas");
-        pageCanvas.width = canvas.width;
-        pageCanvas.height = sliceHeight;
-
-        const ctx = pageCanvas.getContext("2d");
-        if (ctx) {
-          // Draw the slice from the main canvas
-          ctx.drawImage(
-            canvas,
-            0,
-            currentY,
-            canvas.width,
-            sliceHeight,
-            0,
-            0,
-            canvas.width,
-            sliceHeight
-          );
-
-          // Calculate PDF dimensions for this slice
-          const pdfSliceHeight = (sliceHeight * imgWidth) / canvas.width;
-
-          // Add to PDF
-          pdf.addImage(
-            pageCanvas.toDataURL("image/jpeg", 0.95),
-            "JPEG",
-            margin,
-            margin,
-            imgWidth,
-            pdfSliceHeight
-          );
-        }
-
-        currentY += sliceHeight;
-        pageNumber++;
-      }
-    }
-
-    // Download PDF
-    pdf.save(`${propertyName}_analytics_${startDateStr}_to_${endDateStr}.pdf`);
+    // Create download link
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.download = `property_analytics_${propertyId}_${startDateStr}_to_${endDateStr}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
 
     toast.success("Analytics exported to PDF successfully");
   } catch (error) {
     console.error("Error exporting to PDF:", error);
     toast.error("Failed to export to PDF", {
-      description: error?.message || "An error occurred",
+      description: error?.data?.message || error?.message || "An error occurred",
     });
   } finally {
     isExporting.value = false;
