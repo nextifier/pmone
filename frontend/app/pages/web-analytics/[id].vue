@@ -268,7 +268,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "vue-sonner";
-import html2pdf from "html2pdf.js";
+import html2canvas from "html2canvas-pro";
+import { jsPDF } from "jspdf";
 
 const { $dayjs } = useNuxtApp();
 const route = useRoute();
@@ -672,7 +673,7 @@ const exportToPDF = async () => {
     const endDateStr = endDate.value.format("YYYY-MM-DD");
     const propertyName = propertyData.value?.property?.name || "property";
 
-    // Create a clone of the page content for PDF
+    // Get the page content for PDF
     const element = document.querySelector(".min-h-screen-offset");
     if (!element) {
       throw new Error("Content element not found");
@@ -695,54 +696,44 @@ const exportToPDF = async () => {
     container.appendChild(clone);
     document.body.appendChild(container);
 
-    // Apply all computed color styles as inline styles to override oklch colors
-    const allElements = container.querySelectorAll("*");
-    const colorProperties = [
-      'backgroundColor',
-      'color',
-      'borderTopColor',
-      'borderRightColor',
-      'borderBottomColor',
-      'borderLeftColor',
-      'outlineColor',
-      'textDecorationColor',
-      'fill',
-      'stroke'
-    ];
-
-    allElements.forEach((el) => {
-      const styles = window.getComputedStyle(el);
-
-      // Apply all color properties as inline styles
-      // Browser will resolve oklch to rgb in computed styles
-      colorProperties.forEach(prop => {
-        const value = styles[prop];
-        if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'transparent') {
-          el.style[prop] = value;
-        }
-      });
+    // Convert element to canvas using html2canvas-pro (supports oklch)
+    const canvas = await html2canvas(clone, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: "#ffffff",
     });
 
-    // Configure PDF options
-    const opt = {
-      margin: 10,
-      filename: `${propertyName}_analytics_${startDateStr}_to_${endDateStr}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        allowTaint: true,
-        backgroundColor: "#ffffff"
-      },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-    };
-
-    // Generate and download PDF
-    await html2pdf().set(opt).from(clone).save();
-
-    // Clean up
+    // Clean up temporary container
     document.body.removeChild(container);
+
+    // Get canvas dimensions
+    const imgWidth = 210; // A4 width in mm
+    const pageHeight = 297; // A4 height in mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let heightLeft = imgHeight;
+
+    // Convert canvas to image
+    const imgData = canvas.toDataURL("image/jpeg", 0.98);
+
+    // Create PDF using jsPDF
+    const pdf = new jsPDF("p", "mm", "a4");
+    let position = 0;
+
+    // Add first page
+    pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    // Add additional pages if content is longer than one page
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    // Download PDF
+    pdf.save(`${propertyName}_analytics_${startDateStr}_to_${endDateStr}.pdf`);
 
     toast.success("Analytics exported to PDF successfully");
   } catch (error) {
