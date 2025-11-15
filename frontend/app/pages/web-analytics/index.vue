@@ -825,23 +825,45 @@ const exportToPDF = async () => {
 
     // Convert images to data URLs to prevent tainted canvas (especially profile images from CDN)
     const images = container.querySelectorAll("img");
-    for (const img of images) {
-      if (!img.src || img.src.startsWith("data:")) continue;
+    const imagePromises = Array.from(images).map(async (img) => {
+      if (!img.src || img.src.startsWith("data:")) return;
 
       try {
-        const response = await fetch(img.src, { mode: "cors", credentials: "same-origin" });
+        const response = await fetch(img.src, {
+          mode: "cors",
+          credentials: "include",
+          headers: { "Accept": "image/*" }
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
         const blob = await response.blob();
-        const reader = new FileReader();
-        const dataUrl = await new Promise((resolve) => {
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
           reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
           reader.readAsDataURL(blob);
         });
+
         img.src = dataUrl;
+
+        // Wait for image to actually load
+        if (!img.complete) {
+          await new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+            setTimeout(resolve, 1000);
+          });
+        }
       } catch (e) {
-        // If fetch fails, hide the image
-        img.style.display = "none";
+        console.warn("Failed to load image:", img.src, e);
+        // Don't hide - let html2canvas try with crossOrigin
+        img.crossOrigin = "anonymous";
       }
-    }
+    });
+
+    // Wait for all images to process
+    await Promise.all(imagePromises);
 
     // Wait for content to render
     await new Promise((resolve) => setTimeout(resolve, 500));
