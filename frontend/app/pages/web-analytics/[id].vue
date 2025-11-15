@@ -42,18 +42,31 @@
           <span>Refresh</span>
         </button> -->
 
-        <button
-          @click="exportAnalytics"
-          :disabled="isExporting || loading"
-          class="border-border hover:bg-muted flex h-8 items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Icon
-            :name="isExporting ? 'hugeicons:loading-01' : 'hugeicons:file-export'"
-            class="size-4 shrink-0"
-            :class="{ 'animate-spin': isExporting }"
-          />
-          <span>{{ isExporting ? "Exporting..." : "Export" }}</span>
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <button
+              :disabled="isExporting || loading"
+              class="border-border hover:bg-muted flex h-8 items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Icon
+                :name="isExporting ? 'hugeicons:loading-01' : 'hugeicons:file-export'"
+                class="size-4 shrink-0"
+                :class="{ 'animate-spin': isExporting }"
+              />
+              <span>{{ isExporting ? "Exporting..." : "Export" }}</span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem @click="exportToExcel">
+              <Icon name="hugeicons:file-export" class="size-4 shrink-0" />
+              Export to Excel
+            </DropdownMenuItem>
+            <DropdownMenuItem @click="exportToPDF">
+              <Icon name="hugeicons:file-02" class="size-4 shrink-0" />
+              Export to PDF
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <ClientOnly>
           <DateRangeSelect v-model="selectedRange" />
@@ -248,7 +261,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "vue-sonner";
+import html2pdf from "html2pdf.js";
 
 const { $dayjs } = useNuxtApp();
 const route = useRoute();
@@ -597,7 +617,7 @@ const getDateRangeLabel = () => {
 // Export analytics
 const isExporting = ref(false);
 
-const exportAnalytics = async () => {
+const exportToExcel = async () => {
   if (isExporting.value) return;
 
   isExporting.value = true;
@@ -630,11 +650,59 @@ const exportAnalytics = async () => {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(downloadUrl);
 
-    toast.success("Analytics exported successfully");
+    toast.success("Analytics exported to Excel successfully");
   } catch (error) {
     console.error("Error exporting analytics:", error);
     toast.error("Failed to export analytics", {
       description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    isExporting.value = false;
+  }
+};
+
+const exportToPDF = async () => {
+  if (isExporting.value) return;
+
+  isExporting.value = true;
+
+  try {
+    const propertyId = route.params.id;
+    const startDateStr = startDate.value.format("YYYY-MM-DD");
+    const endDateStr = endDate.value.format("YYYY-MM-DD");
+    const propertyName = propertyData.value?.property?.name || "property";
+
+    // Create a clone of the page content for PDF
+    const element = document.querySelector(".min-h-screen-offset");
+    if (!element) {
+      throw new Error("Content element not found");
+    }
+
+    const clone = element.cloneNode(true);
+
+    // Remove interactive elements and buttons from the clone
+    const elementsToRemove = clone.querySelectorAll(
+      "button, .border-border.hover\\:bg-muted, [data-slot='dropdown-menu']"
+    );
+    elementsToRemove.forEach((el) => el.remove());
+
+    // Configure PDF options
+    const opt = {
+      margin: 10,
+      filename: `${propertyName}_analytics_${startDateStr}_to_${endDateStr}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+    };
+
+    // Generate and download PDF
+    await html2pdf().set(opt).from(clone).save();
+
+    toast.success("Analytics exported to PDF successfully");
+  } catch (error) {
+    console.error("Error exporting to PDF:", error);
+    toast.error("Failed to export to PDF", {
+      description: error?.message || "An error occurred",
     });
   } finally {
     isExporting.value = false;
