@@ -695,25 +695,32 @@ const exportToPDF = async () => {
     container.appendChild(clone);
     document.body.appendChild(container);
 
-    // Get all computed styles and convert oklch to rgb
+    // Apply all computed color styles as inline styles to override oklch colors
     const allElements = container.querySelectorAll("*");
+    const colorProperties = [
+      'backgroundColor',
+      'color',
+      'borderTopColor',
+      'borderRightColor',
+      'borderBottomColor',
+      'borderLeftColor',
+      'outlineColor',
+      'textDecorationColor',
+      'fill',
+      'stroke'
+    ];
+
     allElements.forEach((el) => {
       const styles = window.getComputedStyle(el);
 
-      // Convert background color
-      if (styles.backgroundColor && styles.backgroundColor.includes("oklch")) {
-        el.style.backgroundColor = styles.backgroundColor;
-      }
-
-      // Convert text color
-      if (styles.color && styles.color.includes("oklch")) {
-        el.style.color = styles.color;
-      }
-
-      // Convert border color
-      if (styles.borderColor && styles.borderColor.includes("oklch")) {
-        el.style.borderColor = styles.borderColor;
-      }
+      // Apply all color properties as inline styles
+      // Browser will resolve oklch to rgb in computed styles
+      colorProperties.forEach(prop => {
+        const value = styles[prop];
+        if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'transparent') {
+          el.style[prop] = value;
+        }
+      });
     });
 
     // Configure PDF options
