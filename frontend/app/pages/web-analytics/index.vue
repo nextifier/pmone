@@ -823,47 +823,13 @@ const exportToPDF = async () => {
     container.appendChild(clone);
     document.body.appendChild(container);
 
-    // Convert images to data URLs to prevent tainted canvas (especially profile images from CDN)
+    // Set crossOrigin for all images to work with CORS
     const images = container.querySelectorAll("img");
-    const imagePromises = Array.from(images).map(async (img) => {
-      if (!img.src || img.src.startsWith("data:")) return;
-
-      try {
-        const response = await fetch(img.src, {
-          mode: "cors",
-          credentials: "include",
-          headers: { "Accept": "image/*" }
-        });
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const blob = await response.blob();
-        const dataUrl = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
-
-        img.src = dataUrl;
-
-        // Wait for image to actually load
-        if (!img.complete) {
-          await new Promise((resolve) => {
-            img.onload = resolve;
-            img.onerror = resolve;
-            setTimeout(resolve, 1000);
-          });
-        }
-      } catch (e) {
-        console.warn("Failed to load image:", img.src, e);
-        // Don't hide - let html2canvas try with crossOrigin
+    images.forEach((img) => {
+      if (img.src && !img.src.startsWith("data:")) {
         img.crossOrigin = "anonymous";
       }
     });
-
-    // Wait for all images to process
-    await Promise.all(imagePromises);
 
     // Wait for content to render
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -877,8 +843,8 @@ const exportToPDF = async () => {
     // Convert element to canvas
     const canvas = await html2canvas(clone, {
       scale: 2,
-      allowTaint: true,
-      useCORS: false,
+      useCORS: true,
+      allowTaint: false,
       logging: false,
       backgroundColor: "#ffffff",
     });
