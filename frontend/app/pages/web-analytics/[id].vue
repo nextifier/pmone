@@ -58,11 +58,11 @@
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem @click="exportToExcel">
-              <Icon name="hugeicons:file-export" class="size-4 shrink-0" />
+              <Icon name="hugeicons:xls-01" class="size-4 shrink-0" />
               Export to Excel
             </DropdownMenuItem>
             <DropdownMenuItem @click="exportToPDF">
-              <Icon name="hugeicons:file-02" class="size-4 shrink-0" />
+              <Icon name="hugeicons:pdf-01" class="size-4 shrink-0" />
               Export to PDF
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -255,21 +255,19 @@ import AnalyticsTopPagesList from "@/components/analytics/TopPagesList.vue";
 import AnalyticsTrafficSourcesList from "@/components/analytics/TrafficSourcesList.vue";
 import ChartLineDefault from "@/components/chart/LineDefault.vue";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { toast } from "vue-sonner";
-import html2canvas from "html2canvas-pro";
-import { jsPDF } from "jspdf";
 
 const { $dayjs } = useNuxtApp();
 const route = useRoute();
@@ -698,38 +696,88 @@ const exportToPDF = async () => {
     container.appendChild(clone);
     document.body.appendChild(container);
 
-    // Wait for images to load
-    const images = container.querySelectorAll("img");
-    await Promise.all(
-      Array.from(images).map((img) => {
-        if (img.complete) return Promise.resolve();
-        return new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = resolve; // Continue even if image fails to load
-          // Set crossorigin for CORS images
-          if (!img.crossOrigin) {
-            img.crossOrigin = "anonymous";
+    // Convert all images (including SVG icons) to data URLs to avoid CORS issues
+    const images = container.querySelectorAll("img, svg image");
+    const imagePromises = Array.from(images).map(async (img) => {
+      if (!img.src && !img.href) return;
+
+      const imgSrc = img.src || (img.href ? img.href.baseVal : null);
+      if (!imgSrc) return;
+
+      try {
+        // For localhost/local images, fetch and convert to data URL
+        if (
+          imgSrc.startsWith("http://localhost") ||
+          imgSrc.startsWith("http://127.0.0.1") ||
+          imgSrc.startsWith(window.location.origin)
+        ) {
+          const response = await fetch(imgSrc, {
+            credentials: "include",
+            mode: "cors",
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to fetch: ${response.status}`);
           }
-        });
-      })
-    );
+
+          const blob = await response.blob();
+          const dataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+
+          if (img.src) {
+            img.src = dataUrl;
+          } else if (img.href) {
+            img.href.baseVal = dataUrl;
+          }
+        }
+
+        // Wait for image to load
+        if (img.complete !== undefined && !img.complete) {
+          await new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+            setTimeout(resolve, 100); // Timeout fallback
+          });
+        }
+      } catch (err) {
+        // Silently hide failed images
+        if (img.style) {
+          img.style.display = "none";
+        }
+      }
+    });
+
+    // Wait for all images with timeout
+    await Promise.race([
+      Promise.all(imagePromises),
+      new Promise((resolve) => setTimeout(resolve, 5000)),
+    ]);
+
+    // Wait for any dynamic content to render
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Dynamic import for client-side only libraries
+    const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+      import("html2canvas-pro"),
+      import("jspdf"),
+    ]);
 
     // Convert element to canvas using html2canvas-pro (supports oklch)
     const canvas = await html2canvas(clone, {
       scale: 2,
-      useCORS: true,
-      allowTaint: false,
+      useCORS: false,
+      allowTaint: true,
       logging: false,
       backgroundColor: "#ffffff",
-      imageTimeout: 15000,
-      onclone: (clonedDoc) => {
-        // Ensure all images in cloned document have crossOrigin set
-        const clonedImages = clonedDoc.querySelectorAll("img");
-        clonedImages.forEach((img) => {
-          if (!img.crossOrigin) {
-            img.crossOrigin = "anonymous";
-          }
-        });
+      imageTimeout: 0,
+      removeContainer: false,
+      ignoreElements: (element) => {
+        // Ignore SVG elements that might cause issues
+        return element.tagName === "svg" && element.querySelector("image");
       },
     });
 
@@ -743,15 +791,16 @@ const exportToPDF = async () => {
 
     // Margins (in mm)
     const margin = 15;
-    const contentWidth = pdfWidth - (margin * 2);
-    const contentHeight = pdfHeight - (margin * 2);
+    const contentWidth = pdfWidth - margin * 2;
+    const contentHeight = pdfHeight - margin * 2;
 
     // Calculate image dimensions to fit within margins
     const imgWidth = contentWidth;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    // If content fits in one page
+    // Simple multi-page approach: split canvas into pages based on A4 height
     if (imgHeight <= contentHeight) {
+      // Single page - content fits
       pdf.addImage(
         canvas.toDataURL("image/jpeg", 0.95),
         "JPEG",
@@ -761,40 +810,57 @@ const exportToPDF = async () => {
         imgHeight
       );
     } else {
-      // Multi-page: split content to avoid cutting elements
-      const pageCount = Math.ceil(imgHeight / contentHeight);
+      // Multiple pages needed
+      // Calculate how much canvas height fits in one PDF page (accounting for scale=2)
+      const pageHeightInCanvas = (contentHeight * canvas.width) / imgWidth;
+      let currentY = 0;
+      let pageNumber = 0;
 
-      for (let i = 0; i < pageCount; i++) {
-        if (i > 0) {
+      while (currentY < canvas.height) {
+        if (pageNumber > 0) {
           pdf.addPage();
         }
 
-        // Calculate the portion of the image for this page
-        const sourceY = i * (canvas.height / pageCount);
-        const sourceHeight = canvas.height / pageCount;
+        // Calculate slice height for this page
+        const remainingHeight = canvas.height - currentY;
+        const sliceHeight = Math.min(pageHeightInCanvas, remainingHeight);
 
-        // Create a temporary canvas for this page's content
+        // Create temporary canvas for this page
         const pageCanvas = document.createElement("canvas");
         pageCanvas.width = canvas.width;
-        pageCanvas.height = sourceHeight;
+        pageCanvas.height = sliceHeight;
 
         const ctx = pageCanvas.getContext("2d");
-        ctx.drawImage(
-          canvas,
-          0, sourceY, canvas.width, sourceHeight,
-          0, 0, canvas.width, sourceHeight
-        );
+        if (ctx) {
+          // Draw the slice from the main canvas
+          ctx.drawImage(
+            canvas,
+            0,
+            currentY,
+            canvas.width,
+            sliceHeight,
+            0,
+            0,
+            canvas.width,
+            sliceHeight
+          );
 
-        const pageHeight = (sourceHeight * imgWidth) / canvas.width;
+          // Calculate PDF dimensions for this slice
+          const pdfSliceHeight = (sliceHeight * imgWidth) / canvas.width;
 
-        pdf.addImage(
-          pageCanvas.toDataURL("image/jpeg", 0.95),
-          "JPEG",
-          margin,
-          margin,
-          imgWidth,
-          pageHeight
-        );
+          // Add to PDF
+          pdf.addImage(
+            pageCanvas.toDataURL("image/jpeg", 0.95),
+            "JPEG",
+            margin,
+            margin,
+            imgWidth,
+            pdfSliceHeight
+          );
+        }
+
+        currentY += sliceHeight;
+        pageNumber++;
       }
     }
 
