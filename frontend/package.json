@@ -89,7 +89,8 @@
     "@tiptap/pm": "^3.10.7",
     "@tiptap/starter-kit": "^3.10.7",
     "@tiptap/vue-3": "^3.10.7",
-    "html2pdf.js": "^0.12.1",
-    "ipx": "^3.1.1"
+    "html2canvas-pro": "^1.5.13",
+    "ipx": "^3.1.1",
+    "jspdf": "^3.0.3"
   }
 }
