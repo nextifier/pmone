@@ -648,6 +648,107 @@ class GoogleAnalyticsController extends Controller
     }
 
     /**
+     * Export aggregated analytics to PDF using Browsershot.
+     */
+    public function exportAggregatedAnalyticsPdf(Request $request): BinaryFileResponse
+    {
+        // Rate limiting for analytics endpoints
+        $this->applyAnalyticsRateLimit($request);
+
+        // Increase execution time for PDF generation
+        set_time_limit(config('analytics.timeout', 180));
+
+        // Get the frontend URL from config/session
+        $frontendUrl = config('session.domain') ?? config('app.frontend_url') ?? env('FRONTEND_URL', 'http://localhost:3000');
+
+        // Build URL with query parameters
+        $url = rtrim($frontendUrl, '/').' /web-analytics?pdf=true';
+
+        // Add date parameters if provided
+        if ($request->has('start_date')) {
+            $url .= '&start_date='.$request->input('start_date');
+        }
+        if ($request->has('end_date')) {
+            $url .= '&end_date='.$request->input('end_date');
+        }
+
+        $startDate = $request->input('start_date', now()->subDays(30)->format('Y-m-d'));
+        $endDate = $request->input('end_date', now()->format('Y-m-d'));
+        $filename = 'web_analytics_'.$startDate.'_to_'.$endDate.'.pdf';
+
+        $tempPath = storage_path('app/temp/'.$filename);
+
+        // Ensure temp directory exists
+        if (! file_exists(storage_path('app/temp'))) {
+            mkdir(storage_path('app/temp'), 0755, true);
+        }
+
+        // Generate PDF using Browsershot
+        \Spatie\Browsershot\Browsershot::url($url)
+            ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
+            ->waitUntilNetworkIdle()
+            ->timeout(120)
+            ->format('A4')
+            ->margins(15, 15, 15, 15)
+            ->save($tempPath);
+
+        return response()->download($tempPath)->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Export property analytics to PDF using Browsershot.
+     */
+    public function exportPropertyAnalyticsPdf(Request $request, string $id): BinaryFileResponse
+    {
+        // Rate limiting for analytics endpoints
+        $this->applyAnalyticsRateLimit($request);
+
+        // Increase execution time for PDF generation
+        set_time_limit(config('analytics.timeout', 180));
+
+        // Find property by property_id (Google Analytics Property ID), not database id
+        $property = GaProperty::where('property_id', $id)->firstOrFail();
+
+        // Get the frontend URL from config/session
+        $frontendUrl = config('session.domain') ?? config('app.frontend_url') ?? env('FRONTEND_URL', 'http://localhost:3000');
+
+        // Build URL with query parameters
+        $url = rtrim($frontendUrl, '/').'/web-analytics/'.$id.'?pdf=true';
+
+        // Add date parameters if provided
+        if ($request->has('start_date')) {
+            $url .= '&start_date='.$request->input('start_date');
+        }
+        if ($request->has('end_date')) {
+            $url .= '&end_date='.$request->input('end_date');
+        }
+
+        $startDate = $request->input('start_date', now()->subDays(30)->format('Y-m-d'));
+        $endDate = $request->input('end_date', now()->format('Y-m-d'));
+        $filename = $property->name.'_analytics_'.$startDate.'_to_'.$endDate.'.pdf';
+        // Sanitize filename
+        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $filename);
+
+        $tempPath = storage_path('app/temp/'.$filename);
+
+        // Ensure temp directory exists
+        if (! file_exists(storage_path('app/temp'))) {
+            mkdir(storage_path('app/temp'), 0755, true);
+        }
+
+        // Generate PDF using Browsershot
+        \Spatie\Browsershot\Browsershot::url($url)
+            ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
+            ->waitUntilNetworkIdle()
+            ->timeout(120)
+            ->format('A4')
+            ->margins(15, 15, 15, 15)
+            ->save($tempPath);
+
+        return response()->download($tempPath)->deleteFileAfterSend(true);
+    }
+
+    /**
      * Apply rate limiting for analytics endpoints.
      */
     protected function applyAnalyticsRateLimit(Request $request): void
