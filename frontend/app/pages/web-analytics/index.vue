@@ -823,64 +823,91 @@ const exportToPDF = async () => {
     container.appendChild(clone);
     document.body.appendChild(container);
 
-    // Set crossOrigin for all images to enable CORS
+    // Convert profile images and other images to data URLs to avoid CORS issues
     const images = container.querySelectorAll("img");
-    images.forEach((img) => {
-      // Only set crossOrigin for images that need it (external sources)
-      if (img.src && !img.src.startsWith("data:")) {
+    const imagePromises = Array.from(images).map(async (img) => {
+      if (!img.src || img.src.startsWith("data:")) return;
+
+      try {
+        const response = await fetch(img.src, {
+          credentials: "same-origin",
+          mode: "cors",
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const blob = await response.blob();
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+
+        img.src = dataUrl;
+
+        // Wait for image to load
+        if (!img.complete) {
+          await new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+            setTimeout(resolve, 500);
+          });
+        }
+      } catch (err) {
+        console.warn("Failed to convert image:", img.src, err);
+        // Keep original image with crossOrigin
         img.crossOrigin = "anonymous";
       }
     });
 
-    // Convert large SVG charts to images to avoid tainted canvas issues
-    // Only convert SVG that are likely charts (> 100px), not icons
+    await Promise.race([
+      Promise.all(imagePromises),
+      new Promise((resolve) => setTimeout(resolve, 3000)),
+    ]);
+
+    // For SVG charts, we'll inline all computed styles to ensure they render correctly
     const svgElements = container.querySelectorAll("svg");
-    const svgConversionPromises = Array.from(svgElements).map(async (svg) => {
+    svgElements.forEach((svg) => {
       try {
         const bbox = svg.getBoundingClientRect();
-        // Only convert large SVGs (likely charts), keep small ones (icons)
+        // Only process large SVGs (likely charts)
         if (bbox.width < 100 || bbox.height < 100) {
           return;
         }
 
-        // Serialize SVG to data URL
-        const serializer = new XMLSerializer();
-        let svgString = serializer.serializeToString(svg);
+        // Inline all computed styles for the SVG and its children
+        const elements = svg.querySelectorAll("*");
+        elements.forEach((el) => {
+          const computedStyle = window.getComputedStyle(el);
+          const styleString = Array.from(computedStyle)
+            .filter((prop) => {
+              // Only include relevant style properties
+              return (
+                prop.startsWith("fill") ||
+                prop.startsWith("stroke") ||
+                prop.startsWith("font") ||
+                prop === "opacity" ||
+                prop === "color"
+              );
+            })
+            .map((prop) => `${prop}:${computedStyle.getPropertyValue(prop)}`)
+            .join(";");
 
-        // Ensure SVG has proper namespace
-        if (!svgString.includes('xmlns="http://www.w3.org/2000/svg"')) {
-          svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
-        }
-
-        const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-        const svgUrl = URL.createObjectURL(svgBlob);
-
-        // Create an image element to replace the SVG
-        const img = new Image();
-        img.width = bbox.width;
-        img.height = bbox.height;
-        img.style.cssText = svg.style.cssText;
-
-        await new Promise((resolve) => {
-          img.onload = resolve;
-          img.onerror = resolve; // Continue even if fails
-          img.src = svgUrl;
-          setTimeout(resolve, 2000); // Timeout fallback
+          if (styleString) {
+            const existingStyle = el.getAttribute("style") || "";
+            el.setAttribute("style", existingStyle + ";" + styleString);
+          }
         });
 
-        // Replace SVG with the image if load was successful
-        if (img.complete && img.naturalHeight > 0) {
-          svg.parentNode?.replaceChild(img, svg);
+        // Ensure SVG has proper namespace
+        if (!svg.getAttribute("xmlns")) {
+          svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
         }
-
-        URL.revokeObjectURL(svgUrl);
       } catch (err) {
-        // Keep the SVG if conversion fails
-        console.warn("SVG conversion failed:", err);
+        console.warn("Failed to process SVG:", err);
       }
     });
-
-    await Promise.all(svgConversionPromises);
 
     // Wait for any dynamic content to render
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -894,13 +921,13 @@ const exportToPDF = async () => {
     // Convert element to canvas using html2canvas-pro (supports oklch)
     const canvas = await html2canvas(clone, {
       scale: 2,
-      useCORS: true,
+      useCORS: false,
       allowTaint: true,
       logging: false,
       backgroundColor: "#ffffff",
-      imageTimeout: 15000,
+      imageTimeout: 0,
       removeContainer: false,
-      foreignObjectRendering: false,
+      foreignObjectRendering: true,
     });
 
     // Clean up temporary container
