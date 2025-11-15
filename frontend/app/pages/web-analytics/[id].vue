@@ -696,16 +696,19 @@ const exportToPDF = async () => {
     container.appendChild(clone);
     document.body.appendChild(container);
 
-    // Set crossOrigin for all images to work with CORS
+    // Reload images with crossOrigin to prevent tainted canvas
     const images = container.querySelectorAll("img");
-    images.forEach((img) => {
+    for (const img of images) {
       if (img.src && !img.src.startsWith("data:")) {
+        const src = img.src;
         img.crossOrigin = "anonymous";
+        img.src = ""; // Clear
+        img.src = src; // Reload with crossOrigin
       }
-    });
+    }
 
-    // Wait for content to render
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // Wait for images to reload
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Dynamic import for client-side only libraries
     const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
