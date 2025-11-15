@@ -692,44 +692,110 @@ const exportToPDF = async () => {
     container.style.position = "absolute";
     container.style.left = "-9999px";
     container.style.top = "0";
-    container.style.width = "1200px";
+    container.style.width = "800px"; // Optimal width for A4 PDF
+    container.style.padding = "20px";
+    container.style.backgroundColor = "#ffffff";
     container.appendChild(clone);
     document.body.appendChild(container);
+
+    // Wait for images to load
+    const images = container.querySelectorAll("img");
+    await Promise.all(
+      Array.from(images).map((img) => {
+        if (img.complete) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = resolve; // Continue even if image fails to load
+          // Set crossorigin for CORS images
+          if (!img.crossOrigin) {
+            img.crossOrigin = "anonymous";
+          }
+        });
+      })
+    );
 
     // Convert element to canvas using html2canvas-pro (supports oklch)
     const canvas = await html2canvas(clone, {
       scale: 2,
       useCORS: true,
+      allowTaint: false,
       logging: false,
       backgroundColor: "#ffffff",
+      imageTimeout: 15000,
+      onclone: (clonedDoc) => {
+        // Ensure all images in cloned document have crossOrigin set
+        const clonedImages = clonedDoc.querySelectorAll("img");
+        clonedImages.forEach((img) => {
+          if (!img.crossOrigin) {
+            img.crossOrigin = "anonymous";
+          }
+        });
+      },
     });
 
     // Clean up temporary container
     document.body.removeChild(container);
 
-    // Get canvas dimensions
-    const imgWidth = 210; // A4 width in mm
-    const pageHeight = 297; // A4 height in mm
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    let heightLeft = imgHeight;
-
-    // Convert canvas to image
-    const imgData = canvas.toDataURL("image/jpeg", 0.98);
-
-    // Create PDF using jsPDF
+    // PDF configuration
     const pdf = new jsPDF("p", "mm", "a4");
-    let position = 0;
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    // Add first page
-    pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
+    // Margins (in mm)
+    const margin = 15;
+    const contentWidth = pdfWidth - (margin * 2);
+    const contentHeight = pdfHeight - (margin * 2);
 
-    // Add additional pages if content is longer than one page
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+    // Calculate image dimensions to fit within margins
+    const imgWidth = contentWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    // If content fits in one page
+    if (imgHeight <= contentHeight) {
+      pdf.addImage(
+        canvas.toDataURL("image/jpeg", 0.95),
+        "JPEG",
+        margin,
+        margin,
+        imgWidth,
+        imgHeight
+      );
+    } else {
+      // Multi-page: split content to avoid cutting elements
+      const pageCount = Math.ceil(imgHeight / contentHeight);
+
+      for (let i = 0; i < pageCount; i++) {
+        if (i > 0) {
+          pdf.addPage();
+        }
+
+        // Calculate the portion of the image for this page
+        const sourceY = i * (canvas.height / pageCount);
+        const sourceHeight = canvas.height / pageCount;
+
+        // Create a temporary canvas for this page's content
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sourceHeight;
+
+        const ctx = pageCanvas.getContext("2d");
+        ctx.drawImage(
+          canvas,
+          0, sourceY, canvas.width, sourceHeight,
+          0, 0, canvas.width, sourceHeight
+        );
+
+        const pageHeight = (sourceHeight * imgWidth) / canvas.width;
+
+        pdf.addImage(
+          pageCanvas.toDataURL("image/jpeg", 0.95),
+          "JPEG",
+          margin,
+          margin,
+          imgWidth,
+          pageHeight
+        );
+      }
     }
 
     // Download PDF
