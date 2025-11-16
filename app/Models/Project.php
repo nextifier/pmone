@@ -319,6 +319,11 @@ class Project extends Model implements HasMedia, Sortable
         return $this->hasMany(GaProperty::class);
     }
 
+    public function contactFormSubmissions(): HasMany
+    {
+        return $this->hasMany(ContactFormSubmission::class);
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -347,5 +352,42 @@ class Project extends Model implements HasMedia, Sortable
     public function scopeByStatus($query, string $status)
     {
         return $query->where('status', $status);
+    }
+
+    /**
+     * Get contact form email configuration.
+     */
+    public function getContactFormEmailConfig(): array
+    {
+        $config = data_get($this->settings, 'contact_form.email_config', []);
+
+        // Fallback to project email if config is empty
+        return [
+            'to' => $config['to'] ?? ($this->email ? [$this->email] : []),
+            'cc' => $config['cc'] ?? [],
+            'bcc' => $config['bcc'] ?? [],
+            'from_name' => $config['from_name'] ?? $this->name,
+            'reply_to' => $config['reply_to'] ?? $this->email,
+        ];
+    }
+
+    /**
+     * Check if contact form is enabled.
+     */
+    public function isContactFormEnabled(): bool
+    {
+        return data_get($this->settings, 'contact_form.enabled', false);
+    }
+
+    /**
+     * Get contact form auto-reply configuration.
+     */
+    public function getContactFormAutoReplyConfig(): array
+    {
+        return data_get($this->settings, 'contact_form.auto_reply', [
+            'enabled' => false,
+            'subject' => 'Thank you for contacting us',
+            'body' => 'We have received your message and will get back to you soon.',
+        ]);
     }
 }
