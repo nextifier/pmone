@@ -268,6 +268,8 @@
       </div>
     </div>
 
+    <ContactFormEmailConfig v-model="form.settings.contact_form" />
+
     <div class="flex justify-end">
       <button
         type="submit"
@@ -323,6 +325,18 @@ function createEmptyForm() {
     member_ids: [],
     links: [],
     phones: [],
+    settings: {
+      contact_form: {
+        enabled: false,
+        email_config: {
+          to: [],
+          cc: [],
+          bcc: [],
+          from_name: "",
+          reply_to: "",
+        },
+      },
+    },
   };
 }
 
@@ -487,6 +501,22 @@ function populateForm(data) {
     }));
 
     form.phones.push(...formattedPhones);
+  }
+
+  // Handle settings
+  if (data.settings) {
+    if (data.settings.contact_form) {
+      form.settings.contact_form = {
+        enabled: data.settings.contact_form.enabled || false,
+        email_config: {
+          to: data.settings.contact_form.email_config?.to || [],
+          cc: data.settings.contact_form.email_config?.cc || [],
+          bcc: data.settings.contact_form.email_config?.bcc || [],
+          from_name: data.settings.contact_form.email_config?.from_name || "",
+          reply_to: data.settings.contact_form.email_config?.reply_to || "",
+        },
+      };
+    }
   }
 
   // Clear file uploads and reset delete flags
