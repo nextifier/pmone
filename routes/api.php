@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\ApiConsumerController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\ContactFormController;
+use App\Http\Controllers\Api\ContactFormSubmissionController;
 use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\ProfileController;
@@ -124,6 +126,15 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/{shortLink:slug}', [ShortLinkController::class, 'destroy'])->name('short-links.destroy');
         Route::get('/{shortLink:slug}/analytics', [ShortLinkController::class, 'getAnalytics'])->name('short-links.analytics');
     });
+
+    // Contact form submission management (inbox)
+    Route::prefix('contact-form-submissions')->group(function () {
+        Route::get('/', [ContactFormSubmissionController::class, 'index'])->name('contact-form-submissions.index');
+        Route::get('/{contactFormSubmission:ulid}', [ContactFormSubmissionController::class, 'show'])->name('contact-form-submissions.show');
+        Route::patch('/{contactFormSubmission:ulid}/status', [ContactFormSubmissionController::class, 'updateStatus'])->name('contact-form-submissions.update-status');
+        Route::patch('/{contactFormSubmission:ulid}/follow-up', [ContactFormSubmissionController::class, 'markAsFollowedUp'])->name('contact-form-submissions.follow-up');
+        Route::delete('/{contactFormSubmission:ulid}', [ContactFormSubmissionController::class, 'destroy'])->name('contact-form-submissions.destroy');
+    });
 });
 
 // Public API routes (no authentication required)
@@ -145,6 +156,9 @@ Route::get('/s/{slug}', [ProfileController::class, 'resolveShortLink'])
 // Tracking routes (public - can track anonymous visitors)
 Route::post('/track/click', [TrackingController::class, 'trackLinkClick'])->middleware('throttle:api');
 Route::post('/track/visit', [TrackingController::class, 'trackProfileVisit'])->middleware('throttle:api');
+
+// Contact form submission (public - no authentication required)
+Route::post('/contact-forms/submit', [ContactFormController::class, 'submit'])->middleware('throttle:api');
 
 // Analytics routes (authenticated)
 Route::middleware(['auth:sanctum'])->prefix('analytics')->group(function () {
