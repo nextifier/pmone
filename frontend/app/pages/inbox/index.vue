@@ -101,7 +101,12 @@
                 <h3 class="font-medium tracking-tight">
                   {{ submission.subject || "No Subject" }}
                 </h3>
-                <StatusBadge :status="submission.status" />
+                <span
+                  :class="getStatusConfig(submission.status).color"
+                  class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                >
+                  {{ getStatusConfig(submission.status).label }}
+                </span>
               </div>
 
               <!-- Preview Data -->
@@ -221,9 +226,20 @@ async function fetchProjects() {
     const response = await $api("/projects", {
       params: { client_only: true },
     });
-    projects.value = response.data || [];
+
+    // Handle response - could be direct array or nested in data
+    if (Array.isArray(response)) {
+      projects.value = response;
+    } else if (response && response.data) {
+      projects.value = Array.isArray(response.data) ? response.data : [];
+    } else {
+      projects.value = [];
+    }
+
+    console.log("Fetched projects:", projects.value); // Debug log
   } catch (err) {
     console.error("Failed to fetch projects:", err);
+    projects.value = [];
   }
 }
 
@@ -312,41 +328,25 @@ async function quickUpdateStatus(submission) {
   }
 }
 
-// Status badge component
-const StatusBadge = defineComponent({
-  props: {
-    status: String,
-  },
-  setup(props) {
-    const statusConfig = computed(() => {
-      const configs = {
-        new: { label: "New", color: "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400" },
-        in_progress: {
-          label: "In Progress",
-          color: "bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400",
-        },
-        completed: {
-          label: "Completed",
-          color: "bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400",
-        },
-        archived: {
-          label: "Archived",
-          color: "bg-gray-500/10 text-gray-600 dark:bg-gray-500/20 dark:text-gray-400",
-        },
-      };
-      return configs[props.status] || configs.new;
-    });
-
-    return () =>
-      h(
-        "span",
-        {
-          class: `inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig.value.color}`,
-        },
-        statusConfig.value.label
-      );
-  },
-});
+// Status badge config
+function getStatusConfig(status) {
+  const configs = {
+    new: { label: "New", color: "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400" },
+    in_progress: {
+      label: "In Progress",
+      color: "bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400",
+    },
+    completed: {
+      label: "Completed",
+      color: "bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400",
+    },
+    archived: {
+      label: "Archived",
+      color: "bg-gray-500/10 text-gray-600 dark:bg-gray-500/20 dark:text-gray-400",
+    },
+  };
+  return configs[status] || configs.new;
+}
 
 // Lifecycle
 onMounted(() => {
