@@ -294,6 +294,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "vue-sonner";
+import ContactFormEmailConfig from "@/components/project/ContactFormEmailConfig.vue";
 
 // Constants
 const PREDEFINED_LABELS = [
