@@ -37,6 +37,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Cleanup temporary uploads older than 1 hour, run hourly
         $schedule->command('uploads:cleanup-temp --hours=1')->hourly();
 
+        // Cleanup orphaned temporary media from content editor, run hourly
+        $schedule->command('media:cleanup-temp --hours=24')->hourly();
+
         // Cleanup tracking data older than 5 years, run daily at 2 AM
         $schedule->command('tracking:cleanup')->dailyAt('02:00');
 

@@ -177,6 +177,9 @@ class PostController extends Controller
         try {
             $data = $request->validated();
 
+            // Store old content before update for cleanup comparison
+            $oldContent = $post->content;
+
             // Update post
             $post->update($data);
 
@@ -190,6 +193,9 @@ class PostController extends Controller
 
             // Process content images (move from temp to permanent storage)
             $this->processContentImages($post);
+
+            // Cleanup removed content images
+            $this->cleanupRemovedContentImages($post, $oldContent);
 
             $post->load(['creator', 'tags', 'media']);
 
@@ -494,5 +500,77 @@ class PostController extends Controller
         if ($content !== $post->content) {
             $post->update(['content' => $content]);
         }
+    }
+
+    /**
+     * Cleanup content images that were removed from post content
+     */
+    private function cleanupRemovedContentImages(Post $post, ?string $oldContent): void
+    {
+        if (! $oldContent || ! $post->content) {
+            return;
+        }
+
+        // Extract all media URLs from old content
+        $oldUrls = $this->extractMediaUrlsFromContent($oldContent);
+
+        // Extract all media URLs from new content
+        $newUrls = $this->extractMediaUrlsFromContent($post->content);
+
+        // Find URLs that were removed
+        $removedUrls = array_diff($oldUrls, $newUrls);
+
+        if (empty($removedUrls)) {
+            return;
+        }
+
+        // Delete media files that are no longer in content
+        foreach ($removedUrls as $removedUrl) {
+            try {
+                // Find media by URL
+                $media = $post->getMedia('content_images')
+                    ->first(function ($item) use ($removedUrl) {
+                        return str_contains($removedUrl, $item->file_name) ||
+                               str_contains($removedUrl, basename($item->getPath()));
+                    });
+
+                if ($media) {
+                    // This will delete the file, all conversions, and database record
+                    $media->delete();
+
+                    logger()->info('Deleted orphaned content image', [
+                        'post_id' => $post->id,
+                        'media_id' => $media->id,
+                        'file_name' => $media->file_name,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                logger()->warning('Failed to cleanup removed content image', [
+                    'post_id' => $post->id,
+                    'url' => $removedUrl,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Extract all media URLs from HTML content
+     */
+    private function extractMediaUrlsFromContent(string $content): array
+    {
+        $urls = [];
+
+        // Match img tags with src attribute
+        if (preg_match_all('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $matches)) {
+            $urls = array_merge($urls, $matches[1]);
+        }
+
+        // Also match direct URL patterns for media library
+        if (preg_match_all('/\/storage\/media\/\d+\/[^"\')\s]+/i', $content, $matches)) {
+            $urls = array_merge($urls, $matches[0]);
+        }
+
+        return array_unique($urls);
     }
 }
