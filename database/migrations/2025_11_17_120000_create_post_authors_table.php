@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->enum('role', ['primary_author', 'co_author', 'contributor'])->default('co_author');
+            $table->string('role', 50)->default('co_author');
             $table->unsignedInteger('order')->default(0);
             $table->timestamps();
 
@@ -25,6 +25,7 @@ return new class extends Migration
             // Index for faster queries
             $table->index(['post_id', 'order']);
             $table->index('user_id');
+            $table->index('role');
         });
     }
 

@@ -33,6 +33,13 @@ class PostResource extends JsonResource
                     $this->getMediaUrls('featured_image')
                 ),
                 'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
+                'authors' => $this->whenLoaded('authors', fn () => $this->authors->map(fn ($author) => [
+                    'id' => $author->id,
+                    'name' => $author->name,
+                    'email' => $author->email,
+                    'role' => $author->pivot->role,
+                    'order' => $author->pivot->order,
+                ])),
                 'tags' => $this->whenLoaded('tags', fn () => $this->tags->pluck('name')),
                 'created_at' => $this->created_at,
                 'updated_at' => $this->updated_at,
@@ -66,6 +73,13 @@ class PostResource extends JsonResource
             ),
             'tags' => $this->whenLoaded('tags', fn () => $this->tags->pluck('name')),
             'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
+            'authors' => $this->whenLoaded('authors', fn () => $this->authors->map(fn ($author) => [
+                'id' => $author->id,
+                'name' => $author->name,
+                'email' => $author->email,
+                'role' => $author->pivot->role,
+                'order' => $author->pivot->order,
+            ])),
             'updater' => $this->whenLoaded('updater', fn () => new UserMinimalResource($this->updater)),
             'deleter' => $this->whenLoaded('deleter', fn () => new UserMinimalResource($this->deleter)),
             'created_at' => $this->created_at,

@@ -20,7 +20,7 @@ class PostController extends Controller
         $this->authorize('viewAny', Post::class);
 
         $query = Post::query()
-            ->with(['creator', 'tags'])
+            ->with(['creator', 'authors', 'tags'])
             ->withCount('visits');
 
         $this->applyFilters($query, $request);
@@ -94,7 +94,7 @@ class PostController extends Controller
     {
         $this->authorize('view', $post);
 
-        $post->load(['creator', 'updater', 'tags']);
+        $post->load(['creator', 'updater', 'authors', 'tags']);
         $post->loadCount('visits');
 
         // Track visit only if not loading for edit
@@ -145,13 +145,18 @@ class PostController extends Controller
                 $post->syncTags($data['tags']);
             }
 
+            // Attach authors with roles and order
+            if (isset($data['authors']) && is_array($data['authors'])) {
+                $this->syncAuthors($post, $data['authors']);
+            }
+
             // Handle featured image upload from temporary storage
             $this->handleTemporaryUpload($request, $post, 'tmp_featured_image', 'featured_image');
 
             // Process content images (move from temp to permanent storage)
             $this->processContentImages($post);
 
-            $post->load(['creator', 'tags', 'media']);
+            $post->load(['creator', 'authors', 'tags', 'media']);
 
             return response()->json([
                 'message' => 'Post created successfully',
@@ -188,6 +193,11 @@ class PostController extends Controller
                 $post->syncTags($data['tags']);
             }
 
+            // Update authors with roles and order
+            if (isset($data['authors']) && is_array($data['authors'])) {
+                $this->syncAuthors($post, $data['authors']);
+            }
+
             // Handle featured image upload from temporary storage
             $this->handleTemporaryUpload($request, $post, 'tmp_featured_image', 'featured_image');
 
@@ -197,7 +207,7 @@ class PostController extends Controller
             // Cleanup removed content images
             $this->cleanupRemovedContentImages($post, $oldContent);
 
-            $post->load(['creator', 'tags', 'media']);
+            $post->load(['creator', 'authors', 'tags', 'media']);
 
             return response()->json([
                 'message' => 'Post updated successfully',
@@ -572,5 +582,26 @@ class PostController extends Controller
         }
 
         return array_unique($urls);
+    }
+
+    /**
+     * Sync post authors with roles and order
+     */
+    private function syncAuthors(Post $post, array $authors): void
+    {
+        $syncData = [];
+
+        foreach ($authors as $index => $author) {
+            $userId = $author['user_id'];
+            $role = $author['role'] ?? 'co_author';
+            $order = $author['order'] ?? $index;
+
+            $syncData[$userId] = [
+                'role' => $role,
+                'order' => $order,
+            ];
+        }
+
+        $post->authors()->sync($syncData);
     }
 }
