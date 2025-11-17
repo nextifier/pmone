@@ -23,16 +23,13 @@ return new class extends Migration
             $table->string('meta_title')->nullable();
             $table->text('meta_description')->nullable();
             $table->string('og_image')->nullable();
-            $table->string('og_type')->default('article');
             $table->enum('status', ['draft', 'published', 'scheduled', 'archived'])->default('draft');
             $table->enum('visibility', ['public', 'private', 'members_only'])->default('public');
             $table->timestamp('published_at')->nullable();
             $table->boolean('featured')->default(false);
             $table->integer('reading_time')->nullable();
-            $table->unsignedBigInteger('view_count')->default(0);
             $table->json('settings')->default('{}');
             $table->enum('source', ['native', 'ghost', 'canvas'])->default('native');
-            $table->string('source_id')->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->foreignId('created_by')->nullable()->constrained('users');
@@ -42,7 +39,6 @@ return new class extends Migration
             // Composite indexes
             $table->index(['slug', 'status']);
             $table->index(['status', 'visibility', 'published_at']);
-            $table->index(['source', 'source_id']);
             $table->index(['created_by', 'created_at']);
 
             // Single column indexes

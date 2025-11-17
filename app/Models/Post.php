@@ -7,8 +7,6 @@ use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
@@ -39,16 +37,13 @@ class Post extends Model implements HasMedia
         'meta_title',
         'meta_description',
         'og_image',
-        'og_type',
         'status',
         'visibility',
         'published_at',
         'featured',
         'reading_time',
-        'view_count',
         'settings',
         'source',
-        'source_id',
     ];
 
     protected function casts(): array
@@ -58,7 +53,6 @@ class Post extends Model implements HasMedia
             'published_at' => 'datetime',
             'featured' => 'boolean',
             'reading_time' => 'integer',
-            'view_count' => 'integer',
         ];
     }
 
@@ -126,13 +120,6 @@ class Post extends Model implements HasMedia
                 $model->clearMediaCollection();
             }
         });
-
-        // Create revision when post is updated
-        static::updated(function ($model) {
-            if ($model->isDirty(['title', 'excerpt', 'content'])) {
-                $model->createRevision();
-            }
-        });
     }
 
     /**
@@ -144,23 +131,6 @@ class Post extends Model implements HasMedia
         $wordsPerMinute = 200; // Average reading speed
 
         return max(1, (int) ceil($wordCount / $wordsPerMinute));
-    }
-
-    /**
-     * Create a revision snapshot of the current post
-     */
-    protected function createRevision(): void
-    {
-        $latestRevision = $this->revisions()->latest('revision_number')->first();
-        $revisionNumber = $latestRevision ? $latestRevision->revision_number + 1 : 1;
-
-        $this->revisions()->create([
-            'title' => $this->title,
-            'excerpt' => $this->excerpt,
-            'content' => $this->content,
-            'revision_number' => $revisionNumber,
-            'created_by' => auth()->id(),
-        ]);
     }
 
     public function getActivitylogOptions(): LogOptions
@@ -247,65 +217,11 @@ class Post extends Model implements HasMedia
     }
 
     /**
-     * Get the post's authors (many-to-many with User)
-     */
-    public function authors(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class, 'post_user')
-            ->withPivot(['role', 'order'])
-            ->withTimestamps()
-            ->orderBy('post_user.order');
-    }
-
-    /**
-     * Get the primary author of the post
-     */
-    public function primaryAuthor(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    /**
-     * Get the post's categories (many-to-many)
-     */
-    public function categories(): BelongsToMany
-    {
-        return $this->belongsToMany(Category::class, 'category_post')
-            ->withPivot(['is_primary', 'order'])
-            ->withTimestamps()
-            ->orderBy('category_post.order');
-    }
-
-    /**
-     * Get the primary category of the post
-     */
-    public function primaryCategory()
-    {
-        return $this->categories()->wherePivot('is_primary', true)->first();
-    }
-
-    /**
-     * Get the post's revisions
-     */
-    public function revisions(): HasMany
-    {
-        return $this->hasMany(PostRevision::class)->orderBy('revision_number', 'desc');
-    }
-
-    /**
      * Get the post's visits (polymorphic)
      */
     public function visits(): MorphMany
     {
         return $this->morphMany(Visit::class, 'visitable');
-    }
-
-    /**
-     * Get computed visits count from relationship
-     */
-    public function getVisitsCountAttribute(): int
-    {
-        return $this->visits()->count();
     }
 
     /**
@@ -385,23 +301,11 @@ class Post extends Model implements HasMedia
     }
 
     /**
-     * Scope: Filter by author
+     * Scope: Filter by creator
      */
-    public function scopeByAuthor($query, int $userId)
+    public function scopeByCreator($query, int $userId)
     {
-        return $query->whereHas('authors', function ($q) use ($userId) {
-            $q->where('users.id', $userId);
-        });
-    }
-
-    /**
-     * Scope: Filter by category
-     */
-    public function scopeByCategory($query, int $categoryId)
-    {
-        return $query->whereHas('categories', function ($q) use ($categoryId) {
-            $q->where('categories.id', $categoryId);
-        });
+        return $query->where('created_by', $userId);
     }
 
     /**
@@ -422,24 +326,6 @@ class Post extends Model implements HasMedia
                 ->orWhere('excerpt', 'like', "%{$search}%")
                 ->orWhere('content', 'like', "%{$search}%");
         });
-    }
-
-    /**
-     * Increment cached view count (for performance)
-     * For detailed analytics, use visits() relationship
-     * This count can be synced from visits via scheduled job
-     */
-    public function incrementViewCount(): void
-    {
-        $this->increment('view_count');
-    }
-
-    /**
-     * Sync cached view_count from actual visits
-     */
-    public function syncViewCount(): void
-    {
-        $this->update(['view_count' => $this->visits()->count()]);
     }
 
     /**

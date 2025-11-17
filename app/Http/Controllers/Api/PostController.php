@@ -20,7 +20,7 @@ class PostController extends Controller
         $this->authorize('viewAny', Post::class);
 
         $query = Post::query()
-            ->with(['primaryAuthor', 'authors', 'categories', 'tags']);
+            ->with(['creator', 'tags']);
 
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
@@ -60,14 +60,9 @@ class PostController extends Controller
             $query->where('featured', $request->boolean('filter_featured'));
         }
 
-        // Author filter
-        if ($authorId = $request->input('filter_author')) {
-            $query->byAuthor($authorId);
-        }
-
-        // Category filter
-        if ($categoryId = $request->input('filter_category')) {
-            $query->byCategory($categoryId);
+        // Creator filter
+        if ($creatorId = $request->input('filter_creator')) {
+            $query->byCreator($creatorId);
         }
 
         // Tag filter
@@ -87,7 +82,7 @@ class PostController extends Controller
         $direction = str_starts_with($sortField, '-') ? 'desc' : 'asc';
         $field = ltrim($sortField, '-');
 
-        if (in_array($field, ['title', 'status', 'published_at', 'view_count', 'created_at', 'updated_at'])) {
+        if (in_array($field, ['title', 'status', 'published_at', 'created_at', 'updated_at'])) {
             $query->orderBy($field, $direction);
         } else {
             $query->orderBy('created_at', 'desc');
@@ -98,12 +93,18 @@ class PostController extends Controller
     {
         $this->authorize('view', $post);
 
-        $post->load(['primaryAuthor', 'authors', 'categories', 'tags', 'creator', 'updater']);
+        $post->load(['creator', 'updater', 'tags']);
 
-        // Increment view count for published posts
-        if ($post->isPublished()) {
-            $post->incrementViewCount();
-        }
+        // Track visit - record all views regardless of post status
+        \App\Models\Visit::create([
+            'visitable_type' => Post::class,
+            'visitable_id' => $post->id,
+            'visitor_id' => auth()->id(),
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'referer' => request()->header('referer'),
+            'visited_at' => now(),
+        ]);
 
         return response()->json([
             'data' => new PostResource($post),
@@ -120,26 +121,7 @@ class PostController extends Controller
             // Create post
             $post = Post::create($data);
 
-            // Attach relationships
-            if (isset($data['authors'])) {
-                // Sync authors with pivot data (role and order)
-                $authorsData = [];
-                foreach ($data['authors'] as $author) {
-                    $authorsData[$author['user_id']] = [
-                        'role' => $author['role'],
-                        'order' => $author['order'] ?? 0,
-                    ];
-                }
-                $post->authors()->sync($authorsData);
-            } elseif (isset($data['author_ids'])) {
-                // Fallback to simple author_ids
-                $post->authors()->sync($data['author_ids']);
-            }
-
-            if (isset($data['category_ids'])) {
-                $post->categories()->sync($data['category_ids']);
-            }
-
+            // Attach tags
             if (isset($data['tags'])) {
                 $post->syncTags($data['tags']);
             }
@@ -147,7 +129,7 @@ class PostController extends Controller
             // Handle featured image upload from temporary storage
             $this->handleTemporaryUpload($request, $post, 'tmp_featured_image', 'featured_image');
 
-            $post->load(['primaryAuthor', 'authors', 'categories', 'tags', 'media']);
+            $post->load(['creator', 'tags', 'media']);
 
             return response()->json([
                 'message' => 'Post created successfully',
@@ -176,26 +158,7 @@ class PostController extends Controller
             // Update post
             $post->update($data);
 
-            // Update relationships if provided
-            if (isset($data['authors'])) {
-                // Sync authors with pivot data (role and order)
-                $authorsData = [];
-                foreach ($data['authors'] as $author) {
-                    $authorsData[$author['user_id']] = [
-                        'role' => $author['role'],
-                        'order' => $author['order'] ?? 0,
-                    ];
-                }
-                $post->authors()->sync($authorsData);
-            } elseif (isset($data['author_ids'])) {
-                // Fallback to simple author_ids
-                $post->authors()->sync($data['author_ids']);
-            }
-
-            if (isset($data['category_ids'])) {
-                $post->categories()->sync($data['category_ids']);
-            }
-
+            // Update tags if provided
             if (isset($data['tags'])) {
                 $post->syncTags($data['tags']);
             }
@@ -203,7 +166,7 @@ class PostController extends Controller
             // Handle featured image upload from temporary storage
             $this->handleTemporaryUpload($request, $post, 'tmp_featured_image', 'featured_image');
 
-            $post->load(['primaryAuthor', 'authors', 'categories', 'tags', 'media']);
+            $post->load(['creator', 'tags', 'media']);
 
             return response()->json([
                 'message' => 'Post updated successfully',
@@ -246,74 +209,6 @@ class PostController extends Controller
     }
 
     /**
-     * Get post revisions history
-     */
-    public function revisions(Post $post): JsonResponse
-    {
-        $this->authorize('view', $post);
-
-        $revisions = $post->revisions()
-            ->with('creator')
-            ->orderBy('revision_number', 'desc')
-            ->get();
-
-        return response()->json([
-            'data' => $revisions->map(function ($revision) {
-                return [
-                    'id' => $revision->id,
-                    'revision_number' => $revision->revision_number,
-                    'title' => $revision->title,
-                    'excerpt' => $revision->excerpt,
-                    'content' => $revision->content,
-                    'created_at' => $revision->created_at->toIso8601String(),
-                    'creator' => $revision->creator ? [
-                        'id' => $revision->creator->id,
-                        'name' => $revision->creator->name,
-                        'username' => $revision->creator->username,
-                    ] : null,
-                ];
-            }),
-        ]);
-    }
-
-    /**
-     * Compare two revisions
-     */
-    public function compareRevisions(Post $post, Request $request): JsonResponse
-    {
-        $this->authorize('view', $post);
-
-        $request->validate([
-            'from_revision' => 'required|integer|exists:post_revisions,id',
-            'to_revision' => 'required|integer|exists:post_revisions,id',
-        ]);
-
-        $fromRevision = $post->revisions()->findOrFail($request->from_revision);
-        $toRevision = $post->revisions()->findOrFail($request->to_revision);
-
-        return response()->json([
-            'data' => [
-                'from' => [
-                    'id' => $fromRevision->id,
-                    'revision_number' => $fromRevision->revision_number,
-                    'title' => $fromRevision->title,
-                    'excerpt' => $fromRevision->excerpt,
-                    'content' => $fromRevision->content,
-                    'created_at' => $fromRevision->created_at->toIso8601String(),
-                ],
-                'to' => [
-                    'id' => $toRevision->id,
-                    'revision_number' => $toRevision->revision_number,
-                    'title' => $toRevision->title,
-                    'excerpt' => $toRevision->excerpt,
-                    'content' => $toRevision->content,
-                    'created_at' => $toRevision->created_at->toIso8601String(),
-                ],
-            ],
-        ]);
-    }
-
-    /**
      * Get trashed posts
      */
     public function trash(Request $request): JsonResponse
@@ -321,7 +216,7 @@ class PostController extends Controller
         $this->authorize('viewAny', Post::class);
 
         $query = Post::onlyTrashed()
-            ->with(['primaryAuthor', 'deleter']);
+            ->with(['creator', 'deleter']);
 
         // Search filter
         if ($searchTerm = $request->input('filter_search')) {
@@ -459,42 +354,6 @@ class PostController extends Controller
 
         return response()->json([
             'message' => count($request->ids).' posts updated successfully',
-        ]);
-    }
-
-    /**
-     * Get post analytics (visits)
-     */
-    public function analytics(Post $post, Request $request): JsonResponse
-    {
-        $this->authorize('view', $post);
-
-        $days = $request->input('days', 30);
-
-        $visits = $post->visits()
-            ->lastDays($days)
-            ->orderBy('visited_at', 'desc')
-            ->get();
-
-        $totalVisits = $visits->count();
-        $uniqueVisitors = $visits->unique('visitor_id')->count();
-        $anonymousVisits = $visits->where('visitor_id', null)->count();
-
-        // Group by date
-        $visitsByDate = $visits->groupBy(function ($visit) {
-            return $visit->visited_at->format('Y-m-d');
-        })->map(function ($dayVisits) {
-            return $dayVisits->count();
-        });
-
-        return response()->json([
-            'data' => [
-                'total_visits' => $totalVisits,
-                'unique_visitors' => $uniqueVisitors,
-                'anonymous_visits' => $anonymousVisits,
-                'cached_view_count' => $post->view_count,
-                'visits_by_date' => $visitsByDate,
-            ],
         ]);
     }
 

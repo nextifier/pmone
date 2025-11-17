@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -29,21 +28,12 @@ class PostSeeder extends Seeder
             return;
         }
 
-        // Get categories
-        $categories = Category::all();
-
-        if ($categories->isEmpty()) {
-            $this->command->warn('No categories found. Please run CategorySeeder first!');
-
-            return;
-        }
-
         // Create various types of posts
         $postsCount = 50;
         $bar = $this->command->getOutput()->createProgressBar($postsCount);
 
         for ($i = 0; $i < $postsCount; $i++) {
-            $this->createPost($authors, $categories);
+            $this->createPost($authors);
             $bar->advance();
         }
 
@@ -52,7 +42,7 @@ class PostSeeder extends Seeder
         $this->command->info("✅ Successfully created $postsCount posts!");
     }
 
-    private function createPost($authors, $categories): void
+    private function createPost($authors): void
     {
         // Randomly determine post state
         $states = ['published', 'draft', 'scheduled', 'published'];
@@ -70,36 +60,9 @@ class PostSeeder extends Seeder
             $post->update(['featured' => true]);
         }
 
-        // Randomly make some posts popular
-        if (fake()->boolean(15)) {
-            $post->update(['view_count' => fake()->numberBetween(100, 5000)]);
-        }
-
         // Randomly set visibility
         $visibility = fake()->randomElement(['public', 'public', 'public', 'members_only', 'private']);
         $post->update(['visibility' => $visibility]);
-
-        // Attach 1-3 authors (co-authors)
-        $postAuthors = $authors->random(min(fake()->numberBetween(1, 3), $authors->count()));
-        $authorsData = [];
-        foreach ($postAuthors as $index => $author) {
-            $authorsData[$author->id] = [
-                'role' => $index === 0 ? 'primary_author' : fake()->randomElement(['co_author', 'contributor']),
-                'order' => $index,
-            ];
-        }
-        $post->authors()->sync($authorsData);
-
-        // Attach 1-3 categories
-        $postCategories = $categories->random(min(fake()->numberBetween(1, 3), $categories->count()));
-        $categoriesData = [];
-        foreach ($postCategories as $index => $category) {
-            $categoriesData[$category->id] = [
-                'is_primary' => $index === 0,
-                'order' => $index,
-            ];
-        }
-        $post->categories()->sync($categoriesData);
 
         // Attach 2-5 tags
         $postTags = fake()->randomElements($this->tags, fake()->numberBetween(2, 5));

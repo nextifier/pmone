@@ -1,233 +1,147 @@
 <template>
-  <div class="container mx-auto max-w-7xl px-4 py-8">
-    <!-- Header -->
-    <div class="mb-8 flex items-center justify-between">
-      <div>
-        <h1 class="text-3xl font-semibold">Posts</h1>
-        <p class="text-muted-foreground mt-2">Manage your blog posts</p>
-      </div>
-      <button
-        @click="navigateTo('/posts/create')"
-        class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-semibold tracking-tighter transition"
-      >
-        <Icon name="lucide:plus" class="h-4 w-4" />
-        New Post
-      </button>
-    </div>
-
-    <!-- Filters -->
-    <div class="mb-6 flex flex-wrap gap-3">
-      <Select v-model="filters.status" @update:model-value="fetchPosts">
-        <SelectTrigger class="w-[180px]">
-          <SelectValue placeholder="All Status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Status</SelectItem>
-          <SelectItem value="draft">Draft</SelectItem>
-          <SelectItem value="published">Published</SelectItem>
-          <SelectItem value="scheduled">Scheduled</SelectItem>
-          <SelectItem value="archived">Archived</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <Select v-model="filters.visibility" @update:model-value="fetchPosts">
-        <SelectTrigger class="w-[180px]">
-          <SelectValue placeholder="All Visibility" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Visibility</SelectItem>
-          <SelectItem value="public">Public</SelectItem>
-          <SelectItem value="private">Private</SelectItem>
-          <SelectItem value="members_only">Members Only</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <Input
-        v-model="filters.search"
-        @input="debounceSearch"
-        type="text"
-        placeholder="Search posts..."
-        class="min-w-[200px] flex-1"
-      />
-    </div>
-
-    <!-- Posts Table -->
-    <div class="border-border overflow-hidden rounded-lg border">
-      <div v-if="loading" class="text-muted-foreground p-8 text-center">
-        <Spinner class="mx-auto" />
-        <p class="mt-2">Loading posts...</p>
+  <div class="mx-auto max-w-7xl space-y-6 pt-4 pb-16">
+    <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
+      <div class="flex shrink-0 items-center gap-x-2.5">
+        <Icon name="lucide:file-text" class="size-5 sm:size-6" />
+        <h1 class="page-title">Posts</h1>
       </div>
 
-      <div v-else-if="posts.length === 0" class="text-muted-foreground p-8 text-center">
-        <p>No posts found.</p>
-        <button
-          @click="navigateTo('/posts/create')"
-          class="text-primary hover:text-primary/80 mt-2 underline"
+      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+        <nuxt-link
+          to="/posts/create"
+          class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-md px-3 py-1.5 text-sm font-semibold tracking-tight active:scale-98"
         >
-          Create your first post
-        </button>
-      </div>
-
-      <table v-else class="w-full">
-        <thead class="bg-muted/50 border-border border-b">
-          <tr>
-            <th
-              class="text-muted-foreground px-6 py-3 text-left text-xs font-medium tracking-wider uppercase"
-            >
-              Title
-            </th>
-            <th
-              class="text-muted-foreground px-6 py-3 text-left text-xs font-medium tracking-wider uppercase"
-            >
-              Status
-            </th>
-            <th
-              class="text-muted-foreground px-6 py-3 text-left text-xs font-medium tracking-wider uppercase"
-            >
-              Visibility
-            </th>
-            <th
-              class="text-muted-foreground px-6 py-3 text-left text-xs font-medium tracking-wider uppercase"
-            >
-              Views
-            </th>
-            <th
-              class="text-muted-foreground px-6 py-3 text-left text-xs font-medium tracking-wider uppercase"
-            >
-              Date
-            </th>
-            <th
-              class="text-muted-foreground px-6 py-3 text-right text-xs font-medium tracking-wider uppercase"
-            >
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody class="divide-border divide-y">
-          <tr v-for="post in posts" :key="post.id" class="hover:bg-muted/30">
-            <td class="px-6 py-4">
-              <div class="flex items-start gap-3">
-                <img
-                  v-if="post.featured_image"
-                  :src="post.featured_image.conversions?.sm || post.featured_image.url"
-                  :alt="post.title"
-                  class="border-border h-16 w-16 rounded border object-cover"
-                />
-                <div
-                  v-else
-                  class="bg-muted border-border flex size-16 shrink-0 items-center justify-center rounded border"
-                >
-                  <Icon name="lucide:image" class="text-muted-foreground h-6 w-6" />
-                </div>
-                <div class="flex-1">
-                  <div class="font-medium">
-                    {{ post.title }}
-                  </div>
-                  <div v-if="post.excerpt" class="text-muted-foreground line-clamp-1 text-sm">
-                    {{ post.excerpt }}
-                  </div>
-                  <div
-                    v-if="post.featured"
-                    class="border-border mt-1 inline-flex items-center gap-1 rounded border px-2 py-0.5 text-xs"
-                  >
-                    <Icon name="lucide:star" class="h-3 w-3" />
-                    Featured
-                  </div>
-                </div>
-              </div>
-            </td>
-            <td class="px-6 py-4">
-              <span
-                class="border-border inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize"
-              >
-                {{ post.status }}
-              </span>
-            </td>
-            <td class="px-6 py-4">
-              <span class="text-muted-foreground text-sm capitalize">
-                {{ post.visibility.replace("_", " ") }}
-              </span>
-            </td>
-            <td class="px-6 py-4">
-              <span class="text-muted-foreground text-sm">
-                {{ post.view_count || 0 }}
-              </span>
-            </td>
-            <td class="px-6 py-4">
-              <div class="text-muted-foreground text-sm">
-                {{ formatDate(post.published_at || post.created_at) }}
-              </div>
-            </td>
-            <td class="px-6 py-4 text-right">
-              <div class="flex items-center justify-end gap-1">
-                <button
-                  @click="navigateTo(`/posts/${post.slug}`)"
-                  class="hover:bg-accent hover:text-accent-foreground flex size-8 items-center justify-center rounded-lg transition"
-                  title="View"
-                >
-                  <Icon name="lucide:eye" class="h-4 w-4" />
-                </button>
-                <button
-                  @click="navigateTo(`/posts/edit/${post.slug}`)"
-                  class="hover:bg-accent hover:text-accent-foreground flex size-8 items-center justify-center rounded-lg transition"
-                  title="Edit"
-                >
-                  <Icon name="lucide:edit" class="h-4 w-4" />
-                </button>
-                <button
-                  @click="deletePost(post)"
-                  class="hover:bg-destructive hover:text-destructive-foreground flex size-8 items-center justify-center rounded-lg transition"
-                  title="Delete"
-                >
-                  <Icon name="lucide:trash-2" class="h-4 w-4" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- Pagination -->
-      <div
-        v-if="pagination.total > pagination.per_page"
-        class="border-border flex items-center justify-between border-t px-6 py-4"
-      >
-        <div class="text-muted-foreground text-sm">
-          Showing {{ (pagination.current_page - 1) * pagination.per_page + 1 }}
-          to
-          {{ Math.min(pagination.current_page * pagination.per_page, pagination.total) }}
-          of {{ pagination.total }} posts
-        </div>
-        <div class="flex gap-2">
-          <button
-            @click="changePage(pagination.current_page - 1)"
-            :disabled="pagination.current_page === 1"
-            class="border-input hover:bg-accent hover:text-accent-foreground rounded-lg border px-4 py-2 text-sm font-semibold tracking-tighter transition disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <button
-            @click="changePage(pagination.current_page + 1)"
-            :disabled="pagination.current_page === pagination.last_page"
-            class="border-input hover:bg-accent hover:text-accent-foreground rounded-lg border px-4 py-2 text-sm font-semibold tracking-tighter transition disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
+          <Icon name="lucide:plus" class="size-4 shrink-0" />
+          <span>New Post</span>
+        </nuxt-link>
       </div>
     </div>
+
+    <TableData
+      :clientOnly="clientOnly"
+      ref="tableRef"
+      :data="data"
+      :columns="columns"
+      :meta="meta"
+      :pending="pending"
+      :error="error"
+      model="posts"
+      label="Post"
+      search-column="title"
+      search-placeholder="Search posts..."
+      error-title="Error loading posts"
+      :initial-pagination="pagination"
+      :initial-sorting="sorting"
+      :initial-column-filters="columnFilters"
+      @update:pagination="pagination = $event"
+      @update:sorting="sorting = $event"
+      @update:column-filters="columnFilters = $event"
+      @refresh="refresh"
+    >
+      <template #filters="{ table }">
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+            >
+              <Icon name="lucide:list-filter" class="size-4 shrink-0" />
+              <span class="hidden sm:flex">Filter</span>
+              <span
+                v-if="totalActiveFilters > 0"
+                class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
+              >
+                {{ totalActiveFilters }}
+              </span>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent class="w-auto min-w-48 p-3" align="start">
+            <div class="space-y-4">
+              <FilterSection
+                title="Status"
+                :options="[
+                  { label: 'Draft', value: 'draft' },
+                  { label: 'Published', value: 'published' },
+                  { label: 'Scheduled', value: 'scheduled' },
+                  { label: 'Archived', value: 'archived' },
+                ]"
+                :selected="selectedStatuses"
+                @change="handleFilterChange('status', $event)"
+              />
+              <FilterSection
+                title="Visibility"
+                :options="[
+                  { label: 'Public', value: 'public' },
+                  { label: 'Private', value: 'private' },
+                  { label: 'Members Only', value: 'members_only' },
+                ]"
+                :selected="selectedVisibilities"
+                @change="handleFilterChange('visibility', $event)"
+              />
+            </div>
+          </PopoverContent>
+        </Popover>
+      </template>
+
+      <template #actions="{ selectedRows }">
+        <DialogResponsive
+          v-if="selectedRows.length > 0"
+          v-model:open="deleteDialogOpen"
+          class="h-full"
+        >
+          <template #trigger="{ open }">
+            <button
+              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
+              @click="open()"
+            >
+              <Icon name="lucide:trash" class="size-4 shrink-0" />
+              <span class="text-sm tracking-tight">Delete</span>
+              <span
+                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
+              >
+                {{ selectedRows.length }}
+              </span>
+            </button>
+          </template>
+          <template #default>
+            <div class="px-4 pb-10 md:px-6 md:py-5">
+              <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+              <p class="text-body mt-1.5 text-sm tracking-tight">
+                This action can't be undone. This will permanently delete
+                {{ selectedRows.length }} selected {{ selectedRows.length === 1 ? "post" : "posts" }}.
+              </p>
+              <div class="mt-3 flex justify-end gap-2">
+                <button
+                  class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  @click="deleteDialogOpen = false"
+                  :disabled="deletePending"
+                >
+                  Cancel
+                </button>
+                <button
+                  @click="handleDeleteRows(selectedRows)"
+                  :disabled="deletePending"
+                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Spinner v-if="deletePending" class="size-4 text-white" />
+                  <span v-else>Delete</span>
+                </button>
+              </div>
+            </div>
+          </template>
+        </DialogResponsive>
+      </template>
+    </TableData>
   </div>
 </template>
 
 <script setup>
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import DialogResponsive from "@/components/DialogResponsive.vue";
+import TableData from "@/components/TableData.vue";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { PopoverClose } from "reka-ui";
+import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -237,92 +151,527 @@ definePageMeta({
 
 usePageMeta("posts");
 
-const { $api } = useNuxtApp();
+const { $dayjs } = useNuxtApp();
+const { formatDate } = useFormatters();
 
-const posts = ref([]);
-const loading = ref(false);
-const filters = reactive({
-  status: "all",
-  visibility: "all",
-  search: "",
-});
+// Table state
+const columnFilters = ref([]);
+const pagination = ref({ pageIndex: 0, pageSize: 15 });
+const sorting = ref([{ id: "created_at", desc: true }]);
 
-const pagination = reactive({
-  current_page: 1,
-  last_page: 1,
-  per_page: 15,
-  total: 0,
-});
+// Data state
+const data = ref([]);
+const meta = ref({ current_page: 1, last_page: 1, per_page: 15, total: 0 });
+const pending = ref(false);
+const error = ref(null);
 
-let searchTimeout = null;
+// Client-only mode flag
+const clientOnly = ref(true);
 
-onMounted(() => {
-  fetchPosts();
-});
+// Build query params
+const buildQueryParams = () => {
+  const params = new URLSearchParams();
 
-async function fetchPosts() {
-  loading.value = true;
+  if (clientOnly.value) {
+    params.append("client_only", "true");
+  } else {
+    params.append("page", pagination.value.pageIndex + 1);
+    params.append("per_page", pagination.value.pageSize);
 
-  try {
-    const params = new URLSearchParams();
-    params.append("page", pagination.current_page);
-    params.append("per_page", pagination.per_page);
+    // Filters
+    const filters = {
+      title: "filter_search",
+      status: "filter_status",
+      visibility: "filter_visibility",
+    };
 
-    if (filters.status && filters.status !== "all") params.append("filter_status", filters.status);
-    if (filters.visibility && filters.visibility !== "all")
-      params.append("filter_visibility", filters.visibility);
-    if (filters.search) params.append("filter_search", filters.search);
-
-    const response = await $api(`/posts?${params.toString()}`);
-
-    posts.value = response.data;
-    Object.assign(pagination, response.meta);
-  } catch (error) {
-    console.error("Failed to fetch posts:", error);
-    toast.error("Failed to load posts");
-  } finally {
-    loading.value = false;
-  }
-}
-
-function debounceSearch() {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => {
-    pagination.current_page = 1;
-    fetchPosts();
-  }, 500);
-}
-
-function changePage(page) {
-  pagination.current_page = page;
-  fetchPosts();
-}
-
-async function deletePost(post) {
-  if (!confirm(`Are you sure you want to delete "${post.title}"?`)) {
-    return;
-  }
-
-  try {
-    await $api(`/posts/${post.slug}`, {
-      method: "DELETE",
+    Object.entries(filters).forEach(([columnId, paramKey]) => {
+      const filter = columnFilters.value.find((f) => f.id === columnId);
+      if (filter?.value) {
+        const value = Array.isArray(filter.value) ? filter.value.join(",") : filter.value;
+        params.append(paramKey, value);
+      }
     });
 
+    // Sorting
+    const sortField = sorting.value[0]?.id || "created_at";
+    const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
+    params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
+  }
+
+  return params.toString();
+};
+
+// Fetch posts
+const fetchPosts = async () => {
+  try {
+    pending.value = true;
+    error.value = null;
+    const client = useSanctumClient();
+    const response = await client(`/api/posts?${buildQueryParams()}`);
+    data.value = response.data;
+    meta.value = response.meta;
+  } catch (err) {
+    error.value = err;
+    console.error("Failed to fetch posts:", err);
+  } finally {
+    pending.value = false;
+  }
+};
+
+await fetchPosts();
+
+// Watchers for server-side mode only
+const debouncedFetch = useDebounceFn(fetchPosts, 300);
+
+watch(
+  [columnFilters, sorting, pagination],
+  () => {
+    if (!clientOnly.value) {
+      const hasTitleFilter = columnFilters.value.some((f) => f.id === "title");
+      hasTitleFilter ? debouncedFetch() : fetchPosts();
+    }
+  },
+  { deep: true }
+);
+
+const refresh = fetchPosts;
+
+// Table columns
+const columns = [
+  {
+    id: "select",
+    header: ({ table }) =>
+      h(Checkbox, {
+        modelValue:
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate"),
+        "onUpdate:modelValue": (value) => table.toggleAllPageRowsSelected(!!value),
+        "aria-label": "Select all",
+      }),
+    cell: ({ row }) =>
+      h(Checkbox, {
+        modelValue: row.getIsSelected(),
+        "onUpdate:modelValue": (value) => row.toggleSelected(!!value),
+        "aria-label": "Select row",
+      }),
+    size: 28,
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    header: "Post",
+    accessorKey: "title",
+    cell: ({ row }) => {
+      const post = row.original;
+      return h("div", { class: "flex items-start gap-3" }, [
+        post.featured_image
+          ? h("img", {
+              src: post.featured_image.conversions?.sm || post.featured_image.url,
+              alt: post.title,
+              class: "border-border size-16 shrink-0 rounded border object-cover",
+            })
+          : h(
+              "div",
+              {
+                class:
+                  "bg-muted border-border flex size-16 shrink-0 items-center justify-center rounded border",
+              },
+              [h(resolveComponent("Icon"), { name: "lucide:image", class: "text-muted-foreground size-6" })]
+            ),
+        h("div", { class: "flex-1 min-w-0" }, [
+          h("div", { class: "font-medium truncate" }, post.title),
+          post.excerpt
+            ? h("div", { class: "text-muted-foreground line-clamp-1 text-sm mt-0.5" }, post.excerpt)
+            : null,
+          post.featured
+            ? h(
+                "div",
+                { class: "border-border mt-1 inline-flex items-center gap-1 rounded border px-2 py-0.5 text-xs" },
+                [h(resolveComponent("Icon"), { name: "lucide:star", class: "size-3" }), "Featured"]
+              )
+            : null,
+        ]),
+      ]);
+    },
+    size: 300,
+    enableHiding: false,
+    filterFn: (row, columnId, filterValue) => {
+      const searchValue = filterValue.toLowerCase();
+      const title = row.original.title?.toLowerCase() || "";
+      const excerpt = row.original.excerpt?.toLowerCase() || "";
+      return title.includes(searchValue) || excerpt.includes(searchValue);
+    },
+  },
+  {
+    header: "Status",
+    accessorKey: "status",
+    cell: ({ row }) => {
+      const status = row.getValue("status");
+      return h(
+        "span",
+        { class: "border-border inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize" },
+        status
+      );
+    },
+    size: 100,
+    filterFn: (row, columnId, filterValue) => {
+      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+      return filterValue.includes(row.getValue(columnId));
+    },
+  },
+  {
+    header: "Visibility",
+    accessorKey: "visibility",
+    cell: ({ row }) => {
+      const visibility = row.getValue("visibility");
+      return h(
+        "span",
+        { class: "text-muted-foreground text-sm capitalize" },
+        visibility.replace("_", " ")
+      );
+    },
+    size: 120,
+    filterFn: (row, columnId, filterValue) => {
+      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+      return filterValue.includes(row.getValue(columnId));
+    },
+  },
+  {
+    header: "Views",
+    accessorKey: "visits_count",
+    cell: ({ row }) => {
+      const count = row.getValue("visits_count") || 0;
+      return h("div", { class: "text-sm tracking-tight" }, count.toLocaleString());
+    },
+    size: 80,
+    enableSorting: true,
+  },
+  {
+    header: "Created",
+    accessorKey: "created_at",
+    cell: ({ row }) => {
+      const date = row.getValue("created_at");
+      return withDirectives(
+        h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $dayjs(date).fromNow()),
+        [[resolveDirective("tippy"), formatDate(date)]]
+      );
+    },
+    size: 100,
+  },
+  {
+    id: "actions",
+    header: () => h("span", { class: "sr-only" }, "Actions"),
+    cell: ({ row }) => h(RowActions, { post: row.original }),
+    size: 60,
+    enableHiding: false,
+  },
+];
+
+// Table ref
+const tableRef = ref();
+
+// Filter helpers
+const getFilterValue = (columnId) => {
+  if (clientOnly.value && tableRef.value?.table) {
+    return tableRef.value.table.getColumn(columnId)?.getFilterValue() ?? [];
+  }
+  return columnFilters.value.find((f) => f.id === columnId)?.value ?? [];
+};
+
+const selectedStatuses = computed(() => getFilterValue("status"));
+const selectedVisibilities = computed(() => getFilterValue("visibility"));
+const totalActiveFilters = computed(() => selectedStatuses.value.length + selectedVisibilities.value.length);
+
+const handleFilterChange = (columnId, { checked, value }) => {
+  if (clientOnly.value && tableRef.value?.table) {
+    const column = tableRef.value.table.getColumn(columnId);
+    if (!column) return;
+
+    const current = column.getFilterValue() ?? [];
+    const updated = checked ? [...current, value] : current.filter((item) => item !== value);
+
+    column.setFilterValue(updated.length > 0 ? updated : undefined);
+    tableRef.value.table.setPageIndex(0);
+  } else {
+    const current = getFilterValue(columnId);
+    const updated = checked ? [...current, value] : current.filter((item) => item !== value);
+
+    const existingIndex = columnFilters.value.findIndex((f) => f.id === columnId);
+    if (updated.length) {
+      if (existingIndex >= 0) {
+        columnFilters.value[existingIndex].value = updated;
+      } else {
+        columnFilters.value.push({ id: columnId, value: updated });
+      }
+    } else {
+      if (existingIndex >= 0) {
+        columnFilters.value.splice(existingIndex, 1);
+      }
+    }
+    pagination.value.pageIndex = 0;
+  }
+};
+
+// Delete handlers
+const deleteDialogOpen = ref(false);
+const deletePending = ref(false);
+
+const handleDeleteRows = async (selectedRows) => {
+  const postIds = selectedRows.map((row) => row.original.id);
+  try {
+    deletePending.value = true;
+    const client = useSanctumClient();
+    await Promise.all(
+      postIds.map((id) => {
+        const post = data.value.find((p) => p.id === id);
+        return client(`/api/posts/${post.slug}`, { method: "DELETE" });
+      })
+    );
+    await refresh();
+    deleteDialogOpen.value = false;
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
+    }
+    toast.success(`${postIds.length} post(s) deleted successfully`);
+  } catch (error) {
+    console.error("Failed to delete posts:", error);
+    toast.error("Failed to delete posts", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    deletePending.value = false;
+  }
+};
+
+const handleDeleteSingleRow = async (slug) => {
+  try {
+    deletePending.value = true;
+    const client = useSanctumClient();
+    await client(`/api/posts/${slug}`, { method: "DELETE" });
+    await refresh();
+
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
+    }
+
     toast.success("Post deleted successfully");
-    fetchPosts();
   } catch (error) {
     console.error("Failed to delete post:", error);
-    toast.error("Failed to delete post. Please try again.");
+    toast.error("Failed to delete post", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    deletePending.value = false;
   }
-}
+};
 
-function formatDate(dateString) {
-  if (!dateString) return "-";
-  const date = new Date(dateString);
-  return date.toLocaleString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
+// Row Actions Component
+const RowActions = defineComponent({
+  props: {
+    post: { type: Object, required: true },
+  },
+  setup(props) {
+    const dialogOpen = ref(false);
+    const singleDeletePending = ref(false);
+    return () =>
+      h("div", { class: "flex justify-end" }, [
+        h(
+          Popover,
+          {},
+          {
+            default: () => [
+              h(
+                PopoverTrigger,
+                { asChild: true },
+                {
+                  default: () =>
+                    h(
+                      "button",
+                      {
+                        class:
+                          "hover:bg-muted data-[state=open]:bg-muted inline-flex size-8 items-center justify-center rounded-md",
+                      },
+                      [h(resolveComponent("Icon"), { name: "lucide:ellipsis", class: "size-4" })]
+                    ),
+                }
+              ),
+              h(
+                PopoverContent,
+                { align: "end", class: "w-40 p-1" },
+                {
+                  default: () =>
+                    h("div", { class: "flex flex-col" }, [
+                      h(
+                        PopoverClose,
+                        { asChild: true },
+                        {
+                          default: () =>
+                            h(
+                              resolveComponent("NuxtLink"),
+                              {
+                                to: `/posts/${props.post.slug}`,
+                                class:
+                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                              },
+                              {
+                                default: () => [
+                                  h(resolveComponent("Icon"), {
+                                    name: "lucide:eye",
+                                    class: "size-4 shrink-0",
+                                  }),
+                                  h("span", {}, "View"),
+                                ],
+                              }
+                            ),
+                        }
+                      ),
+                      h(
+                        PopoverClose,
+                        { asChild: true },
+                        {
+                          default: () =>
+                            h(
+                              resolveComponent("NuxtLink"),
+                              {
+                                to: `/posts/${props.post.slug}/edit`,
+                                class:
+                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                              },
+                              {
+                                default: () => [
+                                  h(resolveComponent("Icon"), {
+                                    name: "lucide:pencil-line",
+                                    class: "size-4 shrink-0",
+                                  }),
+                                  h("span", {}, "Edit"),
+                                ],
+                              }
+                            ),
+                        }
+                      ),
+                      h(
+                        PopoverClose,
+                        { asChild: true },
+                        {
+                          default: () =>
+                            h(
+                              "button",
+                              {
+                                class:
+                                  "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                onClick: () => (dialogOpen.value = true),
+                              },
+                              [
+                                h(resolveComponent("Icon"), {
+                                  name: "lucide:trash",
+                                  class: "size-4 shrink-0",
+                                }),
+                                h("span", {}, "Delete"),
+                              ]
+                            ),
+                        }
+                      ),
+                    ]),
+                }
+              ),
+            ],
+          }
+        ),
+        h(
+          DialogResponsive,
+          {
+            open: dialogOpen.value,
+            "onUpdate:open": (value) => (dialogOpen.value = value),
+          },
+          {
+            default: () =>
+              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
+                h(
+                  "div",
+                  { class: "text-primary text-lg font-semibold tracking-tight" },
+                  "Are you sure?"
+                ),
+                h(
+                  "p",
+                  { class: "text-body mt-1.5 text-sm tracking-tight" },
+                  "This action can't be undone. This will permanently delete this post."
+                ),
+                h("div", { class: "mt-3 flex justify-end gap-2" }, [
+                  h(
+                    "button",
+                    {
+                      class:
+                        "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                      onClick: () => (dialogOpen.value = false),
+                      disabled: singleDeletePending.value,
+                    },
+                    "Cancel"
+                  ),
+                  h(
+                    "button",
+                    {
+                      class:
+                        "bg-destructive text-white hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50",
+                      disabled: singleDeletePending.value,
+                      onClick: async () => {
+                        singleDeletePending.value = true;
+                        try {
+                          await handleDeleteSingleRow(props.post.slug);
+                          dialogOpen.value = false;
+                        } finally {
+                          singleDeletePending.value = false;
+                        }
+                      },
+                    },
+                    singleDeletePending.value
+                      ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
+                      : "Delete"
+                  ),
+                ]),
+              ]),
+          }
+        ),
+      ]);
+  },
+});
+
+// Filter Section Component
+const FilterSection = defineComponent({
+  props: {
+    title: String,
+    options: Array,
+    selected: Array,
+  },
+  emits: ["change"],
+  setup(props, { emit }) {
+    return () =>
+      h("div", { class: "space-y-2" }, [
+        h("div", { class: "text-muted-foreground text-xs font-medium" }, props.title),
+        h(
+          "div",
+          { class: "space-y-2" },
+          props.options.map((option, i) => {
+            const value = typeof option === "string" ? option : option.value;
+            const label = typeof option === "string" ? option : option.label;
+            return h("div", { key: value, class: "flex items-center gap-2" }, [
+              h(Checkbox, {
+                id: `${props.title}-${i}`,
+                modelValue: props.selected.includes(value),
+                "onUpdate:modelValue": (checked) => emit("change", { checked: !!checked, value }),
+              }),
+              h(
+                Label,
+                {
+                  for: `${props.title}-${i}`,
+                  class: "grow cursor-pointer font-normal tracking-tight capitalize",
+                },
+                { default: () => label }
+              ),
+            ]);
+          })
+        ),
+      ]);
+  },
+});
 </script>

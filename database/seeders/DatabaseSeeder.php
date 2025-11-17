@@ -19,7 +19,6 @@ class DatabaseSeeder extends Seeder
             GaPropertySeeder::class,
             LinkSeeder::class,
             ShortLinkSeeder::class,
-            CategorySeeder::class,
             PostSeeder::class,
             ApiConsumerSeeder::class,
             ContactFormSubmissionSeeder::class,

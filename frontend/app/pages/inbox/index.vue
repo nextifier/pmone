@@ -37,7 +37,7 @@
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Statuses</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="new">New</SelectItem>
               <SelectItem value="in_progress">In Progress</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
@@ -51,7 +51,7 @@
               <SelectValue placeholder="All Projects" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Projects</SelectItem>
+              <SelectItem value="all">All Projects</SelectItem>
               <SelectItem v-for="project in projects" :key="project.id" :value="project.id.toString()">
                 {{ project.name }}
               </SelectItem>
@@ -199,7 +199,7 @@ definePageMeta({
 
 usePageMeta("inbox");
 
-const { $api } = useNuxtApp();
+const client = useSanctumClient();
 const router = useRouter();
 
 // State
@@ -211,19 +211,19 @@ const error = ref(null);
 
 // Filters
 const searchQuery = ref("");
-const selectedStatus = ref("");
-const selectedProjectId = ref("");
+const selectedStatus = ref("all");
+const selectedProjectId = ref("all");
 const currentPage = ref(1);
 
 // Computed
 const hasActiveFilters = computed(() => {
-  return !!searchQuery.value || !!selectedStatus.value || !!selectedProjectId.value;
+  return !!searchQuery.value || (selectedStatus.value !== "all") || (selectedProjectId.value !== "all");
 });
 
 // Fetch projects for filter
 async function fetchProjects() {
   try {
-    const response = await $api("/projects", {
+    const response = await client("/api/projects", {
       params: { client_only: true },
     });
 
@@ -258,15 +258,15 @@ async function fetchSubmissions() {
       params.filter_search = searchQuery.value;
     }
 
-    if (selectedStatus.value) {
+    if (selectedStatus.value && selectedStatus.value !== "all") {
       params.filter_status = selectedStatus.value;
     }
 
-    if (selectedProjectId.value) {
+    if (selectedProjectId.value && selectedProjectId.value !== "all") {
       params.filter_project = selectedProjectId.value;
     }
 
-    const response = await $api("/contact-form-submissions", { params });
+    const response = await client("/api/contact-form-submissions", { params });
 
     submissions.value = response.data || [];
     meta.value = response.meta || null;
@@ -315,7 +315,7 @@ async function quickUpdateStatus(submission) {
   const newStatus = statusMap[submission.status] || "in_progress";
 
   try {
-    await $api(`/contact-form-submissions/${submission.ulid}/status`, {
+    await client(`/api/contact-form-submissions/${submission.ulid}/status`, {
       method: "PATCH",
       body: { status: newStatus },
     });

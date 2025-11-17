@@ -30,7 +30,6 @@ class PostFactory extends Factory
             'visibility' => 'public',
             'published_at' => null,
             'featured' => false,
-            'og_type' => 'article',
             'source' => 'native',
         ];
     }
@@ -94,40 +93,6 @@ class PostFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'visibility' => 'members_only',
-        ]);
-    }
-
-    /**
-     * Indicate that the post is imported from Ghost.
-     */
-    public function fromGhost(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'source' => 'ghost',
-            'source_id' => fake()->uuid(),
-            'content_format' => 'html',
-        ]);
-    }
-
-    /**
-     * Indicate that the post is imported from Canvas.
-     */
-    public function fromCanvas(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'source' => 'canvas',
-            'source_id' => fake()->uuid(),
-            'content_format' => 'markdown',
-        ]);
-    }
-
-    /**
-     * Indicate that the post has high view count.
-     */
-    public function popular(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'view_count' => fake()->numberBetween(1000, 50000),
         ]);
     }
 }

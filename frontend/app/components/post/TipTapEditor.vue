@@ -148,13 +148,12 @@
 </template>
 
 <script setup>
-import { useEditor, EditorContent } from "@tiptap/vue-3";
-import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
-import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
+import StarterKit from "@tiptap/starter-kit";
+import { EditorContent, useEditor } from "@tiptap/vue-3";
 
 const props = defineProps({
   modelValue: {
@@ -174,12 +173,14 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue"]);
 
 const imageInput = ref(null);
-const { $api } = useNuxtApp();
+const client = useSanctumClient();
 
 const editor = useEditor({
   content: props.modelValue,
   extensions: [
-    StarterKit,
+    StarterKit.configure({
+      link: false, // Disable link from StarterKit to use custom config
+    }),
     Image.configure({
       HTMLAttributes: {
         class: "post-content-image",
@@ -194,7 +195,6 @@ const editor = useEditor({
     Placeholder.configure({
       placeholder: props.placeholder,
     }),
-    Underline,
     TextAlign.configure({
       types: ["heading", "paragraph"],
     }),
@@ -240,12 +240,7 @@ const setLink = () => {
     return;
   }
 
-  editor.value
-    .chain()
-    .focus()
-    .extendMarkRange("link")
-    .setLink({ href: url })
-    .run();
+  editor.value.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
 };
 
 // Image upload handling
@@ -266,7 +261,7 @@ const handleImageUpload = async (event) => {
     formData.append("collection", "content_images");
 
     // Upload image using API
-    const response = await $api("/media/upload", {
+    const response = await client("/api/media/upload", {
       method: "POST",
       body: formData,
     });
@@ -292,11 +287,11 @@ const handleImageUpload = async (event) => {
 @reference "../../assets/css/main.css";
 
 .tiptap-editor {
-  @apply border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden;
+  @apply overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700;
 }
 
 .editor-toolbar {
-  @apply flex items-center gap-1 p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex-wrap;
+  @apply flex flex-wrap items-center gap-1 border-b border-gray-200 p-2 dark:border-gray-700;
 }
 
 .toolbar-group {
@@ -304,24 +299,24 @@ const handleImageUpload = async (event) => {
 }
 
 .toolbar-divider {
-  @apply w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1;
+  @apply bg-border mx-1 h-5 w-px;
 }
 
 .toolbar-button {
-  @apply p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300;
+  @apply rounded p-2 text-gray-700 transition-colors hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700;
 }
 
 .toolbar-button.is-active {
-  @apply bg-gray-300 dark:bg-gray-600 text-gray-900 dark:text-white;
+  @apply bg-gray-300 text-gray-900 dark:bg-gray-600 dark:text-white;
 }
 
 .editor-content-wrapper {
-  @apply p-4 min-h-[400px] bg-white dark:bg-gray-900;
+  @apply min-h-[400px] p-4;
 }
 
 /* TipTap prose styling */
 :deep(.ProseMirror) {
-  @apply outline-none min-h-[350px];
+  @apply min-h-[350px] text-gray-900 outline-none dark:text-gray-100;
 }
 
 :deep(.ProseMirror p.is-editor-empty:first-child::before) {
@@ -332,11 +327,21 @@ const handleImageUpload = async (event) => {
   height: 0;
 }
 
+/* Dark mode text colors for all content */
+:deep(.ProseMirror) {
+  @apply prose-headings:text-gray-900 dark:prose-headings:text-gray-100;
+  @apply prose-p:text-gray-900 dark:prose-p:text-gray-100;
+  @apply prose-li:text-gray-900 dark:prose-li:text-gray-100;
+  @apply prose-strong:text-gray-900 dark:prose-strong:text-gray-100;
+  @apply prose-code:text-gray-900 dark:prose-code:text-gray-100;
+  @apply prose-blockquote:text-gray-700 dark:prose-blockquote:text-gray-300;
+}
+
 :deep(.post-content-image) {
-  @apply max-w-full h-auto rounded-lg my-4;
+  @apply my-4 h-auto max-w-full rounded-lg;
 }
 
 :deep(.post-content-link) {
-  @apply text-blue-600 dark:text-blue-400 underline hover:text-blue-700 dark:hover:text-blue-300;
+  @apply text-blue-600 underline hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300;
 }
 </style>
