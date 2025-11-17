@@ -1,25 +1,27 @@
 <template>
   <div class="mx-auto max-w-7xl space-y-6 pt-4 pb-16">
-    <div class="flex items-center justify-between">
+    <!-- Page Header -->
+    <div class="flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-x-2.5">
-        <Icon name="hugeicons:analysis-text-link" class="size-5 sm:size-6" />
-        <h1 class="page-title">Application Logs</h1>
+        <Icon name="hugeicons:analytics-02" class="text-primary size-5 sm:size-6" />
+        <h1 class="page-title">Activity Logs</h1>
       </div>
 
       <button
         v-if="user?.roles?.includes('master')"
-        @click="clearLogs"
-        :disabled="clearing"
-        class="border-destructive bg-destructive/10 text-destructive hover:bg-destructive/20 flex items-center gap-2 rounded-lg border px-3 py-2 text-sm disabled:opacity-50"
+        @click="confirmClearLogs"
+        :disabled="clearing || pending"
+        class="border-destructive bg-destructive/10 text-destructive hover:bg-destructive/20 flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm font-medium tracking-tight transition active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <Icon name="hugeicons:delete-02" class="size-4" />
-        Clear Logs
+        <Icon name="hugeicons:delete-02" class="size-4 shrink-0" />
+        <span>Clear All Logs</span>
       </button>
     </div>
 
+    <!-- Main Table -->
     <TableData
-      :clientOnly="false"
       ref="tableRef"
+      :clientOnly="false"
       :data="data"
       :columns="columns"
       :meta="meta"
@@ -28,8 +30,9 @@
       model="logs"
       search-column="search"
       search-placeholder="Search in description, user, or event"
-      error-title="Error loading logs"
+      error-title="Error loading activity logs"
       :show-add-button="false"
+      :show-refresh-button="true"
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
@@ -39,7 +42,6 @@
       @refresh="refresh"
     >
       <template #filters="{ table }">
-        <!-- Filter Popover -->
         <Popover>
           <PopoverTrigger asChild>
             <button
@@ -55,16 +57,18 @@
               </span>
             </button>
           </PopoverTrigger>
-          <PopoverContent class="w-auto min-w-48 p-3" align="start">
+          <PopoverContent class="w-auto min-w-52 p-3" align="start">
             <div class="space-y-4">
               <FilterSection
+                v-if="logNames.length > 0"
                 title="Log Name"
                 :options="logNames"
                 :selected="selectedLogNames"
                 @change="handleFilterChange('log_name', $event)"
               />
-              <div class="border-t" />
+              <div v-if="logNames.length > 0 && events.length > 0" class="border-t" />
               <FilterSection
+                v-if="events.length > 0"
                 title="Event"
                 :options="events"
                 :selected="selectedEvents"
@@ -92,13 +96,13 @@ definePageMeta({
 });
 
 defineOptions({
-  name: "logs",
+  name: "ActivityLogs",
 });
 
 usePageMeta("logs");
 
 const { user } = useSanctumAuth();
-const { $ } = useNuxtApp();
+const { $dayjs } = useNuxtApp();
 
 // Table state
 const columnFilters = ref([]);
@@ -111,33 +115,36 @@ const meta = ref({ current_page: 1, last_page: 1, per_page: 50, total: 0 });
 const pending = ref(false);
 const error = ref(null);
 
-// Additional state
+// Filter options
 const logNames = ref([]);
 const events = ref([]);
 const clearing = ref(false);
 
-// Build query params
+// Build query params for API
 const buildQueryParams = () => {
   const params = new URLSearchParams();
 
-  // Server-side mode: add pagination, filters, and sorting
+  // Pagination
   params.append("page", pagination.value.pageIndex + 1);
   params.append("per_page", pagination.value.pageSize);
 
-  // Filters
-  const filters = {
-    search: "search",
-    log_name: "log_name",
-    event: "event",
-  };
+  // Search filter
+  const searchFilter = columnFilters.value.find((f) => f.id === "search");
+  if (searchFilter?.value) {
+    params.append("search", searchFilter.value);
+  }
 
-  Object.entries(filters).forEach(([columnId, paramKey]) => {
-    const filter = columnFilters.value.find((f) => f.id === columnId);
-    if (filter?.value) {
-      const value = Array.isArray(filter.value) ? filter.value.join(",") : filter.value;
-      params.append(paramKey, value);
-    }
-  });
+  // Log name filter
+  const logNameFilter = columnFilters.value.find((f) => f.id === "log_name");
+  if (logNameFilter?.value && Array.isArray(logNameFilter.value)) {
+    params.append("log_name", logNameFilter.value.join(","));
+  }
+
+  // Event filter
+  const eventFilter = columnFilters.value.find((f) => f.id === "event");
+  if (eventFilter?.value && Array.isArray(eventFilter.value)) {
+    params.append("event", eventFilter.value.join(","));
+  }
 
   // Sorting
   const sortField = sorting.value[0]?.id || "created_at";
@@ -147,7 +154,7 @@ const buildQueryParams = () => {
   return params.toString();
 };
 
-// Fetch logs
+// Fetch logs from API
 const fetchLogs = async () => {
   try {
     pending.value = true;
@@ -159,14 +166,18 @@ const fetchLogs = async () => {
   } catch (err) {
     error.value = err;
     console.error("Failed to fetch logs:", err);
+    toast.error("Failed to load activity logs", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
   } finally {
     pending.value = false;
   }
 };
 
+// Initial fetch
 await fetchLogs();
 
-// Watchers for server-side mode
+// Watch for changes and refetch
 const debouncedFetch = useDebounceFn(fetchLogs, 300);
 
 watch(
@@ -180,44 +191,52 @@ watch(
 
 const refresh = fetchLogs;
 
-// Load log names
-async function loadLogNames() {
+// Load filter options
+const loadLogNames = async () => {
   try {
     const client = useSanctumClient();
     const response = await client("/api/logs/log-names");
-    logNames.value = response.data;
+    logNames.value = response.data || [];
   } catch (err) {
     console.error("Error loading log names:", err);
   }
-}
+};
 
-// Load events
-async function loadEvents() {
+const loadEvents = async () => {
   try {
     const client = useSanctumClient();
     const response = await client("/api/logs/events");
-    events.value = response.data;
+    events.value = response.data || [];
   } catch (err) {
     console.error("Error loading events:", err);
   }
-}
+};
 
-// Clear logs (master only)
-async function clearLogs() {
-  if (!confirm("Are you sure you want to clear all logs? This action cannot be undone.")) {
-    return;
+// Clear all logs (master only)
+const confirmClearLogs = () => {
+  if (
+    confirm(
+      "Are you sure you want to clear all activity logs? This action cannot be undone and will permanently delete all log entries."
+    )
+  ) {
+    clearLogs();
   }
+};
 
+const clearLogs = async () => {
   clearing.value = true;
 
   try {
     const client = useSanctumClient();
-    await client("/api/logs/clear", {
+    const response = await client("/api/logs/clear", {
       method: "DELETE",
     });
 
+    toast.success("Activity logs cleared successfully", {
+      description: `${response.deleted_count || 0} log entries deleted`,
+    });
+
     await refresh();
-    toast.success("Logs cleared successfully");
   } catch (err) {
     console.error("Error clearing logs:", err);
     toast.error("Failed to clear logs", {
@@ -226,50 +245,58 @@ async function clearLogs() {
   } finally {
     clearing.value = false;
   }
-}
+};
 
-// Table columns
+// Table columns definition
 const columns = [
   {
     header: "Activity",
     accessorKey: "human_description",
     cell: ({ row }) => {
       const log = row.original;
-      return h("div", { class: "space-y-0.5" }, [
-        h("div", { class: "text-sm font-medium tracking-tight" }, log.human_description),
+      return h("div", { class: "space-y-1" }, [
+        h(
+          "div",
+          { class: "text-foreground text-sm font-medium tracking-tight" },
+          log.human_description || log.description
+        ),
         log.event
-          ? h("div", { class: "text-muted-foreground text-xs" }, `Event: ${log.event}`)
+          ? h(
+              "div",
+              { class: "text-muted-foreground flex items-center gap-x-1 text-xs" },
+              [
+                h("span", { class: "capitalize" }, log.event),
+                log.log_name
+                  ? h("span", {}, [
+                      h("span", { class: "text-muted-foreground/50" }, " • "),
+                      h("span", { class: "capitalize" }, log.log_name),
+                    ])
+                  : null,
+              ]
+            )
           : null,
       ]);
     },
-    size: 200,
+    size: 300,
     enableSorting: false,
-    filterFn: (row, columnId, filterValue) => {
-      if (!filterValue) return true;
-      const searchValue = filterValue.toLowerCase();
-      const description = row.original.human_description?.toLowerCase() || "";
-      const event = row.original.event?.toLowerCase() || "";
-      const causer = row.original.causer_name?.toLowerCase() || "";
-      return (
-        description.includes(searchValue) ||
-        event.includes(searchValue) ||
-        causer.includes(searchValue)
-      );
-    },
   },
   {
-    header: "Causer",
+    header: "User",
     accessorKey: "causer_name",
     cell: ({ row }) => {
       const log = row.original;
       return h("div", { class: "space-y-0.5" }, [
-        h("div", { class: "text-sm tracking-tight" }, log.causer_name || "System"),
+        h(
+          "div",
+          { class: "text-foreground text-sm tracking-tight" },
+          log.causer_name || "System"
+        ),
         log.causer_id
           ? h("div", { class: "text-muted-foreground text-xs" }, `ID: ${log.causer_id}`)
           : null,
       ]);
     },
-    size: 150,
+    size: 160,
     enableSorting: false,
   },
   {
@@ -278,7 +305,7 @@ const columns = [
     cell: ({ row }) => {
       const log = row.original;
       return log.subject_info
-        ? h("div", { class: "text-sm tracking-tight" }, log.subject_info)
+        ? h("div", { class: "text-foreground text-sm tracking-tight" }, log.subject_info)
         : h("div", { class: "text-muted-foreground text-sm" }, "—");
     },
     size: 240,
@@ -290,11 +317,15 @@ const columns = [
     cell: ({ row }) => {
       const date = row.getValue("created_at");
       return withDirectives(
-        h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $(date).fromNow()),
-        [[resolveDirective("tippy"), $(date).format("MMMM D, YYYY [at] h:mm A")]]
+        h(
+          "div",
+          { class: "text-muted-foreground text-sm tracking-tight" },
+          $dayjs(date).fromNow()
+        ),
+        [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
       );
     },
-    size: 120,
+    size: 140,
     enableSorting: true,
   },
   {
@@ -302,25 +333,34 @@ const columns = [
     accessorKey: "properties",
     cell: ({ row }) => {
       const log = row.original;
-      if (log.properties && Object.keys(log.properties).length > 0) {
-        return h("details", { class: "cursor-pointer" }, [
-          h(
-            "summary",
-            { class: "text-muted-foreground hover:text-foreground text-xs select-none" },
-            "View Details"
-          ),
-          h("div", { class: "mt-2 max-w-xs" }, [
-            h(
-              "pre",
-              { class: "bg-muted max-h-32 overflow-auto rounded p-2 text-xs whitespace-pre-wrap" },
-              JSON.stringify(log.properties, null, 2)
-            ),
-          ]),
-        ]);
+      const hasProperties = log.properties && Object.keys(log.properties).length > 0;
+
+      if (!hasProperties) {
+        return h("div", { class: "text-muted-foreground text-xs" }, "—");
       }
-      return h("div", { class: "text-muted-foreground text-xs" }, "—");
+
+      return h("details", { class: "cursor-pointer" }, [
+        h(
+          "summary",
+          {
+            class:
+              "text-primary hover:text-primary/80 text-xs font-medium tracking-tight select-none",
+          },
+          "View Details"
+        ),
+        h("div", { class: "mt-2 max-w-md" }, [
+          h(
+            "pre",
+            {
+              class:
+                "bg-muted/50 text-foreground max-h-48 overflow-auto rounded-lg border p-3 text-xs whitespace-pre-wrap",
+            },
+            JSON.stringify(log.properties, null, 2)
+          ),
+        ]),
+      ]);
     },
-    size: 100,
+    size: 120,
     enableSorting: false,
   },
 ];
@@ -328,7 +368,7 @@ const columns = [
 // Table ref
 const tableRef = ref();
 
-// Filter helpers - server mode
+// Filter helpers
 const getFilterValue = (columnId) => {
   return columnFilters.value.find((f) => f.id === columnId)?.value ?? [];
 };
@@ -355,6 +395,7 @@ const handleFilterChange = (columnId, { checked, value }) => {
       columnFilters.value.splice(existingIndex, 1);
     }
   }
+
   // Reset to first page when filter changes
   pagination.value.pageIndex = 0;
 };
@@ -369,8 +410,12 @@ const FilterSection = defineComponent({
   emits: ["change"],
   setup(props, { emit }) {
     return () =>
-      h("div", { class: "space-y-2" }, [
-        h("div", { class: "text-muted-foreground text-xs font-medium" }, props.title),
+      h("div", { class: "space-y-2.5" }, [
+        h(
+          "div",
+          { class: "text-muted-foreground text-xs font-semibold uppercase tracking-wider" },
+          props.title
+        ),
         h(
           "div",
           { class: "space-y-2" },
@@ -398,7 +443,7 @@ const FilterSection = defineComponent({
   },
 });
 
-// Load data on mount
+// Load filter options on mount
 onMounted(async () => {
   await Promise.all([loadLogNames(), loadEvents()]);
 });
