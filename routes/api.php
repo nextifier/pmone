@@ -207,6 +207,11 @@ Route::middleware(['auth:sanctum'])->prefix('google-analytics')->group(function 
     Route::get('/sync-logs/stats', [\App\Http\Controllers\Api\AnalyticsSyncLogController::class, 'stats']);
 });
 
+// Public post endpoints
+Route::prefix('posts')->group(function () {
+    Route::get('/{post:slug}', [PostController::class, 'show'])->name('posts.show');
+});
+
 // Post management endpoints (authenticated + verified)
 Route::middleware(['auth:sanctum', 'verified'])->prefix('posts')->group(function () {
     Route::get('/', [PostController::class, 'index'])->name('posts.index');
@@ -218,7 +223,6 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('posts')->group(function
     Route::post('/trash/{id}/restore', [PostController::class, 'restore'])->name('posts.restore');
     Route::delete('/trash/bulk', [PostController::class, 'bulkForceDestroy'])->name('posts.bulk-force-destroy');
     Route::delete('/trash/{id}', [PostController::class, 'forceDestroy'])->name('posts.force-destroy');
-    Route::get('/{post:slug}', [PostController::class, 'show'])->name('posts.show');
     Route::get('/{post:slug}/revisions', [PostController::class, 'revisions'])->name('posts.revisions');
     Route::post('/{post:slug}/revisions/compare', [PostController::class, 'compareRevisions'])->name('posts.compare-revisions');
     Route::get('/{post:slug}/analytics', [PostController::class, 'analytics'])->name('posts.analytics');

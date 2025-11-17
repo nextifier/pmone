@@ -70,6 +70,104 @@
       </div>
     </div>
 
+    <!-- Authors -->
+    <div class="frame">
+      <div class="frame-header">
+        <div class="frame-title">Authors</div>
+      </div>
+      <div class="frame-panel">
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <Label>Post Authors</Label>
+            <p class="text-muted-foreground text-xs tracking-tight">
+              Add authors and assign their roles for this post
+            </p>
+          </div>
+
+          <!-- Authors List -->
+          <div v-if="form.authors.length > 0" class="space-y-3">
+            <div
+              v-for="(author, index) in form.authors"
+              :key="index"
+              class="border-border flex items-center gap-3 rounded-lg border p-3"
+            >
+              <!-- User Select -->
+              <div class="flex-1">
+                <Select v-model="author.user_id">
+                  <SelectTrigger class="w-full">
+                    <SelectValue placeholder="Select author..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem
+                      v-for="user in availableUsers"
+                      :key="user.id"
+                      :value="user.id"
+                    >
+                      {{ user.name }} ({{ user.email }})
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <!-- Role Input -->
+              <div class="w-48">
+                <Input
+                  v-model="author.role"
+                  type="text"
+                  placeholder="Role (e.g., primary_author)"
+                  maxlength="50"
+                />
+              </div>
+
+              <!-- Reorder Buttons -->
+              <div class="flex gap-1">
+                <button
+                  type="button"
+                  @click="moveAuthorUp(index)"
+                  :disabled="index === 0"
+                  class="hover:bg-accent disabled:opacity-30 flex size-8 items-center justify-center rounded-lg transition"
+                  title="Move up"
+                >
+                  <Icon name="lucide:chevron-up" class="size-4" />
+                </button>
+                <button
+                  type="button"
+                  @click="moveAuthorDown(index)"
+                  :disabled="index === form.authors.length - 1"
+                  class="hover:bg-accent disabled:opacity-30 flex size-8 items-center justify-center rounded-lg transition"
+                  title="Move down"
+                >
+                  <Icon name="lucide:chevron-down" class="size-4" />
+                </button>
+              </div>
+
+              <!-- Remove Button -->
+              <button
+                type="button"
+                @click="removeAuthor(index)"
+                class="hover:bg-destructive/10 hover:text-destructive flex size-8 items-center justify-center rounded-lg transition"
+                title="Remove author"
+              >
+                <Icon name="lucide:x" class="size-4" />
+              </button>
+            </div>
+          </div>
+
+          <!-- Add Author Button -->
+          <button
+            type="button"
+            @click="addAuthor"
+            class="border-input hover:bg-accent flex w-full items-center justify-center gap-2 rounded-lg border border-dashed py-3 text-sm font-medium transition"
+          >
+            <Icon name="lucide:plus" class="size-4" />
+            Add Author
+          </button>
+
+          <InputErrorMessage :errors="errors.authors" />
+        </div>
+      </div>
+    </div>
+
     <!-- Post Settings -->
     <div class="frame">
       <div class="frame-header">
@@ -237,6 +335,7 @@ const form = reactive({
   meta_title: "",
   meta_description: "",
   tags: [],
+  authors: [],
 });
 
 const loading = ref(false);
@@ -244,9 +343,11 @@ const autoSaving = ref(false);
 const errors = ref({});
 const postId = ref(props.initialData?.id || null);
 const postSlug = ref(props.postSlug || null);
+const availableUsers = ref([]);
 let autoSaveTimeout = null;
 
 onMounted(async () => {
+  await loadUsers();
   if (props.initialData) {
     populateForm();
   }
@@ -255,6 +356,16 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   clearTimeout(autoSaveTimeout);
 });
+
+async function loadUsers() {
+  try {
+    const response = await client("/api/users");
+    availableUsers.value = response.data || [];
+  } catch (error) {
+    console.error("Failed to load users:", error);
+    availableUsers.value = [];
+  }
+}
 
 function populateForm() {
   if (!props.initialData) return;
@@ -277,6 +388,53 @@ function populateForm() {
   if (data.tags && Array.isArray(data.tags)) {
     form.tags = data.tags.map((tag) => tag.name || tag);
   }
+
+  if (data.authors && Array.isArray(data.authors)) {
+    form.authors = data.authors.map((author) => ({
+      user_id: author.id,
+      role: author.role || "co_author",
+      order: author.order || 0,
+    }));
+  }
+}
+
+// Author management functions
+function addAuthor() {
+  form.authors.push({
+    user_id: null,
+    role: "co_author",
+    order: form.authors.length,
+  });
+}
+
+function removeAuthor(index) {
+  form.authors.splice(index, 1);
+  // Update order after removal
+  form.authors.forEach((author, idx) => {
+    author.order = idx;
+  });
+}
+
+function moveAuthorUp(index) {
+  if (index === 0) return;
+  const temp = form.authors[index];
+  form.authors[index] = form.authors[index - 1];
+  form.authors[index - 1] = temp;
+  // Update order
+  form.authors.forEach((author, idx) => {
+    author.order = idx;
+  });
+}
+
+function moveAuthorDown(index) {
+  if (index === form.authors.length - 1) return;
+  const temp = form.authors[index];
+  form.authors[index] = form.authors[index + 1];
+  form.authors[index + 1] = temp;
+  // Update order
+  form.authors.forEach((author, idx) => {
+    author.order = idx;
+  });
 }
 
 // Auto-save disabled
@@ -379,6 +537,17 @@ async function handleSubmit() {
           : null,
       tags: form.tags,
     };
+
+    // Add authors if any
+    if (form.authors.length > 0) {
+      payload.authors = form.authors
+        .filter((author) => author.user_id) // Only include authors with selected user
+        .map((author, index) => ({
+          user_id: author.user_id,
+          role: author.role || "co_author",
+          order: index,
+        }));
+    }
 
     const featuredValue = imageFiles.value.featured_image?.[0];
     if (featuredValue && featuredValue.startsWith("tmp-")) {

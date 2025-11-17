@@ -33,6 +33,7 @@
             </span>
           </div>
           <button
+            v-if="isAuthenticated"
             @click="navigateTo(`/posts/${post.slug}/edit`)"
             class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-semibold tracking-tighter transition"
           >
@@ -110,6 +111,7 @@
           Back to Posts
         </button>
         <button
+          v-if="isAuthenticated"
           @click="deletePost"
           class="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground flex items-center gap-x-1.5 rounded-lg border px-4 py-2 text-sm font-semibold tracking-tighter transition"
         >
@@ -137,18 +139,19 @@
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth"],
-  layout: "app",
+  layout: "default",
 });
-
-usePageMeta("posts");
 
 const route = useRoute();
 const postSlug = route.params.slug;
-const client = useSanctumClient();
+const { $api } = useNuxtApp();
+const { user } = useSanctumAuth();
 
 const post = ref(null);
 const loading = ref(true);
+
+// Check if user is authenticated
+const isAuthenticated = computed(() => !!user.value);
 
 onMounted(async () => {
   await loadPost();
@@ -158,7 +161,7 @@ async function loadPost() {
   loading.value = true;
 
   try {
-    const response = await client(`/api/posts/${postSlug}`);
+    const response = await $api(`/api/posts/${postSlug}`);
     post.value = response.data;
   } catch (error) {
     console.error("Failed to load post:", error);
@@ -170,12 +173,17 @@ async function loadPost() {
 }
 
 async function deletePost() {
+  if (!isAuthenticated.value) {
+    toast.error("You must be signed in to delete posts");
+    return;
+  }
+
   if (!confirm(`Are you sure you want to delete "${post.value.title}"?`)) {
     return;
   }
 
   try {
-    await client(`/api/posts/${postSlug}`, {
+    await $api(`/api/posts/${postSlug}`, {
       method: "DELETE",
     });
 

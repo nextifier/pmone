@@ -243,6 +243,17 @@ class Post extends Model implements HasMedia
     }
 
     /**
+     * Post authors (many-to-many with pivot data)
+     */
+    public function authors(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'post_authors')
+            ->withPivot('role', 'order')
+            ->orderBy('post_authors.order')
+            ->withTimestamps();
+    }
+
+    /**
      * Scope: Published posts
      */
     public function scopePublished($query)

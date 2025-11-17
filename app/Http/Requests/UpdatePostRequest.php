@@ -47,7 +47,7 @@ class UpdatePostRequest extends FormRequest
             // Authors with roles (alternative to simple author_ids)
             'authors' => ['sometimes', 'array'],
             'authors.*.user_id' => ['required', 'exists:users,id'],
-            'authors.*.role' => ['required', 'string', 'in:primary_author,co_author,contributor,editor'],
+            'authors.*.role' => ['required', 'string', 'max:50'],
             'authors.*.order' => ['sometimes', 'integer', 'min:0'],
 
             'category_ids' => ['sometimes', 'array'],
