@@ -103,9 +103,9 @@ export default defineNuxtConfig({
     provider: "local",
     families: [
       {
-        name: "PlusJakartaSans",
-        src: "/fonts/PlusJakartaSans-VariableFont.woff2",
-        weight: "200 800",
+        name: "MinusOne",
+        src: "/fonts/MinusOne-VariableFont.woff2",
+        weight: "100 1000",
         display: "swap",
       },
     ],

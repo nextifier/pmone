@@ -59,7 +59,7 @@
           />
         </div>
 
-        <p class="text-muted-foreground mt-1.5 text-xs tracking-tight">
+        <p class="text-muted-foreground mt-1.5 line-clamp-1 text-xs tracking-tight">
           {{ metric.description }}
         </p>
       </div>
