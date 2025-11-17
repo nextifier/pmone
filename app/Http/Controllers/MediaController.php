@@ -75,6 +75,12 @@ class MediaController extends Controller
                 ], 422);
             }
 
+            // Handle model_id = 0 for uploads before model exists (e.g., content images in new posts)
+            if ($modelId == 0) {
+                // Store in temporary storage and return temp reference
+                return $this->handleTemporaryMediaUpload($file, $collection);
+            }
+
             $model = app($modelType)->findOrFail($modelId);
 
             // Validate file against collection requirements
@@ -662,14 +668,19 @@ class MediaController extends Controller
             $conversions['original'] = $media->getUrl();
 
             // Get conversion URLs based on collection type
-            if ($collection === 'profile_image') {
+            if ($collection === 'profile_image' || $collection === 'cover_image') {
                 $conversions['lqip'] = $media->getUrl('lqip');
                 $conversions['sm'] = $media->getUrl('sm');
                 $conversions['md'] = $media->getUrl('md');
                 $conversions['lg'] = $media->getUrl('lg');
                 $conversions['xl'] = $media->getUrl('xl');
-            } elseif ($collection === 'cover_image') {
+            } elseif ($collection === 'featured_image') {
                 $conversions['lqip'] = $media->getUrl('lqip');
+                $conversions['sm'] = $media->getUrl('sm');
+                $conversions['md'] = $media->getUrl('md');
+                $conversions['lg'] = $media->getUrl('lg');
+                $conversions['xl'] = $media->getUrl('xl');
+            } elseif ($collection === 'content_images') {
                 $conversions['sm'] = $media->getUrl('sm');
                 $conversions['md'] = $media->getUrl('md');
                 $conversions['lg'] = $media->getUrl('lg');
@@ -874,5 +885,79 @@ class MediaController extends Controller
         } else {
             return sprintf('%02d:%02d', $minutes, $seconds);
         }
+    }
+
+    /**
+     * Handle temporary media upload for models that don't exist yet
+     */
+    protected function handleTemporaryMediaUpload($file, string $collection): JsonResponse
+    {
+        $folder = uniqid('tmp-media-', true);
+        $filename = $file->getClientOriginalName();
+
+        // Store file in temporary storage
+        $path = \Illuminate\Support\Facades\Storage::disk('local')->putFileAs(
+            "tmp/media/{$folder}",
+            $file,
+            $filename
+        );
+
+        // Store metadata
+        \Illuminate\Support\Facades\Storage::disk('local')->put(
+            "tmp/media/{$folder}/metadata.json",
+            json_encode([
+                'original_name' => $filename,
+                'mime_type' => $file->getMimeType(),
+                'size' => $file->getSize(),
+                'collection' => $collection,
+                'uploaded_at' => now()->toISOString(),
+            ])
+        );
+
+        // Generate a temporary URL for the uploaded file
+        $tempUrl = url("/api/tmp-media/{$folder}");
+
+        return response()->json([
+            'message' => 'File uploaded to temporary storage',
+            'media' => [
+                'id' => null,
+                'name' => pathinfo($filename, PATHINFO_FILENAME),
+                'file_name' => $filename,
+                'url' => $tempUrl,
+                'temp_folder' => $folder,
+                'is_temporary' => true,
+            ],
+        ]);
+    }
+
+    /**
+     * Serve temporary media file
+     */
+    public function serveTempMedia(string $folder)
+    {
+        if (! Str::startsWith($folder, 'tmp-media-')) {
+            return response()->json(['error' => 'Invalid folder'], 400);
+        }
+
+        $metadataPath = "tmp/media/{$folder}/metadata.json";
+
+        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+            return response()->json(['error' => 'File not found'], 404);
+        }
+
+        $metadata = json_decode(\Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath), true);
+        $filePath = "tmp/media/{$folder}/{$metadata['original_name']}";
+
+        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($filePath)) {
+            return response()->json(['error' => 'File not found'], 404);
+        }
+
+        return response()->file(
+            \Illuminate\Support\Facades\Storage::disk('local')->path($filePath),
+            [
+                'Content-Type' => $metadata['mime_type'],
+                'Content-Disposition' => 'inline; filename="'.$metadata['original_name'].'"',
+            ]
+        );
     }
 }

@@ -20,7 +20,8 @@ class PostController extends Controller
         $this->authorize('viewAny', Post::class);
 
         $query = Post::query()
-            ->with(['creator', 'tags']);
+            ->with(['creator', 'tags'])
+            ->withCount('visits');
 
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
@@ -94,17 +95,35 @@ class PostController extends Controller
         $this->authorize('view', $post);
 
         $post->load(['creator', 'updater', 'tags']);
+        $post->loadCount('visits');
 
-        // Track visit - record all views regardless of post status
-        \App\Models\Visit::create([
-            'visitable_type' => Post::class,
-            'visitable_id' => $post->id,
-            'visitor_id' => auth()->id(),
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-            'referer' => request()->header('referer'),
-            'visited_at' => now(),
-        ]);
+        // Track visit only if not loading for edit
+        if (! request()->has('for') || request()->input('for') !== 'edit') {
+            // Prevent duplicate visits within 5 minutes from same user/IP
+            $recentVisit = \App\Models\Visit::where('visitable_type', Post::class)
+                ->where('visitable_id', $post->id)
+                ->where(function ($query) {
+                    $query->where('visitor_id', auth()->id())
+                        ->orWhere('ip_address', request()->ip());
+                })
+                ->where('visited_at', '>', now()->subMinutes(5))
+                ->exists();
+
+            if (! $recentVisit) {
+                \App\Models\Visit::create([
+                    'visitable_type' => Post::class,
+                    'visitable_id' => $post->id,
+                    'visitor_id' => auth()->id(),
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                    'referer' => request()->header('referer'),
+                    'visited_at' => now(),
+                ]);
+
+                // Increment the count after creating visit
+                $post->visits_count++;
+            }
+        }
 
         return response()->json([
             'data' => new PostResource($post),
@@ -128,6 +147,9 @@ class PostController extends Controller
 
             // Handle featured image upload from temporary storage
             $this->handleTemporaryUpload($request, $post, 'tmp_featured_image', 'featured_image');
+
+            // Process content images (move from temp to permanent storage)
+            $this->processContentImages($post);
 
             $post->load(['creator', 'tags', 'media']);
 
@@ -165,6 +187,9 @@ class PostController extends Controller
 
             // Handle featured image upload from temporary storage
             $this->handleTemporaryUpload($request, $post, 'tmp_featured_image', 'featured_image');
+
+            // Process content images (move from temp to permanent storage)
+            $this->processContentImages($post);
 
             $post->load(['creator', 'tags', 'media']);
 
@@ -216,7 +241,8 @@ class PostController extends Controller
         $this->authorize('viewAny', Post::class);
 
         $query = Post::onlyTrashed()
-            ->with(['creator', 'deleter']);
+            ->with(['creator', 'deleter'])
+            ->withCount('visits');
 
         // Search filter
         if ($searchTerm = $request->input('filter_search')) {
@@ -387,9 +413,86 @@ class PostController extends Controller
         // Clear existing media from collection first
         $post->clearMediaCollection($collection);
 
+        // Get metadata to find the actual filename
+        $metadataPath = "tmp/uploads/{$value}/metadata.json";
+        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+            throw new \Exception("File `{$value}` does not exist");
+        }
+
+        $metadata = json_decode(\Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath), true);
+        $filename = $metadata['original_name'];
+
+        // Construct full path to the file in temporary storage
+        $tempFilePath = "tmp/uploads/{$value}/{$filename}";
+
         // Move file from temp storage to permanent storage
-        $post->addMediaFromDisk($value, 'tmp')
-            ->usingName(pathinfo($value, PATHINFO_FILENAME))
+        $post->addMediaFromDisk($tempFilePath, 'local')
+            ->usingName(pathinfo($filename, PATHINFO_FILENAME))
             ->toMediaCollection($collection);
+
+        // Clean up temporary storage
+        \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
+    }
+
+    /**
+     * Process content images - move temporary images to permanent storage
+     */
+    private function processContentImages(Post $post): void
+    {
+        if (! $post->content) {
+            return;
+        }
+
+        $content = $post->content;
+        $pattern = '/\/api\/tmp-media\/(tmp-media-[a-zA-Z0-9._-]+)/';
+
+        // Find all temporary media URLs in content
+        if (! preg_match_all($pattern, $content, $matches)) {
+            return;
+        }
+
+        $tempFolders = array_unique($matches[1]);
+
+        foreach ($tempFolders as $folder) {
+            try {
+                $metadataPath = "tmp/media/{$folder}/metadata.json";
+
+                if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+                    continue;
+                }
+
+                $metadata = json_decode(\Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath), true);
+                $filename = $metadata['original_name'];
+                $tempFilePath = "tmp/media/{$folder}/{$filename}";
+
+                if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($tempFilePath)) {
+                    continue;
+                }
+
+                // Move file from temp storage to permanent storage
+                $media = $post->addMediaFromDisk($tempFilePath, 'local')
+                    ->usingName(pathinfo($filename, PATHINFO_FILENAME))
+                    ->toMediaCollection('content_images');
+
+                // Replace temporary URL with permanent URL in content
+                $tempUrl = "/api/tmp-media/{$folder}";
+                $permanentUrl = $media->getUrl();
+                $content = str_replace($tempUrl, $permanentUrl, $content);
+
+                // Clean up temporary storage
+                \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/media/{$folder}");
+            } catch (\Exception $e) {
+                logger()->warning('Failed to process content image', [
+                    'folder' => $folder,
+                    'error' => $e->getMessage(),
+                    'post_id' => $post->id,
+                ]);
+            }
+        }
+
+        // Update post content with new URLs
+        if ($content !== $post->content) {
+            $post->update(['content' => $content]);
+        }
     }
 }

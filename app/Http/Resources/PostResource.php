@@ -27,7 +27,7 @@ class PostResource extends JsonResource
                 'published_at' => $this->published_at,
                 'featured' => $this->featured,
                 'reading_time' => $this->reading_time,
-                'visits_count' => $this->visits()->count(),
+                'visits_count' => $this->visits_count ?? $this->visits()->count(),
                 'featured_image' => $this->when(
                     $this->hasMedia('featured_image'),
                     $this->getMediaUrls('featured_image')
@@ -57,7 +57,7 @@ class PostResource extends JsonResource
             'published_at' => $this->published_at,
             'featured' => $this->featured,
             'reading_time' => $this->reading_time,
-            'visits_count' => $this->visits()->count(),
+            'visits_count' => $this->visits_count ?? $this->visits()->count(),
             'settings' => $this->settings,
             'source' => $this->source,
             'featured_image' => $this->when(

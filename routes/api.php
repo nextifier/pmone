@@ -39,6 +39,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/{media}', [MediaController::class, 'delete']);
     });
 
+    // Temporary media serving endpoint
+    Route::get('/tmp-media/{folder}', [MediaController::class, 'serveTempMedia']);
+
     // User management endpoints
     Route::prefix('user')->group(function () {
         Route::put('/profile', [UserController::class, 'updateProfile']);
