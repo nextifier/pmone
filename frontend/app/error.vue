@@ -9,7 +9,7 @@
 
       <h1
         v-if="error.statusMessage"
-        class="text-primary w-full text-4xl font-bold tracking-tighter wrap-break-word"
+        class="text-primary w-full text-4xl font-semibold tracking-tighter wrap-break-word"
       >
         {{ error.statusMessage }}
       </h1>

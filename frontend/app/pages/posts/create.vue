@@ -1,10 +1,8 @@
 <template>
-  <div class="container max-w-5xl mx-auto py-8 px-4">
+  <div class="container mx-auto max-w-5xl px-4 py-8">
     <div class="mb-8">
-      <h1 class="text-3xl font-bold">Create New Post</h1>
-      <p class="text-muted-foreground mt-2">
-        Write and publish a new blog post
-      </p>
+      <h1 class="text-3xl font-semibold">Create New Post</h1>
+      <p class="text-muted-foreground mt-2">Write and publish a new blog post</p>
     </div>
 
     <form @submit.prevent="handleSubmit" class="grid gap-y-8">
@@ -94,9 +92,7 @@
             <div class="space-y-2">
               <Label for="tags">Tags</Label>
               <TagsInputComponent v-model="form.tags" placeholder="Add tags..." />
-              <p class="text-muted-foreground text-xs tracking-tight">
-                Press Enter to add a tag
-              </p>
+              <p class="text-muted-foreground text-xs tracking-tight">Press Enter to add a tag</p>
               <InputErrorMessage :errors="errors.tags" />
             </div>
           </div>
@@ -144,11 +140,7 @@
 
             <div v-if="form.status === 'scheduled'" class="space-y-2">
               <Label for="published_at">Publish Date & Time</Label>
-              <Input
-                id="published_at"
-                v-model="form.published_at"
-                type="datetime-local"
-              />
+              <Input id="published_at" v-model="form.published_at" type="datetime-local" />
               <InputErrorMessage :errors="errors.published_at" />
             </div>
 
@@ -157,9 +149,9 @@
                 id="featured"
                 v-model="form.featured"
                 type="checkbox"
-                class="h-4 w-4 rounded border-input"
+                class="border-input h-4 w-4 rounded"
               />
-              <Label for="featured" class="font-normal cursor-pointer">
+              <Label for="featured" class="cursor-pointer font-normal">
                 Mark as featured post
               </Label>
             </div>
@@ -210,7 +202,15 @@
           class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-semibold tracking-tighter transition disabled:opacity-50"
         >
           <Spinner v-if="loading" />
-          {{ loading ? (savedPostId ? "Publishing..." : "Creating...") : (savedPostId ? "Publish Post" : "Create Post") }}
+          {{
+            loading
+              ? savedPostId
+                ? "Publishing..."
+                : "Creating..."
+              : savedPostId
+                ? "Publish Post"
+                : "Create Post"
+          }}
         </button>
       </div>
     </form>
@@ -220,7 +220,6 @@
 <script setup>
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -228,6 +227,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "vue-sonner";
 
 definePageMeta({

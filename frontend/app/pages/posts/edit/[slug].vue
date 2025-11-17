@@ -1,13 +1,11 @@
 <template>
-  <div class="container max-w-5xl mx-auto py-8 px-4">
+  <div class="container mx-auto max-w-5xl px-4 py-8">
     <div class="mb-8">
-      <h1 class="text-3xl font-bold">Edit Post</h1>
-      <p class="text-muted-foreground mt-2">
-        Update your blog post
-      </p>
+      <h1 class="text-3xl font-semibold">Edit Post</h1>
+      <p class="text-muted-foreground mt-2">Update your blog post</p>
     </div>
 
-    <div v-if="loadingPost" class="text-center py-12">
+    <div v-if="loadingPost" class="py-12 text-center">
       <Spinner class="mx-auto" />
       <p class="text-muted-foreground mt-4">Loading post...</p>
     </div>
@@ -66,9 +64,7 @@
               <p v-if="autoSaving" class="text-muted-foreground text-xs tracking-tight">
                 <Spinner class="inline h-3 w-3" /> Auto-saving...
               </p>
-              <p v-else class="text-muted-foreground text-xs tracking-tight">
-                Changes saved
-              </p>
+              <p v-else class="text-muted-foreground text-xs tracking-tight">Changes saved</p>
             </div>
           </div>
         </div>
@@ -99,9 +95,7 @@
             <div class="space-y-2">
               <Label for="tags">Tags</Label>
               <TagsInputComponent v-model="form.tags" placeholder="Add tags..." />
-              <p class="text-muted-foreground text-xs tracking-tight">
-                Press Enter to add a tag
-              </p>
+              <p class="text-muted-foreground text-xs tracking-tight">Press Enter to add a tag</p>
               <InputErrorMessage :errors="errors.tags" />
             </div>
           </div>
@@ -150,11 +144,7 @@
 
             <div v-if="form.status === 'scheduled'" class="space-y-2">
               <Label for="published_at">Publish Date & Time</Label>
-              <Input
-                id="published_at"
-                v-model="form.published_at"
-                type="datetime-local"
-              />
+              <Input id="published_at" v-model="form.published_at" type="datetime-local" />
               <InputErrorMessage :errors="errors.published_at" />
             </div>
 
@@ -163,9 +153,9 @@
                 id="featured"
                 v-model="form.featured"
                 type="checkbox"
-                class="h-4 w-4 rounded border-input"
+                class="border-input h-4 w-4 rounded"
               />
-              <Label for="featured" class="font-normal cursor-pointer">
+              <Label for="featured" class="cursor-pointer font-normal">
                 Mark as featured post
               </Label>
             </div>
@@ -221,7 +211,7 @@
       </div>
     </form>
 
-    <div v-else class="text-center py-12">
+    <div v-else class="py-12 text-center">
       <p class="text-muted-foreground">Post not found</p>
       <button
         @click="navigateTo('/posts')"
@@ -236,7 +226,6 @@
 <script setup>
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -244,6 +233,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "vue-sonner";
 
 definePageMeta({

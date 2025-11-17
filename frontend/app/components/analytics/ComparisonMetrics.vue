@@ -28,9 +28,12 @@ onMounted(() => {
   loadComparison();
 });
 
-watch(() => props.days, () => {
-  loadComparison();
-});
+watch(
+  () => props.days,
+  () => {
+    loadComparison();
+  }
+);
 
 const comparisonMetrics = computed(() => {
   if (!comparison.value?.changes) return [];
@@ -84,9 +87,7 @@ const formatNumber = (value: number) => {
     <div class="mb-4 flex items-center justify-between">
       <div>
         <h3 class="text-lg font-semibold">Performance Comparison</h3>
-        <p class="text-muted-foreground mt-1 text-sm">
-          Current period vs previous {{ days }} days
-        </p>
+        <p class="text-muted-foreground mt-1 text-sm">Current period vs previous {{ days }} days</p>
       </div>
     </div>
 
@@ -104,10 +105,10 @@ const formatNumber = (value: number) => {
         :key="metric.key"
         class="border-border rounded-lg border p-4"
       >
-        <div class="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wide">
+        <div class="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
           {{ metric.label }}
         </div>
-        <div class="text-foreground mb-1 text-2xl font-bold">
+        <div class="text-foreground mb-1 text-2xl font-semibold">
           {{ formatNumber(metric.current) }}
         </div>
         <div class="flex items-center gap-1.5">

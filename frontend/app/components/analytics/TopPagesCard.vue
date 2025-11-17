@@ -4,7 +4,7 @@
   >
     <div class="flex items-start gap-3">
       <div
-        class="bg-muted text-foreground flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+        class="bg-muted text-foreground flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
       >
         {{ rank }}
       </div>
@@ -19,7 +19,7 @@
             <span class="text-muted-foreground text-xs">{{ page.property_name || "Unknown" }}</span>
           </div>
           <div class="text-right">
-            <p class="text-foreground text-lg font-bold">
+            <p class="text-foreground text-lg font-semibold">
               {{ formatNumber(page.pageviews || 0) }}
             </p>
             <p class="text-muted-foreground text-xs">views</p>

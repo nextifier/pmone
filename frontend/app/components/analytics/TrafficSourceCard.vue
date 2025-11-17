@@ -1,5 +1,5 @@
 <template>
-  <div class="border-border bg-card group rounded-lg border p-4 transition-all hover:bg-muted/50">
+  <div class="border-border bg-card group hover:bg-muted/50 rounded-lg border p-4 transition-all">
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0 flex-1">
         <div class="mb-3 flex items-center gap-2">
@@ -15,7 +15,7 @@
         </div>
       </div>
       <div class="text-right">
-        <p class="text-foreground text-2xl font-bold">
+        <p class="text-foreground text-2xl font-semibold">
           {{ formatNumber(source.sessions || 0) }}
         </p>
         <p class="text-muted-foreground text-xs">sessions</p>

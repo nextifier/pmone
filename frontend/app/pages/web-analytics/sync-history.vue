@@ -32,13 +32,13 @@
     <div v-if="syncStats" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
       <div class="border-border bg-card rounded-lg border p-4">
         <p class="text-muted-foreground text-sm">Total Syncs</p>
-        <p class="text-foreground mt-1 text-2xl font-bold">{{ syncStats.total_syncs }}</p>
+        <p class="text-foreground mt-1 text-2xl font-semibold">{{ syncStats.total_syncs }}</p>
       </div>
       <div
         class="border-border rounded-lg border bg-gradient-to-br from-green-500/5 to-green-500/10 p-4"
       >
         <p class="text-sm text-green-700 dark:text-green-400">Successful</p>
-        <p class="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">
+        <p class="mt-1 text-2xl font-semibold text-green-600 dark:text-green-400">
           {{ syncStats.successful_syncs }}
         </p>
       </div>
@@ -46,7 +46,7 @@
         class="border-border rounded-lg border bg-gradient-to-br from-red-500/5 to-red-500/10 p-4"
       >
         <p class="text-sm text-red-700 dark:text-red-400">Failed</p>
-        <p class="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">
+        <p class="mt-1 text-2xl font-semibold text-red-600 dark:text-red-400">
           {{ syncStats.failed_syncs }}
         </p>
       </div>
@@ -54,7 +54,7 @@
         class="border-border rounded-lg border bg-gradient-to-br from-blue-500/5 to-blue-500/10 p-4"
       >
         <p class="text-sm text-blue-700 dark:text-blue-400">Success Rate</p>
-        <p class="mt-1 text-2xl font-bold text-blue-600 dark:text-blue-400">
+        <p class="mt-1 text-2xl font-semibold text-blue-600 dark:text-blue-400">
           {{ syncStats.success_rate }}%
         </p>
       </div>
@@ -62,7 +62,7 @@
         class="border-border rounded-lg border bg-gradient-to-br from-purple-500/5 to-purple-500/10 p-4"
       >
         <p class="text-sm text-purple-700 dark:text-purple-400">Avg Duration</p>
-        <p class="mt-1 text-2xl font-bold text-purple-600 dark:text-purple-400">
+        <p class="mt-1 text-2xl font-semibold text-purple-600 dark:text-purple-400">
           {{ syncStats.avg_duration_seconds ? Math.round(syncStats.avg_duration_seconds) : 0 }}s
         </p>
       </div>

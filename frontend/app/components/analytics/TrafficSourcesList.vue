@@ -39,13 +39,13 @@
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-0.5">
               <p class="text-muted-foreground text-xs font-medium">Sessions</p>
-              <p class="text-foreground text-xl font-bold tabular-nums">
+              <p class="text-foreground text-xl font-semibold tabular-nums">
                 {{ formatNumber(source.sessions) }}
               </p>
             </div>
             <div class="space-y-0.5">
               <p class="text-muted-foreground text-xs font-medium">Users</p>
-              <p class="text-foreground text-xl font-bold tabular-nums">
+              <p class="text-foreground text-xl font-semibold tabular-nums">
                 {{ formatNumber(source.users || source.activeUsers || 0) }}
               </p>
             </div>

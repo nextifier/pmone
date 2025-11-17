@@ -104,7 +104,7 @@ export default defineNuxtConfig({
     families: [
       {
         name: "MinusOne",
-        src: "/fonts/MinusOne-VariableFont.woff2",
+        src: "/fonts/MinusOne-VF.woff2",
         weight: "100 1000",
         display: "swap",
       },

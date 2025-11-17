@@ -42,7 +42,7 @@
           <!-- Metrics -->
           <div class="flex shrink-0 flex-col items-end gap-1">
             <div class="flex items-baseline gap-1.5">
-              <span class="text-foreground text-2xl font-bold tabular-nums">
+              <span class="text-foreground text-2xl font-semibold tabular-nums">
                 {{ formatNumber(page.pageviews || page.screenPageViews || 0) }}
               </span>
               <span class="text-muted-foreground text-xs font-medium">views</span>

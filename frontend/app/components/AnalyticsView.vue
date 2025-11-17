@@ -48,7 +48,7 @@
                   Total Visits
                 </h3>
               </div>
-              <p class="text-3xl font-bold tracking-tighter">
+              <p class="text-3xl font-semibold tracking-tighter">
                 {{ visitsData?.summary?.total_visits?.toLocaleString() || 0 }}
               </p>
               <div class="text-muted-foreground flex items-center gap-x-4 text-xs tracking-tight">
@@ -78,7 +78,7 @@
                   Total Clicks
                 </h3>
               </div>
-              <p class="text-3xl font-bold tracking-tighter">
+              <p class="text-3xl font-semibold tracking-tighter">
                 {{ clicksData?.summary?.total_clicks?.toLocaleString() || 0 }}
               </p>
               <p class="text-muted-foreground text-xs tracking-tight">
@@ -99,7 +99,7 @@
                 </div>
                 <h3 class="text-muted-foreground text-sm font-medium tracking-tight">Period</h3>
               </div>
-              <p class="text-3xl font-bold tracking-tighter">{{ selectedPeriodLabel }}</p>
+              <p class="text-3xl font-semibold tracking-tighter">{{ selectedPeriodLabel }}</p>
               <p class="text-muted-foreground text-xs tracking-tight">
                 {{ periodDescription }}
               </p>
@@ -167,7 +167,9 @@
                       }"
                     ></div>
                   </div>
-                  <span class="text-foreground w-12 text-right text-sm font-bold tracking-tight">
+                  <span
+                    class="text-foreground w-12 text-right text-sm font-semibold tracking-tight"
+                  >
                     {{ link.clicks.toLocaleString() }}
                   </span>
                 </div>

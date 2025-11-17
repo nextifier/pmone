@@ -1,12 +1,10 @@
 <template>
-  <div class="container max-w-7xl mx-auto py-8 px-4">
+  <div class="container mx-auto max-w-7xl px-4 py-8">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
+    <div class="mb-8 flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold">Posts</h1>
-        <p class="text-muted-foreground mt-2">
-          Manage your blog posts
-        </p>
+        <h1 class="text-3xl font-semibold">Posts</h1>
+        <p class="text-muted-foreground mt-2">Manage your blog posts</p>
       </div>
       <button
         @click="navigateTo('/posts/create')"
@@ -49,18 +47,18 @@
         @input="debounceSearch"
         type="text"
         placeholder="Search posts..."
-        class="flex-1 min-w-[200px]"
+        class="min-w-[200px] flex-1"
       />
     </div>
 
     <!-- Posts Table -->
-    <div class="border-border rounded-lg border overflow-hidden">
-      <div v-if="loading" class="p-8 text-center text-muted-foreground">
+    <div class="border-border overflow-hidden rounded-lg border">
+      <div v-if="loading" class="text-muted-foreground p-8 text-center">
         <Spinner class="mx-auto" />
         <p class="mt-2">Loading posts...</p>
       </div>
 
-      <div v-else-if="posts.length === 0" class="p-8 text-center text-muted-foreground">
+      <div v-else-if="posts.length === 0" class="text-muted-foreground p-8 text-center">
         <p>No posts found.</p>
         <button
           @click="navigateTo('/posts/create')"
@@ -71,56 +69,67 @@
       </div>
 
       <table v-else class="w-full">
-        <thead class="bg-muted/50 border-b border-border">
+        <thead class="bg-muted/50 border-border border-b">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <th
+              class="text-muted-foreground px-6 py-3 text-left text-xs font-medium tracking-wider uppercase"
+            >
               Title
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <th
+              class="text-muted-foreground px-6 py-3 text-left text-xs font-medium tracking-wider uppercase"
+            >
               Status
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <th
+              class="text-muted-foreground px-6 py-3 text-left text-xs font-medium tracking-wider uppercase"
+            >
               Visibility
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <th
+              class="text-muted-foreground px-6 py-3 text-left text-xs font-medium tracking-wider uppercase"
+            >
               Views
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <th
+              class="text-muted-foreground px-6 py-3 text-left text-xs font-medium tracking-wider uppercase"
+            >
               Date
             </th>
-            <th class="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <th
+              class="text-muted-foreground px-6 py-3 text-right text-xs font-medium tracking-wider uppercase"
+            >
               Actions
             </th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-border">
-          <tr
-            v-for="post in posts"
-            :key="post.id"
-            class="hover:bg-muted/30"
-          >
+        <tbody class="divide-border divide-y">
+          <tr v-for="post in posts" :key="post.id" class="hover:bg-muted/30">
             <td class="px-6 py-4">
               <div class="flex items-start gap-3">
                 <img
                   v-if="post.featured_image"
                   :src="post.featured_image.conversions?.sm || post.featured_image.url"
                   :alt="post.title"
-                  class="border-border w-16 h-16 rounded border object-cover"
+                  class="border-border h-16 w-16 rounded border object-cover"
                 />
                 <div
                   v-else
-                  class="bg-muted flex size-16 shrink-0 items-center justify-center rounded border border-border"
+                  class="bg-muted border-border flex size-16 shrink-0 items-center justify-center rounded border"
                 >
-                  <Icon name="lucide:image" class="h-6 w-6 text-muted-foreground" />
+                  <Icon name="lucide:image" class="text-muted-foreground h-6 w-6" />
                 </div>
                 <div class="flex-1">
                   <div class="font-medium">
                     {{ post.title }}
                   </div>
-                  <div v-if="post.excerpt" class="text-muted-foreground text-sm line-clamp-1">
+                  <div v-if="post.excerpt" class="text-muted-foreground line-clamp-1 text-sm">
                     {{ post.excerpt }}
                   </div>
-                  <div v-if="post.featured" class="mt-1 inline-flex items-center gap-1 rounded border border-border px-2 py-0.5 text-xs">
+                  <div
+                    v-if="post.featured"
+                    class="border-border mt-1 inline-flex items-center gap-1 rounded border px-2 py-0.5 text-xs"
+                  >
                     <Icon name="lucide:star" class="h-3 w-3" />
                     Featured
                   </div>
@@ -128,13 +137,15 @@
               </div>
             </td>
             <td class="px-6 py-4">
-              <span class="inline-flex items-center rounded-full border border-border px-2.5 py-0.5 text-xs font-medium capitalize">
+              <span
+                class="border-border inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize"
+              >
                 {{ post.status }}
               </span>
             </td>
             <td class="px-6 py-4">
               <span class="text-muted-foreground text-sm capitalize">
-                {{ post.visibility.replace('_', ' ') }}
+                {{ post.visibility.replace("_", " ") }}
               </span>
             </td>
             <td class="px-6 py-4">
@@ -179,7 +190,7 @@
       <!-- Pagination -->
       <div
         v-if="pagination.total > pagination.per_page"
-        class="flex items-center justify-between border-t border-border px-6 py-4"
+        class="border-border flex items-center justify-between border-t px-6 py-4"
       >
         <div class="text-muted-foreground text-sm">
           Showing {{ (pagination.current_page - 1) * pagination.per_page + 1 }}
@@ -258,7 +269,8 @@ async function fetchPosts() {
     params.append("per_page", pagination.per_page);
 
     if (filters.status && filters.status !== "all") params.append("filter_status", filters.status);
-    if (filters.visibility && filters.visibility !== "all") params.append("filter_visibility", filters.visibility);
+    if (filters.visibility && filters.visibility !== "all")
+      params.append("filter_visibility", filters.visibility);
     if (filters.search) params.append("filter_search", filters.search);
 
     const response = await $api(`/posts?${params.toString()}`);

@@ -68,7 +68,7 @@
       <div class="space-y-4">
         <div class="flex gap-4">
           <div
-            class="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+            class="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
           >
             1
           </div>
@@ -83,7 +83,7 @@
         </div>
         <div class="flex gap-4">
           <div
-            class="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+            class="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
           >
             2
           </div>
@@ -97,7 +97,7 @@
         </div>
         <div class="flex gap-4">
           <div
-            class="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+            class="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
           >
             3
           </div>
@@ -111,7 +111,7 @@
         </div>
         <div class="flex gap-4">
           <div
-            class="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+            class="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
           >
             4
           </div>

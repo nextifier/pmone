@@ -37,7 +37,7 @@
 
         <div>
           <NumberFlow
-            class="text-foreground text-3xl leading-none! font-bold tracking-tighter"
+            class="text-foreground text-3xl leading-none! font-medium tracking-tighter"
             :class="{
               'cursor-pointer': !['percent', 'duration'].includes(metric.format),
             }"
