@@ -26,11 +26,15 @@ use Spatie\Tags\HasTags;
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
- * @property-read \App\Models\Project $project
  * @property-read \App\Models\User|null $creator
  * @property-read \App\Models\User|null $deleter
+ * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read int|null $media_count
+ * @property-read mixed $next_sync_at
+ * @property-read \App\Models\Project $project
+ * @property \Illuminate\Database\Eloquent\Collection<int, \Spatie\Tags\Tag> $tags
+ * @property-read int|null $tags_count
  * @property-read \App\Models\User|null $updater
- * @property-read \Illuminate\Support\Carbon|null $next_sync_at
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty active()
  * @method static \Database\Factories\GaPropertyFactory factory($count = null, $state = [])
@@ -48,16 +52,19 @@ use Spatie\Tags\HasTags;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereIsActive($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereLastSyncedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereProjectId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty wherePropertyId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereSyncFrequency($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty whereUpdatedBy($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withTrashed(bool $withTrashed = true)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withoutTrashed()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withAllTags($tags, ?string $type = null)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withAllTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withAllTagsOfAnyType($tags)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withAnyTags($tags, ?string $type = null)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withAnyTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withAnyTagsOfAnyType($tags)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withAnyTagsOfType(array|string $type)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withoutTrashed()
  *
  * @mixin \Eloquent
  */

@@ -46,6 +46,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property-read \App\Models\User|null $deleter
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\GaProperty> $gaProperties
  * @property-read int|null $ga_properties_count
+ * @property-read array|null $profile_image
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Link> $links
  * @property-read int|null $links_count
  * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
@@ -55,6 +56,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property-read \App\Models\User|null $updater
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
  * @property-read int|null $visits_count
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project byStatus(string $status)
  * @method static \Database\Factories\ProjectFactory factory($count = null, $state = [])
@@ -84,6 +86,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereVisibility($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Project extends Model implements HasMedia, Sortable

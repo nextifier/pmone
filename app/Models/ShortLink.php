@@ -30,7 +30,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property-read \App\Models\User|null $deleter
  * @property-read \App\Models\User|null $updater
  * @property-read \App\Models\User $user
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink active()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink excludeProfileLinks()
  * @method static \Database\Factories\ShortLinkFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink newQuery()
@@ -53,6 +55,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class ShortLink extends Model

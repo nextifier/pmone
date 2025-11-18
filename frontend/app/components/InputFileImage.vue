@@ -80,7 +80,7 @@ const localFiles = computed({
 
 const showInput = computed(() => !props.initialImage || props.deleteFlag);
 const showUndo = computed(() => props.deleteFlag && props.initialImage);
-const imageUrl = computed(() => props.initialImage?.sm);
+const imageUrl = computed(() => props.initialImage?.sm || props.initialImage?.url);
 
 function handleDelete() {
   emit("update:deleteFlag", true);

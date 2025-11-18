@@ -16,15 +16,40 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int $project_id
  * @property array<array-key, mixed> $form_data
  * @property string|null $subject
- * @property string $status
+ * @property ContactFormStatus $status
  * @property \Illuminate\Support\Carbon|null $followed_up_at
  * @property int|null $followed_up_by
  * @property string|null $ip_address
  * @property string|null $user_agent
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Project $project
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read int|null $activities_count
  * @property-read \App\Models\User|null $followedUpByUser
+ * @property-read \App\Models\Project $project
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission byStatus(string $status)
+ * @method static \Database\Factories\ContactFormSubmissionFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission forProject(int $projectId)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission new()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission unfollowedUp()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereFollowedUpAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereFollowedUpBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereFormData($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereIpAddress($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereProjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereSubject($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereUlid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereUserAgent($value)
+ *
+ * @mixin \Eloquent
  */
 class ContactFormSubmission extends Model
 {

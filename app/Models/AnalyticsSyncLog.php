@@ -13,13 +13,37 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $status
  * @property \Illuminate\Support\Carbon|null $started_at
  * @property \Illuminate\Support\Carbon|null $completed_at
- * @property int|null $duration_seconds
- * @property array|null $metadata
+ * @property string|null $duration_seconds
+ * @property array<array-key, mixed>|null $metadata
  * @property string|null $error_message
  * @property string|null $job_id
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\GaProperty|null $property
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog aggregateSyncs()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog failed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog propertySyncs()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog recent(int $hours = 24)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog success()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereCompletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereDays($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereDurationSeconds($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereErrorMessage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereGaPropertyId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereJobId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereMetadata($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereStartedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereSyncType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereUpdatedAt($value)
+ *
+ * @mixin \Eloquent
  */
 class AnalyticsSyncLog extends Model
 {

@@ -37,5 +37,9 @@ const props = defineProps<ToasterProps>();
         <Icon name="lucide:octagon-x" />
       </slot>
     </template>
+
+    <template #loading-icon>
+      <Spinner class="text-background size-4 shrink-0" />
+    </template>
   </Sonner>
 </template>

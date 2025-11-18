@@ -28,7 +28,7 @@
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
           <div class="space-y-2">
-            <Label for="title">Title <span class="text-destructive">*</span></Label>
+            <Label for="title">Title</Label>
             <Input id="title" v-model="form.title" type="text" required />
             <InputErrorMessage :errors="errors.title" />
           </div>
@@ -98,11 +98,7 @@
                     <SelectValue placeholder="Select author..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem
-                      v-for="user in availableUsers"
-                      :key="user.id"
-                      :value="user.id"
-                    >
+                    <SelectItem v-for="user in availableUsers" :key="user.id" :value="user.id">
                       {{ user.name }} ({{ user.email }})
                     </SelectItem>
                   </SelectContent>
@@ -125,7 +121,7 @@
                   type="button"
                   @click="moveAuthorUp(index)"
                   :disabled="index === 0"
-                  class="hover:bg-accent disabled:opacity-30 flex size-8 items-center justify-center rounded-lg transition"
+                  class="hover:bg-accent flex size-8 items-center justify-center rounded-lg transition disabled:opacity-30"
                   title="Move up"
                 >
                   <Icon name="lucide:chevron-up" class="size-4" />
@@ -134,7 +130,7 @@
                   type="button"
                   @click="moveAuthorDown(index)"
                   :disabled="index === form.authors.length - 1"
-                  class="hover:bg-accent disabled:opacity-30 flex size-8 items-center justify-center rounded-lg transition"
+                  class="hover:bg-accent flex size-8 items-center justify-center rounded-lg transition disabled:opacity-30"
                   title="Move down"
                 >
                   <Icon name="lucide:chevron-down" class="size-4" />
@@ -221,9 +217,7 @@
               type="checkbox"
               class="border-input h-4 w-4 rounded"
             />
-            <Label for="featured" class="cursor-pointer font-normal">
-              Mark as featured post
-            </Label>
+            <Label for="featured" class="cursor-pointer font-normal"> Mark as featured post </Label>
           </div>
         </div>
       </div>

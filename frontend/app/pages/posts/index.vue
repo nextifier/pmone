@@ -107,7 +107,8 @@
               <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This action can't be undone. This will permanently delete
-                {{ selectedRows.length }} selected {{ selectedRows.length === 1 ? "post" : "posts" }}.
+                {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "post" : "posts" }}.
               </p>
               <div class="mt-3 flex justify-end gap-2">
                 <button
@@ -267,7 +268,7 @@ const columns = [
       return h("div", { class: "flex items-start gap-3" }, [
         post.featured_image
           ? h("img", {
-              src: post.featured_image.conversions?.sm || post.featured_image.url,
+              src: post.featured_image?.sm || post.featured_image.original,
               alt: post.title,
               class: "border-border size-16 shrink-0 rounded border object-cover",
             })
@@ -277,7 +278,12 @@ const columns = [
                 class:
                   "bg-muted border-border flex size-16 shrink-0 items-center justify-center rounded border",
               },
-              [h(resolveComponent("Icon"), { name: "lucide:image", class: "text-muted-foreground size-6" })]
+              [
+                h(resolveComponent("Icon"), {
+                  name: "lucide:image",
+                  class: "text-muted-foreground size-6",
+                }),
+              ]
             ),
         h("div", { class: "flex-1 min-w-0" }, [
           h("div", { class: "font-medium truncate" }, post.title),
@@ -287,7 +293,10 @@ const columns = [
           post.featured
             ? h(
                 "div",
-                { class: "border-border mt-1 inline-flex items-center gap-1 rounded border px-2 py-0.5 text-xs" },
+                {
+                  class:
+                    "border-border mt-1 inline-flex items-center gap-1 rounded border px-2 py-0.5 text-xs",
+                },
                 [h(resolveComponent("Icon"), { name: "lucide:star", class: "size-3" }), "Featured"]
               )
             : null,
@@ -310,7 +319,10 @@ const columns = [
       const status = row.getValue("status");
       return h(
         "span",
-        { class: "border-border inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize" },
+        {
+          class:
+            "border-border inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize",
+        },
         status
       );
     },
@@ -381,7 +393,9 @@ const getFilterValue = (columnId) => {
 
 const selectedStatuses = computed(() => getFilterValue("status"));
 const selectedVisibilities = computed(() => getFilterValue("visibility"));
-const totalActiveFilters = computed(() => selectedStatuses.value.length + selectedVisibilities.value.length);
+const totalActiveFilters = computed(
+  () => selectedStatuses.value.length + selectedVisibilities.value.length
+);
 
 const handleFilterChange = (columnId, { checked, value }) => {
   if (clientOnly.value && tableRef.value?.table) {

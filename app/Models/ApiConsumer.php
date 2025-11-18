@@ -10,6 +10,57 @@ use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
+/**
+ * @property int $id
+ * @property string $ulid
+ * @property string $name
+ * @property string $website_url
+ * @property string $api_key
+ * @property array<array-key, mixed>|null $allowed_origins
+ * @property int $rate_limit
+ * @property array<array-key, mixed>|null $filters
+ * @property bool $is_active
+ * @property \Illuminate\Support\Carbon|null $last_used_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\User|null $deleter
+ * @property-read \App\Models\User|null $updater
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer active()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer byApiKey(string $apiKey)
+ * @method static \Database\Factories\ApiConsumerFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereAllowedOrigins($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereApiKey($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereDeletedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereFilters($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereLastUsedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereRateLimit($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereUlid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereUpdatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereWebsiteUrl($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer withoutTrashed()
+ *
+ * @mixin \Eloquent
+ */
 class ApiConsumer extends Model
 {
     use HasFactory;

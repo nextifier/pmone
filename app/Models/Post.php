@@ -17,6 +17,97 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Tags\HasTags;
 
+/**
+ * @property int $id
+ * @property string $ulid
+ * @property string $title
+ * @property string $slug
+ * @property string|null $excerpt
+ * @property string $content
+ * @property string $content_format
+ * @property string|null $featured_image
+ * @property string|null $meta_title
+ * @property string|null $meta_description
+ * @property string|null $og_image
+ * @property string $status
+ * @property string $visibility
+ * @property \Illuminate\Support\Carbon|null $published_at
+ * @property bool $featured
+ * @property int|null $reading_time
+ * @property array<array-key, mixed> $settings
+ * @property string $source
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $authors
+ * @property-read int|null $authors_count
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\User|null $deleter
+ * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read int|null $media_count
+ * @property \Illuminate\Database\Eloquent\Collection<int, \Spatie\Tags\Tag> $tags
+ * @property-read int|null $tags_count
+ * @property-read \App\Models\User|null $updater
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
+ * @property-read int|null $visits_count
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byCreator(int $userId)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byStatus(string $status)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byTag(string $tagName)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byVisibility(string $visibility)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post draft()
+ * @method static \Database\Factories\PostFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post featured()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post findSimilarSlugs(string $attribute, array $config, string $slug)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post public()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post published()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post scheduled()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post search(string $search)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereContent($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereContentFormat($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereDeletedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereExcerpt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereFeatured($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereFeaturedImage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereMetaDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereMetaTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereOgImage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post wherePublishedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereReadingTime($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereSettings($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereSource($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereUlid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereUpdatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereVisibility($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withAllTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withAllTagsOfAnyType($tags)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withAnyTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withAnyTagsOfAnyType($tags)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withAnyTagsOfType(array|string $type)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withoutTrashed()
+ *
+ * @mixin \Eloquent
+ */
 class Post extends Model implements HasMedia
 {
     use HasFactory;
@@ -178,6 +269,14 @@ class Post extends Model implements HasMedia
             ->performOnCollections('featured_image');
 
         // Content images conversions (maintain aspect ratio, no crop)
+        $this->addMediaConversion('lqip')
+            ->width(20)
+            ->height(20)
+            ->quality(10)
+            ->blur(10)
+            ->performOnCollections('content_images')
+            ->nonQueued();
+
         $this->addMediaConversion('sm')
             ->width(450)
             ->quality(85)

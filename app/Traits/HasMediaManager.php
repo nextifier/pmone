@@ -29,23 +29,14 @@ trait HasMediaManager
 
         $media = $this->getFirstMedia($collection);
         $urls = [
+            'url' => $media->getUrl(),
             'original' => $media->getUrl(),
+            'lqip' => $media->getUrl('lqip'),
+            'sm' => $media->getUrl('sm'),
+            'md' => $media->getUrl('md'),
+            'lg' => $media->getUrl('lg'),
+            'xl' => $media->getUrl('xl'),
         ];
-
-        // Add conversions based on collection type
-        if ($collection === 'profile_image') {
-            $urls['lqip'] = $media->getUrl('lqip');
-            $urls['sm'] = $media->getUrl('sm');
-            $urls['md'] = $media->getUrl('md');
-            $urls['lg'] = $media->getUrl('lg');
-            $urls['xl'] = $media->getUrl('xl');
-        } elseif ($collection === 'cover_image') {
-            $urls['lqip'] = $media->getUrl('lqip');
-            $urls['sm'] = $media->getUrl('sm');
-            $urls['md'] = $media->getUrl('md');
-            $urls['lg'] = $media->getUrl('lg');
-            $urls['xl'] = $media->getUrl('xl');
-        }
 
         return $urls;
     }

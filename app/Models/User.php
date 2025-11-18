@@ -66,6 +66,8 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read int|null $oauth_providers_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Permission\Models\Permission> $permissions
  * @property-read int|null $permissions_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Post> $posts
+ * @property-read int|null $posts_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Project> $projects
  * @property-read int|null $projects_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Permission\Models\Role> $roles
@@ -79,6 +81,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read int|null $visits_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visitsMade
  * @property-read int|null $visits_made_count
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User byStatus(string $status)
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
@@ -121,6 +124,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutPermission($permissions)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutRole($roles, $guard = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class User extends Authenticatable implements HasMedia, MustVerifyEmail

@@ -99,30 +99,18 @@ class PostController extends Controller
 
         // Track visit only if not loading for edit
         if (! request()->has('for') || request()->input('for') !== 'edit') {
-            // Prevent duplicate visits within 5 minutes from same user/IP
-            $recentVisit = \App\Models\Visit::where('visitable_type', Post::class)
-                ->where('visitable_id', $post->id)
-                ->where(function ($query) {
-                    $query->where('visitor_id', auth()->id())
-                        ->orWhere('ip_address', request()->ip());
-                })
-                ->where('visited_at', '>', now()->subMinutes(5))
-                ->exists();
+            \App\Models\Visit::create([
+                'visitable_type' => Post::class,
+                'visitable_id' => $post->id,
+                'visitor_id' => auth()->id(),
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'referer' => request()->header('referer'),
+                'visited_at' => now(),
+            ]);
 
-            if (! $recentVisit) {
-                \App\Models\Visit::create([
-                    'visitable_type' => Post::class,
-                    'visitable_id' => $post->id,
-                    'visitor_id' => auth()->id(),
-                    'ip_address' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                    'referer' => request()->header('referer'),
-                    'visited_at' => now(),
-                ]);
-
-                // Increment the count after creating visit
-                $post->visits_count++;
-            }
+            // Refresh the visits count
+            $post->loadCount('visits');
         }
 
         return response()->json([

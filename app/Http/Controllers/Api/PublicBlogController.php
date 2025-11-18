@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\TrackingHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\PostResource;
@@ -52,8 +53,11 @@ class PublicBlogController extends Controller
             ->public()
             ->firstOrFail();
 
-        // Increment view count
-        $post->incrementViewCount();
+        // Track visit - no deduplication, always increment on refresh
+        TrackingHelper::trackVisit($request, $post);
+
+        // Load the updated visits count
+        $post->loadCount('visits');
 
         return response()->json([
             'data' => new PostResource($post),

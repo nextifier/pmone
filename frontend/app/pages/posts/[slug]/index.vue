@@ -89,7 +89,7 @@
       <!-- Featured Image -->
       <div v-if="post.featured_image" class="overflow-hidden rounded-lg">
         <img
-          :src="post.featured_image.conversions?.lg || post.featured_image.url"
+          :src="post.featured_image?.lg || post.featured_image.original"
           :alt="post.title"
           class="h-auto w-full object-cover"
         />
@@ -144,8 +144,9 @@ definePageMeta({
 
 const route = useRoute();
 const postSlug = route.params.slug;
-const { $api } = useNuxtApp();
+const config = useRuntimeConfig();
 const { user } = useSanctumAuth();
+const client = useSanctumClient();
 
 const post = ref(null);
 const loading = ref(true);
@@ -161,7 +162,7 @@ async function loadPost() {
   loading.value = true;
 
   try {
-    const response = await $api(`/api/posts/${postSlug}`);
+    const response = await $fetch(`${config.public.apiUrl}/api/posts/${postSlug}`);
     post.value = response.data;
   } catch (error) {
     console.error("Failed to load post:", error);
@@ -183,7 +184,7 @@ async function deletePost() {
   }
 
   try {
-    await $api(`/api/posts/${postSlug}`, {
+    await client(`/api/posts/${postSlug}`, {
       method: "DELETE",
     });
 
