@@ -48,7 +48,7 @@ const props = defineProps({
     default: () => [],
   },
   initialImage: {
-    type: Object,
+    type: [Object, String],
     default: null,
   },
   deleteFlag: {
@@ -80,7 +80,17 @@ const localFiles = computed({
 
 const showInput = computed(() => !props.initialImage || props.deleteFlag);
 const showUndo = computed(() => props.deleteFlag && props.initialImage);
-const imageUrl = computed(() => props.initialImage?.sm || props.initialImage?.url);
+const imageUrl = computed(() => {
+  if (!props.initialImage) return null;
+
+  // Handle string URL (Ghost imports)
+  if (typeof props.initialImage === 'string') {
+    return props.initialImage;
+  }
+
+  // Handle object with sm/url properties (Media Library)
+  return props.initialImage?.sm || props.initialImage?.url;
+});
 
 function handleDelete() {
   emit("update:deleteFlag", true);

@@ -26,6 +26,22 @@ class PostController extends Controller
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
 
+        // If client_only is true, return all data without pagination for client-side filtering
+        if ($request->boolean('client_only')) {
+            $posts = $query->get();
+
+            return response()->json([
+                'data' => PostResource::collection($posts),
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => $posts->count(),
+                    'total' => $posts->count(),
+                ],
+            ]);
+        }
+
+        // Server-side pagination
         $posts = $query->paginate($request->input('per_page', 15));
 
         return response()->json([
@@ -79,14 +95,14 @@ class PostController extends Controller
 
     private function applySorting($query, Request $request): void
     {
-        $sortField = $request->input('sort', '-created_at');
+        $sortField = $request->input('sort', '-published_at');
         $direction = str_starts_with($sortField, '-') ? 'desc' : 'asc';
         $field = ltrim($sortField, '-');
 
         if (in_array($field, ['title', 'status', 'published_at', 'created_at', 'updated_at'])) {
             $query->orderBy($field, $direction);
         } else {
-            $query->orderBy('created_at', 'desc');
+            $query->orderBy('published_at', 'desc');
         }
     }
 

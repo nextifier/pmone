@@ -72,6 +72,7 @@ onMounted(async () => {
 
 defineShortcuts({
   meta_s: {
+    usingInput: true,
     handler: () => {
       formRef.value?.handleSubmit();
     },

@@ -583,6 +583,7 @@ const submitButtonText = computed(() => {
 
 defineShortcuts({
   meta_s: {
+    usingInput: true,
     handler: () => {
       handleSubmit();
     },

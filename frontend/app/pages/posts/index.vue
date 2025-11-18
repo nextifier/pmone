@@ -1,19 +1,13 @@
 <template>
-  <div class="mx-auto max-w-7xl space-y-6 pt-4 pb-16">
+  <div class="mx-auto max-w-6xl space-y-6 pt-4 pb-16">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
-        <Icon name="lucide:file-text" class="size-5 sm:size-6" />
+        <Icon name="hugeicons:task-edit-01" class="size-5 sm:size-6" />
         <h1 class="page-title">Posts</h1>
       </div>
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <nuxt-link
-          to="/posts/create"
-          class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-md px-3 py-1.5 text-sm font-semibold tracking-tight active:scale-98"
-        >
-          <Icon name="lucide:plus" class="size-4 shrink-0" />
-          <span>New Post</span>
-        </nuxt-link>
+        <!-- Trash -->
       </div>
     </div>
 
@@ -66,16 +60,6 @@
                 ]"
                 :selected="selectedStatuses"
                 @change="handleFilterChange('status', $event)"
-              />
-              <FilterSection
-                title="Visibility"
-                :options="[
-                  { label: 'Public', value: 'public' },
-                  { label: 'Private', value: 'private' },
-                  { label: 'Members Only', value: 'members_only' },
-                ]"
-                :selected="selectedVisibilities"
-                @change="handleFilterChange('visibility', $event)"
               />
             </div>
           </PopoverContent>
@@ -137,6 +121,7 @@
 
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
+import PostTableItem from "@/components/post/TableItem.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -158,7 +143,7 @@ const { formatDate } = useFormatters();
 // Table state
 const columnFilters = ref([]);
 const pagination = ref({ pageIndex: 0, pageSize: 15 });
-const sorting = ref([{ id: "created_at", desc: true }]);
+const sorting = ref([{ id: "published_at", desc: true }]);
 
 // Data state
 const data = ref([]);
@@ -183,7 +168,6 @@ const buildQueryParams = () => {
     const filters = {
       title: "filter_search",
       status: "filter_status",
-      visibility: "filter_visibility",
     };
 
     Object.entries(filters).forEach(([columnId, paramKey]) => {
@@ -195,7 +179,7 @@ const buildQueryParams = () => {
     });
 
     // Sorting
-    const sortField = sorting.value[0]?.id || "created_at";
+    const sortField = sorting.value[0]?.id || "published_at";
     const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
     params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
   }
@@ -263,47 +247,11 @@ const columns = [
   {
     header: "Post",
     accessorKey: "title",
-    cell: ({ row }) => {
-      const post = row.original;
-      return h("div", { class: "flex items-start gap-3" }, [
-        post.featured_image
-          ? h("img", {
-              src: post.featured_image?.sm || post.featured_image.original,
-              alt: post.title,
-              class: "border-border size-16 shrink-0 rounded border object-cover",
-            })
-          : h(
-              "div",
-              {
-                class:
-                  "bg-muted border-border flex size-16 shrink-0 items-center justify-center rounded border",
-              },
-              [
-                h(resolveComponent("Icon"), {
-                  name: "lucide:image",
-                  class: "text-muted-foreground size-6",
-                }),
-              ]
-            ),
-        h("div", { class: "flex-1 min-w-0" }, [
-          h("div", { class: "font-medium truncate" }, post.title),
-          post.excerpt
-            ? h("div", { class: "text-muted-foreground line-clamp-1 text-sm mt-0.5" }, post.excerpt)
-            : null,
-          post.featured
-            ? h(
-                "div",
-                {
-                  class:
-                    "border-border mt-1 inline-flex items-center gap-1 rounded border px-2 py-0.5 text-xs",
-                },
-                [h(resolveComponent("Icon"), { name: "lucide:star", class: "size-3" }), "Featured"]
-              )
-            : null,
-        ]),
-      ]);
-    },
-    size: 300,
+    cell: ({ row }) =>
+      h(PostTableItem, {
+        post: row.original,
+      }),
+    size: 360,
     enableHiding: false,
     filterFn: (row, columnId, filterValue) => {
       const searchValue = filterValue.toLowerCase();
@@ -333,23 +281,6 @@ const columns = [
     },
   },
   {
-    header: "Visibility",
-    accessorKey: "visibility",
-    cell: ({ row }) => {
-      const visibility = row.getValue("visibility");
-      return h(
-        "span",
-        { class: "text-muted-foreground text-sm capitalize" },
-        visibility.replace("_", " ")
-      );
-    },
-    size: 120,
-    filterFn: (row, columnId, filterValue) => {
-      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
-      return filterValue.includes(row.getValue(columnId));
-    },
-  },
-  {
     header: "Views",
     accessorKey: "visits_count",
     cell: ({ row }) => {
@@ -360,16 +291,32 @@ const columns = [
     enableSorting: true,
   },
   {
-    header: "Created",
-    accessorKey: "created_at",
+    header: "Published",
+    accessorKey: "published_at",
     cell: ({ row }) => {
-      const date = row.getValue("created_at");
+      const date = row.getValue("published_at");
+      if (!date) {
+        return h("span", { class: "text-muted-foreground text-sm" }, "-");
+      }
       return withDirectives(
         h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $dayjs(date).fromNow()),
         [[resolveDirective("tippy"), formatDate(date)]]
       );
     },
     size: 100,
+  },
+  {
+    header: "Created by",
+    accessorKey: "creator",
+    cell: ({ row }) => {
+      const creator = row.getValue("creator");
+      if (!creator) {
+        return h("span", { class: "text-muted-foreground text-sm" }, "-");
+      }
+      return h(resolveComponent("UserProfile"), { user: creator });
+    },
+    size: 150,
+    enableSorting: false,
   },
   {
     id: "actions",
@@ -392,10 +339,7 @@ const getFilterValue = (columnId) => {
 };
 
 const selectedStatuses = computed(() => getFilterValue("status"));
-const selectedVisibilities = computed(() => getFilterValue("visibility"));
-const totalActiveFilters = computed(
-  () => selectedStatuses.value.length + selectedVisibilities.value.length
-);
+const totalActiveFilters = computed(() => selectedStatuses.value.length);
 
 const handleFilterChange = (columnId, { checked, value }) => {
   if (clientOnly.value && tableRef.value?.table) {

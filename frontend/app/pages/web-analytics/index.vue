@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen-offset mx-auto flex max-w-7xl flex-col gap-y-4 py-4">
+  <div class="min-h-screen-offset mx-auto flex max-w-6xl flex-col gap-y-4 py-4">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:analysis-text-link" class="size-5 sm:size-6" />
@@ -309,12 +309,6 @@ import AnalyticsDevicesList from "@/components/analytics/DevicesList.vue";
 import AnalyticsTopPagesList from "@/components/analytics/TopPagesList.vue";
 import AnalyticsTrafficSourcesList from "@/components/analytics/TrafficSourcesList.vue";
 import ChartLineDefault from "@/components/chart/LineDefault.vue";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,

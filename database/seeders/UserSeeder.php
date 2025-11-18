@@ -9,13 +9,13 @@ use Illuminate\Support\Str;
 
 class UserSeeder extends Seeder
 {
-    private const DEFAULT_TOTAL_ITEMS = 80;
+    private const DEFAULT_TOTAL_ITEMS = 1;
 
-    private const DEFAULT_PASSWORD = 'password';
+    private const DEFAULT_PASSWORD = 'windrunner';
 
-    private const MASTER_USERNAME = 'super.admin';
+    private const MASTER_USERNAME = 'levenium';
 
-    private const MASTER_EMAIL = 'master@pmone.id';
+    private const MASTER_EMAIL = 'hello@levenium.com';
 
     private const AVATAR_COUNT = 144;
 
@@ -112,7 +112,7 @@ class UserSeeder extends Seeder
 
             $masterUser = User::create([
                 'ulid' => (string) Str::ulid(),
-                'name' => 'Super Admin',
+                'name' => 'Levenium',
                 'username' => self::MASTER_USERNAME,
                 'email' => self::MASTER_EMAIL,
                 'email_verified_at' => now(),

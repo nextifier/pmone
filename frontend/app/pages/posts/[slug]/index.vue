@@ -89,7 +89,7 @@
       <!-- Featured Image -->
       <div v-if="post.featured_image" class="overflow-hidden rounded-lg">
         <img
-          :src="post.featured_image?.lg || post.featured_image.original"
+          :src="typeof post.featured_image === 'string' ? post.featured_image : (post.featured_image?.lg || post.featured_image?.original)"
           :alt="post.title"
           class="h-auto w-full object-cover"
         />

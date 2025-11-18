@@ -31,6 +31,7 @@ const formRef = ref(null);
 
 defineShortcuts({
   meta_s: {
+    usingInput: true,
     handler: () => {
       formRef.value?.handleSubmit();
     },

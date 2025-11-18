@@ -284,6 +284,7 @@
 </template>
 
 <script setup>
+import ContactFormEmailConfig from "@/components/project/ContactFormEmailConfig.vue";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -294,7 +295,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "vue-sonner";
-import ContactFormEmailConfig from "@/components/project/ContactFormEmailConfig.vue";
 
 // Constants
 const PREDEFINED_LABELS = [
@@ -618,6 +618,7 @@ defineExpose({
 
 defineShortcuts({
   meta_s: {
+    usingInput: true,
     handler: () => {
       handleSubmit();
     },

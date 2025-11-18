@@ -52,7 +52,11 @@
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Projects</SelectItem>
-              <SelectItem v-for="project in projects" :key="project.id" :value="project.id.toString()">
+              <SelectItem
+                v-for="project in projects"
+                :key="project.id"
+                :value="project.id.toString()"
+              >
                 {{ project.name }}
               </SelectItem>
             </SelectContent>
@@ -79,7 +83,11 @@
           <div>
             <h3 class="font-semibold">No submissions found</h3>
             <p class="text-muted-foreground text-sm">
-              {{ hasActiveFilters ? "Try adjusting your filters." : "No contact form submissions yet." }}
+              {{
+                hasActiveFilters
+                  ? "Try adjusting your filters."
+                  : "No contact form submissions yet."
+              }}
             </p>
           </div>
         </div>
@@ -123,7 +131,9 @@
               </div>
 
               <!-- Meta Info -->
-              <div class="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+              <div
+                class="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
+              >
                 <div class="flex items-center gap-1">
                   <Icon name="lucide:folder" class="size-3" />
                   <span>{{ submission.project?.name || "Unknown Project" }}</span>
@@ -169,7 +179,7 @@
       <button
         @click="goToPage(meta.current_page - 1)"
         :disabled="meta.current_page === 1 || pending"
-        class="border-border hover:bg-muted disabled:opacity-50 rounded-md border px-3 py-1.5 text-sm disabled:cursor-not-allowed"
+        class="border-border hover:bg-muted rounded-md border px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
       >
         Previous
       </button>
@@ -179,7 +189,7 @@
       <button
         @click="goToPage(meta.current_page + 1)"
         :disabled="meta.current_page === meta.last_page || pending"
-        class="border-border hover:bg-muted disabled:opacity-50 rounded-md border px-3 py-1.5 text-sm disabled:cursor-not-allowed"
+        class="border-border hover:bg-muted rounded-md border px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
       >
         Next
       </button>
@@ -189,7 +199,13 @@
 
 <script setup>
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -217,7 +233,7 @@ const currentPage = ref(1);
 
 // Computed
 const hasActiveFilters = computed(() => {
-  return !!searchQuery.value || (selectedStatus.value !== "all") || (selectedProjectId.value !== "all");
+  return !!searchQuery.value || selectedStatus.value !== "all" || selectedProjectId.value !== "all";
 });
 
 // Fetch projects for filter
@@ -235,8 +251,6 @@ async function fetchProjects() {
     } else {
       projects.value = [];
     }
-
-    console.log("Fetched projects:", projects.value); // Debug log
   } catch (err) {
     console.error("Failed to fetch projects:", err);
     projects.value = [];
@@ -331,7 +345,10 @@ async function quickUpdateStatus(submission) {
 // Status badge config
 function getStatusConfig(status) {
   const configs = {
-    new: { label: "New", color: "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400" },
+    new: {
+      label: "New",
+      color: "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
+    },
     in_progress: {
       label: "In Progress",
       color: "bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400",

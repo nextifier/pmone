@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-7xl space-y-6 pt-4 pb-16">
+  <div class="mx-auto max-w-6xl space-y-6 pt-4 pb-16">
     <!-- Page Header -->
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-x-2.5">
@@ -261,19 +261,15 @@ const columns = [
           log.human_description || log.description
         ),
         log.event
-          ? h(
-              "div",
-              { class: "text-muted-foreground flex items-center gap-x-1 text-xs" },
-              [
-                h("span", { class: "capitalize" }, log.event),
-                log.log_name
-                  ? h("span", {}, [
-                      h("span", { class: "text-muted-foreground/50" }, " • "),
-                      h("span", { class: "capitalize" }, log.log_name),
-                    ])
-                  : null,
-              ]
-            )
+          ? h("div", { class: "text-muted-foreground flex items-center gap-x-1 text-xs" }, [
+              h("span", { class: "capitalize" }, log.event),
+              log.log_name
+                ? h("span", {}, [
+                    h("span", { class: "text-muted-foreground/50" }, " • "),
+                    h("span", { class: "capitalize" }, log.log_name),
+                  ])
+                : null,
+            ])
           : null,
       ]);
     },
@@ -286,11 +282,7 @@ const columns = [
     cell: ({ row }) => {
       const log = row.original;
       return h("div", { class: "space-y-0.5" }, [
-        h(
-          "div",
-          { class: "text-foreground text-sm tracking-tight" },
-          log.causer_name || "System"
-        ),
+        h("div", { class: "text-foreground text-sm tracking-tight" }, log.causer_name || "System"),
         log.causer_id
           ? h("div", { class: "text-muted-foreground text-xs" }, `ID: ${log.causer_id}`)
           : null,
@@ -317,11 +309,7 @@ const columns = [
     cell: ({ row }) => {
       const date = row.getValue("created_at");
       return withDirectives(
-        h(
-          "div",
-          { class: "text-muted-foreground text-sm tracking-tight" },
-          $dayjs(date).fromNow()
-        ),
+        h("div", { class: "text-muted-foreground text-sm tracking-tight" }, $dayjs(date).fromNow()),
         [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
       );
     },

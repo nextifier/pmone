@@ -317,6 +317,7 @@ defineExpose({ handleSubmit });
 
 defineShortcuts({
   meta_s: {
+    usingInput: true,
     handler: () => {
       handleSubmit();
     },

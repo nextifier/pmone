@@ -9,6 +9,7 @@
           :class="{ 'is-active': editor.isActive('bold') }"
           class="toolbar-button"
           title="Bold (Cmd+B)"
+          v-tippy="'Bold (Cmd+B)'"
         >
           <Icon name="lucide:bold" />
         </button>
@@ -18,6 +19,7 @@
           :class="{ 'is-active': editor.isActive('italic') }"
           class="toolbar-button"
           title="Italic (Cmd+I)"
+          v-tippy="'Italic (Cmd+I)'"
         >
           <Icon name="lucide:italic" />
         </button>
@@ -27,6 +29,7 @@
           :class="{ 'is-active': editor.isActive('underline') }"
           class="toolbar-button"
           title="Underline (Cmd+U)"
+          v-tippy="'Underline (Cmd+U)'"
         >
           <Icon name="lucide:underline" />
         </button>
@@ -41,6 +44,7 @@
           :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }"
           class="toolbar-button"
           title="Heading 2"
+          v-tippy="'Heading 2'"
         >
           <Icon name="lucide:heading-2" />
         </button>
@@ -50,6 +54,7 @@
           :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }"
           class="toolbar-button"
           title="Heading 3"
+          v-tippy="'Heading 3'"
         >
           <Icon name="lucide:heading-3" />
         </button>
@@ -64,6 +69,7 @@
           :class="{ 'is-active': editor.isActive('bulletList') }"
           class="toolbar-button"
           title="Bullet List"
+          v-tippy="'Bullet List'"
         >
           <Icon name="lucide:list" />
         </button>
@@ -73,6 +79,7 @@
           :class="{ 'is-active': editor.isActive('orderedList') }"
           class="toolbar-button"
           title="Ordered List"
+          v-tippy="'Ordered List'"
         >
           <Icon name="lucide:list-ordered" />
         </button>
@@ -82,6 +89,7 @@
           :class="{ 'is-active': editor.isActive('blockquote') }"
           class="toolbar-button"
           title="Blockquote"
+          v-tippy="'Blockquote'"
         >
           <Icon name="lucide:quote" />
         </button>
@@ -96,6 +104,7 @@
           :class="{ 'is-active': editor.isActive('link') }"
           class="toolbar-button"
           title="Add Link"
+          v-tippy="'Add Link'"
         >
           <Icon name="lucide:link" />
         </button>
@@ -104,6 +113,7 @@
           @click="triggerImageUpload"
           class="toolbar-button"
           title="Upload Image"
+          v-tippy="'Upload Image'"
         >
           <Icon name="lucide:image" />
         </button>
@@ -117,6 +127,7 @@
           @click="editor.chain().focus().setHorizontalRule().run()"
           class="toolbar-button"
           title="Horizontal Rule"
+          v-tippy="'Horizontal Rule'"
         >
           <Icon name="lucide:minus" />
         </button>
@@ -125,6 +136,7 @@
           @click="editor.chain().focus().setHardBreak().run()"
           class="toolbar-button"
           title="Line Break"
+          v-tippy="'Line Break'"
         >
           <Icon name="lucide:wrap-text" />
         </button>

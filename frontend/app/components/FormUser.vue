@@ -475,9 +475,7 @@ async function populateForm(data) {
         const labelLower = link.label?.toLowerCase() || "";
         // Exclude Email and WhatsApp links
         return (
-          labelLower !== "email" &&
-          labelLower !== "whatsapp" &&
-          !labelLower.startsWith("whatsapp ")
+          labelLower !== "email" && labelLower !== "whatsapp" && !labelLower.startsWith("whatsapp ")
         );
       })
       .map((link) => ({
@@ -597,6 +595,7 @@ defineExpose({
 
 defineShortcuts({
   meta_s: {
+    usingInput: true,
     handler: () => {
       handleSubmit();
     },

@@ -28,10 +28,9 @@ class PostResource extends JsonResource
                 'featured' => $this->featured,
                 'reading_time' => $this->reading_time,
                 'visits_count' => $this->visits_count ?? $this->visits()->count(),
-                'featured_image' => $this->when(
-                    $this->hasMedia('featured_image'),
-                    $this->getMediaUrls('featured_image')
-                ),
+                'featured_image' => $this->hasMedia('featured_image')
+                    ? $this->getMediaUrls('featured_image')
+                    : $this->featured_image,
                 'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
                 'authors' => $this->whenLoaded('authors', fn () => $this->authors->map(fn ($author) => [
                     'id' => $author->id,
@@ -67,10 +66,9 @@ class PostResource extends JsonResource
             'visits_count' => $this->visits_count ?? $this->visits()->count(),
             'settings' => $this->settings,
             'source' => $this->source,
-            'featured_image' => $this->when(
-                $this->hasMedia('featured_image'),
-                $this->getMediaUrls('featured_image')
-            ),
+            'featured_image' => $this->hasMedia('featured_image')
+                ? $this->getMediaUrls('featured_image')
+                : $this->featured_image,
             'tags' => $this->whenLoaded('tags', fn () => $this->tags->pluck('name')),
             'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
             'authors' => $this->whenLoaded('authors', fn () => $this->authors->map(fn ($author) => [
