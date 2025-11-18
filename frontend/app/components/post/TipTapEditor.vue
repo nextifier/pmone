@@ -201,7 +201,7 @@ const editor = useEditor({
   ],
   editorProps: {
     attributes: {
-      class: "prose prose-sm sm:prose lg:prose-lg xl:prose-xl focus:outline-none",
+      class: "prose prose-base focus:outline-none",
     },
   },
   onUpdate: ({ editor }) => {

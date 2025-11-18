@@ -1,8 +1,12 @@
 <template>
-  <div class="container mx-auto max-w-5xl px-4 py-8">
-    <div class="mb-8">
-      <h1 class="text-3xl font-semibold">Create New Post</h1>
-      <p class="text-muted-foreground mt-2">Write and publish a new blog post</p>
+  <div class="min-h-screen-offset mx-auto flex max-w-2xl flex-col space-y-6 py-6">
+    <div class="flex items-center justify-between gap-2">
+      <BackButton destination="/posts" />
+    </div>
+
+    <div class="space-y-1">
+      <h1 class="page-title">Create New Post</h1>
+      <p class="page-description">Write and publish a new blog post.</p>
     </div>
 
     <PostForm mode="create" @cancel="navigateTo('/posts')" @success="handleSuccess" />

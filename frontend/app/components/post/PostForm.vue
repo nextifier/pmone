@@ -1,26 +1,5 @@
 <template>
   <form @submit.prevent="handleSubmit" class="grid gap-y-8">
-    <!-- Featured Image -->
-    <div class="frame">
-      <div class="frame-header">
-        <div class="frame-title">Featured Image</div>
-      </div>
-      <div class="frame-panel">
-        <div class="space-y-4">
-          <Label>Featured Image</Label>
-          <InputFileImage
-            ref="featuredImageInputRef"
-            v-model="imageFiles.featured_image"
-            :initial-image="initialData?.featured_image"
-            v-model:delete-flag="deleteFlags.featured_image"
-            container-class="relative isolate aspect-video w-full"
-          />
-          <InputErrorMessage :errors="errors.tmp_featured_image" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Post Content -->
     <div class="frame">
       <div class="frame-header">
         <div class="frame-title">Post Content</div>
@@ -42,6 +21,18 @@
             <InputErrorMessage :errors="errors.excerpt" />
           </div>
 
+          <div class="space-y-4">
+            <Label>Featured Image</Label>
+            <InputFileImage
+              ref="featuredImageInputRef"
+              v-model="imageFiles.featured_image"
+              :initial-image="initialData?.featured_image"
+              v-model:delete-flag="deleteFlags.featured_image"
+              container-class="relative isolate aspect-video w-full"
+            />
+            <InputErrorMessage :errors="errors.tmp_featured_image" />
+          </div>
+
           <div class="space-y-2">
             <Label>Content <span class="text-destructive">*</span></Label>
             <PostTipTapEditor
@@ -51,115 +42,13 @@
             />
             <InputErrorMessage :errors="errors.content" />
           </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Tags -->
-    <div class="frame">
-      <div class="frame-header">
-        <div class="frame-title">Tags</div>
-      </div>
-      <div class="frame-panel">
-        <div class="space-y-2">
-          <Label for="tags">Tags</Label>
-          <TagsInputComponent v-model="form.tags" placeholder="Add tags..." />
-          <p class="text-muted-foreground text-xs tracking-tight">Press Enter to add a tag</p>
-          <InputErrorMessage :errors="errors.tags" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Authors -->
-    <div class="frame">
-      <div class="frame-header">
-        <div class="frame-title">Authors</div>
-      </div>
-      <div class="frame-panel">
-        <div class="space-y-4">
           <div class="space-y-2">
-            <Label>Post Authors</Label>
-            <p class="text-muted-foreground text-xs tracking-tight">
-              Add authors and assign their roles for this post
-            </p>
+            <Label for="tags">Tags</Label>
+            <TagsInputComponent v-model="form.tags" placeholder="Add tags..." />
+            <p class="text-muted-foreground text-xs tracking-tight">Press Enter to add a tag</p>
+            <InputErrorMessage :errors="errors.tags" />
           </div>
-
-          <!-- Authors List -->
-          <div v-if="form.authors.length > 0" class="space-y-3">
-            <div
-              v-for="(author, index) in form.authors"
-              :key="index"
-              class="border-border flex items-center gap-3 rounded-lg border p-3"
-            >
-              <!-- User Select -->
-              <div class="flex-1">
-                <Select v-model="author.user_id">
-                  <SelectTrigger class="w-full">
-                    <SelectValue placeholder="Select author..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem v-for="user in availableUsers" :key="user.id" :value="user.id">
-                      {{ user.name }} ({{ user.email }})
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <!-- Role Input -->
-              <div class="w-48">
-                <Input
-                  v-model="author.role"
-                  type="text"
-                  placeholder="Role (e.g., primary_author)"
-                  maxlength="50"
-                />
-              </div>
-
-              <!-- Reorder Buttons -->
-              <div class="flex gap-1">
-                <button
-                  type="button"
-                  @click="moveAuthorUp(index)"
-                  :disabled="index === 0"
-                  class="hover:bg-accent flex size-8 items-center justify-center rounded-lg transition disabled:opacity-30"
-                  title="Move up"
-                >
-                  <Icon name="lucide:chevron-up" class="size-4" />
-                </button>
-                <button
-                  type="button"
-                  @click="moveAuthorDown(index)"
-                  :disabled="index === form.authors.length - 1"
-                  class="hover:bg-accent flex size-8 items-center justify-center rounded-lg transition disabled:opacity-30"
-                  title="Move down"
-                >
-                  <Icon name="lucide:chevron-down" class="size-4" />
-                </button>
-              </div>
-
-              <!-- Remove Button -->
-              <button
-                type="button"
-                @click="removeAuthor(index)"
-                class="hover:bg-destructive/10 hover:text-destructive flex size-8 items-center justify-center rounded-lg transition"
-                title="Remove author"
-              >
-                <Icon name="lucide:x" class="size-4" />
-              </button>
-            </div>
-          </div>
-
-          <!-- Add Author Button -->
-          <button
-            type="button"
-            @click="addAuthor"
-            class="border-input hover:bg-accent flex w-full items-center justify-center gap-2 rounded-lg border border-dashed py-3 text-sm font-medium transition"
-          >
-            <Icon name="lucide:plus" class="size-4" />
-            Add Author
-          </button>
-
-          <InputErrorMessage :errors="errors.authors" />
         </div>
       </div>
     </div>
@@ -210,14 +99,95 @@
             <InputErrorMessage :errors="errors.published_at" />
           </div>
 
+          <div class="space-y-4">
+            <div class="space-y-2">
+              <Label>Post Authors</Label>
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Add authors and assign their roles for this post
+              </p>
+            </div>
+
+            <!-- Authors List -->
+            <div v-if="form.authors.length > 0" class="space-y-3">
+              <div
+                v-for="(author, index) in form.authors"
+                :key="index"
+                class="border-border flex items-center gap-3 rounded-lg border p-3"
+              >
+                <!-- User Select -->
+                <div class="flex-1">
+                  <Select v-model="author.user_id">
+                    <SelectTrigger class="w-full">
+                      <SelectValue placeholder="Select author..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem v-for="user in availableUsers" :key="user.id" :value="user.id">
+                        {{ user.name }} ({{ user.email }})
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <!-- Role Input -->
+                <div class="w-48">
+                  <Input
+                    v-model="author.role"
+                    type="text"
+                    placeholder="Role (e.g., primary_author)"
+                    maxlength="50"
+                  />
+                </div>
+
+                <!-- Reorder Buttons -->
+                <div class="flex gap-1">
+                  <button
+                    type="button"
+                    @click="moveAuthorUp(index)"
+                    :disabled="index === 0"
+                    class="hover:bg-accent flex size-8 items-center justify-center rounded-lg transition disabled:opacity-30"
+                    title="Move up"
+                  >
+                    <Icon name="lucide:chevron-up" class="size-4" />
+                  </button>
+                  <button
+                    type="button"
+                    @click="moveAuthorDown(index)"
+                    :disabled="index === form.authors.length - 1"
+                    class="hover:bg-accent flex size-8 items-center justify-center rounded-lg transition disabled:opacity-30"
+                    title="Move down"
+                  >
+                    <Icon name="lucide:chevron-down" class="size-4" />
+                  </button>
+                </div>
+
+                <!-- Remove Button -->
+                <button
+                  type="button"
+                  @click="removeAuthor(index)"
+                  class="hover:bg-destructive/10 hover:text-destructive flex size-8 items-center justify-center rounded-lg transition"
+                  title="Remove author"
+                >
+                  <Icon name="lucide:x" class="size-4" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Add Author Button -->
+            <button
+              type="button"
+              @click="addAuthor"
+              class="border-input hover:bg-accent flex w-full items-center justify-center gap-2 rounded-lg border border-dashed py-3 text-sm font-medium transition"
+            >
+              <Icon name="lucide:plus" class="size-4" />
+              Add Author
+            </button>
+
+            <InputErrorMessage :errors="errors.authors" />
+          </div>
+
           <div class="flex items-center gap-2">
-            <input
-              id="featured"
-              v-model="form.featured"
-              type="checkbox"
-              class="border-input h-4 w-4 rounded"
-            />
-            <Label for="featured" class="cursor-pointer font-normal"> Mark as featured post </Label>
+            <Switch id="featured" v-model="form.featured" />
+            <Label for="featured" class="cursor-pointer font-normal">Mark as featured post </Label>
           </div>
         </div>
       </div>
@@ -247,23 +217,38 @@
             </p>
             <InputErrorMessage :errors="errors.meta_description" />
           </div>
+
+          <div class="space-y-2">
+            <Label>OG Image</Label>
+            <InputFileImage
+              ref="ogImageInputRef"
+              v-model="imageFiles.og_image"
+              :initial-image="initialData?.og_image"
+              v-model:delete-flag="deleteFlags.og_image"
+              container-class="relative isolate aspect-video w-full"
+            />
+            <p class="text-muted-foreground text-xs tracking-tight">
+              Image for social media sharing (Open Graph). Recommended size: 1200x630px
+            </p>
+            <InputErrorMessage :errors="errors.tmp_og_image" />
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Actions -->
-    <div class="flex justify-end gap-3">
+    <div class="flex justify-end gap-2">
       <button
         type="button"
         @click="emit('cancel')"
-        class="border-input hover:bg-accent hover:text-accent-foreground rounded-lg border px-4 py-2 text-sm font-semibold tracking-tighter transition"
+        class="border-input hover:bg-accent hover:text-accent-foreground rounded-lg border px-4 py-2 text-sm font-medium tracking-tighter transition"
       >
         Cancel
       </button>
       <button
         type="submit"
         :disabled="loading || !form.title || !form.content || hasFilesUploading()"
-        class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-semibold tracking-tighter transition disabled:opacity-50"
+        class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tighter transition disabled:opacity-50"
       >
         <Spinner v-if="loading" />
         {{ submitButtonText }}
@@ -309,13 +294,16 @@ const FILE_STATUS = {
 
 const client = useSanctumClient();
 const featuredImageInputRef = ref(null);
+const ogImageInputRef = ref(null);
 
 const deleteFlags = ref({
   featured_image: false,
+  og_image: false,
 });
 
 const imageFiles = ref({
   featured_image: [],
+  og_image: [],
 });
 
 const form = reactive({
@@ -500,7 +488,7 @@ async function autoSavePost() {
 }
 
 function hasFilesUploading() {
-  return [featuredImageInputRef].some((ref) =>
+  return [featuredImageInputRef, ogImageInputRef].some((ref) =>
     ref.value?.pond?.getFiles().some((file) => file.status === FILE_STATUS.PROCESSING)
   );
 }
@@ -548,6 +536,13 @@ async function handleSubmit() {
       payload.tmp_featured_image = featuredValue;
     } else if (deleteFlags.value.featured_image && !featuredValue) {
       payload.delete_featured_image = true;
+    }
+
+    const ogImageValue = imageFiles.value.og_image?.[0];
+    if (ogImageValue && ogImageValue.startsWith("tmp-")) {
+      payload.tmp_og_image = ogImageValue;
+    } else if (deleteFlags.value.og_image && !ogImageValue) {
+      payload.delete_og_image = true;
     }
 
     let response;
