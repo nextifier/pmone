@@ -20,33 +20,13 @@
       </div>
 
       <div class="ml-auto flex shrink-0 items-center gap-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger as-child>
-            <button
-              :disabled="isExporting || loading"
-              class="border-border hover:bg-muted flex h-8 items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Spinner v-if="isExporting" class="size-4 shrink-0" />
-              <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
-              <span>{{ isExporting ? "Exporting..." : "Export" }}</span>
-              <Icon name="hugeicons:arrow-down-01" class="size-4 shrink-0" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem @click="exportToExcel">
-              <Icon name="hugeicons:xls-01" class="size-4.5 shrink-0" />
-              Export to Excel
-            </DropdownMenuItem>
-            <DropdownMenuItem @click="exportToPDF">
-              <Icon name="hugeicons:pdf-01" class="size-4.5 shrink-0" />
-              Export to PDF
-            </DropdownMenuItem>
-            <DropdownMenuItem @click="">
-              <Icon name="hugeicons:jpg-01" class="size-4.5 shrink-0" />
-              Export to JPG
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <AnalyticsExportDropdown
+          :start-date="startDate"
+          :end-date="endDate"
+          :disabled="loading"
+          filename-prefix="aggregated_analytics"
+          :on-excel-export="exportToExcel"
+        />
 
         <ClientOnly>
           <DateRangeSelect v-model="selectedRange" />
@@ -750,12 +730,12 @@ const clearRateLimit = async () => {
 };
 
 // Export analytics
-const isExporting = ref(false);
+const isExportingExcel = ref(false);
 
 const exportToExcel = async () => {
-  if (isExporting.value) return;
+  if (isExportingExcel.value) return;
 
-  isExporting.value = true;
+  isExportingExcel.value = true;
 
   try {
     const startDateStr = startDate.value.format("YYYY-MM-DD");
@@ -791,196 +771,8 @@ const exportToExcel = async () => {
       description: error?.data?.message || error?.message || "An error occurred",
     });
   } finally {
-    isExporting.value = false;
+    isExportingExcel.value = false;
   }
-};
-
-const exportToPDF = async () => {
-  if (isExporting.value) return;
-
-  isExporting.value = true;
-
-  const performExport = async () => {
-    // Give browser significant time to render loading state
-    // await new Promise((resolve) => setTimeout(resolve, 300));
-
-    const html2canvas = (await import("html2canvas-pro")).default;
-    const { jsPDF } = await import("jspdf");
-
-    // Get the main analytics container
-    const element = document.querySelector(".min-h-screen-offset");
-
-    if (!element) {
-      throw new Error("Analytics container not found");
-    }
-
-    // Create hidden iframe for isolated PDF rendering (won't affect user's view at all)
-    // Using 1024px width to match lg breakpoint for better content density
-    const iframe = document.createElement("iframe");
-    iframe.style.position = "fixed";
-    iframe.style.top = "-9999px";
-    iframe.style.left = "-9999px";
-    iframe.style.width = "768px";
-    iframe.style.height = "10000px";
-    iframe.style.border = "none";
-    document.body.appendChild(iframe);
-
-    let canvas;
-    try {
-      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-
-      // Copy all stylesheets to iframe
-      const stylesheets = Array.from(document.styleSheets);
-      stylesheets.forEach((stylesheet) => {
-        try {
-          if (stylesheet.href) {
-            const link = iframeDoc.createElement("link");
-            link.rel = "stylesheet";
-            link.href = stylesheet.href;
-            iframeDoc.head.appendChild(link);
-          } else if (stylesheet.cssRules) {
-            const style = iframeDoc.createElement("style");
-            Array.from(stylesheet.cssRules).forEach((rule) => {
-              style.appendChild(iframeDoc.createTextNode(rule.cssText));
-            });
-            iframeDoc.head.appendChild(style);
-          }
-        } catch (e) {
-          // Skip cross-origin stylesheets
-        }
-      });
-
-      // Force light mode in iframe (doesn't affect main document)
-      iframeDoc.documentElement.style.colorScheme = "light";
-
-      // Clone the element deeply
-      const clonedElement = element.cloneNode(true);
-
-      // Append to iframe body
-      iframeDoc.body.appendChild(clonedElement);
-      iframeDoc.body.style.margin = "0";
-      iframeDoc.body.style.padding = "0";
-      iframeDoc.body.style.backgroundColor = "#ffffff";
-
-      // Wait for render
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      // Find all images in cloned element and convert to data URLs via proxy
-      const images = clonedElement.querySelectorAll("img");
-
-      const imagePromises = Array.from(images).map(async (img) => {
-        const src = img.src;
-
-        // Skip if already a data URL or same origin
-        if (src.startsWith("data:") || src.startsWith(window.location.origin)) {
-          return;
-        }
-
-        try {
-          // Fetch image through our proxy
-          const proxyUrl = `/image-proxy?url=${encodeURIComponent(src)}`;
-          const response = await fetch(proxyUrl);
-
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-
-          const blob = await response.blob();
-
-          // Convert to data URL
-          const reader = new FileReader();
-          const dataUrl = await new Promise((resolve, reject) => {
-            reader.onloadend = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-          });
-
-          // Replace src with data URL
-          img.src = dataUrl;
-        } catch (error) {
-          console.error("[PDF Export] Failed to proxy image:", src, error);
-        }
-      });
-
-      // Wait for all images to be proxied
-      await Promise.all(imagePromises);
-
-      // Give browser time to process the changes
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Render the cloned element to canvas with higher resolution
-      canvas = await html2canvas(clonedElement, {
-        scale: 2,
-        useCORS: false,
-        allowTaint: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-        windowWidth: 768,
-        windowHeight: clonedElement.scrollHeight,
-      });
-    } finally {
-      // Remove hidden iframe
-      document.body.removeChild(iframe);
-    }
-
-    // Give browser time to recover after canvas generation
-    await new Promise((resolve) => setTimeout(resolve, 200));
-
-    // PDF dimensions with margins
-    const pageWidth = 210; // A4 width in mm
-    const pageHeight = 297; // A4 height in mm
-    const margin = 10; // 10mm margin on all sides (reduced for more content space)
-    const contentWidth = pageWidth - 2 * margin;
-    const contentHeight = pageHeight - 2 * margin;
-
-    // Calculate image dimensions to fit within content area
-    const imgWidth = contentWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    // Create PDF
-    const pdf = new jsPDF("p", "mm", "a4");
-
-    // Convert canvas to data URL with higher quality
-    const imgData = canvas.toDataURL("image/jpeg", 0.98);
-
-    // Give browser time after data URL conversion
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    // Add first page with margins
-    pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, imgHeight);
-
-    // Add additional pages if content is longer than one page
-    let heightLeft = imgHeight - contentHeight;
-    let position = 0;
-
-    while (heightLeft > 0) {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, "JPEG", margin, position + margin, imgWidth, imgHeight);
-      heightLeft -= contentHeight;
-    }
-
-    // Final delay before save
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    // Save PDF
-    const startDateStr = startDate.value.format("YYYY-MM-DD");
-    const endDateStr = endDate.value.format("YYYY-MM-DD");
-    pdf.save(`web_analytics_${startDateStr}_to_${endDateStr}.pdf`);
-
-    return { startDate: startDateStr, endDate: endDateStr };
-  };
-
-  toast.promise(performExport, {
-    loading: "Generating PDF...",
-    success: () => "Analytics exported to PDF successfully",
-    error: (err) => err?.message || "Failed to export to PDF",
-    finally: () => {
-      isExporting.value = false;
-    },
-  });
 };
 
 onMounted(async () => {

@@ -29,44 +29,13 @@
       </div>
 
       <div class="ml-auto flex shrink-0 items-center gap-2">
-        <!-- <button
-          @click="refreshData"
+        <AnalyticsExportDropdown
+          :start-date="startDate"
+          :end-date="endDate"
           :disabled="loading"
-          class="border-border hover:bg-muted flex h-8 items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Icon
-            name="hugeicons:refresh"
-            class="size-4 shrink-0"
-            :class="{ 'animate-spin': loading }"
-          />
-          <span>Refresh</span>
-        </button> -->
-
-        <DropdownMenu>
-          <DropdownMenuTrigger as-child>
-            <button
-              :disabled="isExporting || loading"
-              class="border-border hover:bg-muted flex h-8 items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Icon
-                :name="isExporting ? 'hugeicons:loading-01' : 'hugeicons:file-export'"
-                class="size-4 shrink-0"
-                :class="{ 'animate-spin': isExporting }"
-              />
-              <span>{{ isExporting ? "Exporting..." : "Export" }}</span>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem @click="exportToExcel">
-              <Icon name="hugeicons:xls-01" class="size-4 shrink-0" />
-              Export to Excel
-            </DropdownMenuItem>
-            <DropdownMenuItem @click="exportToPDF">
-              <Icon name="hugeicons:pdf-01" class="size-4 shrink-0" />
-              Export to PDF
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          :filename-prefix="`property_${route.params.id}_analytics`"
+          :on-excel-export="exportToExcel"
+        />
 
         <ClientOnly>
           <DateRangeSelect v-model="selectedRange" />
@@ -614,12 +583,12 @@ const getDateRangeLabel = () => {
 };
 
 // Export analytics
-const isExporting = ref(false);
+const isExportingExcel = ref(false);
 
 const exportToExcel = async () => {
-  if (isExporting.value) return;
+  if (isExportingExcel.value) return;
 
-  isExporting.value = true;
+  isExportingExcel.value = true;
 
   try {
     const propertyId = route.params.id;
@@ -656,52 +625,7 @@ const exportToExcel = async () => {
       description: error?.data?.message || error?.message || "An error occurred",
     });
   } finally {
-    isExporting.value = false;
-  }
-};
-
-const exportToPDF = async () => {
-  if (isExporting.value) return;
-
-  isExporting.value = true;
-
-  try {
-    const propertyId = route.params.id;
-    const startDateStr = startDate.value.format("YYYY-MM-DD");
-    const endDateStr = endDate.value.format("YYYY-MM-DD");
-
-    // Create download link to backend API
-    const url = `/api/google-analytics/properties/${propertyId}/analytics/export-pdf?start_date=${startDateStr}&end_date=${endDateStr}`;
-
-    // Use sanctumFetch to download the file with authentication
-    const response = await sanctumFetch(url, {
-      method: "GET",
-      responseType: "blob",
-    });
-
-    // Create blob from response
-    const blob = new Blob([response], {
-      type: "application/pdf",
-    });
-
-    // Create download link
-    const downloadUrl = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.download = `property_analytics_${propertyId}_${startDateStr}_to_${endDateStr}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(downloadUrl);
-
-    toast.success("Analytics exported to PDF successfully");
-  } catch (error) {
-    console.error("Error exporting to PDF:", error);
-    toast.error("Failed to export to PDF", {
-      description: error?.data?.message || error?.message || "An error occurred",
-    });
-  } finally {
-    isExporting.value = false;
+    isExportingExcel.value = false;
   }
 };
 
