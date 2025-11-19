@@ -65,4 +65,52 @@ class ShortLinkPolicy
         // Master and admin can delete all short links
         return $user->hasAnyRole(['master', 'admin']);
     }
+
+    /**
+     * Determine whether the user can restore the short link.
+     */
+    public function restore(User $user, ShortLink $shortLink): bool
+    {
+        // Owner can restore their own short links
+        if ($user->id === $shortLink->user_id) {
+            return true;
+        }
+
+        // Master and admin can restore all short links
+        return $user->hasAnyRole(['master', 'admin']);
+    }
+
+    /**
+     * Determine whether the user can restore any short links (for bulk operations).
+     */
+    public function restoreAny(User $user): bool
+    {
+        // All authenticated users can restore short links they own
+        // Individual authorization will be checked per short link in the controller
+        return true;
+    }
+
+    /**
+     * Determine whether the user can permanently delete the short link.
+     */
+    public function forceDelete(User $user, ShortLink $shortLink): bool
+    {
+        // Owner can force delete their own short links
+        if ($user->id === $shortLink->user_id) {
+            return true;
+        }
+
+        // Master and admin can force delete all short links
+        return $user->hasAnyRole(['master', 'admin']);
+    }
+
+    /**
+     * Determine whether the user can force delete any short links (for bulk operations).
+     */
+    public function forceDeleteAny(User $user): bool
+    {
+        // All authenticated users can force delete short links they own
+        // Individual authorization will be checked per short link in the controller
+        return true;
+    }
 }

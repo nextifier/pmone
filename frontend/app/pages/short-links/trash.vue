@@ -194,7 +194,9 @@ defineOptions({
   name: "short-links-trash",
 });
 
-usePageMeta("short-links-trash");
+usePageMeta(null, {
+  title: "Short Links Trash",
+});
 
 const { $dayjs } = useNuxtApp();
 

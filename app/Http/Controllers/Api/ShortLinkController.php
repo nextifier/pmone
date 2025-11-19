@@ -350,7 +350,7 @@ class ShortLinkController extends Controller
     public function restore(Request $request, int $id): JsonResponse
     {
         $shortLink = ShortLink::onlyTrashed()->findOrFail($id);
-        $this->authorize('delete', $shortLink);
+        $this->authorize('restore', $shortLink);
 
         $shortLink->restore();
 
@@ -361,67 +361,30 @@ class ShortLinkController extends Controller
 
     public function bulkRestore(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'ids' => ['required', 'array', 'min:1'],
-            'ids.*' => ['required', 'integer'],
+        $this->authorize('restoreAny', ShortLink::class);
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:short_links,id',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
+        $shortLinks = ShortLink::onlyTrashed()->whereIn('id', $request->ids)->get();
+
+        foreach ($shortLinks as $shortLink) {
+            $this->authorize('restore', $shortLink);
         }
 
-        try {
-            $shortLinkIds = $request->input('ids');
-            $currentUser = $request->user();
-            $restoredCount = 0;
-            $errors = [];
+        ShortLink::onlyTrashed()->whereIn('id', $request->ids)->restore();
 
-            foreach ($shortLinkIds as $shortLinkId) {
-                $shortLink = ShortLink::onlyTrashed()->find($shortLinkId);
-
-                if (! $shortLink) {
-                    continue;
-                }
-
-                if (! $currentUser->can('delete', $shortLink)) {
-                    $errors[] = "Cannot restore short link: {$shortLink->slug}";
-
-                    continue;
-                }
-
-                $shortLink->restore();
-                $restoredCount++;
-            }
-
-            $message = $restoredCount > 0
-                ? "Successfully restored {$restoredCount} short link(s)"
-                : 'No short links were restored';
-
-            return response()->json([
-                'message' => $message,
-                'restored_count' => $restoredCount,
-                'errors' => $errors,
-            ], $restoredCount > 0 ? 200 : 400);
-        } catch (\Exception $e) {
-            logger()->error('Bulk short link restoration failed', [
-                'error' => $e->getMessage(),
-                'short_link_ids' => $request->input('ids'),
-            ]);
-
-            return response()->json([
-                'message' => 'Failed to restore short links',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return response()->json([
+            'message' => count($request->ids).' short links restored successfully',
+        ]);
     }
 
     public function forceDestroy(Request $request, int $id): JsonResponse
     {
         $shortLink = ShortLink::onlyTrashed()->findOrFail($id);
-        $this->authorize('delete', $shortLink);
+        $this->authorize('forceDelete', $shortLink);
 
         $shortLink->forceDelete();
 
@@ -432,61 +395,24 @@ class ShortLinkController extends Controller
 
     public function bulkForceDestroy(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'ids' => ['required', 'array', 'min:1'],
-            'ids.*' => ['required', 'integer'],
+        $this->authorize('forceDeleteAny', ShortLink::class);
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:short_links,id',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
+        $shortLinks = ShortLink::onlyTrashed()->whereIn('id', $request->ids)->get();
+
+        foreach ($shortLinks as $shortLink) {
+            $this->authorize('forceDelete', $shortLink);
         }
 
-        try {
-            $shortLinkIds = $request->input('ids');
-            $currentUser = $request->user();
-            $deletedCount = 0;
-            $errors = [];
+        ShortLink::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
 
-            foreach ($shortLinkIds as $shortLinkId) {
-                $shortLink = ShortLink::onlyTrashed()->find($shortLinkId);
-
-                if (! $shortLink) {
-                    continue;
-                }
-
-                if (! $currentUser->can('delete', $shortLink)) {
-                    $errors[] = "Cannot delete short link: {$shortLink->slug}";
-
-                    continue;
-                }
-
-                $shortLink->forceDelete();
-                $deletedCount++;
-            }
-
-            $message = $deletedCount > 0
-                ? "Successfully deleted {$deletedCount} short link(s) permanently"
-                : 'No short links were deleted';
-
-            return response()->json([
-                'message' => $message,
-                'deleted_count' => $deletedCount,
-                'errors' => $errors,
-            ], $deletedCount > 0 ? 200 : 400);
-        } catch (\Exception $e) {
-            logger()->error('Bulk permanent short link deletion failed', [
-                'error' => $e->getMessage(),
-                'short_link_ids' => $request->input('ids'),
-            ]);
-
-            return response()->json([
-                'message' => 'Failed to permanently delete short links',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return response()->json([
+            'message' => count($request->ids).' short links permanently deleted',
+        ]);
     }
 
     // Import/Export

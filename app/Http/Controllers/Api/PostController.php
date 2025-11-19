@@ -271,13 +271,29 @@ class PostController extends Controller
 
         $query = Post::onlyTrashed()
             ->with(['creator', 'deleter'])
-            ->withCount('visits');
+            ->withCount(['visits', 'media']);
 
         // Search filter
         if ($searchTerm = $request->input('filter_search')) {
             $query->search($searchTerm);
         }
 
+        // If client_only is true, return all data without pagination for client-side filtering
+        if ($request->boolean('client_only')) {
+            $posts = $query->orderBy('deleted_at', 'desc')->get();
+
+            return response()->json([
+                'data' => PostResource::collection($posts),
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => $posts->count(),
+                    'total' => $posts->count(),
+                ],
+            ]);
+        }
+
+        // Server-side pagination
         $posts = $query->orderBy('deleted_at', 'desc')
             ->paginate($request->input('per_page', 15));
 
@@ -353,12 +369,18 @@ class PostController extends Controller
      */
     public function bulkRestore(Request $request): JsonResponse
     {
-        $this->authorize('restore', Post::class);
+        $this->authorize('restoreAny', Post::class);
 
         $request->validate([
             'ids' => 'required|array',
             'ids.*' => 'exists:posts,id',
         ]);
+
+        $posts = Post::onlyTrashed()->whereIn('id', $request->ids)->get();
+
+        foreach ($posts as $post) {
+            $this->authorize('restore', $post);
+        }
 
         Post::onlyTrashed()->whereIn('id', $request->ids)->restore();
 
@@ -372,12 +394,18 @@ class PostController extends Controller
      */
     public function bulkForceDestroy(Request $request): JsonResponse
     {
-        $this->authorize('forceDelete', Post::class);
+        $this->authorize('forceDeleteAny', Post::class);
 
         $request->validate([
             'ids' => 'required|array',
             'ids.*' => 'exists:posts,id',
         ]);
+
+        $posts = Post::onlyTrashed()->whereIn('id', $request->ids)->get();
+
+        foreach ($posts as $post) {
+            $this->authorize('forceDelete', $post);
+        }
 
         Post::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
 

@@ -115,9 +115,28 @@ class PostPolicy
     }
 
     /**
+     * Determine whether the user can restore any posts (for bulk operations).
+     */
+    public function restoreAny(User $user): bool
+    {
+        // All authenticated users can restore posts they own
+        // Individual authorization will be checked per post in the controller
+        return true;
+    }
+
+    /**
      * Determine whether the user can permanently delete the model.
      */
     public function forceDelete(User $user, Post $post): bool
+    {
+        // Only master and admin can force delete posts
+        return $user->hasRole(['master', 'admin']);
+    }
+
+    /**
+     * Determine whether the user can force delete any posts (for bulk operations).
+     */
+    public function forceDeleteAny(User $user): bool
     {
         // Only master and admin can force delete posts
         return $user->hasRole(['master', 'admin']);

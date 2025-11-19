@@ -206,10 +206,6 @@ Route::middleware(['auth:sanctum'])->prefix('google-analytics')->group(function 
 });
 
 // Public post endpoints
-Route::prefix('posts')->group(function () {
-    Route::get('/{post:slug}', [PostController::class, 'show'])->name('posts.show');
-});
-
 // Post management endpoints (authenticated + verified)
 Route::middleware(['auth:sanctum', 'verified'])->prefix('posts')->group(function () {
     Route::get('/', [PostController::class, 'index'])->name('posts.index');
@@ -226,6 +222,11 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('posts')->group(function
     Route::get('/{post:slug}/analytics', [PostController::class, 'analytics'])->name('posts.analytics');
     Route::put('/{post:slug}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/{post:slug}', [PostController::class, 'destroy'])->name('posts.destroy');
+});
+
+// Public post routes (must be after authenticated routes to avoid conflicts)
+Route::prefix('posts')->group(function () {
+    Route::get('/{post:slug}', [PostController::class, 'show'])->name('posts.show');
 });
 
 // Category management endpoints (authenticated + verified)

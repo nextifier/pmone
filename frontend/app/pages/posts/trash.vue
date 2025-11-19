@@ -1,42 +1,18 @@
 <template>
-  <div class="mx-auto max-w-4xl space-y-6 pt-4 pb-16">
-    <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
-      <div class="flex shrink-0 items-center gap-x-2.5">
-        <Icon name="hugeicons:unlink-02" class="size-5 sm:size-6" />
-        <h1 class="page-title">Short Links</h1>
+  <div class="mx-auto max-w-6xl space-y-6 pt-4 pb-16">
+    <div class="flex items-center justify-between gap-x-2.5">
+      <div class="flex items-center gap-x-2.5">
+        <Icon name="hugeicons:delete-01" class="size-5 sm:size-6" />
+        <h1 class="page-title">Posts Trash</h1>
       </div>
 
-      <div class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
-        <ImportDialog @imported="refresh">
-          <template #trigger="{ open }">
-            <button
-              @click="open()"
-              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-            >
-              <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
-              <span>Import</span>
-            </button>
-          </template>
-        </ImportDialog>
-
-        <button
-          @click="handleExport"
-          :disabled="exportPending"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Spinner v-if="exportPending" class="size-4 shrink-0" />
-          <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
-          <span>Export {{ columnFilters?.length ? "selected" : "all" }}</span>
-        </button>
-
-        <nuxt-link
-          to="/short-links/trash"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
-          <span>Trash</span>
-        </nuxt-link>
-      </div>
+      <nuxt-link
+        to="/posts"
+        class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+      >
+        <Icon name="hugeicons:task-edit-01" class="size-4 shrink-0" />
+        <span>All Posts</span>
+      </nuxt-link>
     </div>
 
     <TableData
@@ -47,11 +23,11 @@
       :meta="meta"
       :pending="pending"
       :error="error"
-      model="short-links"
-      label="Short Link"
-      search-column="slug"
-      search-placeholder="Search slug or destination URL"
-      error-title="Error loading short links"
+      model="posts-trash"
+      search-column="title"
+      :show-add-button="false"
+      search-placeholder="Search posts..."
+      error-title="Error loading trashed posts"
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
@@ -61,7 +37,6 @@
       @refresh="refresh"
     >
       <template #filters="{ table }">
-        <!-- Filter Popover -->
         <Popover>
           <PopoverTrigger asChild>
             <button
@@ -82,11 +57,13 @@
               <FilterSection
                 title="Status"
                 :options="[
-                  { label: 'Active', value: 'active' },
-                  { label: 'Inactive', value: 'inactive' },
+                  { label: 'Draft', value: 'draft' },
+                  { label: 'Published', value: 'published' },
+                  { label: 'Scheduled', value: 'scheduled' },
+                  { label: 'Archived', value: 'archived' },
                 ]"
                 :selected="selectedStatuses"
-                @change="handleFilterChange('is_active', $event)"
+                @change="handleFilterChange('status', $event)"
               />
             </div>
           </PopoverContent>
@@ -94,6 +71,53 @@
       </template>
 
       <template #actions="{ selectedRows }">
+        <DialogResponsive
+          v-if="selectedRows.length > 0"
+          v-model:open="restoreDialogOpen"
+          class="h-full"
+        >
+          <template #trigger="{ open }">
+            <button
+              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
+              @click="open()"
+            >
+              <Icon name="hugeicons:undo-02" class="size-4 shrink-0" />
+              <span class="text-sm tracking-tight">Restore</span>
+              <span
+                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
+              >
+                {{ selectedRows.length }}
+              </span>
+            </button>
+          </template>
+          <template #default>
+            <div class="px-4 pb-10 md:px-6 md:py-5">
+              <div class="text-primary text-lg font-semibold tracking-tight">Restore posts?</div>
+              <p class="text-body mt-1.5 text-sm tracking-tight">
+                This will restore {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "post" : "posts" }}.
+              </p>
+              <div class="mt-3 flex justify-end gap-2">
+                <button
+                  class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  @click="restoreDialogOpen = false"
+                  :disabled="restorePending"
+                >
+                  Cancel
+                </button>
+                <button
+                  @click="handleRestoreRows(selectedRows)"
+                  :disabled="restorePending"
+                  class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Spinner v-if="restorePending" class="size-4 text-white" />
+                  <span v-else>Restore</span>
+                </button>
+              </div>
+            </div>
+          </template>
+        </DialogResponsive>
+
         <DialogResponsive
           v-if="selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
@@ -104,8 +128,8 @@
               class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
               @click="open()"
             >
-              <Icon name="lucide:trash" class="size-4 shrink-0" />
-              <span class="text-sm tracking-tight">Delete</span>
+              <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
+              <span class="text-sm tracking-tight">Delete Permanently</span>
               <span
                 class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
               >
@@ -115,10 +139,13 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+              <div class="text-primary text-lg font-semibold tracking-tight">
+                Are you absolutely sure?
+              </div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This action can't be undone. This will permanently delete
-                {{ selectedRows.length }} selected {{ selectedRows.length === 1 ? "row" : "rows" }}.
+                {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "post" : "posts" }}.
               </p>
               <div class="mt-3 flex justify-end gap-2">
                 <button
@@ -134,7 +161,7 @@
                   class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Spinner v-if="deletePending" class="size-4 text-white" />
-                  <span v-else>Delete</span>
+                  <span v-else>Delete Permanently</span>
                 </button>
               </div>
             </div>
@@ -147,13 +174,11 @@
 
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
-import ImportDialog from "@/components/short-link/ImportDialog.vue";
-import ShortLinkTableItem from "@/components/short-link/ShortLinkTableItem.vue";
+import PostTableItem from "@/components/post/TableItem.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Switch } from "@/components/ui/switch";
 import { PopoverClose } from "reka-ui";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
@@ -164,35 +189,28 @@ definePageMeta({
 });
 
 defineOptions({
-  name: "short-links",
+  name: "posts-trash",
 });
 
-const title = "Short Links";
-const description = "Shorten your long URLs.";
-
-usePageMeta("", {
-  title: title,
-  description: description,
+usePageMeta(null, {
+  title: "Posts Trash",
 });
 
-const { user } = useSanctumAuth();
 const { $dayjs } = useNuxtApp();
-
-// Export state
-const exportPending = ref(false);
+const { formatDate } = useFormatters();
 
 // Table state
 const columnFilters = ref([]);
-const pagination = ref({ pageIndex: 0, pageSize: 10 });
-const sorting = ref([{ id: "created_at", desc: true }]);
+const pagination = ref({ pageIndex: 0, pageSize: 15 });
+const sorting = ref([{ id: "deleted_at", desc: true }]);
 
 // Data state
 const data = ref([]);
-const meta = ref({ current_page: 1, last_page: 1, per_page: 10, total: 0 });
+const meta = ref({ current_page: 1, last_page: 1, per_page: 15, total: 0 });
 const pending = ref(false);
 const error = ref(null);
 
-// Client-only mode flag (true = client-side pagination, false = server-side)
+// Client-only mode flag
 const clientOnly = ref(true);
 
 // Build query params
@@ -202,14 +220,12 @@ const buildQueryParams = () => {
   if (clientOnly.value) {
     params.append("client_only", "true");
   } else {
-    // Server-side mode: add pagination, filters, and sorting
     params.append("page", pagination.value.pageIndex + 1);
     params.append("per_page", pagination.value.pageSize);
 
-    // Filters
     const filters = {
-      slug: "filter.search",
-      is_active: "filter.status",
+      title: "filter_search",
+      status: "filter_status",
     };
 
     Object.entries(filters).forEach(([columnId, paramKey]) => {
@@ -220,8 +236,7 @@ const buildQueryParams = () => {
       }
     });
 
-    // Sorting
-    const sortField = sorting.value[0]?.id || "created_at";
+    const sortField = sorting.value[0]?.id || "deleted_at";
     const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
     params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
   }
@@ -229,77 +244,40 @@ const buildQueryParams = () => {
   return params.toString();
 };
 
-// Fetch short links
-const fetchShortLinks = async () => {
+// Fetch trashed posts
+const fetchPosts = async () => {
   try {
     pending.value = true;
     error.value = null;
     const client = useSanctumClient();
-    const response = await client(`/api/short-links?${buildQueryParams()}`);
+    const response = await client(`/api/posts/trash?${buildQueryParams()}`);
     data.value = response.data;
     meta.value = response.meta;
   } catch (err) {
     error.value = err;
-    console.error("Failed to fetch short links:", err);
+    console.error("Failed to fetch trashed posts:", err);
   } finally {
     pending.value = false;
   }
 };
 
-await fetchShortLinks();
+await fetchPosts();
 
-// Watchers for server-side mode only
-const debouncedFetch = useDebounceFn(fetchShortLinks, 300);
+// Watchers
+const debouncedFetch = useDebounceFn(fetchPosts, 300);
 
 watch(
   [columnFilters, sorting, pagination],
   () => {
     if (!clientOnly.value) {
-      const hasSlugFilter = columnFilters.value.some((f) => f.id === "slug");
-      hasSlugFilter ? debouncedFetch() : fetchShortLinks();
+      const hasTitleFilter = columnFilters.value.some((f) => f.id === "title");
+      hasTitleFilter ? debouncedFetch() : fetchPosts();
     }
   },
   { deep: true }
 );
 
-const refresh = fetchShortLinks;
-
-// Toggle status handler
-const handleToggleStatus = async (shortLink) => {
-  const newStatus = !shortLink.is_active;
-  const originalStatus = shortLink.is_active;
-
-  // Optimistic update
-  shortLink.is_active = newStatus;
-
-  try {
-    const client = useSanctumClient();
-    const response = await client(`/api/short-links/${shortLink.slug}`, {
-      method: "PUT",
-      body: {
-        is_active: newStatus,
-      },
-    });
-
-    // Update with server response to ensure consistency
-    if (response.data) {
-      const updatedLink = data.value.find((link) => link.id === shortLink.id);
-      if (updatedLink) {
-        updatedLink.is_active = response.data.is_active;
-      }
-    }
-
-    toast.success(`Short link ${newStatus ? "activated" : "deactivated"} successfully`);
-  } catch (error) {
-    // Revert on error
-    shortLink.is_active = originalStatus;
-
-    console.error("Failed to update short link status:", error);
-    toast.error("Failed to update status", {
-      description: error?.data?.message || error?.message || "An error occurred",
-    });
-  }
-};
+const refresh = fetchPosts;
 
 // Table columns
 const columns = [
@@ -324,82 +302,69 @@ const columns = [
     enableHiding: false,
   },
   {
-    header: "Link",
-    accessorKey: "slug",
+    header: "Post",
+    accessorKey: "title",
     cell: ({ row }) =>
-      h(ShortLinkTableItem, {
-        link: row.original,
+      h(PostTableItem, {
+        post: row.original,
       }),
-    size: 300,
+    size: 360,
     enableHiding: false,
     filterFn: (row, columnId, filterValue) => {
       const searchValue = filterValue.toLowerCase();
-      const slug = row.original.slug?.toLowerCase() || "";
-      const url = row.original.destination_url?.toLowerCase() || "";
-      return slug.includes(searchValue) || url.includes(searchValue);
+      const title = row.original.title?.toLowerCase() || "";
+      const excerpt = row.original.excerpt?.toLowerCase() || "";
+      return title.includes(searchValue) || excerpt.includes(searchValue);
     },
-  },
-  {
-    header: "Clicks",
-    accessorKey: "clicks_count",
-    cell: ({ row }) => {
-      const count = row.getValue("clicks_count") || 0;
-      return h("div", { class: "text-sm tracking-tight" }, count.toLocaleString());
-    },
-    size: 80,
-    enableSorting: true,
   },
   {
     header: "Status",
-    accessorKey: "is_active",
+    accessorKey: "status",
     cell: ({ row }) => {
-      const shortLink = row.original;
-      return h("div", { class: "flex items-center gap-x-2" }, [
-        h(Switch, {
-          modelValue: shortLink.is_active,
-          "onUpdate:modelValue": () => handleToggleStatus(shortLink),
-        }),
-      ]);
+      const status = row.getValue("status");
+      return h(
+        "span",
+        {
+          class: "inline-flex items-center text-sm text-muted-foreground tracking-tight capitalize",
+        },
+        status
+      );
     },
-    size: 80,
+    size: 100,
     filterFn: (row, columnId, filterValue) => {
       if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
-      const isActive = row.getValue(columnId);
-      return filterValue.some((value) => {
-        if (value === "active") return isActive;
-        if (value === "inactive") return !isActive;
-        return false;
-      });
+      return filterValue.includes(row.getValue(columnId));
     },
   },
   {
-    header: "Created",
-    accessorKey: "created_at",
+    header: "Deleted By",
+    accessorKey: "deleter",
     cell: ({ row }) => {
-      const date = row.getValue("created_at");
+      const deleter = row.getValue("deleter");
+      if (!deleter) {
+        return h("span", { class: "text-muted-foreground text-sm" }, "-");
+      }
+      return h(resolveComponent("UserProfile"), { user: deleter });
+    },
+    size: 150,
+    enableSorting: false,
+  },
+  {
+    header: "Deleted At",
+    accessorKey: "deleted_at",
+    cell: ({ row }) => {
+      const date = row.getValue("deleted_at");
       return withDirectives(
         h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $dayjs(date).fromNow()),
-        [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
+        [[resolveDirective("tippy"), formatDate(date)]]
       );
     },
     size: 100,
   },
   {
-    header: "Created By",
-    accessorKey: "user.name",
-    cell: ({ row }) => {
-      const user = row.original.user;
-      if (!user) {
-        return h("div", { class: "text-sm text-muted-foreground tracking-tight" }, "-");
-      }
-      return h("div", { class: "text-sm tracking-tight overflow-hidden" }, user.name);
-    },
-    size: 120,
-  },
-  {
     id: "actions",
     header: () => h("span", { class: "sr-only" }, "Actions"),
-    cell: ({ row }) => h(RowActions, { shortLink: row.original }),
+    cell: ({ row }) => h(RowActions, { postId: row.original.id }),
     size: 60,
     enableHiding: false,
   },
@@ -408,7 +373,7 @@ const columns = [
 // Table ref
 const tableRef = ref();
 
-// Filter helpers - handle both client and server mode
+// Filter helpers
 const getFilterValue = (columnId) => {
   if (clientOnly.value && tableRef.value?.table) {
     return tableRef.value.table.getColumn(columnId)?.getFilterValue() ?? [];
@@ -416,12 +381,11 @@ const getFilterValue = (columnId) => {
   return columnFilters.value.find((f) => f.id === columnId)?.value ?? [];
 };
 
-const selectedStatuses = computed(() => getFilterValue("is_active"));
+const selectedStatuses = computed(() => getFilterValue("status"));
 const totalActiveFilters = computed(() => selectedStatuses.value.length);
 
 const handleFilterChange = (columnId, { checked, value }) => {
   if (clientOnly.value && tableRef.value?.table) {
-    // Client-side mode: use table instance
     const column = tableRef.value.table.getColumn(columnId);
     if (!column) return;
 
@@ -429,10 +393,8 @@ const handleFilterChange = (columnId, { checked, value }) => {
     const updated = checked ? [...current, value] : current.filter((item) => item !== value);
 
     column.setFilterValue(updated.length > 0 ? updated : undefined);
-    // Reset to first page when filter changes
     tableRef.value.table.setPageIndex(0);
   } else {
-    // Server-side mode: update columnFilters ref
     const current = getFilterValue(columnId);
     const updated = checked ? [...current, value] : current.filter((item) => item !== value);
 
@@ -448,39 +410,85 @@ const handleFilterChange = (columnId, { checked, value }) => {
         columnFilters.value.splice(existingIndex, 1);
       }
     }
-    // Reset to first page when filter changes (server-side)
     pagination.value.pageIndex = 0;
+  }
+};
+
+// Restore handlers
+const restoreDialogOpen = ref(false);
+const restorePending = ref(false);
+
+const handleRestoreRows = async (selectedRows) => {
+  const postIds = selectedRows.map((row) => row.original.id);
+  try {
+    restorePending.value = true;
+    const client = useSanctumClient();
+    await client("/api/posts/trash/restore/bulk", {
+      method: "POST",
+      body: { ids: postIds },
+    });
+    await refresh();
+    restoreDialogOpen.value = false;
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
+    }
+    toast.success(`${postIds.length} post(s) restored successfully`);
+  } catch (error) {
+    console.error("Failed to restore posts:", error);
+    toast.error("Failed to restore posts", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    restorePending.value = false;
+  }
+};
+
+const handleRestoreSingleRow = async (postId) => {
+  try {
+    restorePending.value = true;
+    const client = useSanctumClient();
+    await client(`/api/posts/trash/${postId}/restore`, {
+      method: "POST",
+    });
+    await refresh();
+
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
+    }
+
+    toast.success("Post restored successfully");
+  } catch (error) {
+    console.error("Failed to restore post:", error);
+    toast.error("Failed to restore post", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    restorePending.value = false;
   }
 };
 
 // Delete handlers
 const deleteDialogOpen = ref(false);
 const deletePending = ref(false);
+
 const handleDeleteRows = async (selectedRows) => {
-  const shortLinkIds = selectedRows.map((row) => row.original.id);
+  const postIds = selectedRows.map((row) => row.original.id);
   try {
     deletePending.value = true;
     const client = useSanctumClient();
-    const response = await client("/api/short-links/bulk", {
+    await client("/api/posts/trash/bulk", {
       method: "DELETE",
-      body: { ids: shortLinkIds },
+      body: { ids: postIds },
     });
     await refresh();
     deleteDialogOpen.value = false;
     if (tableRef.value) {
       tableRef.value.resetRowSelection();
     }
-
-    // Show success toast
-    toast.success(response.message || "Short links deleted", {
-      description:
-        response.errors?.length > 0
-          ? `${response.deleted_count} deleted, ${response.errors.length} failed`
-          : `${response.deleted_count} short link(s) deleted`,
-    });
+    toast.success(`${postIds.length} post(s) permanently deleted`);
   } catch (error) {
-    console.error("Failed to delete short links:", error);
-    toast.error("Failed to delete short links", {
+    console.error("Failed to permanently delete posts:", error);
+    toast.error("Failed to permanently delete posts", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
   } finally {
@@ -488,93 +496,37 @@ const handleDeleteRows = async (selectedRows) => {
   }
 };
 
-const handleDeleteSingleRow = async (slug) => {
+const handleDeleteSingleRow = async (postId) => {
   try {
     deletePending.value = true;
     const client = useSanctumClient();
-    const response = await client(`/api/short-links/${slug}`, { method: "DELETE" });
+    await client(`/api/posts/trash/${postId}`, { method: "DELETE" });
     await refresh();
 
-    // Reset row selection after delete
     if (tableRef.value) {
       tableRef.value.resetRowSelection();
     }
 
-    // Show success toast
-    toast.success(response.message || "Short link deleted successfully");
+    toast.success("Post permanently deleted");
   } catch (error) {
-    console.error("Failed to delete short link:", error);
-    toast.error("Failed to delete short link", {
+    console.error("Failed to permanently delete post:", error);
+    toast.error("Failed to permanently delete post", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
   } finally {
     deletePending.value = false;
-  }
-};
-
-// Export handler
-const handleExport = async () => {
-  try {
-    exportPending.value = true;
-
-    // Build query params
-    const params = new URLSearchParams();
-
-    // Add filters
-    const searchFilter = columnFilters.value.find((f) => f.id === "slug");
-    if (searchFilter?.value) {
-      params.append("filter_search", searchFilter.value);
-    }
-
-    const statusFilter = columnFilters.value.find((f) => f.id === "is_active");
-    if (statusFilter?.value) {
-      const statuses = statusFilter.value.map((val) => (val ? "active" : "inactive"));
-      params.append("filter_status", statuses.join(","));
-    }
-
-    // Add sorting
-    const sortField = sorting.value[0]?.id || "created_at";
-    const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
-    params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
-
-    const client = useSanctumClient();
-
-    // Fetch the file as blob
-    const response = await client(`/api/short-links/export?${params.toString()}`, {
-      responseType: "blob",
-    });
-
-    // Create a download link and trigger download
-    const blob = new Blob([response], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `short_links_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.xlsx`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-
-    toast.success("Short links exported");
-  } catch (error) {
-    console.error("Failed to export short links:", error);
-    toast.error("Failed to export short links", {
-      description: error?.data?.message || error?.message || "An error occurred",
-    });
-  } finally {
-    exportPending.value = false;
   }
 };
 
 // Row Actions Component
 const RowActions = defineComponent({
   props: {
-    shortLink: { type: Object, required: true },
+    postId: { type: Number, required: true },
   },
   setup(props) {
-    const dialogOpen = ref(false);
+    const restoreDialogOpen = ref(false);
+    const deleteDialogOpen = ref(false);
+    const singleRestorePending = ref(false);
     const singleDeletePending = ref(false);
     return () =>
       h("div", { class: "flex justify-end" }, [
@@ -610,50 +562,22 @@ const RowActions = defineComponent({
                         {
                           default: () =>
                             h(
-                              resolveComponent("NuxtLink"),
+                              "button",
                               {
-                                to: `/short-links/${props.shortLink.slug}/edit`,
                                 class:
                                   "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                onClick: () => (restoreDialogOpen.value = true),
                               },
-                              {
-                                default: () => [
-                                  h(resolveComponent("Icon"), {
-                                    name: "lucide:pencil-line",
-                                    class: "size-4 shrink-0",
-                                  }),
-                                  h("span", {}, "Edit"),
-                                ],
-                              }
+                              [
+                                h(resolveComponent("Icon"), {
+                                  name: "lucide:undo-2",
+                                  class: "size-4 shrink-0",
+                                }),
+                                h("span", {}, "Restore"),
+                              ]
                             ),
                         }
                       ),
-
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
-                            h(
-                              resolveComponent("NuxtLink"),
-                              {
-                                to: `/short-links/${props.shortLink.slug}/analytics`,
-                                class:
-                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                              },
-                              {
-                                default: () => [
-                                  h(resolveComponent("Icon"), {
-                                    name: "lucide:chart-no-axes-combined",
-                                    class: "size-4 shrink-0",
-                                  }),
-                                  h("span", {}, "Analytics"),
-                                ],
-                              }
-                            ),
-                        }
-                      ),
-
                       h(
                         PopoverClose,
                         { asChild: true },
@@ -664,7 +588,7 @@ const RowActions = defineComponent({
                               {
                                 class:
                                   "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                onClick: () => (dialogOpen.value = true),
+                                onClick: () => (deleteDialogOpen.value = true),
                               },
                               [
                                 h(resolveComponent("Icon"), {
@@ -685,8 +609,8 @@ const RowActions = defineComponent({
         h(
           DialogResponsive,
           {
-            open: dialogOpen.value,
-            "onUpdate:open": (value) => (dialogOpen.value = value),
+            open: restoreDialogOpen.value,
+            "onUpdate:open": (value) => (restoreDialogOpen.value = value),
           },
           {
             default: () =>
@@ -694,12 +618,12 @@ const RowActions = defineComponent({
                 h(
                   "div",
                   { class: "text-primary text-lg font-semibold tracking-tight" },
-                  "Are you sure?"
+                  "Restore post?"
                 ),
                 h(
                   "p",
                   { class: "text-body mt-1.5 text-sm tracking-tight" },
-                  "This action can't be undone. This will permanently delete this short link."
+                  "This will restore this post."
                 ),
                 h("div", { class: "mt-3 flex justify-end gap-2" }, [
                   h(
@@ -707,7 +631,61 @@ const RowActions = defineComponent({
                     {
                       class:
                         "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
-                      onClick: () => (dialogOpen.value = false),
+                      onClick: () => (restoreDialogOpen.value = false),
+                      disabled: singleRestorePending.value,
+                    },
+                    "Cancel"
+                  ),
+                  h(
+                    "button",
+                    {
+                      class:
+                        "bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50",
+                      disabled: singleRestorePending.value,
+                      onClick: async () => {
+                        singleRestorePending.value = true;
+                        try {
+                          await handleRestoreSingleRow(props.postId);
+                          restoreDialogOpen.value = false;
+                        } finally {
+                          singleRestorePending.value = false;
+                        }
+                      },
+                    },
+                    singleRestorePending.value
+                      ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
+                      : "Restore"
+                  ),
+                ]),
+              ]),
+          }
+        ),
+        h(
+          DialogResponsive,
+          {
+            open: deleteDialogOpen.value,
+            "onUpdate:open": (value) => (deleteDialogOpen.value = value),
+          },
+          {
+            default: () =>
+              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
+                h(
+                  "div",
+                  { class: "text-primary text-lg font-semibold tracking-tight" },
+                  "Are you absolutely sure?"
+                ),
+                h(
+                  "p",
+                  { class: "text-body mt-1.5 text-sm tracking-tight" },
+                  "This action can't be undone. This will permanently delete this post."
+                ),
+                h("div", { class: "mt-3 flex justify-end gap-2" }, [
+                  h(
+                    "button",
+                    {
+                      class:
+                        "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                      onClick: () => (deleteDialogOpen.value = false),
                       disabled: singleDeletePending.value,
                     },
                     "Cancel"
@@ -721,8 +699,8 @@ const RowActions = defineComponent({
                       onClick: async () => {
                         singleDeletePending.value = true;
                         try {
-                          await handleDeleteSingleRow(props.shortLink.slug);
-                          dialogOpen.value = false;
+                          await handleDeleteSingleRow(props.postId);
+                          deleteDialogOpen.value = false;
                         } finally {
                           singleDeletePending.value = false;
                         }
@@ -730,7 +708,7 @@ const RowActions = defineComponent({
                     },
                     singleDeletePending.value
                       ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
-                      : "Delete"
+                      : "Delete Permanently"
                   ),
                 ]),
               ]),
