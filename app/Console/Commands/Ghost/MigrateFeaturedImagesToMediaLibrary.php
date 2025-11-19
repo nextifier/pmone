@@ -127,6 +127,10 @@ class MigrateFeaturedImagesToMediaLibrary extends Command
         // Check if already has featured image
         if ($post->hasMedia('featured_image')) {
             $this->skipped++;
+            Log::info('Post already has featured image, skipping', [
+                'post_id' => $post->id,
+                'slug' => $post->slug,
+            ]);
 
             return;
         }
@@ -135,6 +139,10 @@ class MigrateFeaturedImagesToMediaLibrary extends Command
 
         if (empty($featureImage)) {
             $this->skipped++;
+            Log::info('Post has no feature_image in Ghost data, skipping', [
+                'post_id' => $post->id,
+                'slug' => $post->slug,
+            ]);
 
             return;
         }
