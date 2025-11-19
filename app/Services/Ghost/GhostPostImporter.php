@@ -24,17 +24,7 @@ class GhostPostImporter
         protected bool $dryRun = false,
         protected ?int $limit = null
     ) {
-        // Use correct path for deployment environments
-        $basePath = base_path();
-
-        // Check if we're in a Forge deployment structure
-        if (str_contains($basePath, '/releases/')) {
-            // Use shared storage path
-            $this->ghostImagesPath = str_replace('/releases/', '/shared/', $basePath).'/storage/app/post-migration/ghost/images';
-        } else {
-            // Normal path for local/non-Forge environments
-            $this->ghostImagesPath = storage_path('app/post-migration/ghost/images');
-        }
+        $this->ghostImagesPath = storage_path('app/post-migration/ghost/images');
     }
 
     public function import(): array

@@ -6,7 +6,6 @@ use App\Models\Post;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class MigrateContentImagesToMediaLibrary extends Command
 {
@@ -28,17 +27,7 @@ class MigrateContentImagesToMediaLibrary extends Command
     {
         $this->info('Starting Canvas content images migration...');
 
-        // Use correct path for deployment environments
-        $basePath = base_path();
-
-        // Check if we're in a Forge deployment structure
-        if (str_contains($basePath, '/releases/')) {
-            // Use shared storage path
-            $this->canvasImagesPath = str_replace('/releases/', '/shared/', $basePath).'/storage/app/post-migration/canvas/images';
-        } else {
-            // Normal path for local/non-Forge environments
-            $this->canvasImagesPath = storage_path('app/post-migration/canvas/images');
-        }
+        $this->canvasImagesPath = storage_path('app/post-migration/canvas/images');
 
         if (! File::exists($this->canvasImagesPath)) {
             $this->error("Canvas images directory not found: {$this->canvasImagesPath}");
@@ -131,11 +120,13 @@ class MigrateContentImagesToMediaLibrary extends Command
                     'post_id' => $post->id,
                     'filename' => $filename,
                 ]);
+
                 continue;
             }
 
             if ($dryRun) {
                 $this->imagesAdded++;
+
                 continue;
             }
 
