@@ -319,13 +319,13 @@ const columns = [
       }
       return withDirectives(
         h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $dayjs(date).fromNow()),
-        [[resolveDirective("tippy"), formatDate(date)]]
+        [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
       );
     },
     size: 100,
   },
   {
-    header: "Created by",
+    header: "Author",
     accessorKey: "creator",
     cell: ({ row }) => {
       const creator = row.getValue("creator");

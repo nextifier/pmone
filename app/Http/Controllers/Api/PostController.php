@@ -141,6 +141,9 @@ class PostController extends Controller
         try {
             $data = $request->validated();
 
+            // Remove slug from data - let eloquent-sluggable handle it
+            unset($data['slug']);
+
             // Create post
             $post = Post::create($data);
 
@@ -191,6 +194,9 @@ class PostController extends Controller
 
         try {
             $data = $request->validated();
+
+            // Remove slug from data - let eloquent-sluggable handle it
+            unset($data['slug']);
 
             // Store old content before update for cleanup comparison
             $oldContent = $post->content;

@@ -149,6 +149,8 @@ class Post extends Model implements HasMedia
         return [
             'slug' => [
                 'source' => 'title',
+                'unique' => true,
+                'onUpdate' => true,
             ],
         ];
     }
@@ -181,6 +183,11 @@ class Post extends Model implements HasMedia
                 $model->meta_description = Str::limit($model->excerpt, 160);
             }
 
+            // Auto-set published_at when status is published
+            if ($model->status === 'published' && empty($model->published_at)) {
+                $model->published_at = now();
+            }
+
             // Only set created_by if not already set (for imports)
             if (empty($model->created_by) && auth()->check()) {
                 $model->created_by = auth()->id();
@@ -191,6 +198,11 @@ class Post extends Model implements HasMedia
             // Recalculate reading time if content changed
             if ($model->isDirty('content')) {
                 $model->reading_time = $model->calculateReadingTime($model->content);
+            }
+
+            // Auto-set published_at when status changes to published
+            if ($model->isDirty('status') && $model->status === 'published' && empty($model->published_at)) {
+                $model->published_at = now();
             }
 
             if (auth()->check()) {
