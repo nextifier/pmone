@@ -29,13 +29,26 @@ class MigrateFeaturedImagesToMediaLibrary extends Command
     {
         $this->info('Starting Ghost featured images migration...');
 
-        $this->ghostImagesPath = storage_path('app/post-migration/ghost/images');
+        // Use base_path to get correct path in deployment environments
+        $basePath = base_path();
+
+        // Check if we're in a Forge deployment structure
+        if (str_contains($basePath, '/releases/')) {
+            // Use shared storage path
+            $this->ghostImagesPath = str_replace('/releases/', '/shared/', $basePath).'/storage/app/post-migration/ghost/images';
+        } else {
+            // Normal path for local/non-Forge environments
+            $this->ghostImagesPath = storage_path('app/post-migration/ghost/images');
+        }
 
         if (! File::exists($this->ghostImagesPath)) {
             $this->error("Ghost images directory not found: {$this->ghostImagesPath}");
+            $this->info("Tried path: {$this->ghostImagesPath}");
 
             return self::FAILURE;
         }
+
+        $this->info("Using images path: {$this->ghostImagesPath}");
 
         $limit = $this->option('limit') ? (int) $this->option('limit') : null;
         $dryRun = $this->option('dry-run');

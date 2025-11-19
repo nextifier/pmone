@@ -26,7 +26,17 @@ class CanvasPostImporter
         protected bool $dryRun = false,
         protected ?int $limit = null
     ) {
-        $this->canvasImagesPath = storage_path('app/post-migration/canvas/images');
+        // Use correct path for deployment environments
+        $basePath = base_path();
+
+        // Check if we're in a Forge deployment structure
+        if (str_contains($basePath, '/releases/')) {
+            // Use shared storage path
+            $this->canvasImagesPath = str_replace('/releases/', '/shared/', $basePath).'/storage/app/post-migration/canvas/images';
+        } else {
+            // Normal path for local/non-Forge environments
+            $this->canvasImagesPath = storage_path('app/post-migration/canvas/images');
+        }
 
         // Get Balboa Estate user
         $this->balboaUser = User::where('email', 'hello@balboaestate.id')->firstOrFail();
