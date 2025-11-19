@@ -15,6 +15,9 @@ export function useAnalyticsData(initialPeriod: string | number = 30) {
   // Auto-refresh management
   let autoRefreshTimeout: NodeJS.Timeout | null = null;
 
+  // AbortController for cancelling requests
+  let abortController: AbortController | null = null;
+
   // Get aggregate data from store
   const aggregateData = computed(() => {
     return analyticsStore.getAggregate(String(selectedPeriod.value));
@@ -69,6 +72,14 @@ export function useAnalyticsData(initialPeriod: string | number = 30) {
       return analyticsStore.getAggregate(period);
     }
 
+    // Abort any pending request
+    if (abortController) {
+      abortController.abort();
+    }
+
+    // Create new AbortController for this request
+    abortController = new AbortController();
+
     // Clear any existing auto-refresh
     if (autoRefreshTimeout) {
       clearTimeout(autoRefreshTimeout);
@@ -85,6 +96,7 @@ export function useAnalyticsData(initialPeriod: string | number = 30) {
       const params = getPeriodParams(selectedPeriod.value);
       const response = await client(`/api/google-analytics/aggregate`, {
         params,
+        signal: abortController.signal,
       });
 
       // Handle response - client might return { data } or just the data directly
@@ -115,6 +127,12 @@ export function useAnalyticsData(initialPeriod: string | number = 30) {
 
       return data;
     } catch (err: any) {
+      // Ignore abort errors - this is expected when navigating away
+      if (err.name === 'AbortError') {
+        // Silent return - don't log or throw for aborted requests
+        return null;
+      }
+
       console.error("Error fetching analytics:", err);
 
       // Handle rate limit errors specifically
@@ -161,9 +179,20 @@ export function useAnalyticsData(initialPeriod: string | number = 30) {
     }
   }
 
+  /**
+   * Cancel any pending requests.
+   */
+  function cancelPendingRequests() {
+    if (abortController) {
+      abortController.abort();
+      abortController = null;
+    }
+  }
+
   // Cleanup on unmount
   onUnmounted(() => {
     stopAutoRefresh();
+    cancelPendingRequests();
   });
 
   return {
@@ -184,5 +213,6 @@ export function useAnalyticsData(initialPeriod: string | number = 30) {
     changeDateRange,
     refreshData,
     stopAutoRefresh,
+    cancelPendingRequests,
   };
 }

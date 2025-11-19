@@ -14,6 +14,9 @@ export function useAnalyticsSyncHistory(hoursFilter: Ref<number> = ref(24)) {
   // Auto-refresh management
   let refreshTimeout: NodeJS.Timeout | null = null;
 
+  // AbortController for cancelling requests
+  let abortController: AbortController | null = null;
+
   /**
    * Fetch sync history logs and stats.
    */
@@ -27,6 +30,14 @@ export function useAnalyticsSyncHistory(hoursFilter: Ref<number> = ref(24)) {
       refreshTimeout = null;
     }
 
+    // Abort any pending request
+    if (abortController) {
+      abortController.abort();
+    }
+
+    // Create new AbortController for this request
+    abortController = new AbortController();
+
     try {
       // Fetch logs and stats in parallel
       const [logsResponse, statsResponse] = await Promise.all([
@@ -35,11 +46,13 @@ export function useAnalyticsSyncHistory(hoursFilter: Ref<number> = ref(24)) {
             hours: hoursFilter.value,
             limit: 50,
           },
+          signal: abortController.signal,
         }),
         client(`/api/google-analytics/sync-logs/stats`, {
           params: {
             hours: hoursFilter.value,
           },
+          signal: abortController.signal,
         }),
       ]);
 
@@ -56,6 +69,11 @@ export function useAnalyticsSyncHistory(hoursFilter: Ref<number> = ref(24)) {
         refreshTimeout = setTimeout(() => fetchSyncHistory(), 10000); // 10s
       }
     } catch (err: any) {
+      // Ignore abort errors - this is expected when navigating away
+      if (err.name === 'AbortError') {
+        return;
+      }
+
       error.value = err.data?.message || err.message || "Failed to load sync history";
       console.error("Error fetching sync history:", err);
     } finally {
@@ -87,9 +105,20 @@ export function useAnalyticsSyncHistory(hoursFilter: Ref<number> = ref(24)) {
     }
   }
 
+  /**
+   * Cancel any pending requests.
+   */
+  function cancelPendingRequests() {
+    if (abortController) {
+      abortController.abort();
+      abortController = null;
+    }
+  }
+
   // Cleanup on unmount
   onUnmounted(() => {
     stopAutoRefresh();
+    cancelPendingRequests();
   });
 
   return {
@@ -103,5 +132,6 @@ export function useAnalyticsSyncHistory(hoursFilter: Ref<number> = ref(24)) {
     fetchSyncHistory,
     startAutoRefresh,
     stopAutoRefresh,
+    cancelPendingRequests,
   };
 }

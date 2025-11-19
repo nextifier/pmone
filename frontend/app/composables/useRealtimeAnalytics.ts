@@ -17,6 +17,9 @@ export function useRealtimeAnalytics() {
   // Auto-refresh interval (every 60 seconds to reduce API calls)
   let refreshInterval: NodeJS.Timeout | null = null;
 
+  // AbortController for cancelling requests
+  let abortController: AbortController | null = null;
+
   /**
    * Fetch realtime active users.
    * Backend will return cached data instantly if available,
@@ -25,6 +28,14 @@ export function useRealtimeAnalytics() {
   async function fetchRealtimeUsers(propertyIds?: string[], silent: boolean = false) {
     // Only show loading if not silent refresh and no data yet
     const showLoading = !realtimeData.value && !silent;
+
+    // Abort any pending request
+    if (abortController) {
+      abortController.abort();
+    }
+
+    // Create new AbortController for this request
+    abortController = new AbortController();
 
     try {
       if (showLoading) loading.value = true;
@@ -37,7 +48,9 @@ export function useRealtimeAnalytics() {
         url += `?${queryParams}`;
       }
 
-      const response = await client(url);
+      const response = await client(url, {
+        signal: abortController.signal,
+      });
 
       // Handle response - client might return { data } or just the data directly
       const data = response?.data || response;
@@ -47,6 +60,11 @@ export function useRealtimeAnalytics() {
 
       return data;
     } catch (err: any) {
+      // Ignore abort errors - this is expected when navigating away
+      if (err.name === 'AbortError') {
+        return null;
+      }
+
       console.error('Error fetching realtime analytics:', err);
 
       // Only show error if we don't have fallback data
@@ -92,9 +110,20 @@ export function useRealtimeAnalytics() {
     }
   }
 
+  /**
+   * Cancel any pending requests.
+   */
+  function cancelPendingRequests() {
+    if (abortController) {
+      abortController.abort();
+      abortController = null;
+    }
+  }
+
   // Cleanup on unmount
   onUnmounted(() => {
     stopAutoRefresh();
+    cancelPendingRequests();
   });
 
   return {

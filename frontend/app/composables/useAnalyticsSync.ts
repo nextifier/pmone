@@ -11,10 +11,21 @@ export function useAnalyticsSync() {
   const syncError = ref<string | null>(null);
   const lastSyncResult = ref<any>(null);
 
+  // AbortController for cancelling requests
+  let abortController: AbortController | null = null;
+
   /**
    * Trigger manual sync now.
    */
   async function triggerSync(days: number = 30) {
+    // Abort any pending request
+    if (abortController) {
+      abortController.abort();
+    }
+
+    // Create new AbortController for this request
+    abortController = new AbortController();
+
     syncingNow.value = true;
     syncError.value = null;
 
@@ -22,6 +33,7 @@ export function useAnalyticsSync() {
       const response = await client(`/api/google-analytics/aggregate/sync-now`, {
         method: "POST",
         body: { days },
+        signal: abortController.signal,
       });
 
       // Handle response - client might return { data } or just data directly
@@ -30,6 +42,11 @@ export function useAnalyticsSync() {
       lastSyncResult.value = data;
       return data;
     } catch (err: any) {
+      // Ignore abort errors - this is expected when navigating away
+      if (err.name === 'AbortError') {
+        return null;
+      }
+
       const errorMessage =
         err.data?.message || err.message || "Failed to trigger sync";
       syncError.value = errorMessage;
@@ -53,6 +70,21 @@ export function useAnalyticsSync() {
     syncError.value = null;
   }
 
+  /**
+   * Cancel any pending requests.
+   */
+  function cancelPendingRequests() {
+    if (abortController) {
+      abortController.abort();
+      abortController = null;
+    }
+  }
+
+  // Cleanup on unmount
+  onUnmounted(() => {
+    cancelPendingRequests();
+  });
+
   return {
     // State
     syncingNow: readonly(syncingNow),
@@ -62,5 +94,6 @@ export function useAnalyticsSync() {
     // Actions
     triggerSync,
     resetError,
+    cancelPendingRequests,
   };
 }
