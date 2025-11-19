@@ -294,6 +294,16 @@ const columns = [
     enableSorting: true,
   },
   {
+    header: "Images",
+    accessorKey: "media_count",
+    cell: ({ row }) => {
+      const count = row.getValue("media_count") || 0;
+      return h("div", { class: "text-sm tracking-tight" }, count.toLocaleString());
+    },
+    size: 80,
+    enableSorting: true,
+  },
+  {
     header: "Published",
     accessorKey: "published_at",
     cell: ({ row }) => {

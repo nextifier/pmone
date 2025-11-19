@@ -28,6 +28,7 @@ class PostResource extends JsonResource
                 'featured' => $this->featured,
                 'reading_time' => $this->reading_time,
                 'visits_count' => $this->visits_count ?? $this->visits()->count(),
+                'media_count' => $this->media_count ?? $this->media()->count(),
                 'featured_image' => $this->hasMedia('featured_image')
                     ? $this->getMediaUrls('featured_image')
                     : $this->featured_image,

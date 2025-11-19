@@ -21,7 +21,7 @@ class PostController extends Controller
 
         $query = Post::query()
             ->with(['creator', 'authors', 'tags'])
-            ->withCount('visits');
+            ->withCount(['visits', 'media']);
 
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
