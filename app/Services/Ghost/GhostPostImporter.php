@@ -6,7 +6,6 @@ use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Tags\Tag;
 
@@ -20,20 +19,12 @@ class GhostPostImporter
 
     protected string $ghostImagesPath;
 
-    protected string $pmoneImagesPath;
-
     public function __construct(
         protected GhostImporter $importer,
         protected bool $dryRun = false,
         protected ?int $limit = null
     ) {
-        $this->ghostImagesPath = storage_path('app/temp/images');
-        $this->pmoneImagesPath = storage_path('app/public/posts/images');
-
-        // Ensure destination directory exists
-        if (! File::exists($this->pmoneImagesPath)) {
-            File::makeDirectory($this->pmoneImagesPath, 0755, true);
-        }
+        $this->ghostImagesPath = storage_path('app/post-migration/ghost/images');
     }
 
     public function import(): array
@@ -110,9 +101,6 @@ class GhostPostImporter
         // Process content
         $content = $this->processContent($ghostPost);
 
-        // Process featured image
-        $featuredImage = $this->processFeaturedImage($ghostPost);
-
         // Map status
         $status = $this->mapStatus($ghostPost['status']);
 
@@ -126,10 +114,8 @@ class GhostPostImporter
             'excerpt' => $ghostPost['custom_excerpt'], // null if not set
             'content' => $content,
             'content_format' => 'html',
-            'featured_image' => $featuredImage,
             'meta_title' => $ghostPost['meta_title'] ?? $ghostPost['title'],
             'meta_description' => $ghostPost['meta_description'] ?? $ghostPost['custom_excerpt'],
-            'og_image' => $ghostPost['og_image'] ?? null,
             'status' => $status,
             'visibility' => $visibility,
             'published_at' => $ghostPost['published_at'] ? $ghostPost['published_at'] : null,
@@ -138,6 +124,10 @@ class GhostPostImporter
             'created_at' => $ghostPost['created_at'],
             'updated_at' => $ghostPost['updated_at'],
         ]);
+
+        // Process media after post creation
+        $this->processFeaturedImage($post, $ghostPost);
+        $this->processOgImage($post, $ghostPost);
 
         $this->created++;
 
@@ -173,112 +163,109 @@ class GhostPostImporter
 
     protected function processContentImages(string $content): string
     {
-        // Match image tags with Ghost image paths
-        $pattern = '/<img[^>]+src="([^"]+)"[^>]*>/i';
-
-        $content = preg_replace_callback($pattern, function ($matches) {
-            $originalSrc = $matches[1];
-            $fullTag = $matches[0];
-
-            // Skip Unsplash and other external images
-            if (Str::startsWith($originalSrc, ['http://', 'https://'])) {
-                return $fullTag;
-            }
-
-            // Extract the image path (e.g., "2023/04/image.jpg")
-            $imagePath = $originalSrc;
-
-            // Check if image exists in temp folder
-            $sourceFile = $this->ghostImagesPath.'/'.$imagePath;
-
-            if (! File::exists($sourceFile)) {
-                Log::warning('Ghost image not found', ['path' => $sourceFile]);
-
-                return $fullTag;
-            }
-
-            // Create destination path
-            $destinationFile = $this->pmoneImagesPath.'/'.$imagePath;
-            $destinationDir = dirname($destinationFile);
-
-            // Create directory if not exists
-            if (! File::exists($destinationDir)) {
-                File::makeDirectory($destinationDir, 0755, true);
-            }
-
-            // Copy image
-            try {
-                File::copy($sourceFile, $destinationFile);
-                Log::info('Image copied', [
-                    'from' => $sourceFile,
-                    'to' => $destinationFile,
-                ]);
-            } catch (\Exception $e) {
-                Log::error('Failed to copy image', [
-                    'path' => $sourceFile,
-                    'error' => $e->getMessage(),
-                ]);
-
-                return $fullTag;
-            }
-
-            // Replace src with new path (use full backend URL for frontend access)
-            $backendUrl = config('app.url');
-            $newSrc = rtrim($backendUrl, '/').'/storage/posts/images/'.$imagePath;
-
-            return str_replace($originalSrc, $newSrc, $fullTag);
-        }, $content);
-
+        // Content images are not processed during import
+        // They will be migrated using the post:migrate-ghost-images command
         return $content;
     }
 
-    protected function processFeaturedImage(array $ghostPost): ?string
+    protected function processFeaturedImage(Post $post, array $ghostPost): void
     {
         $featureImage = $ghostPost['feature_image'] ?? null;
 
         if (empty($featureImage)) {
-            return null;
+            return;
         }
 
-        // Skip Unsplash and external images
+        // Skip Unsplash and external images for now
         if (Str::startsWith($featureImage, ['http://', 'https://'])) {
-            return $featureImage;
+            Log::info('Skipping external featured image', ['url' => $featureImage]);
+
+            return;
         }
 
         // Extract path
         $imagePath = str_replace('__GHOST_URL__/content/images/', '', $featureImage);
 
-        // Check if exists in temp folder
+        // Check if exists in Ghost images folder
         $sourceFile = $this->ghostImagesPath.'/'.$imagePath;
 
         if (! File::exists($sourceFile)) {
             Log::warning('Featured image not found', ['path' => $sourceFile]);
 
-            return null;
-        }
-
-        // Copy to public storage
-        $destinationFile = $this->pmoneImagesPath.'/'.$imagePath;
-        $destinationDir = dirname($destinationFile);
-
-        if (! File::exists($destinationDir)) {
-            File::makeDirectory($destinationDir, 0755, true);
+            return;
         }
 
         try {
-            File::copy($sourceFile, $destinationFile);
+            // Add to Media Library with caption support
+            $post->addMedia($sourceFile)
+                ->usingName(pathinfo($imagePath, PATHINFO_FILENAME))
+                ->usingFileName(basename($imagePath))
+                ->withCustomProperties([
+                    'caption' => $ghostPost['feature_image_caption'] ?? null,
+                    'alt' => $ghostPost['feature_image_alt'] ?? $post->title,
+                ])
+                ->toMediaCollection('featured_image');
 
-            // Return full backend URL for frontend access
-            $backendUrl = config('app.url');
-
-            return rtrim($backendUrl, '/').'/storage/posts/images/'.$imagePath;
+            Log::info('Featured image added to Media Library', [
+                'post_id' => $post->id,
+                'image_path' => $imagePath,
+            ]);
         } catch (\Exception $e) {
-            Log::error('Failed to copy featured image', [
+            Log::error('Failed to add featured image to Media Library', [
+                'post_id' => $post->id,
                 'path' => $sourceFile,
                 'error' => $e->getMessage(),
             ]);
+        }
+    }
 
-            return null;
+    protected function processOgImage(Post $post, array $ghostPost): void
+    {
+        $ogImage = $ghostPost['og_image'] ?? null;
+
+        if (empty($ogImage)) {
+            return;
+        }
+
+        // Skip external images
+        if (Str::startsWith($ogImage, ['http://', 'https://'])) {
+            Log::info('Skipping external OG image', ['url' => $ogImage]);
+
+            return;
+        }
+
+        // Extract path
+        $imagePath = str_replace('__GHOST_URL__/content/images/', '', $ogImage);
+
+        // Check if exists in Ghost images folder
+        $sourceFile = $this->ghostImagesPath.'/'.$imagePath;
+
+        if (! File::exists($sourceFile)) {
+            Log::warning('OG image not found', ['path' => $sourceFile]);
+
+            return;
+        }
+
+        try {
+            // Add to Media Library
+            $post->addMedia($sourceFile)
+                ->usingName(pathinfo($imagePath, PATHINFO_FILENAME))
+                ->usingFileName(basename($imagePath))
+                ->withCustomProperties([
+                    'alt' => $ghostPost['og_title'] ?? $post->title,
+                ])
+                ->toMediaCollection('og_image');
+
+            Log::info('OG image added to Media Library', [
+                'post_id' => $post->id,
+                'image_path' => $imagePath,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to add OG image to Media Library', [
+                'post_id' => $post->id,
+                'path' => $sourceFile,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 

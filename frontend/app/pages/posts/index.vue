@@ -268,8 +268,7 @@ const columns = [
       return h(
         "span",
         {
-          class:
-            "border-border inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize",
+          class: "inline-flex items-center text-sm text-muted-foreground tracking-tight capitalize",
         },
         status
       );

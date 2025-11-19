@@ -57,7 +57,9 @@ class PostResource extends JsonResource
             'content_format' => $this->content_format,
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
-            'og_image' => $this->og_image,
+            'og_image' => $this->hasMedia('og_image')
+                ? $this->getMediaUrls('og_image')
+                : null,
             'status' => $this->status,
             'visibility' => $this->visibility,
             'published_at' => $this->published_at,

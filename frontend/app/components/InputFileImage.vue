@@ -84,12 +84,12 @@ const imageUrl = computed(() => {
   if (!props.initialImage) return null;
 
   // Handle string URL (Ghost imports)
-  if (typeof props.initialImage === 'string') {
+  if (typeof props.initialImage === "string") {
     return props.initialImage;
   }
 
   // Handle object with sm/url properties (Media Library)
-  return props.initialImage?.sm || props.initialImage?.url;
+  return props.initialImage?.lg || props.initialImage?.url;
 });
 
 function handleDelete() {

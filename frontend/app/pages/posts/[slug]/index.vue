@@ -87,12 +87,17 @@
       </div>
 
       <!-- Featured Image -->
-      <div v-if="post.featured_image" class="overflow-hidden rounded-lg">
-        <img
-          :src="typeof post.featured_image === 'string' ? post.featured_image : (post.featured_image?.lg || post.featured_image?.original)"
-          :alt="post.title"
-          class="h-auto w-full object-cover"
-        />
+      <div v-if="post.featured_image" class="space-y-2">
+        <div class="overflow-hidden rounded-lg">
+          <img
+            :src="post.featured_image.lg || post.featured_image.original"
+            :alt="post.featured_image.alt || post.title"
+            class="h-auto w-full object-cover"
+          />
+        </div>
+        <p v-if="post.featured_image.caption" class="text-muted-foreground text-center text-sm italic">
+          {{ post.featured_image.caption }}
+        </p>
       </div>
 
       <!-- Post Content -->

@@ -1,238 +1,217 @@
 <template>
   <form @submit.prevent="handleSubmit" class="grid gap-y-8">
-    <div class="frame">
-      <div class="frame-header">
-        <div class="frame-title">Post Content</div>
+    <div class="grid grid-cols-1 gap-y-6">
+      <div class="space-y-2">
+        <Label for="title">Title</Label>
+        <Input id="title" v-model="form.title" type="text" required />
+        <InputErrorMessage :errors="errors.title" />
       </div>
-      <div class="frame-panel">
-        <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="title">Title</Label>
-            <Input id="title" v-model="form.title" type="text" required />
-            <InputErrorMessage :errors="errors.title" />
-          </div>
 
-          <div class="space-y-2">
-            <Label for="excerpt">Excerpt</Label>
-            <Textarea id="excerpt" v-model="form.excerpt" maxlength="500" />
-            <p class="text-muted-foreground text-xs tracking-tight">
-              Brief description of the post (max 500 characters)
-            </p>
-            <InputErrorMessage :errors="errors.excerpt" />
-          </div>
+      <div class="space-y-2">
+        <Label for="excerpt">Excerpt</Label>
+        <Textarea id="excerpt" v-model="form.excerpt" maxlength="500" />
+        <p class="text-muted-foreground text-xs tracking-tight">
+          Brief description of the post (max 500 characters)
+        </p>
+        <InputErrorMessage :errors="errors.excerpt" />
+      </div>
 
-          <div class="space-y-4">
-            <Label>Featured Image</Label>
-            <InputFileImage
-              ref="featuredImageInputRef"
-              v-model="imageFiles.featured_image"
-              :initial-image="initialData?.featured_image"
-              v-model:delete-flag="deleteFlags.featured_image"
-              container-class="relative isolate aspect-video w-full"
-            />
-            <InputErrorMessage :errors="errors.tmp_featured_image" />
-          </div>
+      <div class="space-y-4">
+        <Label>Featured Image</Label>
+        <InputFileImage
+          ref="featuredImageInputRef"
+          v-model="imageFiles.featured_image"
+          :initial-image="initialData?.featured_image"
+          v-model:delete-flag="deleteFlags.featured_image"
+          container-class="relative isolate aspect-video w-full"
+        />
+        <InputErrorMessage :errors="errors.tmp_featured_image" />
 
-          <div class="space-y-2">
-            <Label>Content <span class="text-destructive">*</span></Label>
-            <PostTipTapEditor
-              v-model="form.content"
-              :post-id="postId"
-              placeholder="Start writing your post content..."
-            />
-            <InputErrorMessage :errors="errors.content" />
-          </div>
-
-          <div class="space-y-2">
-            <Label for="tags">Tags</Label>
-            <TagsInputComponent v-model="form.tags" placeholder="Add tags..." />
-            <p class="text-muted-foreground text-xs tracking-tight">Press Enter to add a tag</p>
-            <InputErrorMessage :errors="errors.tags" />
-          </div>
+        <div class="space-y-2">
+          <Label for="featured_image_caption">Image Caption (Optional)</Label>
+          <Input
+            id="featured_image_caption"
+            v-model="form.featured_image_caption"
+            type="text"
+            maxlength="500"
+            placeholder="Add a caption for the featured image..."
+          />
+          <InputErrorMessage :errors="errors.featured_image_caption" />
         </div>
+      </div>
+
+      <div class="space-y-2">
+        <Label>Content <span class="text-destructive">*</span></Label>
+        <PostTipTapEditor
+          v-model="form.content"
+          :post-id="postId"
+          placeholder="Start writing your post content..."
+        />
+        <InputErrorMessage :errors="errors.content" />
+      </div>
+
+      <div class="space-y-2">
+        <Label for="tags">Tags</Label>
+        <TagsInputComponent v-model="form.tags" placeholder="Add tags..." />
+        <p class="text-muted-foreground text-xs tracking-tight">Press Enter to add a tag</p>
+        <InputErrorMessage :errors="errors.tags" />
       </div>
     </div>
 
     <!-- Post Settings -->
-    <div class="frame">
-      <div class="frame-header">
-        <div class="frame-title">Post Settings</div>
+    <div class="grid grid-cols-1 gap-y-6">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="space-y-2">
+          <Label for="status">Status</Label>
+          <Select v-model="form.status">
+            <SelectTrigger class="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="published">Published</SelectItem>
+              <SelectItem value="scheduled">Scheduled</SelectItem>
+              <SelectItem v-if="mode === 'edit'" value="archived">Archived</SelectItem>
+            </SelectContent>
+          </Select>
+          <InputErrorMessage :errors="errors.status" />
+        </div>
+
+        <div class="space-y-2">
+          <Label for="visibility">Visibility</Label>
+          <Select v-model="form.visibility">
+            <SelectTrigger class="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="public">Public</SelectItem>
+              <SelectItem value="private">Private</SelectItem>
+              <SelectItem value="members_only">Members Only</SelectItem>
+            </SelectContent>
+          </Select>
+          <InputErrorMessage :errors="errors.visibility" />
+        </div>
       </div>
-      <div class="frame-panel">
-        <div class="grid grid-cols-1 gap-y-6">
-          <div class="grid grid-cols-2 gap-3">
-            <div class="space-y-2">
-              <Label for="status">Status</Label>
-              <Select v-model="form.status">
+
+      <div v-if="form.status === 'scheduled'" class="space-y-2">
+        <Label for="published_at">Publish Date & Time</Label>
+        <Input id="published_at" v-model="form.published_at" type="datetime-local" />
+        <InputErrorMessage :errors="errors.published_at" />
+      </div>
+
+      <div class="space-y-4">
+        <div class="space-y-2">
+          <Label>Post Authors</Label>
+          <p class="text-muted-foreground text-xs tracking-tight">Add authors for this post</p>
+        </div>
+
+        <!-- Authors List -->
+        <div v-if="form.authors.length > 0" class="space-y-3">
+          <div
+            v-for="(author, index) in form.authors"
+            :key="index"
+            class="border-border flex items-center gap-3 rounded-lg border p-3"
+          >
+            <!-- User Select -->
+            <div class="flex-1">
+              <Select v-model="author.user_id">
                 <SelectTrigger class="w-full">
-                  <SelectValue />
+                  <SelectValue placeholder="Select author..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="published">Published</SelectItem>
-                  <SelectItem value="scheduled">Scheduled</SelectItem>
-                  <SelectItem v-if="mode === 'edit'" value="archived">Archived</SelectItem>
+                  <SelectItem v-for="user in availableUsers" :key="user.id" :value="user.id">
+                    {{ user.name }} ({{ user.email }})
+                  </SelectItem>
                 </SelectContent>
               </Select>
-              <InputErrorMessage :errors="errors.status" />
             </div>
 
-            <div class="space-y-2">
-              <Label for="visibility">Visibility</Label>
-              <Select v-model="form.visibility">
-                <SelectTrigger class="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="public">Public</SelectItem>
-                  <SelectItem value="private">Private</SelectItem>
-                  <SelectItem value="members_only">Members Only</SelectItem>
-                </SelectContent>
-              </Select>
-              <InputErrorMessage :errors="errors.visibility" />
-            </div>
-          </div>
-
-          <div v-if="form.status === 'scheduled'" class="space-y-2">
-            <Label for="published_at">Publish Date & Time</Label>
-            <Input id="published_at" v-model="form.published_at" type="datetime-local" />
-            <InputErrorMessage :errors="errors.published_at" />
-          </div>
-
-          <div class="space-y-4">
-            <div class="space-y-2">
-              <Label>Post Authors</Label>
-              <p class="text-muted-foreground text-xs tracking-tight">
-                Add authors and assign their roles for this post
-              </p>
-            </div>
-
-            <!-- Authors List -->
-            <div v-if="form.authors.length > 0" class="space-y-3">
-              <div
-                v-for="(author, index) in form.authors"
-                :key="index"
-                class="border-border flex items-center gap-3 rounded-lg border p-3"
+            <!-- Reorder Buttons -->
+            <div class="flex gap-1">
+              <button
+                type="button"
+                @click="moveAuthorUp(index)"
+                :disabled="index === 0"
+                class="hover:bg-accent flex size-8 items-center justify-center rounded-lg transition disabled:opacity-30"
+                title="Move up"
               >
-                <!-- User Select -->
-                <div class="flex-1">
-                  <Select v-model="author.user_id">
-                    <SelectTrigger class="w-full">
-                      <SelectValue placeholder="Select author..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem v-for="user in availableUsers" :key="user.id" :value="user.id">
-                        {{ user.name }} ({{ user.email }})
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <!-- Role Input -->
-                <div class="w-48">
-                  <Input
-                    v-model="author.role"
-                    type="text"
-                    placeholder="Role (e.g., primary_author)"
-                    maxlength="50"
-                  />
-                </div>
-
-                <!-- Reorder Buttons -->
-                <div class="flex gap-1">
-                  <button
-                    type="button"
-                    @click="moveAuthorUp(index)"
-                    :disabled="index === 0"
-                    class="hover:bg-accent flex size-8 items-center justify-center rounded-lg transition disabled:opacity-30"
-                    title="Move up"
-                  >
-                    <Icon name="lucide:chevron-up" class="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    @click="moveAuthorDown(index)"
-                    :disabled="index === form.authors.length - 1"
-                    class="hover:bg-accent flex size-8 items-center justify-center rounded-lg transition disabled:opacity-30"
-                    title="Move down"
-                  >
-                    <Icon name="lucide:chevron-down" class="size-4" />
-                  </button>
-                </div>
-
-                <!-- Remove Button -->
-                <button
-                  type="button"
-                  @click="removeAuthor(index)"
-                  class="hover:bg-destructive/10 hover:text-destructive flex size-8 items-center justify-center rounded-lg transition"
-                  title="Remove author"
-                >
-                  <Icon name="lucide:x" class="size-4" />
-                </button>
-              </div>
+                <Icon name="lucide:chevron-up" class="size-4" />
+              </button>
+              <button
+                type="button"
+                @click="moveAuthorDown(index)"
+                :disabled="index === form.authors.length - 1"
+                class="hover:bg-accent flex size-8 items-center justify-center rounded-lg transition disabled:opacity-30"
+                title="Move down"
+              >
+                <Icon name="lucide:chevron-down" class="size-4" />
+              </button>
             </div>
 
-            <!-- Add Author Button -->
+            <!-- Remove Button -->
             <button
               type="button"
-              @click="addAuthor"
-              class="border-input hover:bg-accent flex w-full items-center justify-center gap-2 rounded-lg border border-dashed py-3 text-sm font-medium transition"
+              @click="removeAuthor(index)"
+              class="hover:bg-destructive/10 hover:text-destructive flex size-8 items-center justify-center rounded-lg transition"
+              title="Remove author"
             >
-              <Icon name="lucide:plus" class="size-4" />
-              Add Author
+              <Icon name="lucide:x" class="size-4" />
             </button>
-
-            <InputErrorMessage :errors="errors.authors" />
-          </div>
-
-          <div class="flex items-center gap-2">
-            <Switch id="featured" v-model="form.featured" />
-            <Label for="featured" class="cursor-pointer font-normal">Mark as featured post </Label>
           </div>
         </div>
+
+        <!-- Add Author Button -->
+        <button
+          type="button"
+          @click="addAuthor"
+          class="border-input hover:bg-accent flex w-full items-center justify-center gap-2 rounded-lg border border-dashed py-3 text-sm font-medium transition"
+        >
+          <Icon name="lucide:plus" class="size-4" />
+          Add Author
+        </button>
+
+        <InputErrorMessage :errors="errors.authors" />
+      </div>
+
+      <div class="flex items-center gap-2">
+        <Switch id="featured" v-model="form.featured" />
+        <Label for="featured" class="cursor-pointer font-normal">Mark as featured post </Label>
       </div>
     </div>
 
     <!-- SEO Meta -->
-    <div class="frame">
-      <div class="frame-header">
-        <div class="frame-title">SEO & Meta</div>
+    <div class="grid grid-cols-1 gap-y-6">
+      <div class="space-y-2">
+        <Label for="meta_title">Meta Title</Label>
+        <Input id="meta_title" v-model="form.meta_title" type="text" />
+        <p class="text-muted-foreground text-xs tracking-tight">
+          Leave empty to auto-generate from title
+        </p>
+        <InputErrorMessage :errors="errors.meta_title" />
       </div>
-      <div class="frame-panel">
-        <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="meta_title">Meta Title</Label>
-            <Input id="meta_title" v-model="form.meta_title" type="text" maxlength="60" />
-            <p class="text-muted-foreground text-xs tracking-tight">
-              Max 60 characters (Leave empty to auto-generate from title)
-            </p>
-            <InputErrorMessage :errors="errors.meta_title" />
-          </div>
 
-          <div class="space-y-2">
-            <Label for="meta_description">Meta Description</Label>
-            <Textarea id="meta_description" v-model="form.meta_description" maxlength="160" />
-            <p class="text-muted-foreground text-xs tracking-tight">
-              Max 160 characters (Leave empty to auto-generate from excerpt)
-            </p>
-            <InputErrorMessage :errors="errors.meta_description" />
-          </div>
+      <div class="space-y-2">
+        <Label for="meta_description">Meta Description</Label>
+        <Textarea id="meta_description" v-model="form.meta_description" />
+        <p class="text-muted-foreground text-xs tracking-tight">
+          Leave empty to auto-generate from excerpt
+        </p>
+        <InputErrorMessage :errors="errors.meta_description" />
+      </div>
 
-          <div class="space-y-2">
-            <Label>OG Image</Label>
-            <InputFileImage
-              ref="ogImageInputRef"
-              v-model="imageFiles.og_image"
-              :initial-image="initialData?.og_image"
-              v-model:delete-flag="deleteFlags.og_image"
-              container-class="relative isolate aspect-video w-full"
-            />
-            <p class="text-muted-foreground text-xs tracking-tight">
-              Image for social media sharing (Open Graph). Recommended size: 1200x630px
-            </p>
-            <InputErrorMessage :errors="errors.tmp_og_image" />
-          </div>
-        </div>
+      <div class="space-y-4">
+        <Label>OG Image</Label>
+        <InputFileImage
+          ref="ogImageInputRef"
+          v-model="imageFiles.og_image"
+          :initial-image="initialData?.og_image"
+          v-model:delete-flag="deleteFlags.og_image"
+          container-class="relative isolate aspect-video w-full"
+        />
+        <p class="text-muted-foreground text-xs tracking-tight">
+          Image for social media sharing (Open Graph). Recommended size: 1200x630px
+        </p>
+        <InputErrorMessage :errors="errors.tmp_og_image" />
       </div>
     </div>
 
@@ -316,6 +295,7 @@ const form = reactive({
   featured: false,
   meta_title: "",
   meta_description: "",
+  featured_image_caption: "",
   tags: [],
   authors: [],
 });
@@ -361,6 +341,7 @@ function populateForm() {
   form.featured = data.featured || false;
   form.meta_title = data.meta_title || "";
   form.meta_description = data.meta_description || "";
+  form.featured_image_caption = data.featured_image?.caption || "";
 
   if (data.published_at) {
     const date = new Date(data.published_at);
@@ -374,7 +355,6 @@ function populateForm() {
   if (data.authors && Array.isArray(data.authors)) {
     form.authors = data.authors.map((author) => ({
       user_id: author.id,
-      role: author.role || "co_author",
       order: author.order || 0,
     }));
   }
@@ -384,7 +364,6 @@ function populateForm() {
 function addAuthor() {
   form.authors.push({
     user_id: null,
-    role: "co_author",
     order: form.authors.length,
   });
 }
@@ -513,10 +492,7 @@ async function handleSubmit() {
       featured: form.featured,
       meta_title: form.meta_title || null,
       meta_description: form.meta_description || null,
-      published_at:
-        form.status === "scheduled" && form.published_at
-          ? new Date(form.published_at).toISOString()
-          : null,
+      published_at: form.published_at ? new Date(form.published_at).toISOString() : null,
       tags: form.tags,
     };
 
@@ -526,7 +502,6 @@ async function handleSubmit() {
         .filter((author) => author.user_id) // Only include authors with selected user
         .map((author, index) => ({
           user_id: author.user_id,
-          role: author.role || "co_author",
           order: index,
         }));
     }
@@ -536,6 +511,11 @@ async function handleSubmit() {
       payload.tmp_featured_image = featuredValue;
     } else if (deleteFlags.value.featured_image && !featuredValue) {
       payload.delete_featured_image = true;
+    }
+
+    // Add featured image caption
+    if (form.featured_image_caption) {
+      payload.featured_image_caption = form.featured_image_caption;
     }
 
     const ogImageValue = imageFiles.value.og_image?.[0];

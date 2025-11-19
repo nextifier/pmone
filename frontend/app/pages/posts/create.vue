@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen-offset mx-auto flex max-w-2xl flex-col space-y-6 py-6">
+  <div class="min-h-screen-offset mx-auto flex max-w-2xl flex-col space-y-6 pt-6 pb-20">
     <div class="flex items-center justify-between gap-2">
       <BackButton destination="/posts" />
     </div>

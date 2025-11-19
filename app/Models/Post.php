@@ -25,10 +25,8 @@ use Spatie\Tags\HasTags;
  * @property string|null $excerpt
  * @property string $content
  * @property string $content_format
- * @property string|null $featured_image
  * @property string|null $meta_title
  * @property string|null $meta_description
- * @property string|null $og_image
  * @property string $status
  * @property string $visibility
  * @property \Illuminate\Support\Carbon|null $published_at
@@ -80,11 +78,9 @@ use Spatie\Tags\HasTags;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereDeletedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereExcerpt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereFeatured($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereFeaturedImage($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereMetaDescription($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereMetaTitle($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereOgImage($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post wherePublishedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereReadingTime($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereSettings($value)
@@ -124,10 +120,8 @@ class Post extends Model implements HasMedia
         'excerpt',
         'content',
         'content_format',
-        'featured_image',
         'meta_title',
         'meta_description',
-        'og_image',
         'status',
         'visibility',
         'published_at',
@@ -244,29 +238,29 @@ class Post extends Model implements HasMedia
             ->height(20)
             ->quality(10)
             ->blur(10)
-            ->performOnCollections('featured_image')
+            ->performOnCollections('featured_image', 'og_image')
             ->nonQueued();
 
         $this->addMediaConversion('sm')
             ->fit(Fit::Crop, 450, 300)
             ->quality(85)
-            ->performOnCollections('featured_image')
+            ->performOnCollections('featured_image', 'og_image')
             ->nonQueued();
 
         $this->addMediaConversion('md')
             ->fit(Fit::Crop, 900, 600)
             ->quality(90)
-            ->performOnCollections('featured_image');
+            ->performOnCollections('featured_image', 'og_image');
 
         $this->addMediaConversion('lg')
             ->fit(Fit::Crop, 1200, 800)
             ->quality(90)
-            ->performOnCollections('featured_image');
+            ->performOnCollections('featured_image', 'og_image');
 
         $this->addMediaConversion('xl')
             ->fit(Fit::Crop, 1500, 1000)
             ->quality(95)
-            ->performOnCollections('featured_image');
+            ->performOnCollections('featured_image', 'og_image');
 
         // Content images conversions (maintain aspect ratio, no crop)
         $this->addMediaConversion('lqip')
@@ -303,6 +297,11 @@ class Post extends Model implements HasMedia
     {
         return [
             'featured_image' => [
+                'single_file' => true,
+                'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
+                'max_size' => 10240, // 10MB
+            ],
+            'og_image' => [
                 'single_file' => true,
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
                 'max_size' => 10240, // 10MB
@@ -347,7 +346,7 @@ class Post extends Model implements HasMedia
     public function authors(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(User::class, 'post_authors')
-            ->withPivot('role', 'order')
+            ->withPivot('order')
             ->orderBy('post_authors.order')
             ->withTimestamps();
     }

@@ -149,13 +149,19 @@ class PostController extends Controller
                 $post->syncTags($data['tags']);
             }
 
-            // Attach authors with roles and order
-            if (isset($data['authors']) && is_array($data['authors'])) {
+            // Attach authors - default to authenticated user if none specified
+            if (isset($data['authors']) && is_array($data['authors']) && count($data['authors']) > 0) {
                 $this->syncAuthors($post, $data['authors']);
+            } else {
+                // Set authenticated user as default author
+                $post->authors()->attach($request->user()->id, ['order' => 0]);
             }
 
             // Handle featured image upload from temporary storage
-            $this->handleTemporaryUpload($request, $post, 'tmp_featured_image', 'featured_image');
+            $this->handleTemporaryUpload($request, $post, 'tmp_featured_image', 'featured_image', $data['featured_image_caption'] ?? null);
+
+            // Handle OG image upload from temporary storage
+            $this->handleTemporaryUpload($request, $post, 'tmp_og_image', 'og_image');
 
             // Process content images (move from temp to permanent storage)
             $this->processContentImages($post);
@@ -203,7 +209,10 @@ class PostController extends Controller
             }
 
             // Handle featured image upload from temporary storage
-            $this->handleTemporaryUpload($request, $post, 'tmp_featured_image', 'featured_image');
+            $this->handleTemporaryUpload($request, $post, 'tmp_featured_image', 'featured_image', $data['featured_image_caption'] ?? null);
+
+            // Handle OG image upload from temporary storage
+            $this->handleTemporaryUpload($request, $post, 'tmp_og_image', 'og_image');
 
             // Process content images (move from temp to permanent storage)
             $this->processContentImages($post);
@@ -403,7 +412,7 @@ class PostController extends Controller
         ]);
     }
 
-    private function handleTemporaryUpload(Request $request, Post $post, string $fieldName, string $collection): void
+    private function handleTemporaryUpload(Request $request, Post $post, string $fieldName, string $collection, ?string $caption = null): void
     {
         // Check for delete flag first
         $deleteFieldName = 'delete_'.str_replace('tmp_', '', $fieldName);
@@ -446,9 +455,15 @@ class PostController extends Controller
         $tempFilePath = "tmp/uploads/{$value}/{$filename}";
 
         // Move file from temp storage to permanent storage
-        $post->addMediaFromDisk($tempFilePath, 'local')
-            ->usingName(pathinfo($filename, PATHINFO_FILENAME))
-            ->toMediaCollection($collection);
+        $mediaAdder = $post->addMediaFromDisk($tempFilePath, 'local')
+            ->usingName(pathinfo($filename, PATHINFO_FILENAME));
+
+        // Add caption if provided
+        if ($caption) {
+            $mediaAdder->withCustomProperties(['caption' => $caption]);
+        }
+
+        $mediaAdder->toMediaCollection($collection);
 
         // Clean up temporary storage
         \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
@@ -464,16 +479,17 @@ class PostController extends Controller
         }
 
         $content = $post->content;
-        $pattern = '/\/api\/tmp-media\/(tmp-media-[a-zA-Z0-9._-]+)/';
+        $pattern = '/<img[^>]+src="\/api\/tmp-media\/(tmp-media-[a-zA-Z0-9._-]+)"[^>]*>/';
 
-        // Find all temporary media URLs in content
-        if (! preg_match_all($pattern, $content, $matches)) {
+        // Find all temporary media URLs in content with full img tags
+        if (! preg_match_all($pattern, $content, $matches, PREG_SET_ORDER)) {
             return;
         }
 
-        $tempFolders = array_unique($matches[1]);
+        foreach ($matches as $match) {
+            $fullImgTag = $match[0];
+            $folder = $match[1];
 
-        foreach ($tempFolders as $folder) {
             try {
                 $metadataPath = "tmp/media/{$folder}/metadata.json";
 
@@ -489,15 +505,28 @@ class PostController extends Controller
                     continue;
                 }
 
-                // Move file from temp storage to permanent storage
-                $media = $post->addMediaFromDisk($tempFilePath, 'local')
-                    ->usingName(pathinfo($filename, PATHINFO_FILENAME))
-                    ->toMediaCollection('content_images');
+                // Extract caption from data-caption attribute if exists
+                $caption = null;
+                if (preg_match('/data-caption="([^"]*)"/', $fullImgTag, $captionMatch)) {
+                    $caption = html_entity_decode($captionMatch[1]);
+                }
 
-                // Replace temporary URL with permanent URL in content
-                $tempUrl = "/api/tmp-media/{$folder}";
-                $permanentUrl = $media->getUrl();
-                $content = str_replace($tempUrl, $permanentUrl, $content);
+                // Move file from temp storage to permanent storage
+                $mediaAdder = $post->addMediaFromDisk($tempFilePath, 'local')
+                    ->usingName(pathinfo($filename, PATHINFO_FILENAME));
+
+                // Add caption if provided
+                if ($caption) {
+                    $mediaAdder->withCustomProperties(['caption' => $caption]);
+                }
+
+                $media = $mediaAdder->toMediaCollection('content_images');
+
+                // Build responsive image HTML with srcset
+                $responsiveImg = $this->buildResponsiveImageHtml($media, $caption);
+
+                // Replace entire img tag with responsive version
+                $content = str_replace($fullImgTag, $responsiveImg, $content);
 
                 // Clean up temporary storage
                 \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/media/{$folder}");
@@ -597,15 +626,53 @@ class PostController extends Controller
 
         foreach ($authors as $index => $author) {
             $userId = $author['user_id'];
-            $role = $author['role'] ?? 'co_author';
             $order = $author['order'] ?? $index;
 
             $syncData[$userId] = [
-                'role' => $role,
                 'order' => $order,
             ];
         }
 
         $post->authors()->sync($syncData);
+    }
+
+    /**
+     * Build responsive image HTML with srcset for content images
+     */
+    private function buildResponsiveImageHtml($media, ?string $caption = null): string
+    {
+        $alt = $caption ?? $media->getCustomProperty('caption') ?? $media->name;
+
+        // Build srcset with all available conversions
+        $srcset = [
+            $media->getUrl('sm').' 600w',
+            $media->getUrl('md').' 900w',
+            $media->getUrl('lg').' 1200w',
+            $media->getUrl('xl').' 1600w',
+        ];
+
+        $srcsetString = implode(', ', $srcset);
+
+        // Default sizes attribute (responsive)
+        $sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px';
+
+        $html = sprintf(
+            '<img src="%s" srcset="%s" sizes="%s" alt="%s" loading="lazy" class="w-full h-auto rounded-lg">',
+            $media->getUrl('lg'), // default fallback
+            $srcsetString,
+            $sizes,
+            htmlspecialchars($alt, ENT_QUOTES, 'UTF-8')
+        );
+
+        // Wrap with figure if caption exists
+        if ($caption) {
+            $html = sprintf(
+                '<figure>%s<figcaption>%s</figcaption></figure>',
+                $html,
+                htmlspecialchars($caption, ENT_QUOTES, 'UTF-8')
+            );
+        }
+
+        return $html;
     }
 }

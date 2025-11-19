@@ -27,10 +27,8 @@ class StorePostRequest extends FormRequest
             'excerpt' => ['nullable', 'string', 'max:500'],
             'content' => ['required', 'string'],
             'content_format' => ['sometimes', 'string', 'in:html,markdown,lexical'],
-            'meta_title' => ['nullable', 'string', 'max:60'],
-            'meta_description' => ['nullable', 'string', 'max:160'],
-            'og_image' => ['nullable', 'string', 'max:500'],
-            'og_type' => ['sometimes', 'string', 'max:50'],
+            'meta_title' => ['nullable', 'string'],
+            'meta_description' => ['nullable', 'string'],
             'status' => ['sometimes', 'string', 'in:draft,published,scheduled,archived'],
             'visibility' => ['sometimes', 'string', 'in:public,private,members_only'],
             'published_at' => ['nullable', 'date'],
@@ -43,10 +41,9 @@ class StorePostRequest extends FormRequest
             'author_ids' => ['sometimes', 'array'],
             'author_ids.*' => ['exists:users,id'],
 
-            // Authors with roles (alternative to simple author_ids)
+            // Authors (alternative to simple author_ids)
             'authors' => ['sometimes', 'array'],
             'authors.*.user_id' => ['required', 'exists:users,id'],
-            'authors.*.role' => ['required', 'string', 'max:50'],
             'authors.*.order' => ['sometimes', 'integer', 'min:0'],
 
             'category_ids' => ['sometimes', 'array'],
@@ -57,6 +54,9 @@ class StorePostRequest extends FormRequest
             // Media uploads
             'tmp_featured_image' => ['nullable', 'string'],
             'delete_featured_image' => ['nullable', 'boolean'],
+            'featured_image_caption' => ['nullable', 'string', 'max:500'],
+            'tmp_og_image' => ['nullable', 'string'],
+            'delete_og_image' => ['nullable', 'boolean'],
         ];
     }
 

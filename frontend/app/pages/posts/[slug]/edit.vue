@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen-offset mx-auto flex max-w-2xl flex-col space-y-6 py-6">
+  <div class="min-h-screen-offset mx-auto flex max-w-2xl flex-col space-y-6 pt-6 pb-20">
     <div class="flex items-center justify-between gap-2">
       <BackButton destination="/posts" />
     </div>
@@ -62,6 +62,13 @@ async function loadPost() {
   try {
     const response = await client(`/api/posts/${postSlug}?for=edit`);
     post.value = response.data;
+
+    // Set page title to post title
+    if (post.value?.title) {
+      useHead({
+        title: `Edit: ${post.value.title}`,
+      });
+    }
   } catch (error) {
     console.error("Failed to load post:", error);
     toast.error("Failed to load post");

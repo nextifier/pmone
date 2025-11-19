@@ -163,7 +163,7 @@
     --secondary-foreground: var(--color-gray-300);
 
     --muted: var(--color-gray-900);
-    --muted-foreground: var(--color-gray-400);
+    --muted-foreground: --alpha(var(--color-gray-300) / 80%);
 
     --accent: var(--color-primary);
     --accent-foreground: var(--color-primary-foreground);
@@ -886,4 +886,29 @@ img.pswp__img {
     /* content: " *"; */
     @apply text-destructive ml-0 content-['*'];
   }
+}
+
+/* Post content images styling */
+.prose img {
+  @apply my-6 h-auto max-w-full rounded-lg;
+}
+
+.prose figure {
+  @apply my-6;
+}
+
+.prose figcaption {
+  @apply text-muted-foreground mt-2 text-center text-sm italic;
+}
+
+/* Disable Grammarly globally */
+grammarly-extension,
+grammarly-button,
+.grammarly-button,
+[data-grammarly-part],
+div[data-gramm] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }

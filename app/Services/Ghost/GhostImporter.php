@@ -17,9 +17,9 @@ class GhostImporter
     protected string $mappingCachePath;
 
     public function __construct(
-        protected string $jsonPath = 'storage/app/temp/ghost.ghost.2025-11-18-16-43-58.json'
+        protected string $jsonPath = 'storage/app/post-migration/ghost/ghost.ghost.2025-11-18-16-43-58.json'
     ) {
-        $this->mappingCachePath = storage_path('app/temp/ghost_mappings.json');
+        $this->mappingCachePath = storage_path('app/post-migration/ghost/ghost_mappings.json');
         $this->loadData();
         $this->loadMappings();
     }

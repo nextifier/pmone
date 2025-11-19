@@ -19,10 +19,8 @@ return new class extends Migration
             $table->text('excerpt')->nullable();
             $table->longText('content');
             $table->enum('content_format', ['html', 'markdown', 'lexical'])->default('html');
-            $table->string('featured_image')->nullable();
             $table->string('meta_title')->nullable();
             $table->text('meta_description')->nullable();
-            $table->string('og_image')->nullable();
             $table->enum('status', ['draft', 'published', 'scheduled', 'archived'])->default('draft');
             $table->enum('visibility', ['public', 'private', 'members_only'])->default('public');
             $table->timestamp('published_at')->nullable();

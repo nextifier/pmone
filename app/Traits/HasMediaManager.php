@@ -36,6 +36,8 @@ trait HasMediaManager
             'md' => $media->getUrl('md'),
             'lg' => $media->getUrl('lg'),
             'xl' => $media->getUrl('xl'),
+            'caption' => $media->getCustomProperty('caption'),
+            'alt' => $media->getCustomProperty('alt') ?? $media->name,
         ];
 
         return $urls;

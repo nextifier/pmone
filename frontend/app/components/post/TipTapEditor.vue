@@ -156,10 +156,65 @@
       style="display: none"
       @change="handleImageUpload"
     />
+
+    <!-- Caption Modal -->
+    <Dialog v-model:open="captionModal.show">
+      <DialogContent class="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Image Caption</DialogTitle>
+          <DialogDescription>
+            Add an optional caption for this image (max 500 characters)
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="space-y-4 py-4">
+          <div class="space-y-2">
+            <Label for="image-caption">Caption (Optional)</Label>
+            <Textarea
+              id="image-caption"
+              v-model="captionModal.caption"
+              maxlength="500"
+              placeholder="Enter image caption..."
+              rows="3"
+            />
+            <p class="text-muted-foreground text-xs">
+              {{ captionModal.caption.length }}/500 characters
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <button
+            type="button"
+            @click="skipCaption"
+            class="border-input hover:bg-accent rounded-lg border px-4 py-2 text-sm font-medium"
+          >
+            Skip
+          </button>
+          <button
+            type="button"
+            @click="saveCaptionAndClose"
+            class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium"
+          >
+            Save Caption
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
 <script setup>
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -187,13 +242,42 @@ const emit = defineEmits(["update:modelValue"]);
 const imageInput = ref(null);
 const client = useSanctumClient();
 
+// Caption modal state
+const captionModal = ref({
+  show: false,
+  caption: "",
+  imageUrl: "",
+  imagePos: null,
+});
+
+// Custom Image extension with data-caption support
+const CustomImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      "data-caption": {
+        default: null,
+        parseHTML: (element) => element.getAttribute("data-caption"),
+        renderHTML: (attributes) => {
+          if (!attributes["data-caption"]) {
+            return {};
+          }
+          return {
+            "data-caption": attributes["data-caption"],
+          };
+        },
+      },
+    };
+  },
+});
+
 const editor = useEditor({
   content: props.modelValue,
   extensions: [
     StarterKit.configure({
       link: false, // Disable link from StarterKit to use custom config
     }),
-    Image.configure({
+    CustomImage.configure({
       HTMLAttributes: {
         class: "post-content-image",
       },
@@ -278,9 +362,12 @@ const handleImageUpload = async (event) => {
       body: formData,
     });
 
-    // Insert image into editor
+    // Insert image into editor first
     if (response.media?.url) {
       editor.value?.chain().focus().setImage({ src: response.media.url }).run();
+
+      // Show caption modal
+      showCaptionModal(response.media.url);
     }
 
     // Clear input
@@ -293,17 +380,69 @@ const handleImageUpload = async (event) => {
     alert("Failed to upload image. Please try again.");
   }
 };
+
+// Show caption modal
+const showCaptionModal = (imageUrl) => {
+  captionModal.value = {
+    show: true,
+    caption: "",
+    imageUrl: imageUrl,
+    imagePos: null,
+  };
+};
+
+// Skip caption (close modal without saving)
+const skipCaption = () => {
+  captionModal.value = {
+    show: false,
+    caption: "",
+    imageUrl: "",
+    imagePos: null,
+  };
+};
+
+// Save caption and close modal
+const saveCaptionAndClose = () => {
+  if (!editor.value || !captionModal.value.imageUrl) return;
+
+  // Find the image node and update with data-caption attribute
+  const { state } = editor.value;
+  const { doc } = state;
+
+  doc.descendants((node, pos) => {
+    if (node.type.name === "image" && node.attrs.src === captionModal.value.imageUrl) {
+      // Update the image node with caption
+      editor.value
+        .chain()
+        .setNodeSelection(pos)
+        .updateAttributes("image", {
+          "data-caption": captionModal.value.caption || null,
+        })
+        .run();
+
+      return false; // Stop searching
+    }
+  });
+
+  // Close modal
+  captionModal.value = {
+    show: false,
+    caption: "",
+    imageUrl: "",
+    imagePos: null,
+  };
+};
 </script>
 
 <style scoped>
 @reference "../../assets/css/main.css";
 
 .tiptap-editor {
-  @apply overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700;
+  @apply border-border overflow-hidden rounded-lg border;
 }
 
 .editor-toolbar {
-  @apply flex flex-wrap items-center gap-1 border-b border-gray-200 p-2 dark:border-gray-700;
+  @apply border-border flex flex-wrap items-center gap-1 border-b p-2;
 }
 
 .toolbar-group {
@@ -315,11 +454,11 @@ const handleImageUpload = async (event) => {
 }
 
 .toolbar-button {
-  @apply rounded p-2 text-gray-700 transition-colors hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700;
+  @apply text-muted-foreground hover:bg-muted rounded-lg border border-transparent p-2 transition-colors;
 }
 
 .toolbar-button.is-active {
-  @apply bg-gray-300 text-gray-900 dark:bg-gray-600 dark:text-white;
+  @apply bg-muted text-foreground border-border;
 }
 
 .editor-content-wrapper {
@@ -328,11 +467,11 @@ const handleImageUpload = async (event) => {
 
 /* TipTap prose styling */
 :deep(.ProseMirror) {
-  @apply min-h-[350px] text-gray-900 outline-none dark:text-gray-100;
+  @apply text-foreground min-h-[350px] outline-none;
 }
 
 :deep(.ProseMirror p.is-editor-empty:first-child::before) {
-  @apply text-gray-400 dark:text-gray-500;
+  @apply text-foreground/50;
   content: attr(data-placeholder);
   float: left;
   pointer-events: none;
@@ -341,12 +480,12 @@ const handleImageUpload = async (event) => {
 
 /* Dark mode text colors for all content */
 :deep(.ProseMirror) {
-  @apply prose-headings:text-gray-900 dark:prose-headings:text-gray-100;
-  @apply prose-p:text-gray-900 dark:prose-p:text-gray-100;
-  @apply prose-li:text-gray-900 dark:prose-li:text-gray-100;
-  @apply prose-strong:text-gray-900 dark:prose-strong:text-gray-100;
-  @apply prose-code:text-gray-900 dark:prose-code:text-gray-100;
-  @apply prose-blockquote:text-gray-700 dark:prose-blockquote:text-gray-300;
+  @apply prose-headings:text-foreground prose-headings:font-semibold prose-headings:tracking-tighter;
+  @apply prose-p:text-foreground;
+  @apply prose-li:text-foreground;
+  @apply prose-strong:text-foreground prose-strong:font-semibold prose-strong:tracking-tighter;
+  @apply prose-code:text-foreground;
+  @apply prose-blockquote:text-muted-foreground;
 }
 
 :deep(.post-content-image) {
@@ -354,6 +493,6 @@ const handleImageUpload = async (event) => {
 }
 
 :deep(.post-content-link) {
-  @apply text-blue-600 underline hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300;
+  @apply text-foreground cursor-pointer font-semibold tracking-tight underline;
 }
 </style>
