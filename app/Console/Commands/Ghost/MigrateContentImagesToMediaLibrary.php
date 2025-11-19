@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Canvas;
+namespace App\Console\Commands\Ghost;
 
 use App\Models\Post;
 use Illuminate\Console\Command;
@@ -9,13 +9,13 @@ use Illuminate\Support\Facades\Log;
 
 class MigrateContentImagesToMediaLibrary extends Command
 {
-    protected $signature = 'canvas:migrate-content-images
+    protected $signature = 'ghost:migrate-content-images
                             {--limit= : Number of posts to process (leave empty for all)}
                             {--dry-run : Run without saving changes}';
 
-    protected $description = 'Migrate Canvas content images to Spatie Media Library';
+    protected $description = 'Migrate Ghost content images to Spatie Media Library';
 
-    protected string $canvasImagesPath;
+    protected string $ghostImagesPath;
 
     protected int $processed = 0;
 
@@ -25,12 +25,12 @@ class MigrateContentImagesToMediaLibrary extends Command
 
     public function handle(): int
     {
-        $this->info('Starting Canvas content images migration...');
+        $this->info('Starting Ghost content images migration...');
 
-        $this->canvasImagesPath = storage_path('app/post-migration/canvas/images');
+        $this->ghostImagesPath = storage_path('app/post-migration/ghost/images');
 
-        if (! File::exists($this->canvasImagesPath)) {
-            $this->error("Canvas images directory not found: {$this->canvasImagesPath}");
+        if (! File::exists($this->ghostImagesPath)) {
+            $this->error("Ghost images directory not found: {$this->ghostImagesPath}");
 
             return self::FAILURE;
         }
@@ -38,10 +38,11 @@ class MigrateContentImagesToMediaLibrary extends Command
         $limit = $this->option('limit') ? (int) $this->option('limit') : null;
         $dryRun = $this->option('dry-run');
 
-        // Get Canvas posts with images in content
+        // Get Ghost posts with images in content (images that don't start with http)
         $query = Post::query()
-            ->where('source', 'canvas')
-            ->where('content', 'like', '%/storage/canvas/images/%');
+            ->where('source', 'ghost')
+            ->where('content', 'like', '%<img%')
+            ->where('content', 'not like', '%src="http%');
 
         if ($limit) {
             $query->limit($limit);
@@ -50,12 +51,12 @@ class MigrateContentImagesToMediaLibrary extends Command
         $posts = $query->get();
 
         if ($posts->isEmpty()) {
-            $this->info('No posts with Canvas content images found.');
+            $this->info('No posts with Ghost content images found.');
 
             return self::SUCCESS;
         }
 
-        $this->info("Found {$posts->count()} posts with Canvas content images");
+        $this->info("Found {$posts->count()} posts with Ghost content images");
 
         if ($dryRun) {
             $this->warn('DRY RUN MODE - No changes will be saved');
@@ -104,21 +105,23 @@ class MigrateContentImagesToMediaLibrary extends Command
         $content = $post->content;
         $originalContent = $content;
 
-        // Match all Canvas image paths
-        preg_match_all('/<img[^>]+src="\/storage\/canvas\/images\/([^"]+)"[^>]*>/i', $content, $matches);
+        // Match all Ghost image paths that are relative (not starting with http)
+        // Pattern: <img src="2025/10/filename.jpg" ... >
+        preg_match_all('/<img[^>]+src="([^"http][^"]+)"[^>]*>/i', $content, $matches);
 
         if (empty($matches[1])) {
             return;
         }
 
         foreach ($matches[0] as $index => $imgTag) {
-            $filename = $matches[1][$index];
-            $sourceFile = $this->canvasImagesPath.'/'.$filename;
+            $relativePath = $matches[1][$index];
+            $sourceFile = $this->ghostImagesPath.'/'.$relativePath;
 
             if (! File::exists($sourceFile)) {
-                Log::warning('Canvas content image not found', [
+                Log::warning('Ghost content image not found', [
                     'post_id' => $post->id,
-                    'filename' => $filename,
+                    'relative_path' => $relativePath,
+                    'source_file' => $sourceFile,
                 ]);
 
                 continue;
@@ -133,8 +136,8 @@ class MigrateContentImagesToMediaLibrary extends Command
             // Add image to Media Library
             $media = $post->addMedia($sourceFile)
                 ->preservingOriginal()
-                ->usingName(pathinfo($filename, PATHINFO_FILENAME))
-                ->usingFileName(basename($filename))
+                ->usingName(pathinfo($relativePath, PATHINFO_FILENAME))
+                ->usingFileName(basename($relativePath))
                 ->toMediaCollection('content_images');
 
             // Get the new URL
@@ -142,16 +145,16 @@ class MigrateContentImagesToMediaLibrary extends Command
 
             // Replace old path with new URL in content
             $content = str_replace(
-                "/storage/canvas/images/{$filename}",
-                $newUrl,
+                "src=\"{$relativePath}\"",
+                "src=\"{$newUrl}\"",
                 $content
             );
 
             $this->imagesAdded++;
 
-            Log::info('Canvas content image migrated', [
+            Log::info('Ghost content image migrated', [
                 'post_id' => $post->id,
-                'old_path' => "/storage/canvas/images/{$filename}",
+                'old_path' => $relativePath,
                 'new_url' => $newUrl,
             ]);
         }

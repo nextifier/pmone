@@ -198,6 +198,7 @@ class GhostPostImporter
         try {
             // Add to Media Library with caption support
             $post->addMedia($sourceFile)
+                ->preservingOriginal()
                 ->usingName(pathinfo($imagePath, PATHINFO_FILENAME))
                 ->usingFileName(basename($imagePath))
                 ->withCustomProperties([
@@ -249,6 +250,7 @@ class GhostPostImporter
         try {
             // Add to Media Library
             $post->addMedia($sourceFile)
+                ->preservingOriginal()
                 ->usingName(pathinfo($imagePath, PATHINFO_FILENAME))
                 ->usingFileName(basename($imagePath))
                 ->withCustomProperties([

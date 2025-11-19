@@ -7,6 +7,7 @@
         <NuxtPage
           :keepalive="{
             include: [
+              'posts',
               // 'web-analytics',
               // 'web-analytics-id'
             ],

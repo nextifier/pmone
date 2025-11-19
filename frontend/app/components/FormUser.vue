@@ -40,7 +40,10 @@
         <div class="grid grid-cols-1 gap-y-6">
           <div class="space-y-2">
             <Label for="name">Full Name</Label>
-            <Input id="name" v-model="form.name" type="text" required />
+            <Input id="name" v-model="form.name" type="text" />
+            <p class="text-muted-foreground line-clamp-1 text-xs tracking-tight">
+              {{ isCreate ? "Will be auto-generated from email if left empty." : "" }}
+            </p>
             <InputErrorMessage :errors="errors.name" />
           </div>
 
@@ -210,11 +213,10 @@
               id="password"
               v-model="form.password"
               type="password"
-              :required="isCreate"
               minlength="8"
             />
             <p class="text-muted-foreground text-xs tracking-tight">
-              {{ isCreate ? "Minimum 8 characters." : "Leave empty to keep current password." }}
+              {{ isCreate ? "Optional. User can log in via magic link if no password is set." : "Leave empty to keep current password." }}
             </p>
             <InputErrorMessage :errors="errors.password" />
           </div>

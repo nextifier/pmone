@@ -22,10 +22,10 @@ class StoreUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'max:255'],
             'username' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._]+$/', 'unique:users,username'],
             'email' => ['required', 'email', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8'],
+            'password' => ['nullable', 'string', 'min:8'],
             'phone' => ['nullable', 'string', 'max:20'],
             'birth_date' => ['nullable', 'date', 'before:today'],
             'gender' => ['nullable', 'in:male,female,other'],
@@ -55,13 +55,11 @@ class StoreUserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'The full name is required.',
             'email.required' => 'The email address is required.',
             'email.email' => 'Please enter a valid email address.',
             'email.unique' => 'This email address is already registered.',
             'username.unique' => 'This username is already taken.',
             'username.regex' => 'Username can only contain letters, numbers, dots, and underscores.',
-            'password.required' => 'A password is required.',
             'password.min' => 'Password must be at least 8 characters long.',
             'birth_date.before' => 'Birth date must be before today.',
             'gender.in' => 'Please select a valid gender option.',

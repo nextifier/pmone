@@ -26,20 +26,22 @@ class CanvasPostImporter
         protected bool $dryRun = false,
         protected ?int $limit = null
     ) {
-        // Use correct path for deployment environments
-        $basePath = base_path();
+        $this->canvasImagesPath = storage_path('app/post-migration/canvas/images');
 
-        // Check if we're in a Forge deployment structure
-        if (str_contains($basePath, '/releases/')) {
-            // Use shared storage path
-            $this->canvasImagesPath = str_replace('/releases/', '/shared/', $basePath).'/storage/app/post-migration/canvas/images';
-        } else {
-            // Normal path for local/non-Forge environments
-            $this->canvasImagesPath = storage_path('app/post-migration/canvas/images');
+        // Get or create Balboa Estate user
+        $this->balboaUser = User::firstOrCreate(
+            ['email' => 'hello@balboaestate.id'],
+            [
+                'name' => 'Balboa Estate',
+                'status' => 'active',
+                'visibility' => 'public',
+            ]
+        );
+
+        // Assign user role if newly created
+        if ($this->balboaUser->wasRecentlyCreated && method_exists($this->balboaUser, 'assignRole')) {
+            $this->balboaUser->assignRole('user');
         }
-
-        // Get Balboa Estate user
-        $this->balboaUser = User::where('email', 'hello@balboaestate.id')->firstOrFail();
     }
 
     public function import(): array
@@ -232,6 +234,7 @@ class CanvasPostImporter
         try {
             // Add to Media Library with caption support
             $post->addMedia($sourceFile)
+                ->preservingOriginal()
                 ->usingName(pathinfo($filename, PATHINFO_FILENAME))
                 ->usingFileName(basename($filename))
                 ->withCustomProperties([

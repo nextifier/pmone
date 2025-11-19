@@ -234,14 +234,22 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
 
             // Generate username from name if not provided
             if (empty($model->username) && ! empty($model->name)) {
-                // First lowercase, then remove spaces and special characters
-                $cleaned = strtolower(trim($model->name));
-                $cleaned = str_replace(' ', '', $cleaned);
+                // Extract first name only (first word before space)
+                $firstName = explode(' ', trim($model->name))[0];
+
+                // Lowercase and remove special characters
+                $cleaned = strtolower($firstName);
                 $baseUsername = preg_replace('/[^a-z0-9._]/', '', $cleaned);
+
+                // If baseUsername is empty after cleaning, use email prefix
+                if (empty($baseUsername) && ! empty($model->email)) {
+                    $baseUsername = explode('@', $model->email)[0];
+                    $baseUsername = preg_replace('/[^a-z0-9._]/', '', strtolower($baseUsername));
+                }
 
                 $username = $baseUsername;
                 $counter = 1;
-                $maxAttempts = 10; // Reduced from 1000 to prevent performance issues
+                $maxAttempts = 10;
 
                 // Ensure username is unique (retry with numeric suffix if taken)
                 while (static::where('username', $username)->exists()) {

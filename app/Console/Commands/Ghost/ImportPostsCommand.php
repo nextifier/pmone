@@ -10,7 +10,7 @@ use Illuminate\Console\Command;
 class ImportPostsCommand extends Command
 {
     protected $signature = 'ghost:import-posts
-                            {--limit=10 : Number of posts to import (default: 10, use 0 for all)}
+                            {--limit= : Number of posts to import (leave empty for all)}
                             {--dry-run : Run without saving to database}
                             {--skip-tags : Skip importing tags}';
 
@@ -20,13 +20,9 @@ class ImportPostsCommand extends Command
     {
         $this->info('Starting Ghost posts import...');
 
-        $limit = (int) $this->option('limit');
+        $limit = $this->option('limit') ? (int) $this->option('limit') : null;
         $dryRun = $this->option('dry-run');
         $skipTags = $this->option('skip-tags');
-
-        if ($limit === 0) {
-            $limit = null; // Import all
-        }
 
         try {
             // Initialize importer

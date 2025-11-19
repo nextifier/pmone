@@ -129,6 +129,9 @@ class Post extends Model implements HasMedia
         'reading_time',
         'settings',
         'source',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     protected function casts(): array
@@ -178,7 +181,8 @@ class Post extends Model implements HasMedia
                 $model->meta_description = Str::limit($model->excerpt, 160);
             }
 
-            if (auth()->check()) {
+            // Only set created_by if not already set (for imports)
+            if (empty($model->created_by) && auth()->check()) {
                 $model->created_by = auth()->id();
             }
         });

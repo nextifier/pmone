@@ -137,6 +137,10 @@ definePageMeta({
 
 usePageMeta("posts");
 
+defineOptions({
+  name: "posts",
+});
+
 const { $dayjs } = useNuxtApp();
 const { formatDate } = useFormatters();
 

@@ -185,7 +185,18 @@ class UserController extends Controller
                 $linksData = $userData['links'] ?? [];
                 unset($userData['links']);
 
-                $userData['password'] = Hash::make($userData['password']);
+                // Auto-generate name from email if not provided
+                if (empty($userData['name'])) {
+                    $userData['name'] = explode('@', $userData['email'])[0];
+                }
+
+                // Hash password only if provided
+                if (! empty($userData['password'])) {
+                    $userData['password'] = Hash::make($userData['password']);
+                } else {
+                    unset($userData['password']);
+                }
+
                 $userData['status'] = $userData['status'] ?? 'active';
                 $userData['visibility'] = $userData['visibility'] ?? 'public';
 

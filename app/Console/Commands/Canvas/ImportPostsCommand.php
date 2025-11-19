@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands\Canvas;
 
+use App\Models\User;
 use App\Services\Canvas\CanvasImporter;
 use App\Services\Canvas\CanvasPostImporter;
 use Illuminate\Console\Command;
@@ -22,6 +23,11 @@ class ImportPostsCommand extends Command
         $dryRun = $this->option('dry-run');
 
         try {
+            // Ensure Balboa Estate user exists
+            if (! $dryRun) {
+                $this->ensureBalboaUserExists();
+            }
+
             // Initialize importer
             $importer = new CanvasImporter;
 
@@ -95,6 +101,29 @@ class ImportPostsCommand extends Command
             $this->error($e->getTraceAsString());
 
             return self::FAILURE;
+        }
+    }
+
+    protected function ensureBalboaUserExists(): void
+    {
+        $balboaUser = User::firstOrCreate(
+            ['email' => 'hello@balboaestate.id'],
+            [
+                'name' => 'Balboa Estate',
+                'status' => 'active',
+                'visibility' => 'public',
+            ]
+        );
+
+        if ($balboaUser->wasRecentlyCreated) {
+            $this->info('Created Balboa Estate user (hello@balboaestate.id)');
+
+            // Assign user role
+            if (method_exists($balboaUser, 'assignRole')) {
+                $balboaUser->assignRole('user');
+            }
+        } else {
+            $this->info('Balboa Estate user already exists');
         }
     }
 }
