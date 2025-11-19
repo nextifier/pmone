@@ -308,7 +308,6 @@ class GhostPostImporter
 
             // Attach author to post
             $post->authors()->attach($pmoneUserId, [
-                'role' => 'author',
                 'order' => $postAuthor['sort_order'] ?? 0,
             ]);
 
