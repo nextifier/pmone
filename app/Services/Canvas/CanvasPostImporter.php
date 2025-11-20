@@ -288,8 +288,8 @@ class CanvasPostImporter
         }
 
         if (! empty($tagsToAttach)) {
-            // Use the new syncTagsWithType method to prevent duplicates
-            $post->syncTagsWithType($tagsToAttach, 'post');
+            // Use syncPostTags to prevent duplicates
+            $post->syncPostTags($tagsToAttach);
 
             Log::info('Post tags attached', [
                 'post_id' => $post->id,

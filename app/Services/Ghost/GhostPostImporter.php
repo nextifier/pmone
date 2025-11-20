@@ -371,8 +371,8 @@ class GhostPostImporter
                 return is_array($tag->name) ? ($tag->name['en'] ?? reset($tag->name)) : $tag->name;
             })->toArray();
 
-            // Use the new syncTagsWithType method to prevent duplicates
-            $post->syncTagsWithType($tagNames, 'post');
+            // Use syncPostTags to prevent duplicates
+            $post->syncPostTags($tagNames);
 
             Log::info('Post tags attached', [
                 'post_id' => $post->id,

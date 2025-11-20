@@ -149,7 +149,7 @@ class PostController extends Controller
 
             // Attach tags with 'post' type
             if (isset($data['tags']) && is_array($data['tags'])) {
-                $post->syncTagsWithType($data['tags'], 'post');
+                $post->syncPostTags($data['tags']);
             }
 
             // Attach authors - default to authenticated user if none specified
@@ -206,7 +206,7 @@ class PostController extends Controller
 
             // Update tags if provided with 'post' type
             if (isset($data['tags']) && is_array($data['tags'])) {
-                $post->syncTagsWithType($data['tags'], 'post');
+                $post->syncPostTags($data['tags']);
             }
 
             // Update authors with roles and order

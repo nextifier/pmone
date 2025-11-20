@@ -492,36 +492,28 @@ class Post extends Model implements HasMedia
     }
 
     /**
-     * Sync tags with proper type handling to prevent duplicates
+     * Update existing NULL type tags before syncing to prevent duplicates
      *
-     * This method ensures tags are created/updated with the correct type
-     * and syncs them to the model without creating duplicates
+     * Since Spatie's findOrCreate() searches by name AND type, if a tag
+     * exists with type=NULL and we try to create with type='post', it will
+     * create a duplicate. This method updates NULL tags first.
      */
-    public function syncTagsWithType(array $tagNames, string $type = 'post'): void
+    public function syncPostTags(array $tagNames): void
     {
-        $tagIds = [];
-
         foreach ($tagNames as $tagName) {
-            // Find tag by name (case-insensitive) regardless of type
+            // Find tag by name regardless of type
             $existingTag = Tag::query()
                 ->whereRaw("LOWER(name->>'en') = ?", [strtolower($tagName)])
+                ->whereNull('type')
                 ->first();
 
+            // Update type to 'post' if found
             if ($existingTag) {
-                // Update type if it's NULL or different
-                if ($existingTag->type === null || $existingTag->type !== $type) {
-                    $existingTag->update(['type' => $type]);
-                }
-                $tagIds[] = $existingTag->id;
-            } else {
-                // Create new tag with the specified type
-                $newTag = Tag::findOrCreate($tagName, $type);
-                $tagIds[] = $newTag->id;
+                $existingTag->update(['type' => 'post']);
             }
         }
 
-        // Sync using tag IDs directly instead of names
-        // This prevents Spatie from creating new tags
-        $this->tags()->sync($tagIds);
+        // Now use native Spatie syncTagsWithType
+        $this->syncTagsWithType($tagNames, 'post');
     }
 }
