@@ -22,7 +22,8 @@ class GhostPostImporter
     public function __construct(
         protected GhostImporter $importer,
         protected bool $dryRun = false,
-        protected ?int $limit = null
+        protected ?int $limit = null,
+        protected ?\Symfony\Component\Console\Helper\ProgressBar $progressBar = null
     ) {
         $this->ghostImagesPath = storage_path('app/post-migration/ghost/images');
     }
@@ -42,6 +43,9 @@ class GhostPostImporter
             try {
                 // Skip non-post types (e.g., pages)
                 if (($ghostPost['type'] ?? 'post') !== 'post') {
+                    // Advance progress bar even for skipped non-post types
+                    $this->progressBar?->advance();
+
                     continue;
                 }
 
@@ -64,6 +68,9 @@ class GhostPostImporter
                     'title' => $ghostPost['title'] ?? 'Unknown',
                     'error' => $e->getMessage(),
                 ]);
+            } finally {
+                // Update progress bar after processing each post
+                $this->progressBar?->advance();
             }
         }
 

@@ -62,8 +62,8 @@ class ImportPostsCommand extends Command
             $progressBar = $this->output->createProgressBar($totalPosts);
             $progressBar->start();
 
-            // Import posts with progress tracking
-            $postImporter = new CanvasPostImporter($importer, $dryRun, $limit);
+            // Import posts with progress tracking (pass progress bar to importer)
+            $postImporter = new CanvasPostImporter($importer, $dryRun, $limit, $progressBar);
             $result = $postImporter->import();
 
             $progressBar->finish();

@@ -24,7 +24,8 @@ class CanvasPostImporter
     public function __construct(
         protected CanvasImporter $importer,
         protected bool $dryRun = false,
-        protected ?int $limit = null
+        protected ?int $limit = null,
+        protected ?\Symfony\Component\Console\Helper\ProgressBar $progressBar = null
     ) {
         $this->canvasImagesPath = storage_path('app/post-migration/canvas/images');
 
@@ -57,6 +58,9 @@ class CanvasPostImporter
             try {
                 // Skip deleted posts
                 if (! empty($canvasPost['deleted_at'])) {
+                    // Advance progress bar even for skipped deleted posts
+                    $this->progressBar?->advance();
+
                     continue;
                 }
 
@@ -76,6 +80,9 @@ class CanvasPostImporter
                     'title' => $canvasPost['title'] ?? 'Unknown',
                     'error' => $e->getMessage(),
                 ]);
+            } finally {
+                // Update progress bar after processing each post
+                $this->progressBar?->advance();
             }
         }
 
