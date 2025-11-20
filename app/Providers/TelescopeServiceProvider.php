@@ -19,10 +19,16 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
         $this->hideSensitiveRequestDetails();
 
         $isLocal = $this->app->environment('local');
+        $logAllRequests = env('TELESCOPE_LOG_ALL_REQUESTS', false);
 
-        Telescope::filter(function (IncomingEntry $entry) use ($isLocal) {
-            return $isLocal ||
-                   $entry->isReportableException() ||
+        Telescope::filter(function (IncomingEntry $entry) use ($isLocal, $logAllRequests) {
+            // In local environment or when explicitly enabled, log everything
+            if ($isLocal || $logAllRequests) {
+                return true;
+            }
+
+            // In production (when TELESCOPE_LOG_ALL_REQUESTS is false), only log important events
+            return $entry->isReportableException() ||
                    $entry->isFailedRequest() ||
                    $entry->isFailedJob() ||
                    $entry->isScheduledTask() ||

@@ -61,6 +61,12 @@ class GhostTagImporter
             ->first();
 
         if ($existingTag) {
+            // Update type to 'post' if it's NULL
+            if ($existingTag->type === null) {
+                $existingTag->update(['type' => 'post']);
+                Log::info('Updated existing tag type to post', ['name' => $ghostTag['name']]);
+            }
+
             $this->skipped++;
             $this->importer->setMapping('tags', $ghostTag['id'], $existingTag->id);
             Log::info('Tag already exists, skipping', ['name' => $ghostTag['name']]);
@@ -68,8 +74,8 @@ class GhostTagImporter
             return;
         }
 
-        // Create tag using Spatie Tags
-        $tag = Tag::findOrCreate($ghostTag['name'], null);
+        // Create tag using Spatie Tags with 'post' type
+        $tag = Tag::findOrCreate($ghostTag['name'], 'post');
 
         // Update slug to match Ghost slug
         $tag->update([
