@@ -390,10 +390,7 @@ const columns = [
           class: "text-sm tracking-tight hover:underline inline-flex items-center gap-x-1",
         },
         {
-          default: () => [
-            h(resolveComponent("Icon"), { name: "lucide:file-text", class: "size-3.5 shrink-0" }),
-            h("span", {}, postsCount.toString()),
-          ],
+          default: () => [h("span", {}, postsCount.toString())],
         }
       );
     },
