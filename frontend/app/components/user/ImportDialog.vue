@@ -21,9 +21,10 @@
                 <p class="font-medium">Import Instructions:</p>
                 <ul class="text-muted-foreground list-inside list-disc space-y-1">
                   <li>Download the template file with sample data</li>
-                  <li>Only <strong>Name</strong> and <strong>Email</strong> are required</li>
+                  <li>Only <strong>Email</strong> is required</li>
+                  <li>Name will be auto-generated from email if left empty</li>
+                  <li>Password is optional - users will have no password if left empty</li>
                   <li>Supported formats: CSV, XLS, XLSX (max 5MB)</li>
-                  <li>Default password: "password" for all imported users</li>
                   <li>Default role: "user" if roles not specified</li>
                   <li>Multiple roles separated by commas (e.g., "admin,staff")</li>
                   <li>Date format: YYYY-MM-DD (e.g., 1990-01-15)</li>
