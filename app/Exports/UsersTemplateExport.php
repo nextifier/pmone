@@ -8,9 +8,10 @@ class UsersTemplateExport extends BaseTemplateExport
     {
         return [
             [
+                'john.doe@example.com',
+                '',
                 'John Doe',
                 'johndoe',
-                'john.doe@example.com',
                 'User',
                 '+6281234567890',
                 '1990-01-15',
@@ -23,9 +24,10 @@ class UsersTemplateExport extends BaseTemplateExport
                 'https://www.instagram.com/johndoe',
             ],
             [
+                'jane.smith@example.com',
+                '',
                 'Jane Smith',
                 'janesmith',
-                'jane.smith@example.com',
                 'Admin, Staff',
                 '+6287654321098',
                 '1995-05-20',
@@ -43,9 +45,10 @@ class UsersTemplateExport extends BaseTemplateExport
     public function headings(): array
     {
         return [
+            'Email',
+            'Password',
             'Name',
             'Username',
-            'Email',
             'Roles',
             'Phone',
             'Birth Date',
@@ -61,6 +64,6 @@ class UsersTemplateExport extends BaseTemplateExport
 
     protected function phoneColumns(): array
     {
-        return ['E'];
+        return ['F'];
     }
 }

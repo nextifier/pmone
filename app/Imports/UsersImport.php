@@ -54,9 +54,12 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
 
     public function model(array $row): ?User
     {
-        // Create user
-        $user = User::create([
-            'name' => $row['name'],
+        // Auto-generate name from email if not provided
+        $name = ! empty($row['name']) ? $row['name'] : explode('@', $row['email'])[0];
+
+        // Prepare user data
+        $userData = [
+            'name' => $name,
             'email' => $row['email'],
             'username' => $row['username'] ?? null,
             'phone' => $row['phone'] ?? null,
@@ -66,8 +69,15 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
             'bio' => $row['bio'] ?? null,
             'status' => $row['status'] ?? 'active',
             'visibility' => $row['visibility'] ?? 'public',
-            'password' => Hash::make('password'),
-        ]);
+        ];
+
+        // Only add password if provided
+        if (! empty($row['password'])) {
+            $userData['password'] = Hash::make($row['password']);
+        }
+
+        // Create user
+        $user = User::create($userData);
 
         // Assign roles if provided, otherwise assign 'user' role
         if (! empty($row['roles'])) {
@@ -105,8 +115,9 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['nullable', 'string', 'min:8'],
+            'name' => ['nullable', 'string', 'max:255'],
             'username' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._]+$/', 'unique:users,username'],
             'roles' => ['nullable', 'string'],
             'phone' => ['nullable', 'string', 'max:20'],
