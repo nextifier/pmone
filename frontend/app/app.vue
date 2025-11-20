@@ -8,6 +8,7 @@
           :keepalive="{
             include: [
               'posts',
+              'users',
               // 'web-analytics',
               // 'web-analytics-id'
             ],

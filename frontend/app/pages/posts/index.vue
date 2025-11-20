@@ -342,7 +342,11 @@ const columns = [
       if (!creator) {
         return h("span", { class: "text-muted-foreground text-sm" }, "-");
       }
-      return h(resolveComponent("UserProfile"), { user: creator });
+      //   return h(resolveComponent("UserProfile"), { user: creator });
+      return h("div", { class: "flex items-center gap-x-1.5" }, [
+        h(resolveComponent("Avatar"), { model: creator, class: "size-7" }),
+        h("span", { class: "text-muted-foreground text-sm" }, creator.name),
+      ]);
     },
     size: 150,
     enableSorting: false,

@@ -194,7 +194,7 @@ const { $dayjs } = useNuxtApp();
 
 // Table state
 const columnFilters = ref([]);
-const pagination = ref({ pageIndex: 0, pageSize: 10 });
+const pagination = ref({ pageIndex: 0, pageSize: 20 });
 const sorting = ref([{ id: "created_at", desc: true }]);
 
 // Data state
