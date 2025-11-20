@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\PublicBlogController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ShortLinkController;
+use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\TemporaryUploadController;
 use App\Http\Controllers\Api\TrackingController;
 use App\Http\Controllers\Api\UserController;
@@ -227,6 +228,12 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('posts')->group(function
 // Public post routes (must be after authenticated routes to avoid conflicts)
 Route::prefix('posts')->group(function () {
     Route::get('/{post:slug}', [PostController::class, 'show'])->name('posts.show');
+});
+
+// Tag management endpoints (authenticated + verified)
+Route::middleware(['auth:sanctum', 'verified'])->prefix('tags')->group(function () {
+    Route::get('/', [TagController::class, 'index'])->name('tags.index');
+    Route::get('/{slug}', [TagController::class, 'show'])->name('tags.show');
 });
 
 // Category management endpoints (authenticated + verified)
