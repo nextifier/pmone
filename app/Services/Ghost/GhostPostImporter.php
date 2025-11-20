@@ -368,8 +368,8 @@ class GhostPostImporter
             // Get tag objects
             $tags = Tag::query()->whereIn('id', $tagsToAttach)->get();
 
-            // Attach tags using Spatie Tags
-            $post->syncTags($tags);
+            // Attach tags using Spatie Tags with 'post' type
+            $post->syncTags($tags, 'post');
 
             Log::info('Post tags attached', [
                 'post_id' => $post->id,

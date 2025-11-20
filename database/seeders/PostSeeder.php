@@ -64,8 +64,8 @@ class PostSeeder extends Seeder
         $visibility = fake()->randomElement(['public', 'public', 'public', 'members_only', 'private']);
         $post->update(['visibility' => $visibility]);
 
-        // Attach 2-5 tags
+        // Attach 2-5 tags with 'post' type
         $postTags = fake()->randomElements($this->tags, fake()->numberBetween(2, 5));
-        $post->syncTags($postTags);
+        $post->syncTags($postTags, 'post');
     }
 }

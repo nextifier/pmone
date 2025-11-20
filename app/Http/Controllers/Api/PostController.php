@@ -147,9 +147,9 @@ class PostController extends Controller
             // Create post
             $post = Post::create($data);
 
-            // Attach tags
+            // Attach tags with 'post' type
             if (isset($data['tags'])) {
-                $post->syncTags($data['tags']);
+                $post->syncTags($data['tags'], 'post');
             }
 
             // Attach authors - default to authenticated user if none specified
@@ -204,9 +204,9 @@ class PostController extends Controller
             // Update post
             $post->update($data);
 
-            // Update tags if provided
+            // Update tags if provided with 'post' type
             if (isset($data['tags'])) {
-                $post->syncTags($data['tags']);
+                $post->syncTags($data['tags'], 'post');
             }
 
             // Update authors with roles and order

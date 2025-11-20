@@ -292,8 +292,8 @@ class CanvasPostImporter
         }
 
         if (! empty($tagsToAttach)) {
-            // Attach tags using Spatie Tags
-            $post->syncTags($tagsToAttach);
+            // Attach tags using Spatie Tags with 'post' type
+            $post->syncTags($tagsToAttach, 'post');
 
             Log::info('Post tags attached', [
                 'post_id' => $post->id,
