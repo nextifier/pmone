@@ -8,7 +8,6 @@ use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Spatie\Tags\Tag;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -150,8 +149,7 @@ class PostController extends Controller
 
             // Attach tags with 'post' type
             if (isset($data['tags']) && is_array($data['tags'])) {
-                $this->ensureTagsHaveType($data['tags'], 'post');
-                $post->syncTags($data['tags'], 'post');
+                $post->syncTagsWithType($data['tags'], 'post');
             }
 
             // Attach authors - default to authenticated user if none specified
@@ -208,8 +206,7 @@ class PostController extends Controller
 
             // Update tags if provided with 'post' type
             if (isset($data['tags']) && is_array($data['tags'])) {
-                $this->ensureTagsHaveType($data['tags'], 'post');
-                $post->syncTags($data['tags'], 'post');
+                $post->syncTagsWithType($data['tags'], 'post');
             }
 
             // Update authors with roles and order
@@ -711,28 +708,5 @@ class PostController extends Controller
         }
 
         return $html;
-    }
-
-    /**
-     * Ensure all tags have the specified type, updating NULL-type tags to prevent duplicates
-     */
-    private function ensureTagsHaveType(array $tagNames, string $type): void
-    {
-        foreach ($tagNames as $tagName) {
-            // Find tag by name (JSON field), regardless of type
-            $existingTag = Tag::query()
-                ->whereRaw("LOWER(name->>'en') = ?", [strtolower($tagName)])
-                ->first();
-
-            if ($existingTag) {
-                // If tag exists with NULL or different type, update it
-                if ($existingTag->type === null || $existingTag->type !== $type) {
-                    $existingTag->update(['type' => $type]);
-                }
-            } else {
-                // Create new tag with the specified type
-                Tag::findOrCreate($tagName, $type);
-            }
-        }
     }
 }

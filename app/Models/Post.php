@@ -16,6 +16,7 @@ use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Tags\HasTags;
+use Spatie\Tags\Tag;
 
 /**
  * @property int $id
@@ -488,5 +489,39 @@ class Post extends Model implements HasMedia
             'status' => 'scheduled',
             'published_at' => $publishAt,
         ]);
+    }
+
+    /**
+     * Sync tags with proper type handling to prevent duplicates
+     *
+     * This method ensures tags are created/updated with the correct type
+     * and syncs them to the model without creating duplicates
+     */
+    public function syncTagsWithType(array $tagNames, string $type = 'post'): void
+    {
+        $tagIds = [];
+
+        foreach ($tagNames as $tagName) {
+            // Find tag by name (case-insensitive) regardless of type
+            $existingTag = Tag::query()
+                ->whereRaw("LOWER(name->>'en') = ?", [strtolower($tagName)])
+                ->first();
+
+            if ($existingTag) {
+                // Update type if it's NULL or different
+                if ($existingTag->type === null || $existingTag->type !== $type) {
+                    $existingTag->update(['type' => $type]);
+                }
+                $tagIds[] = $existingTag->id;
+            } else {
+                // Create new tag with the specified type
+                $newTag = Tag::findOrCreate($tagName, $type);
+                $tagIds[] = $newTag->id;
+            }
+        }
+
+        // Sync using tag IDs directly instead of names
+        // This prevents Spatie from creating new tags
+        $this->tags()->sync($tagIds);
     }
 }

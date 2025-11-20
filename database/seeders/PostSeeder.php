@@ -66,6 +66,6 @@ class PostSeeder extends Seeder
 
         // Attach 2-5 tags with 'post' type
         $postTags = fake()->randomElements($this->tags, fake()->numberBetween(2, 5));
-        $post->syncTags($postTags, 'post');
+        $post->syncTagsWithType($postTags, 'post');
     }
 }
