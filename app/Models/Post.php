@@ -437,7 +437,7 @@ class Post extends Model implements HasMedia
      */
     public function scopeByTag($query, string $tagName)
     {
-        return $query->withAnyTags([$tagName]);
+        return $query->withAnyTags([$tagName], 'post');
     }
 
     /**
