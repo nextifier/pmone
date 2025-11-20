@@ -214,7 +214,10 @@ class Post extends Model implements HasMedia
 
             // Auto-cleanup media when post is force deleted
             if ($model->isForceDeleting()) {
-                $model->clearMediaCollection();
+                // Delete all media collections (featured_image, og_image, content_images)
+                foreach (array_keys($model->getMediaCollections()) as $collectionName) {
+                    $model->clearMediaCollection($collectionName);
+                }
             }
         });
     }

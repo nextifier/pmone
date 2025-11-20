@@ -4,6 +4,8 @@ use App\Models\Category;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -220,6 +222,47 @@ test('user can permanently delete a post', function () {
     $response->assertSuccessful();
 
     $this->assertDatabaseMissing('posts', ['id' => $post->id]);
+});
+
+test('permanently deleting a post deletes all images', function () {
+    Storage::fake('public');
+
+    $post = Post::factory()->create(['created_by' => $this->user->id]);
+
+    // Add featured image
+    $featuredImage = UploadedFile::fake()->image('featured.jpg');
+    $post->addMedia($featuredImage)->toMediaCollection('featured_image');
+
+    // Add og image
+    $ogImage = UploadedFile::fake()->image('og.jpg');
+    $post->addMedia($ogImage)->toMediaCollection('og_image');
+
+    // Add content images
+    $contentImage1 = UploadedFile::fake()->image('content1.jpg');
+    $post->addMedia($contentImage1)->toMediaCollection('content_images');
+
+    $contentImage2 = UploadedFile::fake()->image('content2.jpg');
+    $post->addMedia($contentImage2)->toMediaCollection('content_images');
+
+    // Verify all images are added
+    expect($post->getMedia('featured_image'))->toHaveCount(1);
+    expect($post->getMedia('og_image'))->toHaveCount(1);
+    expect($post->getMedia('content_images'))->toHaveCount(2);
+
+    $mediaCount = $post->media()->count();
+    expect($mediaCount)->toBe(4);
+
+    // Soft delete first, then permanently delete
+    $post->delete();
+    $response = $this->deleteJson("/api/posts/trash/{$post->id}");
+
+    $response->assertSuccessful();
+
+    // Verify post is deleted from database
+    $this->assertDatabaseMissing('posts', ['id' => $post->id]);
+
+    // Verify all media records are deleted from the database
+    $this->assertDatabaseMissing('media', ['model_type' => Post::class, 'model_id' => $post->id]);
 });
 
 // Bulk Operations Tests

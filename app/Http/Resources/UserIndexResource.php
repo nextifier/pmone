@@ -28,6 +28,9 @@ class UserIndexResource extends JsonResource
             // Roles - optimized to avoid duplicate queries
             'roles' => $this->whenLoaded('roles', fn () => $this->roles->pluck('name')),
 
+            // Counts
+            'posts_count' => $this->when(isset($this->posts_count), $this->posts_count ?? 0),
+
             // Tracking fields
             'created_by' => $this->created_by,
             'updated_by' => $this->updated_by,
