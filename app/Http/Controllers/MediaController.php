@@ -17,7 +17,7 @@ class MediaController extends Controller
     protected const FILE_TYPE_CONFIGS = [
         'images' => [
             'mime_types' => ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'],
-            'max_size' => 10240,
+            'max_size' => 20480, // 20MB
             'supports_conversions' => true,
         ],
         'documents' => [
@@ -30,7 +30,7 @@ class MediaController extends Controller
                 'text/csv',
                 'text/plain',
             ],
-            'max_size' => 10240, // 10MB
+            'max_size' => 20480, // 20MB
             'supports_conversions' => false,
         ],
         'videos' => [
@@ -547,12 +547,12 @@ class MediaController extends Controller
             'profile_image' => [
                 'single_file' => true,
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
-                'max_size' => 10240,
+                'max_size' => 20480,
             ],
             'cover_image' => [
                 'single_file' => true,
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
-                'max_size' => 10240,
+                'max_size' => 20480,
             ],
         ];
 

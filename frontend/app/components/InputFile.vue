@@ -41,7 +41,7 @@ const props = defineProps({
   },
   maxFileSize: {
     type: String,
-    default: "10MB",
+    default: "20MB",
   },
   allowMultiple: {
     type: Boolean,

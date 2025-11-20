@@ -311,17 +311,17 @@ class Post extends Model implements HasMedia
             'featured_image' => [
                 'single_file' => true,
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
-                'max_size' => 10240, // 10MB
+                'max_size' => 20480, // 20MB
             ],
             'og_image' => [
                 'single_file' => true,
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
-                'max_size' => 10240, // 10MB
+                'max_size' => 20480, // 20MB
             ],
             'content_images' => [
                 'single_file' => false,
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'],
-                'max_size' => 5120, // 5MB per image
+                'max_size' => 20480, // 20MB per image
             ],
         ];
     }
