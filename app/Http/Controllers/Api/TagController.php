@@ -15,9 +15,7 @@ class TagController extends Controller
     {
         $query = Tag::query()
             ->where('type', 'post')
-            ->withCount(['posts' => function ($query) {
-                $query->where('taggable_type', 'App\Models\Post');
-            }]);
+            ->selectRaw('tags.*, (SELECT COUNT(*) FROM taggables WHERE taggables.tag_id = tags.id AND taggables.taggable_type = ?) as posts_count', ['App\Models\Post']);
 
         // Sort by posts count (descending) or name (ascending)
         $sortField = $request->input('sort', '-posts_count');
@@ -66,9 +64,7 @@ class TagController extends Controller
         $tag = Tag::query()
             ->where('type', 'post')
             ->where(DB::raw("slug->>'en'"), $slug)
-            ->withCount(['posts' => function ($query) {
-                $query->where('taggable_type', 'App\Models\Post');
-            }])
+            ->selectRaw('tags.*, (SELECT COUNT(*) FROM taggables WHERE taggables.tag_id = tags.id AND taggables.taggable_type = ?) as posts_count', ['App\Models\Post'])
             ->firstOrFail();
 
         return response()->json([

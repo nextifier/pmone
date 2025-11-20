@@ -77,9 +77,9 @@ class GaPropertiesImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, Wit
             'sync_frequency' => (int) ($row['sync_frequency'] ?? 10),
         ]);
 
-        // Sync tags if provided
+        // Sync tags if provided with 'analytics' type
         if (isset($row['tags']) && is_array($row['tags']) && ! empty($row['tags'])) {
-            $property->syncTags($row['tags']);
+            $property->syncTags($row['tags'], 'analytics');
         }
 
         $this->importedCount++;

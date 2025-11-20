@@ -126,9 +126,9 @@ class GoogleAnalyticsController extends Controller
             'sync_frequency' => $request->input('sync_frequency', 10),
         ]);
 
-        // Sync tags if provided
+        // Sync tags if provided with 'analytics' type
         if ($request->has('tags')) {
-            $property->syncTags($request->input('tags'));
+            $property->syncTags($request->input('tags'), 'analytics');
         }
 
         // Load relationships for response
@@ -155,9 +155,9 @@ class GoogleAnalyticsController extends Controller
             'sync_frequency',
         ]));
 
-        // Sync tags if provided
+        // Sync tags if provided with 'analytics' type
         if ($request->has('tags')) {
-            $property->syncTags($request->input('tags'));
+            $property->syncTags($request->input('tags'), 'analytics');
         }
 
         // Load relationships for response
