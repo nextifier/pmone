@@ -8,6 +8,7 @@ use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Spatie\Tags\Tag;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -148,7 +149,11 @@ class PostController extends Controller
             $post = Post::create($data);
 
             // Attach tags with 'post' type
-            if (isset($data['tags'])) {
+            if (isset($data['tags']) && is_array($data['tags'])) {
+                // Ensure all tags are created/updated with 'post' type first
+                foreach ($data['tags'] as $tagName) {
+                    Tag::findOrCreate($tagName, 'post');
+                }
                 $post->syncTags($data['tags'], 'post');
             }
 
@@ -205,7 +210,11 @@ class PostController extends Controller
             $post->update($data);
 
             // Update tags if provided with 'post' type
-            if (isset($data['tags'])) {
+            if (isset($data['tags']) && is_array($data['tags'])) {
+                // Ensure all tags are created/updated with 'post' type first
+                foreach ($data['tags'] as $tagName) {
+                    Tag::findOrCreate($tagName, 'post');
+                }
                 $post->syncTags($data['tags'], 'post');
             }
 
