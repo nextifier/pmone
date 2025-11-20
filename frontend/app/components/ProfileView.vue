@@ -43,16 +43,6 @@
             class="size-full scale-150 object-cover blur-[80px]"
             loading="lazy"
           />
-
-          <img
-            v-else
-            src="/img/placeholder/placeholder-cover-image.jpg"
-            alt=""
-            class="size-full object-cover opacity-25 mix-blend-luminosity contrast-150"
-            width="1500"
-            height="500"
-            loading="lazy"
-          />
         </div>
 
         <BackButton v-if="showBackButton" v-slot="{ goBack }" :destination="backDestination">

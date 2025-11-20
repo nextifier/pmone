@@ -41,8 +41,9 @@ defineOptions({
   name: "tags",
 });
 
-usePageMeta("tags");
-
+usePageMeta(null, {
+  title: "Tags",
+});
 const { $dayjs } = useNuxtApp();
 
 // Table state
@@ -155,32 +156,29 @@ const columns = [
       return h(
         "div",
         { class: "flex items-center gap-x-1.5 text-sm tracking-tight text-muted-foreground" },
-        [
-          h(resolveComponent("Icon"), { name: "lucide:file-text", class: "size-3.5 shrink-0" }),
-          h("span", {}, count.toLocaleString()),
-        ]
+        [h("span", {}, count.toLocaleString())]
       );
     },
     size: 100,
     enableSorting: true,
   },
-  {
-    header: "Created",
-    accessorKey: "created_at",
-    cell: ({ row }) => {
-      const date = row.getValue("created_at");
-      return withDirectives(
-        h(
-          "div",
-          { class: "text-sm text-muted-foreground tracking-tight" },
-          $dayjs(date).fromNow()
-        ),
-        [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
-      );
-    },
-    size: 120,
-    enableSorting: true,
-  },
+  //   {
+  //     header: "Created",
+  //     accessorKey: "created_at",
+  //     cell: ({ row }) => {
+  //       const date = row.getValue("created_at");
+  //       return withDirectives(
+  //         h(
+  //           "div",
+  //           { class: "text-sm text-muted-foreground tracking-tight" },
+  //           $dayjs(date).fromNow()
+  //         ),
+  //         [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
+  //       );
+  //     },
+  //     size: 120,
+  //     enableSorting: true,
+  //   },
 ];
 
 // Table ref

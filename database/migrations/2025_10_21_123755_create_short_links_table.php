@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('short_links', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('slug')->unique();
+            $table->string('slug')->nullable();
             $table->text('destination_url');
             $table->string('og_title')->nullable();
             $table->text('og_description')->nullable();

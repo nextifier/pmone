@@ -8,6 +8,14 @@
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <nuxt-link
+          to="/tags"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+        >
+          <Icon name="hugeicons:tag-01" class="size-4 shrink-0" />
+          <span>Tags</span>
+        </nuxt-link>
+
+        <nuxt-link
           to="/posts/trash"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
@@ -141,7 +149,9 @@ definePageMeta({
   layout: "app",
 });
 
-usePageMeta("posts");
+usePageMeta(null, {
+  title: "Posts",
+});
 
 defineOptions({
   name: "posts",

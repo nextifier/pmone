@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->ulid()->unique();
             $table->string('title');
-            $table->string('slug')->unique();
+            $table->string('slug')->nullable();
             $table->text('excerpt')->nullable();
             $table->longText('content');
             $table->enum('content_format', ['html', 'markdown', 'lexical'])->default('html');
