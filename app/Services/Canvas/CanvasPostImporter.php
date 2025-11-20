@@ -279,21 +279,17 @@ class CanvasPostImporter
         $tagsToAttach = [];
 
         foreach ($allTags as $canvasTag) {
-            // Find or create tag in PM One using Spatie Tags
-            $tag = Tag::findOrCreate($canvasTag['name'], 'post');
+            $tagsToAttach[] = $canvasTag['name'];
 
-            $tagsToAttach[] = $tag;
-
-            Log::info('Tag found/created', [
+            Log::info('Tag to attach', [
                 'canvas_tag_id' => $canvasTag['id'],
                 'canvas_tag_name' => $canvasTag['name'],
-                'pmone_tag_id' => $tag->id,
             ]);
         }
 
         if (! empty($tagsToAttach)) {
-            // Attach tags using Spatie Tags with 'post' type
-            $post->syncTags($tagsToAttach, 'post');
+            // Use the new syncTagsWithType method to prevent duplicates
+            $post->syncTagsWithType($tagsToAttach, 'post');
 
             Log::info('Post tags attached', [
                 'post_id' => $post->id,

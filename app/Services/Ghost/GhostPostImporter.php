@@ -365,15 +365,18 @@ class GhostPostImporter
         }
 
         if (! empty($tagsToAttach)) {
-            // Get tag objects
+            // Get tag names from IDs
             $tags = Tag::query()->whereIn('id', $tagsToAttach)->get();
+            $tagNames = $tags->map(function ($tag) {
+                return is_array($tag->name) ? ($tag->name['en'] ?? reset($tag->name)) : $tag->name;
+            })->toArray();
 
-            // Attach tags using Spatie Tags with 'post' type
-            $post->syncTags($tags, 'post');
+            // Use the new syncTagsWithType method to prevent duplicates
+            $post->syncTagsWithType($tagNames, 'post');
 
             Log::info('Post tags attached', [
                 'post_id' => $post->id,
-                'tags_count' => count($tagsToAttach),
+                'tags_count' => count($tagNames),
             ]);
         }
     }

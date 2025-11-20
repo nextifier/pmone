@@ -8,7 +8,6 @@ use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Spatie\Tags\Tag;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -150,7 +149,7 @@ class PostController extends Controller
 
             // Attach tags with 'post' type
             if (isset($data['tags']) && is_array($data['tags'])) {
-                $this->syncTagsWithType($post, $data['tags'], 'post');
+                $post->syncTagsWithType($data['tags'], 'post');
             }
 
             // Attach authors - default to authenticated user if none specified
@@ -207,7 +206,7 @@ class PostController extends Controller
 
             // Update tags if provided with 'post' type
             if (isset($data['tags']) && is_array($data['tags'])) {
-                $this->syncTagsWithType($post, $data['tags'], 'post');
+                $post->syncTagsWithType($data['tags'], 'post');
             }
 
             // Update authors with roles and order
@@ -709,39 +708,5 @@ class PostController extends Controller
         }
 
         return $html;
-    }
-
-    /**
-     * Sync tags with proper type handling to prevent duplicates
-     *
-     * This method ensures tags are created/updated with the correct type
-     * and syncs them to the model without creating duplicates
-     */
-    private function syncTagsWithType($model, array $tagNames, string $type): void
-    {
-        $tagIds = [];
-
-        foreach ($tagNames as $tagName) {
-            // Find tag by name (case-insensitive) regardless of type
-            $existingTag = Tag::query()
-                ->whereRaw("LOWER(name->>'en') = ?", [strtolower($tagName)])
-                ->first();
-
-            if ($existingTag) {
-                // Update type if it's NULL or different
-                if ($existingTag->type === null || $existingTag->type !== $type) {
-                    $existingTag->update(['type' => $type]);
-                }
-                $tagIds[] = $existingTag->id;
-            } else {
-                // Create new tag with the specified type
-                $newTag = Tag::findOrCreate($tagName, $type);
-                $tagIds[] = $newTag->id;
-            }
-        }
-
-        // Sync using tag IDs directly instead of names
-        // This prevents Spatie from creating new tags
-        $model->tags()->sync($tagIds);
     }
 }
