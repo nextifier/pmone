@@ -150,10 +150,7 @@ class PostController extends Controller
 
             // Attach tags with 'post' type
             if (isset($data['tags']) && is_array($data['tags'])) {
-                // Ensure all tags are created/updated with 'post' type first
-                foreach ($data['tags'] as $tagName) {
-                    Tag::findOrCreate($tagName, 'post');
-                }
+                $this->ensureTagsHaveType($data['tags'], 'post');
                 $post->syncTags($data['tags'], 'post');
             }
 
@@ -211,10 +208,7 @@ class PostController extends Controller
 
             // Update tags if provided with 'post' type
             if (isset($data['tags']) && is_array($data['tags'])) {
-                // Ensure all tags are created/updated with 'post' type first
-                foreach ($data['tags'] as $tagName) {
-                    Tag::findOrCreate($tagName, 'post');
-                }
+                $this->ensureTagsHaveType($data['tags'], 'post');
                 $post->syncTags($data['tags'], 'post');
             }
 
@@ -717,5 +711,28 @@ class PostController extends Controller
         }
 
         return $html;
+    }
+
+    /**
+     * Ensure all tags have the specified type, updating NULL-type tags to prevent duplicates
+     */
+    private function ensureTagsHaveType(array $tagNames, string $type): void
+    {
+        foreach ($tagNames as $tagName) {
+            // Find tag by name (JSON field), regardless of type
+            $existingTag = Tag::query()
+                ->whereRaw("LOWER(name->>'en') = ?", [strtolower($tagName)])
+                ->first();
+
+            if ($existingTag) {
+                // If tag exists with NULL or different type, update it
+                if ($existingTag->type === null || $existingTag->type !== $type) {
+                    $existingTag->update(['type' => $type]);
+                }
+            } else {
+                // Create new tag with the specified type
+                Tag::findOrCreate($tagName, $type);
+            }
+        }
     }
 }
