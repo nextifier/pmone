@@ -142,22 +142,21 @@ class SmartAnalyticsCache
         string $cacheKey
     ): void {
         // Mark as refreshing to prevent duplicate jobs
-        Cache::put(CacheKey::refreshing($cacheKey), true, now()->addMinutes(5));
+        $refreshingKey = CacheKey::refreshing($cacheKey);
+        Cache::put($refreshingKey, true, now()->addMinutes(5));
 
-        // Dispatch job to fetch new data in background
-        dispatch(function () use ($property, $fetchCallback, $cacheKey) {
-            try {
-                $freshData = $fetchCallback();
-                $cacheDuration = $this->getDynamicCacheDuration($property);
+        // Get dynamic cache duration
+        $cacheDuration = $this->getDynamicCacheDuration($property);
 
-                Cache::put($cacheKey, $freshData, now()->addMinutes($cacheDuration));
-                Cache::put(CacheKey::timestamp($cacheKey), now(), now()->addMinutes($cacheDuration));
-            } catch (\Exception $e) {
-                \Log::error("Background cache refresh failed for {$cacheKey}: {$e->getMessage()}");
-            } finally {
-                Cache::forget(CacheKey::refreshing($cacheKey));
-            }
-        })->afterResponse();
+        // Dispatch job instead of closure to prevent memory leaks in Octane
+        dispatch(new \App\Jobs\RefreshPropertyCache(
+            propertyId: $property->id,
+            startDate: $startDate,
+            endDate: $endDate,
+            cacheKey: $cacheKey,
+            refreshingKey: $refreshingKey,
+            cacheDuration: $cacheDuration
+        ));
     }
 
     /**

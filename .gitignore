@@ -39,3 +39,7 @@ _ide_helper_models.php
 /frontend/dist
 /frontend/.env
 /frontend/temp
+
+**/caddy
+frankenphp
+frankenphp-worker.php

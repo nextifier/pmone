@@ -143,47 +143,14 @@ class DailyDataAggregator
             if (! Cache::has($refreshingKey)) {
                 Cache::put($refreshingKey, true, now()->addMinutes(30));
 
-                // Capture dataFetcher dependency for use in closure
-                $dataFetcher = $this->dataFetcher;
-                $ttl = self::DAILY_CACHE_TTL;
-
-                dispatch(function () use ($property, $cacheKey, $timestampKey, $refreshingKey, $dataFetcher, $ttl) {
-                    try {
-                        // Fetch 365 days of data with all data types
-                        $period = Period::days(365);
-
-                        // Fetch metrics
-                        $metricsResult = $dataFetcher->fetchMetrics($property, $period);
-                        $metricsData = isset($metricsResult['data']) ? $metricsResult['data'] : $metricsResult;
-
-                        // Fetch top pages with date dimension
-                        $topPages = $dataFetcher->fetchTopPagesDaily($property, $period, 100);
-
-                        // Fetch traffic sources with date dimension
-                        $trafficSources = $dataFetcher->fetchTrafficSourcesDaily($property, $period);
-
-                        // Fetch devices with date dimension
-                        $devices = $dataFetcher->fetchDevicesDaily($property, $period);
-
-                        $freshData = [
-                            'rows' => $metricsData['rows'] ?? [],
-                            'totals' => $metricsData['totals'] ?? [],
-                            'top_pages' => $topPages,
-                            'traffic_sources' => $trafficSources,
-                            'devices' => $devices,
-                        ];
-
-                        Cache::put($cacheKey, $freshData, now()->addMinutes($ttl));
-                        Cache::put($timestampKey, now(), now()->addMinutes($ttl));
-                    } catch (\Exception $e) {
-                        \Log::error('Failed to refresh daily data in background', [
-                            'property_id' => $property->property_id,
-                            'error' => $e->getMessage(),
-                        ]);
-                    } finally {
-                        Cache::forget($refreshingKey);
-                    }
-                })->afterResponse();
+                // Dispatch job instead of closure to prevent memory leaks in Octane
+                dispatch(new \App\Jobs\RefreshDailyCache(
+                    propertyId: $property->id,
+                    cacheKey: $cacheKey,
+                    timestampKey: $timestampKey,
+                    refreshingKey: $refreshingKey,
+                    ttl: self::DAILY_CACHE_TTL
+                ));
             }
 
             return [

@@ -46,8 +46,26 @@ return Application::configure(basePath: dirname(__DIR__))
         // Sync Google Analytics properties that need updating, run every 10 minutes
         $schedule->command('analytics:sync --days=30 --only-needed --queue')->everyTenMinutes();
 
-        // Aggregate analytics data for dashboard, run every 15 minutes
+        // Pre-compute analytics cache for common periods to ensure instant response
+        // These jobs run in background via Redis queue, users always get cached data instantly
+
+        // 7-day analytics - refresh every 10 minutes (most frequently used)
+        $schedule->job(new \App\Jobs\AggregateAnalyticsData(null, 7))->everyTenMinutes();
+
+        // 30-day analytics - refresh every 15 minutes (dashboard default)
         $schedule->job(new \App\Jobs\AggregateAnalyticsData(null, 30))->everyFifteenMinutes();
+
+        // 90-day analytics - refresh every 30 minutes
+        $schedule->job(new \App\Jobs\AggregateAnalyticsData(null, 90))->everyThirtyMinutes();
+
+        // 365-day analytics - refresh every hour
+        $schedule->job(new \App\Jobs\AggregateAnalyticsData(null, 365))->hourly();
+
+        // Named periods - refresh every 15 minutes
+        $schedule->job(new \App\Jobs\PreComputeNamedPeriodAnalytics)->everyFifteenMinutes();
+
+        // Realtime analytics - refresh every 2 minutes for live user counts
+        $schedule->job(new \App\Jobs\RefreshRealtimeAnalytics)->everyTwoMinutes();
 
         // Refresh 365-day analytics cache for all properties, run hourly
         // This ensures users always see fresh data without waiting

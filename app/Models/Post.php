@@ -53,7 +53,6 @@ use Spatie\Tags\HasTags;
  * @property-read \App\Models\User|null $updater
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
  * @property-read int|null $visits_count
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byCreator(int $userId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byStatus(string $status)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byTag(string $tagName)
@@ -101,7 +100,6 @@ use Spatie\Tags\HasTags;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class Post extends Model implements HasMedia
@@ -149,8 +147,6 @@ class Post extends Model implements HasMedia
         return [
             'slug' => [
                 'source' => 'title',
-                'unique' => true,
-                'onUpdate' => true,
             ],
         ];
     }

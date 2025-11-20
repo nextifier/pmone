@@ -360,91 +360,17 @@ class AnalyticsService
         $refreshingKey = CacheKey::refreshing($cacheKey);
         Cache::put($refreshingKey, true, now()->addMinutes(5));
 
-        // Bind aggregator to avoid context issues in closure
-        $aggregator = $this->aggregator;
-
         // Calculate days for sync log
         $days = $period->startDate->diffInDays($period->endDate) + 1;
 
-        dispatch(function () use ($period, $propertyIds, $cacheKey, $aggregator, $days, $refreshingKey) {
-            // Create sync log entry for aggregate dashboard sync
-            $syncLog = \App\Models\AnalyticsSyncLog::startSync(
-                syncType: 'aggregate',
-                gaPropertyId: null, // null for aggregate syncs
-                days: $days
-            );
-
-            try {
-                \Log::info("Background refresh started for {$cacheKey}", [
-                    'sync_log_id' => $syncLog->id,
-                ]);
-
-                // Build query for properties
-                $query = GaProperty::active()->with('project');
-                if ($propertyIds) {
-                    $query->whereIn('property_id', $propertyIds);
-                }
-
-                $totalCount = $query->count();
-
-                if ($totalCount === 0) {
-                    \Log::warning('No active properties found for background refresh');
-                    $syncLog->markFailed('No active properties found');
-
-                    return;
-                }
-
-                \Log::info("Fetching dashboard data for {$totalCount} properties");
-
-                // For large datasets, process in chunks to prevent memory issues
-                $chunkThreshold = config('analytics.chunking.chunk_threshold', 100);
-                if ($totalCount > $chunkThreshold) {
-                    $data = $this->aggregatePropertiesInChunks($query, $period, $totalCount);
-                } else {
-                    // For small datasets, fetch all at once
-                    $properties = $query->get();
-                    $data = $aggregator->getDashboardData($properties, $period);
-                }
-
-                // Store with 30-minute expiry
-                Cache::put($cacheKey, $data, now()->addMinutes(30));
-                Cache::put(CacheKey::timestamp($cacheKey), now(), now()->addMinutes(30));
-
-                // Store as "last known good data" that never expires (for instant fallback)
-                $lastSuccessKey = CacheKey::lastSuccess($cacheKey);
-                Cache::put($lastSuccessKey, $data, now()->addYears(10));
-
-                // Mark sync as successful with metadata
-                $syncLog->markSuccess([
-                    'properties_count' => $properties->count(),
-                    'has_totals' => ! empty($data['totals'] ?? []),
-                    'cache_key' => $cacheKey,
-                ]);
-
-                \Log::info('Aggregate cache refreshed successfully', [
-                    'cache_key' => $cacheKey,
-                    'last_success_key' => $lastSuccessKey,
-                    'properties_count' => $properties->count(),
-                    'has_totals' => ! empty($data['totals'] ?? []),
-                    'sync_log_id' => $syncLog->id,
-                ]);
-            } catch (\Exception $e) {
-                // Mark sync as failed
-                $syncLog->markFailed($e->getMessage(), [
-                    'cache_key' => $cacheKey,
-                    'exception_class' => get_class($e),
-                ]);
-
-                \Log::error('Background aggregate cache refresh failed', [
-                    'cache_key' => $cacheKey,
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                    'sync_log_id' => $syncLog->id,
-                ]);
-            } finally {
-                Cache::forget($refreshingKey);
-            }
-        })->afterResponse();
+        // Dispatch job instead of closure to prevent memory leaks in Octane
+        dispatch(new \App\Jobs\RefreshAggregateCache(
+            period: $period,
+            propertyIds: $propertyIds,
+            cacheKey: $cacheKey,
+            days: $days,
+            refreshingKey: $refreshingKey
+        ));
     }
 
     /**
@@ -934,53 +860,9 @@ class AnalyticsService
         // PRIORITY 2: Return last known good data if exists (for instant display)
         $lastSuccess = Cache::get($lastSuccessKey);
         if ($lastSuccess) {
-            // Dispatch background refresh to get new data
+            // Dispatch background refresh job to get new data (Octane-safe)
             if (! Cache::has($refreshingKey)) {
-                Cache::put($refreshingKey, true, now()->addSeconds(30));
-
-                dispatch(function () use ($propertyIds, $cacheKey, $lastSuccessKey, $refreshingKey) {
-                    try {
-                        $query = GaProperty::active();
-
-                        if ($propertyIds) {
-                            $query->whereIn('property_id', $propertyIds);
-                        }
-
-                        $properties = $query->get();
-                        $totalActiveUsers = 0;
-                        $propertyBreakdown = [];
-
-                        foreach ($properties as $property) {
-                            $activeUsers = app(\App\Services\GoogleAnalytics\AnalyticsDataFetcher::class)
-                                ->fetchRealtimeUsers($property);
-
-                            $totalActiveUsers += $activeUsers;
-
-                            if ($activeUsers > 0) {
-                                $propertyBreakdown[] = [
-                                    'property_id' => $property->property_id,
-                                    'property_name' => $property->name,
-                                    'active_users' => $activeUsers,
-                                ];
-                            }
-                        }
-
-                        usort($propertyBreakdown, fn ($a, $b) => $b['active_users'] <=> $a['active_users']);
-
-                        $result = [
-                            'total_active_users' => $totalActiveUsers,
-                            'property_breakdown' => $propertyBreakdown,
-                            'properties_count' => $properties->count(),
-                            'timestamp' => now()->toIso8601String(),
-                        ];
-
-                        Cache::put($cacheKey, $result, now()->addSeconds(30));
-                        Cache::put($cacheKey.':timestamp', now(), now()->addSeconds(30));
-                        Cache::put($lastSuccessKey, $result, now()->addYears(10));
-                    } finally {
-                        Cache::forget($refreshingKey);
-                    }
-                })->afterResponse();
+                dispatch(new \App\Jobs\RefreshRealtimeAnalytics($propertyIds));
             }
 
             return $lastSuccess;

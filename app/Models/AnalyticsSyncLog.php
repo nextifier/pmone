@@ -20,7 +20,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\GaProperty|null $property
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog aggregateSyncs()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog failed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog newModelQuery()
@@ -42,7 +41,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereSyncType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereUpdatedAt($value)
- *
  * @mixin \Eloquent
  */
 class AnalyticsSyncLog extends Model
