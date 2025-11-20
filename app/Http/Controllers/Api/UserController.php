@@ -30,7 +30,7 @@ class UserController extends Controller
     {
         $this->authorize('users.view');
 
-        $query = User::query()->with(['roles', 'creator', 'updater']);
+        $query = User::query()->with(['roles', 'creator', 'updater'])->withCount('posts');
         $clientOnly = $request->boolean('client_only', false);
 
         // Apply filters and sorting only if not client-only mode

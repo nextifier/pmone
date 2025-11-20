@@ -378,6 +378,29 @@ const columns = [
     },
   },
   {
+    header: "Posts",
+    accessorKey: "posts_count",
+    cell: ({ row }) => {
+      const postsCount = row.getValue("posts_count") || 0;
+      const username = row.original.username;
+      return h(
+        resolveComponent("NuxtLink"),
+        {
+          to: `/users/${username}/posts`,
+          class: "text-sm tracking-tight hover:underline inline-flex items-center gap-x-1",
+        },
+        {
+          default: () => [
+            h(resolveComponent("Icon"), { name: "lucide:file-text", class: "size-3.5 shrink-0" }),
+            h("span", {}, postsCount.toString()),
+          ],
+        }
+      );
+    },
+    size: 80,
+    enableSorting: true,
+  },
+  {
     header: "Verified",
     accessorKey: "email_verified_at",
     cell: ({ row }) => {
