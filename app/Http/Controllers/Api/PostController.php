@@ -21,8 +21,14 @@ class PostController extends Controller
 
         $query = Post::query()
             ->with([
-                'creator:id,name,email',
-                'authors:id,name,email',
+                'creator:id,name,email,username,title',
+                'creator.media' => function ($query) {
+                    $query->where('collection_name', 'profile_image');
+                },
+                'authors:id,name,email,username,title',
+                'authors.media' => function ($query) {
+                    $query->where('collection_name', 'profile_image');
+                },
                 'tags:id,name,slug,type',
                 'media' => function ($query) {
                     $query->where('collection_name', 'featured_image');
@@ -305,8 +311,14 @@ class PostController extends Controller
 
         $query = Post::onlyTrashed()
             ->with([
-                'creator:id,name,email',
-                'deleter:id,name,email',
+                'creator:id,name,email,username,title',
+                'creator.media' => function ($query) {
+                    $query->where('collection_name', 'profile_image');
+                },
+                'deleter:id,name,email,username,title',
+                'deleter.media' => function ($query) {
+                    $query->where('collection_name', 'profile_image');
+                },
                 'media' => function ($query) {
                     $query->where('collection_name', 'featured_image');
                 },
