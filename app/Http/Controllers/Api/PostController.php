@@ -69,14 +69,28 @@ class PostController extends Controller
             $query->search($searchTerm);
         }
 
-        // Status filter
+        // Status filter - support single, multiple, or comma-separated values
         if ($status = $request->input('filter_status')) {
-            $query->where('status', $status);
+            $statuses = is_array($status) ? $status : explode(',', $status);
+            $statuses = array_filter($statuses); // Remove empty values
+
+            if (count($statuses) > 1) {
+                $query->whereIn('status', $statuses);
+            } elseif (count($statuses) === 1) {
+                $query->where('status', $statuses[0]);
+            }
         }
 
-        // Visibility filter
+        // Visibility filter - support single, multiple, or comma-separated values
         if ($visibility = $request->input('filter_visibility')) {
-            $query->where('visibility', $visibility);
+            $visibilities = is_array($visibility) ? $visibility : explode(',', $visibility);
+            $visibilities = array_filter($visibilities); // Remove empty values
+
+            if (count($visibilities) > 1) {
+                $query->whereIn('visibility', $visibilities);
+            } elseif (count($visibilities) === 1) {
+                $query->where('visibility', $visibilities[0]);
+            }
         }
 
         // Featured filter
@@ -94,9 +108,16 @@ class PostController extends Controller
             $query->byTag($tag);
         }
 
-        // Source filter
+        // Source filter - support single, multiple, or comma-separated values
         if ($source = $request->input('filter_source')) {
-            $query->where('source', $source);
+            $sources = is_array($source) ? $source : explode(',', $source);
+            $sources = array_filter($sources); // Remove empty values
+
+            if (count($sources) > 1) {
+                $query->whereIn('source', $sources);
+            } elseif (count($sources) === 1) {
+                $query->where('source', $sources[0]);
+            }
         }
     }
 

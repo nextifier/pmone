@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-6xl space-y-6 pt-4 pb-16">
+  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-2xl xl:max-w-6xl">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:task-edit-01" class="size-5 sm:size-6" />
@@ -172,7 +172,7 @@ const pending = ref(false);
 const error = ref(null);
 
 // Client-only mode flag
-const clientOnly = ref(true);
+const clientOnly = ref(false);
 
 // Build query params
 const buildQueryParams = () => {
