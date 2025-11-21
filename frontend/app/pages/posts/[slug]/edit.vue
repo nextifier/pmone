@@ -78,6 +78,8 @@ async function loadPost() {
 }
 
 async function handleSuccess() {
+  const needsRefresh = useState('posts-needs-refresh', () => false);
+  needsRefresh.value = true;
   await navigateTo("/posts");
 }
 </script>

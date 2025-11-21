@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-4xl space-y-6 pt-4 pb-16">
+  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-2xl xl:max-w-6xl">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:user-group" class="size-5 sm:size-6" />
@@ -260,6 +260,17 @@ const fetchUsers = async () => {
 };
 
 await fetchUsers();
+
+// Global state for refresh tracking
+const needsRefresh = useState("users-needs-refresh", () => false);
+
+// Refresh when component is activated from KeepAlive
+onActivated(async () => {
+  if (needsRefresh.value) {
+    await fetchUsers();
+    needsRefresh.value = false;
+  }
+});
 
 // Watchers for server-side mode only
 const debouncedFetch = useDebounceFn(fetchUsers, 300);

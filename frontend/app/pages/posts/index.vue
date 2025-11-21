@@ -226,6 +226,17 @@ const fetchPosts = async () => {
 
 await fetchPosts();
 
+// Global state for refresh tracking
+const needsRefresh = useState('posts-needs-refresh', () => false);
+
+// Refresh when component is activated from KeepAlive
+onActivated(async () => {
+  if (needsRefresh.value) {
+    await fetchPosts();
+    needsRefresh.value = false;
+  }
+});
+
 // Watchers for server-side mode only
 const debouncedFetch = useDebounceFn(fetchPosts, 300);
 

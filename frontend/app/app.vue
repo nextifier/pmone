@@ -9,6 +9,7 @@
             include: [
               'posts',
               'users',
+              'short-links',
               // 'web-analytics',
               // 'web-analytics-id'
             ],

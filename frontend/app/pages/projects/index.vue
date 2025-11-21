@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-xl space-y-6 pt-4 pb-16">
+  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-2xl xl:max-w-6xl">
     <ProjectsHeader title="Project Management">
       <template #actions>
         <ImportDialog

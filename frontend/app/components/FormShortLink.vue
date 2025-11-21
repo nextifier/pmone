@@ -136,6 +136,10 @@ async function handleSubmit() {
           ? "Short link created successfully!"
           : "Short link updated successfully!";
       toast.success(successMessage);
+
+      // Set refresh flag and navigate to short links list
+      const needsRefresh = useState('short-links-needs-refresh', () => false);
+      needsRefresh.value = true;
       navigateTo("/short-links");
     }
   } catch (err) {

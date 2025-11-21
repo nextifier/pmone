@@ -1,5 +1,7 @@
 <template>
-  <div class="min-h-screen-offset mx-auto flex max-w-6xl flex-col space-y-6 pt-4 pb-4">
+  <div
+    class="min-h-screen-offset mx-auto flex flex-col space-y-6 pt-4 pb-4 lg:max-w-2xl xl:max-w-6xl"
+  >
     <div class="flex flex-col gap-y-1">
       <h2 class="page-title">
         <DashboardGreeting />

@@ -73,7 +73,9 @@ async function createUser(payload) {
     if (response.data) {
       toast.success(`User "${response.data.name}" created successfully!`);
 
-      // Navigate to users list
+      // Set refresh flag and navigate to users list
+      const needsRefresh = useState('users-needs-refresh', () => false);
+      needsRefresh.value = true;
       navigateTo("/users");
     }
   } catch (err) {
