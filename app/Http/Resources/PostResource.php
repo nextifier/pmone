@@ -27,18 +27,16 @@ class PostResource extends JsonResource
                 'published_at' => $this->published_at,
                 'featured' => $this->featured,
                 'reading_time' => $this->reading_time,
-                'visits_count' => $this->visits_count ?? $this->visits()->count(),
-                'media_count' => $this->media_count ?? $this->media()->count(),
-                'featured_image' => $this->hasMedia('featured_image')
-                    ? $this->getMediaUrls('featured_image')
-                    : $this->featured_image,
+                'visits_count' => $this->visits_count ?? 0,
+                'media_count' => $this->media_count ?? 0,
+                'featured_image' => $this->getFeaturedImageFromLoadedMedia(),
                 'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
                 'authors' => $this->whenLoaded('authors', fn () => $this->authors->map(fn ($author) => [
                     'id' => $author->id,
                     'name' => $author->name,
                     'email' => $author->email,
-                    'role' => $author->pivot->role,
-                    'order' => $author->pivot->order,
+                    'role' => $author->pivot->role ?? null,
+                    'order' => $author->pivot->order ?? 0,
                 ])),
                 'tags' => $this->whenLoaded('tags', fn () => $this->tags->pluck('name')),
                 'created_at' => $this->created_at,
@@ -66,7 +64,7 @@ class PostResource extends JsonResource
             'published_at' => $this->published_at,
             'featured' => $this->featured,
             'reading_time' => $this->reading_time,
-            'visits_count' => $this->visits_count ?? $this->visits()->count(),
+            'visits_count' => $this->visits_count ?? 0,
             'settings' => $this->settings,
             'source' => $this->source,
             'featured_image' => $this->hasMedia('featured_image')
@@ -78,8 +76,8 @@ class PostResource extends JsonResource
                 'id' => $author->id,
                 'name' => $author->name,
                 'email' => $author->email,
-                'role' => $author->pivot->role,
-                'order' => $author->pivot->order,
+                'role' => $author->pivot->role ?? null,
+                'order' => $author->pivot->order ?? 0,
             ])),
             'updater' => $this->whenLoaded('updater', fn () => new UserMinimalResource($this->updater)),
             'deleter' => $this->whenLoaded('deleter', fn () => new UserMinimalResource($this->deleter)),
@@ -87,5 +85,22 @@ class PostResource extends JsonResource
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
         ];
+    }
+
+    /**
+     * Get featured image from already loaded media relationship to avoid N+1
+     */
+    private function getFeaturedImageFromLoadedMedia(): mixed
+    {
+        // Check if media relationship is loaded
+        if ($this->relationLoaded('media')) {
+            $featuredMedia = $this->media->firstWhere('collection_name', 'featured_image');
+
+            if ($featuredMedia) {
+                return $this->getMediaUrls('featured_image');
+            }
+        }
+
+        return $this->featured_image;
     }
 }

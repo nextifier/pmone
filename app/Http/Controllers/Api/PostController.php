@@ -20,7 +20,14 @@ class PostController extends Controller
         $this->authorize('viewAny', Post::class);
 
         $query = Post::query()
-            ->with(['creator', 'authors', 'tags'])
+            ->with([
+                'creator:id,name,email',
+                'authors:id,name,email',
+                'tags:id,name,slug,type',
+                'media' => function ($query) {
+                    $query->where('collection_name', 'featured_image');
+                },
+            ])
             ->withCount(['visits', 'media']);
 
         $this->applyFilters($query, $request);
@@ -276,7 +283,13 @@ class PostController extends Controller
         $this->authorize('viewAny', Post::class);
 
         $query = Post::onlyTrashed()
-            ->with(['creator', 'deleter'])
+            ->with([
+                'creator:id,name,email',
+                'deleter:id,name,email',
+                'media' => function ($query) {
+                    $query->where('collection_name', 'featured_image');
+                },
+            ])
             ->withCount(['visits', 'media']);
 
         // Search filter
