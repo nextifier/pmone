@@ -8,6 +8,41 @@
       </div>
 
       <div class="space-y-2">
+        <Label for="slug">Slug (Optional)</Label>
+        <Input
+          id="slug"
+          v-model="form.slug"
+          type="text"
+          placeholder="Leave empty to auto-generate from title"
+        />
+        <p class="text-muted-foreground text-xs tracking-tight">
+          URL-friendly version of the title. Leave empty to auto-generate.
+        </p>
+        <div
+          v-if="slugChecking"
+          class="text-muted-foreground flex items-center gap-2 text-xs tracking-tight"
+        >
+          <Spinner class="size-3" />
+          Checking availability...
+        </div>
+        <div
+          v-else-if="slugAvailable === false"
+          class="text-destructive flex items-center gap-2 text-xs tracking-tight"
+        >
+          <Icon name="lucide:x-circle" class="size-3" />
+          This slug is already taken
+        </div>
+        <div
+          v-else-if="slugAvailable === true"
+          class="text-green-600 dark:text-green-400 flex items-center gap-2 text-xs tracking-tight"
+        >
+          <Icon name="lucide:check-circle" class="size-3" />
+          Slug is available
+        </div>
+        <InputErrorMessage :errors="errors.slug" />
+      </div>
+
+      <div class="space-y-2">
         <Label for="excerpt">Excerpt</Label>
         <Textarea id="excerpt" v-model="form.excerpt" maxlength="500" />
         <p class="text-muted-foreground text-xs tracking-tight">
@@ -287,6 +322,7 @@ const imageFiles = ref({
 
 const form = reactive({
   title: "",
+  slug: "",
   excerpt: "",
   content: "",
   status: "draft",
@@ -306,7 +342,10 @@ const errors = ref({});
 const postId = ref(props.initialData?.id || null);
 const postSlug = ref(props.postSlug || null);
 const availableUsers = ref([]);
+const slugChecking = ref(false);
+const slugAvailable = ref(null);
 let autoSaveTimeout = null;
+let slugCheckTimeout = null;
 
 onMounted(async () => {
   await loadUsers();
@@ -317,6 +356,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   clearTimeout(autoSaveTimeout);
+  clearTimeout(slugCheckTimeout);
 });
 
 async function loadUsers() {
@@ -334,6 +374,7 @@ function populateForm() {
 
   const data = props.initialData;
   form.title = data.title || "";
+  form.slug = data.slug || "";
   form.excerpt = data.excerpt || "";
   form.content = data.content || "";
   form.status = data.status || "draft";
@@ -398,6 +439,36 @@ function moveAuthorDown(index) {
   });
 }
 
+// Watch for slug changes to check availability
+watch(
+  () => form.slug,
+  (newSlug) => {
+    if (!newSlug || newSlug.trim() === "") {
+      slugAvailable.value = null;
+      slugChecking.value = false;
+      clearTimeout(slugCheckTimeout);
+      return;
+    }
+
+    // If editing and slug hasn't changed from initial, skip checking
+    if (props.mode === "edit" && props.initialData?.slug === newSlug) {
+      slugAvailable.value = null;
+      slugChecking.value = false;
+      clearTimeout(slugCheckTimeout);
+      return;
+    }
+
+    // Debounce slug checking
+    clearTimeout(slugCheckTimeout);
+    slugChecking.value = true;
+    slugAvailable.value = null;
+
+    slugCheckTimeout = setTimeout(() => {
+      checkSlugAvailability(newSlug);
+    }, 500);
+  }
+);
+
 // Auto-save disabled
 // watch(
 //   () => [form.title, form.content, form.excerpt],
@@ -413,6 +484,28 @@ function debouncedAutoSave() {
   autoSaveTimeout = setTimeout(() => {
     autoSavePost();
   }, 2000);
+}
+
+async function checkSlugAvailability(slug) {
+  try {
+    slugChecking.value = true;
+
+    // Use client_only mode to get all posts for checking
+    const response = await client(`/api/posts?client_only=true`);
+
+    // Check if any post has this exact slug
+    const posts = response.data || [];
+    const existingPost = posts.find(
+      (p) => p.slug === slug && (!props.initialData || p.id !== props.initialData.id)
+    );
+
+    slugAvailable.value = !existingPost;
+  } catch (error) {
+    console.error("Failed to check slug availability:", error);
+    slugAvailable.value = null;
+  } finally {
+    slugChecking.value = false;
+  }
 }
 
 async function autoSavePost() {
@@ -484,6 +577,7 @@ async function handleSubmit() {
   try {
     const payload = {
       title: form.title,
+      slug: form.slug || null,
       excerpt: form.excerpt,
       content: form.content,
       content_format: "html",
