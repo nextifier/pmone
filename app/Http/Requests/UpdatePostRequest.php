@@ -25,7 +25,7 @@ class UpdatePostRequest extends FormRequest
 
         return [
             'title' => ['sometimes', 'string', 'max:255'],
-            'slug' => ['sometimes', 'string', 'max:255', 'unique:posts,slug,'.$postId],
+            'slug' => ['nullable', 'string', 'max:255', 'unique:posts,slug,'.$postId],
             'excerpt' => ['nullable', 'string', 'max:500'],
             'content' => ['sometimes', 'string'],
             'content_format' => ['sometimes', 'string', 'in:html,markdown,lexical'],
