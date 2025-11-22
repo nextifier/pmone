@@ -11,7 +11,7 @@
 
         <select
           v-model="selectedPeriod"
-          class="border-border bg-background focus:ring-primary rounded-md border px-3 py-2 text-sm tracking-tight focus:outline-none focus:ring-2"
+          class="border-border bg-background focus:ring-primary rounded-md border px-3 py-2 text-sm tracking-tight focus:ring-2 focus:outline-none"
         >
           <option :value="7">Last 7 days</option>
           <option :value="14">Last 14 days</option>
@@ -70,29 +70,13 @@
       <!-- Visits Over Time Chart -->
       <div class="border-border rounded-lg border p-4">
         <h2 class="mb-4 text-lg font-semibold tracking-tighter">Visits Over Time</h2>
-        <div v-if="analyticsData.visits_per_day?.length" class="space-y-2">
-          <div
-            v-for="day in analyticsData.visits_per_day"
-            :key="day.date"
-            class="flex items-center gap-3"
-          >
-            <div class="text-muted-foreground w-24 text-sm">
-              {{ $dayjs(day.date).format("MMM D") }}
-            </div>
-            <div class="flex-1">
-              <div class="bg-muted relative h-6 rounded">
-                <div
-                  class="bg-primary absolute inset-y-0 left-0 rounded"
-                  :style="{
-                    width: `${(day.count / maxVisitsPerDay) * 100}%`,
-                  }"
-                ></div>
-              </div>
-            </div>
-            <div class="text-primary w-12 text-right text-sm font-medium">
-              {{ day.count }}
-            </div>
-          </div>
+        <div v-if="chartData?.length > 2">
+          <ChartLineDefault
+            :data="chartData"
+            :config="chartConfig"
+            data-key="count"
+            class="h-auto! overflow-hidden py-2.5"
+          />
         </div>
         <div v-else class="text-muted-foreground py-8 text-center tracking-tight">
           No visit data available for this period
@@ -156,6 +140,7 @@
 </template>
 
 <script setup>
+import ChartLineDefault from "@/components/chart/LineDefault.vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -171,12 +156,28 @@ const analyticsData = ref(null);
 const loading = ref(true);
 const error = ref(null);
 
-// Computed max visits per day for chart scaling
-const maxVisitsPerDay = computed(() => {
-  if (!analyticsData.value?.visits_per_day?.length) {
-    return 0;
+// Chart data for ChartLineDefault component
+const chartData = computed(() => {
+  if (!analyticsData.value?.visits_per_day || !Array.isArray(analyticsData.value.visits_per_day)) {
+    return [];
   }
-  return Math.max(...analyticsData.value.visits_per_day.map((d) => d.count));
+
+  return analyticsData.value.visits_per_day
+    .map((item) => ({
+      date: new Date(item.date),
+      count: item.count || 0,
+    }))
+    .sort((a, b) => a.date - b.date);
+});
+
+// Chart config for ChartLineDefault component
+const chartConfig = computed(() => {
+  return {
+    count: {
+      label: "Visits",
+      color: "var(--chart-1)",
+    },
+  };
 });
 
 // Load analytics data

@@ -148,8 +148,9 @@ class PostController extends Controller
         $post->load(['creator', 'updater', 'authors', 'tags']);
         $post->loadCount('visits');
 
-        // Track visit only if not loading for edit
-        if (! request()->has('for') || request()->input('for') !== 'edit') {
+        // Track visit only if not loading for edit or analytics
+        $forParam = request()->input('for');
+        if (! $forParam || ! in_array($forParam, ['edit', 'analytics'])) {
             \App\Models\Visit::create([
                 'visitable_type' => Post::class,
                 'visitable_id' => $post->id,
