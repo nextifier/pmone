@@ -10,6 +10,7 @@ use App\Models\Post;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PostController extends Controller
 {
@@ -754,5 +755,195 @@ class PostController extends Controller
         }
 
         return $html;
+    }
+
+    /**
+     * Get analytics for a specific post
+     */
+    public function analytics(Request $request, Post $post): JsonResponse
+    {
+        $this->authorize('view', $post);
+
+        $request->validate([
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date',
+            'days' => 'nullable|integer|min:1|max:365',
+        ]);
+
+        $query = $post->visits();
+
+        // Apply date filters
+        if ($request->has('start_date') && $request->has('end_date')) {
+            $query->inDateRange($request->start_date, $request->end_date);
+        } elseif ($request->has('days')) {
+            $query->lastDays($request->days);
+        } else {
+            $query->lastDays(30); // Default to last 30 days
+        }
+
+        $totalVisits = $query->count();
+        $authenticatedVisits = $query->clone()->authenticated()->count();
+        $anonymousVisits = $query->clone()->anonymous()->count();
+
+        // Visits per day
+        $visitsPerDay = $query->clone()
+            ->selectRaw('DATE(visited_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        // Top visitors (for authenticated visits)
+        $topVisitors = $query->clone()
+            ->authenticated()
+            ->select('visitor_id', DB::raw('COUNT(*) as visit_count'))
+            ->groupBy('visitor_id')
+            ->with(['visitor' => function ($query) {
+                $query->select('id', 'name', 'username')
+                    ->with('media');
+            }])
+            ->orderByDesc('visit_count')
+            ->limit(10)
+            ->get()
+            ->map(function ($visit) {
+                $visitor = $visit->visitor;
+                if ($visitor) {
+                    $visitorData = [
+                        'id' => $visitor->id,
+                        'name' => $visitor->name,
+                        'username' => $visitor->username,
+                        'profile_image' => $visitor->hasMedia('profile_image')
+                            ? $visitor->getMediaUrls('profile_image')
+                            : null,
+                    ];
+                } else {
+                    $visitorData = null;
+                }
+
+                return [
+                    'visitor' => $visitorData,
+                    'visit_count' => $visit->visit_count,
+                ];
+            });
+
+        // Referrer stats
+        $topReferrers = $query->clone()
+            ->select('referer', DB::raw('COUNT(*) as count'))
+            ->whereNotNull('referer')
+            ->groupBy('referer')
+            ->orderByDesc('count')
+            ->limit(10)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'referer' => $item->referer,
+                    'count' => $item->count,
+                ];
+            });
+
+        return response()->json([
+            'data' => [
+                'post' => [
+                    'id' => $post->id,
+                    'title' => $post->title,
+                    'slug' => $post->slug,
+                    'published_at' => $post->published_at,
+                ],
+                'summary' => [
+                    'total_visits' => $totalVisits,
+                    'authenticated_visits' => $authenticatedVisits,
+                    'anonymous_visits' => $anonymousVisits,
+                ],
+                'visits_per_day' => $visitsPerDay,
+                'top_visitors' => $topVisitors,
+                'top_referrers' => $topReferrers,
+            ],
+        ]);
+    }
+
+    /**
+     * Get overall analytics for all posts
+     */
+    public function overallAnalytics(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', Post::class);
+
+        $request->validate([
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date',
+            'days' => 'nullable|integer|min:1|max:365',
+        ]);
+
+        $days = $request->get('days', 30);
+
+        // Get all published posts with visit counts
+        $postsQuery = Post::query()
+            ->published()
+            ->withCount(['visits' => function ($query) use ($request, $days) {
+                if ($request->has('start_date') && $request->has('end_date')) {
+                    $query->inDateRange($request->start_date, $request->end_date);
+                } else {
+                    $query->lastDays($days);
+                }
+            }])
+            ->with(['media' => function ($query) {
+                $query->where('collection_name', 'featured_image');
+            }])
+            ->orderByDesc('visits_count')
+            ->limit(10);
+
+        $topPosts = $postsQuery->get()->map(function ($post) {
+            return [
+                'id' => $post->id,
+                'title' => $post->title,
+                'slug' => $post->slug,
+                'excerpt' => $post->excerpt,
+                'published_at' => $post->published_at,
+                'visits_count' => $post->visits_count,
+                'featured_image' => $post->hasMedia('featured_image')
+                    ? $post->getMediaUrls('featured_image')
+                    : null,
+            ];
+        });
+
+        // Get total visits for all posts
+        $totalVisitsQuery = \App\Models\Visit::query()
+            ->where('visitable_type', Post::class);
+
+        if ($request->has('start_date') && $request->has('end_date')) {
+            $totalVisitsQuery->inDateRange($request->start_date, $request->end_date);
+        } else {
+            $totalVisitsQuery->lastDays($days);
+        }
+
+        $totalVisits = $totalVisitsQuery->count();
+        $authenticatedVisits = $totalVisitsQuery->clone()->authenticated()->count();
+        $anonymousVisits = $totalVisitsQuery->clone()->anonymous()->count();
+
+        // Visits per day for all posts
+        $visitsPerDay = $totalVisitsQuery->clone()
+            ->selectRaw('DATE(visited_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        // Get posts statistics
+        $totalPosts = Post::published()->count();
+        $totalDrafts = Post::draft()->count();
+        $totalScheduled = Post::scheduled()->count();
+
+        return response()->json([
+            'data' => [
+                'summary' => [
+                    'total_visits' => $totalVisits,
+                    'authenticated_visits' => $authenticatedVisits,
+                    'anonymous_visits' => $anonymousVisits,
+                    'total_posts' => $totalPosts,
+                    'total_drafts' => $totalDrafts,
+                    'total_scheduled' => $totalScheduled,
+                ],
+                'visits_per_day' => $visitsPerDay,
+                'top_posts' => $topPosts,
+            ],
+        ]);
     }
 }

@@ -8,6 +8,14 @@
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <nuxt-link
+          to="/posts/analytics"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+        >
+          <Icon name="hugeicons:analytics-01" class="size-4 shrink-0" />
+          <span>Analytics</span>
+        </nuxt-link>
+
+        <nuxt-link
           to="/tags"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
@@ -547,6 +555,30 @@ const RowActions = defineComponent({
                                     class: "size-4 shrink-0",
                                   }),
                                   h("span", {}, "Edit"),
+                                ],
+                              }
+                            ),
+                        }
+                      ),
+                      h(
+                        PopoverClose,
+                        { asChild: true },
+                        {
+                          default: () =>
+                            h(
+                              resolveComponent("NuxtLink"),
+                              {
+                                to: `/posts/${props.post.slug}/analytics`,
+                                class:
+                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                              },
+                              {
+                                default: () => [
+                                  h(resolveComponent("Icon"), {
+                                    name: "lucide:bar-chart",
+                                    class: "size-4 shrink-0",
+                                  }),
+                                  h("span", {}, "Analytics"),
                                 ],
                               }
                             ),

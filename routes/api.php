@@ -211,6 +211,7 @@ Route::middleware(['auth:sanctum'])->prefix('google-analytics')->group(function 
 Route::middleware(['auth:sanctum', 'verified'])->prefix('posts')->group(function () {
     Route::get('/', [PostController::class, 'index'])->name('posts.index');
     Route::post('/', [PostController::class, 'store'])->name('posts.store');
+    Route::get('/analytics', [PostController::class, 'overallAnalytics'])->name('posts.overall-analytics');
     Route::delete('/bulk', [PostController::class, 'bulkDestroy'])->name('posts.bulk-destroy');
     Route::post('/bulk/status', [PostController::class, 'bulkUpdateStatus'])->name('posts.bulk-update-status');
     Route::get('/trash', [PostController::class, 'trash'])->name('posts.trash');

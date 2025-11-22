@@ -32,14 +32,22 @@
               Featured
             </span>
           </div>
-          <button
-            v-if="isAuthenticated"
-            @click="navigateTo(`/posts/${post.slug}/edit`)"
-            class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-semibold tracking-tighter transition"
-          >
-            <Icon name="lucide:edit" class="h-4 w-4" />
-            Edit Post
-          </button>
+          <div v-if="isAuthenticated" class="flex gap-2">
+            <button
+              @click="navigateTo(`/posts/${post.slug}/analytics`)"
+              class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-lg border px-4 py-2 text-sm font-semibold tracking-tighter transition"
+            >
+              <Icon name="lucide:bar-chart" class="h-4 w-4" />
+              Analytics
+            </button>
+            <button
+              @click="navigateTo(`/posts/${post.slug}/edit`)"
+              class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-semibold tracking-tighter transition"
+            >
+              <Icon name="lucide:edit" class="h-4 w-4" />
+              Edit Post
+            </button>
+          </div>
         </div>
 
         <h1 class="text-4xl font-bold">{{ post.title }}</h1>
