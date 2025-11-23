@@ -61,13 +61,13 @@
               id="rate_limit"
               v-model.number="formData.rate_limit"
               type="number"
-              min="10"
-              max="1000"
+              min="0"
+              max="10000"
               placeholder="60"
             />
             <InputErrorMessage :errors="errors.rate_limit" />
             <p class="text-muted-foreground text-xs">
-              Maximum requests per minute (10-1000)
+              Set to 0 for unlimited, or 10-10000 for specific limit
             </p>
           </div>
 

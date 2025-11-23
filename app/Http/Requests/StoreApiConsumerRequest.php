@@ -27,7 +27,7 @@ class StoreApiConsumerRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:1000'],
             'allowed_origins' => ['nullable', 'array'],
             'allowed_origins.*' => ['url'],
-            'rate_limit' => ['sometimes', 'integer', 'min:10', 'max:1000'],
+            'rate_limit' => ['sometimes', 'integer', 'min:0', 'max:10000'],
             'is_active' => ['sometimes', 'boolean'],
         ];
     }
@@ -49,8 +49,8 @@ class StoreApiConsumerRequest extends FormRequest
             'allowed_origins.array' => 'Allowed origins must be an array.',
             'allowed_origins.*.url' => 'Each allowed origin must be a valid URL.',
             'rate_limit.integer' => 'Rate limit must be an integer.',
-            'rate_limit.min' => 'Rate limit must be at least 10 requests per minute.',
-            'rate_limit.max' => 'Rate limit must not exceed 1000 requests per minute.',
+            'rate_limit.min' => 'Rate limit must be 0 (unlimited) or at least 10 requests per minute.',
+            'rate_limit.max' => 'Rate limit must not exceed 10000 requests per minute.',
             'is_active.boolean' => 'Active status must be true or false.',
         ];
     }
