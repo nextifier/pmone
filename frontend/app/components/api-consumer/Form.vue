@@ -67,12 +67,12 @@
             />
             <InputErrorMessage :errors="errors.rate_limit" />
             <p class="text-muted-foreground text-xs">
-              Set to 0 for unlimited, or 10-10000 for specific limit
+              Set to <strong>0</strong> for unlimited access, or <strong>10-10000</strong> to limit requests per minute. Default is 60.
             </p>
           </div>
 
           <div class="space-y-2">
-            <Label for="allowed_origins">Allowed Origins</Label>
+            <Label for="allowed_origins">Allowed Origins (CORS)</Label>
             <TagsInput v-model="formData.allowed_origins">
               <TagsInputItem
                 v-for="item in formData.allowed_origins"
@@ -86,7 +86,7 @@
             </TagsInput>
             <InputErrorMessage :errors="errors.allowed_origins" />
             <p class="text-muted-foreground text-xs">
-              CORS allowed origins (leave empty to allow all)
+              URLs allowed to make API requests from browsers. Add multiple origins for www/non-www variants. <strong>Leave empty to allow all origins</strong> (not recommended for production).
             </p>
           </div>
 
