@@ -305,6 +305,39 @@
     :published-post="initialData"
     :mode="mode"
   />
+
+  <!-- Restore Autosave Dialog -->
+  <DialogResponsive v-model:open="showRestoreDialog" dialog-max-width="450px">
+    <div class="px-4 pb-10 md:px-6 md:py-5">
+      <div class="flex items-start gap-3">
+        <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
+          <Icon name="lucide:archive-restore" class="size-5 text-blue-600 dark:text-blue-400" />
+        </div>
+        <div class="flex-1">
+          <h3 class="text-primary text-lg font-semibold">Restore Draft?</h3>
+          <p class="text-muted-foreground mt-1.5 text-sm leading-relaxed">
+            You have unsaved changes from a previous session. Would you like to restore them or start fresh?
+          </p>
+        </div>
+      </div>
+      <div class="mt-5 flex justify-end gap-2">
+        <button
+          type="button"
+          @click="handleDiscardRestore"
+          class="border-input hover:bg-accent hover:text-accent-foreground rounded-lg border px-4 py-2 text-sm font-medium transition"
+        >
+          Discard
+        </button>
+        <button
+          type="button"
+          @click="handleRestoreChanges"
+          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+        >
+          Restore Draft
+        </button>
+      </div>
+    </div>
+  </DialogResponsive>
 </template>
 
 <script setup>
@@ -380,6 +413,8 @@ const availableUsers = ref([]);
 const slugChecking = ref(false);
 const slugAvailable = ref(null);
 const showPreviewModal = ref(false);
+const showRestoreDialog = ref(false);
+const pendingRestoreData = ref(null);
 let slugCheckTimeout = null;
 
 // Autosave composable
@@ -546,35 +581,44 @@ async function checkAndRestoreAutosave() {
   try {
     const savedData = await autosave.retrieveAutosave();
     if (savedData && Object.keys(savedData).length > 0) {
-      const shouldRestore = confirm(
-        'You have unsaved changes from a previous session. Do you want to restore them?'
-      );
-      if (shouldRestore) {
-        // Restore form data from autosave
-        if (savedData.title) form.title = savedData.title;
-        if (savedData.excerpt) form.excerpt = savedData.excerpt;
-        if (savedData.content) form.content = savedData.content;
-        if (savedData.status) form.status = savedData.status;
-        if (savedData.visibility) form.visibility = savedData.visibility;
-        if (savedData.meta_title) form.meta_title = savedData.meta_title;
-        if (savedData.meta_description) form.meta_description = savedData.meta_description;
-        if (savedData.featured !== undefined) form.featured = savedData.featured;
-        if (savedData.tags) form.tags = savedData.tags;
-        if (savedData.authors) form.authors = savedData.authors;
-        if (savedData.published_at) {
-          const date = new Date(savedData.published_at);
-          form.published_at = date.toISOString().slice(0, 16);
-        }
-
-        toast.success('Draft restored successfully');
-      } else {
-        // User declined, clear autosave
-        await autosave.discardAutosave();
-      }
+      pendingRestoreData.value = savedData;
+      showRestoreDialog.value = true;
     }
   } catch (error) {
     console.error('Failed to check autosave:', error);
   }
+}
+
+async function handleRestoreChanges() {
+  const savedData = pendingRestoreData.value;
+  if (savedData) {
+    // Restore form data from autosave
+    if (savedData.title) form.title = savedData.title;
+    if (savedData.excerpt) form.excerpt = savedData.excerpt;
+    if (savedData.content) form.content = savedData.content;
+    if (savedData.status) form.status = savedData.status;
+    if (savedData.visibility) form.visibility = savedData.visibility;
+    if (savedData.meta_title) form.meta_title = savedData.meta_title;
+    if (savedData.meta_description) form.meta_description = savedData.meta_description;
+    if (savedData.featured !== undefined) form.featured = savedData.featured;
+    if (savedData.tags) form.tags = savedData.tags;
+    if (savedData.authors) form.authors = savedData.authors;
+    if (savedData.published_at) {
+      const date = new Date(savedData.published_at);
+      form.published_at = date.toISOString().slice(0, 16);
+    }
+
+    toast.success('Draft restored successfully');
+  }
+  showRestoreDialog.value = false;
+  pendingRestoreData.value = null;
+}
+
+async function handleDiscardRestore() {
+  // User declined, clear autosave
+  await autosave.discardAutosave();
+  showRestoreDialog.value = false;
+  pendingRestoreData.value = null;
 }
 
 async function discardAutosave() {
