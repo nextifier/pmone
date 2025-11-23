@@ -40,8 +40,9 @@ class ApiConsumerResource extends JsonResource
      */
     private function shouldShowApiKey(Request $request): bool
     {
-        // Show API key only on create or regenerate actions
+        // Show API key on create, show, or regenerate actions
         return $request->routeIs('api-consumers.store')
+            || $request->routeIs('api-consumers.show')
             || $request->routeIs('api-consumers.regenerate-key');
     }
 }

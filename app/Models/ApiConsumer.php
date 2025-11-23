@@ -68,6 +68,7 @@ class ApiConsumer extends Model
     protected $fillable = [
         'name',
         'website_url',
+        'description',
         'api_key',
         'allowed_origins',
         'rate_limit',
