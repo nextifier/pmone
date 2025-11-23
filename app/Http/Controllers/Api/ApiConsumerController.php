@@ -7,11 +7,14 @@ use App\Http\Requests\StoreApiConsumerRequest;
 use App\Http\Requests\UpdateApiConsumerRequest;
 use App\Http\Resources\ApiConsumerResource;
 use App\Models\ApiConsumer;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ApiConsumerController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display a listing of API consumers
      */
