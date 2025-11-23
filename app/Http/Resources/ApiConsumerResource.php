@@ -18,7 +18,7 @@ class ApiConsumerResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'website_url' => $this->website_url,
-            'description' => $this->description,
+            'description' => $this->description ?? null,
             'api_key' => $this->when(
                 $this->shouldShowApiKey($request),
                 $this->api_key
