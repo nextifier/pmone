@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ContactFormController;
 use App\Http\Controllers\Api\ContactFormSubmissionController;
 use App\Http\Controllers\Api\LogController;
+use App\Http\Controllers\Api\PostAutosaveController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProjectController;
@@ -224,6 +225,12 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('posts')->group(function
     Route::get('/{post:slug}/analytics', [PostController::class, 'analytics'])->name('posts.analytics');
     Route::put('/{post:slug}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/{post:slug}', [PostController::class, 'destroy'])->name('posts.destroy');
+
+    // Autosave endpoints
+    Route::post('/autosave', [PostAutosaveController::class, 'save'])->name('posts.autosave.save');
+    Route::get('/autosave', [PostAutosaveController::class, 'retrieve'])->name('posts.autosave.retrieve');
+    Route::delete('/autosave', [PostAutosaveController::class, 'discard'])->name('posts.autosave.discard');
+    Route::get('/{post:slug}/preview', [PostAutosaveController::class, 'preview'])->name('posts.autosave.preview');
 });
 
 // Public post routes (must be after authenticated routes to avoid conflicts)

@@ -1,5 +1,25 @@
 <template>
   <form @submit.prevent="handleSubmit" class="grid gap-y-8">
+    <!-- Autosave Status & Preview -->
+    <div class="flex items-center justify-between gap-4 rounded-lg border bg-muted/50 p-3">
+      <PostAutosaveStatus
+        :is-saving="autosave.isSaving.value"
+        :is-saved="autosave.isSaved.value"
+        :has-error="autosave.hasError.value"
+        :last-saved-at="autosave.lastSavedAt.value"
+        :error="autosave.autosaveStatus.value.error"
+      />
+      <button
+        v-if="mode === 'edit' && postSlug"
+        type="button"
+        @click="showPreview"
+        class="flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-background"
+      >
+        <IconEye class="size-4" />
+        Preview Changes
+      </button>
+    </div>
+
     <div class="grid grid-cols-1 gap-y-6">
       <div class="space-y-2">
         <Label for="title">Title</Label>
@@ -253,6 +273,15 @@
     <!-- Actions -->
     <div class="flex justify-end gap-2">
       <button
+        v-if="mode === 'edit' && autosave.localBackup.value"
+        type="button"
+        @click="discardAutosave"
+        class="border-input hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium tracking-tighter transition"
+      >
+        <IconTrash class="size-4" />
+        Discard Draft
+      </button>
+      <button
         type="button"
         @click="emit('cancel')"
         class="border-input hover:bg-accent hover:text-accent-foreground rounded-lg border px-4 py-2 text-sm font-medium tracking-tighter transition"
@@ -269,6 +298,13 @@
       </button>
     </div>
   </form>
+
+  <!-- Preview Changes Modal -->
+  <PostPreviewChangesModal
+    v-model:open="showPreviewModal"
+    :post-slug="postSlug"
+    :on-preview-load="loadPreviewData"
+  />
 </template>
 
 <script setup>
@@ -337,25 +373,37 @@ const form = reactive({
 });
 
 const loading = ref(false);
-const autoSaving = ref(false);
 const errors = ref({});
 const postId = ref(props.initialData?.id || null);
 const postSlug = ref(props.postSlug || null);
 const availableUsers = ref([]);
 const slugChecking = ref(false);
 const slugAvailable = ref(null);
-let autoSaveTimeout = null;
+const showPreviewModal = ref(false);
 let slugCheckTimeout = null;
+
+// Autosave composable
+const autosaveEnabled = ref(true);
+const autosave = useAutosave(toRef(form), {
+  postId: postId,
+  enabled: autosaveEnabled,
+  debounceTime: 2000,
+  localStorageKey: computed(() =>
+    postId.value ? `post-autosave-${postId.value}` : 'post-autosave-new'
+  ),
+});
 
 onMounted(async () => {
   await loadUsers();
   if (props.initialData) {
     populateForm();
   }
+
+  // Check for existing autosave
+  await checkAndRestoreAutosave();
 });
 
 onBeforeUnmount(() => {
-  clearTimeout(autoSaveTimeout);
   clearTimeout(slugCheckTimeout);
 });
 
@@ -469,22 +517,7 @@ watch(
   }
 );
 
-// Auto-save disabled
-// watch(
-//   () => [form.title, form.content, form.excerpt],
-//   () => {
-//     if (form.title || form.content) {
-//       debouncedAutoSave();
-//     }
-//   }
-// );
-
-function debouncedAutoSave() {
-  clearTimeout(autoSaveTimeout);
-  autoSaveTimeout = setTimeout(() => {
-    autoSavePost();
-  }, 2000);
-}
+// Autosave is now handled by useAutosave composable
 
 async function checkSlugAvailability(slug) {
   try {
@@ -508,55 +541,61 @@ async function checkSlugAvailability(slug) {
   }
 }
 
-async function autoSavePost() {
-  // Don't auto-save if both title and content are empty
-  if (!form.title && !form.content) return;
-
-  // Don't auto-save if only title is filled (content is required)
-  if (form.title && !form.content && !postId.value) return;
-
-  if (loading.value) return;
-
-  autoSaving.value = true;
-
+// New autosave functions
+async function checkAndRestoreAutosave() {
   try {
-    const payload = {
-      title: form.title || "Untitled Post",
-      content: form.content || "",
-      content_format: "html",
-      excerpt: form.excerpt,
-      status: props.mode === "edit" ? form.status : "draft",
-      visibility: form.visibility,
-      featured: form.featured,
-      meta_title: form.meta_title || null,
-      meta_description: form.meta_description || null,
-      tags: form.tags,
-    };
+    const savedData = await autosave.retrieveAutosave();
+    if (savedData && Object.keys(savedData).length > 0) {
+      const shouldRestore = confirm(
+        'You have unsaved changes from a previous session. Do you want to restore them?'
+      );
+      if (shouldRestore) {
+        // Restore form data from autosave
+        if (savedData.title) form.title = savedData.title;
+        if (savedData.excerpt) form.excerpt = savedData.excerpt;
+        if (savedData.content) form.content = savedData.content;
+        if (savedData.status) form.status = savedData.status;
+        if (savedData.visibility) form.visibility = savedData.visibility;
+        if (savedData.meta_title) form.meta_title = savedData.meta_title;
+        if (savedData.meta_description) form.meta_description = savedData.meta_description;
+        if (savedData.featured !== undefined) form.featured = savedData.featured;
+        if (savedData.tags) form.tags = savedData.tags;
+        if (savedData.authors) form.authors = savedData.authors;
+        if (savedData.published_at) {
+          const date = new Date(savedData.published_at);
+          form.published_at = date.toISOString().slice(0, 16);
+        }
 
-    if (props.mode === "edit" && props.postSlug) {
-      await client(`/api/posts/${props.postSlug}`, {
-        method: "PUT",
-        body: payload,
-      });
-    } else if (postSlug.value) {
-      await client(`/api/posts/${postSlug.value}`, {
-        method: "PUT",
-        body: payload,
-      });
-    } else {
-      const response = await client("/api/posts", {
-        method: "POST",
-        body: payload,
-      });
-      postId.value = response.data.id;
-      postSlug.value = response.data.slug;
-      toast.success("Draft created automatically");
+        toast.success('Draft restored successfully');
+      } else {
+        // User declined, clear autosave
+        await autosave.discardAutosave();
+      }
     }
   } catch (error) {
-    console.error("Auto-save failed:", error);
-  } finally {
-    autoSaving.value = false;
+    console.error('Failed to check autosave:', error);
   }
+}
+
+async function discardAutosave() {
+  const confirmed = confirm(
+    'Are you sure you want to discard your draft? This action cannot be undone.'
+  );
+  if (confirmed) {
+    await autosave.discardAutosave();
+    // Restore from initial data if in edit mode
+    if (props.initialData) {
+      populateForm();
+    }
+  }
+}
+
+function showPreview() {
+  showPreviewModal.value = true;
+}
+
+async function loadPreviewData(slug) {
+  return await autosave.previewChanges(slug);
 }
 
 function hasFilesUploading() {
@@ -633,6 +672,9 @@ async function handleSubmit() {
       });
       toast.success("Post created successfully!");
     }
+
+    // Clear autosave after successful submission
+    await autosave.discardAutosave();
 
     emit("success", response.data);
   } catch (error) {
