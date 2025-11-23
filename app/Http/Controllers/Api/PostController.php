@@ -37,6 +37,12 @@ class PostController extends Controller
             ])
             ->withCount(['visits', 'media']);
 
+        // Role-based filtering: Non-admin users can only see their own posts
+        $user = $request->user();
+        if ($user && ! $user->hasRole(['master', 'admin'])) {
+            $query->where('created_by', $user->id);
+        }
+
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
 
@@ -330,6 +336,12 @@ class PostController extends Controller
                 },
             ])
             ->withCount(['visits', 'media']);
+
+        // Role-based filtering: Non-admin users can only see their own posts
+        $user = $request->user();
+        if ($user && ! $user->hasRole(['master', 'admin'])) {
+            $query->where('created_by', $user->id);
+        }
 
         // Search filter
         if ($searchTerm = $request->input('filter_search')) {

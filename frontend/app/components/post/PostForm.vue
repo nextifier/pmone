@@ -10,13 +10,12 @@
         :error="autosave.autosaveStatus.value.error"
       />
       <button
-        v-if="mode === 'edit' && postSlug"
         type="button"
         @click="showPreview"
         class="flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-background"
       >
-        <IconEye class="size-4" />
-        Preview Changes
+        <Icon name="lucide:eye" class="size-4" />
+        <span>{{ mode === 'edit' ? 'Preview Changes' : 'Preview Post' }}</span>
       </button>
     </div>
 
@@ -299,11 +298,12 @@
     </div>
   </form>
 
-  <!-- Preview Changes Modal -->
-  <PostPreviewChangesModal
+  <!-- Preview Modal -->
+  <PostPreview
     v-model:open="showPreviewModal"
-    :post-slug="postSlug"
-    :on-preview-load="loadPreviewData"
+    :preview-data="previewFormData"
+    :published-post="initialData"
+    :mode="mode"
   />
 </template>
 
@@ -590,12 +590,41 @@ async function discardAutosave() {
   }
 }
 
+// Preview data computed from current form state
+const previewFormData = computed(() => {
+  // Get featured image from either imageFiles or initialData
+  let featuredImage = null;
+  if (imageFiles.value.featured_image?.[0]) {
+    const imgValue = imageFiles.value.featured_image[0];
+    // If it's a temporary upload, try to get URL
+    if (typeof imgValue === 'string') {
+      featuredImage = imgValue;
+    } else if (imgValue instanceof File) {
+      // Create object URL for preview
+      featuredImage = URL.createObjectURL(imgValue);
+    }
+  } else if (props.initialData?.featured_image && !deleteFlags.value.featured_image) {
+    featuredImage = props.initialData.featured_image;
+  }
+
+  return {
+    title: form.title || 'Untitled Post',
+    excerpt: form.excerpt || '',
+    content: form.content || '',
+    status: form.status || 'draft',
+    visibility: form.visibility || 'public',
+    featured: form.featured || false,
+    meta_title: form.meta_title || form.title || '',
+    meta_description: form.meta_description || form.excerpt || '',
+    featured_image: featuredImage,
+    tags: form.tags || [],
+    authors: form.authors || [],
+    published_at: form.published_at || null,
+  };
+});
+
 function showPreview() {
   showPreviewModal.value = true;
-}
-
-async function loadPreviewData(slug) {
-  return await autosave.previewChanges(slug);
 }
 
 function hasFilesUploading() {

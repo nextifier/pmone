@@ -168,6 +168,28 @@ defineOptions({
 const { $dayjs } = useNuxtApp();
 const { formatDate } = useFormatters();
 
+// Get current user for permission checks
+const { user: currentUser } = useSanctumUser();
+
+// Permission helper functions
+const isAdminOrMaster = computed(() => {
+  if (!currentUser.value) return false;
+  const roles = currentUser.value.roles?.map((r) => r.name) || [];
+  return roles.includes('master') || roles.includes('admin');
+});
+
+const canEditPost = (post) => {
+  if (!currentUser.value) return false;
+  if (isAdminOrMaster.value) return true;
+  return post.created_by === currentUser.value.id;
+};
+
+const canDeletePost = (post) => {
+  if (!currentUser.value) return false;
+  if (isAdminOrMaster.value) return true;
+  return post.created_by === currentUser.value.id;
+};
+
 // Table state
 const columnFilters = ref([]);
 const pagination = ref({ pageIndex: 0, pageSize: 15 });
@@ -484,6 +506,11 @@ const RowActions = defineComponent({
   setup(props) {
     const dialogOpen = ref(false);
     const singleDeletePending = ref(false);
+
+    // Check permissions for this specific post
+    const canEdit = canEditPost(props.post);
+    const canDelete = canDeletePost(props.post);
+
     return () =>
       h("div", { class: "flex justify-end" }, [
         h(
@@ -512,6 +539,7 @@ const RowActions = defineComponent({
                 {
                   default: () =>
                     h("div", { class: "flex flex-col" }, [
+                      // View button (always visible)
                       h(
                         PopoverClose,
                         { asChild: true },
@@ -536,30 +564,36 @@ const RowActions = defineComponent({
                             ),
                         }
                       ),
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
+                      // Edit button (only if user has permission)
+                      ...(canEdit
+                        ? [
                             h(
-                              resolveComponent("NuxtLink"),
+                              PopoverClose,
+                              { asChild: true },
                               {
-                                to: `/posts/${props.post.slug}/edit`,
-                                class:
-                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                              },
-                              {
-                                default: () => [
-                                  h(resolveComponent("Icon"), {
-                                    name: "lucide:pencil-line",
-                                    class: "size-4 shrink-0",
-                                  }),
-                                  h("span", {}, "Edit"),
-                                ],
+                                default: () =>
+                                  h(
+                                    resolveComponent("NuxtLink"),
+                                    {
+                                      to: `/posts/${props.post.slug}/edit`,
+                                      class:
+                                        "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                    },
+                                    {
+                                      default: () => [
+                                        h(resolveComponent("Icon"), {
+                                          name: "lucide:pencil-line",
+                                          class: "size-4 shrink-0",
+                                        }),
+                                        h("span", {}, "Edit"),
+                                      ],
+                                    }
+                                  ),
                               }
                             ),
-                        }
-                      ),
+                          ]
+                        : []),
+                      // Analytics button (always visible)
                       h(
                         PopoverClose,
                         { asChild: true },
@@ -584,28 +618,33 @@ const RowActions = defineComponent({
                             ),
                         }
                       ),
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
+                      // Delete button (only if user has permission)
+                      ...(canDelete
+                        ? [
                             h(
-                              "button",
+                              PopoverClose,
+                              { asChild: true },
                               {
-                                class:
-                                  "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                onClick: () => (dialogOpen.value = true),
-                              },
-                              [
-                                h(resolveComponent("Icon"), {
-                                  name: "lucide:trash",
-                                  class: "size-4 shrink-0",
-                                }),
-                                h("span", {}, "Delete"),
-                              ]
+                                default: () =>
+                                  h(
+                                    "button",
+                                    {
+                                      class:
+                                        "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                      onClick: () => (dialogOpen.value = true),
+                                    },
+                                    [
+                                      h(resolveComponent("Icon"), {
+                                        name: "lucide:trash",
+                                        class: "size-4 shrink-0",
+                                      }),
+                                      h("span", {}, "Delete"),
+                                    ]
+                                  ),
+                              }
                             ),
-                        }
-                      ),
+                          ]
+                        : []),
                     ]),
                 }
               ),
