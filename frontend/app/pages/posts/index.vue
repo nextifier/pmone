@@ -173,19 +173,19 @@ const { user: currentUser } = useSanctumUser();
 
 // Permission helper functions
 const isAdminOrMaster = computed(() => {
-  if (!currentUser.value) return false;
+  if (!currentUser || !currentUser.value) return false;
   const roles = currentUser.value.roles?.map((r) => r.name) || [];
   return roles.includes('master') || roles.includes('admin');
 });
 
 const canEditPost = (post) => {
-  if (!currentUser.value) return false;
+  if (!currentUser || !currentUser.value) return false;
   if (isAdminOrMaster.value) return true;
   return post.created_by === currentUser.value.id;
 };
 
 const canDeletePost = (post) => {
-  if (!currentUser.value) return false;
+  if (!currentUser || !currentUser.value) return false;
   if (isAdminOrMaster.value) return true;
   return post.created_by === currentUser.value.id;
 };
