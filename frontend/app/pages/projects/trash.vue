@@ -22,7 +22,7 @@
     >
       <template #actions>
         <button
-          v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
+          v-if="isAdminOrMaster"
           @click="openEmptyTrashDialog"
           :disabled="filteredProjects.length === 0"
           class="bg-destructive/10 hover:bg-destructive/20 text-destructive flex items-center gap-x-1.5 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
@@ -162,7 +162,8 @@ import ProjectsList from "@/components/project/ProjectsList.vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth", "admin-master"],
+  middleware: ["sanctum:auth", "role"],
+  roles: ["admin", "master"],
   layout: "app",
 });
 
@@ -173,6 +174,7 @@ defineOptions({
 usePageMeta("projectTrash");
 
 const { user } = useSanctumAuth();
+const { isAdminOrMaster } = usePermission();
 
 // Data state
 const data = ref([]);

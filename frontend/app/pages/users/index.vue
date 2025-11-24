@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-2xl xl:max-w-6xl">
+  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:user-group" class="size-5 sm:size-6" />
@@ -7,10 +7,7 @@
       </div>
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <ImportDialog
-          v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
-          @imported="refresh"
-        >
+        <ImportDialog v-if="isAdminOrMaster" @imported="refresh">
           <template #trigger="{ open }">
             <button
               @click="open()"
@@ -23,7 +20,7 @@
         </ImportDialog>
 
         <button
-          v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
+          v-if="isAdminOrMaster"
           @click="handleExport"
           :disabled="exportPending"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
@@ -34,7 +31,7 @@
         </button>
 
         <nuxt-link
-          v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
+          v-if="isAdminOrMaster"
           to="/users/trash"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
@@ -178,7 +175,8 @@ import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth", "staff-admin-master"],
+  middleware: ["sanctum:auth", "role"],
+  roles: ["staff", "admin", "master"],
   layout: "app",
 });
 
@@ -189,6 +187,7 @@ defineOptions({
 usePageMeta("users");
 
 const { user } = useSanctumAuth();
+const { isAdminOrMaster } = usePermission();
 
 const { $dayjs } = useNuxtApp();
 

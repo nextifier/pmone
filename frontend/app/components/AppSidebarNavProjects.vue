@@ -1,8 +1,6 @@
 <template>
   <SidebarGroup
-    v-if="
-      projects?.length && user?.roles?.some((role) => ['master', 'admin', 'staff'].includes(role))
-    "
+    v-if="projects?.length && isStaffOrAbove"
   >
     <Collapsible as-child :default-open="true" class="group/collapsible">
       <CollapsibleTrigger as-child>
@@ -43,6 +41,7 @@ import { storeToRefs } from "pinia";
 
 const { setOpenMobile } = useSidebar();
 const { user } = useSanctumAuth();
+const { isStaffOrAbove } = usePermission();
 
 const projectsStore = useProjectsStore();
 const { projects } = storeToRefs(projectsStore);

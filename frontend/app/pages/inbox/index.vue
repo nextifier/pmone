@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-2xl xl:max-w-6xl">
+  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
     <!-- Header -->
     <div class="flex items-center justify-between">
       <h1 class="page-title">Contact Form Inbox</h1>

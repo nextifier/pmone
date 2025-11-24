@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-[46rem] xl:max-w-6xl">
+  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:task-edit-01" class="size-5 sm:size-6" />
@@ -168,27 +168,8 @@ defineOptions({
 const { $dayjs } = useNuxtApp();
 const { formatDate } = useFormatters();
 
-// Get current user for permission checks
-const currentUser = useSanctumUser();
-
-// Permission helper functions
-const isAdminOrMaster = computed(() => {
-  if (!currentUser || !currentUser.value) return false;
-  const roles = currentUser.value.roles?.map((r) => r.name) || [];
-  return roles.includes("master") || roles.includes("admin");
-});
-
-const canEditPost = (post) => {
-  if (!currentUser || !currentUser.value) return false;
-  if (isAdminOrMaster.value) return true;
-  return post.created_by === currentUser.value.id;
-};
-
-const canDeletePost = (post) => {
-  if (!currentUser || !currentUser.value) return false;
-  if (isAdminOrMaster.value) return true;
-  return post.created_by === currentUser.value.id;
-};
+// Permission checking using composable
+const { isAdminOrMaster, canEditPost, canDeletePost } = usePermission();
 
 // Table state
 const columnFilters = ref([]);
@@ -321,25 +302,25 @@ const columns = [
       return title.includes(searchValue) || excerpt.includes(searchValue);
     },
   },
-  {
-    header: "Status",
-    accessorKey: "status",
-    cell: ({ row }) => {
-      const status = row.getValue("status");
-      return h(
-        "span",
-        {
-          class: "inline-flex items-center text-sm text-muted-foreground tracking-tight capitalize",
-        },
-        status
-      );
-    },
-    size: 100,
-    filterFn: (row, columnId, filterValue) => {
-      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
-      return filterValue.includes(row.getValue(columnId));
-    },
-  },
+  //   {
+  //     header: "Status",
+  //     accessorKey: "status",
+  //     cell: ({ row }) => {
+  //       const status = row.getValue("status");
+  //       return h(
+  //         "span",
+  //         {
+  //           class: "inline-flex items-center text-sm text-muted-foreground tracking-tight capitalize",
+  //         },
+  //         status
+  //       );
+  //     },
+  //     size: 100,
+  //     filterFn: (row, columnId, filterValue) => {
+  //       if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+  //       return filterValue.includes(row.getValue(columnId));
+  //     },
+  //   },
   {
     header: "Views",
     accessorKey: "visits_count",

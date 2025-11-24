@@ -1,11 +1,8 @@
 <template>
-  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-2xl xl:max-w-6xl">
+  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
     <ProjectsHeader title="Project Management">
       <template #actions>
-        <ImportDialog
-          v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
-          @imported="refresh"
-        >
+        <ImportDialog v-if="isAdminOrMaster" @imported="refresh">
           <template #trigger="{ open }">
             <button
               @click="open()"
@@ -18,7 +15,7 @@
         </ImportDialog>
 
         <button
-          v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
+          v-if="isAdminOrMaster"
           @click="handleExport"
           :disabled="exportPending"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
@@ -29,7 +26,7 @@
         </button>
 
         <nuxt-link
-          v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
+          v-if="isAdminOrMaster"
           to="/projects/trash"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
@@ -47,7 +44,7 @@
     >
       <template #actions>
         <NuxtLink
-          v-if="user?.roles?.some((role) => ['master', 'admin'].includes(role))"
+          v-if="isAdminOrMaster"
           to="/projects/create"
           class="hover:bg-primary/80 text-primary-foreground bg-primary flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
         >
@@ -153,7 +150,8 @@ import { useSortable } from "@vueuse/integrations/useSortable";
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth", "staff-admin-master"],
+  middleware: ["sanctum:auth", "role"],
+  roles: ["staff", "admin", "master"],
   layout: "app",
 });
 
@@ -164,6 +162,7 @@ defineOptions({
 usePageMeta("projects");
 
 const { user } = useSanctumAuth();
+const { isAdminOrMaster } = usePermission();
 
 // Data state
 const data = ref([]);

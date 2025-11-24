@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen-offset mx-auto flex flex-col gap-y-4 py-4 lg:max-w-2xl xl:max-w-6xl">
+  <div class="min-h-screen-offset mx-auto flex flex-col gap-y-4 py-4 lg:max-w-4xl xl:max-w-6xl">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:analysis-text-link" class="size-5 sm:size-6" />

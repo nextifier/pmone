@@ -101,7 +101,8 @@
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth", "admin-master"],
+  middleware: ["sanctum:auth", "role"],
+  roles: ["admin", "master"],
   layout: "app",
 });
 
@@ -132,18 +133,8 @@ usePageMeta("", {
   description: description,
 });
 
-// Computed
-const canEditprojects = computed(() => {
-  return currentUser.value?.roles?.some((role) => ["master", "admin"].includes(role));
-});
-
-const canDeleteprojects = computed(() => {
-  return currentUser.value?.roles?.some((role) => ["master", "admin"].includes(role));
-});
-
-const isMaster = computed(() => {
-  return currentUser.value?.roles?.includes("master");
-});
+// Permission checking using composable
+const { isAdminOrMaster: canEditprojects, isAdminOrMaster: canDeleteprojects, isMaster } = usePermission();
 
 const canDeleteThisproject = computed(() => {
   if (!canDeleteprojects.value) return false;

@@ -166,13 +166,14 @@ const fetchTargetUser = async () => {
 
 await fetchTargetUser();
 
+// Permission checking using composable
+const { isAdminOrMaster, canEditPost: canManagePost } = usePermission();
+
 // Check if current user can manage posts
 const canManagePosts = computed(() => {
   if (!user.value || !targetUser.value) return false;
-  const currentUserRoles = user.value.roles || [];
-  const isMasterOrAdmin = currentUserRoles.some((role) => ["master", "admin"].includes(role));
   const isOwner = user.value.id === targetUser.value.id;
-  return isMasterOrAdmin || isOwner;
+  return isAdminOrMaster.value || isOwner;
 });
 
 // Table state
@@ -263,15 +264,6 @@ watch(
 );
 
 const refresh = fetchPosts;
-
-// Helper to check if current user can edit/delete a specific post
-const canManagePost = (post) => {
-  if (!user.value) return false;
-  const currentUserRoles = user.value.roles || [];
-  const isMasterOrAdmin = currentUserRoles.some((role) => ["master", "admin"].includes(role));
-  const isCreator = post.created_by === user.value.id;
-  return isMasterOrAdmin || isCreator;
-};
 
 // Table columns
 const columns = [

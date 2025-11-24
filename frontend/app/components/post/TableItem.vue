@@ -3,7 +3,7 @@
     :to="`/posts/${post.slug}/edit`"
     class="flex items-center gap-x-2 transition hover:opacity-80"
   >
-    <div class="bg-muted size-12 shrink-0 overflow-hidden rounded-lg">
+    <div class="bg-muted border-border size-12 shrink-0 overflow-hidden rounded-lg border">
       <img
         v-if="post.featured_image"
         :src="
@@ -17,7 +17,16 @@
       />
     </div>
 
-    <div class="flex flex-col gap-y-0.5 overflow-hidden">
+    <div class="flex flex-col items-start gap-y-0.5 overflow-hidden">
+      <span
+        v-if="post.status"
+        class="text-xs font-medium tracking-tight capitalize"
+        :class="{
+          'text-success-foreground': post.status.toLowerCase() === 'published',
+          'text-warning-foreground': post.status.toLowerCase() === 'draft',
+        }"
+        >{{ post.status }}</span
+      >
       <p>{{ post.title }}</p>
       <div
         v-if="post.tags?.length"
