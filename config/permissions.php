@@ -29,26 +29,48 @@ return [
             'model' => \Spatie\Permission\Models\Role::class,
             'actions' => ['create', 'read', 'update', 'delete'],
         ],
-        // Add more resources here as you create new models
-        // Example:
-        // 'posts' => [
-        //     'label' => 'Posts',
-        //     'description' => 'Manage blog posts',
-        //     'model' => \App\Models\Post::class,
-        //     'actions' => ['create', 'read', 'update', 'delete'],
-        // ],
-        // 'projects' => [
-        //     'label' => 'Projects',
-        //     'description' => 'Manage projects',
-        //     'model' => \App\Models\Project::class,
-        //     'actions' => ['create', 'read', 'update', 'delete'],
-        // ],
-        // 'short_links' => [
-        //     'label' => 'Short Links',
-        //     'description' => 'Manage short links',
-        //     'model' => \App\Models\ShortLink::class,
-        //     'actions' => ['create', 'read', 'update', 'delete'],
-        // ],
+        'posts' => [
+            'label' => 'Posts',
+            'description' => 'Manage blog posts',
+            'model' => \App\Models\Post::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'projects' => [
+            'label' => 'Projects',
+            'description' => 'Manage projects',
+            'model' => \App\Models\Project::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'short_links' => [
+            'label' => 'Short Links',
+            'description' => 'Manage short links',
+            'model' => \App\Models\ShortLink::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'categories' => [
+            'label' => 'Categories',
+            'description' => 'Manage blog categories',
+            'model' => \App\Models\Category::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'tags' => [
+            'label' => 'Tags',
+            'description' => 'Manage blog tags',
+            'model' => \App\Models\Tag::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'contact_forms' => [
+            'label' => 'Contact Form Submissions',
+            'description' => 'Manage contact form submissions (inbox)',
+            'model' => \App\Models\ContactFormSubmission::class,
+            'actions' => ['read', 'update', 'delete'], // No create, submissions come from public
+        ],
+        'api_consumers' => [
+            'label' => 'API Consumers',
+            'description' => 'Manage API consumers and keys',
+            'model' => \App\Models\ApiConsumer::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
     ],
 
     /*
@@ -71,17 +93,14 @@ return [
                 'admin.maintenance' => 'Put system in maintenance mode',
             ],
         ],
-        // Add more custom permission groups here
-        // Example:
-        // 'reports' => [
-        //     'label' => 'Reports',
-        //     'description' => 'Report generation and viewing',
-        //     'permissions' => [
-        //         'reports.view' => 'View reports',
-        //         'reports.export' => 'Export reports',
-        //         'reports.schedule' => 'Schedule report generation',
-        //     ],
-        // ],
+        'analytics' => [
+            'label' => 'Analytics',
+            'description' => 'View and manage analytics data',
+            'permissions' => [
+                'analytics.view' => 'View analytics data',
+                'analytics.export' => 'Export analytics data',
+            ],
+        ],
     ],
 
     /*

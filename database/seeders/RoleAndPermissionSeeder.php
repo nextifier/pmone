@@ -26,16 +26,65 @@ class RoleAndPermissionSeeder extends Seeder
             'roles.read',
             'roles.update',
             'roles.delete',
+            // Posts
+            'posts.create',
+            'posts.read',
+            'posts.update',
+            'posts.delete',
+            // Projects
+            'projects.create',
+            'projects.read',
+            'projects.update',
+            'projects.delete',
+            // Short Links
+            'short_links.create',
+            'short_links.read',
+            'short_links.update',
+            'short_links.delete',
+            // Categories
+            'categories.create',
+            'categories.read',
+            'categories.update',
+            'categories.delete',
+            // Tags
+            'tags.create',
+            'tags.read',
+            'tags.update',
+            'tags.delete',
+            // Contact Forms
+            'contact_forms.read',
+            'contact_forms.update',
+            'contact_forms.delete',
+            // API Consumers
+            'api_consumers.create',
+            'api_consumers.read',
+            'api_consumers.update',
+            'api_consumers.delete',
             // Admin permissions
             'admin.view',
             'admin.settings',
             'admin.logs',
+            // Analytics
+            'analytics.view',
+            'analytics.export',
         ],
         'staff' => [
             'users.read',
+            'posts.read',
+            'projects.read',
+            'short_links.read',
+            'categories.read',
+            'tags.read',
+            'contact_forms.read',
         ],
         'writer' => [
             'users.read',
+            'posts.create',
+            'posts.read',
+            'posts.update',
+            'posts.delete',
+            'categories.read',
+            'tags.read',
         ],
         'user' => [
             'users.read',
