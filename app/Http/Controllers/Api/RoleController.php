@@ -322,7 +322,7 @@ class RoleController extends Controller
     }
 
     /**
-     * Get all permissions.
+     * Get all permissions grouped by resource.
      */
     public function permissions(Request $request): JsonResponse
     {
@@ -333,11 +333,117 @@ class RoleController extends Controller
             ], 403);
         }
 
-        $permissions = Permission::orderBy('name')->get();
+        $allPermissions = Permission::orderBy('name')->get();
+        $groupedPermissions = $this->groupPermissions($allPermissions);
 
         return response()->json([
-            'data' => $permissions,
+            'data' => $groupedPermissions,
         ]);
+    }
+
+    /**
+     * Group permissions by resource based on config.
+     */
+    protected function groupPermissions($permissions): array
+    {
+        $grouped = [];
+        $resources = config('permissions.resources', []);
+        $customGroups = config('permissions.custom', []);
+
+        // Group resource-based permissions
+        foreach ($resources as $resource => $config) {
+            $label = $config['label'] ?? ucfirst($resource);
+            $description = $config['description'] ?? '';
+            $actions = $config['actions'] ?? ['create', 'read', 'update', 'delete'];
+
+            $resourcePermissions = [];
+            foreach ($actions as $action) {
+                $permissionName = "{$resource}.{$action}";
+                $permission = $permissions->firstWhere('name', $permissionName);
+
+                if ($permission) {
+                    $resourcePermissions[] = [
+                        'name' => $permission->name,
+                        'action' => $action,
+                    ];
+                }
+            }
+
+            if (count($resourcePermissions) > 0) {
+                $grouped[] = [
+                    'group' => $resource,
+                    'label' => $label,
+                    'description' => $description,
+                    'type' => 'resource',
+                    'permissions' => $resourcePermissions,
+                ];
+            }
+        }
+
+        // Group custom permissions
+        foreach ($customGroups as $group => $config) {
+            $label = $config['label'] ?? ucfirst($group);
+            $description = $config['description'] ?? '';
+            $customPermissionsList = $config['permissions'] ?? [];
+
+            $groupPermissions = [];
+            foreach ($customPermissionsList as $permissionName => $permissionDescription) {
+                $permission = $permissions->firstWhere('name', $permissionName);
+
+                if ($permission) {
+                    $groupPermissions[] = [
+                        'name' => $permission->name,
+                        'description' => $permissionDescription,
+                    ];
+                }
+            }
+
+            if (count($groupPermissions) > 0) {
+                $grouped[] = [
+                    'group' => $group,
+                    'label' => $label,
+                    'description' => $description,
+                    'type' => 'custom',
+                    'permissions' => $groupPermissions,
+                ];
+            }
+        }
+
+        // Group ungrouped permissions (permissions not in config)
+        $allConfigPermissionNames = [];
+
+        foreach ($resources as $resource => $config) {
+            $actions = $config['actions'] ?? ['create', 'read', 'update', 'delete'];
+            foreach ($actions as $action) {
+                $allConfigPermissionNames[] = "{$resource}.{$action}";
+            }
+        }
+
+        foreach ($customGroups as $config) {
+            $customPermissionsList = $config['permissions'] ?? [];
+            $allConfigPermissionNames = array_merge($allConfigPermissionNames, array_keys($customPermissionsList));
+        }
+
+        $ungroupedPermissions = $permissions->filter(function ($permission) use ($allConfigPermissionNames) {
+            return ! in_array($permission->name, $allConfigPermissionNames);
+        });
+
+        if ($ungroupedPermissions->count() > 0) {
+            $grouped[] = [
+                'group' => 'other',
+                'label' => 'Other Permissions',
+                'description' => 'Permissions not categorized in config',
+                'type' => 'custom',
+                'permissions' => $ungroupedPermissions->map(function ($permission) {
+                    return [
+                        'name' => $permission->name,
+                        'description' => $permission->name,
+                    ];
+                })->values()->toArray(),
+            ];
+        }
+
+        return $grouped;
     }
 
     /**

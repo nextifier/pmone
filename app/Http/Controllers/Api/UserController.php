@@ -28,7 +28,7 @@ class UserController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $this->authorize('users.view');
+        $this->authorize('users.read');
 
         $query = User::query()->with(['roles', 'creator', 'updater'])->withCount('posts');
         $clientOnly = $request->boolean('client_only', false);
@@ -69,7 +69,7 @@ class UserController extends Controller
 
     public function trash(Request $request): JsonResponse
     {
-        $this->authorize('users.view');
+        $this->authorize('users.read');
 
         $query = User::onlyTrashed()->with(['roles', 'deleter']);
         $clientOnly = $request->boolean('client_only', false);
@@ -165,7 +165,7 @@ class UserController extends Controller
 
     public function show(User $user): JsonResponse
     {
-        $this->authorize('users.view');
+        $this->authorize('users.read');
 
         $user->load(['roles', 'media', 'links']);
 
@@ -741,7 +741,7 @@ class UserController extends Controller
 
     public function getRoles(): JsonResponse
     {
-        $this->authorize('users.view');
+        $this->authorize('users.read');
 
         $user = request()->user();
         $query = Role::query()->select(['id', 'name']);
@@ -760,7 +760,7 @@ class UserController extends Controller
 
     public function export(Request $request): BinaryFileResponse
     {
-        $this->authorize('users.view');
+        $this->authorize('users.read');
 
         // Get filters and sorting from request
         // Note: Laravel converts dots in query params to underscores

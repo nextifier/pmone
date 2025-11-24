@@ -54,7 +54,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     });
 
     // User administration endpoints (master and admin only)
-    Route::prefix('users')->middleware('can:users.view')->group(function () {
+    Route::prefix('users')->middleware('can:users.read')->group(function () {
         Route::get('/', [UserController::class, 'index']);
         Route::post('/', [UserController::class, 'store'])->middleware('can:users.create');
         Route::get('/roles', [UserController::class, 'getRoles']);
@@ -68,7 +68,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/trash/bulk', [UserController::class, 'bulkForceDestroy'])->middleware('can:users.delete');
         Route::delete('/trash/{id}', [UserController::class, 'forceDestroy'])->middleware('can:users.delete');
         Route::get('/{user}', [UserController::class, 'show']);
-        Route::put('/{user}', [UserController::class, 'update'])->middleware('can:users.edit');
+        Route::put('/{user}', [UserController::class, 'update'])->middleware('can:users.update');
         Route::delete('/{user}', [UserController::class, 'destroy'])->middleware('can:users.delete');
     });
 
