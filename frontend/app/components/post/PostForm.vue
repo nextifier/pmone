@@ -417,8 +417,8 @@ const showRestoreDialog = ref(false);
 const pendingRestoreData = ref(null);
 let slugCheckTimeout = null;
 
-// Autosave composable
-const autosaveEnabled = ref(true);
+// Autosave composable - initially disabled to prevent autosave during initialization
+const autosaveEnabled = ref(false);
 const autosave = useAutosave(toRef(form), {
   postId: postId,
   enabled: autosaveEnabled,
@@ -583,9 +583,14 @@ async function checkAndRestoreAutosave() {
     if (savedData && Object.keys(savedData).length > 0) {
       pendingRestoreData.value = savedData;
       showRestoreDialog.value = true;
+    } else {
+      // No autosave found, enable autosave for future changes
+      autosaveEnabled.value = true;
     }
   } catch (error) {
     console.error('Failed to check autosave:', error);
+    // Enable autosave even if there was an error
+    autosaveEnabled.value = true;
   }
 }
 
@@ -612,6 +617,9 @@ async function handleRestoreChanges() {
   }
   showRestoreDialog.value = false;
   pendingRestoreData.value = null;
+
+  // Enable autosave after restore
+  autosaveEnabled.value = true;
 }
 
 async function handleDiscardRestore() {
@@ -619,6 +627,9 @@ async function handleDiscardRestore() {
   await autosave.discardAutosave();
   showRestoreDialog.value = false;
   pendingRestoreData.value = null;
+
+  // Enable autosave after discard
+  autosaveEnabled.value = true;
 }
 
 async function discardAutosave() {

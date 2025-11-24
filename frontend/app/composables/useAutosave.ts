@@ -1,4 +1,4 @@
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, toValue } from 'vue'
 import { useDebounceFn, useLocalStorage } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 
@@ -32,7 +32,7 @@ export function useAutosave(
     postId?: Ref<number | null>
     enabled?: Ref<boolean>
     debounceTime?: number
-    localStorageKey?: string
+    localStorageKey?: Ref<string> | string
   } = {}
 ) {
   const {
@@ -51,8 +51,9 @@ export function useAutosave(
     error: null,
   })
 
-  // Local storage backup
-  const localBackup = useLocalStorage<AutosaveData | null>(localStorageKey, null)
+  // Local storage backup - properly unwrap the key if it's a ref
+  const storageKey = computed(() => toValue(localStorageKey))
+  const localBackup = useLocalStorage<AutosaveData | null>(storageKey, null)
 
   // Computed properties
   const isSaving = computed(() => autosaveStatus.value.status === 'saving')
