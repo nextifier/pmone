@@ -63,8 +63,8 @@
               >
                 <Checkbox
                   :id="`permission-${permission.name}`"
-                  v-model="formData.permissions"
-                  :value="permission.name"
+                  :model-value="formData.permissions.includes(permission.name)"
+                  @update:model-value="(checked) => togglePermission(permission.name, checked)"
                 />
                 <label
                   :for="`permission-${permission.name}`"
@@ -175,20 +175,39 @@ function areAllGroupPermissionsSelected(groupPermissions) {
   return groupPermissions.every(p => formData.value.permissions.includes(p.name));
 }
 
+function togglePermission(permissionName, checked) {
+  const index = formData.value.permissions.indexOf(permissionName);
+  const isChecked = checked === true || checked === "indeterminate";
+
+  if (isChecked) {
+    if (index === -1) {
+      formData.value.permissions.push(permissionName);
+    }
+  } else {
+    if (index > -1) {
+      formData.value.permissions.splice(index, 1);
+    }
+  }
+}
+
 function toggleGroupPermissions(groupPermissions) {
   const allSelected = areAllGroupPermissionsSelected(groupPermissions);
 
   if (allSelected) {
     // Deselect all
-    formData.value.permissions = formData.value.permissions.filter(
-      p => !groupPermissions.some(gp => gp.name === p)
-    );
+    groupPermissions.forEach(p => {
+      const index = formData.value.permissions.indexOf(p.name);
+      if (index > -1) {
+        formData.value.permissions.splice(index, 1);
+      }
+    });
   } else {
     // Select all
-    const newPermissions = groupPermissions
-      .map(p => p.name)
-      .filter(p => !formData.value.permissions.includes(p));
-    formData.value.permissions = [...formData.value.permissions, ...newPermissions];
+    groupPermissions.forEach(p => {
+      if (!formData.value.permissions.includes(p.name)) {
+        formData.value.permissions.push(p.name);
+      }
+    });
   }
 }
 
