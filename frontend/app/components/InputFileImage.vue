@@ -89,7 +89,7 @@ const imageUrl = computed(() => {
   }
 
   // Handle object with sm/url properties (Media Library)
-  return props.initialImage?.lg || props.initialImage?.url;
+  return props.initialImage?.sm || props.initialImage?.url;
 });
 
 function handleDelete() {

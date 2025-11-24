@@ -30,6 +30,7 @@ class PostResource extends JsonResource
                 'visits_count' => $this->visits_count ?? 0,
                 'media_count' => $this->media_count ?? 0,
                 'featured_image' => $this->getFeaturedImageFromLoadedMedia(),
+                'created_by' => $this->created_by,
                 'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
                 'authors' => $this->whenLoaded('authors', fn () => $this->authors->map(fn ($author) => [
                     'id' => $author->id,
@@ -70,6 +71,7 @@ class PostResource extends JsonResource
             'featured_image' => $this->hasMedia('featured_image')
                 ? $this->getMediaUrls('featured_image')
                 : $this->featured_image,
+            'created_by' => $this->created_by,
             'tags' => $this->whenLoaded('tags', fn () => $this->tags->pluck('name')),
             'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
             'authors' => $this->whenLoaded('authors', fn () => $this->authors->map(fn ($author) => [

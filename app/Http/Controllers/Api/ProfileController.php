@@ -80,7 +80,7 @@ class ProfileController extends Controller
             ->first();
 
         if (! $shortLink) {
-            abort(404, 'Short link not found or has been deactivated.');
+            abort(404, 'Page not found');
         }
 
         // Track click

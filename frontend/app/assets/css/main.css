@@ -795,7 +795,7 @@ img.pswp__img {
   font-family: inherit;
 
   & .filepond--drop-label {
-    @apply text-muted-foreground !min-h-20 cursor-pointer;
+    @apply text-muted-foreground bg-pattern-diagonal border-border !min-h-20 cursor-pointer rounded-md border;
   }
 
   & .filepond--label-action {
@@ -803,7 +803,7 @@ img.pswp__img {
   }
 
   & .filepond--panel-root {
-    @apply bg-background border-border hover:bg-muted bg-pattern-diagonal rounded-md border;
+    @apply bg-background hover:bg-muted border;
   }
 
   & .filepond--credits {

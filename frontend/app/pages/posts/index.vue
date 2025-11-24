@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-2xl xl:max-w-6xl">
+  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-[46rem] xl:max-w-6xl">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:task-edit-01" class="size-5 sm:size-6" />
@@ -169,13 +169,13 @@ const { $dayjs } = useNuxtApp();
 const { formatDate } = useFormatters();
 
 // Get current user for permission checks
-const { user: currentUser } = useSanctumUser();
+const currentUser = useSanctumUser();
 
 // Permission helper functions
 const isAdminOrMaster = computed(() => {
   if (!currentUser || !currentUser.value) return false;
   const roles = currentUser.value.roles?.map((r) => r.name) || [];
-  return roles.includes('master') || roles.includes('admin');
+  return roles.includes("master") || roles.includes("admin");
 });
 
 const canEditPost = (post) => {
@@ -257,7 +257,7 @@ const fetchPosts = async () => {
 await fetchPosts();
 
 // Global state for refresh tracking
-const needsRefresh = useState('posts-needs-refresh', () => false);
+const needsRefresh = useState("posts-needs-refresh", () => false);
 
 // Refresh when component is activated from KeepAlive
 onActivated(async () => {
@@ -507,9 +507,9 @@ const RowActions = defineComponent({
     const dialogOpen = ref(false);
     const singleDeletePending = ref(false);
 
-    // Check permissions for this specific post
-    const canEdit = canEditPost(props.post);
-    const canDelete = canDeletePost(props.post);
+    // Check permissions for this specific post - make them computed so they're reactive
+    const canEdit = computed(() => canEditPost(props.post));
+    const canDelete = computed(() => canDeletePost(props.post));
 
     return () =>
       h("div", { class: "flex justify-end" }, [
@@ -565,7 +565,7 @@ const RowActions = defineComponent({
                         }
                       ),
                       // Edit button (only if user has permission)
-                      ...(canEdit
+                      ...(canEdit.value
                         ? [
                             h(
                               PopoverClose,
@@ -619,7 +619,7 @@ const RowActions = defineComponent({
                         }
                       ),
                       // Delete button (only if user has permission)
-                      ...(canDelete
+                      ...(canDelete.value
                         ? [
                             h(
                               PopoverClose,
