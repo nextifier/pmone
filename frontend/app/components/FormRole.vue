@@ -35,37 +35,45 @@
 
         <div v-else class="space-y-3">
           <div
-            v-for="group in groupedPermissions"
-            :key="group.name"
+            v-for="group in permissionGroups"
+            :key="group.group"
             class="border-border rounded-lg border p-4 space-y-3"
           >
-            <div class="flex items-center justify-between">
-              <h3 class="text-sm font-medium">{{ group.label }}</h3>
-              <button
-                type="button"
-                @click="toggleGroupPermissions(group.permissions)"
-                class="text-primary hover:text-primary/80 text-xs font-medium"
-              >
-                {{ areAllGroupPermissionsSelected(group.permissions) ? 'Deselect All' : 'Select All' }}
-              </button>
+            <div class="space-y-1">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-medium">{{ group.label }}</h3>
+                <button
+                  type="button"
+                  @click="toggleGroupPermissions(group.permissions)"
+                  class="text-primary hover:text-primary/80 text-xs font-medium"
+                >
+                  {{ areAllGroupPermissionsSelected(group.permissions) ? 'Deselect All' : 'Select All' }}
+                </button>
+              </div>
+              <p v-if="group.description" class="text-muted-foreground text-xs">
+                {{ group.description }}
+              </p>
             </div>
 
             <div class="space-y-2">
               <div
                 v-for="permission in group.permissions"
-                :key="permission.id"
+                :key="permission.name"
                 class="flex items-center gap-2"
               >
                 <Checkbox
-                  :id="`permission-${permission.id}`"
-                  v-model="formData.permissions"
-                  :value="permission.name"
+                  :id="`permission-${permission.name}`"
+                  :model-value="formData.permissions.includes(permission.name)"
+                  @update:model-value="(checked) => togglePermission(permission.name, checked)"
                 />
                 <label
-                  :for="`permission-${permission.id}`"
+                  :for="`permission-${permission.name}`"
                   class="text-sm tracking-tight cursor-pointer grow"
                 >
-                  {{ formatPermissionLabel(permission.name) }}
+                  <span>{{ formatPermissionLabel(permission) }}</span>
+                  <span v-if="permission.description && group.type === 'custom'" class="text-muted-foreground text-xs ml-2">
+                    ({{ permission.description }})
+                  </span>
                 </label>
               </div>
             </div>
@@ -129,7 +137,7 @@ const errors = ref({});
 const internalLoading = ref(false);
 
 // Permissions state
-const permissions = ref([]);
+const permissionGroups = ref([]);
 const loadingPermissions = ref(false);
 const permissionsError = ref(false);
 
@@ -138,42 +146,48 @@ const submitText = computed(() => (props.mode === "create" ? "Create Role" : "Sa
 const loadingText = computed(() => (props.mode === "create" ? "Creating..." : "Saving..."));
 const loading = computed(() => props.loading || internalLoading.value);
 
-// Group permissions by category
-const groupedPermissions = computed(() => {
-  const groups = {};
-
-  permissions.value.forEach(permission => {
-    const [category] = permission.name.split('.');
-    if (!groups[category]) {
-      groups[category] = {
-        name: category,
-        label: formatCategoryLabel(category),
-        permissions: []
-      };
-    }
-    groups[category].permissions.push(permission);
-  });
-
-  return Object.values(groups);
-});
-
 // Helper functions
-function formatCategoryLabel(category) {
-  return category
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+function formatPermissionLabel(permission) {
+  // For resource-based permissions (CRUD), format the action nicely
+  if (permission.action) {
+    const actionLabels = {
+      create: 'Create',
+      read: 'View/Read',
+      update: 'Update/Edit',
+      delete: 'Delete',
+    };
+    return actionLabels[permission.action] || permission.action.charAt(0).toUpperCase() + permission.action.slice(1);
+  }
 
-function formatPermissionLabel(permissionName) {
-  const [, action] = permissionName.split('.');
+  // For custom permissions, use description or format from name
+  if (permission.description) {
+    return permission.description;
+  }
+
+  // Fallback: format from permission name
+  const [, action] = permission.name.split('.');
   return action
     ? action.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
-    : permissionName;
+    : permission.name;
 }
 
 function areAllGroupPermissionsSelected(groupPermissions) {
   return groupPermissions.every(p => formData.value.permissions.includes(p.name));
+}
+
+function togglePermission(permissionName, checked) {
+  const index = formData.value.permissions.indexOf(permissionName);
+  const isChecked = checked === true || checked === "indeterminate";
+
+  if (isChecked) {
+    if (index === -1) {
+      formData.value.permissions.push(permissionName);
+    }
+  } else {
+    if (index > -1) {
+      formData.value.permissions.splice(index, 1);
+    }
+  }
 }
 
 function toggleGroupPermissions(groupPermissions) {
@@ -181,25 +195,29 @@ function toggleGroupPermissions(groupPermissions) {
 
   if (allSelected) {
     // Deselect all
-    formData.value.permissions = formData.value.permissions.filter(
-      p => !groupPermissions.some(gp => gp.name === p)
-    );
+    groupPermissions.forEach(p => {
+      const index = formData.value.permissions.indexOf(p.name);
+      if (index > -1) {
+        formData.value.permissions.splice(index, 1);
+      }
+    });
   } else {
     // Select all
-    const newPermissions = groupPermissions
-      .map(p => p.name)
-      .filter(p => !formData.value.permissions.includes(p));
-    formData.value.permissions = [...formData.value.permissions, ...newPermissions];
+    groupPermissions.forEach(p => {
+      if (!formData.value.permissions.includes(p.name)) {
+        formData.value.permissions.push(p.name);
+      }
+    });
   }
 }
 
-// Load permissions
+// Load permissions (now returns grouped permissions from API)
 async function loadPermissions() {
   try {
     loadingPermissions.value = true;
     permissionsError.value = false;
     const response = await sanctumFetch('/api/permissions');
-    permissions.value = response.data || [];
+    permissionGroups.value = response.data || [];
   } catch (err) {
     console.error('Error loading permissions:', err);
     permissionsError.value = true;
