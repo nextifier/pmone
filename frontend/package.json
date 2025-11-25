@@ -76,6 +76,7 @@
     "v-wave": "^3.0.4",
     "vaul-vue": "^0.4.1",
     "vue-filepond": "^7.0.4",
+    "vue-json-pretty": "^2.6.0",
     "vue-router": "^4.6.3",
     "vue-scrollto": "^2.20.0",
     "vue-sonner": "^2.0.9",

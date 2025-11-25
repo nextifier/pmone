@@ -1,7 +1,11 @@
 <template>
-  <div class="mx-auto max-w-6xl space-y-6 pt-4 pb-16">
-    <div class="flex flex-col items-start gap-y-6">
-      <BackButton destination="/posts" />
+  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
+    <div class="flex flex-col gap-y-6">
+      <div class="flex items-center justify-between gap-2">
+        <BackButton destination="/posts" />
+
+        <DialogViewRaw :data="analyticsData" />
+      </div>
 
       <div class="flex w-full flex-wrap items-center justify-between gap-4">
         <div class="flex flex-col gap-y-1">
@@ -70,7 +74,7 @@
       <!-- Visits Over Time Chart -->
       <div class="border-border rounded-lg border p-4">
         <h2 class="mb-4 text-lg font-semibold tracking-tighter">Visits Over Time</h2>
-        <div v-if="chartData?.length > 2">
+        <div v-if="chartData?.length > 0">
           <ChartLineDefault
             :data="chartData"
             :config="chartConfig"
@@ -140,7 +144,6 @@
 </template>
 
 <script setup>
-import ChartLineDefault from "@/components/chart/LineDefault.vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({

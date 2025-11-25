@@ -14,7 +14,6 @@ use App\Http\Requests\GoogleAnalytics\TriggerSyncRequest;
 use App\Http\Requests\GoogleAnalytics\UpdateGaPropertyRequest;
 use App\Http\Resources\GaPropertyResource;
 use App\Imports\GaPropertiesImport;
-use App\Jobs\AggregateAnalyticsData;
 use App\Jobs\SyncGoogleAnalyticsData;
 use App\Models\GaProperty;
 use App\Services\GoogleAnalytics\AnalyticsCacheKeyGenerator as CacheKey;
@@ -273,16 +272,23 @@ class GoogleAnalyticsController extends Controller
 
     /**
      * Trigger aggregation job.
+     * With daily aggregation system, this now clears cache to force refresh from 365-day data.
      */
     public function aggregate(GetAnalyticsRequest $request): JsonResponse
     {
         $propertyIds = $request->input('property_ids');
         $days = $request->input('days', 7);
 
-        AggregateAnalyticsData::dispatch($propertyIds, $days);
+        // Clear aggregate cache to force refresh
+        $period = $this->analyticsService->createPeriodFromDays($days);
+        $cacheKey = CacheKey::forAggregate($propertyIds, $period->startDate, $period->endDate);
+
+        \Illuminate\Support\Facades\Cache::forget($cacheKey);
+        \Illuminate\Support\Facades\Cache::forget(CacheKey::timestamp($cacheKey));
+        \Illuminate\Support\Facades\Cache::forget(CacheKey::refreshing($cacheKey));
 
         return response()->json([
-            'message' => 'Aggregation job dispatched',
+            'message' => 'Aggregate cache cleared, next request will fetch fresh data from daily cache',
             'property_ids' => $propertyIds,
             'days' => $days,
         ]);

@@ -134,7 +134,6 @@ export default defineNuxtConfig({
     preference: "dark", //system, light, dark
     fallback: "dark",
     classSuffix: "",
-    hid: "color-mode-script",
     globalName: "__COLOR_MODE__",
     storageKey: "color-mode",
   },

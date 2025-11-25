@@ -43,33 +43,13 @@ return Application::configure(basePath: dirname(__DIR__))
         // Cleanup tracking data older than 5 years, run daily at 2 AM
         $schedule->command('tracking:cleanup')->dailyAt('02:00');
 
-        // Sync Google Analytics properties that need updating, run every 10 minutes
-        $schedule->command('analytics:sync --days=30 --only-needed --queue')->everyTenMinutes();
-
-        // Pre-compute analytics cache for common periods to ensure instant response
-        // These jobs run in background via Redis queue, users always get cached data instantly
-
-        // 7-day analytics - refresh every 10 minutes (most frequently used)
-        $schedule->job(new \App\Jobs\AggregateAnalyticsData(null, 7))->everyTenMinutes();
-
-        // 30-day analytics - refresh every 15 minutes (dashboard default)
-        $schedule->job(new \App\Jobs\AggregateAnalyticsData(null, 30))->everyFifteenMinutes();
-
-        // 90-day analytics - refresh every 30 minutes
-        $schedule->job(new \App\Jobs\AggregateAnalyticsData(null, 90))->everyThirtyMinutes();
-
-        // 365-day analytics - refresh every hour
-        $schedule->job(new \App\Jobs\AggregateAnalyticsData(null, 365))->hourly();
-
-        // Named periods - refresh every 15 minutes
-        $schedule->job(new \App\Jobs\PreComputeNamedPeriodAnalytics)->everyFifteenMinutes();
+        // Sync Google Analytics properties - fetch 365 days of daily data for all properties
+        // The daily aggregation system will then filter this data for any requested period
+        // This runs hourly to keep data fresh while minimizing GA API calls
+        $schedule->command('analytics:sync --days=365 --only-needed --queue')->hourly();
 
         // Realtime analytics - refresh every 2 minutes for live user counts
         $schedule->job(new \App\Jobs\RefreshRealtimeAnalytics)->everyTwoMinutes();
-
-        // Refresh 365-day analytics cache for all properties, run hourly
-        // This ensures users always see fresh data without waiting
-        $schedule->command('analytics:refresh-cache')->hourly();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Force JSON response for API requests

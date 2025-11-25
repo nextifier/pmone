@@ -901,14 +901,125 @@ img.pswp__img {
   @apply text-muted-foreground mt-2 text-center text-sm italic;
 }
 
-/* Disable Grammarly globally */
-grammarly-extension,
-grammarly-button,
-.grammarly-button,
-[data-grammarly-part],
-div[data-gramm] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
+/* Vue JSON Pretty - Start */
+.vjs-tree {
+  @apply pl-4! text-left font-mono text-sm;
+
+  &.is-virtual {
+    @apply overflow-auto;
+
+    & .vjs-tree-node {
+      @apply whitespace-nowrap;
+    }
+  }
+
+  .vjs-tree-brackets {
+    @apply hover:text-foreground text-muted-foreground/70 cursor-pointer;
+  }
+
+  .vjs-carets {
+    @apply hover:text-foreground text-muted-foreground/70 absolute top-1/2 right-0 -translate-y-1/2 cursor-pointer;
+  }
+
+  .vjs-carets-close {
+    @apply -rotate-90;
+  }
+
+  .vjs-tree-node {
+    @apply relative flex leading-5;
+  }
+  .vjs-tree-node.has-carets {
+    @apply pl-4;
+  }
+  .vjs-tree-node.has-carets.has-selector,
+  .vjs-tree-node.has-selector {
+    @apply pl-8;
+  }
+  .vjs-tree-node.is-highlight,
+  .vjs-tree-node:hover {
+    @apply bg-muted rounded-sm;
+  }
+  .vjs-tree-node.is-highlight .vjs-tree-node-actions,
+  .vjs-tree-node:hover .vjs-tree-node-actions {
+    @apply block;
+  }
+  .vjs-tree-node .vjs-indent {
+    @apply relative flex;
+  }
+  .vjs-tree-node .vjs-indent-unit.has-line {
+    @apply border-border border-l border-dashed;
+  }
+  .vjs-tree-node .vjs-tree-node-actions {
+    @apply bg-muted absolute top-0 right-0 hidden rounded-sm px-1 py-0;
+  }
+  .vjs-tree-node .vjs-tree-node-actions .vjs-tree-node-actions-item {
+    @apply cursor-pointer;
+  }
+  .vjs-tree-node .vjs-tree-node-actions .vjs-tree-node-actions-item:hover {
+    @apply text-foreground;
+  }
+  .vjs-tree-node.dark.is-highlight,
+  .vjs-tree-node.dark .vjs-tree-node-actions,
+  .vjs-tree-node.dark:hover {
+    @apply bg-muted;
+  }
+  .vjs-node-index {
+    @apply text-muted-foreground/70 absolute right-full mr-1 select-none;
+  }
+  .vjs-colon {
+    @apply whitespace-pre;
+  }
+  .vjs-key {
+    @apply whitespace-nowrap;
+  }
+  .vjs-value {
+    @apply wrap-break-word;
+  }
+  .vjs-tree-node.dynamic-height .vjs-value {
+    @apply whitespace-pre-wrap;
+  }
+  .vjs-value-null,
+  .vjs-value-undefined {
+    @apply text-destructive-foreground;
+  }
+  .vjs-value-boolean,
+  .vjs-value-number {
+    @apply text-info-foreground;
+  }
+  .vjs-value-string {
+    @apply text-success-foreground;
+  }
+  .vjs-comment {
+    @apply text-muted-foreground/70;
+  }
+
+  /* .vjs-check-controller {
+    @apply absolute left-0;
+  }
+  .vjs-check-controller.is-checked .vjs-check-controller-inner {
+    @applg bg-info;
+  }
+
+  .vjs-check-controller.is-checked .vjs-check-controller-inner.is-checkbox:after {
+    @apply scale-y-100 rotate-45;
+  }
+  .vjs-check-controller.is-checked .vjs-check-controller-inner.is-radio:after {
+    @apply -translate-x-1/2 -translate-y-1/2 scale-100;
+  }
+  .vjs-check-controller .vjs-check-controller-inner {
+    @apply border-border bg-background relative z-1 box-border inline-block size-4 cursor-pointer rounded-xs border align-middle;
+  }
+  .vjs-check-controller .vjs-check-controller-inner:after {
+    @apply border-background absolute top-px left-1 box-content h-2 w-1 origin-center scale-y-0 rotate-45 border-2 border-t-0 border-l-0 content-[""];
+  }
+  .vjs-check-controller .vjs-check-controller-inner.is-radio {
+    @apply rounded-full;
+  }
+  .vjs-check-controller .vjs-check-controller-inner.is-radio:after {
+    @apply bg-background top-1/2 left-1/2 h-1 rounded-full;
+  }
+  .vjs-check-controller .vjs-check-controller-original {
+    @apply absolute inset-0 z-[-1] m-0 opacity-0 outline-none;
+  } */
 }
+/* Vue JSON Pretty - End */

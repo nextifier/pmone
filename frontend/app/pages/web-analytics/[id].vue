@@ -169,26 +169,7 @@
             <span>Documentation</span>
           </NuxtLink>
 
-          <DialogResponsive dialog-max-width="500px" :overflow-content="true">
-            <template #trigger="{ open }">
-              <button
-                class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-                @click="open()"
-              >
-                <Icon name="hugeicons:raw-01" class="size-4 shrink-0" />
-                <span>View Raw</span>
-              </button>
-            </template>
-
-            <template #default>
-              <div class="px-4 pb-10 md:px-6 md:py-5">
-                <pre
-                  class="text-muted-foreground h-full w-full text-left text-xs leading-normal!"
-                  >{{ propertyData }}</pre
-                >
-              </div>
-            </template>
-          </DialogResponsive>
+          <DialogViewRaw :data="propertyData" />
         </div>
 
         <div
