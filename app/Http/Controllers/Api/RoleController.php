@@ -76,12 +76,13 @@ class RoleController extends Controller
             ], 403);
         }
 
-        $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:255', 'unique:roles,name', 'regex:/^[a-z0-9_-]+$/'],
+        // Convert role name to slug format
+        $roleName = \Illuminate\Support\Str::slug($request->name, '_');
+
+        $validator = Validator::make(['name' => $roleName, 'permissions' => $request->permissions], [
+            'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
             'permissions' => ['sometimes', 'array'],
             'permissions.*' => ['string', 'exists:permissions,name'],
-        ], [
-            'name.regex' => 'Role name must be lowercase with only letters, numbers, hyphens, and underscores.',
         ]);
 
         if ($validator->fails()) {
@@ -95,7 +96,7 @@ class RoleController extends Controller
 
         try {
             $role = Role::create([
-                'name' => $request->name,
+                'name' => $roleName,
                 'guard_name' => 'web',
             ]);
 
@@ -167,19 +168,18 @@ class RoleController extends Controller
             ], 404);
         }
 
-        // Prevent editing master role
-        if ($role->name === 'master') {
-            return response()->json([
-                'message' => 'Master role cannot be modified',
-            ], 403);
-        }
+        // Convert role name to slug format if provided
+        $roleName = $request->has('name') ? \Illuminate\Support\Str::slug($request->name, '_') : null;
 
-        $validator = Validator::make($request->all(), [
-            'name' => ['sometimes', 'string', 'max:255', 'unique:roles,name,'.$role->id, 'regex:/^[a-z0-9_-]+$/'],
+        $validationData = array_filter([
+            'name' => $roleName,
+            'permissions' => $request->permissions,
+        ], fn ($value) => $value !== null);
+
+        $validator = Validator::make($validationData, [
+            'name' => ['sometimes', 'string', 'max:255', 'unique:roles,name,'.$role->id],
             'permissions' => ['sometimes', 'array'],
             'permissions.*' => ['string', 'exists:permissions,name'],
-        ], [
-            'name.regex' => 'Role name must be lowercase with only letters, numbers, hyphens, and underscores.',
         ]);
 
         if ($validator->fails()) {
@@ -192,8 +192,8 @@ class RoleController extends Controller
         DB::beginTransaction();
 
         try {
-            if ($request->has('name')) {
-                $role->name = $request->name;
+            if ($roleName) {
+                $role->name = $roleName;
                 $role->save();
             }
 
@@ -296,7 +296,8 @@ class RoleController extends Controller
         foreach ($roles as $role) {
             // Prevent deleting master role
             if ($role->name === 'master') {
-                $errors[] = "Cannot delete master role";
+                $errors[] = 'Cannot delete master role';
+
                 continue;
             }
 
@@ -307,6 +308,7 @@ class RoleController extends Controller
 
             if ($usersCount > 0) {
                 $errors[] = "Cannot delete {$role->name}. It is assigned to {$usersCount} user(s).";
+
                 continue;
             }
 

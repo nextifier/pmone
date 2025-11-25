@@ -798,16 +798,42 @@ class PostController extends Controller
             $query->lastDays(30); // Default to last 30 days
         }
 
+        // Determine date range
+        if ($request->has('start_date') && $request->has('end_date')) {
+            $startDate = \Carbon\Carbon::parse($request->start_date)->startOfDay();
+            $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
+        } elseif ($request->has('days')) {
+            $startDate = now()->subDays($request->days)->startOfDay();
+            $endDate = now()->endOfDay();
+        } else {
+            $startDate = now()->subDays(30)->startOfDay();
+            $endDate = now()->endOfDay();
+        }
+
         $totalVisits = $query->count();
         $authenticatedVisits = $query->clone()->authenticated()->count();
         $anonymousVisits = $query->clone()->anonymous()->count();
 
-        // Visits per day
-        $visitsPerDay = $query->clone()
+        // Visits per day - get actual data
+        $visitsData = $query->clone()
             ->selectRaw('DATE(visited_at) as date, COUNT(*) as count')
             ->groupBy('date')
             ->orderBy('date')
-            ->get();
+            ->get()
+            ->keyBy('date');
+
+        // Fill in all dates in the range with zero counts
+        $visitsPerDay = collect();
+        $currentDate = $startDate->copy();
+
+        while ($currentDate->lte($endDate)) {
+            $dateString = $currentDate->toDateString();
+            $visitsPerDay->push([
+                'date' => $dateString,
+                'count' => $visitsData->has($dateString) ? (int) $visitsData[$dateString]->count : 0,
+            ]);
+            $currentDate->addDay();
+        }
 
         // Top visitors (for authenticated visits)
         $topVisitors = $query->clone()
@@ -892,6 +918,15 @@ class PostController extends Controller
 
         $days = $request->get('days', 30);
 
+        // Determine date range
+        if ($request->has('start_date') && $request->has('end_date')) {
+            $startDate = \Carbon\Carbon::parse($request->start_date)->startOfDay();
+            $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
+        } else {
+            $startDate = now()->subDays($days)->startOfDay();
+            $endDate = now()->endOfDay();
+        }
+
         // Get all published posts with visit counts
         $postsQuery = Post::query()
             ->published()
@@ -936,12 +971,26 @@ class PostController extends Controller
         $authenticatedVisits = $totalVisitsQuery->clone()->authenticated()->count();
         $anonymousVisits = $totalVisitsQuery->clone()->anonymous()->count();
 
-        // Visits per day for all posts
-        $visitsPerDay = $totalVisitsQuery->clone()
+        // Visits per day for all posts - get actual data
+        $visitsData = $totalVisitsQuery->clone()
             ->selectRaw('DATE(visited_at) as date, COUNT(*) as count')
             ->groupBy('date')
             ->orderBy('date')
-            ->get();
+            ->get()
+            ->keyBy('date');
+
+        // Fill in all dates in the range with zero counts
+        $visitsPerDay = collect();
+        $currentDate = $startDate->copy();
+
+        while ($currentDate->lte($endDate)) {
+            $dateString = $currentDate->toDateString();
+            $visitsPerDay->push([
+                'date' => $dateString,
+                'count' => $visitsData->has($dateString) ? (int) $visitsData[$dateString]->count : 0,
+            ]);
+            $currentDate->addDay();
+        }
 
         // Get posts statistics
         $totalPosts = Post::published()->count();

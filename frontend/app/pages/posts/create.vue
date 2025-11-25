@@ -15,7 +15,8 @@
 
 <script setup>
 definePageMeta({
-  middleware: ["sanctum:auth"],
+  middleware: ["sanctum:auth", "permission"],
+  permissions: ["posts.create"],
   layout: "app",
 });
 

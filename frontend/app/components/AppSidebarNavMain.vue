@@ -116,7 +116,7 @@ const navMainGroups = computed(() => {
 
   if (user.value?.roles?.includes("master")) {
     adminItems.push({
-      label: "Roles",
+      label: "Roles & Permissions",
       path: "/roles",
       iconName: "hugeicons:user-settings-01",
     });

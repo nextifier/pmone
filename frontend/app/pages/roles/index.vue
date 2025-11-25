@@ -262,7 +262,7 @@ const columns = [
       const date = row.getValue("created_at");
       return withDirectives(
         h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $dayjs(date).fromNow()),
-        [[resolveDirective("v-tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
+        [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
       );
     },
     size: 100,

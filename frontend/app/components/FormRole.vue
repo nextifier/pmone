@@ -8,19 +8,17 @@
           v-model="formData.name"
           type="text"
           required
-          placeholder="editor"
+          placeholder="Content Editor"
           class="border-border bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm tracking-tight focus:ring-2 focus:outline-none"
           :class="{ 'border-destructive': errors.name }"
         />
         <p v-if="errors.name" class="text-destructive text-xs">{{ errors.name[0] }}</p>
-        <p class="text-muted-foreground text-xs">
-          The role name (lowercase, no spaces)
-        </p>
+        <p class="text-muted-foreground text-xs">Will be automatically converted to slug format (e.g., "content_editor")</p>
       </div>
 
       <div class="space-y-3">
         <label class="text-sm font-medium">Permissions</label>
-        <p class="text-muted-foreground text-xs -mt-2">
+        <p class="text-muted-foreground mt-1 text-xs">
           Select which permissions this role should have
         </p>
 
@@ -29,7 +27,10 @@
           <span class="text-muted-foreground text-sm">Loading permissions...</span>
         </div>
 
-        <div v-else-if="permissionsError" class="border-destructive text-destructive rounded-md border p-3 text-sm">
+        <div
+          v-else-if="permissionsError"
+          class="border-destructive text-destructive rounded-md border p-3 text-sm"
+        >
           Failed to load permissions
         </div>
 
@@ -37,7 +38,7 @@
           <div
             v-for="group in permissionGroups"
             :key="group.group"
-            class="border-border rounded-lg border p-4 space-y-3"
+            class="border-border space-y-3 rounded-lg border p-4"
           >
             <div class="space-y-1">
               <div class="flex items-center justify-between">
@@ -47,7 +48,11 @@
                   @click="toggleGroupPermissions(group.permissions)"
                   class="text-primary hover:text-primary/80 text-xs font-medium"
                 >
-                  {{ areAllGroupPermissionsSelected(group.permissions) ? 'Deselect All' : 'Select All' }}
+                  {{
+                    areAllGroupPermissionsSelected(group.permissions)
+                      ? "Deselect All"
+                      : "Select All"
+                  }}
                 </button>
               </div>
               <p v-if="group.description" class="text-muted-foreground text-xs">
@@ -68,19 +73,24 @@
                 />
                 <label
                   :for="`permission-${permission.name}`"
-                  class="text-sm tracking-tight cursor-pointer grow"
+                  class="grow cursor-pointer text-sm tracking-tight"
                 >
                   <span>{{ formatPermissionLabel(permission) }}</span>
-                  <span v-if="permission.description && group.type === 'custom'" class="text-muted-foreground text-xs ml-2">
+                  <!-- <span
+                    v-if="permission.description && group.type === 'custom'"
+                    class="text-muted-foreground ml-2 text-xs"
+                  >
                     ({{ permission.description }})
-                  </span>
+                  </span> -->
                 </label>
               </div>
             </div>
           </div>
         </div>
 
-        <p v-if="errors.permissions" class="text-destructive text-xs">{{ errors.permissions[0] }}</p>
+        <p v-if="errors.permissions" class="text-destructive text-xs">
+          {{ errors.permissions[0] }}
+        </p>
       </div>
 
       <div class="flex gap-2">
@@ -151,12 +161,15 @@ function formatPermissionLabel(permission) {
   // For resource-based permissions (CRUD), format the action nicely
   if (permission.action) {
     const actionLabels = {
-      create: 'Create',
-      read: 'View/Read',
-      update: 'Update/Edit',
-      delete: 'Delete',
+      create: "Create",
+      read: "View/Read",
+      update: "Update/Edit",
+      delete: "Delete",
     };
-    return actionLabels[permission.action] || permission.action.charAt(0).toUpperCase() + permission.action.slice(1);
+    return (
+      actionLabels[permission.action] ||
+      permission.action.charAt(0).toUpperCase() + permission.action.slice(1)
+    );
   }
 
   // For custom permissions, use description or format from name
@@ -165,14 +178,17 @@ function formatPermissionLabel(permission) {
   }
 
   // Fallback: format from permission name
-  const [, action] = permission.name.split('.');
+  const [, action] = permission.name.split(".");
   return action
-    ? action.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+    ? action
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ")
     : permission.name;
 }
 
 function areAllGroupPermissionsSelected(groupPermissions) {
-  return groupPermissions.every(p => formData.value.permissions.includes(p.name));
+  return groupPermissions.every((p) => formData.value.permissions.includes(p.name));
 }
 
 function togglePermission(permissionName, checked) {
@@ -195,7 +211,7 @@ function toggleGroupPermissions(groupPermissions) {
 
   if (allSelected) {
     // Deselect all
-    groupPermissions.forEach(p => {
+    groupPermissions.forEach((p) => {
       const index = formData.value.permissions.indexOf(p.name);
       if (index > -1) {
         formData.value.permissions.splice(index, 1);
@@ -203,7 +219,7 @@ function toggleGroupPermissions(groupPermissions) {
     });
   } else {
     // Select all
-    groupPermissions.forEach(p => {
+    groupPermissions.forEach((p) => {
       if (!formData.value.permissions.includes(p.name)) {
         formData.value.permissions.push(p.name);
       }
@@ -216,10 +232,10 @@ async function loadPermissions() {
   try {
     loadingPermissions.value = true;
     permissionsError.value = false;
-    const response = await sanctumFetch('/api/permissions');
+    const response = await sanctumFetch("/api/permissions");
     permissionGroups.value = response.data || [];
   } catch (err) {
-    console.error('Error loading permissions:', err);
+    console.error("Error loading permissions:", err);
     permissionsError.value = true;
   } finally {
     loadingPermissions.value = false;
@@ -233,7 +249,7 @@ watch(
     if (newRole && props.mode === "edit") {
       formData.value = {
         name: newRole.name,
-        permissions: newRole.permissions?.map(p => p.name) || [],
+        permissions: newRole.permissions?.map((p) => p.name) || [],
       };
     }
   },
@@ -246,8 +262,7 @@ async function handleSubmit() {
   errors.value = {};
 
   try {
-    const endpoint =
-      props.mode === "create" ? "/api/roles" : `/api/roles/${props.role.name}`;
+    const endpoint = props.mode === "create" ? "/api/roles" : `/api/roles/${props.role.name}`;
 
     const method = props.mode === "create" ? "POST" : "PUT";
 
@@ -258,9 +273,7 @@ async function handleSubmit() {
 
     if (response.data) {
       const successMessage =
-        props.mode === "create"
-          ? "Role created successfully!"
-          : "Role updated successfully!";
+        props.mode === "create" ? "Role created successfully!" : "Role updated successfully!";
       toast.success(successMessage);
       navigateTo("/roles");
     }
