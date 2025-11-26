@@ -14,15 +14,7 @@
           </p>
         </div>
 
-        <select
-          v-model="selectedPeriod"
-          class="border-border bg-background focus:ring-primary rounded-md border px-3 py-2 text-sm tracking-tight focus:ring-2 focus:outline-none"
-        >
-          <option :value="7">Last 7 days</option>
-          <option :value="14">Last 14 days</option>
-          <option :value="30">Last 30 days</option>
-          <option :value="90">Last 90 days</option>
-        </select>
+        <DateRangeSelect v-model="selectedPeriod" />
       </div>
     </div>
 
@@ -202,6 +194,7 @@
 
 <script setup>
 import ChartLineDefault from "@/components/chart/LineDefault.vue";
+import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -215,7 +208,7 @@ const slug = computed(() => route.params.slug);
 const sanctumFetch = useSanctumClient();
 const { $dayjs } = useNuxtApp();
 
-const selectedPeriod = ref(30);
+const selectedPeriod = ref("30");
 const post = ref(null);
 const analyticsData = ref(null);
 const loading = ref(true);
@@ -263,7 +256,7 @@ async function loadAnalytics() {
 
   try {
     const response = await sanctumFetch(
-      `/api/posts/${slug.value}/analytics?days=${selectedPeriod.value}`
+      `/api/posts/${slug.value}/analytics?period=${selectedPeriod.value}`
     );
     analyticsData.value = response.data;
   } catch (err) {

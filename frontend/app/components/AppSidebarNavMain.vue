@@ -14,10 +14,10 @@
           <SidebarMenuItem>
             <CollapsibleTrigger as-child>
               <SidebarMenuButton :tooltip="item.label">
-                <Icon v-if="item.iconName" :name="item.iconName" class="!size-4.5 shrink-0" />
+                <Icon v-if="item.iconName" :name="item.iconName" class="size-4.5! shrink-0" />
                 <span>{{ item.label }}</span>
                 <ChevronRight
-                  class="!text-muted-foreground ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                  class="text-muted-foreground! ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
                 />
               </SidebarMenuButton>
             </CollapsibleTrigger>

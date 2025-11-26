@@ -12,15 +12,7 @@
           <p class="text-muted-foreground text-sm">Overall analytics for all published posts</p>
         </div>
 
-        <select
-          v-model="selectedPeriod"
-          class="border-border bg-background focus:ring-primary rounded-md border px-3 py-2 text-sm tracking-tight focus:ring-2 focus:outline-none"
-        >
-          <option :value="7">Last 7 days</option>
-          <option :value="14">Last 14 days</option>
-          <option :value="30">Last 30 days</option>
-          <option :value="90">Last 90 days</option>
-        </select>
+        <DateRangeSelect v-model="selectedPeriod" />
       </div>
     </div>
 
@@ -144,6 +136,7 @@
 
 <script setup>
 import { toast } from "vue-sonner";
+import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -153,7 +146,7 @@ definePageMeta({
 const sanctumFetch = useSanctumClient();
 const { $dayjs } = useNuxtApp();
 
-const selectedPeriod = ref(30);
+const selectedPeriod = ref("30");
 const analyticsData = ref(null);
 const loading = ref(true);
 const error = ref(null);
@@ -188,7 +181,7 @@ async function loadAnalytics() {
   error.value = null;
 
   try {
-    const response = await sanctumFetch(`/api/posts/analytics?days=${selectedPeriod.value}`);
+    const response = await sanctumFetch(`/api/posts/analytics?period=${selectedPeriod.value}`);
     analyticsData.value = response.data;
   } catch (err) {
     console.error("Error loading analytics:", err);

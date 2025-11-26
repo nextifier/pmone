@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Exports\ShortLinksExport;
 use App\Exports\ShortLinksTemplateExport;
+use App\Helpers\DateRangeHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreShortLinkRequest;
 use App\Http\Requests\UpdateShortLinkRequest;
@@ -14,6 +15,7 @@ use App\Models\ShortLink;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -257,6 +259,7 @@ class ShortLinkController extends Controller
         $this->authorize('view', $shortLink);
 
         $request->validate([
+            'period' => 'nullable|string',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
             'days' => 'nullable|integer|min:1|max:365',
@@ -264,26 +267,102 @@ class ShortLinkController extends Controller
 
         $query = $shortLink->clicks();
 
-        // Apply date filters
-        if ($request->has('start_date') && $request->has('end_date')) {
-            $query->inDateRange($request->start_date, $request->end_date);
+        // Determine date range - prioritize period, then start_date/end_date, then days
+        if ($request->has('period')) {
+            $dateRange = DateRangeHelper::getDateRange($request->period);
+            $startDate = $dateRange['start'];
+            $endDate = $dateRange['end'];
+            $query->inDateRange($startDate, $endDate);
+        } elseif ($request->has('start_date') && $request->has('end_date')) {
+            $startDate = \Carbon\Carbon::parse($request->start_date)->startOfDay();
+            $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
+            $query->inDateRange($startDate, $endDate);
         } elseif ($request->has('days')) {
+            $startDate = now()->subDays($request->days)->startOfDay();
+            $endDate = now()->endOfDay();
             $query->lastDays($request->days);
         } else {
+            $startDate = now()->subDays(7)->startOfDay();
+            $endDate = now()->endOfDay();
             $query->lastDays(7); // Default to last 7 days
         }
 
         $totalClicks = $query->count();
+        $authenticatedClicks = $query->clone()->authenticated()->count();
+        $anonymousClicks = $query->clone()->anonymous()->count();
 
-        // Clicks per day
-        $clicksPerDay = $query->clone()
+        // Clicks per day - get actual data
+        $clicksData = $query->clone()
             ->selectRaw('DATE(clicked_at) as date, COUNT(*) as count')
             ->groupBy('date')
             ->orderBy('date')
-            ->get();
+            ->get()
+            ->keyBy('date');
+
+        // Fill in all dates in the range with zero counts
+        $clicksPerDay = collect();
+        $currentDate = $startDate->copy();
+
+        while ($currentDate->lte($endDate)) {
+            $dateString = $currentDate->toDateString();
+            $clicksPerDay->push([
+                'date' => $dateString,
+                'count' => $clicksData->has($dateString) ? (int) $clicksData[$dateString]->count : 0,
+            ]);
+            $currentDate->addDay();
+        }
+
+        // Top clickers (for authenticated clicks)
+        $topClickers = $query->clone()
+            ->authenticated()
+            ->select('clicker_id', DB::raw('COUNT(*) as click_count'))
+            ->groupBy('clicker_id')
+            ->with(['clicker' => function ($query) {
+                $query->select('id', 'name', 'username')
+                    ->with('media');
+            }])
+            ->orderByDesc('click_count')
+            ->limit(10)
+            ->get()
+            ->map(function ($click) {
+                $clicker = $click->clicker;
+                if ($clicker) {
+                    $clickerData = [
+                        'id' => $clicker->id,
+                        'name' => $clicker->name,
+                        'username' => $clicker->username,
+                        'profile_image' => $clicker->hasMedia('profile_image')
+                            ? $clicker->getMediaUrls('profile_image')
+                            : null,
+                    ];
+                } else {
+                    $clickerData = null;
+                }
+
+                return [
+                    'clicker' => $clickerData,
+                    'click_count' => $click->click_count,
+                ];
+            });
+
+        // Referrer stats - normalize URLs by removing trailing slash
+        $topReferrers = $query->clone()
+            ->selectRaw("RTRIM(referer, '/') as normalized_referer, COUNT(*) as count")
+            ->whereNotNull('referer')
+            ->groupBy('normalized_referer')
+            ->orderByDesc('count')
+            ->limit(10)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'referer' => $item->normalized_referer,
+                    'count' => $item->count,
+                ];
+            });
 
         // Recent clicks
         $recentClicks = $query->clone()
+            ->with('clicker:id,name,username')
             ->latest('clicked_at')
             ->limit(20)
             ->get()
@@ -291,6 +370,11 @@ class ShortLinkController extends Controller
                 return [
                     'id' => $click->id,
                     'clicked_at' => $click->clicked_at->toISOString(),
+                    'clicker' => $click->clicker ? [
+                        'id' => $click->clicker->id,
+                        'name' => $click->clicker->name,
+                        'username' => $click->clicker->username,
+                    ] : null,
                     'ip_address' => $click->ip_address,
                     'user_agent' => $click->user_agent,
                     'referer' => $click->referer,
@@ -301,8 +385,12 @@ class ShortLinkController extends Controller
             'data' => [
                 'summary' => [
                     'total_clicks' => $totalClicks,
+                    'authenticated_clicks' => $authenticatedClicks,
+                    'anonymous_clicks' => $anonymousClicks,
                 ],
                 'clicks_per_day' => $clicksPerDay,
+                'top_clickers' => $topClickers,
+                'top_referrers' => $topReferrers,
                 'recent_clicks' => $recentClicks,
             ],
         ]);

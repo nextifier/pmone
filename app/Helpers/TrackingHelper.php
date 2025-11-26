@@ -26,6 +26,7 @@ class TrackingHelper
         return Click::create([
             'clickable_type' => get_class($clickable),
             'clickable_id' => $clickable->id,
+            'clicker_id' => auth()->id(),
             'link_label' => $linkLabel,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),

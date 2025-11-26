@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\DateRangeHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
@@ -782,6 +783,7 @@ class PostController extends Controller
         $this->authorize('view', $post);
 
         $request->validate([
+            'period' => 'nullable|string',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
             'days' => 'nullable|integer|min:1|max:365',
@@ -789,25 +791,24 @@ class PostController extends Controller
 
         $query = $post->visits();
 
-        // Apply date filters
-        if ($request->has('start_date') && $request->has('end_date')) {
-            $query->inDateRange($request->start_date, $request->end_date);
-        } elseif ($request->has('days')) {
-            $query->lastDays($request->days);
-        } else {
-            $query->lastDays(30); // Default to last 30 days
-        }
-
-        // Determine date range
-        if ($request->has('start_date') && $request->has('end_date')) {
+        // Determine date range - prioritize period, then start_date/end_date, then days
+        if ($request->has('period')) {
+            $dateRange = DateRangeHelper::getDateRange($request->period);
+            $startDate = $dateRange['start'];
+            $endDate = $dateRange['end'];
+            $query->inDateRange($startDate, $endDate);
+        } elseif ($request->has('start_date') && $request->has('end_date')) {
             $startDate = \Carbon\Carbon::parse($request->start_date)->startOfDay();
             $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
+            $query->inDateRange($startDate, $endDate);
         } elseif ($request->has('days')) {
             $startDate = now()->subDays($request->days)->startOfDay();
             $endDate = now()->endOfDay();
+            $query->lastDays($request->days);
         } else {
             $startDate = now()->subDays(30)->startOfDay();
             $endDate = now()->endOfDay();
+            $query->lastDays(30); // Default to last 30 days
         }
 
         $totalVisits = $query->count();
@@ -911,18 +912,22 @@ class PostController extends Controller
         $this->authorize('viewAny', Post::class);
 
         $request->validate([
+            'period' => 'nullable|string',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
             'days' => 'nullable|integer|min:1|max:365',
         ]);
 
-        $days = $request->get('days', 30);
-
-        // Determine date range
-        if ($request->has('start_date') && $request->has('end_date')) {
+        // Determine date range - prioritize period, then start_date/end_date, then days
+        if ($request->has('period')) {
+            $dateRange = DateRangeHelper::getDateRange($request->period);
+            $startDate = $dateRange['start'];
+            $endDate = $dateRange['end'];
+        } elseif ($request->has('start_date') && $request->has('end_date')) {
             $startDate = \Carbon\Carbon::parse($request->start_date)->startOfDay();
             $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
         } else {
+            $days = $request->get('days', 30);
             $startDate = now()->subDays($days)->startOfDay();
             $endDate = now()->endOfDay();
         }
@@ -930,12 +935,8 @@ class PostController extends Controller
         // Get all published posts with visit counts
         $postsQuery = Post::query()
             ->published()
-            ->withCount(['visits' => function ($query) use ($request, $days) {
-                if ($request->has('start_date') && $request->has('end_date')) {
-                    $query->inDateRange($request->start_date, $request->end_date);
-                } else {
-                    $query->lastDays($days);
-                }
+            ->withCount(['visits' => function ($query) use ($startDate, $endDate) {
+                $query->inDateRange($startDate, $endDate);
             }])
             ->with(['media' => function ($query) {
                 $query->where('collection_name', 'featured_image');
@@ -959,13 +960,8 @@ class PostController extends Controller
 
         // Get total visits for all posts
         $totalVisitsQuery = \App\Models\Visit::query()
-            ->where('visitable_type', Post::class);
-
-        if ($request->has('start_date') && $request->has('end_date')) {
-            $totalVisitsQuery->inDateRange($request->start_date, $request->end_date);
-        } else {
-            $totalVisitsQuery->lastDays($days);
-        }
+            ->where('visitable_type', Post::class)
+            ->inDateRange($startDate, $endDate);
 
         $totalVisits = $totalVisitsQuery->count();
         $authenticatedVisits = $totalVisitsQuery->clone()->authenticated()->count();

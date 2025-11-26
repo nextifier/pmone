@@ -3,18 +3,10 @@
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:user-group" class="size-5 sm:size-6" />
-        <h1 class="page-title">Roles</h1>
+        <h1 class="page-title">Roles & Permissions</h1>
       </div>
 
-      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <nuxt-link
-          to="/roles/create"
-          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
-        >
-          <Icon name="hugeicons:add-circle" class="size-4 shrink-0" />
-          <span class="hidden sm:inline">Create Role</span>
-        </nuxt-link>
-      </div>
+      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2"></div>
     </div>
 
     <TableData
@@ -245,16 +237,16 @@ const columns = [
       return name.includes(searchValue);
     },
   },
-  {
-    header: "Permissions",
-    accessorKey: "permissions_count",
-    cell: ({ row }) => {
-      const count = row.original.permissions?.length || 0;
-      return h("div", { class: "text-sm tracking-tight" }, count.toLocaleString());
-    },
-    size: 120,
-    enableSorting: true,
-  },
+  //   {
+  //     header: "Permissions",
+  //     accessorKey: "permissions_count",
+  //     cell: ({ row }) => {
+  //       const count = row.original.permissions?.length || 0;
+  //       return h("div", { class: "text-sm tracking-tight" }, count.toLocaleString());
+  //     },
+  //     size: 120,
+  //     enableSorting: true,
+  //   },
   {
     header: "Created",
     accessorKey: "created_at",

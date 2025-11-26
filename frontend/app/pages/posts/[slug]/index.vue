@@ -175,7 +175,7 @@ async function loadPost() {
   loading.value = true;
 
   try {
-    const response = await $fetch(`${config.public.apiUrl}/api/posts/${postSlug}`);
+    const response = await client(`/api/posts/${postSlug}`);
     post.value = response.data;
   } catch (error) {
     console.error("Failed to load post:", error);

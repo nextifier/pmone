@@ -18,10 +18,24 @@ definePageMeta({
 const route = useRoute();
 const slug = computed(() => route.params.slug);
 
-const { data, error: fetchError } = await useFetch(() => `/api/s/${slug.value}`, {
-  baseURL: useRuntimeConfig().public.apiUrl,
-  key: `short-link-${slug.value}`,
-});
+const sanctumFetch = useSanctumClient();
+
+// Use useAsyncData to prevent duplicate requests during SSR/hydration
+const { data, error: fetchError } = await useAsyncData(
+  `short-link-${slug.value}`,
+  async () => {
+    try {
+      return await sanctumFetch(`/api/s/${slug.value}`);
+    } catch (err) {
+      throw err;
+    }
+  },
+  {
+    // Only fetch once during SSR, use cached data on client
+    server: true,
+    lazy: false,
+  }
+);
 
 const error = computed(() => {
   if (!fetchError.value) return null;
@@ -76,24 +90,18 @@ watchEffect(() => {
   });
 });
 
-if (import.meta.client) {
-  watch(
-    data,
-    async (newResponse) => {
-      const destinationUrl = newResponse?.data?.destination_url;
-      if (destinationUrl) {
-        try {
-          await navigateTo(destinationUrl, {
-            external: true,
-            replace: true,
-          });
-        } catch (err) {
-          console.error("Navigation failed, using fallback:", err);
-          window.location.replace(destinationUrl);
-        }
-      }
-    },
-    { immediate: true }
-  );
+if (import.meta.client && data.value) {
+  const destinationUrl = data.value?.data?.destination_url;
+  if (destinationUrl) {
+    try {
+      await navigateTo(destinationUrl, {
+        external: true,
+        replace: true,
+      });
+    } catch (err) {
+      console.error("Navigation failed, using fallback:", err);
+      window.location.replace(destinationUrl);
+    }
+  }
 }
 </script>
