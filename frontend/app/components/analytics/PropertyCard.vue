@@ -28,10 +28,11 @@
         </Select>
       </div>
 
-      <ChartLineDefault
+      <ChartLine
         :data="chartData"
         :config="chartConfig"
         :data-key="selectedMetric"
+        :gradient="true"
         class="h-auto! overflow-hidden py-2.5"
       />
     </div>
@@ -150,7 +151,6 @@
 </template>
 
 <script setup>
-import ChartLineDefault from "@/components/chart/LineDefault.vue";
 import {
   Select,
   SelectContent,

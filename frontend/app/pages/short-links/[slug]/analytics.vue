@@ -60,9 +60,10 @@
       <div class="border-border rounded-lg border p-4">
         <h2 class="mb-4 text-lg font-semibold tracking-tighter">Clicks Over Time</h2>
         <div v-if="chartData?.length > 2">
-          <ChartLineDefault
+          <ChartLine
             :data="chartData"
             :config="chartConfig"
+            :gradient="true"
             data-key="count"
             class="h-auto! overflow-hidden py-2.5"
           />
@@ -185,7 +186,6 @@
 
 <script setup>
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
-import ChartLineDefault from "@/components/chart/LineDefault.vue";
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -200,12 +200,12 @@ const { $dayjs } = useNuxtApp();
 const selectedPeriod = ref("7");
 
 // Fetch short link details with lazy loading
-const {
-  data: shortLinkResponse,
-  error: shortLinkError,
-} = await useLazySanctumFetch(() => `/api/short-links/${slug.value}`, {
-  key: `short-link-${slug.value}`,
-});
+const { data: shortLinkResponse, error: shortLinkError } = await useLazySanctumFetch(
+  () => `/api/short-links/${slug.value}`,
+  {
+    key: `short-link-${slug.value}`,
+  }
+);
 
 const shortLink = computed(() => shortLinkResponse.value?.data || null);
 
@@ -227,7 +227,8 @@ const analyticsData = computed(() => analyticsResponse.value?.data || null);
 
 const error = computed(() => {
   if (shortLinkError.value) return "Failed to load short link";
-  if (analyticsError.value) return analyticsError.value.response?._data?.message || "Failed to load analytics";
+  if (analyticsError.value)
+    return analyticsError.value.response?._data?.message || "Failed to load analytics";
   return null;
 });
 

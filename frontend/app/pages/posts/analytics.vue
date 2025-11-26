@@ -66,9 +66,10 @@
       <div class="border-border rounded-lg border p-4">
         <h2 class="mb-4 text-lg font-semibold tracking-tighter">Visits Over Time</h2>
         <div v-if="chartData?.length > 0">
-          <ChartLineDefault
+          <ChartLine
             :data="chartData"
             :config="chartConfig"
+            :gradient="true"
             data-key="count"
             class="h-auto! overflow-hidden py-2.5"
           />
@@ -152,18 +153,16 @@ const {
   pending: loading,
   error: analyticsError,
   refresh: loadAnalytics,
-} = await useLazySanctumFetch(
-  () => `/api/posts/analytics?period=${selectedPeriod.value}`,
-  {
-    key: `posts-analytics-${selectedPeriod.value}`,
-    watch: [selectedPeriod],
-  }
-);
+} = await useLazySanctumFetch(() => `/api/posts/analytics?period=${selectedPeriod.value}`, {
+  key: `posts-analytics-${selectedPeriod.value}`,
+  watch: [selectedPeriod],
+});
 
 const analyticsData = computed(() => analyticsResponse.value?.data || null);
 
 const error = computed(() => {
-  if (analyticsError.value) return analyticsError.value.response?._data?.message || "Failed to load analytics";
+  if (analyticsError.value)
+    return analyticsError.value.response?._data?.message || "Failed to load analytics";
   return null;
 });
 

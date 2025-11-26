@@ -102,9 +102,10 @@
       <div class="border-border rounded-lg border p-4">
         <h2 class="mb-4 text-lg font-semibold tracking-tighter">Visits Over Time</h2>
         <div v-if="chartData?.length > 2">
-          <ChartLineDefault
+          <ChartLine
             :data="chartData"
             :config="chartConfig"
+            :gradient="true"
             data-key="count"
             class="h-auto! overflow-hidden py-2.5"
           />
@@ -193,7 +194,6 @@
 </template>
 
 <script setup>
-import ChartLineDefault from "@/components/chart/LineDefault.vue";
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
 
 definePageMeta({
@@ -209,12 +209,12 @@ const { $dayjs } = useNuxtApp();
 const selectedPeriod = ref("30");
 
 // Fetch post details with lazy loading
-const {
-  data: postResponse,
-  error: postError,
-} = await useLazySanctumFetch(() => `/api/posts/${slug.value}?for=analytics`, {
-  key: `post-analytics-detail-${slug.value}`,
-});
+const { data: postResponse, error: postError } = await useLazySanctumFetch(
+  () => `/api/posts/${slug.value}?for=analytics`,
+  {
+    key: `post-analytics-detail-${slug.value}`,
+  }
+);
 
 const post = computed(() => postResponse.value?.data || null);
 
@@ -236,7 +236,8 @@ const analyticsData = computed(() => analyticsResponse.value?.data || null);
 
 const error = computed(() => {
   if (postError.value) return "Failed to load post";
-  if (analyticsError.value) return analyticsError.value.response?._data?.message || "Failed to load analytics";
+  if (analyticsError.value)
+    return analyticsError.value.response?._data?.message || "Failed to load analytics";
   return null;
 });
 

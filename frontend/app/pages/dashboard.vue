@@ -62,17 +62,11 @@
             </div>
           </div>
 
-          <ChartLineDefault
+          <ChartLine
             :data="aggregatedChartData"
             :config="aggregatedChartConfig"
             :data-key="selectedMetric"
-            class="bg-background h-auto! overflow-hidden rounded-xl border py-2.5"
-          />
-
-          <ChartAreaGradient
-            :data="aggregatedChartData"
-            :config="aggregatedChartConfig"
-            :data-key="selectedMetric"
+            :gradient="true"
             class="bg-background h-auto! overflow-hidden rounded-xl border py-2.5"
           />
         </div>

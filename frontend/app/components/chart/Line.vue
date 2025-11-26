@@ -11,18 +11,19 @@
       :y-domain="[0, undefined]"
     >
       <VisArea
+        v-if="gradient"
         :x="(d) => d.date"
         :y="(d) => d[dataKey]"
         :color="(d, i) => ['url(#fillChart1)', 'url(#fillChart2)'][i]"
         :opacity="0.4"
-        :curve-type="CurveType.Natural"
+        :curve-type="CurveType.CatmullRom"
       />
       <VisLine
         :x="(d) => d.date"
         :y="(d) => d[dataKey]"
         :color="config[dataKey]?.color || 'var(--chart-1)'"
         :line-width="1.5"
-        :curve-type="CurveType.Natural"
+        :curve-type="CurveType.CatmullRom"
       />
       <VisAxis
         type="x"
@@ -93,6 +94,10 @@ const props = defineProps({
   dataKey: {
     type: String,
     default: "value",
+  },
+  gradient: {
+    type: Boolean,
+    default: false,
   },
 });
 

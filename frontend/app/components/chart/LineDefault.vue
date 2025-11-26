@@ -1,11 +1,11 @@
 <template>
   <ChartContainer
     :config="config"
-    class="[&_text_&_tspan]:text-info! [&_.domain]:stroke-gray-200 dark:[&_.domain]:stroke-gray-800!"
+    class="[&_.domain]:stroke-gray-200 dark:[&_.domain]:stroke-gray-800!"
   >
     <VisXYContainer
       :data="data"
-      :margin="{ left: 4 }"
+      :margin="{ left: 8, right: 0 }"
       :padding="{ top: 12, bottom: 12 }"
       :y-domain="[0, undefined]"
     >
@@ -23,6 +23,8 @@
         :tick-line="false"
         :domain-line="false"
         :grid-line="false"
+        tickTextAlign="right"
+        :fullSize="false"
         :tick-format="
           (d) => {
             const date = new Date(d);
@@ -58,7 +60,7 @@
 </template>
 
 <script setup>
-import { CurveType } from "@unovis/ts";
+import { VisAxis, VisLine, VisXYContainer } from "@unovis/vue";
 
 import {
   ChartContainer,
@@ -67,7 +69,8 @@ import {
   ChartTooltipContent,
   componentToString,
 } from "@/components/ui/chart";
-import { VisAxis, VisLine, VisXYContainer } from "@unovis/vue";
+
+import { CurveType } from "@unovis/ts";
 
 const props = defineProps({
   data: {

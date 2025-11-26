@@ -122,9 +122,10 @@
             </div>
           </div>
 
-          <ChartLineDefault
+          <ChartLine
             :data="propertyChartData"
             :config="propertyChartConfig"
+            :gradient="true"
             :data-key="selectedMetric"
             class="h-auto! overflow-hidden rounded-xl border py-2.5"
           />
@@ -203,7 +204,6 @@ import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
 import AnalyticsDevicesList from "@/components/analytics/DevicesList.vue";
 import AnalyticsTopPagesList from "@/components/analytics/TopPagesList.vue";
 import AnalyticsTrafficSourcesList from "@/components/analytics/TrafficSourcesList.vue";
-import ChartLineDefault from "@/components/chart/LineDefault.vue";
 import {
   Select,
   SelectContent,
@@ -617,15 +617,19 @@ onMounted(() => {
 });
 
 // Watch propertyData to start realtime refresh when data is loaded
-watch(propertyData, (newData) => {
-  if (newData?.property?.property_id) {
-    const propertyId = String(newData.property.property_id);
-    try {
-      startAutoRefresh([propertyId]);
-    } catch (err) {
-      console.error("Error starting realtime refresh:", err);
-      // Continue without realtime data
+watch(
+  propertyData,
+  (newData) => {
+    if (newData?.property?.property_id) {
+      const propertyId = String(newData.property.property_id);
+      try {
+        startAutoRefresh([propertyId]);
+      } catch (err) {
+        console.error("Error starting realtime refresh:", err);
+        // Continue without realtime data
+      }
     }
-  }
-}, { immediate: true });
+  },
+  { immediate: true }
+);
 </script>

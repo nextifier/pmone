@@ -154,9 +154,10 @@
             </div>
           </div>
 
-          <ChartLineDefault
+          <ChartLine
             :data="aggregatedChartData"
             :config="aggregatedChartConfig"
+            :gradient="true"
             :data-key="selectedMetric"
             class="bg-background h-auto! overflow-hidden rounded-xl border py-2.5"
           />
@@ -289,7 +290,6 @@ import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
 import AnalyticsDevicesList from "@/components/analytics/DevicesList.vue";
 import AnalyticsTopPagesList from "@/components/analytics/TopPagesList.vue";
 import AnalyticsTrafficSourcesList from "@/components/analytics/TrafficSourcesList.vue";
-import ChartLineDefault from "@/components/chart/LineDefault.vue";
 import {
   Select,
   SelectContent,
