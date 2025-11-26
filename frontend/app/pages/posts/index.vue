@@ -6,7 +6,7 @@
         <h1 class="page-title">Posts</h1>
       </div>
 
-      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <nuxt-link
           to="/posts/analytics"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
@@ -30,6 +30,16 @@
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
           <span>Trash</span>
         </nuxt-link>
+      </div>
+
+      <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+        <button
+          @click="clearSelection"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+        >
+          <Icon name="lucide:x" class="size-4 shrink-0" />
+          <span>Clear selection</span>
+        </button>
       </div>
     </div>
 
@@ -384,6 +394,18 @@ const columns = [
 
 // Table ref
 const tableRef = ref();
+
+// Check if there are any selected rows
+const hasSelectedRows = computed(() => {
+  return tableRef.value?.table?.getSelectedRowModel()?.rows?.length > 0;
+});
+
+// Clear selection
+const clearSelection = () => {
+  if (tableRef.value) {
+    tableRef.value.resetRowSelection();
+  }
+};
 
 // Filter helpers
 const getFilterValue = (columnId) => {

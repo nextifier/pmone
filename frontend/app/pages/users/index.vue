@@ -1,12 +1,14 @@
 <template>
   <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
-    <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
+    <div
+      class="flex flex-col gap-x-2.5 gap-y-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
+    >
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:user-group" class="size-5 sm:size-6" />
         <h1 class="page-title">User Management</h1>
       </div>
 
-      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <ImportDialog v-if="isAdminOrMaster" @imported="refresh">
           <template #trigger="{ open }">
             <button
@@ -38,6 +40,16 @@
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
           <span>Trash</span>
         </nuxt-link>
+      </div>
+
+      <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+        <button
+          @click="clearSelection"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+        >
+          <Icon name="lucide:x" class="size-4 shrink-0" />
+          <span>Clear selection</span>
+        </button>
       </div>
     </div>
 
@@ -478,6 +490,18 @@ const columns = [
 
 // Table ref
 const tableRef = ref();
+
+// Check if there are any selected rows
+const hasSelectedRows = computed(() => {
+  return tableRef.value?.table?.getSelectedRowModel()?.rows?.length > 0;
+});
+
+// Clear selection
+const clearSelection = () => {
+  if (tableRef.value) {
+    tableRef.value.resetRowSelection();
+  }
+};
 
 // Filter helpers - handle both client and server mode
 const getFilterValue = (columnId) => {

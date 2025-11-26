@@ -26,7 +26,7 @@ class ProjectController extends Controller
     {
         $this->authorize('viewAny', Project::class);
 
-        $query = Project::query()->with(['members']);
+        $query = Project::query()->with(['members.media']);
         $clientOnly = $request->boolean('client_only', false);
 
         if (! $clientOnly) {

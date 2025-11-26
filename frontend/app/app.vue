@@ -1,5 +1,5 @@
 <template>
-  <Html>
+  <Html class="[scrollbar-gutter:stable]">
     <Body class="bg-background text-foreground font-sans text-sm antialiased sm:text-base">
       <NuxtPwaManifest />
       <NuxtLoadingIndicator />

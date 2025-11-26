@@ -154,12 +154,13 @@
         target="_blank"
         class="frame flex w-full max-w-sm flex-col"
       >
-        <div class="bg-muted aspect-[1200/630] shrink-0 overflow-hidden rounded-lg">
+        <div class="bg-muted aspect-1200/630 shrink-0 overflow-hidden rounded-lg">
           <img
             v-if="shortLink?.og_image"
             :src="shortLink?.og_image"
             :alt="shortLink?.og_title"
             class="size-full object-cover"
+            @error="$event.target.closest('.frame').style.display = 'none'"
           />
         </div>
 
@@ -183,8 +184,8 @@
 </template>
 
 <script setup>
-import ChartLineDefault from "@/components/chart/LineDefault.vue";
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
+import ChartLineDefault from "@/components/chart/LineDefault.vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({

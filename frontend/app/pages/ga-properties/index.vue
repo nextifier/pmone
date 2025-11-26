@@ -1,16 +1,14 @@
 <template>
   <div class="mx-auto max-w-4xl space-y-6 pt-4 pb-16">
-    <!-- <div class="border-border text-foreground w-full overflow-x-scroll rounded-xl border p-4">
-      <pre class="text-foreground/80 text-sm !leading-[1.5]">{{ data }}</pre>
-    </div> -->
-
-    <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
+    <div
+      class="flex flex-col gap-x-2.5 gap-y-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
+    >
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:analytics-01" class="size-5 sm:size-6" />
         <h1 class="page-title">Google Analytics Properties</h1>
       </div>
 
-      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <ImportDialog @imported="refresh">
           <template #trigger="{ open }">
             <button
@@ -18,7 +16,7 @@
               class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
             >
               <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
-              <span class="hidden sm:inline">Import</span>
+              <span>Import</span>
             </button>
           </template>
         </ImportDialog>
@@ -30,9 +28,17 @@
         >
           <Spinner v-if="exportPending" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
-          <span class="hidden sm:inline"
-            >Export {{ columnFilters?.length ? "selected" : "all" }}</span
-          >
+          <span>Export {{ columnFilters?.length ? "selected" : "all" }}</span>
+        </button>
+      </div>
+
+      <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+        <button
+          @click="clearSelection"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+        >
+          <Icon name="lucide:x" class="size-4 shrink-0" />
+          <span>Clear selection</span>
         </button>
       </div>
     </div>
@@ -484,6 +490,18 @@ const columns = [
 
 // Table ref
 const tableRef = ref();
+
+// Check if there are any selected rows
+const hasSelectedRows = computed(() => {
+  return tableRef.value?.table?.getSelectedRowModel()?.rows?.length > 0;
+});
+
+// Clear selection
+const clearSelection = () => {
+  if (tableRef.value) {
+    tableRef.value.resetRowSelection();
+  }
+};
 
 // Filter helpers
 const getFilterValue = (columnId) => {
