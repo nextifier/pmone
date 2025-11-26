@@ -291,44 +291,6 @@ watch(selectedMetric, (newValue) => {
 // Realtime data
 const { realtimeData, startAutoRefresh } = useRealtimeAnalytics();
 
-// Build query params
-const buildQueryParams = () => {
-  const startDateStr = startDate.value.format("YYYY-MM-DD");
-  const endDateStr = endDate.value.format("YYYY-MM-DD");
-  return `start_date=${startDateStr}&end_date=${endDateStr}`;
-};
-
-// Fetch property analytics using lazy loading
-const {
-  data: propertyResponse,
-  pending: loading,
-  error: fetchError,
-  refresh: fetchPropertyAnalytics,
-} = await useLazySanctumFetch(
-  () => `/api/google-analytics/properties/${route.params.id}/analytics?${buildQueryParams()}`,
-  {
-    key: `property-analytics-${route.params.id}`,
-    watch: [selectedRange],
-  }
-);
-
-const propertyData = computed(() => propertyResponse.value?.data || null);
-const error = computed(() => {
-  if (!fetchError.value) return null;
-  const err = fetchError.value;
-  if (err.status === 429 || err.statusCode === 429) {
-    return "Too many requests. Please wait a moment and try again.";
-  }
-  return err.data?.message || err.message || "Failed to load property analytics";
-});
-
-// Watch for changes and save to localStorage
-watch(selectedRange, (newValue) => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("analytics_selected_range", newValue);
-  }
-});
-
 /**
  * Calculate start and end dates based on the selected range
  */
@@ -369,6 +331,44 @@ const getDateRange = (range) => {
 const dateRange = computed(() => getDateRange(selectedRange.value));
 const startDate = computed(() => dateRange.value.start);
 const endDate = computed(() => dateRange.value.end);
+
+// Build query params
+const buildQueryParams = () => {
+  const startDateStr = startDate.value.format("YYYY-MM-DD");
+  const endDateStr = endDate.value.format("YYYY-MM-DD");
+  return `start_date=${startDateStr}&end_date=${endDateStr}`;
+};
+
+// Fetch property analytics using lazy loading
+const {
+  data: propertyResponse,
+  pending: loading,
+  error: fetchError,
+  refresh: fetchPropertyAnalytics,
+} = await useLazySanctumFetch(
+  () => `/api/google-analytics/properties/${route.params.id}/analytics?${buildQueryParams()}`,
+  {
+    key: `property-analytics-${route.params.id}`,
+    watch: [selectedRange],
+  }
+);
+
+const propertyData = computed(() => propertyResponse.value?.data || null);
+const error = computed(() => {
+  if (!fetchError.value) return null;
+  const err = fetchError.value;
+  if (err.status === 429 || err.statusCode === 429) {
+    return "Too many requests. Please wait a moment and try again.";
+  }
+  return err.data?.message || err.message || "Failed to load property analytics";
+});
+
+// Watch for changes and save to localStorage
+watch(selectedRange, (newValue) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("analytics_selected_range", newValue);
+  }
+});
 
 // Dynamic page title
 const pageTitle = computed(() => {

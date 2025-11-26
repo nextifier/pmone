@@ -33,12 +33,19 @@ class AnalyticsController extends Controller
 
         $query = $model->visits();
 
-        // Apply date filters
+        // Determine date range
         if ($request->has('start_date') && $request->has('end_date')) {
+            $startDate = \Carbon\Carbon::parse($request->start_date)->startOfDay();
+            $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
             $query->inDateRange($request->start_date, $request->end_date);
         } elseif ($request->has('days')) {
-            $query->lastDays($request->days);
+            $days = $request->days;
+            $startDate = now()->subDays($days - 1)->startOfDay();
+            $endDate = now()->endOfDay();
+            $query->lastDays($days);
         } else {
+            $startDate = now()->subDays(6)->startOfDay();
+            $endDate = now()->endOfDay();
             $query->lastDays(7); // Default to last 7 days
         }
 
@@ -46,12 +53,26 @@ class AnalyticsController extends Controller
         $authenticatedVisits = $query->clone()->authenticated()->count();
         $anonymousVisits = $query->clone()->anonymous()->count();
 
-        // Visits per day
-        $visitsPerDay = $query->clone()
+        // Visits per day - get actual data
+        $visitsData = $query->clone()
             ->selectRaw('DATE(visited_at) as date, COUNT(*) as count')
             ->groupBy('date')
             ->orderBy('date')
-            ->get();
+            ->get()
+            ->keyBy('date');
+
+        // Fill in all dates in the range with zero counts
+        $visitsPerDay = collect();
+        $currentDate = $startDate->copy();
+
+        while ($currentDate->lte($endDate)) {
+            $dateString = $currentDate->toDateString();
+            $visitsPerDay->push([
+                'date' => $dateString,
+                'count' => $visitsData->has($dateString) ? (int) $visitsData[$dateString]->count : 0,
+            ]);
+            $currentDate->addDay();
+        }
 
         // Top visitors (for authenticated visits)
         $topVisitors = $query->clone()
