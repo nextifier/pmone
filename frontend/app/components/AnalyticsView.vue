@@ -107,31 +107,21 @@
           </div>
         </div>
 
-        <!-- Visits Per Day Chart -->
-        <div v-if="visitsData?.visits_per_day?.length > 0" class="frame">
-          <div class="frame-panel space-y-2">
-            <h2 class="text-lg font-semibold tracking-tighter">Visits Over Time</h2>
-            <div class="space-y-2">
-              <div
-                v-for="dayData in visitsData.visits_per_day"
-                :key="dayData.date"
-                class="flex items-center gap-x-3"
-              >
-                <span class="text-muted-foreground w-10 text-xs tracking-tight">
-                  {{ $dayjs(dayData.date).format("MMM D") }}
-                </span>
-                <div class="bg-muted relative h-8 grow overflow-hidden rounded-md">
-                  <div
-                    class="bg-primary absolute inset-y-0 left-0 transition-all"
-                    :style="{
-                      width: `${(dayData.count / maxVisitsPerDay) * 100}%`,
-                    }"
-                  ></div>
-                </div>
-                <span class="text-foreground w-5 text-right text-sm font-medium tracking-tight">
-                  {{ dayData.count }}
-                </span>
-              </div>
+        <!-- Visits Over Time Chart -->
+        <div class="frame">
+          <div class="frame-panel">
+            <h2 class="mb-4 text-lg font-semibold tracking-tighter">Visits Over Time</h2>
+            <div v-if="visitsChartData?.length > 2">
+              <ChartLine
+                :data="visitsChartData"
+                :config="visitsChartConfig"
+                :gradient="true"
+                data-key="count"
+                class="h-auto! overflow-hidden py-2.5"
+              />
+            </div>
+            <div v-else class="text-muted-foreground py-8 text-center tracking-tight">
+              No visit data available for this period
             </div>
           </div>
         </div>
@@ -320,9 +310,29 @@ const periodDescription = computed(() => {
   return `${start.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${now.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
 });
 
-const maxVisitsPerDay = computed(() => {
-  if (!props.visitsData?.visits_per_day?.length) return 1;
-  return Math.max(...props.visitsData.visits_per_day.map((d) => d.count));
+// Chart data for ChartLine component - Visits Over Time
+const visitsChartData = computed(() => {
+  if (!props.visitsData?.visits_per_day || !Array.isArray(props.visitsData.visits_per_day)) {
+    return [];
+  }
+
+  return props.visitsData.visits_per_day
+    .map((item) => ({
+      date: new Date(item.date),
+      count: item.count || 0,
+    }))
+    .filter((item) => !isNaN(item.date.getTime()))
+    .sort((a, b) => a.date - b.date);
+});
+
+// Chart config for ChartLine component
+const visitsChartConfig = computed(() => {
+  return {
+    count: {
+      label: "Visits",
+      color: "var(--chart-1)",
+    },
+  };
 });
 
 const maxClicksPerLink = computed(() => {
