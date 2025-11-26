@@ -22,12 +22,12 @@ const { user: authUser } = useSanctumAuth();
 
 const selectedPeriod = ref(7);
 
-// Fetch project profile
+// Fetch project profile with lazy loading
 const {
   data: projectData,
   status,
   error: fetchError,
-} = await useFetch(() => `/api/projects/${username.value}`, {
+} = await useLazyFetch(() => `/api/projects/${username.value}`, {
   baseURL: useRuntimeConfig().public.apiUrl,
   key: `project-profile-${username.value}`,
 });
@@ -69,8 +69,8 @@ watch(
   { immediate: true }
 );
 
-// Fetch visits data
-const { data: visitsData } = await useFetch(
+// Fetch visits data with lazy loading
+const { data: visitsData } = await useLazyFetch(
   () => `/api/analytics/visits?type=project&id=${project.value?.id}&days=${selectedPeriod.value}`,
   {
     baseURL: useRuntimeConfig().public.apiUrl,
@@ -83,8 +83,8 @@ const { data: visitsData } = await useFetch(
   }
 );
 
-// Fetch clicks data
-const { data: clicksData } = await useFetch(
+// Fetch clicks data with lazy loading
+const { data: clicksData } = await useLazyFetch(
   () => `/api/analytics/clicks?type=project&id=${project.value?.id}&days=${selectedPeriod.value}`,
   {
     baseURL: useRuntimeConfig().public.apiUrl,

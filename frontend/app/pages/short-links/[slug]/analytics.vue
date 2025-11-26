@@ -186,7 +186,6 @@
 <script setup>
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
 import ChartLineDefault from "@/components/chart/LineDefault.vue";
-import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -196,14 +195,41 @@ definePageMeta({
 const route = useRoute();
 const slug = computed(() => route.params.slug);
 
-const sanctumFetch = useSanctumClient();
 const { $dayjs } = useNuxtApp();
 
 const selectedPeriod = ref("7");
-const shortLink = ref(null);
-const analyticsData = ref(null);
-const loading = ref(true);
-const error = ref(null);
+
+// Fetch short link details with lazy loading
+const {
+  data: shortLinkResponse,
+  error: shortLinkError,
+} = await useLazySanctumFetch(() => `/api/short-links/${slug.value}`, {
+  key: `short-link-${slug.value}`,
+});
+
+const shortLink = computed(() => shortLinkResponse.value?.data || null);
+
+// Fetch analytics with lazy loading
+const {
+  data: analyticsResponse,
+  pending: loading,
+  error: analyticsError,
+  refresh: loadAnalytics,
+} = await useLazySanctumFetch(
+  () => `/api/short-links/${slug.value}/analytics?period=${selectedPeriod.value}`,
+  {
+    key: `short-link-analytics-${slug.value}-${selectedPeriod.value}`,
+    watch: [selectedPeriod],
+  }
+);
+
+const analyticsData = computed(() => analyticsResponse.value?.data || null);
+
+const error = computed(() => {
+  if (shortLinkError.value) return "Failed to load short link";
+  if (analyticsError.value) return analyticsError.value.response?._data?.message || "Failed to load analytics";
+  return null;
+});
 
 // Chart data for ChartLineDefault component
 const chartData = computed(() => {
@@ -227,47 +253,6 @@ const chartConfig = computed(() => {
       color: "var(--chart-1)",
     },
   };
-});
-
-// Load short link details
-async function loadShortLink() {
-  try {
-    const response = await sanctumFetch(`/api/short-links/${slug.value}`);
-    shortLink.value = response.data;
-  } catch (err) {
-    console.error("Error loading short link:", err);
-    error.value = "Failed to load short link";
-  }
-}
-
-// Load analytics data
-async function loadAnalytics() {
-  loading.value = true;
-  error.value = null;
-
-  try {
-    const response = await sanctumFetch(
-      `/api/short-links/${slug.value}/analytics?period=${selectedPeriod.value}`
-    );
-    analyticsData.value = response.data;
-  } catch (err) {
-    console.error("Error loading analytics:", err);
-    error.value = err.response?._data?.message || "Failed to load analytics";
-    toast.error(error.value);
-  } finally {
-    loading.value = false;
-  }
-}
-
-// Watch for period changes
-watch(selectedPeriod, () => {
-  loadAnalytics();
-});
-
-// Load data on mount
-onMounted(async () => {
-  await loadShortLink();
-  await loadAnalytics();
 });
 
 usePageMeta("", {

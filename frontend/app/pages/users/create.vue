@@ -46,17 +46,13 @@ const loading = ref(false);
 const error = ref(null);
 const success = ref(null);
 const errors = ref({});
-const roles = ref([]);
 
-// Load roles
-async function loadRoles() {
-  try {
-    const response = await sanctumFetch("/api/users/roles");
-    roles.value = response.data;
-  } catch (err) {
-    console.error("Error loading roles:", err);
-  }
-}
+// Fetch roles with lazy loading
+const { data: rolesResponse } = await useLazySanctumFetch("/api/users/roles", {
+  key: "users-roles",
+});
+
+const roles = computed(() => rolesResponse.value?.data || []);
 
 // Create user
 async function createUser(payload) {
@@ -94,9 +90,4 @@ async function createUser(payload) {
     loading.value = false;
   }
 }
-
-// Load data on mount
-onMounted(async () => {
-  await loadRoles();
-});
 </script>

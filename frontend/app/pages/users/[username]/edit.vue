@@ -118,12 +118,8 @@ const { metaSymbol } = useShortcuts();
 const formUserRef = ref(null);
 
 // State
-const user = ref(null);
-const roles = ref([]);
-const initialLoading = ref(true);
 const loading = ref(false);
 const deleting = ref(false);
-const error = ref(null);
 const success = ref(null);
 const errors = ref({});
 
@@ -138,6 +134,34 @@ usePageMeta("", {
 // Permission checking using composable
 const { isAdminOrMaster: canEditUsers, isAdminOrMaster: canDeleteUsers, isMaster } = usePermission();
 
+// Fetch user data with lazy loading
+const {
+  data: userResponse,
+  pending: initialLoading,
+  error: userError,
+  refresh: loadUser,
+} = await useLazySanctumFetch(() => `/api/users/${route.params.username}`, {
+  key: `user-edit-${route.params.username}`,
+});
+
+const user = computed(() => userResponse.value?.data || null);
+
+// Fetch roles data with lazy loading
+const {
+  data: rolesResponse,
+} = await useLazySanctumFetch(() => `/api/users/roles`, {
+  key: 'user-roles',
+});
+
+const roles = computed(() => rolesResponse.value?.data || []);
+
+const error = computed(() => {
+  if (!userError.value) return null;
+  if (userError.value.statusCode === 404) return "User not found";
+  if (userError.value.statusCode === 403) return "You do not have permission to view this user";
+  return userError.value.message || "Failed to load user";
+});
+
 const canDeleteThisUser = computed(() => {
   if (!canDeleteUsers.value) return false;
   if (!user.value) return false;
@@ -148,49 +172,15 @@ const canDeleteThisUser = computed(() => {
   return true;
 });
 
-// Load user data
-async function loadUser() {
-  initialLoading.value = true;
-  error.value = null;
-
-  try {
-    const response = await sanctumFetch(`/api/users/${route.params.username}`);
-
-    if (response.data) {
-      user.value = response.data;
-    }
-  } catch (err) {
-    if (err.response?.status === 404) {
-      error.value = "User not found";
-    } else if (err.response?.status === 403) {
-      error.value = "You do not have permission to view this user";
-    } else {
-      error.value = err.message || "Failed to load user";
-    }
-    console.error("Error loading user:", err);
-  } finally {
-    initialLoading.value = false;
-  }
-}
-
-// Load roles
-async function loadRoles() {
-  try {
-    const response = await sanctumFetch("/api/users/roles");
-    roles.value = response.data;
-  } catch (err) {
-    console.error("Error loading roles:", err);
-  }
-}
-
 // Update user
 async function updateUser(payload) {
   loading.value = true;
-  error.value = null;
   success.value = null;
   errors.value = {};
 
   try {
+    const sanctumFetch = useSanctumClient();
+
     // Remove empty values
     Object.keys(payload).forEach((key) => {
       if (payload[key] === "" || payload[key] === null) {
@@ -257,9 +247,9 @@ async function confirmDeleteUser() {
   }
 
   deleting.value = true;
-  error.value = null;
 
   try {
+    const sanctumFetch = useSanctumClient();
     await sanctumFetch(`/api/users/${user.value.username}`, {
       method: "DELETE",
     });
@@ -267,15 +257,10 @@ async function confirmDeleteUser() {
     // Navigate back to users list
     navigateTo("/users");
   } catch (err) {
-    error.value = err.message || "Failed to delete user";
     console.error("Error deleting user:", err);
+    toast.error(err.message || "Failed to delete user");
   } finally {
     deleting.value = false;
   }
 }
-
-// Load data on mount
-onMounted(async () => {
-  await Promise.all([loadUser(), loadRoles()]);
-});
 </script>

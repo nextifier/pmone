@@ -42,18 +42,13 @@ const loading = ref(false);
 const error = ref(null);
 const success = ref(null);
 const errors = ref({});
-const eligibleMembers = ref([]);
 
-// Load eligible members
-async function loadEligibleMembers() {
-  try {
-    const response = await sanctumFetch("/api/projects/eligible-members");
-    eligibleMembers.value = response.data;
-  } catch (err) {
-    console.error("Error loading eligible members:", err);
-    toast.error("Failed to load eligible members");
-  }
-}
+// Fetch eligible members with lazy loading
+const { data: eligibleMembersResponse } = await useLazySanctumFetch("/api/projects/eligible-members", {
+  key: "projects-eligible-members",
+});
+
+const eligibleMembers = computed(() => eligibleMembersResponse.value?.data || []);
 
 // Create Project
 async function createProject(payload) {
@@ -90,9 +85,4 @@ async function createProject(payload) {
     loading.value = false;
   }
 }
-
-// Load data on mount
-onMounted(async () => {
-  await loadEligibleMembers();
-});
 </script>

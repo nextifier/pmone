@@ -159,32 +159,20 @@ const route = useRoute();
 const postSlug = route.params.slug;
 const config = useRuntimeConfig();
 const { user } = useSanctumAuth();
-const client = useSanctumClient();
-
-const post = ref(null);
-const loading = ref(true);
 
 // Check if user is authenticated
 const isAuthenticated = computed(() => !!user.value);
 
-onMounted(async () => {
-  await loadPost();
+const {
+  data: postResponse,
+  pending: loading,
+  error: fetchError,
+  refresh: loadPost,
+} = await useLazySanctumFetch(() => `/api/posts/${postSlug}`, {
+  key: `post-${postSlug}`,
 });
 
-async function loadPost() {
-  loading.value = true;
-
-  try {
-    const response = await client(`/api/posts/${postSlug}`);
-    post.value = response.data;
-  } catch (error) {
-    console.error("Failed to load post:", error);
-    toast.error("Failed to load post");
-    post.value = null;
-  } finally {
-    loading.value = false;
-  }
-}
+const post = computed(() => postResponse.value?.data || null);
 
 async function deletePost() {
   if (!isAuthenticated.value) {
@@ -197,6 +185,7 @@ async function deletePost() {
   }
 
   try {
+    const client = useSanctumClient();
     await client(`/api/posts/${postSlug}`, {
       method: "DELETE",
     });

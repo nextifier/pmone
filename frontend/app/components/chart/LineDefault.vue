@@ -84,11 +84,8 @@ const props = defineProps({
   },
 });
 
-// Create a reactive computed for config that the template function can access
 const currentConfig = computed(() => props.config);
 
-// Call componentToString ONCE during setup - it returns a function
-// This function will be called by Unovis with data, and it will use currentConfig
 const tooltipTemplate = componentToString(currentConfig, ChartTooltipContent, {
   hideLabel: false,
   labelFormatter: (d) => {

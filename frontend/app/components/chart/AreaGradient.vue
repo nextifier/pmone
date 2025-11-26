@@ -1,45 +1,58 @@
 <template>
-  <div
-    class="overflow-hidden px-0! [&_svg>g]:origin-center! [&_svg>g]:not-first:scale-x-110 [&_svg>g]:first:scale-x-90!"
-  >
-    <ChartContainer :config="config">
-      <VisXYContainer :data="data" :svg-defs="svgDefs">
-        <VisArea
-          :x="(d) => d.month"
-          :y="[(d) => d.mobile, (d) => d.desktop]"
-          :color="(d, i) => ['url(#fillMobile)', 'url(#fillDesktop)'][i]"
-          :opacity="0.4"
-        />
-        <VisLine
-          :x="(d) => d.month"
-          :y="[(d) => d.mobile, (d) => d.mobile + d.desktop]"
-          :color="(d, i) => [config.mobile.color, config.desktop.color][i]"
-          :line-width="1"
-        />
-        <VisAxis
-          type="x"
-          :x="(d) => d.month"
-          :tick-line="false"
-          :domain-line="false"
-          :grid-line="false"
-          :num-ticks="6"
-          :tick-format="(d, index) => data[index]"
-        />
-        <VisAxis
-          type="y"
-          :num-ticks="3"
-          :tick-line="false"
-          :domain-line="false"
-          :tick-format="(d) => ''"
-        />
-        <ChartTooltip />
-        <ChartCrosshair
-          :template="componentToString(config, ChartTooltipContent, { labelKey: 'monthLabel' })"
-          :color="(d, i) => [config.mobile.color, config.desktop.color][i % 2]"
-        />
-      </VisXYContainer>
-    </ChartContainer>
-  </div>
+  <ChartContainer :config="config">
+    <VisXYContainer :data="data" :svg-defs="svgDefs">
+      <VisArea
+        :x="(d) => d.date"
+        :y="(d) => d[dataKey]"
+        :color="(d, i) => ['url(#fillChart1)', 'url(#fillChart2)'][i]"
+        :opacity="0.4"
+      />
+      <VisLine
+        :x="(d) => d.date"
+        :y="(d) => d[dataKey]"
+        :color="config[dataKey]?.color || 'var(--chart-1)'"
+        :line-width="1"
+      />
+      <VisAxis
+        type="x"
+        :num-ticks="10"
+        :tickTextHideOverlapping="true"
+        :x="(d) => d.date"
+        :tick-line="false"
+        :domain-line="false"
+        :grid-line="false"
+        :tick-format="
+          (d) => {
+            const date = new Date(d);
+            return date.toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+            });
+          }
+        "
+      />
+      <VisAxis
+        type="y"
+        :num-ticks="5"
+        :tickTextHideOverlapping="true"
+        :tick-line="false"
+        :domain-line="false"
+        :tick-format="
+          (d) => {
+            return new Intl.NumberFormat('en-US', {
+              notation: 'compact',
+              maximumFractionDigits: 1,
+            }).format(d);
+          }
+        "
+      />
+      <ChartTooltip />
+      <ChartCrosshair
+        :template="tooltipTemplate"
+        :color="config[dataKey]?.color || 'var(--chart-1)'"
+      />
+    </VisXYContainer>
+  </ChartContainer>
 </template>
 
 <script setup>
@@ -62,16 +75,50 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  dataKey: {
+    type: String,
+    default: "value",
+  },
+});
+
+const currentConfig = computed(() => props.config);
+
+const tooltipTemplate = componentToString(currentConfig, ChartTooltipContent, {
+  hideLabel: false,
+  labelFormatter: (d) => {
+    const date = new Date(d);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  },
 });
 
 const svgDefs = `
-  <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="5%" stop-color="var(--color-desktop)" stop-opacity="0.8" />
-    <stop offset="95%" stop-color="var(--color-desktop)" stop-opacity="0.1" />
+  <linearGradient id="fillChart1" x1="0" y1="0" x2="0" y2="1">
+    <stop
+      offset="5%"
+      stop-color="var(--chart-1)"
+      stop-opacity="0.8"
+    />
+    <stop
+      offset="95%"
+      stop-color="var(--chart-1)"
+      stop-opacity="0"
+    />
   </linearGradient>
-  <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="5%" stop-color="var(--color-mobile)" stop-opacity="0.8" />
-    <stop offset="95%" stop-color="var(--color-mobile)" stop-opacity="0.1" />
+  <linearGradient id="fillChart2" x1="0" y1="0" x2="0" y2="1">
+    <stop
+      offset="5%"
+      stop-color="var(--chart-2)"
+      stop-opacity="0.8"
+    />
+    <stop
+      offset="95%"
+      stop-color="var(--chart-2)"
+      stop-opacity="0"
+    />
   </linearGradient>
 `;
 </script>

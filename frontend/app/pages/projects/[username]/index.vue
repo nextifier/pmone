@@ -21,7 +21,7 @@ const {
   data,
   status,
   error: fetchError,
-} = await useFetch(() => `/api/projects/${username.value}`, {
+} = await useLazyFetch(() => `/api/projects/${username.value}`, {
   baseURL: useRuntimeConfig().public.apiUrl,
   key: `project-profile-${username.value}`,
 });

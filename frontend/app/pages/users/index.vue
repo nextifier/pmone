@@ -209,13 +209,8 @@ const pagination = ref({ pageIndex: 0, pageSize: 20 });
 const sorting = ref([{ id: "created_at", desc: true }]);
 
 // Data state
-const data = ref([]);
-const meta = ref({ current_page: 1, last_page: 1, per_page: 10, total: 0 });
-const pending = ref(false);
-const error = ref(null);
-
 // Client-only mode flag (true = client-side pagination, false = server-side)
-const clientOnly = ref(true);
+const clientOnly = ref(false);
 
 // Build query params
 const buildQueryParams = () => {
@@ -253,24 +248,20 @@ const buildQueryParams = () => {
   return params.toString();
 };
 
-// Fetch users
-const fetchUsers = async () => {
-  try {
-    pending.value = true;
-    error.value = null;
-    const client = useSanctumClient();
-    const response = await client(`/api/users?${buildQueryParams()}`);
-    data.value = response.data;
-    meta.value = response.meta;
-  } catch (err) {
-    error.value = err;
-    console.error("Failed to fetch users:", err);
-  } finally {
-    pending.value = false;
-  }
-};
+// Fetch users with lazy loading
+const {
+  data: usersResponse,
+  pending,
+  error,
+  refresh: fetchUsers,
+} = await useLazySanctumFetch(() => `/api/users?${buildQueryParams()}`, {
+  key: "users-list",
+  watch: clientOnly.value ? [] : [columnFilters, sorting, pagination],
+  immediate: !clientOnly.value,
+});
 
-await fetchUsers();
+const data = computed(() => usersResponse.value?.data || []);
+const meta = computed(() => usersResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 10, total: 0 });
 
 // Global state for refresh tracking
 const needsRefresh = useState("users-needs-refresh", () => false);
@@ -282,20 +273,6 @@ onActivated(async () => {
     needsRefresh.value = false;
   }
 });
-
-// Watchers for server-side mode only
-const debouncedFetch = useDebounceFn(fetchUsers, 300);
-
-watch(
-  [columnFilters, sorting, pagination],
-  () => {
-    if (!clientOnly.value) {
-      const hasNameFilter = columnFilters.value.some((f) => f.id === "name");
-      hasNameFilter ? debouncedFetch() : fetchUsers();
-    }
-  },
-  { deep: true }
-);
 
 const refresh = fetchUsers;
 

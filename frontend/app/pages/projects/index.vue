@@ -164,35 +164,26 @@ usePageMeta("projects");
 const { user } = useSanctumAuth();
 const { isAdminOrMaster } = usePermission();
 
-// Data state
-const data = ref([]);
-const pending = ref(false);
-const error = ref(null);
+// Filter state
 const searchQuery = ref("");
 const selectedStatuses = ref([]);
 
-// Fetch projects
-const fetchProjects = async () => {
-  try {
-    pending.value = true;
-    error.value = null;
-    const client = useSanctumClient();
-    const params = new URLSearchParams();
-    params.append("client_only", "true");
-    params.append("sort", "order_column");
-    const response = await client(`/api/projects?${params.toString()}`);
-    data.value = response.data;
-  } catch (err) {
-    error.value = err;
-    console.error("Failed to fetch projects:", err);
-  } finally {
-    pending.value = false;
-  }
-};
+// Fetch projects with lazy loading (non-blocking navigation)
+const {
+  data: projectsResponse,
+  pending,
+  error,
+  refresh,
+} = await useLazySanctumFetch("/api/projects", {
+  query: {
+    client_only: "true",
+    sort: "order_column",
+  },
+  key: "projects-list",
+});
 
-await fetchProjects();
-
-const refresh = fetchProjects;
+// Extract data array from response
+const data = computed(() => projectsResponse.value?.data || []);
 
 // Check if filters are active
 const hasActiveFilters = computed(() => {

@@ -63,19 +63,15 @@ const { user } = useSanctumAuth();
 const formUserRef = ref(null);
 
 // State
-const userData = ref(null);
 const errors = ref({});
 const isSubmitting = ref(false);
 
-// Fetch user data with media on mount
-onMounted(async () => {
-  try {
-    const response = await sanctumFetch("/api/user");
-    userData.value = response;
-  } catch (error) {
-    console.error("Failed to fetch user data:", error);
-  }
+// Fetch user data with lazy loading
+const { data: userDataResponse } = await useLazySanctumFetch("/api/user", {
+  key: "user-profile-settings",
 });
+
+const userData = computed(() => userDataResponse.value || null);
 
 // Submit handler
 const handleSubmit = async (payload) => {

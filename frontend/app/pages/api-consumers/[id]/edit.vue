@@ -49,27 +49,30 @@ usePageMeta("api-consumers", {
 });
 
 const loading = ref(false);
-const pending = ref(false);
-const error = ref(null);
-const apiConsumer = ref(null);
 
-// Fetch API consumer data
-const fetchApiConsumer = async () => {
-  try {
-    pending.value = true;
-    error.value = null;
-    const client = useSanctumClient();
-    const response = await client(`/api/api-consumers/${consumerId.value}`);
-    apiConsumer.value = response.data;
-  } catch (err) {
-    error.value = err;
-    console.error("Failed to fetch API consumer:", err);
-  } finally {
-    pending.value = false;
-  }
-};
+const {
+  data: apiConsumerResponse,
+  pending,
+  error: fetchError,
+} = await useLazySanctumFetch(() => `/api/api-consumers/${consumerId.value}`, {
+  key: `api-consumer-edit-${consumerId.value}`,
+});
 
-await fetchApiConsumer();
+const apiConsumer = computed(() => apiConsumerResponse.value?.data || null);
+
+const error = computed(() => {
+  if (!fetchError.value) return null;
+  return {
+    data: {
+      message: fetchError.value.statusCode === 404
+        ? "API consumer not found"
+        : fetchError.value.statusCode === 403
+        ? "You do not have permission"
+        : fetchError.value.message || "Failed to load API consumer"
+    },
+    message: fetchError.value.message || "Failed to load API consumer"
+  };
+});
 
 async function handleSuccess() {
   const needsRefresh = useState("api-consumers-needs-refresh", () => false);

@@ -135,7 +135,6 @@
 </template>
 
 <script setup>
-import { toast } from "vue-sonner";
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
 
 definePageMeta({
@@ -143,13 +142,30 @@ definePageMeta({
   layout: "app",
 });
 
-const sanctumFetch = useSanctumClient();
 const { $dayjs } = useNuxtApp();
 
 const selectedPeriod = ref("30");
-const analyticsData = ref(null);
-const loading = ref(true);
-const error = ref(null);
+
+// Fetch analytics with lazy loading
+const {
+  data: analyticsResponse,
+  pending: loading,
+  error: analyticsError,
+  refresh: loadAnalytics,
+} = await useLazySanctumFetch(
+  () => `/api/posts/analytics?period=${selectedPeriod.value}`,
+  {
+    key: `posts-analytics-${selectedPeriod.value}`,
+    watch: [selectedPeriod],
+  }
+);
+
+const analyticsData = computed(() => analyticsResponse.value?.data || null);
+
+const error = computed(() => {
+  if (analyticsError.value) return analyticsError.value.response?._data?.message || "Failed to load analytics";
+  return null;
+});
 
 // Chart data for ChartLineDefault component
 const chartData = computed(() => {
@@ -173,33 +189,6 @@ const chartConfig = computed(() => {
       color: "var(--chart-1)",
     },
   };
-});
-
-// Load analytics data
-async function loadAnalytics() {
-  loading.value = true;
-  error.value = null;
-
-  try {
-    const response = await sanctumFetch(`/api/posts/analytics?period=${selectedPeriod.value}`);
-    analyticsData.value = response.data;
-  } catch (err) {
-    console.error("Error loading analytics:", err);
-    error.value = err.response?._data?.message || "Failed to load analytics";
-    toast.error(error.value);
-  } finally {
-    loading.value = false;
-  }
-}
-
-// Watch for period changes
-watch(selectedPeriod, () => {
-  loadAnalytics();
-});
-
-// Load data on mount
-onMounted(async () => {
-  await loadAnalytics();
 });
 
 usePageMeta("", {

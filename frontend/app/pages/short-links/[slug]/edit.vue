@@ -45,29 +45,25 @@ usePageMeta("", {
   description: "Edit short link",
 });
 
-const sanctumFetch = useSanctumClient();
-
 // Data state
-const shortLink = ref(null);
-const loadingData = ref(true);
 const formRef = ref(null);
 
-// Load short link
-async function loadShortLink() {
-  try {
-    const response = await sanctumFetch(`/api/short-links/${slug.value}`);
-    shortLink.value = response.data;
-  } catch (err) {
-    console.error("Error loading short link:", err);
-    toast.error("Failed to load short link");
-  } finally {
-    loadingData.value = false;
-  }
-}
+const {
+  data: shortLinkResponse,
+  pending: loadingData,
+  error: fetchError,
+  refresh: loadShortLink,
+} = await useLazySanctumFetch(() => `/api/short-links/${slug.value}`, {
+  key: `short-link-edit-${slug.value}`,
+});
 
-// Load data on mount
-onMounted(async () => {
-  await loadShortLink();
+const shortLink = computed(() => shortLinkResponse.value?.data || null);
+
+const error = computed(() => {
+  if (!fetchError.value) return null;
+  if (fetchError.value.statusCode === 404) return "Short link not found";
+  if (fetchError.value.statusCode === 403) return "You do not have permission";
+  return fetchError.value.message || "Failed to load short link";
 });
 
 defineShortcuts({

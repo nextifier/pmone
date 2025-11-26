@@ -218,13 +218,6 @@ usePageMeta("inbox");
 const client = useSanctumClient();
 const router = useRouter();
 
-// State
-const submissions = ref([]);
-const projects = ref([]);
-const meta = ref(null);
-const pending = ref(false);
-const error = ref(null);
-
 // Filters
 const searchQuery = ref("");
 const selectedStatus = ref("all");
@@ -236,61 +229,60 @@ const hasActiveFilters = computed(() => {
   return !!searchQuery.value || selectedStatus.value !== "all" || selectedProjectId.value !== "all";
 });
 
+// Build query params for API
+const buildSubmissionsParams = () => {
+  const params = {
+    page: currentPage.value,
+    per_page: 15,
+  };
+
+  if (searchQuery.value) {
+    params.filter_search = searchQuery.value;
+  }
+
+  if (selectedStatus.value && selectedStatus.value !== "all") {
+    params.filter_status = selectedStatus.value;
+  }
+
+  if (selectedProjectId.value && selectedProjectId.value !== "all") {
+    params.filter_project = selectedProjectId.value;
+  }
+
+  return params;
+};
+
 // Fetch projects for filter
-async function fetchProjects() {
-  try {
-    const response = await client("/api/projects", {
-      params: { client_only: true },
-    });
+const {
+  data: projectsResponse,
+} = await useLazySanctumFetch("/api/projects?client_only=true", {
+  key: "inbox-projects",
+});
 
-    // Handle response - could be direct array or nested in data
-    if (Array.isArray(response)) {
-      projects.value = response;
-    } else if (response && response.data) {
-      projects.value = Array.isArray(response.data) ? response.data : [];
-    } else {
-      projects.value = [];
-    }
-  } catch (err) {
-    console.error("Failed to fetch projects:", err);
-    projects.value = [];
+const projects = computed(() => {
+  const response = projectsResponse.value;
+  if (Array.isArray(response)) {
+    return response;
+  } else if (response && response.data) {
+    return Array.isArray(response.data) ? response.data : [];
   }
-}
+  return [];
+});
 
-// Fetch submissions
-async function fetchSubmissions() {
-  pending.value = true;
-  error.value = null;
+// Fetch submissions using lazy loading
+const {
+  data: submissionsResponse,
+  pending,
+  error: fetchError,
+  refresh: fetchSubmissions,
+} = await useLazySanctumFetch(() => "/api/contact-form-submissions", {
+  key: "inbox-submissions",
+  params: buildSubmissionsParams,
+  watch: [searchQuery, selectedStatus, selectedProjectId, currentPage],
+});
 
-  try {
-    const params = {
-      page: currentPage.value,
-      per_page: 15,
-    };
-
-    if (searchQuery.value) {
-      params.filter_search = searchQuery.value;
-    }
-
-    if (selectedStatus.value && selectedStatus.value !== "all") {
-      params.filter_status = selectedStatus.value;
-    }
-
-    if (selectedProjectId.value && selectedProjectId.value !== "all") {
-      params.filter_project = selectedProjectId.value;
-    }
-
-    const response = await client("/api/contact-form-submissions", { params });
-
-    submissions.value = response.data || [];
-    meta.value = response.meta || null;
-  } catch (err) {
-    console.error("Failed to fetch submissions:", err);
-    error.value = err.message || "Failed to load submissions";
-  } finally {
-    pending.value = false;
-  }
-}
+const submissions = computed(() => submissionsResponse.value?.data || []);
+const meta = computed(() => submissionsResponse.value?.meta || null);
+const error = computed(() => fetchError.value?.message || (fetchError.value ? "Failed to load submissions" : null));
 
 // Refresh
 function refresh() {
@@ -298,17 +290,10 @@ function refresh() {
   fetchSubmissions();
 }
 
-// Watch filters
-watch([searchQuery, selectedStatus, selectedProjectId], () => {
-  currentPage.value = 1;
-  fetchSubmissions();
-});
-
 // Pagination
 function goToPage(page) {
   if (page < 1 || (meta.value && page > meta.value.last_page)) return;
   currentPage.value = page;
-  fetchSubmissions();
 }
 
 // View submission detail
@@ -364,10 +349,4 @@ function getStatusConfig(status) {
   };
   return configs[status] || configs.new;
 }
-
-// Lifecycle
-onMounted(() => {
-  fetchProjects();
-  fetchSubmissions();
-});
 </script>

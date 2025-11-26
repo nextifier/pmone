@@ -195,7 +195,6 @@
 <script setup>
 import ChartLineDefault from "@/components/chart/LineDefault.vue";
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
-import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -205,14 +204,41 @@ definePageMeta({
 const route = useRoute();
 const slug = computed(() => route.params.slug);
 
-const sanctumFetch = useSanctumClient();
 const { $dayjs } = useNuxtApp();
 
 const selectedPeriod = ref("30");
-const post = ref(null);
-const analyticsData = ref(null);
-const loading = ref(true);
-const error = ref(null);
+
+// Fetch post details with lazy loading
+const {
+  data: postResponse,
+  error: postError,
+} = await useLazySanctumFetch(() => `/api/posts/${slug.value}?for=analytics`, {
+  key: `post-analytics-detail-${slug.value}`,
+});
+
+const post = computed(() => postResponse.value?.data || null);
+
+// Fetch analytics with lazy loading
+const {
+  data: analyticsResponse,
+  pending: loading,
+  error: analyticsError,
+  refresh: loadAnalytics,
+} = await useLazySanctumFetch(
+  () => `/api/posts/${slug.value}/analytics?period=${selectedPeriod.value}`,
+  {
+    key: `post-analytics-${slug.value}-${selectedPeriod.value}`,
+    watch: [selectedPeriod],
+  }
+);
+
+const analyticsData = computed(() => analyticsResponse.value?.data || null);
+
+const error = computed(() => {
+  if (postError.value) return "Failed to load post";
+  if (analyticsError.value) return analyticsError.value.response?._data?.message || "Failed to load analytics";
+  return null;
+});
 
 // Chart data for ChartLineDefault component
 const chartData = computed(() => {
@@ -236,47 +262,6 @@ const chartConfig = computed(() => {
       color: "var(--chart-1)",
     },
   };
-});
-
-// Load post details
-async function loadPost() {
-  try {
-    const response = await sanctumFetch(`/api/posts/${slug.value}?for=analytics`);
-    post.value = response.data;
-  } catch (err) {
-    console.error("Error loading post:", err);
-    error.value = "Failed to load post";
-  }
-}
-
-// Load analytics data
-async function loadAnalytics() {
-  loading.value = true;
-  error.value = null;
-
-  try {
-    const response = await sanctumFetch(
-      `/api/posts/${slug.value}/analytics?period=${selectedPeriod.value}`
-    );
-    analyticsData.value = response.data;
-  } catch (err) {
-    console.error("Error loading analytics:", err);
-    error.value = err.response?._data?.message || "Failed to load analytics";
-    toast.error(error.value);
-  } finally {
-    loading.value = false;
-  }
-}
-
-// Watch for period changes
-watch(selectedPeriod, () => {
-  loadAnalytics();
-});
-
-// Load data on mount
-onMounted(async () => {
-  await loadPost();
-  await loadAnalytics();
 });
 
 usePageMeta("", {

@@ -116,12 +116,8 @@ const { metaSymbol } = useShortcuts();
 const formProjectRef = ref(null);
 
 // State
-const project = ref(null);
-const eligibleMembers = ref([]);
-const initialLoading = ref(true);
 const loading = ref(false);
 const deleting = ref(false);
-const error = ref(null);
 const success = ref(null);
 const errors = ref({});
 
@@ -136,51 +132,47 @@ usePageMeta("", {
 // Permission checking using composable
 const { isAdminOrMaster: canEditprojects, isAdminOrMaster: canDeleteprojects, isMaster } = usePermission();
 
-const canDeleteThisproject = computed(() => {
-  if (!canDeleteprojects.value) return false;
-  if (!user.value) return false;
-  // Admin cannot delete master projects
-  if (user.value.roles?.includes("master") && !isMaster.value) return false;
-  // Cannot delete yourself
-  if (user.value.username === currentUser.value?.username) return false;
-  return true;
+// Fetch project data with lazy loading
+const {
+  data: projectResponse,
+  pending: initialLoading,
+  error: projectError,
+} = await useLazySanctumFetch(() => `/api/projects/${route.params.username}`, {
+  key: `project-edit-${route.params.username}`,
 });
 
-// Load project data
-async function loadproject() {
-  initialLoading.value = true;
-  error.value = null;
+const project = computed(() => projectResponse.value?.data || null);
 
-  try {
-    const response = await sanctumFetch(`/api/projects/${route.params.username}`);
+const error = computed(() => {
+  if (!projectError.value) return null;
 
-    if (response.data) {
-      project.value = response.data;
-    }
-  } catch (err) {
-    if (err.response?.status === 404) {
-      error.value = "Project not found";
-    } else if (err.response?.status === 403) {
-      error.value = "You do not have permission to view this project";
-    } else {
-      error.value = err.message || "Failed to load project";
-    }
-    console.error("Error loading project:", err);
-  } finally {
-    initialLoading.value = false;
+  const err = projectError.value;
+  if (err.statusCode === 404) {
+    return "Project not found";
+  } else if (err.statusCode === 403) {
+    return "You do not have permission to view this project";
   }
-}
+  return err.message || "Failed to load project";
+});
 
-// Load eligible members
-async function loadEligibleMembers() {
-  try {
-    const response = await sanctumFetch("/api/projects/eligible-members");
-    eligibleMembers.value = response.data;
-  } catch (err) {
-    console.error("Error loading eligible members:", err);
-    toast.error("Failed to load eligible members");
-  }
-}
+// Fetch eligible members with lazy loading
+const {
+  data: eligibleMembersResponse,
+} = await useLazySanctumFetch("/api/projects/eligible-members", {
+  key: "projects-eligible-members",
+});
+
+const eligibleMembers = computed(() => eligibleMembersResponse.value?.data || []);
+
+const canDeleteThisproject = computed(() => {
+  if (!canDeleteprojects.value) return false;
+  if (!project.value) return false;
+  // Admin cannot delete master projects
+  if (project.value.roles?.includes("master") && !isMaster.value) return false;
+  // Cannot delete yourself
+  if (project.value.username === currentUser.value?.username) return false;
+  return true;
+});
 
 // Update project
 async function updateproject(payload) {
@@ -271,9 +263,4 @@ async function confirmDeleteproject() {
     deleting.value = false;
   }
 }
-
-// Load data on mount
-onMounted(async () => {
-  await Promise.all([loadproject(), loadEligibleMembers()]);
-});
 </script>

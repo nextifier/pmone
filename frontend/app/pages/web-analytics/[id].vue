@@ -242,10 +242,6 @@ const getInitialMetric = () => {
   return "activeUsers";
 };
 
-// State
-const loading = ref(true); // Start with true to prevent empty state flash during SSR
-const error = ref(null);
-const propertyData = ref(null);
 const selectedRange = ref(getInitialRange());
 
 // Selected metric for chart
@@ -295,12 +291,42 @@ watch(selectedMetric, (newValue) => {
 // Realtime data
 const { realtimeData, startAutoRefresh } = useRealtimeAnalytics();
 
+// Build query params
+const buildQueryParams = () => {
+  const startDateStr = startDate.value.format("YYYY-MM-DD");
+  const endDateStr = endDate.value.format("YYYY-MM-DD");
+  return `start_date=${startDateStr}&end_date=${endDateStr}`;
+};
+
+// Fetch property analytics using lazy loading
+const {
+  data: propertyResponse,
+  pending: loading,
+  error: fetchError,
+  refresh: fetchPropertyAnalytics,
+} = await useLazySanctumFetch(
+  () => `/api/google-analytics/properties/${route.params.id}/analytics?${buildQueryParams()}`,
+  {
+    key: `property-analytics-${route.params.id}`,
+    watch: [selectedRange],
+  }
+);
+
+const propertyData = computed(() => propertyResponse.value?.data || null);
+const error = computed(() => {
+  if (!fetchError.value) return null;
+  const err = fetchError.value;
+  if (err.status === 429 || err.statusCode === 429) {
+    return "Too many requests. Please wait a moment and try again.";
+  }
+  return err.data?.message || err.message || "Failed to load property analytics";
+});
+
 // Watch for changes and save to localStorage
 watch(selectedRange, (newValue) => {
   if (typeof window !== "undefined") {
     localStorage.setItem("analytics_selected_range", newValue);
   }
-  fetchPropertyAnalytics();
 });
 
 /**
@@ -511,35 +537,6 @@ const propertyChartConfig = computed(() => {
   };
 });
 
-// Fetch property analytics
-const fetchPropertyAnalytics = async () => {
-  loading.value = true;
-  error.value = null;
-
-  try {
-    const client = useSanctumClient();
-    const propertyId = route.params.id;
-    const startDateStr = startDate.value.format("YYYY-MM-DD");
-    const endDateStr = endDate.value.format("YYYY-MM-DD");
-
-    const { data } = await client(
-      `/api/google-analytics/properties/${propertyId}/analytics?start_date=${startDateStr}&end_date=${endDateStr}`
-    );
-
-    propertyData.value = data;
-  } catch (err) {
-    console.error("Error fetching property analytics:", err);
-
-    if (err.status === 429 || err.statusCode === 429) {
-      error.value = "Too many requests. Please wait a moment and try again.";
-    } else {
-      error.value = err.data?.message || err.message || "Failed to load property analytics";
-    }
-  } finally {
-    loading.value = false;
-  }
-};
-
 // Handlers
 const refreshData = () => fetchPropertyAnalytics();
 
@@ -605,10 +602,7 @@ const exportToExcel = async () => {
 };
 
 // Lifecycle
-onMounted(async () => {
-  // Fetch property analytics first
-  await fetchPropertyAnalytics();
-
+onMounted(() => {
   // Start realtime refresh for this property after we have property data
   // Use the actual property_id from the response, not the route param
   if (propertyData.value?.property?.property_id) {
@@ -621,4 +615,17 @@ onMounted(async () => {
     }
   }
 });
+
+// Watch propertyData to start realtime refresh when data is loaded
+watch(propertyData, (newData) => {
+  if (newData?.property?.property_id) {
+    const propertyId = String(newData.property.property_id);
+    try {
+      startAutoRefresh([propertyId]);
+    } catch (err) {
+      console.error("Error starting realtime refresh:", err);
+      // Continue without realtime data
+    }
+  }
+}, { immediate: true });
 </script>

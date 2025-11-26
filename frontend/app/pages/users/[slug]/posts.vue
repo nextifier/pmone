@@ -182,11 +182,6 @@ const pagination = ref({ pageIndex: 0, pageSize: 15 });
 const sorting = ref([{ id: "published_at", desc: true }]);
 
 // Data state
-const data = ref([]);
-const meta = ref({ current_page: 1, last_page: 1, per_page: 15, total: 0 });
-const pending = ref(false);
-const error = ref(null);
-
 // Client-only mode flag
 const clientOnly = ref(true);
 
@@ -228,40 +223,20 @@ const buildQueryParams = () => {
   return params.toString();
 };
 
-// Fetch posts
-const fetchPosts = async () => {
-  if (!targetUser.value?.id) return;
+// Fetch posts with lazy loading
+const {
+  data: postsResponse,
+  pending,
+  error,
+  refresh: fetchPosts,
+} = await useLazySanctumFetch(() => `/api/posts?${buildQueryParams()}`, {
+  key: `user-posts-${username.value}`,
+  watch: clientOnly.value ? [] : [columnFilters, sorting, pagination],
+  immediate: !clientOnly.value && !!targetUser.value?.id,
+});
 
-  try {
-    pending.value = true;
-    error.value = null;
-    const client = useSanctumClient();
-    const response = await client(`/api/posts?${buildQueryParams()}`);
-    data.value = response.data;
-    meta.value = response.meta;
-  } catch (err) {
-    error.value = err;
-    console.error("Failed to fetch posts:", err);
-  } finally {
-    pending.value = false;
-  }
-};
-
-await fetchPosts();
-
-// Watchers for server-side mode only
-const debouncedFetch = useDebounceFn(fetchPosts, 300);
-
-watch(
-  [columnFilters, sorting, pagination],
-  () => {
-    if (!clientOnly.value) {
-      const hasTitleFilter = columnFilters.value.some((f) => f.id === "title");
-      hasTitleFilter ? debouncedFetch() : fetchPosts();
-    }
-  },
-  { deep: true }
-);
+const data = computed(() => postsResponse.value?.data || []);
+const meta = computed(() => postsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 });
 
 const refresh = fetchPosts;
 

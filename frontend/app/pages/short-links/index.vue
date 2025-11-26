@@ -197,11 +197,6 @@ const pagination = ref({ pageIndex: 0, pageSize: 10 });
 const sorting = ref([{ id: "created_at", desc: true }]);
 
 // Data state
-const data = ref([]);
-const meta = ref({ current_page: 1, last_page: 1, per_page: 10, total: 0 });
-const pending = ref(false);
-const error = ref(null);
-
 // Client-only mode flag (true = client-side pagination, false = server-side)
 const clientOnly = ref(true);
 
@@ -239,24 +234,20 @@ const buildQueryParams = () => {
   return params.toString();
 };
 
-// Fetch short links
-const fetchShortLinks = async () => {
-  try {
-    pending.value = true;
-    error.value = null;
-    const client = useSanctumClient();
-    const response = await client(`/api/short-links?${buildQueryParams()}`);
-    data.value = response.data;
-    meta.value = response.meta;
-  } catch (err) {
-    error.value = err;
-    console.error("Failed to fetch short links:", err);
-  } finally {
-    pending.value = false;
-  }
-};
+// Fetch short links with lazy loading (non-blocking navigation)
+const {
+  data: shortLinksResponse,
+  pending,
+  error,
+  refresh: fetchShortLinks,
+} = await useLazySanctumFetch(() => `/api/short-links?${buildQueryParams()}`, {
+  key: "short-links-list",
+  watch: clientOnly.value ? [] : [columnFilters, sorting, pagination],
+  immediate: !clientOnly.value,
+});
 
-await fetchShortLinks();
+const data = computed(() => shortLinksResponse.value?.data || []);
+const meta = computed(() => shortLinksResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 10, total: 0 });
 
 // Global state for refresh tracking
 const needsRefresh = useState("short-links-needs-refresh", () => false);
@@ -268,20 +259,6 @@ onActivated(async () => {
     needsRefresh.value = false;
   }
 });
-
-// Watchers for server-side mode only
-const debouncedFetch = useDebounceFn(fetchShortLinks, 300);
-
-watch(
-  [columnFilters, sorting, pagination],
-  () => {
-    if (!clientOnly.value) {
-      const hasSlugFilter = columnFilters.value.some((f) => f.id === "slug");
-      hasSlugFilter ? debouncedFetch() : fetchShortLinks();
-    }
-  },
-  { deep: true }
-);
 
 const refresh = fetchShortLinks;
 

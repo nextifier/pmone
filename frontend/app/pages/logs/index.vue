@@ -110,12 +110,6 @@ const columnFilters = ref([]);
 const pagination = ref({ pageIndex: 0, pageSize: 50 });
 const sorting = ref([{ id: "created_at", desc: true }]);
 
-// Data state
-const data = ref([]);
-const meta = ref({ current_page: 1, last_page: 1, per_page: 50, total: 0 });
-const pending = ref(false);
-const error = ref(null);
-
 // Filter options
 const logNames = ref([]);
 const events = ref([]);
@@ -155,40 +149,19 @@ const buildQueryParams = () => {
   return params.toString();
 };
 
-// Fetch logs from API
-const fetchLogs = async () => {
-  try {
-    pending.value = true;
-    error.value = null;
-    const client = useSanctumClient();
-    const response = await client(`/api/logs?${buildQueryParams()}`);
-    data.value = response.data;
-    meta.value = response.meta;
-  } catch (err) {
-    error.value = err;
-    console.error("Failed to fetch logs:", err);
-    toast.error("Failed to load activity logs", {
-      description: err?.data?.message || err?.message || "An error occurred",
-    });
-  } finally {
-    pending.value = false;
-  }
-};
+// Fetch logs using lazy loading
+const {
+  data: logsResponse,
+  pending,
+  error,
+  refresh: fetchLogs,
+} = await useLazySanctumFetch(() => `/api/logs?${buildQueryParams()}`, {
+  key: "logs-data",
+  watch: [columnFilters, sorting, pagination],
+});
 
-// Initial fetch
-await fetchLogs();
-
-// Watch for changes and refetch
-const debouncedFetch = useDebounceFn(fetchLogs, 300);
-
-watch(
-  [columnFilters, sorting, pagination],
-  () => {
-    const hasSearchFilter = columnFilters.value.some((f) => f.id === "search");
-    hasSearchFilter ? debouncedFetch() : fetchLogs();
-  },
-  { deep: true }
-);
+const data = computed(() => logsResponse.value?.data || []);
+const meta = computed(() => logsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 50, total: 0 });
 
 const refresh = fetchLogs;
 

@@ -96,7 +96,17 @@ const errors = ref();
 const isSubmitting = ref(false);
 const userHasPassword = ref(true);
 
-// Check password status
+// Check password status with lazy loading
+const { data: passwordStatusResponse } = await useLazySanctumFetch("/api/user/password-status", {
+  key: "user-password-status",
+});
+
+watchEffect(() => {
+  if (passwordStatusResponse.value?.has_password !== undefined) {
+    userHasPassword.value = passwordStatusResponse.value.has_password;
+  }
+});
+
 const checkPasswordStatus = async () => {
   try {
     const response = await sanctumFetch("/api/user/password-status");
@@ -105,9 +115,6 @@ const checkPasswordStatus = async () => {
     console.error("Failed to check password status:", error);
   }
 };
-
-// Check password status on component creation
-checkPasswordStatus();
 
 // Submit handler
 const handleSubmit = async () => {

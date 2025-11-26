@@ -43,29 +43,25 @@ if (!user.value?.roles?.includes("master")) {
   navigateTo("/dashboard");
 }
 
-const sanctumFetch = useSanctumClient();
-
 // Data state
-const role = ref(null);
-const loadingData = ref(true);
 const formRef = ref(null);
 
-// Load role
-async function loadRole() {
-  try {
-    const response = await sanctumFetch(`/api/roles/${slug.value}`);
-    role.value = response.data;
-  } catch (err) {
-    console.error("Error loading role:", err);
-    toast.error("Failed to load role");
-  } finally {
-    loadingData.value = false;
-  }
-}
+const {
+  data: roleResponse,
+  pending: loadingData,
+  error: fetchError,
+  refresh: loadRole,
+} = await useLazySanctumFetch(() => `/api/roles/${slug.value}`, {
+  key: `role-edit-${slug.value}`,
+});
 
-// Load data on mount
-onMounted(async () => {
-  await loadRole();
+const role = computed(() => roleResponse.value?.data || null);
+
+const error = computed(() => {
+  if (!fetchError.value) return null;
+  if (fetchError.value.statusCode === 404) return "Role not found";
+  if (fetchError.value.statusCode === 403) return "You do not have permission";
+  return fetchError.value.message || "Failed to load role";
 });
 
 defineShortcuts({

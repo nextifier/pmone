@@ -34,28 +34,24 @@ usePageMeta("", {
   description: "Edit Google Analytics 4 property",
 });
 
-const sanctumFetch = useSanctumClient();
-
 // Data state
-const gaProperty = ref(null);
-const loadingData = ref(true);
 const formRef = ref(null);
 
-// Load GA property
-async function loadGaProperty() {
-  try {
-    const response = await sanctumFetch(`/api/google-analytics/ga-properties/${id.value}`);
-    gaProperty.value = response.data;
-  } catch (err) {
-    console.error("Error loading GA property:", err);
-    toast.error("Failed to load GA property");
-  } finally {
-    loadingData.value = false;
-  }
-}
+const {
+  data: gaPropertyResponse,
+  pending: loadingData,
+  error: fetchError,
+  refresh: loadGaProperty,
+} = await useLazySanctumFetch(() => `/api/google-analytics/ga-properties/${id.value}`, {
+  key: `ga-property-edit-${id.value}`,
+});
 
-// Load data on mount
-onMounted(async () => {
-  await loadGaProperty();
+const gaProperty = computed(() => gaPropertyResponse.value?.data || null);
+
+const error = computed(() => {
+  if (!fetchError.value) return null;
+  if (fetchError.value.statusCode === 404) return "GA4 property not found";
+  if (fetchError.value.statusCode === 403) return "You do not have permission";
+  return fetchError.value.message || "Failed to load GA property";
 });
 </script>

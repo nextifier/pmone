@@ -50,12 +50,6 @@ const { $dayjs } = useNuxtApp();
 const pagination = ref({ pageIndex: 0, pageSize: 15 });
 const sorting = ref([{ id: "posts_count", desc: true }]);
 
-// Data state
-const data = ref([]);
-const meta = ref({ current_page: 1, last_page: 1, per_page: 15, total: 0 });
-const pending = ref(false);
-const error = ref(null);
-
 // Client-only mode flag (true = client-side pagination, false = server-side)
 const clientOnly = ref(true);
 
@@ -79,35 +73,19 @@ const buildQueryParams = () => {
   return params.toString();
 };
 
-// Fetch tags
-const fetchTags = async () => {
-  try {
-    pending.value = true;
-    error.value = null;
-    const client = useSanctumClient();
-    const response = await client(`/api/tags?${buildQueryParams()}`);
-    data.value = response.data;
-    meta.value = response.meta;
-  } catch (err) {
-    error.value = err;
-    console.error("Failed to fetch tags:", err);
-  } finally {
-    pending.value = false;
-  }
-};
+// Fetch tags using lazy loading
+const {
+  data: tagsResponse,
+  pending,
+  error,
+  refresh: fetchTags,
+} = await useLazySanctumFetch(() => `/api/tags?${buildQueryParams()}`, {
+  key: "tags-data",
+  watch: clientOnly.value ? [] : [sorting, pagination],
+});
 
-await fetchTags();
-
-// Watchers for server-side mode only
-watch(
-  [sorting, pagination],
-  () => {
-    if (!clientOnly.value) {
-      fetchTags();
-    }
-  },
-  { deep: true }
-);
+const data = computed(() => tagsResponse.value?.data || []);
+const meta = computed(() => tagsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 });
 
 const refresh = fetchTags;
 

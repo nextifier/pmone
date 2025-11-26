@@ -47,35 +47,33 @@ usePageMeta("posts");
 
 const route = useRoute();
 const postSlug = route.params.slug;
-const client = useSanctumClient();
 
-const post = ref(null);
-const loading = ref(true);
-
-onMounted(async () => {
-  await loadPost();
+const {
+  data: postResponse,
+  pending: loading,
+  error: fetchError,
+  refresh: loadPost,
+} = await useLazySanctumFetch(() => `/api/posts/${postSlug}?for=edit`, {
+  key: `post-edit-${postSlug}`,
 });
 
-async function loadPost() {
-  loading.value = true;
+const post = computed(() => postResponse.value?.data || null);
 
-  try {
-    const response = await client(`/api/posts/${postSlug}?for=edit`);
-    post.value = response.data;
+const error = computed(() => {
+  if (!fetchError.value) return null;
+  if (fetchError.value.statusCode === 404) return "Post not found";
+  if (fetchError.value.statusCode === 403) return "You do not have permission";
+  return fetchError.value.message || "Failed to load post";
+});
 
-    // Set page title to post title
-    if (post.value?.title) {
-      useHead({
-        title: `Edit: ${post.value.title}`,
-      });
-    }
-  } catch (error) {
-    console.error("Failed to load post:", error);
-    toast.error("Failed to load post");
-  } finally {
-    loading.value = false;
+// Set page title to post title
+watchEffect(() => {
+  if (post.value?.title) {
+    useHead({
+      title: `Edit: ${post.value.title}`,
+    });
   }
-}
+});
 
 async function handleSuccess() {
   const needsRefresh = useState('posts-needs-refresh', () => false);

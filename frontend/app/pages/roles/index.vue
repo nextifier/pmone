@@ -132,11 +132,6 @@ const pagination = ref({ pageIndex: 0, pageSize: 10 });
 const sorting = ref([{ id: "name", desc: false }]);
 
 // Data state
-const data = ref([]);
-const meta = ref({ current_page: 1, last_page: 1, per_page: 10, total: 0 });
-const pending = ref(false);
-const error = ref(null);
-
 // Client-only mode flag (true = client-side pagination, false = server-side)
 const clientOnly = ref(true);
 
@@ -173,38 +168,20 @@ const buildQueryParams = () => {
   return params.toString();
 };
 
-// Fetch roles
-const fetchRoles = async () => {
-  try {
-    pending.value = true;
-    error.value = null;
-    const client = useSanctumClient();
-    const response = await client(`/api/roles?${buildQueryParams()}`);
-    data.value = response.data;
-    meta.value = response.meta;
-  } catch (err) {
-    error.value = err;
-    console.error("Failed to fetch roles:", err);
-  } finally {
-    pending.value = false;
-  }
-};
+// Fetch roles with lazy loading
+const {
+  data: rolesResponse,
+  pending,
+  error,
+  refresh: fetchRoles,
+} = await useLazySanctumFetch(() => `/api/roles?${buildQueryParams()}`, {
+  key: "roles-list",
+  watch: clientOnly.value ? [] : [columnFilters, sorting, pagination],
+  immediate: !clientOnly.value,
+});
 
-await fetchRoles();
-
-// Watchers for server-side mode only
-const debouncedFetch = useDebounceFn(fetchRoles, 300);
-
-watch(
-  [columnFilters, sorting, pagination],
-  () => {
-    if (!clientOnly.value) {
-      const hasNameFilter = columnFilters.value.some((f) => f.id === "name");
-      hasNameFilter ? debouncedFetch() : fetchRoles();
-    }
-  },
-  { deep: true }
-);
+const data = computed(() => rolesResponse.value?.data || []);
+const meta = computed(() => rolesResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 10, total: 0 });
 
 const refresh = fetchRoles;
 

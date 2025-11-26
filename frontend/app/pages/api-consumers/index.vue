@@ -161,11 +161,6 @@ const pagination = ref({ pageIndex: 0, pageSize: 15 });
 const sorting = ref([{ id: "created_at", desc: true }]);
 
 // Data state
-const data = ref([]);
-const meta = ref({ current_page: 1, last_page: 1, per_page: 15, total: 0 });
-const pending = ref(false);
-const error = ref(null);
-
 // Client-only mode flag
 const clientOnly = ref(false);
 
@@ -202,38 +197,20 @@ const buildQueryParams = () => {
   return params.toString();
 };
 
-// Fetch API consumers
-const fetchApiConsumers = async () => {
-  try {
-    pending.value = true;
-    error.value = null;
-    const client = useSanctumClient();
-    const response = await client(`/api/api-consumers?${buildQueryParams()}`);
-    data.value = response.data;
-    meta.value = response.meta;
-  } catch (err) {
-    error.value = err;
-    console.error("Failed to fetch API consumers:", err);
-  } finally {
-    pending.value = false;
-  }
-};
+// Fetch API consumers with lazy loading
+const {
+  data: apiConsumersResponse,
+  pending,
+  error,
+  refresh: fetchApiConsumers,
+} = await useLazySanctumFetch(() => `/api/api-consumers?${buildQueryParams()}`, {
+  key: "api-consumers-list",
+  watch: clientOnly.value ? [] : [columnFilters, sorting, pagination],
+  immediate: !clientOnly.value,
+});
 
-await fetchApiConsumers();
-
-// Watchers for server-side mode only
-const debouncedFetch = useDebounceFn(fetchApiConsumers, 300);
-
-watch(
-  [columnFilters, sorting, pagination],
-  () => {
-    if (!clientOnly.value) {
-      const hasNameFilter = columnFilters.value.some((f) => f.id === "name");
-      hasNameFilter ? debouncedFetch() : fetchApiConsumers();
-    }
-  },
-  { deep: true }
-);
+const data = computed(() => apiConsumersResponse.value?.data || []);
+const meta = computed(() => apiConsumersResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 });
 
 const refresh = fetchApiConsumers;
 

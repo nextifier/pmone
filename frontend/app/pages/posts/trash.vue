@@ -217,11 +217,6 @@ const pagination = ref({ pageIndex: 0, pageSize: 15 });
 const sorting = ref([{ id: "deleted_at", desc: true }]);
 
 // Data state
-const data = ref([]);
-const meta = ref({ current_page: 1, last_page: 1, per_page: 15, total: 0 });
-const pending = ref(false);
-const error = ref(null);
-
 // Client-only mode flag
 const clientOnly = ref(true);
 
@@ -256,38 +251,20 @@ const buildQueryParams = () => {
   return params.toString();
 };
 
-// Fetch trashed posts
-const fetchPosts = async () => {
-  try {
-    pending.value = true;
-    error.value = null;
-    const client = useSanctumClient();
-    const response = await client(`/api/posts/trash?${buildQueryParams()}`);
-    data.value = response.data;
-    meta.value = response.meta;
-  } catch (err) {
-    error.value = err;
-    console.error("Failed to fetch trashed posts:", err);
-  } finally {
-    pending.value = false;
-  }
-};
+// Fetch trashed posts with lazy loading
+const {
+  data: postsResponse,
+  pending,
+  error,
+  refresh: fetchPosts,
+} = await useLazySanctumFetch(() => `/api/posts/trash?${buildQueryParams()}`, {
+  key: "posts-trash-list",
+  watch: clientOnly.value ? [] : [columnFilters, sorting, pagination],
+  immediate: !clientOnly.value,
+});
 
-await fetchPosts();
-
-// Watchers
-const debouncedFetch = useDebounceFn(fetchPosts, 300);
-
-watch(
-  [columnFilters, sorting, pagination],
-  () => {
-    if (!clientOnly.value) {
-      const hasTitleFilter = columnFilters.value.some((f) => f.id === "title");
-      hasTitleFilter ? debouncedFetch() : fetchPosts();
-    }
-  },
-  { deep: true }
-);
+const data = computed(() => postsResponse.value?.data || []);
+const meta = computed(() => postsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 });
 
 const refresh = fetchPosts;
 
