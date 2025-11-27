@@ -83,6 +83,11 @@ export function useRealtimeAnalytics() {
    * Start auto-refresh (every 60 seconds).
    */
   function startAutoRefresh(propertyIds?: string[]) {
+    // Only run on client-side
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     // Clear any existing interval
     stopAutoRefresh();
 

@@ -111,7 +111,8 @@ export function useAnalyticsData(initialPeriod: string | number = 30) {
       analyticsStore.setAggregate(period, data);
 
       // Only set up auto-refresh if not skipping (i.e., not a manual period change)
-      if (!skipAutoRefresh) {
+      // and only on client-side
+      if (!skipAutoRefresh && typeof window !== 'undefined') {
         // Auto-refresh logic based on cache state
         if (
           data.cache_info?.initial_load ||

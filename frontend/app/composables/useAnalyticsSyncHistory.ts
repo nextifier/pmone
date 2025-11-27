@@ -63,9 +63,9 @@ export function useAnalyticsSyncHistory(hoursFilter: Ref<number> = ref(24)) {
       syncLogs.value = logsData?.logs || [];
       syncStats.value = statsData;
 
-      // Auto-refresh if there are in-progress syncs
+      // Auto-refresh if there are in-progress syncs (only on client-side)
       const hasInProgress = syncLogs.value.some((log) => log.status === "started");
-      if (hasInProgress) {
+      if (hasInProgress && typeof window !== 'undefined') {
         refreshTimeout = setTimeout(() => fetchSyncHistory(), 10000); // 10s
       }
     } catch (err: any) {
@@ -85,6 +85,11 @@ export function useAnalyticsSyncHistory(hoursFilter: Ref<number> = ref(24)) {
    * Start auto-refresh polling.
    */
   function startAutoRefresh(intervalSeconds: number = 5) {
+    // Only run on client-side
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     const pollInterval = setInterval(() => {
       fetchSyncHistory();
     }, intervalSeconds * 1000);

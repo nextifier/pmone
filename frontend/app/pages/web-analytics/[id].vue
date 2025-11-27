@@ -4,17 +4,17 @@
       <BackButton destination="/web-analytics" />
     </div>
     <div class="my-2 flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
-      <div class="flex items-center gap-x-2.5">
-        <Avatar
-          v-if="propertyData?.property?.project?.profile_image"
-          :model="propertyData.property.project"
-          class="size-12 shrink-0"
-        />
-        <div class="flex flex-col gap-y-1">
-          <h1 class="page-title">
-            {{ propertyData?.property?.name || "Property Analytics" }}
-          </h1>
-          <ClientOnly>
+      <ClientOnly>
+        <div class="flex items-center gap-x-2.5">
+          <Avatar
+            v-if="propertyData?.property?.project?.profile_image"
+            :model="propertyData.property.project"
+            class="size-12 shrink-0"
+          />
+          <div class="flex flex-col gap-y-1">
+            <h1 class="page-title">
+              {{ propertyData?.property?.name || "Property Analytics" }}
+            </h1>
             <span
               v-if="formatDate(startDate) && formatDate(endDate)"
               class="text-foreground/70 text-sm font-medium tracking-tighter"
@@ -24,52 +24,60 @@
                 - {{ formatDate(endDate) }}</span
               >
             </span>
-          </ClientOnly>
+          </div>
         </div>
-      </div>
+        <template #fallback>
+          <div class="flex items-center gap-x-2.5">
+            <div class="flex flex-col gap-y-1">
+              <h1 class="page-title">Property Analytics</h1>
+            </div>
+          </div>
+        </template>
+      </ClientOnly>
 
-      <div class="ml-auto flex shrink-0 items-center gap-2">
-        <AnalyticsExportDropdown
-          :start-date="startDate"
-          :end-date="endDate"
-          :disabled="loading"
-          :filename-prefix="`property_${route.params.id}_analytics`"
-          :on-excel-export="exportToExcel"
-        />
+      <ClientOnly>
+        <div class="ml-auto flex shrink-0 items-center gap-2">
+          <AnalyticsExportDropdown
+            :start-date="startDate"
+            :end-date="endDate"
+            :disabled="loading"
+            :filename-prefix="`property_${route.params.id}_analytics`"
+            :on-excel-export="exportToExcel"
+          />
 
-        <ClientOnly>
           <DateRangeSelect v-model="selectedRange" />
-        </ClientOnly>
-      </div>
-    </div>
-
-    <div
-      v-if="loading && !propertyData"
-      class="border-border bg-pattern-diagonal flex grow items-center justify-center overflow-hidden rounded-xl border p-6"
-    >
-      <div class="flex items-center gap-2">
-        <Spinner class="size-5 shrink-0" />
-        <span class="text-sm tracking-tight">Loading property analytics..</span>
-      </div>
-    </div>
-
-    <div v-else-if="error && !propertyData" class="flex items-center justify-center p-6">
-      <div class="flex flex-col items-center gap-3 text-center">
-        <Icon name="hugeicons:alert-circle" class="text-destructive size-6" />
-        <div>
-          <h3 class="text-foreground font-semibold tracking-tighter">Failed to load analytics</h3>
-          <p class="text-muted-foreground mt-1 text-sm tracking-tight">{{ error }}</p>
         </div>
-        <button
-          @click="refreshData"
-          class="bg-primary text-primary-foreground hover:bg-primary/90 mt-2 rounded-md px-4 py-2 text-sm font-medium"
-        >
-          Try Again
-        </button>
-      </div>
+      </ClientOnly>
     </div>
 
-    <div v-else-if="propertyData" class="relative grid grid-cols-1 gap-y-10">
+    <ClientOnly>
+      <div
+        v-if="loading && !propertyData"
+        class="border-border bg-pattern-diagonal flex grow items-center justify-center overflow-hidden rounded-xl border p-6"
+      >
+        <div class="flex items-center gap-2">
+          <Spinner class="size-5 shrink-0" />
+          <span class="text-sm tracking-tight">Loading property analytics..</span>
+        </div>
+      </div>
+
+      <div v-else-if="error && !propertyData" class="flex items-center justify-center p-6">
+        <div class="flex flex-col items-center gap-3 text-center">
+          <Icon name="hugeicons:alert-circle" class="text-destructive size-6" />
+          <div>
+            <h3 class="text-foreground font-semibold tracking-tighter">Failed to load analytics</h3>
+            <p class="text-muted-foreground mt-1 text-sm tracking-tight">{{ error }}</p>
+          </div>
+          <button
+            @click="refreshData"
+            class="bg-primary text-primary-foreground hover:bg-primary/90 mt-2 rounded-md px-4 py-2 text-sm font-medium"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+
+      <div v-else-if="propertyData" class="relative grid grid-cols-1 gap-y-10">
       <div
         v-if="loading"
         class="bg-background/90 absolute inset-0 z-10 flex items-start justify-center pt-20 backdrop-blur-md"
@@ -183,19 +191,31 @@
           >
         </div>
       </div>
-    </div>
-
-    <div
-      v-else
-      class="border-border bg-pattern-diagonal flex grow items-center justify-center overflow-hidden rounded-xl border p-6"
-    >
-      <div class="flex flex-col items-center gap-2 text-center">
-        <h3 class="text-foreground text-lg font-semibold tracking-tighter">No data available</h3>
-        <p class="text-muted-foreground text-sm tracking-tight">
-          Property analytics data will appear here once loaded.
-        </p>
       </div>
-    </div>
+
+      <div
+        v-else
+        class="border-border bg-pattern-diagonal flex grow items-center justify-center overflow-hidden rounded-xl border p-6"
+      >
+        <div class="flex flex-col items-center gap-2 text-center">
+          <h3 class="text-foreground text-lg font-semibold tracking-tighter">No data available</h3>
+          <p class="text-muted-foreground text-sm tracking-tight">
+            Property analytics data will appear here once loaded.
+          </p>
+        </div>
+      </div>
+
+      <template #fallback>
+        <div
+          class="border-border bg-pattern-diagonal flex grow items-center justify-center overflow-hidden rounded-xl border p-6"
+        >
+          <div class="flex items-center gap-2">
+            <Spinner class="size-5 shrink-0" />
+            <span class="text-sm tracking-tight">Loading property analytics..</span>
+          </div>
+        </div>
+      </template>
+    </ClientOnly>
   </div>
 </template>
 
@@ -281,13 +301,6 @@ const selectedMetricInfo = computed(() => {
   return metricOptions.find((m) => m.value === selectedMetric.value);
 });
 
-// Watch selectedMetric and save to localStorage
-watch(selectedMetric, (newValue) => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("analytics_detail_metric", newValue);
-  }
-});
-
 // Realtime data
 const { realtimeData, startAutoRefresh } = useRealtimeAnalytics();
 
@@ -333,11 +346,21 @@ const startDate = computed(() => dateRange.value.start);
 const endDate = computed(() => dateRange.value.end);
 
 // Build query params
-const buildQueryParams = () => {
-  const startDateStr = startDate.value.format("YYYY-MM-DD");
-  const endDateStr = endDate.value.format("YYYY-MM-DD");
-  return `start_date=${startDateStr}&end_date=${endDateStr}`;
-};
+// For named periods (today, yesterday, etc.), send period name to backend
+// so backend can calculate dates using server timezone (Asia/Jakarta)
+// This prevents timezone mismatch between client and server
+const buildQueryParams = computed(() => {
+  const range = selectedRange.value;
+
+  // Check if it's a named period
+  const namedPeriods = ['today', 'yesterday', 'this_week', 'last_week', 'this_month', 'last_month', 'this_year'];
+  if (namedPeriods.includes(range)) {
+    return `period=${range}`;
+  }
+
+  // For numeric periods (7, 30, 90, 365), send as days parameter
+  return `days=${range}`;
+});
 
 // Fetch property analytics using lazy loading
 const {
@@ -346,10 +369,9 @@ const {
   error: fetchError,
   refresh: fetchPropertyAnalytics,
 } = await useLazySanctumFetch(
-  () => `/api/google-analytics/properties/${route.params.id}/analytics?${buildQueryParams()}`,
+  () => `/api/google-analytics/properties/${route.params.id}/analytics?${buildQueryParams.value}`,
   {
     key: `property-analytics-${route.params.id}`,
-    watch: [selectedRange],
   }
 );
 
@@ -363,10 +385,19 @@ const error = computed(() => {
   return err.data?.message || err.message || "Failed to load property analytics";
 });
 
-// Watch for changes and save to localStorage
-watch(selectedRange, (newValue) => {
+// Watch for changes and save to localStorage, then refresh data
+watch(selectedRange, async (newValue) => {
   if (typeof window !== "undefined") {
     localStorage.setItem("analytics_selected_range", newValue);
+  }
+  // Refresh data with new date range
+  await fetchPropertyAnalytics();
+});
+
+// Watch selectedMetric and save to localStorage
+watch(selectedMetric, (newValue) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("analytics_detail_metric", newValue);
   }
 });
 
