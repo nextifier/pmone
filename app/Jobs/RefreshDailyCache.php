@@ -24,17 +24,22 @@ class RefreshDailyCache implements ShouldBeUnique, ShouldQueue
     /**
      * The number of times the job may be attempted.
      */
-    public int $tries = 2;
+    public int $tries = 5;
 
     /**
      * The maximum number of seconds the job can run.
      */
-    public int $timeout = 300; // 5 minutes for 365 days of data
+    public int $timeout = 600; // 10 minutes for 365 days of data
+
+    /**
+     * The number of seconds to wait before retrying the job.
+     */
+    public int $backoff = 120;
 
     /**
      * The number of seconds after which the job's unique lock will be released.
      */
-    public int $uniqueFor = 1800; // 30 minutes
+    public int $uniqueFor = 2400; // 40 minutes
 
     /**
      * Create a new job instance.

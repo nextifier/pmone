@@ -22,17 +22,22 @@ class RefreshPropertyCache implements ShouldBeUnique, ShouldQueue
     /**
      * The number of times the job may be attempted.
      */
-    public int $tries = 2;
+    public int $tries = 5;
 
     /**
      * The maximum number of seconds the job can run.
      */
-    public int $timeout = 120;
+    public int $timeout = 300;
+
+    /**
+     * The number of seconds to wait before retrying the job.
+     */
+    public int $backoff = 60;
 
     /**
      * The number of seconds after which the job's unique lock will be released.
      */
-    public int $uniqueFor = 300; // 5 minutes
+    public int $uniqueFor = 600; // 10 minutes
 
     /**
      * Create a new job instance.
