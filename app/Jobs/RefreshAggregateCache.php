@@ -27,17 +27,22 @@ class RefreshAggregateCache implements ShouldBeUnique, ShouldQueue
     /**
      * The number of times the job may be attempted.
      */
-    public int $tries = 2;
+    public int $tries = 5;
 
     /**
      * The maximum number of seconds the job can run.
      */
-    public int $timeout = 180;
+    public int $timeout = 600;
+
+    /**
+     * The number of seconds to wait before retrying the job.
+     */
+    public int $backoff = 60;
 
     /**
      * The number of seconds after which the job's unique lock will be released.
      */
-    public int $uniqueFor = 300; // 5 minutes
+    public int $uniqueFor = 900; // 15 minutes
 
     /**
      * Create a new job instance.

@@ -19,22 +19,22 @@ class SyncGoogleAnalyticsData implements ShouldBeUnique, ShouldQueue
     /**
      * The number of times the job may be attempted.
      */
-    public int $tries = 3;
+    public int $tries = 5;
 
     /**
      * The number of seconds to wait before retrying the job.
      */
-    public array $backoff = [60, 120, 300];
+    public array $backoff = [60, 120, 240, 480];
 
     /**
      * The maximum number of seconds the job can run.
      */
-    public int $timeout = 120;
+    public int $timeout = 300;
 
     /**
      * The number of seconds after which the job's unique lock will be released.
      */
-    public int $uniqueFor = 600; // 10 minutes
+    public int $uniqueFor = 900; // 15 minutes
 
     /**
      * Create a new job instance.
