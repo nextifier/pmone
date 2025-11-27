@@ -609,24 +609,18 @@ const forceRefresh = async () => {
   isRefreshing.value = true;
 
   try {
-    await $fetch("/api/google-analytics/aggregate/sync-now", {
+    await sanctumFetch("/api/google-analytics/aggregate/sync-now", {
       method: "POST",
       body: { days: getDaysFromRange(selectedRange.value) },
     });
 
     await fetchAnalytics(true);
 
-    useToast().add({
-      title: "Success",
-      description: "Analytics data refreshed successfully",
-      color: "green",
-    });
+    toast.success("Analytics data refreshed successfully");
   } catch (error) {
     console.error("Force refresh failed:", error);
-    useToast().add({
-      title: "Error",
-      description: error.data?.message || "Failed to refresh analytics data",
-      color: "red",
+    toast.error("Failed to refresh analytics data", {
+      description: error?.data?.message || error?.message || "An error occurred",
     });
   } finally {
     isRefreshing.value = false;
