@@ -34,14 +34,31 @@ class DailyDataAggregator
     /**
      * Get aggregated data for a specific period.
      * Uses cached 365-day data and aggregates on-demand.
+     *
+     * Special handling for "today" period:
+     * - Google Analytics API typically has 24-48 hour processing delay
+     * - Data for current day may not be available in standard reports
+     * - Falls back to direct API fetch if today's data not in cache
      */
     public function getDataForPeriod(GaProperty $property, Period $period): array
     {
+        // Check if this is "today" period
+        $isToday = $period->startDate->format('Y-m-d') === now()->format('Y-m-d')
+                   && $period->endDate->format('Y-m-d') === now()->format('Y-m-d');
+
         // Get cached 365-day data
         $dailyData = $this->getDailyData($property);
 
-        // If no daily data available, return empty
+        // If no daily data available, try direct fetch for today
         if (empty($dailyData['rows'])) {
+            if ($isToday) {
+                \Log::info('No 365-day cache data, attempting direct fetch for today', [
+                    'property_id' => $property->property_id,
+                ]);
+
+                return $this->fetchTodayDataDirectly($property, $period);
+            }
+
             return [
                 'totals' => [],
                 'rows' => [],
@@ -51,6 +68,16 @@ class DailyDataAggregator
 
         // Filter rows by requested period
         $filteredRows = $this->filterRowsByPeriod($dailyData['rows'], $period);
+
+        // Special case: If filtering for "today" returns empty, try direct fetch
+        if ($isToday && empty($filteredRows)) {
+            \Log::info('Today data not found in 365-day cache, fetching directly from GA API', [
+                'property_id' => $property->property_id,
+                'cache_has_rows' => count($dailyData['rows']),
+            ]);
+
+            return $this->fetchTodayDataDirectly($property, $period);
+        }
 
         // Calculate totals from filtered rows
         $totals = $this->calculateTotalsFromRows($filteredRows);
@@ -68,16 +95,49 @@ class DailyDataAggregator
      */
     public function getTopPagesForPeriod(GaProperty $property, Period $period, int $limit = 20): array
     {
+        // Check if this is "today" period
+        $isToday = $period->startDate->format('Y-m-d') === now()->format('Y-m-d')
+                   && $period->endDate->format('Y-m-d') === now()->format('Y-m-d');
+
         // Get cached 365-day data
         $dailyData = $this->getDailyData($property);
 
-        // If no daily data available, return empty
+        // If no daily data available and this is today, try direct fetch
         if (empty($dailyData['top_pages'])) {
+            if ($isToday) {
+                try {
+                    return $this->dataFetcher->fetchTopPages($property, $period, $limit);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to fetch today top pages', [
+                        'property_id' => $property->property_id,
+                        'error' => $e->getMessage(),
+                    ]);
+
+                    return [];
+                }
+            }
+
             return [];
         }
 
+        $filtered = $this->filterTopPagesByPeriod($dailyData['top_pages'], $period, $limit);
+
+        // If filtering for today returns empty, try direct fetch
+        if ($isToday && empty($filtered)) {
+            try {
+                return $this->dataFetcher->fetchTopPages($property, $period, $limit);
+            } catch (\Exception $e) {
+                \Log::error('Failed to fetch today top pages', [
+                    'property_id' => $property->property_id,
+                    'error' => $e->getMessage(),
+                ]);
+
+                return [];
+            }
+        }
+
         // Filter and aggregate top pages by period
-        return $this->filterTopPagesByPeriod($dailyData['top_pages'], $period, $limit);
+        return $filtered;
     }
 
     /**
@@ -85,16 +145,49 @@ class DailyDataAggregator
      */
     public function getTrafficSourcesForPeriod(GaProperty $property, Period $period): array
     {
+        // Check if this is "today" period
+        $isToday = $period->startDate->format('Y-m-d') === now()->format('Y-m-d')
+                   && $period->endDate->format('Y-m-d') === now()->format('Y-m-d');
+
         // Get cached 365-day data
         $dailyData = $this->getDailyData($property);
 
-        // If no daily data available, return empty
+        // If no daily data available and this is today, try direct fetch
         if (empty($dailyData['traffic_sources'])) {
+            if ($isToday) {
+                try {
+                    return $this->dataFetcher->fetchTrafficSources($property, $period);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to fetch today traffic sources', [
+                        'property_id' => $property->property_id,
+                        'error' => $e->getMessage(),
+                    ]);
+
+                    return [];
+                }
+            }
+
             return [];
         }
 
+        $filtered = $this->filterTrafficSourcesByPeriod($dailyData['traffic_sources'], $period);
+
+        // If filtering for today returns empty, try direct fetch
+        if ($isToday && empty($filtered)) {
+            try {
+                return $this->dataFetcher->fetchTrafficSources($property, $period);
+            } catch (\Exception $e) {
+                \Log::error('Failed to fetch today traffic sources', [
+                    'property_id' => $property->property_id,
+                    'error' => $e->getMessage(),
+                ]);
+
+                return [];
+            }
+        }
+
         // Filter and aggregate traffic sources by period
-        return $this->filterTrafficSourcesByPeriod($dailyData['traffic_sources'], $period);
+        return $filtered;
     }
 
     /**
@@ -102,16 +195,112 @@ class DailyDataAggregator
      */
     public function getDevicesForPeriod(GaProperty $property, Period $period): array
     {
+        // Check if this is "today" period
+        $isToday = $period->startDate->format('Y-m-d') === now()->format('Y-m-d')
+                   && $period->endDate->format('Y-m-d') === now()->format('Y-m-d');
+
         // Get cached 365-day data
         $dailyData = $this->getDailyData($property);
 
-        // If no daily data available, return empty
+        // If no daily data available and this is today, try direct fetch
         if (empty($dailyData['devices'])) {
+            if ($isToday) {
+                try {
+                    return $this->dataFetcher->fetchDevices($property, $period);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to fetch today devices', [
+                        'property_id' => $property->property_id,
+                        'error' => $e->getMessage(),
+                    ]);
+
+                    return [];
+                }
+            }
+
             return [];
         }
 
+        $filtered = $this->filterDevicesByPeriod($dailyData['devices'], $period);
+
+        // If filtering for today returns empty, try direct fetch
+        if ($isToday && empty($filtered)) {
+            try {
+                return $this->dataFetcher->fetchDevices($property, $period);
+            } catch (\Exception $e) {
+                \Log::error('Failed to fetch today devices', [
+                    'property_id' => $property->property_id,
+                    'error' => $e->getMessage(),
+                ]);
+
+                return [];
+            }
+        }
+
         // Filter and aggregate devices by period
-        return $this->filterDevicesByPeriod($dailyData['devices'], $period);
+        return $filtered;
+    }
+
+    /**
+     * Fetch today's data directly from Google Analytics API.
+     * Used when today's data is not available in 365-day cache.
+     *
+     * Note: GA API may have processing delays, so today's data might be incomplete or unavailable.
+     * This method attempts to fetch what's available, but may return empty/zero metrics.
+     */
+    protected function fetchTodayDataDirectly(GaProperty $property, Period $period): array
+    {
+        try {
+            // Attempt to fetch today's metrics directly
+            $metricsResult = $this->dataFetcher->fetchMetrics($property, $period);
+            $metricsData = isset($metricsResult['data']) ? $metricsResult['data'] : $metricsResult;
+
+            // If we got data, return it
+            if (! empty($metricsData['rows']) || ! empty($metricsData['totals'])) {
+                \Log::info('Successfully fetched today data directly from GA API', [
+                    'property_id' => $property->property_id,
+                    'has_rows' => ! empty($metricsData['rows']),
+                    'has_totals' => ! empty($metricsData['totals']),
+                ]);
+
+                // Calculate totals from rows if totals are empty
+                $totals = $metricsData['totals'] ?? [];
+                if (empty($totals) && ! empty($metricsData['rows'])) {
+                    $totals = $this->calculateTotalsFromRows($metricsData['rows']);
+                }
+
+                return [
+                    'totals' => $totals,
+                    'rows' => $metricsData['rows'] ?? [],
+                    'is_fresh' => true,
+                    'cached_at' => now()->toIso8601String(),
+                ];
+            }
+
+            \Log::warning('GA API returned empty data for today', [
+                'property_id' => $property->property_id,
+                'reason' => 'GA typically has 24-48h processing delay, today data may not be available yet',
+            ]);
+
+            return [
+                'totals' => [],
+                'rows' => [],
+                'is_fresh' => false,
+                'cached_at' => now()->toIso8601String(),
+                'note' => 'Data for today is not yet available from Google Analytics API (24-48h processing delay)',
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Failed to fetch today data directly from GA API', [
+                'property_id' => $property->property_id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'totals' => [],
+                'rows' => [],
+                'is_fresh' => false,
+                'error' => $e->getMessage(),
+            ];
+        }
     }
 
     /**
@@ -236,11 +425,35 @@ class DailyDataAggregator
         $startDate = $period->startDate->format('Y-m-d');
         $endDate = $period->endDate->format('Y-m-d');
 
-        return array_values(array_filter($rows, function ($row) use ($startDate, $endDate) {
+        // Debug logging for today period
+        if ($startDate === $endDate && $startDate === now()->format('Y-m-d')) {
+            $availableDates = array_map(fn ($row) => $row['date'] ?? 'no-date', $rows);
+            $lastFiveDates = array_slice($availableDates, -5);
+
+            \Log::info('Filtering rows for TODAY period', [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'total_rows_in_cache' => count($rows),
+                'last_5_dates_in_cache' => $lastFiveDates,
+                'looking_for_date' => $startDate,
+            ]);
+        }
+
+        $filtered = array_values(array_filter($rows, function ($row) use ($startDate, $endDate) {
             $rowDate = $row['date'];
 
             return $rowDate >= $startDate && $rowDate <= $endDate;
         }));
+
+        // Debug logging for today period result
+        if ($startDate === $endDate && $startDate === now()->format('Y-m-d')) {
+            \Log::info('Filter result for TODAY period', [
+                'filtered_rows_count' => count($filtered),
+                'filtered_dates' => array_map(fn ($row) => $row['date'] ?? 'no-date', $filtered),
+            ]);
+        }
+
+        return $filtered;
     }
 
     /**

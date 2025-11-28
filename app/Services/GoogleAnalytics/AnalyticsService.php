@@ -123,18 +123,27 @@ class AnalyticsService
 
     /**
      * Calculate dynamic cache TTL based on period length.
-     * - Today/Yesterday: 15 minutes (fresh data needed)
+     * - Today: 15 minutes (fresh data needed, may not be in 365-day cache yet)
+     * - Yesterday: 30 minutes
      * - Last 2-30 days: 60 minutes (1 hour)
      * - Last 31-90 days: 360 minutes (6 hours)
      * - Last 91+ days: 720 minutes (12 hours)
      */
     protected function getDynamicCacheTTL(Period $period): int
     {
+        // Check if this is "today" period - use shorter TTL
+        $isToday = $period->startDate->format('Y-m-d') === now()->format('Y-m-d')
+                   && $period->endDate->format('Y-m-d') === now()->format('Y-m-d');
+
+        if ($isToday) {
+            return 15; // 15 minutes for today - data changes frequently
+        }
+
         $daysDiff = $period->startDate->diffInDays($period->endDate);
 
-        // Today/Yesterday (0-1 days) - 15 minutes
+        // Yesterday (1 day) - 30 minutes
         if ($daysDiff < 2) {
-            return 15;
+            return 30;
         }
 
         // Last 2-30 days - 1 hour
@@ -189,32 +198,51 @@ class AnalyticsService
             $cacheAge = $cacheTimestamp ? abs(now()->diffInMinutes($cacheTimestamp, false)) : null;
             $isFresh = $cacheAge !== null && $cacheAge < $cacheTTL;
 
-            // Calculate next update based on dynamic TTL
-            $nextUpdate = $cacheTimestamp ? $cacheTimestamp->copy()->addMinutes($cacheTTL) : null;
-            $nextUpdateIn = $nextUpdate ? max(0, now()->diffInMinutes($nextUpdate, false)) : 0;
+            // Special handling for "today" period with stale cache
+            $isToday = $period->startDate->format('Y-m-d') === now()->format('Y-m-d')
+                       && $period->endDate->format('Y-m-d') === now()->format('Y-m-d');
 
-            // Get last_synced_at from most recent property
-            $lastSyncedAt = $this->getMostRecentSyncTime($propertyIds);
-
-            // If cache is stale and not currently refreshing, dispatch background refresh
-            if (! $isFresh && ! Cache::has(CacheKey::refreshing($cacheKey))) {
-                \Log::info('Cache is stale, dispatching background refresh', [
+            // For "today" period, if cache is stale (>15 min), force immediate refresh
+            if ($isToday && ! $isFresh && ! Cache::has(CacheKey::refreshing($cacheKey))) {
+                \Log::info('Today cache is stale, forcing immediate refresh', [
                     'cache_age_minutes' => $cacheAge,
                     'cache_ttl_minutes' => $cacheTTL,
                 ]);
-                $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
-            }
 
-            return array_merge($cachedData, [
-                'cache_info' => [
-                    'last_updated' => $cacheTimestamp ? $cacheTimestamp->toIso8601String() : ($lastSyncedAt ? $lastSyncedAt->toIso8601String() : null),
-                    'cache_age_minutes' => $cacheAge, // Use actual cache age, not property sync time
-                    'next_update_in_minutes' => abs($nextUpdateIn),
-                    'cache_ttl_minutes' => $cacheTTL,
-                    'is_fresh' => $isFresh,
-                    'is_updating' => ! $isFresh,
-                ],
-            ]);
+                // Clear stale cache for today
+                Cache::forget($cacheKey);
+                Cache::forget(CacheKey::timestamp($cacheKey));
+
+                // Fall through to fetch fresh data below
+                $cachedData = null;
+            } else {
+                // Calculate next update based on dynamic TTL
+                $nextUpdate = $cacheTimestamp ? $cacheTimestamp->copy()->addMinutes($cacheTTL) : null;
+                $nextUpdateIn = $nextUpdate ? max(0, now()->diffInMinutes($nextUpdate, false)) : 0;
+
+                // Get last_synced_at from most recent property
+                $lastSyncedAt = $this->getMostRecentSyncTime($propertyIds);
+
+                // If cache is stale and not currently refreshing, dispatch background refresh
+                if (! $isFresh && ! Cache::has(CacheKey::refreshing($cacheKey))) {
+                    \Log::info('Cache is stale, dispatching background refresh', [
+                        'cache_age_minutes' => $cacheAge,
+                        'cache_ttl_minutes' => $cacheTTL,
+                    ]);
+                    $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
+                }
+
+                return array_merge($cachedData, [
+                    'cache_info' => [
+                        'last_updated' => $cacheTimestamp ? $cacheTimestamp->toIso8601String() : ($lastSyncedAt ? $lastSyncedAt->toIso8601String() : null),
+                        'cache_age_minutes' => $cacheAge, // Use actual cache age, not property sync time
+                        'next_update_in_minutes' => abs($nextUpdateIn),
+                        'cache_ttl_minutes' => $cacheTTL,
+                        'is_fresh' => $isFresh,
+                        'is_updating' => ! $isFresh,
+                    ],
+                ]);
+            }
         }
 
         // CACHE-FIRST PRIORITY 2: Return last known good data if exists (even if very old)
