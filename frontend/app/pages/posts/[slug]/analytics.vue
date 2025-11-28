@@ -265,6 +265,11 @@ const chartConfig = computed(() => {
   };
 });
 
+// Watch for period changes and refresh data
+watch(selectedPeriod, () => {
+  loadAnalytics();
+});
+
 usePageMeta("", {
   title: `Analytics - ${slug.value}`,
   description: `Analytics for post ${slug.value}`,
