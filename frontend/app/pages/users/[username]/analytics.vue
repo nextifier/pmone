@@ -30,6 +30,7 @@ const {
 } = await useLazyFetch(() => `/api/${username.value}`, {
   baseURL: useRuntimeConfig().public.apiUrl,
   key: `user-profile-${username.value}`,
+  server: false,
 });
 
 const user = computed(() => userData.value?.data || null);
