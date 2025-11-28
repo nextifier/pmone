@@ -35,6 +35,7 @@ use Spatie\Tags\HasTags;
  * @property \Illuminate\Database\Eloquent\Collection<int, \Spatie\Tags\Tag> $tags
  * @property-read int|null $tags_count
  * @property-read \App\Models\User|null $updater
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty active()
  * @method static \Database\Factories\GaPropertyFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty inactive()
@@ -64,6 +65,7 @@ use Spatie\Tags\HasTags;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class GaProperty extends Model implements HasMedia
@@ -120,6 +122,18 @@ class GaProperty extends Model implements HasMedia
     /**
      * Scope a query to include properties that need syncing.
      * PostgreSQL syntax for timestamp + interval calculation.
+     */
+    public function scopeNeedsSync($query)
+    {
+        return $query->where('is_active', true)
+            ->where(function ($q) {
+                $q->whereNull('last_synced_at')
+                    ->orWhereRaw('last_synced_at + (sync_frequency || \' minutes\')::interval < NOW()');
+            });
+    }
+
+    /**
+     * Scope a query to only include properties that need syncing.
      */
     public function scopeNeedsSync($query)
     {
