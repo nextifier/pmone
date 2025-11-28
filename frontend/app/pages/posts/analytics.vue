@@ -190,6 +190,11 @@ const chartConfig = computed(() => {
   };
 });
 
+// Watch for period changes and refresh data
+watch(selectedPeriod, () => {
+  loadAnalytics();
+});
+
 usePageMeta("", {
   title: "Posts Analytics",
   description: "Analytics for all published posts",
