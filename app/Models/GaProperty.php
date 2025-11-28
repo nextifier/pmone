@@ -133,18 +133,6 @@ class GaProperty extends Model implements HasMedia
     }
 
     /**
-     * Scope a query to only include properties that need syncing.
-     */
-    public function scopeNeedsSync($query)
-    {
-        return $query->where('is_active', true)
-            ->where(function ($q) {
-                $q->whereNull('last_synced_at')
-                    ->orWhereRaw('last_synced_at + (sync_frequency || \' minutes\')::interval < NOW()');
-            });
-    }
-
-    /**
      * Check if this property needs to be synced.
      */
     public function needsSync(): bool

@@ -40,7 +40,6 @@ class ProfileController extends Controller
     public function getProjectProfile(Request $request, string $username): JsonResponse
     {
         $project = Project::where('username', $username)
-            ->where('status', 'active')
             ->with([
                 'links' => function ($query) {
                     $query->active()->orderBy('order');
@@ -55,8 +54,15 @@ class ProfileController extends Controller
             abort(404, 'Project not found. Please check the username and try again.');
         }
 
-        // Check visibility - allow public access for public projects
-        if ($project->visibility !== 'public') {
+        // For non-active projects, require authentication and permission
+        if ($project->status !== 'active') {
+            if (! auth()->check() || ! auth()->user()->can('view', $project)) {
+                abort(403, 'You do not have permission to view this project.');
+            }
+        }
+
+        // Check visibility - allow public access for public projects with active status
+        if ($project->visibility !== 'public' || $project->status !== 'active') {
             if (! auth()->check() || ! auth()->user()->can('view', $project)) {
                 abort(403, 'You do not have permission to view this project.');
             }

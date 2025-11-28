@@ -56,6 +56,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property-read \App\Models\User|null $updater
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
  * @property-read int|null $visits_count
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project byStatus(string $status)
  * @method static \Database\Factories\ProjectFactory factory($count = null, $state = [])
@@ -85,6 +86,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereVisibility($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Project extends Model implements HasMedia, Sortable
@@ -162,25 +164,33 @@ class Project extends Model implements HasMedia, Sortable
                 $cleaned = str_replace(' ', '', $cleaned);
                 $baseUsername = preg_replace('/[^a-z0-9._]/', '', $cleaned);
 
+                // Prevent empty username
+                if (empty($baseUsername)) {
+                    $baseUsername = 'project';
+                }
+
                 $username = $baseUsername;
                 $counter = 1;
-                $maxAttempts = 10; // Reduced from 1000 to prevent performance issues
+                $maxAttempts = 100;
 
-                // Ensure username is unique (retry with numeric suffix if taken)
-                while (static::where('username', $username)->exists()) {
-                    if ($counter > $maxAttempts) {
-                        // After max attempts, use a random suffix to guarantee uniqueness
-                        $username = $baseUsername.'_'.strtolower(Str::random(6));
+                // Ensure username is unique with transaction-safe approach
+                while (true) {
+                    // Check if username exists
+                    $exists = static::where('username', $username)->exists();
+
+                    if (! $exists) {
                         break;
                     }
 
-                    $username = $baseUsername.$counter;
-                    $counter++;
-                }
-
-                // Final check: if still exists (rare race condition), add timestamp
-                if (static::where('username', $username)->exists()) {
-                    $username = $baseUsername.'_'.time();
+                    // Try numeric suffix
+                    if ($counter <= $maxAttempts) {
+                        $username = $baseUsername.$counter;
+                        $counter++;
+                    } else {
+                        // After max attempts, use timestamp + random for guaranteed uniqueness
+                        $username = $baseUsername.'_'.time().'_'.strtolower(Str::random(4));
+                        break;
+                    }
                 }
 
                 $model->username = $username;

@@ -182,8 +182,19 @@ const {
   key: "projects-list",
 });
 
-// Extract data array from response
-const data = computed(() => projectsResponse.value?.data || []);
+// Projects data - writable ref for sortable
+const projects = ref([]);
+
+// Watch for projectsResponse changes and update projects
+watch(
+  () => projectsResponse.value?.data,
+  (newData) => {
+    if (newData) {
+      projects.value = newData;
+    }
+  },
+  { immediate: true }
+);
 
 // Check if filters are active
 const hasActiveFilters = computed(() => {
@@ -192,13 +203,13 @@ const hasActiveFilters = computed(() => {
 
 // Filtered projects
 const filteredProjects = computed(() => {
-  // If no filters, return data directly to allow drag & drop
+  // If no filters, return projects directly to allow drag & drop
   if (!hasActiveFilters.value) {
-    return data.value;
+    return projects.value;
   }
 
   // Otherwise apply filters
-  let filtered = [...data.value];
+  let filtered = [...projects.value];
 
   // Apply search filter
   if (searchQuery.value) {
@@ -237,7 +248,7 @@ const updateProjectOrder = async () => {
     isSyncing.value = true;
     const client = useSanctumClient();
 
-    const orders = data.value.map((project, index) => ({
+    const orders = projects.value.map((project, index) => ({
       id: project.id,
       order: index + 1,
     }));
@@ -248,7 +259,7 @@ const updateProjectOrder = async () => {
     });
 
     // Update local order_column to match new order
-    data.value.forEach((project, index) => {
+    projects.value.forEach((project, index) => {
       project.order_column = index + 1;
     });
 
@@ -274,10 +285,17 @@ const initializeSortable = () => {
     sortableInstance = null;
   }
 
-  // Only create sortable when no filters are active
-  if (!hasActiveFilters.value && projectsListRef.value?.projectsListEl) {
+  // Only create sortable when no filters are active and we have projects
+  if (!hasActiveFilters.value && projects.value.length > 0) {
     nextTick(() => {
-      sortableInstance = useSortable(projectsListRef.value.projectsListEl, data, {
+      const element = projectsListRef.value?.projectsListEl;
+
+      if (!element) {
+        console.warn("Sortable element not found");
+        return;
+      }
+
+      sortableInstance = useSortable(element, projects, {
         animation: 200,
         handle: ".drag-handle",
         ghostClass: "sortable-ghost",
@@ -299,6 +317,13 @@ onMounted(() => {
 // Watch for filter changes to reinitialize sortable
 watch(hasActiveFilters, () => {
   initializeSortable();
+});
+
+// Watch for projects changes to reinitialize sortable
+watch(projects, () => {
+  if (!hasActiveFilters.value) {
+    initializeSortable();
+  }
 });
 
 // Delete functionality

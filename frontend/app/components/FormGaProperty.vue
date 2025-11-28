@@ -216,7 +216,7 @@ const loading = computed(() => props.loading || internalLoading.value);
 async function fetchProjects() {
   loadingProjects.value = true;
   try {
-    const response = await sanctumFetch("/api/projects");
+    const response = await sanctumFetch("/api/projects?client_only=true");
     projects.value = response.data || [];
   } catch (error) {
     toast.error("Failed to load projects", {
