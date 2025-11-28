@@ -62,6 +62,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/import/template', [UserController::class, 'downloadTemplate'])->middleware('can:users.create');
         Route::post('/import', [UserController::class, 'import'])->middleware('can:users.create');
         Route::delete('/bulk', [UserController::class, 'bulkDestroy'])->middleware('can:users.delete');
+        Route::post('/verify/bulk', [UserController::class, 'bulkVerify'])->middleware('can:users.update');
+        Route::post('/unverify/bulk', [UserController::class, 'bulkUnverify'])->middleware('can:users.update');
         Route::get('/trash', [UserController::class, 'trash']);
         Route::post('/trash/restore/bulk', [UserController::class, 'bulkRestore'])->middleware('can:users.delete');
         Route::post('/trash/{id}/restore', [UserController::class, 'restore'])->middleware('can:users.delete');
@@ -69,6 +71,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/trash/{id}', [UserController::class, 'forceDestroy'])->middleware('can:users.delete');
         Route::get('/{user}', [UserController::class, 'show']);
         Route::put('/{user}', [UserController::class, 'update'])->middleware('can:users.update');
+        Route::post('/{user}/verify', [UserController::class, 'verify'])->middleware('can:users.update');
+        Route::post('/{user}/unverify', [UserController::class, 'unverify'])->middleware('can:users.update');
         Route::delete('/{user}', [UserController::class, 'destroy'])->middleware('can:users.delete');
     });
 

@@ -367,3 +367,153 @@ it('returns filtered roles based on user permission', function () {
     expect($roleNames)->toContain('admin');
     expect($roleNames)->toContain('user');
 });
+
+it('allows admin users to verify a user', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('admin');
+
+    $targetUser = User::factory()->create(['email_verified_at' => null]);
+    $targetUser->assignRole('user');
+
+    expect($targetUser->email_verified_at)->toBeNull();
+
+    $response = $this->actingAs($admin, 'sanctum')
+        ->postJson("/api/users/{$targetUser->username}/verify");
+
+    $response->assertStatus(200);
+    $response->assertJson([
+        'message' => 'User verified successfully',
+    ]);
+
+    $targetUser->refresh();
+    expect($targetUser->email_verified_at)->not->toBeNull();
+});
+
+it('allows admin users to unverify a user', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('admin');
+
+    $targetUser = User::factory()->create(['email_verified_at' => now()]);
+    $targetUser->assignRole('user');
+
+    expect($targetUser->email_verified_at)->not->toBeNull();
+
+    $response = $this->actingAs($admin, 'sanctum')
+        ->postJson("/api/users/{$targetUser->username}/unverify");
+
+    $response->assertStatus(200);
+    $response->assertJson([
+        'message' => 'User unverified successfully',
+    ]);
+
+    $targetUser->refresh();
+    expect($targetUser->email_verified_at)->toBeNull();
+});
+
+it('allows master users to verify multiple users at once', function () {
+    $master = User::factory()->create();
+    $master->assignRole('master');
+
+    $user1 = User::factory()->create(['email_verified_at' => null]);
+    $user1->assignRole('user');
+
+    $user2 = User::factory()->create(['email_verified_at' => null]);
+    $user2->assignRole('user');
+
+    $response = $this->actingAs($master, 'sanctum')
+        ->postJson('/api/users/verify/bulk', [
+            'ids' => [$user1->id, $user2->id],
+        ]);
+
+    $response->assertStatus(200);
+    $response->assertJsonPath('verified_count', 2);
+
+    $user1->refresh();
+    $user2->refresh();
+    expect($user1->email_verified_at)->not->toBeNull();
+    expect($user2->email_verified_at)->not->toBeNull();
+});
+
+it('allows master users to unverify multiple users at once', function () {
+    $master = User::factory()->create();
+    $master->assignRole('master');
+
+    $user1 = User::factory()->create(['email_verified_at' => now()]);
+    $user1->assignRole('user');
+
+    $user2 = User::factory()->create(['email_verified_at' => now()]);
+    $user2->assignRole('user');
+
+    $response = $this->actingAs($master, 'sanctum')
+        ->postJson('/api/users/unverify/bulk', [
+            'ids' => [$user1->id, $user2->id],
+        ]);
+
+    $response->assertStatus(200);
+    $response->assertJsonPath('unverified_count', 2);
+
+    $user1->refresh();
+    $user2->refresh();
+    expect($user1->email_verified_at)->toBeNull();
+    expect($user2->email_verified_at)->toBeNull();
+});
+
+it('handles verifying already verified users gracefully', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('admin');
+
+    $targetUser = User::factory()->create(['email_verified_at' => now()]);
+    $targetUser->assignRole('user');
+
+    $response = $this->actingAs($admin, 'sanctum')
+        ->postJson("/api/users/{$targetUser->username}/verify");
+
+    $response->assertStatus(200);
+    $response->assertJson([
+        'message' => 'User is already verified',
+    ]);
+});
+
+it('handles unverifying already unverified users gracefully', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('admin');
+
+    $targetUser = User::factory()->create(['email_verified_at' => null]);
+    $targetUser->assignRole('user');
+
+    $response = $this->actingAs($admin, 'sanctum')
+        ->postJson("/api/users/{$targetUser->username}/unverify");
+
+    $response->assertStatus(200);
+    $response->assertJson([
+        'message' => 'User is already unverified',
+    ]);
+});
+
+it('prevents regular users from verifying users', function () {
+    $user = User::factory()->create();
+    $user->assignRole('user');
+
+    $targetUser = User::factory()->create(['email_verified_at' => null]);
+    $targetUser->assignRole('user');
+
+    $response = $this->actingAs($user, 'sanctum')
+        ->postJson("/api/users/{$targetUser->username}/verify");
+
+    $response->assertStatus(403);
+});
+
+it('prevents regular users from bulk verifying users', function () {
+    $user = User::factory()->create();
+    $user->assignRole('user');
+
+    $user1 = User::factory()->create(['email_verified_at' => null]);
+    $user1->assignRole('user');
+
+    $response = $this->actingAs($user, 'sanctum')
+        ->postJson('/api/users/verify/bulk', [
+            'ids' => [$user1->id],
+        ]);
+
+    $response->assertStatus(403);
+});

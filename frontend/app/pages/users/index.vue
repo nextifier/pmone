@@ -124,6 +124,100 @@
       <template #actions="{ selectedRows }">
         <DialogResponsive
           v-if="selectedRows.length > 0"
+          v-model:open="verifyDialogOpen"
+          class="h-full"
+        >
+          <template #trigger="{ open }">
+            <button
+              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
+              @click="open()"
+            >
+              <Icon name="material-symbols:verified" class="size-4 shrink-0" />
+              <span class="text-sm tracking-tight">Verify</span>
+              <span
+                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
+              >
+                {{ selectedRows.length }}
+              </span>
+            </button>
+          </template>
+          <template #default>
+            <div class="px-4 pb-10 md:px-6 md:py-5">
+              <div class="text-primary text-lg font-semibold tracking-tight">Verify users?</div>
+              <p class="text-body mt-1.5 text-sm tracking-tight">
+                This will verify {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "user" : "users" }}.
+              </p>
+              <div class="mt-3 flex justify-end gap-2">
+                <button
+                  class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  @click="verifyDialogOpen = false"
+                  :disabled="verifyPending"
+                >
+                  Cancel
+                </button>
+                <button
+                  @click="handleVerifyRows(selectedRows)"
+                  :disabled="verifyPending"
+                  class="bg-info hover:bg-info/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Spinner v-if="verifyPending" class="size-4 text-white" />
+                  <span v-else>Verify</span>
+                </button>
+              </div>
+            </div>
+          </template>
+        </DialogResponsive>
+
+        <DialogResponsive
+          v-if="selectedRows.length > 0"
+          v-model:open="unverifyDialogOpen"
+          class="h-full"
+        >
+          <template #trigger="{ open }">
+            <button
+              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
+              @click="open()"
+            >
+              <Icon name="material-symbols:verified" class="text-muted-foreground size-4 shrink-0" />
+              <span class="text-sm tracking-tight">Unverify</span>
+              <span
+                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
+              >
+                {{ selectedRows.length }}
+              </span>
+            </button>
+          </template>
+          <template #default>
+            <div class="px-4 pb-10 md:px-6 md:py-5">
+              <div class="text-primary text-lg font-semibold tracking-tight">Unverify users?</div>
+              <p class="text-body mt-1.5 text-sm tracking-tight">
+                This will unverify {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "user" : "users" }}.
+              </p>
+              <div class="mt-3 flex justify-end gap-2">
+                <button
+                  class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  @click="unverifyDialogOpen = false"
+                  :disabled="unverifyPending"
+                >
+                  Cancel
+                </button>
+                <button
+                  @click="handleUnverifyRows(selectedRows)"
+                  :disabled="unverifyPending"
+                  class="bg-muted-foreground hover:bg-muted-foreground/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Spinner v-if="unverifyPending" class="size-4 text-white" />
+                  <span v-else>Unverify</span>
+                </button>
+              </div>
+            </div>
+          </template>
+        </DialogResponsive>
+
+        <DialogResponsive
+          v-if="selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
           class="h-full"
         >
@@ -616,6 +710,112 @@ const handleExport = async () => {
   }
 };
 
+// Verify handlers
+const verifyDialogOpen = ref(false);
+const verifyPending = ref(false);
+const handleVerifyRows = async (selectedRows) => {
+  const userIds = selectedRows.map((row) => row.original.id);
+  try {
+    verifyPending.value = true;
+    const client = useSanctumClient();
+    const response = await client("/api/users/verify/bulk", {
+      method: "POST",
+      body: { ids: userIds },
+    });
+    await refresh();
+    verifyDialogOpen.value = false;
+    if (tableRef.value?.table) {
+      tableRef.value.table.resetRowSelection();
+    }
+
+    toast.success(response.message || "Users verified successfully", {
+      description: `${response.verified_count} user(s) verified`,
+    });
+  } catch (error) {
+    console.error("Failed to verify users:", error);
+    toast.error("Failed to verify users", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    verifyPending.value = false;
+  }
+};
+
+const handleVerifySingleRow = async (username) => {
+  try {
+    verifyPending.value = true;
+    const client = useSanctumClient();
+    const response = await client(`/api/users/${username}/verify`, { method: "POST" });
+    await refresh();
+
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
+    }
+
+    toast.success(response.message || "User verified successfully");
+  } catch (error) {
+    console.error("Failed to verify user:", error);
+    toast.error("Failed to verify user", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    verifyPending.value = false;
+  }
+};
+
+// Unverify handlers
+const unverifyDialogOpen = ref(false);
+const unverifyPending = ref(false);
+const handleUnverifyRows = async (selectedRows) => {
+  const userIds = selectedRows.map((row) => row.original.id);
+  try {
+    unverifyPending.value = true;
+    const client = useSanctumClient();
+    const response = await client("/api/users/unverify/bulk", {
+      method: "POST",
+      body: { ids: userIds },
+    });
+    await refresh();
+    unverifyDialogOpen.value = false;
+    if (tableRef.value?.table) {
+      tableRef.value.table.resetRowSelection();
+    }
+
+    toast.success(response.message || "Users unverified successfully", {
+      description: `${response.unverified_count} user(s) unverified`,
+    });
+  } catch (error) {
+    console.error("Failed to unverify users:", error);
+    toast.error("Failed to unverify users", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    unverifyPending.value = false;
+  }
+};
+
+const handleUnverifySingleRow = async (username) => {
+  try {
+    unverifyPending.value = true;
+    const client = useSanctumClient();
+    const response = await client(`/api/users/${username}/unverify`, { method: "POST" });
+    await refresh();
+
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
+    }
+
+    toast.success(response.message || "User unverified successfully");
+  } catch (error) {
+    console.error("Failed to unverify user:", error);
+    toast.error("Failed to unverify user", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    unverifyPending.value = false;
+  }
+};
+
 // Delete handlers
 const deleteDialogOpen = ref(false);
 const deletePending = ref(false);
@@ -682,7 +882,16 @@ const RowActions = defineComponent({
   },
   setup(props) {
     const dialogOpen = ref(false);
+    const verifyDialogOpen = ref(false);
+    const unverifyDialogOpen = ref(false);
     const singleDeletePending = ref(false);
+    const singleVerifyPending = ref(false);
+    const singleUnverifyPending = ref(false);
+
+    // Get the user data from the data array
+    const user = computed(() => data.value.find((u) => u.username === props.username));
+    const isVerified = computed(() => !!user.value?.email_verified_at);
+
     return () =>
       h("div", { class: "flex justify-end" }, [
         h(
@@ -786,6 +995,36 @@ const RowActions = defineComponent({
                         }
                       ),
 
+                      // Verify/Unverify button
+                      h(
+                        PopoverClose,
+                        { asChild: true },
+                        {
+                          default: () =>
+                            h(
+                              "button",
+                              {
+                                class: isVerified.value
+                                  ? "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5"
+                                  : "hover:bg-info/10 text-info rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                onClick: () =>
+                                  isVerified.value
+                                    ? (unverifyDialogOpen.value = true)
+                                    : (verifyDialogOpen.value = true),
+                              },
+                              [
+                                h(resolveComponent("Icon"), {
+                                  name: "material-symbols:verified",
+                                  class: isVerified.value
+                                    ? "size-4 shrink-0 text-muted-foreground"
+                                    : "size-4 shrink-0",
+                                }),
+                                h("span", {}, isVerified.value ? "Unverify" : "Verify"),
+                              ]
+                            ),
+                        }
+                      ),
+
                       h(
                         PopoverClose,
                         { asChild: true },
@@ -814,6 +1053,117 @@ const RowActions = defineComponent({
             ],
           }
         ),
+        // Verify Dialog
+        h(
+          DialogResponsive,
+          {
+            open: verifyDialogOpen.value,
+            "onUpdate:open": (value) => (verifyDialogOpen.value = value),
+          },
+          {
+            default: () =>
+              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
+                h(
+                  "div",
+                  { class: "text-primary text-lg font-semibold tracking-tight" },
+                  "Verify user?"
+                ),
+                h(
+                  "p",
+                  { class: "text-body mt-1.5 text-sm tracking-tight" },
+                  "This will verify this user."
+                ),
+                h("div", { class: "mt-3 flex justify-end gap-2" }, [
+                  h(
+                    "button",
+                    {
+                      class:
+                        "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                      onClick: () => (verifyDialogOpen.value = false),
+                      disabled: singleVerifyPending.value,
+                    },
+                    "Cancel"
+                  ),
+                  h(
+                    "button",
+                    {
+                      class:
+                        "bg-info text-white hover:bg-info/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50",
+                      disabled: singleVerifyPending.value,
+                      onClick: async () => {
+                        singleVerifyPending.value = true;
+                        try {
+                          await handleVerifySingleRow(props.username);
+                          verifyDialogOpen.value = false;
+                        } finally {
+                          singleVerifyPending.value = false;
+                        }
+                      },
+                    },
+                    singleVerifyPending.value
+                      ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
+                      : "Verify"
+                  ),
+                ]),
+              ]),
+          }
+        ),
+        // Unverify Dialog
+        h(
+          DialogResponsive,
+          {
+            open: unverifyDialogOpen.value,
+            "onUpdate:open": (value) => (unverifyDialogOpen.value = value),
+          },
+          {
+            default: () =>
+              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
+                h(
+                  "div",
+                  { class: "text-primary text-lg font-semibold tracking-tight" },
+                  "Unverify user?"
+                ),
+                h(
+                  "p",
+                  { class: "text-body mt-1.5 text-sm tracking-tight" },
+                  "This will unverify this user."
+                ),
+                h("div", { class: "mt-3 flex justify-end gap-2" }, [
+                  h(
+                    "button",
+                    {
+                      class:
+                        "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                      onClick: () => (unverifyDialogOpen.value = false),
+                      disabled: singleUnverifyPending.value,
+                    },
+                    "Cancel"
+                  ),
+                  h(
+                    "button",
+                    {
+                      class:
+                        "bg-muted-foreground text-white hover:bg-muted-foreground/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50",
+                      disabled: singleUnverifyPending.value,
+                      onClick: async () => {
+                        singleUnverifyPending.value = true;
+                        try {
+                          await handleUnverifySingleRow(props.username);
+                          unverifyDialogOpen.value = false;
+                        } finally {
+                          singleUnverifyPending.value = false;
+                        }
+                      },
+                    },
+                    singleUnverifyPending.value
+                      ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
+                      : "Unverify"
+                  ),
+                ]),
+              ]),
+          }
+        ),
+        // Delete Dialog
         h(
           DialogResponsive,
           {

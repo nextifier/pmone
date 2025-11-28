@@ -159,6 +159,7 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         'status',
         'visibility',
         'last_seen',
+        'email_verified_at'
     ];
 
     /**

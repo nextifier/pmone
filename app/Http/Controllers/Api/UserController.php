@@ -1133,4 +1133,198 @@ class UserController extends Controller
             ], 500);
         }
     }
+
+    public function verify(User $user): JsonResponse
+    {
+        $this->authorize('users.update');
+
+        try {
+            // If already verified, return info
+            if ($user->email_verified_at) {
+                return response()->json([
+                    'message' => 'User is already verified',
+                    'data' => new UserResource($user),
+                ]);
+            }
+
+            $user->update([
+                'email_verified_at' => now(),
+            ]);
+
+            $user->load(['roles', 'media', 'links']);
+
+            return response()->json([
+                'message' => 'User verified successfully',
+                'data' => new UserResource($user),
+            ]);
+        } catch (\Exception $e) {
+            logger()->error('User verification failed', [
+                'error' => $e->getMessage(),
+                'user_id' => $user->id,
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to verify user',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function unverify(User $user): JsonResponse
+    {
+        $this->authorize('users.update');
+
+        try {
+            // If not verified, return info
+            if (! $user->email_verified_at) {
+                return response()->json([
+                    'message' => 'User is already unverified',
+                    'data' => new UserResource($user),
+                ]);
+            }
+
+            $user->update([
+                'email_verified_at' => null,
+            ]);
+
+            $user->load(['roles', 'media', 'links']);
+
+            return response()->json([
+                'message' => 'User unverified successfully',
+                'data' => new UserResource($user),
+            ]);
+        } catch (\Exception $e) {
+            logger()->error('User unverification failed', [
+                'error' => $e->getMessage(),
+                'user_id' => $user->id,
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to unverify user',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function bulkVerify(Request $request): JsonResponse
+    {
+        $this->authorize('users.update');
+
+        $validator = Validator::make($request->all(), [
+            'ids' => ['required', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $userIds = $request->input('ids');
+            $verifiedCount = 0;
+            $errors = [];
+
+            foreach ($userIds as $userId) {
+                $user = User::find($userId);
+
+                if (! $user) {
+                    continue;
+                }
+
+                // Skip if already verified
+                if ($user->email_verified_at) {
+                    continue;
+                }
+
+                $user->update([
+                    'email_verified_at' => now(),
+                ]);
+                $verifiedCount++;
+            }
+
+            $message = $verifiedCount > 0
+                ? "Successfully verified {$verifiedCount} user(s)"
+                : 'No users were verified (all already verified)';
+
+            return response()->json([
+                'message' => $message,
+                'verified_count' => $verifiedCount,
+                'errors' => $errors,
+            ], $verifiedCount > 0 ? 200 : 200);
+        } catch (\Exception $e) {
+            logger()->error('Bulk user verification failed', [
+                'error' => $e->getMessage(),
+                'user_ids' => $request->input('ids'),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to verify users',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function bulkUnverify(Request $request): JsonResponse
+    {
+        $this->authorize('users.update');
+
+        $validator = Validator::make($request->all(), [
+            'ids' => ['required', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $userIds = $request->input('ids');
+            $unverifiedCount = 0;
+            $errors = [];
+
+            foreach ($userIds as $userId) {
+                $user = User::find($userId);
+
+                if (! $user) {
+                    continue;
+                }
+
+                // Skip if already unverified
+                if (! $user->email_verified_at) {
+                    continue;
+                }
+
+                $user->update([
+                    'email_verified_at' => null,
+                ]);
+                $unverifiedCount++;
+            }
+
+            $message = $unverifiedCount > 0
+                ? "Successfully unverified {$unverifiedCount} user(s)"
+                : 'No users were unverified (all already unverified)';
+
+            return response()->json([
+                'message' => $message,
+                'unverified_count' => $unverifiedCount,
+                'errors' => $errors,
+            ], $unverifiedCount > 0 ? 200 : 200);
+        } catch (\Exception $e) {
+            logger()->error('Bulk user unverification failed', [
+                'error' => $e->getMessage(),
+                'user_ids' => $request->input('ids'),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to unverify users',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
