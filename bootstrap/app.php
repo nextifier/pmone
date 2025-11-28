@@ -53,6 +53,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // This runs hourly to keep data fresh while minimizing GA API calls
         $schedule->command('analytics:sync --days=365 --only-needed --queue')->hourly();
 
+        // Sync today's analytics data - runs every 15 minutes for instant loading
+        // This proactively fetches today's data so users never have to wait
+        // when requesting the "today" period on analytics dashboard
+        $schedule->job(new \App\Jobs\SyncTodayAnalyticsJob)->everyFifteenMinutes();
+
         // Realtime analytics - refresh every 2 minutes for live user counts
         $schedule->job(new \App\Jobs\RefreshRealtimeAnalytics)->everyTwoMinutes();
     })

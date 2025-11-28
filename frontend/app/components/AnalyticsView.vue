@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen-offset mx-auto max-w-4xl pt-4 pb-16">
     <div
-      v-if="loading || (user && !visitsData)"
+      v-if="loading"
       class="min-h-screen-offset flex items-center justify-center"
     >
       <div class="flex items-center gap-x-2">
@@ -34,7 +34,7 @@
           </div>
         </div>
 
-        <h1 class="page-title">Analytics for {{ user.name }}</h1>
+        <h1 class="page-title">Analytics for {{ user?.name }}</h1>
 
         <!-- Summary Cards -->
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -153,14 +153,14 @@
                     <div
                       class="bg-primary absolute inset-y-0 left-0 transition-all"
                       :style="{
-                        width: `${(link.clicks / maxClicksPerLink) * 100}%`,
+                        width: `${((link.clicks || 0) / maxClicksPerLink) * 100}%`,
                       }"
                     ></div>
                   </div>
                   <span
                     class="text-foreground w-12 text-right text-sm font-semibold tracking-tight"
                   >
-                    {{ link.clicks.toLocaleString() }}
+                    {{ link.clicks?.toLocaleString() || 0 }}
                   </span>
                 </div>
               </div>
@@ -248,7 +248,7 @@
                   >
                     <Icon :name="getLinkIcon(link.label)" class="size-3" />
                     <span>{{ link.label }}</span>
-                    <span class="text-primary/60">{{ link.clicks }}×</span>
+                    <span class="text-primary/60">{{ link.clicks || 0 }}×</span>
                   </span>
                 </div>
               </div>
@@ -337,7 +337,7 @@ const visitsChartConfig = computed(() => {
 
 const maxClicksPerLink = computed(() => {
   if (!props.clicksData?.links?.length) return 1;
-  return Math.max(...props.clicksData.links.map((l) => l.clicks));
+  return Math.max(...props.clicksData.links.map((l) => l.clicks || 0));
 });
 
 const SOCIAL_ICON_MAP = {

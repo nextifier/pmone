@@ -1,19 +1,22 @@
 <template>
-  <AnalyticsView
-    :user="project"
-    :loading="status === 'pending'"
-    :error="error"
-    :visits-data="visitsData"
-    :clicks-data="clicksData"
-    v-model:selected-period="selectedPeriod"
-    :back-destination="`/projects/${username}`"
-  />
+  <ClientOnly>
+    <AnalyticsView
+      :user="project"
+      :loading="status === 'pending' || analyticsLoading"
+      :error="error || visitsError || clicksError"
+      :visits-data="visitsData"
+      :clicks-data="clicksData"
+      v-model:selected-period="selectedPeriod"
+      :back-destination="`/projects/${username}`"
+    />
+  </ClientOnly>
 </template>
 
 <script setup>
 definePageMeta({
   middleware: ["sanctum:auth"],
   layout: "app",
+  ssr: false,
 });
 
 const route = useRoute();
@@ -71,32 +74,64 @@ watch(
 );
 
 // Fetch visits data with lazy loading
-const { data: visitsData } = await useLazyFetch(
-  () => `/api/analytics/visits?type=project&id=${project.value?.id}&days=${selectedPeriod.value}`,
+const {
+  data: visitsData,
+  status: visitsStatus,
+  error: visitsError,
+  execute: executeVisits,
+} = await useLazyFetch(
+  () => {
+    if (!project.value?.id) return null;
+    return `/api/analytics/visits?type=project&id=${project.value.id}&days=${selectedPeriod.value}`;
+  },
   {
     baseURL: useRuntimeConfig().public.apiUrl,
     key: `analytics-visits-${project.value?.id}-${selectedPeriod.value}`,
     credentials: "include",
-    watch: [selectedPeriod],
-    immediate: computed(() => !!project.value?.id && canViewAnalytics.value),
+    immediate: false,
     transform: (response) => response.data,
     server: false,
   }
 );
 
 // Fetch clicks data with lazy loading
-const { data: clicksData } = await useLazyFetch(
-  () => `/api/analytics/clicks?type=project&id=${project.value?.id}&days=${selectedPeriod.value}`,
+const {
+  data: clicksData,
+  status: clicksStatus,
+  error: clicksError,
+  execute: executeClicks,
+} = await useLazyFetch(
+  () => {
+    if (!project.value?.id) return null;
+    return `/api/analytics/clicks?type=project&id=${project.value.id}&days=${selectedPeriod.value}`;
+  },
   {
     baseURL: useRuntimeConfig().public.apiUrl,
     key: `analytics-clicks-${project.value?.id}-${selectedPeriod.value}`,
     credentials: "include",
-    watch: [selectedPeriod],
-    immediate: computed(() => !!project.value?.id && canViewAnalytics.value),
+    immediate: false,
     transform: (response) => response.data,
     server: false,
   }
 );
+
+// Watch for changes and fetch analytics when ready
+watch(
+  [project, selectedPeriod, canViewAnalytics],
+  ([newProject, newPeriod, canView]) => {
+    if (newProject?.id && canView) {
+      executeVisits();
+      executeClicks();
+    }
+  },
+  { immediate: true }
+);
+
+// Combined loading state
+const analyticsLoading = computed(() => {
+  if (!project.value || !canViewAnalytics.value) return false;
+  return visitsStatus.value === "pending" || clicksStatus.value === "pending";
+});
 
 usePageMeta("", {
   title: `Analytics - @${username.value}`,
