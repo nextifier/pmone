@@ -73,21 +73,27 @@ const route = useRoute();
 // const postStore = usePostStore();
 // postStore.fetchPosts();
 
-const { data } = await useFetch(`${useAppConfig().app.blogApiUrl}/posts`, {
-  query: {
-    key: useAppConfig().app.blogApiKey,
-    include: "authors,tags",
-    filter: `authors.slug:[${useAppConfig().app.blogUsername}]+visibility:public`,
-    order: "published_at desc",
-    limit: "all",
+const config = useAppConfig();
+
+const { data } = await useFetch(
+  `${config.app.pmOneApiUrl}/api/public/blog/posts`,
+  {
+    headers: {
+      Authorization: `Bearer ${config.app.pmOneApiKey}`,
+      Accept: "application/json",
+    },
+    query: {
+      per_page: 100,
+      sort: "published_at",
+      order: "desc",
+    },
+    key: "posts-slider",
+    server: false,
   },
-  key: "posts",
-  server: false,
-  // immediate: false,
-});
+);
 
 const filteredPosts = computed(() => {
-  const posts = Array.isArray(data?.value?.posts) ? data?.value?.posts : [];
+  const posts = Array.isArray(data?.value?.data) ? data?.value?.data : [];
   return route?.params?.slug
     ? posts.filter((post) => post.slug !== route.params.slug)
     : posts;

@@ -185,58 +185,68 @@ const form = reactive({
 const sendMessage = async () => {
   loading.value = true;
 
-  // Remove "+" if it exists at the start of phone number
-  const cleanedPhone = form.phone.startsWith("+")
-    ? form.phone.slice(1)
-    : form.phone;
+  try {
+    const config = useAppConfig();
 
-  // Conditionally add job title if it exists
-  const nameField = form.jobTitle
-    ? `${form.name} | ${form.jobTitle}`
-    : form.name;
-
-  // Conditionally add products if it exists
-  const companyField = form.products
-    ? `${form.company}. Product / Service: ${form.products}`
-    : form.company;
-
-  await useFetch("https://contact.nextifier.com/api/messages", {
-    method: "POST",
-    body: {
-      name: nameField,
-      company: companyField,
+    // Prepare form data for PM One API
+    const formData = {
+      name: form.name,
       email: form.email,
-      phone: cleanedPhone, // Use cleaned phone number
+      phone: form.phone,
       message: props.message ?? form.message,
-      client: useAppConfig().app.shortName,
-      to: useAppConfig().emailRecipients.to,
-      cc: useAppConfig().emailRecipients.cc,
-      bcc: useAppConfig().emailRecipients.bcc,
-    },
-    onResponse({ response }) {
-      const errors = response._data.errors;
+    };
 
-      if (errors) {
-        for (let [key, value] of Object.entries(errors)) {
-          console.log(value[0]);
-          toast.error(value[0]);
-        }
-      } else {
-        form.name = "";
-        form.jobTitle = "";
-        form.company = "";
-        form.products = "";
-        form.email = "";
-        form.phone = "";
-        form.message = "";
+    // Add optional fields if they exist
+    if (form.jobTitle) {
+      formData.job_title = form.jobTitle;
+    }
+    if (form.company) {
+      formData.company = form.company;
+    }
+    if (form.products) {
+      formData.products = form.products;
+    }
 
-        gtag("event", "contact_form_submission");
+    // PM One API endpoint
+    const endpoint = `${config.app.pmOneApiUrl}/api/contact-forms/submit`;
 
-        isMessageSent.value = true;
-      }
-    },
-  });
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        project_username: "panoramamedia", // Your project username in PM One
+        subject: `Contact Form - ${config.app.shortName}`,
+        data: formData,
+      }),
+    });
 
-  loading.value = false;
+    const result = await response.json();
+
+    if (result.success) {
+      // Success - reset form
+      form.name = "";
+      form.jobTitle = "";
+      form.company = "";
+      form.products = "";
+      form.email = "";
+      form.phone = "";
+      form.message = "";
+
+      gtag("event", "contact_form_submission");
+
+      isMessageSent.value = true;
+    } else {
+      // Error from PM One API
+      toast.error(result.message || "Failed to send message. Please try again.");
+    }
+  } catch (error) {
+    console.error("Contact form error:", error);
+    toast.error("Network error. Please try again later.");
+  } finally {
+    loading.value = false;
+  }
 };
 </script>

@@ -6,9 +6,9 @@
       @click="active = post.slug"
     >
       <NuxtImg
-        v-if="post.feature_image"
-        :src="post.feature_image"
-        :alt="post.feature_image_alt ?? post.title"
+        v-if="post.featured_image"
+        :src="post.featured_image?.medium || post.featured_image?.original || post.featured_image"
+        :alt="post.title"
         class="h-full w-full object-cover"
         :style="imageStyle"
         loading="lazy"
@@ -24,12 +24,12 @@
         class="pointer-events-none absolute inset-x-0 bottom-0 flex h-20 w-full items-end justify-between px-3 pb-2.5 text-xs font-semibold tracking-tight select-none"
         :class="{
           'bg-linear-to-t from-black/60 to-transparent text-white':
-            post.feature_image,
-          '': !post.feature_image,
+            post.featured_image,
+          '': !post.featured_image,
         }"
       >
-        <span v-if="post.primary_tag" class="capitalize">
-          {{ post.primary_tag.name }}
+        <span v-if="post.tags?.length > 0" class="capitalize">
+          {{ post.tags[0] }}
         </span>
         <span v-else></span>
 
@@ -57,11 +57,11 @@
       <p
         v-if="
           useAppConfig()?.settings?.blog?.showPostCardExcerpt &&
-          post.custom_excerpt
+          post.excerpt
         "
         class="mt-2 text-sm tracking-tight"
       >
-        {{ post.custom_excerpt }}
+        {{ post.excerpt }}
       </p>
 
       <div class="mt-2 flex w-full items-center justify-between gap-x-3">

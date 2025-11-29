@@ -144,15 +144,16 @@ const debouncedSearchInput = refDebounced(searchInput, 200);
 const filteredPosts = computed(() => {
   if (!posts.value) return [];
   return posts.value.filter((post) => {
-    return (
-      post.title
-        .toLowerCase()
-        .includes(debouncedSearchInput.value.toLowerCase()) ||
-      post.primary_tag?.name
-        ?.toString()
-        .toLowerCase()
-        .includes(debouncedSearchInput.value.toLowerCase())
+    const titleMatch = post.title
+      .toLowerCase()
+      .includes(debouncedSearchInput.value.toLowerCase());
+
+    // PM One: tags is an array of strings
+    const tagMatch = post.tags?.some(tag =>
+      tag.toLowerCase().includes(debouncedSearchInput.value.toLowerCase())
     );
+
+    return titleMatch || tagMatch;
   });
 });
 

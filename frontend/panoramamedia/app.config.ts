@@ -9,10 +9,10 @@ const app = {
     address:
       "Panorama Media Building, Jl. Tanjung Selor No.17A, RT.11/RW.6, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150",
   },
-  blogApiUrl: "https://blog.levenium.com/ghost/api/content",
-  blogApiKey: "6516c0eb11471899a2344b81e3",
-  blogUsername:
-    "panoramaevents,megabuild,megabuild-seo,outing,flei,flei-seo,cafe,indocomiccon,indoanimecon",
+  // PM One API Configuration
+  pmOneApiUrl: isProduction ? "https://api.pmone.id" : "http://localhost:8000",
+  pmOneApiKey: "YOUR_API_KEY_HERE", // Replace with actual API key from PM One API Consumer
+  blogUsername: "admin", // Username of blog author in PM One
 };
 
 const settings = {

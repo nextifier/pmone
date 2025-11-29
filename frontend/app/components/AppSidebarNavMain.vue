@@ -90,14 +90,19 @@ const navMainGroups = computed(() => {
           iconName: "hugeicons:task-edit-01",
         },
         {
+          label: "Web Analytics",
+          path: "/web-analytics",
+          iconName: "hugeicons:analysis-text-link",
+        },
+        {
           label: "Short Links",
           path: "/short-links",
           iconName: "hugeicons:unlink-02",
         },
         {
-          label: "Web Analytics",
-          path: "/web-analytics",
-          iconName: "hugeicons:analysis-text-link",
+          label: "QR Code Generator",
+          path: "/qr",
+          iconName: "hugeicons:qr-code",
         },
       ],
     },

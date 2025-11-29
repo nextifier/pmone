@@ -18,9 +18,9 @@
           class="bg-muted border-border size-16 shrink-0 overflow-hidden rounded-lg border"
         >
           <NuxtImg
-            v-if="post.feature_image"
-            :src="post.feature_image"
-            :alt="post.feature_image_alt ?? post.title"
+            v-if="post.featured_image"
+            :src="post.featured_image?.thumb || post.featured_image?.medium || post.featured_image?.original || post.featured_image"
+            :alt="post.title"
             class="size-full object-cover"
             loading="lazy"
             sizes="64px"

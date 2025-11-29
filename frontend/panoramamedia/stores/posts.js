@@ -19,15 +19,20 @@ export const usePostStore = defineStore("posts", {
       this.error = null;
 
       try {
+        const config = useAppConfig();
+
+        // PM One API endpoint
         const { data, error: fetchError } = await useFetch(
-          `${useAppConfig().app.blogApiUrl}/posts`,
+          `${config.app.pmOneApiUrl}/api/public/blog/posts`,
           {
+            headers: {
+              Authorization: `Bearer ${config.app.pmOneApiKey}`,
+              Accept: "application/json",
+            },
             query: {
-              key: useAppConfig().app.blogApiKey,
-              include: "authors,tags",
-              filter: `authors.slug:[${useAppConfig().app.blogUsername}]+visibility:public`,
-              order: "published_at desc",
-              limit: "all",
+              per_page: 100, // Get up to 100 posts
+              sort: "published_at",
+              order: "desc",
             },
             key: "posts",
           },
@@ -37,8 +42,9 @@ export const usePostStore = defineStore("posts", {
           throw fetchError.value;
         }
 
-        if (data.value?.posts) {
-          this.posts = data.value.posts;
+        // PM One returns { data: [...], meta: {...} }
+        if (data.value?.data) {
+          this.posts = data.value.data;
           this.hasFetchedPosts = true;
         }
       } catch (err) {

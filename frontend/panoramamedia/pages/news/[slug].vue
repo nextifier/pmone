@@ -52,10 +52,10 @@
             class="mt-4 flex flex-col items-center text-center xl:items-center xl:text-center"
           >
             <span
-              v-if="post.primary_tag?.name"
+              v-if="post.tags?.length > 0"
               class="text-primary border-border mb-3 flex items-center justify-center rounded-full border px-3 py-2 text-xs font-semibold tracking-tight capitalize sm:text-sm"
             >
-              {{ post.primary_tag.name }}
+              {{ post.tags[0] }}
             </span>
 
             <h1
@@ -157,20 +157,20 @@
             </div>
 
             <div
-              v-if="post.custom_excerpt"
+              v-if="post.excerpt"
               class="text-primary mt-10 text-xl font-semibold tracking-tighter text-pretty sm:text-2xl"
             >
-              {{ post.custom_excerpt }}
+              {{ post.excerpt }}
             </div>
           </div>
 
           <div
-            v-if="post.feature_image"
+            v-if="post.featured_image"
             class="bg-muted mx-auto mt-10 block overflow-hidden"
           >
             <NuxtImg
-              :src="post.feature_image"
-              :alt="post.feature_image_alt"
+              :src="post.featured_image?.original || post.featured_image"
+              :alt="post.title"
               class="size-full rounded-xl object-cover"
               :style="{
                 'view-transition-name': `post-feature-img-${post.slug}`,
@@ -199,7 +199,7 @@
                   :key="index"
                   class="border-border rounded-full border px-3 py-2 text-sm capitalize"
                 >
-                  {{ tag.name }}
+                  {{ tag }}
                 </span>
               </div>
             </div>
@@ -243,18 +243,19 @@ const { $dayjs } = useNuxtApp();
 import { useSidebar } from "@/components/ui/sidebar/utils";
 const { open, isMobile, setOpenMobile } = useSidebar();
 
+const config = useAppConfig();
+
 const { data, pending, error } = await useFetch(
-  `${useAppConfig().app.blogApiUrl}/posts/slug/${route.params.slug}`,
+  `${config.app.pmOneApiUrl}/api/public/blog/posts/${route.params.slug}`,
   {
-    query: {
-      key: useAppConfig().app.blogApiKey,
-      include: "authors,tags",
-      filter: `authors.slug:[${useAppConfig().app.blogUsername}]+visibility:public`,
+    headers: {
+      Authorization: `Bearer ${config.app.pmOneApiKey}`,
+      Accept: "application/json",
     },
   },
 );
 
-const post = computed(() => data?.value?.posts[0]);
+const post = computed(() => data?.value?.data);
 
 if (!post.value) {
   throw createError({
@@ -283,8 +284,8 @@ function generatePostExcerpt(postBody) {
 const title = post?.value?.meta_title ?? ref(post?.value?.title) ?? "";
 const description =
   post?.value?.meta_description ??
-  post?.value?.custom_excerpt ??
-  generatePostExcerpt(post?.value?.html) ??
+  post?.value?.excerpt ??
+  generatePostExcerpt(post?.value?.content) ??
   "";
 
 usePageMeta("", {
@@ -292,7 +293,7 @@ usePageMeta("", {
   description: description,
 });
 
-const rawHtml = computed(() => post.value?.html || "");
+const rawHtml = computed(() => post.value?.content || "");
 const { processedHtml } = useProcessedContent(rawHtml);
 
 const foundHeadings = ref([]);
