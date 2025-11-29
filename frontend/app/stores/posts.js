@@ -31,18 +31,27 @@ export const usePostStore = defineStore("posts", {
       try {
         // Call local Nuxt server API (which proxies to PM One API)
         // API key is kept secure on the server, not exposed to browser
-        const data = await fetch(`/api/blog/posts?page=${page}&per_page=50&sort=-published_at`).then(
-          (res) => res.json()
-        );
+        const { data, error: fetchError } = await useFetch("/api/blog/posts", {
+          query: {
+            page,
+            per_page: 50,
+            sort: "-published_at",
+          },
+          key: `posts-page-${page}`,
+        });
+
+        if (fetchError.value) {
+          throw fetchError.value;
+        }
 
         // PM One returns { data: [...], meta: {...} }
-        if (data?.data) {
-          this.posts = data.data;
+        if (data.value?.data) {
+          this.posts = data.value.data;
           this.hasFetchedPosts = true;
         }
 
-        if (data?.meta) {
-          this.meta = data.meta;
+        if (data.value?.meta) {
+          this.meta = data.value.meta;
         }
       } catch (err) {
         this.error = err;
