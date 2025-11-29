@@ -7,7 +7,7 @@ export const usePostStore = defineStore("posts", {
     meta: {
       current_page: 1,
       last_page: 1,
-      per_page: 12,
+      per_page: 50,
       total: 0,
     },
   }),
@@ -31,13 +31,9 @@ export const usePostStore = defineStore("posts", {
       try {
         // Call local Nuxt server API (which proxies to PM One API)
         // API key is kept secure on the server, not exposed to browser
-        const data = await $fetch("/api/blog/posts", {
-          query: {
-            page,
-            per_page: 12,
-            sort: "-published_at", // Sort by published_at descending (newest first)
-          },
-        });
+        const data = await fetch(`/api/blog/posts?page=${page}&per_page=50&sort=-published_at`).then(
+          (res) => res.json()
+        );
 
         // PM One returns { data: [...], meta: {...} }
         if (data?.data) {

@@ -48,7 +48,7 @@
             v-if="pending"
             class="grid grid-cols-1 gap-x-4 gap-y-8 @xl:grid-cols-2 @4xl:grid-cols-12"
           >
-            <BlogPostCardSkeleton v-for="(_, index) in 12" :key="index" :class="postCardClasses" />
+            <BlogPostCardSkeleton v-for="(_, index) in 16" :key="index" :class="postCardClasses" />
           </div>
 
           <div v-else-if="error" class="flex items-center justify-center text-center">
