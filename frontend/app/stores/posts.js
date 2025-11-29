@@ -4,14 +4,24 @@ export const usePostStore = defineStore("posts", {
     pending: false,
     error: null,
     hasFetchedPosts: false,
+    meta: {
+      current_page: 1,
+      last_page: 1,
+      per_page: 12,
+      total: 0,
+    },
   }),
   actions: {
     /**
-     * Mengambil daftar postingan jika belum pernah diambil.
-     * @param {boolean} [force=false] - Paksa fetch ulang bahkan jika data sudah ada.
+     * Mengambil daftar postingan dengan pagination.
+     * @param {Object} [options={}] - Opsi untuk fetch.
+     * @param {number} [options.page=1] - Halaman yang akan diambil.
+     * @param {boolean} [options.force=false] - Paksa fetch ulang bahkan jika data sudah ada.
      */
-    async fetchPosts(force = false) {
-      if (this.pending || (this.hasFetchedPosts && !force)) {
+    async fetchPosts({ page = 1, force = false } = {}) {
+      // Allow refetch if page changes or force is true
+      const isPageChange = page !== this.meta.current_page;
+      if (this.pending || (this.hasFetchedPosts && !force && !isPageChange)) {
         return;
       }
 
@@ -21,22 +31,22 @@ export const usePostStore = defineStore("posts", {
       try {
         // Call local Nuxt server API (which proxies to PM One API)
         // API key is kept secure on the server, not exposed to browser
-        const { data, error: fetchError } = await useFetch("/api/blog/posts", {
+        const data = await $fetch("/api/blog/posts", {
           query: {
-            per_page: 100, // Get up to 100 posts
+            page,
+            per_page: 12,
             sort: "-published_at", // Sort by published_at descending (newest first)
           },
-          key: "posts",
         });
 
-        if (fetchError.value) {
-          throw fetchError.value;
+        // PM One returns { data: [...], meta: {...} }
+        if (data?.data) {
+          this.posts = data.data;
+          this.hasFetchedPosts = true;
         }
 
-        // PM One returns { data: [...], meta: {...} }
-        if (data.value?.data) {
-          this.posts = data.value.data;
-          this.hasFetchedPosts = true;
+        if (data?.meta) {
+          this.meta = data.meta;
         }
       } catch (err) {
         this.error = err;
@@ -44,6 +54,14 @@ export const usePostStore = defineStore("posts", {
       } finally {
         this.pending = false;
       }
+    },
+
+    /**
+     * Mengubah halaman dan fetch data.
+     * @param {number} page - Halaman yang akan diambil.
+     */
+    async goToPage(page) {
+      await this.fetchPosts({ page, force: true });
     },
   },
 });
