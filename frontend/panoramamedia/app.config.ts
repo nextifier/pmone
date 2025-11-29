@@ -116,7 +116,7 @@ const routes = {
   news: {
     label: "News",
     path: "/news",
-    rightClickLink: "https://blog.levenium.com/ghost/#/dashboard",
+    rightClickLink: isProduction ? "https://api.pmone.id/posts" : "http://localhost:8000/posts",
   },
 };
 
