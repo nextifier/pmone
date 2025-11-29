@@ -29,11 +29,15 @@ export const usePostStore = defineStore("posts", {
       this.error = null;
 
       try {
-        // Call local Nuxt server API (which proxies to PM One API)
-        // API key is kept secure on the server, not exposed to browser
-        const data = await fetch(`/api/blog/posts?page=${page}&per_page=50&sort=-published_at`).then(
-          (res) => res.json()
-        );
+        // Use $fetch from Nuxt which handles SSR correctly
+        const { $fetch } = useNuxtApp();
+        const data = await $fetch("/api/blog/posts", {
+          query: {
+            page,
+            per_page: 50,
+            sort: "-published_at",
+          },
+        });
 
         // PM One returns { data: [...], meta: {...} }
         if (data?.data) {
