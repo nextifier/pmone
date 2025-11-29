@@ -48,7 +48,7 @@
             v-if="pending"
             class="grid grid-cols-1 gap-x-4 gap-y-8 @xl:grid-cols-2 @4xl:grid-cols-12"
           >
-            <BlogPostCardSkeleton v-for="(_, index) in 16" :key="index" :class="postCardClasses" />
+            <BlogPostCardSkeleton v-for="(_, index) in 12" :key="index" :class="postCardClasses" />
           </div>
 
           <div v-else-if="error" class="flex items-center justify-center text-center">
@@ -82,7 +82,7 @@
             >
               <BlogPostCard
                 v-for="(post, index) in filteredPosts"
-                :key="index"
+                :key="post.id || index"
                 :post="post"
                 :show-excerpt="false"
                 :show-author="false"
@@ -100,6 +100,78 @@
                 something awesome!</span
               >
             </div>
+
+            <!-- Pagination -->
+            <div v-if="!isSearching && meta.last_page > 1" class="mt-12">
+              <Pagination
+                v-model:page="currentPage"
+                :total="meta.total"
+                :items-per-page="meta.per_page"
+                :sibling-count="1"
+                show-edges
+              >
+                <PaginationContent class="flex items-center gap-1">
+                  <PaginationFirst
+                    class="size-9 p-0"
+                    :class="
+                      cn(
+                        buttonVariants({ variant: 'outline', size: 'icon' }),
+                        currentPage === 1 && 'pointer-events-none opacity-50'
+                      )
+                    "
+                  />
+                  <PaginationPrevious
+                    class="size-9 p-0"
+                    :class="
+                      cn(
+                        buttonVariants({ variant: 'outline', size: 'icon' }),
+                        currentPage === 1 && 'pointer-events-none opacity-50'
+                      )
+                    "
+                  >
+                    <ChevronLeftIcon class="size-4" />
+                  </PaginationPrevious>
+
+                  <template v-for="(item, index) in paginationItems" :key="index">
+                    <PaginationItem
+                      v-if="item.type === 'page'"
+                      :value="item.value"
+                      as-child
+                    >
+                      <Button
+                        :variant="item.value === currentPage ? 'default' : 'outline'"
+                        size="icon"
+                        class="size-9"
+                      >
+                        {{ item.value }}
+                      </Button>
+                    </PaginationItem>
+                    <PaginationEllipsis v-else :index="index" />
+                  </template>
+
+                  <PaginationNext
+                    class="size-9 p-0"
+                    :class="
+                      cn(
+                        buttonVariants({ variant: 'outline', size: 'icon' }),
+                        currentPage === meta.last_page && 'pointer-events-none opacity-50'
+                      )
+                    "
+                  >
+                    <ChevronRightIcon class="size-4" />
+                  </PaginationNext>
+                  <PaginationLast
+                    class="size-9 p-0"
+                    :class="
+                      cn(
+                        buttonVariants({ variant: 'outline', size: 'icon' }),
+                        currentPage === meta.last_page && 'pointer-events-none opacity-50'
+                      )
+                    "
+                  />
+                </PaginationContent>
+              </Pagination>
+            </div>
           </div>
         </div>
       </div>
@@ -108,6 +180,20 @@
 </template>
 
 <script setup>
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-vue-next";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationFirst,
+  PaginationItem,
+  PaginationLast,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { cn } from "@/lib/utils";
+
 usePageMeta("news");
 defineOptions({
   name: "news",
@@ -118,14 +204,78 @@ const postCardClasses = ref(
 );
 
 const postStore = usePostStore();
-const { posts, pending, error } = storeToRefs(postStore);
+const { posts, pending, error, meta } = storeToRefs(postStore);
 postStore.fetchPosts();
 
 const searchInput = defineModel({ default: "" });
 const debouncedSearchInput = refDebounced(searchInput, 200);
 
+// Check if user is searching
+const isSearching = computed(() => debouncedSearchInput.value.length > 0);
+
+// Current page for pagination
+const currentPage = ref(meta.value.current_page);
+
+// Watch for page changes and fetch new data
+watch(currentPage, async (newPage) => {
+  if (newPage !== meta.value.current_page) {
+    await postStore.goToPage(newPage);
+    // Scroll to top of the page
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+});
+
+// Sync currentPage with meta when meta changes (e.g., after fetch)
+watch(
+  () => meta.value.current_page,
+  (newPage) => {
+    currentPage.value = newPage;
+  }
+);
+
+// Generate pagination items with ellipsis
+const paginationItems = computed(() => {
+  const items = [];
+  const totalPages = meta.value.last_page;
+  const current = currentPage.value;
+  const siblingCount = 1;
+
+  // Always show first page
+  items.push({ type: "page", value: 1 });
+
+  // Calculate range around current page
+  const leftSibling = Math.max(2, current - siblingCount);
+  const rightSibling = Math.min(totalPages - 1, current + siblingCount);
+
+  // Add ellipsis after first page if needed
+  if (leftSibling > 2) {
+    items.push({ type: "ellipsis" });
+  }
+
+  // Add pages around current page
+  for (let i = leftSibling; i <= rightSibling; i++) {
+    if (i !== 1 && i !== totalPages) {
+      items.push({ type: "page", value: i });
+    }
+  }
+
+  // Add ellipsis before last page if needed
+  if (rightSibling < totalPages - 1) {
+    items.push({ type: "ellipsis" });
+  }
+
+  // Always show last page if more than 1 page
+  if (totalPages > 1) {
+    items.push({ type: "page", value: totalPages });
+  }
+
+  return items;
+});
+
 const filteredPosts = computed(() => {
   if (!posts.value) return [];
+  if (!isSearching.value) return posts.value;
+
   return posts.value.filter((post) => {
     const titleMatch = post.title.toLowerCase().includes(debouncedSearchInput.value.toLowerCase());
 
