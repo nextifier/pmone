@@ -309,7 +309,7 @@
                 <PaginationFirst asChild>
                   <button
                     class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                    @click="() => table.setPageIndex(0)"
+                    @click="goToFirstPage"
                     :disabled="!canGoPrevious"
                   >
                     <Icon name="lucide:chevron-first" class="size-4 shrink-0" />
@@ -318,7 +318,7 @@
                 <PaginationPrevious asChild>
                   <button
                     class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                    @click="() => table.previousPage()"
+                    @click="goToPreviousPage"
                     :disabled="!canGoPrevious"
                   >
                     <Icon name="lucide:chevron-left" class="size-4 shrink-0" />
@@ -327,7 +327,7 @@
                 <PaginationNext asChild>
                   <button
                     class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                    @click="() => table.nextPage()"
+                    @click="goToNextPage"
                     :disabled="!canGoNext"
                   >
                     <Icon name="lucide:chevron-right" class="size-4 shrink-0" />
@@ -336,7 +336,7 @@
                 <PaginationLast asChild>
                   <button
                     class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
-                    @click="() => table.setPageIndex(lastPageIndex)"
+                    @click="goToLastPage"
                     :disabled="!canGoNext"
                   >
                     <Icon name="lucide:chevron-last" class="size-4 shrink-0" />
@@ -559,6 +559,42 @@ const handlePageSizeChange = (value) => {
   }
 };
 
+// Pagination navigation functions that work for both client and server-side modes
+const goToFirstPage = () => {
+  if (isClientSideMode.value) {
+    table.setPageIndex(0);
+  } else {
+    pagination.value = { ...pagination.value, pageIndex: 0 };
+  }
+};
+
+const goToPreviousPage = () => {
+  if (isClientSideMode.value) {
+    table.previousPage();
+  } else {
+    const newIndex = Math.max(0, pagination.value.pageIndex - 1);
+    pagination.value = { ...pagination.value, pageIndex: newIndex };
+  }
+};
+
+const goToNextPage = () => {
+  if (isClientSideMode.value) {
+    table.nextPage();
+  } else {
+    const maxIndex = props.meta.last_page - 1;
+    const newIndex = Math.min(maxIndex, pagination.value.pageIndex + 1);
+    pagination.value = { ...pagination.value, pageIndex: newIndex };
+  }
+};
+
+const goToLastPage = () => {
+  if (isClientSideMode.value) {
+    table.setPageIndex(table.getPageCount() - 1);
+  } else {
+    pagination.value = { ...pagination.value, pageIndex: props.meta.last_page - 1 };
+  }
+};
+
 // Search with debounce
 const searchInputEl = ref();
 const searchValue = ref("");
@@ -628,13 +664,13 @@ const paginationInfo = computed(() => {
 });
 
 const canGoPrevious = computed(() =>
-  isClientSidePagination.value ? table.getCanPreviousPage() : props.meta.current_page > 1
+  isClientSidePagination.value ? table.getCanPreviousPage() : pagination.value.pageIndex > 0
 );
 
 const canGoNext = computed(() =>
   isClientSidePagination.value
     ? table.getCanNextPage()
-    : props.meta.current_page < props.meta.last_page
+    : pagination.value.pageIndex < props.meta.last_page - 1
 );
 
 const lastPageIndex = computed(() =>
@@ -654,14 +690,18 @@ const totalItems = computed(() =>
 );
 
 const currentPageSizeValue = computed(() => {
-  const pageSize = table.getState().pagination.pageSize;
-  // Check if current page size equals total items (which means "All" is selected)
-  return pageSize === totalItems.value ? "all" : `${pageSize}`;
+  const pageSize = pagination.value.pageSize;
+  // Only show "all" if page size is larger than all available options in pageSizes
+  const maxPageSizeOption = Math.max(...props.pageSizes);
+  const isAllSelected = pageSize > maxPageSizeOption;
+  return isAllSelected ? "all" : `${pageSize}`;
 });
 
 const currentPageSizeDisplay = computed(() => {
-  const pageSize = table.getState().pagination.pageSize;
-  return pageSize === totalItems.value ? "All" : `${pageSize}`;
+  const pageSize = pagination.value.pageSize;
+  const maxPageSizeOption = Math.max(...props.pageSizes);
+  const isAllSelected = pageSize > maxPageSizeOption;
+  return isAllSelected ? "All" : `${pageSize}`;
 });
 
 // Method to reset row selection

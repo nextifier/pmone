@@ -5,6 +5,11 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 
+// Suppress PHP 8.5 deprecation warnings for PDO::MYSQL_ATTR_SSL_CA
+// This is a temporary fix until Laravel releases an update
+// See: https://github.com/laravel/framework/issues
+error_reporting(E_ALL & ~E_DEPRECATED);
+
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',

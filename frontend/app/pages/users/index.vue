@@ -69,9 +69,9 @@
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
-      @update:pagination="pagination = $event"
-      @update:sorting="sorting = $event"
-      @update:column-filters="columnFilters = $event"
+      @update:pagination="onPaginationUpdate"
+      @update:sorting="onSortingUpdate"
+      @update:column-filters="onColumnFiltersUpdate"
       @refresh="refresh"
     >
       <template #filters="{ table }">
@@ -179,7 +179,10 @@
               class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
               @click="open()"
             >
-              <Icon name="material-symbols:verified" class="text-muted-foreground size-4 shrink-0" />
+              <Icon
+                name="material-symbols:verified"
+                class="text-muted-foreground size-4 shrink-0"
+              />
               <span class="text-sm tracking-tight">Unverify</span>
               <span
                 class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
@@ -304,7 +307,7 @@ const sorting = ref([{ id: "created_at", desc: true }]);
 
 // Data state
 // Client-only mode flag (true = client-side pagination, false = server-side)
-const clientOnly = ref(false);
+const clientOnly = ref(true);
 
 // Build query params
 const buildQueryParams = () => {
@@ -350,12 +353,39 @@ const {
   refresh: fetchUsers,
 } = await useLazySanctumFetch(() => `/api/users?${buildQueryParams()}`, {
   key: "users-list",
-  watch: clientOnly.value ? [] : [columnFilters, sorting, pagination],
+  watch: false,
   immediate: !clientOnly.value,
 });
 
 const data = computed(() => usersResponse.value?.data || []);
-const meta = computed(() => usersResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 10, total: 0 });
+const meta = computed(
+  () => usersResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 10, total: 0 }
+);
+
+// Watch for changes and refetch (only in server-side mode)
+watch(
+  [columnFilters, sorting, pagination],
+  () => {
+    if (!clientOnly.value) {
+      fetchUsers();
+    }
+  },
+  { deep: true }
+);
+
+// Update handlers
+const onPaginationUpdate = (newValue) => {
+  pagination.value.pageIndex = newValue.pageIndex;
+  pagination.value.pageSize = newValue.pageSize;
+};
+
+const onSortingUpdate = (newValue) => {
+  sorting.value = newValue;
+};
+
+const onColumnFiltersUpdate = (newValue) => {
+  columnFilters.value = newValue;
+};
 
 // Global state for refresh tracking
 const needsRefresh = useState("users-needs-refresh", () => false);

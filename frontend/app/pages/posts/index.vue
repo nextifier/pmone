@@ -59,9 +59,9 @@
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
-      @update:pagination="pagination = $event"
-      @update:sorting="sorting = $event"
-      @update:column-filters="columnFilters = $event"
+      @update:pagination="onPaginationUpdate"
+      @update:sorting="onSortingUpdate"
+      @update:column-filters="onColumnFiltersUpdate"
       @refresh="refresh"
     >
       <template #filters="{ table }">
@@ -231,12 +231,37 @@ const {
   refresh: fetchPosts,
 } = await useLazySanctumFetch(() => `/api/posts?${buildQueryParams()}`, {
   key: "posts-list",
-  watch: clientOnly.value ? [] : [columnFilters, sorting, pagination],
+  watch: false,
   immediate: !clientOnly.value,
 });
 
 const data = computed(() => postsResponse.value?.data || []);
 const meta = computed(() => postsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 });
+
+// Watch for changes and refetch (only in server-side mode)
+watch(
+  [columnFilters, sorting, pagination],
+  () => {
+    if (!clientOnly.value) {
+      fetchPosts();
+    }
+  },
+  { deep: true }
+);
+
+// Update handlers
+const onPaginationUpdate = (newValue) => {
+  pagination.value.pageIndex = newValue.pageIndex;
+  pagination.value.pageSize = newValue.pageSize;
+};
+
+const onSortingUpdate = (newValue) => {
+  sorting.value = newValue;
+};
+
+const onColumnFiltersUpdate = (newValue) => {
+  columnFilters.value = newValue;
+};
 
 // Global state for refresh tracking
 const needsRefresh = useState("posts-needs-refresh", () => false);

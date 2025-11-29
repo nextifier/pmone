@@ -36,9 +36,9 @@
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
-      @update:pagination="pagination = $event"
-      @update:sorting="sorting = $event"
-      @update:column-filters="columnFilters = $event"
+      @update:pagination="onPaginationUpdate"
+      @update:sorting="onSortingUpdate"
+      @update:column-filters="onColumnFiltersUpdate"
       @refresh="refresh"
     >
       <template #filters="{ table }">
@@ -157,11 +157,34 @@ const {
   refresh: fetchLogs,
 } = await useLazySanctumFetch(() => `/api/logs?${buildQueryParams()}`, {
   key: "logs-data",
-  watch: [columnFilters, sorting, pagination],
+  watch: false,
 });
 
 const data = computed(() => logsResponse.value?.data || []);
 const meta = computed(() => logsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 50, total: 0 });
+
+// Watch for changes and refetch
+watch(
+  [columnFilters, sorting, pagination],
+  () => {
+    fetchLogs();
+  },
+  { deep: true }
+);
+
+// Update handlers
+const onPaginationUpdate = (newValue) => {
+  pagination.value.pageIndex = newValue.pageIndex;
+  pagination.value.pageSize = newValue.pageSize;
+};
+
+const onSortingUpdate = (newValue) => {
+  sorting.value = newValue;
+};
+
+const onColumnFiltersUpdate = (newValue) => {
+  columnFilters.value = newValue;
+};
 
 const refresh = fetchLogs;
 
