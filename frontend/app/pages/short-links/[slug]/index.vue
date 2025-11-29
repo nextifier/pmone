@@ -32,6 +32,49 @@
     </div>
 
     <div v-else-if="analyticsData" class="space-y-6">
+      <!-- QR Code Section -->
+      <Card v-if="shortLink">
+        <CardHeader>
+          <CardTitle>QR Code</CardTitle>
+          <CardDescription>Share your short link with a QR code</CardDescription>
+        </CardHeader>
+        <CardContent class="flex flex-col items-center gap-6">
+          <!-- Short Link URL with Copy Button -->
+          <div class="w-full max-w-md">
+            <div class="flex items-center gap-2">
+              <Input
+                :model-value="shortLinkUrl"
+                readonly
+                class="flex-1 font-mono text-sm"
+              />
+              <Button @click="copyToClipboard" variant="outline" size="icon">
+                <Icon
+                  :name="copied ? 'lucide:check' : 'lucide:copy'"
+                  class="size-4"
+                />
+              </Button>
+            </div>
+          </div>
+
+          <!-- QR Code Preview -->
+          <div class="bg-muted flex items-center justify-center rounded-lg p-6">
+            <canvas ref="qrCanvas" class="max-w-full rounded-md bg-white shadow-md" />
+          </div>
+
+          <!-- Download Buttons -->
+          <div class="flex w-full max-w-md flex-col gap-2">
+            <Button @click="downloadJPG" class="w-full">
+              <Icon name="lucide:download" class="mr-2 h-4 w-4" />
+              Download JPG
+            </Button>
+            <Button @click="downloadSVG" variant="outline" class="w-full">
+              <Icon name="lucide:download" class="mr-2 h-4 w-4" />
+              Download SVG
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <!-- Summary Cards -->
       <div class="grid gap-4 sm:grid-cols-3">
         <div class="border-border rounded-lg border p-6">
@@ -186,6 +229,8 @@
 
 <script setup>
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
+import QRCode from "qrcode";
+import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -196,6 +241,12 @@ const route = useRoute();
 const slug = computed(() => route.params.slug);
 
 const { $dayjs } = useNuxtApp();
+const config = useRuntimeConfig();
+
+// QR Code state
+const qrCanvas = ref(null);
+const copied = ref(false);
+const qrSize = 512;
 
 const selectedPeriod = ref("7");
 
@@ -231,6 +282,108 @@ const error = computed(() => {
     return analyticsError.value.response?._data?.message || "Failed to load analytics";
   return null;
 });
+
+// Short link URL
+const shortLinkUrl = computed(() => {
+  if (!shortLink.value) return "";
+  return `${config.public.siteUrl}/${shortLink.value.slug}`;
+});
+
+// Generate QR code whenever short link is available
+watch(
+  [shortLink, qrCanvas],
+  async ([link, canvas]) => {
+    if (!link || !canvas) return;
+
+    try {
+      await QRCode.toCanvas(canvas, shortLinkUrl.value, {
+        width: qrSize,
+        margin: 4,
+        errorCorrectionLevel: "M",
+        color: {
+          dark: "#000000",
+          light: "#FFFFFF",
+        },
+      });
+    } catch (err) {
+      console.error("Error generating QR code:", err);
+    }
+  },
+  { immediate: true }
+);
+
+// Copy to clipboard
+const copyToClipboard = async () => {
+  try {
+    await navigator.clipboard.writeText(shortLinkUrl.value);
+    copied.value = true;
+    toast.success("Link copied to clipboard!");
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
+  } catch (err) {
+    toast.error("Failed to copy link");
+    console.error("Error copying to clipboard:", err);
+  }
+};
+
+// Download as JPG
+const downloadJPG = () => {
+  if (!qrCanvas.value) return;
+
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = qrCanvas.value.width;
+  tempCanvas.height = qrCanvas.value.height;
+  const ctx = tempCanvas.getContext("2d");
+
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+  ctx.drawImage(qrCanvas.value, 0, 0);
+
+  tempCanvas.toBlob(
+    (blob) => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = `qrcode-${shortLink.value.slug}.jpg`;
+      link.href = url;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success("QR code downloaded!");
+    },
+    "image/jpeg",
+    1.0
+  );
+};
+
+// Download as SVG
+const downloadSVG = async () => {
+  if (!shortLinkUrl.value) return;
+
+  try {
+    const svgString = await QRCode.toString(shortLinkUrl.value, {
+      type: "svg",
+      width: qrSize,
+      margin: 4,
+      errorCorrectionLevel: "M",
+      color: {
+        dark: "#000000",
+        light: "#FFFFFF",
+      },
+    });
+
+    const blob = new Blob([svgString], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.download = `qrcode-${shortLink.value.slug}.svg`;
+    link.href = url;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("QR code downloaded!");
+  } catch (err) {
+    toast.error("Failed to download QR code");
+    console.error("Error generating SVG:", err);
+  }
+};
 
 // Chart data for ChartLineDefault component
 const chartData = computed(() => {
