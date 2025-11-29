@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-6xl space-y-6 pt-4 pb-16">
+  <div class="mx-auto max-w-4xl space-y-6 pt-4 pb-16">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:api" class="size-5 sm:size-6" />
@@ -8,11 +8,11 @@
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <nuxt-link
-          to="/api-consumers/create"
-          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
+          to="/api-consumers/trash"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
-          <Icon name="lucide:plus" class="size-4 shrink-0" />
-          <span>Add Consumer</span>
+          <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
+          <span>Trash</span>
         </nuxt-link>
       </div>
     </div>
@@ -210,7 +210,10 @@ const {
 });
 
 const data = computed(() => apiConsumersResponse.value?.data || []);
-const meta = computed(() => apiConsumersResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 });
+const meta = computed(
+  () =>
+    apiConsumersResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 }
+);
 
 const refresh = fetchApiConsumers;
 
@@ -275,18 +278,23 @@ const columns = [
     accessorKey: "name",
     cell: ({ row }) => {
       const consumer = row.original;
-      return h("div", { class: "flex flex-col gap-1" }, [
-        h(
-          "div",
-          { class: "font-medium tracking-tight" },
-          consumer.name
-        ),
-        h(
-          "div",
-          { class: "text-muted-foreground text-xs tracking-tight" },
-          consumer.website_url
-        ),
-      ]);
+      return h(
+        resolveComponent("NuxtLink"),
+        {
+          to: `/api-consumers/${consumer.id}/edit`,
+          class: "flex flex-col gap-1 hover:opacity-80 transition-opacity",
+        },
+        {
+          default: () => [
+            h("div", { class: "font-medium tracking-tight" }, consumer.name),
+            h(
+              "div",
+              { class: "text-muted-foreground text-xs tracking-tight" },
+              consumer.website_url
+            ),
+          ],
+        }
+      );
     },
     size: 280,
     enableHiding: false,
@@ -298,26 +306,13 @@ const columns = [
     },
   },
   {
-    header: "Description",
-    accessorKey: "description",
-    cell: ({ row }) => {
-      const description = row.getValue("description");
-      if (!description) {
-        return h("span", { class: "text-muted-foreground text-sm" }, "-");
-      }
-      return h(
-        "div",
-        { class: "text-muted-foreground max-w-xs truncate text-sm tracking-tight" },
-        description
-      );
-    },
-    size: 220,
-  },
-  {
     header: "Rate Limit",
     accessorKey: "rate_limit",
     cell: ({ row }) => {
-      const limit = row.getValue("rate_limit") || 60;
+      const limit = row.getValue("rate_limit");
+      if (limit === 0) {
+        return h("div", { class: "text-sm tracking-tight" }, "Unlimited");
+      }
       return h("div", { class: "text-sm tracking-tight" }, `${limit}/min`);
     },
     size: 100,
@@ -350,11 +345,7 @@ const columns = [
         return h("span", { class: "text-muted-foreground text-sm" }, "Never");
       }
       return withDirectives(
-        h(
-          "div",
-          { class: "text-muted-foreground text-sm tracking-tight" },
-          $dayjs(date).fromNow()
-        ),
+        h("div", { class: "text-muted-foreground text-sm tracking-tight" }, $dayjs(date).fromNow()),
         [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
       );
     },
@@ -366,11 +357,7 @@ const columns = [
     cell: ({ row }) => {
       const date = row.getValue("created_at");
       return withDirectives(
-        h(
-          "div",
-          { class: "text-muted-foreground text-sm tracking-tight" },
-          $dayjs(date).fromNow()
-        ),
+        h("div", { class: "text-muted-foreground text-sm tracking-tight" }, $dayjs(date).fromNow()),
         [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
       );
     },

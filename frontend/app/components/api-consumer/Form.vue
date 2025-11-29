@@ -59,26 +59,22 @@
             <Label for="rate_limit">Rate Limit (requests per minute)</Label>
             <Input
               id="rate_limit"
-              v-model.number="formData.rate_limit"
-              type="number"
-              min="0"
-              max="10000"
+              v-model="formData.rate_limit"
+              type="text"
+              inputmode="numeric"
               placeholder="60"
             />
             <InputErrorMessage :errors="errors.rate_limit" />
             <p class="text-muted-foreground text-xs">
-              Set to <strong>0</strong> for unlimited access, or <strong>10-10000</strong> to limit requests per minute. Default is 60.
+              Set to <strong>0</strong> for unlimited access, or <strong>10-10000</strong> to limit
+              requests per minute. Default is 60.
             </p>
           </div>
 
           <div class="space-y-2">
             <Label for="allowed_origins">Allowed Origins (CORS)</Label>
             <TagsInput v-model="formData.allowed_origins">
-              <TagsInputItem
-                v-for="item in formData.allowed_origins"
-                :key="item"
-                :value="item"
-              >
+              <TagsInputItem v-for="item in formData.allowed_origins" :key="item" :value="item">
                 <TagsInputItemText />
                 <TagsInputItemDelete />
               </TagsInputItem>
@@ -86,7 +82,9 @@
             </TagsInput>
             <InputErrorMessage :errors="errors.allowed_origins" />
             <p class="text-muted-foreground text-xs">
-              URLs allowed to make API requests from browsers. Add multiple origins for www/non-www variants. <strong>Leave empty to allow all origins</strong> (not recommended for production).
+              URLs allowed to make API requests from browsers. Add multiple origins for www/non-www
+              variants. <strong>Leave empty to allow all origins</strong> (not recommended for
+              production).
             </p>
           </div>
 
@@ -111,23 +109,58 @@
           <div class="space-y-2">
             <div class="flex items-center justify-between gap-4">
               <Label>Current API Key</Label>
-              <button
-                type="button"
-                @click="handleRegenerateKey"
-                :disabled="regenerating"
-                class="text-destructive hover:text-destructive/80 flex items-center gap-x-1 text-sm tracking-tight disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <Icon name="lucide:refresh-cw" class="size-4" :class="{ 'animate-spin': regenerating }" />
-                <span>Regenerate</span>
-              </button>
+              <DialogResponsive v-model:open="regenerateDialogOpen">
+                <template #trigger="{ open }">
+                  <button
+                    type="button"
+                    @click="open()"
+                    :disabled="regenerating"
+                    class="text-destructive-foreground hover:text-destructive-foreground/80 flex items-center gap-x-1 text-sm tracking-tight disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Icon
+                      name="lucide:refresh-cw"
+                      class="size-4"
+                      :class="{ 'animate-spin': regenerating }"
+                    />
+                    <span>Regenerate</span>
+                  </button>
+                </template>
+                <template #default>
+                  <div class="px-4 pb-10 md:px-6 md:py-5">
+                    <div class="text-primary text-lg font-semibold tracking-tight">
+                      Regenerate API Key?
+                    </div>
+                    <p class="text-body mt-1.5 text-sm tracking-tight">
+                      Are you sure you want to regenerate the API key? The old key will stop working immediately.
+                    </p>
+                    <div class="mt-3 flex justify-end gap-2">
+                      <button
+                        class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                        @click="regenerateDialogOpen = false"
+                        :disabled="regenerating"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        @click="handleRegenerateKey"
+                        :disabled="regenerating"
+                        class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <Spinner v-if="regenerating" class="size-4 text-white" />
+                        <span v-else>Regenerate</span>
+                      </button>
+                    </div>
+                  </div>
+                </template>
+              </DialogResponsive>
             </div>
             <div class="bg-muted flex items-center gap-2 rounded-md p-3">
               <code class="text-foreground/80 grow font-mono text-sm">
                 {{ maskedApiKey }}
               </code>
-              <ButtonCopy :text="apiConsumer.api_key" />
+              <ButtonCopy :text="currentApiKey" @click.prevent />
             </div>
-            <p class="text-warning text-xs font-medium">
+            <p class="text-warning-foreground text-xs font-medium">
               Keep this key secure! Regenerating will invalidate the old key.
             </p>
           </div>
@@ -149,7 +182,7 @@
                 {{ $dayjs(apiConsumer.last_used_at).fromNow() }}
               </template>
               <template v-else>
-                <span class="text-warning">Never used</span>
+                <span class="text-warning-foreground">Never used</span>
               </template>
             </span>
           </div>
@@ -183,8 +216,8 @@
 </template>
 
 <script setup>
+import DialogResponsive from "@/components/DialogResponsive.vue";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import {
   TagsInput,
   TagsInputInput,
@@ -192,6 +225,7 @@ import {
   TagsInputItemDelete,
   TagsInputItemText,
 } from "@/components/ui/tags-input";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
@@ -227,6 +261,8 @@ const formData = ref({
 
 const errors = ref({});
 const regenerating = ref(false);
+const regenerateDialogOpen = ref(false);
+const currentApiKey = ref(props.apiConsumer?.api_key || "");
 
 // Initialize form data in edit mode
 if (props.mode === "edit" && props.apiConsumer) {
@@ -234,19 +270,22 @@ if (props.mode === "edit" && props.apiConsumer) {
     name: props.apiConsumer.name || "",
     website_url: props.apiConsumer.website_url || "",
     description: props.apiConsumer.description || "",
-    rate_limit: props.apiConsumer.rate_limit || 60,
+    rate_limit: props.apiConsumer.rate_limit !== null && props.apiConsumer.rate_limit !== undefined ? props.apiConsumer.rate_limit : 60,
     allowed_origins: props.apiConsumer.allowed_origins || [],
     is_active: props.apiConsumer.is_active ?? true,
   };
+  currentApiKey.value = props.apiConsumer.api_key || "";
 }
 
 // Computed properties
-const submitText = computed(() => (props.mode === "create" ? "Create Consumer" : "Update Consumer"));
+const submitText = computed(() =>
+  props.mode === "create" ? "Create Consumer" : "Update Consumer"
+);
 const loadingText = computed(() => (props.mode === "create" ? "Creating..." : "Updating..."));
 
 const maskedApiKey = computed(() => {
-  if (!props.apiConsumer?.api_key) return "";
-  const key = props.apiConsumer.api_key;
+  if (!currentApiKey.value) return "";
+  const key = currentApiKey.value;
   return key.substring(0, 10) + "•••••••••••••••••••" + key.substring(key.length - 5);
 });
 
@@ -256,12 +295,23 @@ const handleSubmit = async () => {
   emit("update:loading", true);
 
   try {
+    // Parse rate_limit to ensure it's a number
+    let rateLimitValue = 60; // default
+    if (formData.value.rate_limit !== "" && formData.value.rate_limit !== null && formData.value.rate_limit !== undefined) {
+      rateLimitValue = parseInt(formData.value.rate_limit, 10);
+      // Handle NaN case
+      if (isNaN(rateLimitValue)) {
+        rateLimitValue = 60;
+      }
+    }
+
     const payload = {
       name: formData.value.name,
       website_url: formData.value.website_url,
       description: formData.value.description || null,
-      rate_limit: formData.value.rate_limit,
-      allowed_origins: formData.value.allowed_origins.length > 0 ? formData.value.allowed_origins : null,
+      rate_limit: rateLimitValue,
+      allowed_origins:
+        formData.value.allowed_origins.length > 0 ? formData.value.allowed_origins : null,
       is_active: formData.value.is_active,
     };
 
@@ -278,7 +328,10 @@ const handleSubmit = async () => {
       });
     }
 
-    toast.success(response.message || `API Consumer ${props.mode === "create" ? "created" : "updated"} successfully`);
+    toast.success(
+      response.message ||
+        `API Consumer ${props.mode === "create" ? "created" : "updated"} successfully`
+    );
 
     if (props.mode === "create" && response.data?.api_key) {
       // Show API key to user (only shown once on creation)
@@ -304,10 +357,6 @@ const handleSubmit = async () => {
 
 // Regenerate API key
 const handleRegenerateKey = async () => {
-  if (!confirm("Are you sure you want to regenerate the API key? The old key will stop working immediately.")) {
-    return;
-  }
-
   regenerating.value = true;
 
   try {
@@ -319,8 +368,14 @@ const handleRegenerateKey = async () => {
     );
 
     if (response.data?.api_key) {
-      // Update the local data
+      // Update the reactive API key
+      currentApiKey.value = response.data.api_key;
+
+      // Also update the prop for consistency
       props.apiConsumer.api_key = response.data.api_key;
+
+      // Close the dialog
+      regenerateDialogOpen.value = false;
 
       toast.success("API key regenerated successfully!", {
         description: `New API Key: ${response.data.api_key}`,
@@ -334,4 +389,14 @@ const handleRegenerateKey = async () => {
     regenerating.value = false;
   }
 };
+
+// Keyboard shortcuts
+defineShortcuts({
+  meta_s: {
+    usingInput: true,
+    handler: () => {
+      handleSubmit();
+    },
+  },
+});
 </script>

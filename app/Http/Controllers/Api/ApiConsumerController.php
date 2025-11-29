@@ -64,7 +64,7 @@ class ApiConsumerController extends Controller
             'website_url' => $request->website_url,
             'description' => $request->description,
             'allowed_origins' => $request->allowed_origins,
-            'rate_limit' => $request->rate_limit ?? 60,
+            'rate_limit' => $request->has('rate_limit') ? $request->rate_limit : 60,
             'is_active' => $request->boolean('is_active', true),
             'created_by' => auth()->id(),
         ]);
@@ -186,6 +186,146 @@ class ApiConsumerController extends Controller
                     'allowed_origins_count' => count($apiConsumer->allowed_origins ?? []),
                 ],
             ],
+        ]);
+    }
+
+    /**
+     * Display a listing of trashed API consumers
+     */
+    public function trash(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', ApiConsumer::class);
+
+        $query = ApiConsumer::onlyTrashed()->with(['creator', 'deleter']);
+        $clientOnly = $request->boolean('client_only', false);
+
+        if (! $clientOnly) {
+            // Filter by status
+            if ($request->has('is_active')) {
+                $query->where('is_active', $request->boolean('is_active'));
+            }
+
+            // Search
+            if ($search = $request->input('search')) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('website_url', 'like', "%{$search}%");
+                });
+            }
+
+            // Sorting
+            $sort = $request->input('sort', '-deleted_at');
+            $sortField = ltrim($sort, '-');
+            $sortDirection = str_starts_with($sort, '-') ? 'desc' : 'asc';
+            $query->orderBy($sortField, $sortDirection);
+        }
+
+        if ($clientOnly) {
+            $consumers = $query->get();
+
+            return response()->json([
+                'data' => ApiConsumerResource::collection($consumers),
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => $consumers->count(),
+                    'total' => $consumers->count(),
+                ],
+            ]);
+        }
+
+        $consumers = $query->paginate($request->input('per_page', 15));
+
+        return response()->json([
+            'data' => ApiConsumerResource::collection($consumers->items()),
+            'meta' => [
+                'current_page' => $consumers->currentPage(),
+                'last_page' => $consumers->lastPage(),
+                'per_page' => $consumers->perPage(),
+                'total' => $consumers->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Restore a trashed API consumer
+     */
+    public function restore(Request $request, int $id): JsonResponse
+    {
+        $consumer = ApiConsumer::onlyTrashed()->findOrFail($id);
+        $this->authorize('restore', $consumer);
+
+        $consumer->restore();
+
+        return response()->json([
+            'message' => 'API Consumer restored successfully',
+        ]);
+    }
+
+    /**
+     * Restore multiple trashed API consumers
+     */
+    public function bulkRestore(Request $request): JsonResponse
+    {
+        $this->authorize('restoreAny', ApiConsumer::class);
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:api_consumers,id',
+        ]);
+
+        $consumers = ApiConsumer::onlyTrashed()->whereIn('id', $request->ids)->get();
+
+        foreach ($consumers as $consumer) {
+            $this->authorize('restore', $consumer);
+        }
+
+        ApiConsumer::onlyTrashed()->whereIn('id', $request->ids)->restore();
+
+        return response()->json([
+            'message' => count($request->ids).' API Consumer(s) restored successfully',
+            'restored_count' => count($request->ids),
+        ]);
+    }
+
+    /**
+     * Permanently delete a trashed API consumer
+     */
+    public function forceDestroy(Request $request, int $id): JsonResponse
+    {
+        $consumer = ApiConsumer::onlyTrashed()->findOrFail($id);
+        $this->authorize('forceDelete', $consumer);
+
+        $consumer->forceDelete();
+
+        return response()->json([
+            'message' => 'API Consumer permanently deleted',
+        ]);
+    }
+
+    /**
+     * Permanently delete multiple trashed API consumers
+     */
+    public function bulkForceDestroy(Request $request): JsonResponse
+    {
+        $this->authorize('forceDeleteAny', ApiConsumer::class);
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:api_consumers,id',
+        ]);
+
+        $consumers = ApiConsumer::onlyTrashed()->whereIn('id', $request->ids)->get();
+
+        foreach ($consumers as $consumer) {
+            $this->authorize('forceDelete', $consumer);
+        }
+
+        ApiConsumer::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
+
+        return response()->json([
+            'message' => count($request->ids).' API Consumer(s) permanently deleted',
+            'deleted_count' => count($request->ids),
         ]);
     }
 }

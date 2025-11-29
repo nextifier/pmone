@@ -130,6 +130,14 @@ const navMainGroups = computed(() => {
     });
   }
 
+  if (user.value?.roles?.some((role) => ["master", "admin"].includes(role))) {
+    adminItems.push({
+      label: "API Consumers",
+      path: "/api-consumers",
+      iconName: "hugeicons:api",
+    });
+  }
+
   // Activity Logs - only master and admin
   if (user.value?.roles?.some((role) => ["master", "admin"].includes(role))) {
     adminItems.push({

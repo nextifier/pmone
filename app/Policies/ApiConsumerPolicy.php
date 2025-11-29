@@ -57,9 +57,25 @@ class ApiConsumerPolicy
     }
 
     /**
+     * Determine if the user can restore any API consumers
+     */
+    public function restoreAny(User $user): bool
+    {
+        return $user->hasRole('master');
+    }
+
+    /**
      * Determine if the user can permanently delete the API consumer
      */
     public function forceDelete(User $user, ApiConsumer $apiConsumer): bool
+    {
+        return $user->hasRole('master');
+    }
+
+    /**
+     * Determine if the user can permanently delete any API consumers
+     */
+    public function forceDeleteAny(User $user): bool
     {
         return $user->hasRole('master');
     }

@@ -267,6 +267,11 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('categories')->group(fun
 Route::middleware(['auth:sanctum', 'verified'])->prefix('api-consumers')->group(function () {
     Route::get('/', [ApiConsumerController::class, 'index'])->name('api-consumers.index');
     Route::post('/', [ApiConsumerController::class, 'store'])->name('api-consumers.store');
+    Route::get('/trash', [ApiConsumerController::class, 'trash'])->name('api-consumers.trash');
+    Route::post('/trash/restore/bulk', [ApiConsumerController::class, 'bulkRestore'])->name('api-consumers.bulk-restore');
+    Route::post('/trash/{id}/restore', [ApiConsumerController::class, 'restore'])->name('api-consumers.restore');
+    Route::delete('/trash/bulk', [ApiConsumerController::class, 'bulkForceDestroy'])->name('api-consumers.bulk-force-destroy');
+    Route::delete('/trash/{id}', [ApiConsumerController::class, 'forceDestroy'])->name('api-consumers.force-destroy');
     Route::get('/{apiConsumer}', [ApiConsumerController::class, 'show'])->name('api-consumers.show');
     Route::put('/{apiConsumer}', [ApiConsumerController::class, 'update'])->name('api-consumers.update');
     Route::delete('/{apiConsumer}', [ApiConsumerController::class, 'destroy'])->name('api-consumers.destroy');

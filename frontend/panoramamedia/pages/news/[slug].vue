@@ -1,0 +1,323 @@
+<template>
+  <div>
+    <Sidebar
+      v-if="['news-slug'].includes(route.name)"
+      side="right"
+      variant="sidebar"
+      class="border-border top-[var(--navbar-height-desktop)]"
+    >
+      <SidebarContent class="scroll-fade-y relative">
+        <button
+          v-if="isMobile"
+          @click="setOpenMobile(false)"
+          class="bg-muted text-primary absolute top-4 right-4 flex size-8 items-center justify-center rounded-lg transition active:scale-98"
+        >
+          <Icon name="lucide:x" class="size-4" />
+        </button>
+
+        <div
+          class="divide-border grid grid-cols-1 divide-y px-4 pb-8 *:py-4"
+          :class="{
+            'pt-2': isMobile,
+          }"
+        >
+          <ScrollSpy
+            v-show="foundHeadings?.length > 0"
+            :content-selector="`#${post.slug}`"
+            @headings-found="onHeadingsFound"
+          />
+
+          <LazyBlogPostRecommendation />
+        </div>
+      </SidebarContent>
+      <SidebarRail />
+    </Sidebar>
+
+    <div v-if="pending" class="min-h-screen-offset grid place-items-center">
+      <div class="flex items-center gap-2">
+        <LoadingSpinner class="border-primary size-4" />
+        <span class="tracking-tight">Loading</span>
+      </div>
+    </div>
+
+    <div v-else-if="post" class="pb-6">
+      <div class="container-wider flex items-start justify-between gap-x-12">
+        <main class="mx-auto w-full max-w-[38rem] py-4">
+          <div class="flex items-center justify-between lg:-mx-3">
+            <BackButton />
+            <DialogShare :pageTitle="title" />
+          </div>
+
+          <div
+            class="mt-4 flex flex-col items-center text-center xl:items-center xl:text-center"
+          >
+            <span
+              v-if="post.primary_tag?.name"
+              class="text-primary border-border mb-3 flex items-center justify-center rounded-full border px-3 py-2 text-xs font-semibold tracking-tight capitalize sm:text-sm"
+            >
+              {{ post.primary_tag.name }}
+            </span>
+
+            <h1
+              class="text-primary text-[clamp(2rem,9vw,3rem)] !leading-[1.2] font-bold tracking-tighter text-balance xl:-mx-12"
+            >
+              {{ post.title }}
+            </h1>
+
+            <div v-if="post.authors?.length" class="mt-4">
+              <div class="flex items-center gap-x-2 text-left">
+                <div class="flex shrink-0 -space-x-4">
+                  <nuxt-link
+                    v-for="(author, index) in post.authors"
+                    :key="index"
+                    :to="author.website ?? ''"
+                    target="_blank"
+                    class="gradient-insta relative rounded-full bg-linear-to-tr p-0.5"
+                    :style="`z-index: ${post.authors.length - index}`"
+                  >
+                    <div
+                      class="border-background bg-muted flex size-12 items-center justify-center overflow-hidden rounded-full border-2"
+                    >
+                      <NuxtImg
+                        v-if="author.profile_image"
+                        :src="author.profile_image"
+                        class="size-full object-cover"
+                        width="56"
+                        height="56"
+                        sizes="120px"
+                        loading="lazy"
+                        format="webp"
+                      />
+                    </div>
+                  </nuxt-link>
+                </div>
+
+                <div class="flex flex-col gap-y-1">
+                  <div
+                    class="text-primary line-clamp-1 font-semibold tracking-tight"
+                  >
+                    <nuxt-link
+                      v-for="(author, index) in post.authors"
+                      :key="index"
+                      :to="author.website ?? ''"
+                      target="_blank"
+                      class="hover:underline"
+                    >
+                      {{ author.name
+                      }}<span
+                        v-if="index != Object.keys(post.authors).length - 1"
+                        >,
+                      </span>
+                    </nuxt-link>
+                  </div>
+
+                  <div
+                    class="text-muted-foreground line-clamp-1 text-xs tracking-tight"
+                  >
+                    <nuxt-link
+                      v-for="(author, index) in post.authors"
+                      :key="index"
+                      :to="author.website ?? ''"
+                      target="_blank"
+                      class="hover:text-primary"
+                    >
+                      @{{ author.website.split("/").pop()
+                      }}<span
+                        v-if="index != Object.keys(post.authors).length - 1"
+                        >,
+                      </span>
+                    </nuxt-link>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="text-muted-foreground mt-4 flex w-full items-center justify-between gap-x-3 text-xs tracking-tight sm:text-sm"
+            >
+              <span
+                v-if="post.published_at"
+                v-tippy="$dayjs(post.published_at).format('MMM D, YYYY h:mm A')"
+              >
+                Posted {{ $dayjs(post.published_at).fromNow() }}
+              </span>
+
+              <span
+                v-if="post.reading_time"
+                class="flex items-center gap-x-1.5"
+              >
+                <Icon name="lucide:clock-fading" class="size-4 shrink-0" />
+                <span
+                  >{{ post.reading_time }} min<span v-if="post.reading_time > 1"
+                    >s</span
+                  >
+                  read</span
+                >
+              </span>
+            </div>
+
+            <div
+              v-if="post.custom_excerpt"
+              class="text-primary mt-10 text-xl font-semibold tracking-tighter text-pretty sm:text-2xl"
+            >
+              {{ post.custom_excerpt }}
+            </div>
+          </div>
+
+          <div
+            v-if="post.feature_image"
+            class="bg-muted mx-auto mt-10 block overflow-hidden"
+          >
+            <NuxtImg
+              :src="post.feature_image"
+              :alt="post.feature_image_alt"
+              class="size-full rounded-xl object-cover"
+              :style="{
+                'view-transition-name': `post-feature-img-${post.slug}`,
+              }"
+              loading="lazy"
+              sizes="100vw lg:1024px"
+              width="1000"
+              height="auto"
+              format="webp"
+            />
+          </div>
+
+          <div
+            class="format-html prose-img:rounded-xl prose-headings:scroll-mt-[calc(var(--navbar-height-mobile)+var(--scroll-offset,2.5rem))] mx-auto mt-6 overflow-x-hidden [--scroll-offset:2.5rem] lg:mt-8"
+          >
+            <article :id="post.slug" v-html="processedHtml"></article>
+
+            <div
+              v-if="post.tags?.length"
+              class="mt-8 flex items-start gap-x-3 lg:mt-10"
+            >
+              <Icon name="hugeicons:tag-01" class="mt-2.5 size-5 shrink-0" />
+              <div class="flex flex-wrap gap-x-2 gap-y-3">
+                <span
+                  v-for="(tag, index) in post.tags"
+                  :key="index"
+                  class="border-border rounded-full border px-3 py-2 text-sm capitalize"
+                >
+                  {{ tag.name }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-10 flex flex-col items-center gap-y-4">
+            <span
+              class="text-primary text-center text-lg font-bold tracking-tight sm:text-xl"
+              >Share this post</span
+            >
+            <SharePage
+              model="post"
+              :title="post.title"
+              :url="`${useAppConfig().app.url}/news/${post.slug}`"
+            />
+          </div>
+        </main>
+      </div>
+
+      <!-- <LazyBlogPostSlider
+        :headline="useContentStore().components.postSlider.title.morePosts"
+        class="mt-10 lg:mt-24"
+      /> -->
+
+      <LazyBlogPostMore
+        class="container-wider mt-10 transition-all duration-200 ease-linear"
+        :class="{
+          'pr-(--sidebar-width)': open && !isMobile,
+        }"
+      />
+    </div>
+  </div>
+</template>
+
+<script setup>
+const route = useRoute();
+const config = useRuntimeConfig();
+
+const { $dayjs } = useNuxtApp();
+
+import { useSidebar } from "@/components/ui/sidebar/utils";
+const { open, isMobile, setOpenMobile } = useSidebar();
+
+const { data, pending, error } = await useFetch(
+  `${useAppConfig().app.blogApiUrl}/posts/slug/${route.params.slug}`,
+  {
+    query: {
+      key: useAppConfig().app.blogApiKey,
+      include: "authors,tags",
+      filter: `authors.slug:[${useAppConfig().app.blogUsername}]+visibility:public`,
+    },
+  },
+);
+
+const post = computed(() => data?.value?.posts[0]);
+
+if (!post.value) {
+  throw createError({
+    statusCode: 404,
+    statusMessage: "Page not found",
+  });
+}
+
+function generatePostExcerpt(postBody) {
+  // Match the first paragraph with formatting tags
+  const regex = /<p[^>]*>(.*?)<\/p>/i;
+  const match = regex.exec(postBody);
+
+  if (match && match[1]) {
+    // Remove HTML tags from the matched content
+    const textWithoutTags = match[1].replace(/<[^>]+>/g, "");
+    // Trim any leading or trailing whitespace
+    const trimmedText = textWithoutTags.trim();
+    return trimmedText;
+  } else {
+    // If no match found, return an empty string
+    return "";
+  }
+}
+
+const title = post?.value?.meta_title ?? ref(post?.value?.title) ?? "";
+const description =
+  post?.value?.meta_description ??
+  post?.value?.custom_excerpt ??
+  generatePostExcerpt(post?.value?.html) ??
+  "";
+
+usePageMeta("", {
+  title: title,
+  description: description,
+});
+
+const rawHtml = computed(() => post.value?.html || "");
+const { processedHtml } = useProcessedContent(rawHtml);
+
+const foundHeadings = ref([]);
+
+const onHeadingsFound = (headings) => {
+  foundHeadings.value = headings;
+};
+
+onMounted(async () => {
+  // Tunggu DOM di-hydrate sepenuhnya
+  await nextTick();
+
+  // Cek apakah URL memiliki hash
+  if (route.hash) {
+    // PERBAIKAN: "Bersihkan" hash sebelum digunakan sebagai selector
+    let selector = route.hash;
+    if (selector.startsWith("#") && /\d/.test(selector.charAt(1))) {
+      selector = `[id="${selector.substring(1)}"]`;
+    }
+
+    const element = document.querySelector(selector);
+    if (element) {
+      // Panggil scrollIntoView untuk memicu ulang scroll dengan margin yang benar
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+});
+</script>
