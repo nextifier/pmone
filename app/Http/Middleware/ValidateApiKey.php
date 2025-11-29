@@ -46,21 +46,23 @@ class ValidateApiKey
             ], 403);
         }
 
-        // Apply rate limiting per consumer
-        $rateLimitKey = 'api-consumer:'.$consumer->id;
-        $maxAttempts = $consumer->rate_limit;
+        // Apply rate limiting per consumer (skip if rate_limit is 0 = unlimited)
+        if ($consumer->rate_limit > 0) {
+            $rateLimitKey = 'api-consumer:'.$consumer->id;
+            $maxAttempts = $consumer->rate_limit;
 
-        if (RateLimiter::tooManyAttempts($rateLimitKey, $maxAttempts)) {
-            $seconds = RateLimiter::availableIn($rateLimitKey);
+            if (RateLimiter::tooManyAttempts($rateLimitKey, $maxAttempts)) {
+                $seconds = RateLimiter::availableIn($rateLimitKey);
 
-            return response()->json([
-                'message' => 'Too many requests',
-                'error' => 'Rate limit exceeded. Please try again in '.$seconds.' seconds.',
-                'retry_after' => $seconds,
-            ], 429);
+                return response()->json([
+                    'message' => 'Too many requests',
+                    'error' => 'Rate limit exceeded. Please try again in '.$seconds.' seconds.',
+                    'retry_after' => $seconds,
+                ], 429);
+            }
+
+            RateLimiter::hit($rateLimitKey, 60); // 60 seconds window
         }
-
-        RateLimiter::hit($rateLimitKey, 60); // 60 seconds window
 
         // Attach consumer to request for later use
         $request->attributes->set('api_consumer', $consumer);

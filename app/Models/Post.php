@@ -54,6 +54,7 @@ use Spatie\Tags\Tag;
  * @property-read \App\Models\User|null $updater
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
  * @property-read int|null $visits_count
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byCreator(int $userId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byStatus(string $status)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byTag(string $tagName)
@@ -101,6 +102,7 @@ use Spatie\Tags\Tag;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Post extends Model implements HasMedia
@@ -368,6 +370,26 @@ class Post extends Model implements HasMedia
     }
 
     /**
+     * Get the primary author (first author based on order)
+     */
+    public function primaryAuthor(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Get categories as tags with type 'category'
+     * This returns a MorphToMany relationship to support eager loading
+     */
+    public function categories(): \Illuminate\Database\Eloquent\Relations\MorphToMany
+    {
+        return $this
+            ->morphToMany(Tag::class, 'taggable', 'taggables', null, 'tag_id')
+            ->where('type', 'category')
+            ->orderBy('order_column');
+    }
+
+    /**
      * Scope: Published posts
      */
     public function scopePublished($query)
@@ -407,6 +429,16 @@ class Post extends Model implements HasMedia
     public function scopeFeatured($query)
     {
         return $query->where('featured', true);
+    }
+
+    /**
+     * Scope: Filter by author (using post_authors pivot table)
+     */
+    public function scopeByAuthor($query, int $authorId)
+    {
+        return $query->whereHas('authors', function ($q) use ($authorId) {
+            $q->where('users.id', $authorId);
+        });
     }
 
     /**

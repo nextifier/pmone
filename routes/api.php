@@ -284,9 +284,9 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('api-consumers')->group(
 Route::middleware(['api.key'])->prefix('public/blog')->group(function () {
     // Posts endpoints
     Route::get('/posts', [PublicBlogController::class, 'posts']);
-    Route::get('/posts/{slug}', [PublicBlogController::class, 'post']);
     Route::get('/posts/featured', [PublicBlogController::class, 'featured']);
     Route::get('/posts/search', [PublicBlogController::class, 'search']);
+    Route::get('/posts/{slug}', [PublicBlogController::class, 'post']);
 
     // Categories endpoints
     Route::get('/categories', [PublicBlogController::class, 'categories']);

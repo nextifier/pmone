@@ -12,6 +12,7 @@ use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Spatie\Tags\Tag;
 
 class PublicBlogController extends Controller
 {
@@ -21,7 +22,13 @@ class PublicBlogController extends Controller
     public function posts(Request $request): JsonResponse
     {
         $query = Post::query()
-            ->with(['primaryAuthor', 'authors', 'categories', 'tags'])
+            ->with([
+                'primaryAuthor.media',
+                'authors.media',
+                'categories',
+                'tags',
+                'media',
+            ])
             ->published()
             ->public();
 
@@ -47,7 +54,13 @@ class PublicBlogController extends Controller
     public function post(Request $request, string $slug): JsonResponse
     {
         $post = Post::query()
-            ->with(['primaryAuthor', 'authors', 'categories', 'tags'])
+            ->with([
+                'primaryAuthor.media',
+                'authors.media',
+                'categories',
+                'tags',
+                'media',
+            ])
             ->where('slug', $slug)
             ->published()
             ->public()
@@ -105,17 +118,17 @@ class PublicBlogController extends Controller
     }
 
     /**
-     * Get posts by category
+     * Get posts by category (using Spatie Tags with type 'category')
      */
     public function postsByCategory(Request $request, string $slug): JsonResponse
     {
-        $category = Category::where('slug', $slug)->public()->firstOrFail();
+        $category = Tag::where('slug->en', $slug)->where('type', 'category')->firstOrFail();
 
         $query = Post::query()
             ->with(['primaryAuthor', 'authors', 'categories', 'tags'])
             ->published()
             ->public()
-            ->byCategory($category->id);
+            ->withAnyTags([$category], 'category');
 
         $this->applyPostSorting($query, $request);
 
@@ -128,7 +141,10 @@ class PublicBlogController extends Controller
                 'last_page' => $posts->lastPage(),
                 'per_page' => $posts->perPage(),
                 'total' => $posts->total(),
-                'category' => new CategoryResource($category),
+                'category' => [
+                    'name' => $category->name,
+                    'slug' => $category->slug,
+                ],
             ],
         ]);
     }
@@ -256,24 +272,39 @@ class PublicBlogController extends Controller
      */
     private function applyPostFilters($query, Request $request): void
     {
-        // Category filter
+        // Search filter
+        if ($searchTerm = $request->input('search')) {
+            $query->search($searchTerm);
+        }
+
+        // Category filter (using Spatie Tags with type 'category')
         if ($categorySlug = $request->input('category')) {
-            $category = Category::where('slug', $categorySlug)->first();
-            if ($category) {
-                $query->byCategory($category->id);
-            }
+            $query->whereHas('tags', function ($q) use ($categorySlug) {
+                $q->where('slug->en', $categorySlug)->where('type', 'category');
+            });
         }
 
         // Tag filter
         if ($tag = $request->input('tag')) {
-            $query->byTag($tag);
+            $query->whereHas('tags', function ($q) use ($tag) {
+                $q->where(function ($subQ) use ($tag) {
+                    $subQ->where('name->en', $tag)
+                        ->orWhere('slug->en', $tag);
+                })->where('type', 'post');
+            });
         }
 
-        // Author filter
+        // Author filter (supports single author or comma-separated multiple authors)
         if ($authorUsername = $request->input('author')) {
-            $author = User::where('username', $authorUsername)->first();
-            if ($author) {
-                $query->byAuthor($author->id);
+            // Split by comma to support multiple authors
+            $usernames = array_map('trim', explode(',', $authorUsername));
+
+            $authors = User::whereIn('username', $usernames)->pluck('id')->toArray();
+
+            if (! empty($authors)) {
+                $query->whereHas('authors', function ($q) use ($authors) {
+                    $q->whereIn('users.id', $authors);
+                });
             }
         }
 

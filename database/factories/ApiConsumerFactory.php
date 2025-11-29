@@ -39,7 +39,7 @@ class ApiConsumerFactory extends Factory
             ],
             'rate_limit' => fake()->randomElement([60, 100, 120, 150, 200]),
             'is_active' => true,
-            'created_by' => User::role(['master', 'admin'])->inRandomOrder()->first()?->id ?? User::factory(),
+            'created_by' => User::factory(),
         ];
     }
 

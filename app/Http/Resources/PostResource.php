@@ -32,13 +32,7 @@ class PostResource extends JsonResource
                 'featured_image' => $this->getFeaturedImageFromLoadedMedia(),
                 'created_by' => $this->created_by,
                 'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
-                'authors' => $this->whenLoaded('authors', fn () => $this->authors->map(fn ($author) => [
-                    'id' => $author->id,
-                    'name' => $author->name,
-                    'email' => $author->email,
-                    'role' => $author->pivot->role ?? null,
-                    'order' => $author->pivot->order ?? 0,
-                ])),
+                'authors' => $this->whenLoaded('authors', fn () => UserMinimalResource::collection($this->authors)),
                 'tags' => $this->whenLoaded('tags', fn () => $this->tags->pluck('name')),
                 'created_at' => $this->created_at,
                 'updated_at' => $this->updated_at,
@@ -46,7 +40,7 @@ class PostResource extends JsonResource
             ];
         }
 
-        // For detail view (show, edit) - complete data
+        // For detail view (show, edit) and public API - complete data
         return [
             'id' => $this->id,
             'ulid' => $this->ulid,
@@ -68,19 +62,12 @@ class PostResource extends JsonResource
             'visits_count' => $this->visits_count ?? 0,
             'settings' => $this->settings,
             'source' => $this->source,
-            'featured_image' => $this->hasMedia('featured_image')
-                ? $this->getMediaUrls('featured_image')
-                : $this->featured_image,
+            'featured_image' => $this->getFeaturedImageFromLoadedMedia(),
             'created_by' => $this->created_by,
             'tags' => $this->whenLoaded('tags', fn () => $this->tags->pluck('name')),
             'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
-            'authors' => $this->whenLoaded('authors', fn () => $this->authors->map(fn ($author) => [
-                'id' => $author->id,
-                'name' => $author->name,
-                'email' => $author->email,
-                'role' => $author->pivot->role ?? null,
-                'order' => $author->pivot->order ?? 0,
-            ])),
+            'primaryAuthor' => $this->whenLoaded('primaryAuthor', fn () => new UserMinimalResource($this->primaryAuthor)),
+            'authors' => $this->whenLoaded('authors', fn () => UserMinimalResource::collection($this->authors)),
             'updater' => $this->whenLoaded('updater', fn () => new UserMinimalResource($this->updater)),
             'deleter' => $this->whenLoaded('deleter', fn () => new UserMinimalResource($this->deleter)),
             'created_at' => $this->created_at,
