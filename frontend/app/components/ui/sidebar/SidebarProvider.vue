@@ -1,15 +1,21 @@
 <script setup lang="ts">
-import { cn } from "@/lib/utils";
-import { defaultDocument, useVModel } from "@vueuse/core";
-import { TooltipProvider } from "reka-ui";
 import type { HTMLAttributes, Ref } from "vue";
+import {
+  defaultDocument,
+  useEventListener,
+  useMediaQuery,
+  useVModel,
+} from "@vueuse/core";
+import { TooltipProvider } from "reka-ui";
 import { computed, ref } from "vue";
+import { cn } from "@/lib/utils";
 import {
   provideSidebarContext,
   SIDEBAR_COOKIE_MAX_AGE,
   SIDEBAR_COOKIE_NAME,
   SIDEBAR_WIDTH,
   SIDEBAR_WIDTH_ICON,
+  SIDEBAR_KEYBOARD_SHORTCUT,
 } from "./utils";
 
 const props = withDefaults(
@@ -19,44 +25,18 @@ const props = withDefaults(
     class?: HTMLAttributes["class"];
   }>(),
   {
-    defaultOpen: !defaultDocument?.cookie.includes(`${SIDEBAR_COOKIE_NAME}=false`),
+    defaultOpen: !defaultDocument?.cookie.includes(
+      `${SIDEBAR_COOKIE_NAME}=false`,
+    ),
     open: undefined,
-  }
+  },
 );
 
 const emits = defineEmits<{
   "update:open": [open: boolean];
 }>();
 
-// const isMobile = useMediaQuery("(max-width: 1024px)");
-// const isMobile = useMediaQuery("(max-width: 1024px)", { ssrWidth: 1024 });
-
-const isHydrated = ref(false);
-const isMobile = ref(false); // Default to desktop (no layout shift)
-
-// Initialize after hydration to prevent mismatch
-onMounted(() => {
-  // Now we can safely detect mobile
-  isMobile.value = window.innerWidth <= 1024;
-  isHydrated.value = true;
-
-  // Setup reactive media query after hydration
-  const mediaQuery = window.matchMedia("(max-width: 1024px)");
-  isMobile.value = mediaQuery.matches;
-
-  // Listen for changes
-  const updateMobile = (e: MediaQueryListEvent) => {
-    isMobile.value = e.matches;
-  };
-
-  mediaQuery.addEventListener("change", updateMobile);
-
-  // Cleanup
-  onUnmounted(() => {
-    mediaQuery.removeEventListener("change", updateMobile);
-  });
-});
-
+const isMobile = useMediaQuery("(max-width: 1280px)", { ssrWidth: 1280 });
 const openMobile = ref(false);
 
 const open = useVModel(props, "open", emits, {
@@ -77,16 +57,19 @@ function setOpenMobile(value: boolean) {
 
 // Helper to toggle the sidebar.
 function toggleSidebar() {
-  return isMobile.value ? setOpenMobile(!openMobile.value) : setOpen(!open.value);
+  return isMobile.value
+    ? setOpenMobile(!openMobile.value)
+    : setOpen(!open.value);
 }
 
-defineShortcuts({
-  meta_b: {
-    usingInput: false,
-    handler: () => {
-      toggleSidebar();
-    },
-  },
+useEventListener("keydown", (event: KeyboardEvent) => {
+  if (
+    event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
+    (event.metaKey || event.ctrlKey)
+  ) {
+    event.preventDefault();
+    toggleSidebar();
+  }
 });
 
 // We add a state so that we can do data-state="expanded" or "collapsed".
@@ -101,7 +84,6 @@ provideSidebarContext({
   openMobile,
   setOpenMobile,
   toggleSidebar,
-  isHydrated,
 });
 </script>
 
@@ -116,7 +98,7 @@ provideSidebarContext({
       :class="
         cn(
           'group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full',
-          props.class
+          props.class,
         )
       "
       v-bind="$attrs"

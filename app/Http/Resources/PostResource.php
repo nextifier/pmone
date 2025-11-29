@@ -15,7 +15,22 @@ class PostResource extends JsonResource
     public function toArray(Request $request): array
     {
         // For list view (index, trash) - minimal data
-        if ($request->routeIs('posts.index') || $request->routeIs('posts.trash')) {
+        // Check for internal admin routes OR public API list endpoints
+        // Public API list endpoints: /posts, /posts/featured, /posts/search, /categories/*/posts, /tags/*/posts, /authors/*/posts
+        $isPublicApiListView = $request->is('api/public/blog/*') && (
+            $request->is('api/public/blog/posts') ||
+            $request->is('api/public/blog/posts/featured') ||
+            $request->is('api/public/blog/posts/search') ||
+            $request->is('api/public/blog/categories/*/posts') ||
+            $request->is('api/public/blog/tags/*/posts') ||
+            $request->is('api/public/blog/authors/*/posts')
+        );
+
+        $isListView = $request->routeIs('posts.index') ||
+            $request->routeIs('posts.trash') ||
+            $isPublicApiListView;
+
+        if ($isListView) {
             return [
                 'id' => $this->id,
                 'ulid' => $this->ulid,

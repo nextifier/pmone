@@ -247,7 +247,9 @@ const {
 });
 
 const data = computed(() => shortLinksResponse.value?.data || []);
-const meta = computed(() => shortLinksResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 10, total: 0 });
+const meta = computed(
+  () => shortLinksResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 10, total: 0 }
+);
 
 // Global state for refresh tracking
 const needsRefresh = useState("short-links-needs-refresh", () => false);
@@ -647,7 +649,7 @@ const RowActions = defineComponent({
                             h(
                               resolveComponent("NuxtLink"),
                               {
-                                to: `/short-links/${props.shortLink.slug}/analytics`,
+                                to: `/short-links/${props.shortLink.slug}`,
                                 class:
                                   "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
                               },
@@ -657,7 +659,7 @@ const RowActions = defineComponent({
                                     name: "lucide:chart-no-axes-combined",
                                     class: "size-4 shrink-0",
                                   }),
-                                  h("span", {}, "Analytics"),
+                                  h("span", {}, "View"),
                                 ],
                               }
                             ),

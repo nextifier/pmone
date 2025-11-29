@@ -4,8 +4,9 @@ export const usePageMeta = (pageKey, overrides = {}) => {
 
   const meta = pageKey ? pageStore.getMetaByKey(pageKey) : null;
 
-  const title = overrides.title || meta?.title || "";
-  const description = overrides.description || meta?.description || "";
+  // Support both plain values and computed/ref values
+  const title = computed(() => toValue(overrides.title) || meta?.title || "");
+  const description = computed(() => toValue(overrides.description) || meta?.description || "");
 
   useSeoMeta({
     titleTemplate: meta?.withoutTitleTemplate ? "%s" : "%s · %siteName",
@@ -24,8 +25,8 @@ export const usePageMeta = (pageKey, overrides = {}) => {
   } else {
     defineOgImageComponent("Page", {
       headline: useAppConfig().app.name,
-      title: title,
-      description: description,
+      title: title.value,
+      description: description.value,
     });
   }
 

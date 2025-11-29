@@ -1,8 +1,10 @@
 <template>
-  <div>
-    <Header />
-    <main class="flex-auto">
-      <slot />
-    </main>
-  </div>
+  <SidebarProvider>
+    <SidebarInset>
+      <Header />
+      <main class="flex-auto">
+        <slot />
+      </main>
+    </SidebarInset>
+  </SidebarProvider>
 </template>

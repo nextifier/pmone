@@ -8,11 +8,11 @@
 
         <nuxt-link
           v-if="shortLink?.slug"
-          :to="`/short-links/${shortLink.slug}/analytics`"
+          :to="`/short-links/${shortLink.slug}`"
           class="text-primary bg-muted hover:bg-border inline-flex items-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight"
         >
           <Icon name="lucide:chart-no-axes-combined" class="size-4" />
-          <span>View Analytics</span>
+          <span>View Details</span>
         </nuxt-link>
       </div>
     </div>
@@ -30,8 +30,6 @@
 </template>
 
 <script setup>
-import { toast } from "vue-sonner";
-
 definePageMeta({
   middleware: ["sanctum:auth"],
   layout: "app",

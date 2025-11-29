@@ -12,6 +12,10 @@ const app = {
 };
 
 const settings = {
+  blog: {
+    showPostCardAuthor: true,
+    showPostCardExcerpt: false,
+  },
   ogImage: {
     isDarkMode: true,
   },

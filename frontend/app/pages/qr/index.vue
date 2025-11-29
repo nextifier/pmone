@@ -1,119 +1,63 @@
 <template>
-  <div
-    class="min-h-screen-offset mx-auto flex flex-col gap-6 pt-4 pb-4 lg:max-w-4xl xl:max-w-6xl"
-  >
-    <div class="flex flex-col gap-y-1">
-      <h2 class="page-title">QR Code Generator</h2>
-      <p class="page-description">
-        Generate QR codes instantly and download them in high quality
+  <div class="min-h-screen-offset mx-auto flex flex-col gap-8 px-4 py-8 sm:px-6 lg:max-w-2xl">
+    <div class="flex flex-col gap-2 text-center">
+      <h1 class="text-3xl font-semibold tracking-tighter sm:text-4xl">QR Code Generator</h1>
+      <p class="text-muted-foreground text-base tracking-tight">
+        Generate high-quality QR codes instantly
       </p>
     </div>
 
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      <!-- Input Section -->
-      <div class="flex flex-col gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Input</CardTitle>
-            <CardDescription>
-              Enter text or URL to generate QR code
-            </CardDescription>
-          </CardHeader>
-          <CardContent class="flex flex-col gap-4">
-            <div class="flex flex-col gap-2">
-              <Label for="qr-text">Text or URL</Label>
-              <Textarea
-                id="qr-text"
-                v-model="qrText"
-                placeholder="Enter text or URL..."
-                rows="4"
-                class="resize-none"
-              />
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <Label for="qr-size">Size (pixels)</Label>
-              <Input
-                id="qr-size"
-                v-model.number="qrSize"
-                type="number"
-                min="128"
-                max="2048"
-                step="64"
-              />
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <Label for="qr-error">Error Correction Level</Label>
-              <Select v-model="errorCorrectionLevel">
-                <SelectTrigger id="qr-error">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="L">Low (~7%)</SelectItem>
-                  <SelectItem value="M">Medium (~15%)</SelectItem>
-                  <SelectItem value="Q">Quartile (~25%)</SelectItem>
-                  <SelectItem value="H">High (~30%)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <Label for="qr-margin">Margin (modules)</Label>
-              <Input
-                id="qr-margin"
-                v-model.number="qrMargin"
-                type="number"
-                min="0"
-                max="10"
-              />
-            </div>
-          </CardContent>
-        </Card>
+    <div class="flex flex-col gap-8">
+      <div class="flex flex-col gap-3">
+        <Label for="qr-text" class="text-sm font-medium">Text or URL</Label>
+        <Textarea
+          id="qr-text"
+          v-model="qrText"
+          placeholder="Enter text or URL to generate QR code"
+          rows="3"
+          class="resize-none text-lg lg:text-xl"
+        />
       </div>
 
-      <!-- Preview Section -->
-      <div class="flex flex-col gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Preview</CardTitle>
-            <CardDescription>
-              {{ qrText ? "QR code preview" : "Enter text to see preview" }}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div
-              v-if="qrText"
-              class="bg-muted flex items-center justify-center rounded-lg p-6"
-            >
-              <canvas
-                ref="qrCanvas"
-                class="max-w-full rounded-md bg-white shadow-md"
-              />
-            </div>
-            <div
-              v-else
-              class="bg-muted text-muted-foreground flex h-64 items-center justify-center rounded-lg"
-            >
-              <p class="text-sm">QR code will appear here</p>
-            </div>
-          </CardContent>
-          <CardFooter v-if="qrText" class="flex flex-col gap-3">
-            <Button @click="downloadJPG" class="w-full" size="lg">
-              <Icon name="lucide:download" class="mr-2 h-4 w-4" />
-              Download JPG
-            </Button>
-            <Button
-              @click="downloadSVG"
-              variant="outline"
-              class="w-full"
-              size="lg"
-            >
-              <Icon name="lucide:download" class="mr-2 h-4 w-4" />
-              Download SVG
-            </Button>
-          </CardFooter>
-        </Card>
+      <div class="flex items-center justify-center">
+        <div
+          v-if="qrDataUrl"
+          class="xs:max-w-[280px] aspect-square w-full overflow-hidden rounded-lg bg-white shadow-lg"
+        >
+          <img :src="qrDataUrl" alt="QR Code" class="size-full object-contain" />
+        </div>
+        <div
+          v-else
+          class="text-muted-foreground xs:max-w-[280px] flex aspect-square w-full flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed"
+        >
+          <Icon name="hugeicons:qr-code" class="size-12 opacity-50" />
+          <p class="text-sm">QR code will appear here</p>
+        </div>
+      </div>
+
+      <div v-if="qrDataUrl" class="flex flex-wrap justify-center gap-x-2 gap-y-4">
+        <button
+          @click="downloadJPG"
+          class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center justify-center gap-x-1.5 rounded-lg px-4 py-2 font-medium tracking-tight transition active:scale-98"
+        >
+          <Icon name="hugeicons:jpg-01" class="size-5 shrink-0" />
+          <span>Download JPG</span>
+        </button>
+        <button
+          @click="downloadSVG"
+          class="bg-muted text-foreground hover:bg-border flex items-center justify-center gap-x-1.5 rounded-lg px-4 py-2 font-medium tracking-tight transition active:scale-98"
+        >
+          <Icon name="hugeicons:svg-01" class="size-5 shrink-0" />
+          <span>Download SVG</span>
+        </button>
+
+        <button
+          @click="qrText = ''"
+          class="border-border text-foreground hover:bg-muted flex items-center justify-center gap-x-1 rounded-lg border px-4 py-2 font-medium tracking-tight transition active:scale-98"
+        >
+          <Icon name="hugeicons:cancel-01" class="size-4.5 shrink-0" />
+          <span>Clear</span>
+        </button>
       </div>
     </div>
   </div>
@@ -131,22 +75,38 @@ usePageMeta(null, {
 });
 
 const qrText = ref("");
-const qrSize = ref(512);
-const errorCorrectionLevel = ref("M");
-const qrMargin = ref(4);
-const qrCanvas = ref(null);
+const qrDataUrl = ref("");
 
-// Generate QR code whenever inputs change
+const previewSize = 300;
+const downloadSize = 1080;
+const errorCorrectionLevel = "H";
+const qrMargin = 2;
+
+const getCleanFilename = (text) => {
+  return (
+    text
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .replace(/[^a-zA-Z0-9.-]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .substring(0, 50) || "qrcode"
+  );
+};
+
 watch(
-  [qrText, qrSize, errorCorrectionLevel, qrMargin],
+  qrText,
   async () => {
-    if (!qrText.value || !qrCanvas.value) return;
+    if (!qrText.value) {
+      qrDataUrl.value = "";
+      return;
+    }
 
     try {
-      await QRCode.toCanvas(qrCanvas.value, qrText.value, {
-        width: qrSize.value,
-        margin: qrMargin.value,
-        errorCorrectionLevel: errorCorrectionLevel.value,
+      qrDataUrl.value = await QRCode.toDataURL(qrText.value, {
+        width: previewSize,
+        margin: qrMargin,
+        errorCorrectionLevel: errorCorrectionLevel,
         color: {
           dark: "#000000",
           light: "#FFFFFF",
@@ -154,53 +114,44 @@ watch(
       });
     } catch (err) {
       console.error("Error generating QR code:", err);
+      qrDataUrl.value = "";
     }
   },
   { immediate: true }
 );
 
-// Download as JPG
-const downloadJPG = () => {
-  if (!qrCanvas.value) return;
+const downloadJPG = async () => {
+  if (!qrText.value) return;
 
-  // Create a temporary canvas with white background for JPG
-  const tempCanvas = document.createElement("canvas");
-  tempCanvas.width = qrCanvas.value.width;
-  tempCanvas.height = qrCanvas.value.height;
-  const ctx = tempCanvas.getContext("2d");
+  try {
+    const dataUrl = await QRCode.toDataURL(qrText.value, {
+      width: downloadSize,
+      margin: qrMargin,
+      errorCorrectionLevel: errorCorrectionLevel,
+      color: {
+        dark: "#000000",
+        light: "#FFFFFF",
+      },
+    });
 
-  // Fill white background
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-
-  // Draw QR code on top
-  ctx.drawImage(qrCanvas.value, 0, 0);
-
-  // Download
-  tempCanvas.toBlob(
-    (blob) => {
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.download = `qrcode-${Date.now()}.jpg`;
-      link.href = url;
-      link.click();
-      URL.revokeObjectURL(url);
-    },
-    "image/jpeg",
-    1.0
-  );
+    const link = document.createElement("a");
+    link.download = `QR-${getCleanFilename(qrText.value)}.png`;
+    link.href = dataUrl;
+    link.click();
+  } catch (err) {
+    console.error("Error generating QR code for download:", err);
+  }
 };
 
-// Download as SVG
 const downloadSVG = async () => {
   if (!qrText.value) return;
 
   try {
     const svgString = await QRCode.toString(qrText.value, {
       type: "svg",
-      width: qrSize.value,
-      margin: qrMargin.value,
-      errorCorrectionLevel: errorCorrectionLevel.value,
+      width: 512,
+      margin: qrMargin,
+      errorCorrectionLevel: errorCorrectionLevel,
       color: {
         dark: "#000000",
         light: "#FFFFFF",
@@ -210,7 +161,7 @@ const downloadSVG = async () => {
     const blob = new Blob([svgString], { type: "image/svg+xml" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.download = `qrcode-${Date.now()}.svg`;
+    link.download = `QR-${getCleanFilename(qrText.value)}.svg`;
     link.href = url;
     link.click();
     URL.revokeObjectURL(url);

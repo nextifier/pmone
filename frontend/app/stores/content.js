@@ -94,6 +94,10 @@ export const useContentStore = defineStore("content", {
         title: `Appearance`,
         description: ``,
       },
+      news: {
+        title: `News`,
+        description: `Latest updates and articles`,
+      },
     },
 
     components: {},

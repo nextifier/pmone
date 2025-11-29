@@ -2,24 +2,65 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\StaleWhileRevalidateCache;
 use App\Helpers\TrackingHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\UserMinimalResource;
+use App\Jobs\RefreshPublicBlogCacheJob;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Spatie\Tags\Tag;
 
 class PublicBlogController extends Controller
 {
     /**
+     * Stale TTL - after this time, data is considered stale and will trigger background refresh
+     */
+    private const STALE_TTL = 300; // 5 minutes
+
+    /**
+     * Max TTL - after this time, data expires completely and must be fetched synchronously
+     */
+    private const MAX_TTL = 3600; // 1 hour
+
+    private const CACHE_TTL_CATEGORIES = 1800; // 30 minutes (categories change less often)
+
+    /**
      * Get list of published posts
      */
     public function posts(Request $request): JsonResponse
+    {
+        $cacheKey = $this->generateCacheKey('posts', $request);
+        $tags = ['public-blog', 'posts'];
+
+        // Use stale-while-revalidate: return cached data immediately, refresh in background if stale
+        return StaleWhileRevalidateCache::remember(
+            $cacheKey,
+            $tags,
+            self::STALE_TTL,
+            self::MAX_TTL,
+            function () use ($request) {
+                return $this->fetchPosts($request);
+            },
+            RefreshPublicBlogCacheJob::class,
+            [
+                'type' => 'posts',
+                'per_page' => $request->input('per_page', 15),
+                'sort' => $request->input('sort', '-published_at'),
+            ]
+        );
+    }
+
+    /**
+     * Fetch posts from database (used by controller and background job)
+     */
+    private function fetchPosts(Request $request): JsonResponse
     {
         $query = Post::query()
             ->with([
@@ -82,23 +123,27 @@ class PublicBlogController extends Controller
      */
     public function categories(Request $request): JsonResponse
     {
-        $query = Category::query()
-            ->with(['parent', 'children'])
-            ->public();
+        $cacheKey = $this->generateCacheKey('categories', $request);
 
-        $this->applyCategoryFilters($query, $request);
+        return Cache::tags(['public-blog', 'categories'])->remember($cacheKey, self::CACHE_TTL_CATEGORIES, function () use ($request) {
+            $query = Category::query()
+                ->with(['parent', 'children'])
+                ->public();
 
-        $categories = $query->paginate($request->input('per_page', 50));
+            $this->applyCategoryFilters($query, $request);
 
-        return response()->json([
-            'data' => CategoryResource::collection($categories->items()),
-            'meta' => [
-                'current_page' => $categories->currentPage(),
-                'last_page' => $categories->lastPage(),
-                'per_page' => $categories->perPage(),
-                'total' => $categories->total(),
-            ],
-        ]);
+            $categories = $query->paginate($request->input('per_page', 50));
+
+            return response()->json([
+                'data' => CategoryResource::collection($categories->items()),
+                'meta' => [
+                    'current_page' => $categories->currentPage(),
+                    'last_page' => $categories->lastPage(),
+                    'per_page' => $categories->perPage(),
+                    'total' => $categories->total(),
+                ],
+            ]);
+        });
     }
 
     /**
@@ -125,7 +170,7 @@ class PublicBlogController extends Controller
         $category = Tag::where('slug->en', $slug)->where('type', 'category')->firstOrFail();
 
         $query = Post::query()
-            ->with(['primaryAuthor', 'authors', 'categories', 'tags'])
+            ->with(['primaryAuthor.media', 'authors.media', 'categories', 'tags', 'media'])
             ->published()
             ->public()
             ->withAnyTags([$category], 'category');
@@ -155,7 +200,7 @@ class PublicBlogController extends Controller
     public function postsByTag(Request $request, string $tag): JsonResponse
     {
         $query = Post::query()
-            ->with(['primaryAuthor', 'authors', 'categories', 'tags'])
+            ->with(['primaryAuthor.media', 'authors.media', 'categories', 'tags', 'media'])
             ->published()
             ->public()
             ->byTag($tag);
@@ -184,7 +229,7 @@ class PublicBlogController extends Controller
         $author = User::where('username', $username)->firstOrFail();
 
         $query = Post::query()
-            ->with(['primaryAuthor', 'authors', 'categories', 'tags'])
+            ->with(['primaryAuthor.media', 'authors.media', 'categories', 'tags', 'media'])
             ->published()
             ->public()
             ->byAuthor($author->id);
@@ -210,8 +255,34 @@ class PublicBlogController extends Controller
      */
     public function featured(Request $request): JsonResponse
     {
+        $cacheKey = $this->generateCacheKey('featured', $request);
+        $tags = ['public-blog', 'posts'];
+
+        // Use stale-while-revalidate: return cached data immediately, refresh in background if stale
+        return StaleWhileRevalidateCache::remember(
+            $cacheKey,
+            $tags,
+            self::STALE_TTL,
+            self::MAX_TTL,
+            function () use ($request) {
+                return $this->fetchFeaturedPosts($request);
+            },
+            RefreshPublicBlogCacheJob::class,
+            [
+                'type' => 'featured',
+                'per_page' => $request->input('per_page', 10),
+                'sort' => $request->input('sort', '-published_at'),
+            ]
+        );
+    }
+
+    /**
+     * Fetch featured posts from database
+     */
+    private function fetchFeaturedPosts(Request $request): JsonResponse
+    {
         $query = Post::query()
-            ->with(['primaryAuthor', 'authors', 'categories', 'tags'])
+            ->with(['primaryAuthor.media', 'authors.media', 'categories', 'tags', 'media'])
             ->published()
             ->public()
             ->featured();
@@ -246,7 +317,7 @@ class PublicBlogController extends Controller
         }
 
         $query = Post::query()
-            ->with(['primaryAuthor', 'authors', 'categories', 'tags'])
+            ->with(['primaryAuthor.media', 'authors.media', 'categories', 'tags', 'media'])
             ->published()
             ->public()
             ->search($searchTerm);
@@ -295,16 +366,26 @@ class PublicBlogController extends Controller
         }
 
         // Author filter (supports single author or comma-separated multiple authors)
+        // Only filter by authors who have published public posts to avoid user enumeration
         if ($authorUsername = $request->input('author')) {
-            // Split by comma to support multiple authors
-            $usernames = array_map('trim', explode(',', $authorUsername));
+            // Split by comma to support multiple authors (max 10 to prevent abuse)
+            $usernames = array_slice(array_map('trim', explode(',', $authorUsername)), 0, 10);
 
-            $authors = User::whereIn('username', $usernames)->pluck('id')->toArray();
+            // Only get authors who have at least one published public post
+            $authors = User::whereIn('username', $usernames)
+                ->whereHas('posts', function ($q) {
+                    $q->published()->public();
+                })
+                ->pluck('id')
+                ->toArray();
 
             if (! empty($authors)) {
                 $query->whereHas('authors', function ($q) use ($authors) {
                     $q->whereIn('users.id', $authors);
                 });
+            } else {
+                // If no valid authors found, return no results
+                $query->whereRaw('1 = 0');
             }
         }
 
@@ -323,8 +404,14 @@ class PublicBlogController extends Controller
         $direction = str_starts_with($sortField, '-') ? 'desc' : 'asc';
         $field = ltrim($sortField, '-');
 
-        if (in_array($field, ['title', 'published_at', 'view_count', 'created_at'])) {
+        // Allowed direct column sorting
+        $allowedFields = ['title', 'published_at', 'created_at', 'reading_time'];
+
+        if (in_array($field, $allowedFields)) {
             $query->orderBy($field, $direction);
+        } elseif ($field === 'view_count' || $field === 'visits_count') {
+            // Sort by visits count using withCount (polymorphic visits relationship)
+            $query->withCount('visits')->orderBy('visits_count', $direction);
         } else {
             $query->orderBy('published_at', 'desc');
         }
@@ -347,5 +434,30 @@ class PublicBlogController extends Controller
                 $query->where('parent_id', $parent->id);
             }
         }
+    }
+
+    /**
+     * Generate a unique cache key based on request parameters
+     */
+    private function generateCacheKey(string $prefix, Request $request): string
+    {
+        $params = $request->only([
+            'page',
+            'per_page',
+            'sort',
+            'search',
+            'category',
+            'tag',
+            'author',
+            'featured',
+            'q',
+            'root',
+            'parent',
+        ]);
+
+        // Sort params for consistent cache keys
+        ksort($params);
+
+        return $prefix.':'.md5(json_encode($params));
     }
 }

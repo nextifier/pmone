@@ -8,13 +8,11 @@
         !isMenuOpen,
     }"
   >
-    <nav class="container flex h-full items-center">
-      <nuxt-link
-        to="/"
-        aria-label="Home"
-        @click="$scrollToTopIfCurrentPageIs('/')"
-        v-ripple
-      >
+    <nav
+      class="flex h-full items-center transition-all duration-300"
+      :class="['news'].includes(route.name) ? 'container-wider' : 'container'"
+    >
+      <nuxt-link to="/" aria-label="Home" @click="$scrollToTopIfCurrentPageIs('/')" v-ripple>
         <Logo class="text-primary h-6" />
       </nuxt-link>
 
@@ -30,6 +28,23 @@
               <span class="inline-flex items-center gap-x-1.5 tracking-tight">
                 <span>Light / Dark Mode</span>
                 <kbd class="keyboard-symbol">{{ metaSymbol }} D</kbd>
+              </span>
+            </template>
+          </Tippy>
+
+          <Tippy v-if="['news-slug'].includes(route.name)">
+            <button
+              data-sidebar="trigger"
+              data-slot="sidebar-trigger"
+              class="text-primary hover:bg-muted flex size-8 items-center justify-center rounded-lg"
+              @click="toggleSidebar"
+            >
+              <Icon name="lucide:panel-left" class="text-primary size-4 rotate-180" />
+            </button>
+            <template #content>
+              <span class="inline-flex items-center gap-x-1.5 tracking-tight">
+                <span>Toggle Sidebar</span>
+                <kbd class="keyboard-symbol">{{ metaSymbol }} B</kbd>
               </span>
             </template>
           </Tippy>
@@ -74,4 +89,7 @@ const { metaSymbol } = useShortcuts();
 const isMenuOpen = ref(false);
 
 const { isAuthenticated } = useSanctumAuth();
+
+import { useSidebar } from "@/components/ui/sidebar/utils";
+const { toggleSidebar } = useSidebar();
 </script>

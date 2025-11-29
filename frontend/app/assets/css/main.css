@@ -712,7 +712,7 @@ img.pswp__img {
 }
 
 .section-title {
-  @apply text-primary text-4xl !leading-[1.2] font-semibold tracking-tighter text-balance sm:text-[3.2rem];
+  @apply text-primary text-4xl !leading-[1.2] font-medium tracking-tighter text-balance sm:text-5xl;
 }
 
 .section-title-large {
