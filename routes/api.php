@@ -278,6 +278,7 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('api-consumers')->group(
     Route::post('/{apiConsumer}/regenerate-key', [ApiConsumerController::class, 'regenerateKey'])->name('api-consumers.regenerate-key');
     Route::post('/{apiConsumer}/toggle-status', [ApiConsumerController::class, 'toggleStatus'])->name('api-consumers.toggle-status');
     Route::get('/{apiConsumer}/statistics', [ApiConsumerController::class, 'statistics'])->name('api-consumers.statistics');
+    Route::get('/{apiConsumer}/analytics', [ApiConsumerController::class, 'analytics'])->name('api-consumers.analytics');
 });
 
 // Public Blog API endpoints (API key authentication for consumption by multiple websites)

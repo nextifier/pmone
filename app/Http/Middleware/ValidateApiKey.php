@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\ApiConsumer;
+use App\Models\ApiConsumerRequest;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -67,11 +68,32 @@ class ValidateApiKey
         // Attach consumer to request for later use
         $request->attributes->set('api_consumer', $consumer);
 
-        // Update last used timestamp (async to avoid blocking)
-        dispatch(function () use ($consumer) {
+        // Track request start time
+        $startTime = microtime(true);
+
+        // Process the request
+        $response = $next($request);
+
+        // Calculate response time
+        $responseTimeMs = (int) round((microtime(true) - $startTime) * 1000);
+
+        // Log request and update last used timestamp (async to avoid blocking)
+        dispatch(function () use ($consumer, $request, $response, $responseTimeMs) {
             $consumer->markAsUsed();
+
+            // Log the API request
+            ApiConsumerRequest::create([
+                'api_consumer_id' => $consumer->id,
+                'endpoint' => $request->path(),
+                'method' => $request->method(),
+                'status_code' => $response->getStatusCode(),
+                'response_time_ms' => $responseTimeMs,
+                'ip_address' => $request->ip(),
+                'user_agent' => substr($request->userAgent() ?? '', 0, 255),
+                'origin' => $request->header('Origin'),
+            ]);
         })->afterResponse();
 
-        return $next($request);
+        return $response;
     }
 }

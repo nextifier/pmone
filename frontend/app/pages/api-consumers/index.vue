@@ -535,6 +535,30 @@ const RowActions = defineComponent({
                             h(
                               resolveComponent("NuxtLink"),
                               {
+                                to: `/api-consumers/${props.consumer.id}/analytics`,
+                                class:
+                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                              },
+                              {
+                                default: () => [
+                                  h(resolveComponent("Icon"), {
+                                    name: "hugeicons:analytics-02",
+                                    class: "size-4 shrink-0",
+                                  }),
+                                  h("span", {}, "Analytics"),
+                                ],
+                              }
+                            ),
+                        }
+                      ),
+                      h(
+                        PopoverClose,
+                        { asChild: true },
+                        {
+                          default: () =>
+                            h(
+                              resolveComponent("NuxtLink"),
+                              {
                                 to: `/api-consumers/${props.consumer.id}/edit`,
                                 class:
                                   "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
