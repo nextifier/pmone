@@ -310,6 +310,114 @@ class ApiConsumerController extends Controller
     }
 
     /**
+     * Get overall analytics for all API consumers
+     */
+    public function overallAnalytics(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', ApiConsumer::class);
+
+        $days = (int) $request->input('days', 7);
+        $days = min(max($days, 1), 90);
+
+        $startDate = now()->subDays($days)->startOfDay();
+
+        // Get summary statistics across all consumers
+        $summary = ApiRequest::query()
+            ->where('created_at', '>=', $startDate)
+            ->selectRaw('
+                COUNT(*) as total_requests,
+                COUNT(CASE WHEN status_code >= 200 AND status_code < 300 THEN 1 END) as successful_requests,
+                COUNT(CASE WHEN status_code >= 400 THEN 1 END) as failed_requests,
+                AVG(response_time_ms) as avg_response_time,
+                COUNT(DISTINCT api_consumer_id) as active_consumers
+            ')
+            ->first();
+
+        // Get total consumers
+        $totalConsumers = ApiConsumer::count();
+        $activeConsumers = ApiConsumer::active()->count();
+
+        // Get requests per day for chart
+        $requestsPerDay = ApiRequest::query()
+            ->where('created_at', '>=', $startDate)
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->map(fn ($item) => [
+                'date' => $item->date,
+                'count' => (int) $item->count,
+            ]);
+
+        // Get top consumers by request count
+        $topConsumers = ApiRequest::query()
+            ->where('created_at', '>=', $startDate)
+            ->selectRaw('api_consumer_id, COUNT(*) as request_count, AVG(response_time_ms) as avg_time')
+            ->groupBy('api_consumer_id')
+            ->orderByDesc('request_count')
+            ->limit(5)
+            ->get()
+            ->map(function ($item) {
+                $consumer = ApiConsumer::find($item->api_consumer_id);
+
+                return [
+                    'id' => $item->api_consumer_id,
+                    'name' => $consumer?->name ?? 'Unknown',
+                    'website_url' => $consumer?->website_url ?? '',
+                    'request_count' => (int) $item->request_count,
+                    'avg_time' => round($item->avg_time, 2),
+                ];
+            });
+
+        // Get status distribution
+        $statusDistribution = ApiRequest::query()
+            ->where('created_at', '>=', $startDate)
+            ->selectRaw('
+                CASE
+                    WHEN status_code >= 200 AND status_code < 300 THEN "2xx"
+                    WHEN status_code >= 300 AND status_code < 400 THEN "3xx"
+                    WHEN status_code >= 400 AND status_code < 500 THEN "4xx"
+                    WHEN status_code >= 500 THEN "5xx"
+                    ELSE "unknown"
+                END as status_group,
+                COUNT(*) as count
+            ')
+            ->groupBy('status_group')
+            ->get()
+            ->pluck('count', 'status_group');
+
+        return response()->json([
+            'data' => [
+                'period' => [
+                    'days' => $days,
+                    'start_date' => $startDate->toDateString(),
+                    'end_date' => now()->toDateString(),
+                ],
+                'summary' => [
+                    'total_requests' => (int) ($summary->total_requests ?? 0),
+                    'successful_requests' => (int) ($summary->successful_requests ?? 0),
+                    'failed_requests' => (int) ($summary->failed_requests ?? 0),
+                    'success_rate' => $summary->total_requests > 0
+                        ? round(($summary->successful_requests / $summary->total_requests) * 100, 2)
+                        : 0,
+                    'avg_response_time' => round($summary->avg_response_time ?? 0, 2),
+                    'total_consumers' => $totalConsumers,
+                    'active_consumers' => $activeConsumers,
+                    'consumers_with_requests' => (int) ($summary->active_consumers ?? 0),
+                ],
+                'requests_per_day' => $requestsPerDay,
+                'top_consumers' => $topConsumers,
+                'status_distribution' => [
+                    '2xx' => (int) ($statusDistribution['2xx'] ?? 0),
+                    '3xx' => (int) ($statusDistribution['3xx'] ?? 0),
+                    '4xx' => (int) ($statusDistribution['4xx'] ?? 0),
+                    '5xx' => (int) ($statusDistribution['5xx'] ?? 0),
+                ],
+            ],
+        ]);
+    }
+
+    /**
      * Display a listing of trashed API consumers
      */
     public function trash(Request $request): JsonResponse
