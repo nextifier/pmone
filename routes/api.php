@@ -266,6 +266,7 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('categories')->group(fun
 // API Consumer management endpoints (authenticated + verified, admin/master only)
 Route::middleware(['auth:sanctum', 'verified'])->prefix('api-consumers')->group(function () {
     Route::get('/', [ApiConsumerController::class, 'index'])->name('api-consumers.index');
+    Route::get('/analytics', [ApiConsumerController::class, 'overallAnalytics'])->name('api-consumers.overall-analytics');
     Route::post('/', [ApiConsumerController::class, 'store'])->name('api-consumers.store');
     Route::get('/trash', [ApiConsumerController::class, 'trash'])->name('api-consumers.trash');
     Route::post('/trash/restore/bulk', [ApiConsumerController::class, 'bulkRestore'])->name('api-consumers.bulk-restore');

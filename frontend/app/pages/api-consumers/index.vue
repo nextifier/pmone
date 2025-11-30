@@ -17,6 +17,132 @@
       </div>
     </div>
 
+    <!-- Overall Analytics Section -->
+    <Collapsible v-model:open="analyticsOpen" class="space-y-3">
+      <div class="flex items-center justify-between">
+        <CollapsibleTrigger
+          class="hover:bg-muted -ml-2 flex items-center gap-2 rounded-md px-2 py-1 transition-colors"
+        >
+          <Icon
+            name="lucide:chevron-right"
+            class="size-4 shrink-0 transition-transform"
+            :class="{ 'rotate-90': analyticsOpen }"
+          />
+          <span class="text-sm font-medium tracking-tight">API Usage Analytics</span>
+        </CollapsibleTrigger>
+        <select
+          v-model="analyticsPeriod"
+          class="border-border bg-background text-sm rounded-md border px-2 py-1"
+        >
+          <option value="7">Last 7 days</option>
+          <option value="30">Last 30 days</option>
+          <option value="90">Last 90 days</option>
+        </select>
+      </div>
+
+      <CollapsibleContent>
+        <div v-if="analyticsLoading" class="flex justify-center py-8">
+          <Spinner class="size-6" />
+        </div>
+
+        <div v-else-if="analyticsData" class="space-y-4">
+          <!-- Summary Cards -->
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="border-border rounded-lg border p-4">
+              <div class="flex items-center gap-2">
+                <Icon name="hugeicons:api" class="text-primary size-4" />
+                <span class="text-muted-foreground text-xs font-medium">Total Requests</span>
+              </div>
+              <div class="text-primary mt-1 text-2xl font-semibold">
+                {{ analyticsData.summary.total_requests.toLocaleString() }}
+              </div>
+              <div class="text-muted-foreground text-xs">
+                Last {{ analyticsData.period.days }} days
+              </div>
+            </div>
+
+            <div class="border-border rounded-lg border p-4">
+              <div class="flex items-center gap-2">
+                <Icon name="hugeicons:tick-02" class="text-primary size-4" />
+                <span class="text-muted-foreground text-xs font-medium">Success Rate</span>
+              </div>
+              <div class="text-primary mt-1 text-2xl font-semibold">
+                {{ analyticsData.summary.success_rate }}%
+              </div>
+              <div class="text-muted-foreground text-xs">
+                {{ analyticsData.summary.failed_requests.toLocaleString() }} failed
+              </div>
+            </div>
+
+            <div class="border-border rounded-lg border p-4">
+              <div class="flex items-center gap-2">
+                <Icon name="hugeicons:clock-02" class="text-primary size-4" />
+                <span class="text-muted-foreground text-xs font-medium">Avg Response</span>
+              </div>
+              <div class="text-primary mt-1 text-2xl font-semibold">
+                {{ analyticsData.summary.avg_response_time }}ms
+              </div>
+              <div class="text-muted-foreground text-xs">Response time</div>
+            </div>
+
+            <div class="border-border rounded-lg border p-4">
+              <div class="flex items-center gap-2">
+                <Icon name="hugeicons:user-group" class="text-primary size-4" />
+                <span class="text-muted-foreground text-xs font-medium">Consumers</span>
+              </div>
+              <div class="text-primary mt-1 text-2xl font-semibold">
+                {{ analyticsData.summary.active_consumers }}
+              </div>
+              <div class="text-muted-foreground text-xs">
+                {{ analyticsData.summary.consumers_with_requests }} with requests
+              </div>
+            </div>
+          </div>
+
+          <!-- Requests Chart -->
+          <div v-if="analyticsChartData?.length > 0" class="border-border rounded-lg border p-4">
+            <h3 class="mb-3 text-sm font-medium tracking-tight">Requests Over Time</h3>
+            <ChartLine
+              :data="analyticsChartData"
+              :config="analyticsChartConfig"
+              :gradient="true"
+              data-key="count"
+              class="h-32! overflow-hidden"
+            />
+          </div>
+
+          <!-- Top Consumers -->
+          <div
+            v-if="analyticsData.top_consumers?.length > 0"
+            class="border-border rounded-lg border p-4"
+          >
+            <h3 class="mb-3 text-sm font-medium tracking-tight">Top Consumers</h3>
+            <div class="space-y-2">
+              <nuxt-link
+                v-for="consumer in analyticsData.top_consumers"
+                :key="consumer.id"
+                :to="`/api-consumers/${consumer.id}/analytics`"
+                class="hover:bg-muted flex items-center justify-between rounded-md px-2 py-1.5 transition-colors"
+              >
+                <div class="min-w-0 flex-1">
+                  <div class="truncate text-sm font-medium tracking-tight">{{ consumer.name }}</div>
+                  <div class="text-muted-foreground truncate text-xs">{{ consumer.website_url }}</div>
+                </div>
+                <div class="ml-4 text-right">
+                  <div class="text-sm font-semibold">{{ consumer.request_count.toLocaleString() }}</div>
+                  <div class="text-muted-foreground text-xs">{{ consumer.avg_time }}ms avg</div>
+                </div>
+              </nuxt-link>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="text-muted-foreground py-8 text-center text-sm">
+          No analytics data available
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+
     <TableData
       :clientOnly="clientOnly"
       ref="tableRef"
@@ -127,6 +253,7 @@
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
@@ -154,6 +281,43 @@ usePageMeta("", {
 
 const { user } = useSanctumAuth();
 const { $dayjs } = useNuxtApp();
+
+// Analytics state
+const analyticsOpen = ref(true);
+const analyticsPeriod = ref("7");
+
+// Fetch overall analytics
+const {
+  data: analyticsResponse,
+  pending: analyticsLoading,
+  refresh: refreshAnalytics,
+} = await useLazySanctumFetch(() => `/api/api-consumers/analytics?days=${analyticsPeriod.value}`, {
+  key: `api-consumers-overall-analytics-${analyticsPeriod.value}`,
+  watch: [analyticsPeriod],
+});
+
+const analyticsData = computed(() => analyticsResponse.value?.data || null);
+
+// Chart data for analytics
+const analyticsChartData = computed(() => {
+  if (!analyticsData.value?.requests_per_day || !Array.isArray(analyticsData.value.requests_per_day)) {
+    return [];
+  }
+
+  return analyticsData.value.requests_per_day
+    .map((item) => ({
+      date: new Date(item.date),
+      count: item.count || 0,
+    }))
+    .sort((a, b) => a.date - b.date);
+});
+
+const analyticsChartConfig = computed(() => ({
+  count: {
+    label: "Requests",
+    color: "var(--chart-1)",
+  },
+}));
 
 // Table state
 const columnFilters = ref([]);
