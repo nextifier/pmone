@@ -7,9 +7,11 @@ use App\Http\Requests\StoreApiConsumerRequest;
 use App\Http\Requests\UpdateApiConsumerRequest;
 use App\Http\Resources\ApiConsumerResource;
 use App\Models\ApiConsumer;
+use App\Models\ApiConsumerRequest as ApiRequest;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ApiConsumerController extends Controller
 {
@@ -185,6 +187,124 @@ class ApiConsumerController extends Controller
                     'rate_limit' => $apiConsumer->rate_limit,
                     'allowed_origins_count' => count($apiConsumer->allowed_origins ?? []),
                 ],
+            ],
+        ]);
+    }
+
+    /**
+     * Get analytics data for the specified consumer
+     */
+    public function analytics(Request $request, ApiConsumer $apiConsumer): JsonResponse
+    {
+        $this->authorize('view', $apiConsumer);
+
+        $days = (int) $request->input('days', 7);
+        $days = min(max($days, 1), 90); // Limit between 1-90 days
+
+        $startDate = now()->subDays($days)->startOfDay();
+
+        // Get summary statistics
+        $summary = ApiRequest::query()
+            ->where('api_consumer_id', $apiConsumer->id)
+            ->where('created_at', '>=', $startDate)
+            ->selectRaw('
+                COUNT(*) as total_requests,
+                COUNT(CASE WHEN status_code >= 200 AND status_code < 300 THEN 1 END) as successful_requests,
+                COUNT(CASE WHEN status_code >= 400 THEN 1 END) as failed_requests,
+                AVG(response_time_ms) as avg_response_time,
+                MAX(response_time_ms) as max_response_time,
+                MIN(response_time_ms) as min_response_time
+            ')
+            ->first();
+
+        // Get requests per day for chart
+        $requestsPerDay = ApiRequest::query()
+            ->where('api_consumer_id', $apiConsumer->id)
+            ->where('created_at', '>=', $startDate)
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->map(fn ($item) => [
+                'date' => $item->date,
+                'count' => (int) $item->count,
+            ]);
+
+        // Get top endpoints
+        $topEndpoints = ApiRequest::query()
+            ->where('api_consumer_id', $apiConsumer->id)
+            ->where('created_at', '>=', $startDate)
+            ->selectRaw('endpoint, method, COUNT(*) as count, AVG(response_time_ms) as avg_time')
+            ->groupBy('endpoint', 'method')
+            ->orderByDesc('count')
+            ->limit(10)
+            ->get()
+            ->map(fn ($item) => [
+                'endpoint' => $item->endpoint,
+                'method' => $item->method,
+                'count' => (int) $item->count,
+                'avg_time' => round($item->avg_time, 2),
+            ]);
+
+        // Get status code distribution
+        $statusDistribution = ApiRequest::query()
+            ->where('api_consumer_id', $apiConsumer->id)
+            ->where('created_at', '>=', $startDate)
+            ->selectRaw('
+                CASE
+                    WHEN status_code >= 200 AND status_code < 300 THEN "2xx"
+                    WHEN status_code >= 300 AND status_code < 400 THEN "3xx"
+                    WHEN status_code >= 400 AND status_code < 500 THEN "4xx"
+                    WHEN status_code >= 500 THEN "5xx"
+                    ELSE "unknown"
+                END as status_group,
+                COUNT(*) as count
+            ')
+            ->groupBy('status_group')
+            ->get()
+            ->pluck('count', 'status_group');
+
+        // Get hourly distribution for today
+        $hourlyDistribution = ApiRequest::query()
+            ->where('api_consumer_id', $apiConsumer->id)
+            ->where('created_at', '>=', now()->startOfDay())
+            ->selectRaw('HOUR(created_at) as hour, COUNT(*) as count')
+            ->groupBy('hour')
+            ->orderBy('hour')
+            ->get()
+            ->map(fn ($item) => [
+                'hour' => (int) $item->hour,
+                'count' => (int) $item->count,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'consumer' => new ApiConsumerResource($apiConsumer),
+                'period' => [
+                    'days' => $days,
+                    'start_date' => $startDate->toDateString(),
+                    'end_date' => now()->toDateString(),
+                ],
+                'summary' => [
+                    'total_requests' => (int) ($summary->total_requests ?? 0),
+                    'successful_requests' => (int) ($summary->successful_requests ?? 0),
+                    'failed_requests' => (int) ($summary->failed_requests ?? 0),
+                    'success_rate' => $summary->total_requests > 0
+                        ? round(($summary->successful_requests / $summary->total_requests) * 100, 2)
+                        : 0,
+                    'avg_response_time' => round($summary->avg_response_time ?? 0, 2),
+                    'max_response_time' => (int) ($summary->max_response_time ?? 0),
+                    'min_response_time' => (int) ($summary->min_response_time ?? 0),
+                ],
+                'requests_per_day' => $requestsPerDay,
+                'top_endpoints' => $topEndpoints,
+                'status_distribution' => [
+                    '2xx' => (int) ($statusDistribution['2xx'] ?? 0),
+                    '3xx' => (int) ($statusDistribution['3xx'] ?? 0),
+                    '4xx' => (int) ($statusDistribution['4xx'] ?? 0),
+                    '5xx' => (int) ($statusDistribution['5xx'] ?? 0),
+                ],
+                'hourly_distribution' => $hourlyDistribution,
             ],
         ]);
     }
