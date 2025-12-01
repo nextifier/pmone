@@ -11,7 +11,6 @@ use App\Models\ApiConsumerRequest as ApiRequest;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class ApiConsumerController extends Controller
 {
@@ -250,16 +249,16 @@ class ApiConsumerController extends Controller
         $statusDistribution = ApiRequest::query()
             ->where('api_consumer_id', $apiConsumer->id)
             ->where('created_at', '>=', $startDate)
-            ->selectRaw('
+            ->selectRaw("
                 CASE
-                    WHEN status_code >= 200 AND status_code < 300 THEN "2xx"
-                    WHEN status_code >= 300 AND status_code < 400 THEN "3xx"
-                    WHEN status_code >= 400 AND status_code < 500 THEN "4xx"
-                    WHEN status_code >= 500 THEN "5xx"
-                    ELSE "unknown"
+                    WHEN status_code >= 200 AND status_code < 300 THEN '2xx'
+                    WHEN status_code >= 300 AND status_code < 400 THEN '3xx'
+                    WHEN status_code >= 400 AND status_code < 500 THEN '4xx'
+                    WHEN status_code >= 500 THEN '5xx'
+                    ELSE 'unknown'
                 END as status_group,
                 COUNT(*) as count
-            ')
+            ")
             ->groupBy('status_group')
             ->get()
             ->pluck('count', 'status_group');
@@ -268,7 +267,7 @@ class ApiConsumerController extends Controller
         $hourlyDistribution = ApiRequest::query()
             ->where('api_consumer_id', $apiConsumer->id)
             ->where('created_at', '>=', now()->startOfDay())
-            ->selectRaw('HOUR(created_at) as hour, COUNT(*) as count')
+            ->selectRaw('EXTRACT(HOUR FROM created_at) as hour, COUNT(*) as count')
             ->groupBy('hour')
             ->orderBy('hour')
             ->get()
@@ -372,16 +371,16 @@ class ApiConsumerController extends Controller
         // Get status distribution
         $statusDistribution = ApiRequest::query()
             ->where('created_at', '>=', $startDate)
-            ->selectRaw('
+            ->selectRaw("
                 CASE
-                    WHEN status_code >= 200 AND status_code < 300 THEN "2xx"
-                    WHEN status_code >= 300 AND status_code < 400 THEN "3xx"
-                    WHEN status_code >= 400 AND status_code < 500 THEN "4xx"
-                    WHEN status_code >= 500 THEN "5xx"
-                    ELSE "unknown"
+                    WHEN status_code >= 200 AND status_code < 300 THEN '2xx'
+                    WHEN status_code >= 300 AND status_code < 400 THEN '3xx'
+                    WHEN status_code >= 400 AND status_code < 500 THEN '4xx'
+                    WHEN status_code >= 500 THEN '5xx'
+                    ELSE 'unknown'
                 END as status_group,
                 COUNT(*) as count
-            ')
+            ")
             ->groupBy('status_group')
             ->get()
             ->pluck('count', 'status_group');
