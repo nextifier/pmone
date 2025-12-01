@@ -77,22 +77,31 @@ class ValidateApiKey
         // Calculate response time
         $responseTimeMs = (int) round((microtime(true) - $startTime) * 1000);
 
-        // Log request and update last used timestamp (async to avoid blocking)
-        dispatch(function () use ($consumer, $request, $response, $responseTimeMs) {
-            $consumer->markAsUsed();
+        // Extract serializable data before dispatching
+        $consumerId = $consumer->id;
+        $endpoint = $request->path();
+        $method = $request->method();
+        $statusCode = $response->getStatusCode();
+        $ipAddress = $request->ip();
+        $userAgent = substr($request->userAgent() ?? '', 0, 255);
+        $origin = $request->header('Origin');
 
-            // Log the API request
+        // Log request and update last used timestamp (async to avoid blocking)
+        // Use only primitive values to avoid PDO serialization issues
+        app()->terminating(function () use ($consumerId, $endpoint, $method, $statusCode, $responseTimeMs, $ipAddress, $userAgent, $origin) {
+            ApiConsumer::where('id', $consumerId)->update(['last_used_at' => now()]);
+
             ApiConsumerRequest::create([
-                'api_consumer_id' => $consumer->id,
-                'endpoint' => $request->path(),
-                'method' => $request->method(),
-                'status_code' => $response->getStatusCode(),
+                'api_consumer_id' => $consumerId,
+                'endpoint' => $endpoint,
+                'method' => $method,
+                'status_code' => $statusCode,
                 'response_time_ms' => $responseTimeMs,
-                'ip_address' => $request->ip(),
-                'user_agent' => substr($request->userAgent() ?? '', 0, 255),
-                'origin' => $request->header('Origin'),
+                'ip_address' => $ipAddress,
+                'user_agent' => $userAgent,
+                'origin' => $origin,
             ]);
-        })->afterResponse();
+        });
 
         return $response;
     }

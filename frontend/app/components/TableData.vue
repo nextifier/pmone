@@ -51,40 +51,51 @@
           <slot name="filters" :table="table" />
 
           <!-- Column Toggle -->
-          <Popover v-if="columnToggle">
-            <PopoverTrigger asChild>
+          <ClientOnly v-if="columnToggle">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+                >
+                  <Icon name="lucide:columns-3" class="size-4 shrink-0" />
+                  <span class="hidden sm:flex">Columns</span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent class="w-auto min-w-36 p-3" align="end">
+                <div class="space-y-3">
+                  <div class="text-muted-foreground text-xs font-medium">Toggle columns</div>
+                  <div class="space-y-3">
+                    <div
+                      v-for="column in table.getAllColumns().filter((column) => column.getCanHide())"
+                      :key="column.id"
+                      class="flex items-center gap-2"
+                    >
+                      <Checkbox
+                        :id="column.id"
+                        :model-value="column.getIsVisible()"
+                        @update:model-value="(value) => column.toggleVisibility(!!value)"
+                      />
+                      <Label
+                        :for="column.id"
+                        class="grow cursor-pointer font-normal tracking-tight capitalize"
+                      >
+                        {{ column.columnDef.header }}
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <template #fallback>
               <button
                 class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+                disabled
               >
                 <Icon name="lucide:columns-3" class="size-4 shrink-0" />
                 <span class="hidden sm:flex">Columns</span>
               </button>
-            </PopoverTrigger>
-            <PopoverContent class="w-auto min-w-36 p-3" align="end">
-              <div class="space-y-3">
-                <div class="text-muted-foreground text-xs font-medium">Toggle columns</div>
-                <div class="space-y-3">
-                  <div
-                    v-for="column in table.getAllColumns().filter((column) => column.getCanHide())"
-                    :key="column.id"
-                    class="flex items-center gap-2"
-                  >
-                    <Checkbox
-                      :id="column.id"
-                      :model-value="column.getIsVisible()"
-                      @update:model-value="(value) => column.toggleVisibility(!!value)"
-                    />
-                    <Label
-                      :for="column.id"
-                      class="grow cursor-pointer font-normal tracking-tight capitalize"
-                    >
-                      {{ column.columnDef.header }}
-                    </Label>
-                  </div>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+            </template>
+          </ClientOnly>
         </div>
 
         <!-- Action Buttons -->

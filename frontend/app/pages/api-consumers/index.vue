@@ -165,35 +165,46 @@
       @refresh="refresh"
     >
       <template #filters="{ table }">
-        <Popover>
-          <PopoverTrigger asChild>
+        <ClientOnly>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+              >
+                <Icon name="lucide:list-filter" class="size-4 shrink-0" />
+                <span class="hidden sm:flex">Filter</span>
+                <span
+                  v-if="totalActiveFilters > 0"
+                  class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
+                >
+                  {{ totalActiveFilters }}
+                </span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent class="w-auto min-w-48 p-3" align="start">
+              <div class="space-y-4">
+                <FilterSection
+                  title="Status"
+                  :options="[
+                    { label: 'Active', value: 'true' },
+                    { label: 'Inactive', value: 'false' },
+                  ]"
+                  :selected="selectedStatuses"
+                  @change="handleFilterChange('is_active', $event)"
+                />
+              </div>
+            </PopoverContent>
+          </Popover>
+          <template #fallback>
             <button
               class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+              disabled
             >
               <Icon name="lucide:list-filter" class="size-4 shrink-0" />
               <span class="hidden sm:flex">Filter</span>
-              <span
-                v-if="totalActiveFilters > 0"
-                class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
-              >
-                {{ totalActiveFilters }}
-              </span>
             </button>
-          </PopoverTrigger>
-          <PopoverContent class="w-auto min-w-48 p-3" align="start">
-            <div class="space-y-4">
-              <FilterSection
-                title="Status"
-                :options="[
-                  { label: 'Active', value: 'true' },
-                  { label: 'Inactive', value: 'false' },
-                ]"
-                :selected="selectedStatuses"
-                @change="handleFilterChange('is_active', $event)"
-              />
-            </div>
-          </PopoverContent>
-        </Popover>
+          </template>
+        </ClientOnly>
       </template>
 
       <template #actions="{ selectedRows }">
@@ -555,7 +566,12 @@ const columns = [
   {
     id: "actions",
     header: () => h("span", { class: "sr-only" }, "Actions"),
-    cell: ({ row }) => h(RowActions, { consumer: row.original }),
+    cell: ({ row }) =>
+      h(
+        resolveComponent("ClientOnly"),
+        {},
+        { default: () => h(RowActions, { consumer: row.original }) }
+      ),
     size: 60,
     enableHiding: false,
   },
