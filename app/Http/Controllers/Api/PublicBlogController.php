@@ -36,25 +36,8 @@ class PublicBlogController extends Controller
      */
     public function posts(Request $request): JsonResponse
     {
-        $cacheKey = $this->generateCacheKey('posts', $request);
-        $tags = ['public-blog', 'posts'];
-
-        // Use stale-while-revalidate: return cached data immediately, refresh in background if stale
-        return StaleWhileRevalidateCache::remember(
-            $cacheKey,
-            $tags,
-            self::STALE_TTL,
-            self::MAX_TTL,
-            function () use ($request) {
-                return $this->fetchPosts($request);
-            },
-            RefreshPublicBlogCacheJob::class,
-            [
-                'type' => 'posts',
-                'per_page' => $request->input('per_page', 15),
-                'sort' => $request->input('sort', '-published_at'),
-            ]
-        );
+        // Caching disabled - fetch fresh data on every request
+        return $this->fetchPosts($request);
     }
 
     /**

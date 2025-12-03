@@ -1,5 +1,5 @@
 <template>
-  <div id="blog-page" class="min-h-screen-offset pt-4 pb-8 lg:pt-8 lg:pb-24">
+  <div id="blog-page" class="min-h-screen-offset pt-4 pb-16 lg:pt-8 lg:pb-24">
     <div class="container-wider">
       <div class="@container">
         <div class="flex flex-col gap-x-6 gap-y-6 lg:flex-row lg:items-end lg:justify-between">
@@ -44,6 +44,16 @@
         </div>
 
         <div class="mt-8 sm:mt-10">
+          <div v-if="!pending && posts?.length" class="text-muted-foreground mb-4 tracking-tight">
+            <span v-if="isSearching">
+              Showing {{ meta.total }} posts for
+              <span class="font-medium text-gray-700 italic dark:text-gray-300"
+                >"{{ debouncedSearchInput }}"</span
+              >
+            </span>
+            <span v-else> Showing {{ meta.total }} posts </span>
+          </div>
+
           <div
             v-if="pending"
             class="grid grid-cols-1 gap-x-4 gap-y-8 @xl:grid-cols-2 @4xl:grid-cols-12"
@@ -57,6 +67,20 @@
             >
           </div>
 
+          <!-- Search results with no matches (must be before generic "No posts" check) -->
+          <div v-else-if="isSearching && posts?.length === 0" class="flex flex-col gap-y-4">
+            <span class="text-4xl font-semibold tracking-tighter sm:text-5xl"
+              >No results found for
+              <span class="font-bold italic">"{{ debouncedSearchInput }}"</span></span
+            >
+
+            <span class="text-base tracking-tight sm:text-lg"
+              >Maybe try a different keyword, or explore other topics—we're sure you'll find
+              something awesome!</span
+            >
+          </div>
+
+          <!-- No posts at all (not searching) -->
           <div v-else-if="posts?.length === 0" class="flex flex-col items-start">
             <h2
               class="text-4xl font-bold tracking-tighter text-black sm:text-4xl xl:text-5xl dark:text-white"
@@ -74,14 +98,14 @@
             </nuxt-link>
           </div>
 
+          <!-- Posts list (regular or search results) -->
           <div v-else-if="posts?.length">
             <div
-              v-if="filteredPosts?.length"
               class="grid grid-cols-1 gap-x-4 gap-y-8 @xl:grid-cols-2 @4xl:grid-cols-12"
               v-auto-animate="{ duration: 300 }"
             >
               <BlogPostCard
-                v-for="(post, index) in filteredPosts"
+                v-for="(post, index) in posts"
                 :key="post.id || index"
                 :post="post"
                 :show-excerpt="false"
@@ -90,87 +114,14 @@
               />
             </div>
 
-            <div v-else class="flex flex-col gap-y-4">
-              <span class="text-4xl font-semibold tracking-tighter sm:text-5xl"
-                >No results found for <span class="font-bold italic">{{ searchInput }}.</span></span
-              >
-
-              <span class="text-base tracking-tight sm:text-lg"
-                >Maybe try a different keyword, or explore other topics—we're sure you'll find
-                something awesome!</span
-              >
-            </div>
-
-            <!-- Pagination -->
-            <div v-if="!isSearching && meta.last_page > 1" class="mt-12">
-              <Pagination
+            <!-- Pagination - show for both regular browsing and search results -->
+            <div v-if="meta.last_page > 1" class="mt-12">
+              <PaginationCustom
                 v-model:page="currentPage"
                 :total="meta.total"
                 :items-per-page="meta.per_page"
                 :sibling-count="1"
-                show-edges
-              >
-                <PaginationContent class="flex items-center gap-1">
-                  <PaginationFirst
-                    class="size-9 p-0"
-                    :class="
-                      cn(
-                        buttonVariants({ variant: 'outline', size: 'icon' }),
-                        currentPage === 1 && 'pointer-events-none opacity-50'
-                      )
-                    "
-                  />
-                  <PaginationPrevious
-                    class="size-9 p-0"
-                    :class="
-                      cn(
-                        buttonVariants({ variant: 'outline', size: 'icon' }),
-                        currentPage === 1 && 'pointer-events-none opacity-50'
-                      )
-                    "
-                  >
-                    <ChevronLeftIcon class="size-4" />
-                  </PaginationPrevious>
-
-                  <template v-for="(item, index) in paginationItems" :key="index">
-                    <PaginationItem
-                      v-if="item.type === 'page'"
-                      :value="item.value"
-                      as-child
-                    >
-                      <Button
-                        :variant="item.value === currentPage ? 'default' : 'outline'"
-                        size="icon"
-                        class="size-9"
-                      >
-                        {{ item.value }}
-                      </Button>
-                    </PaginationItem>
-                    <PaginationEllipsis v-else :index="index" />
-                  </template>
-
-                  <PaginationNext
-                    class="size-9 p-0"
-                    :class="
-                      cn(
-                        buttonVariants({ variant: 'outline', size: 'icon' }),
-                        currentPage === meta.last_page && 'pointer-events-none opacity-50'
-                      )
-                    "
-                  >
-                    <ChevronRightIcon class="size-4" />
-                  </PaginationNext>
-                  <PaginationLast
-                    class="size-9 p-0"
-                    :class="
-                      cn(
-                        buttonVariants({ variant: 'outline', size: 'icon' }),
-                        currentPage === meta.last_page && 'pointer-events-none opacity-50'
-                      )
-                    "
-                  />
-                </PaginationContent>
-              </Pagination>
+              />
             </div>
           </div>
         </div>
@@ -180,24 +131,13 @@
 </template>
 
 <script setup>
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-vue-next";
-import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationFirst,
-  PaginationItem,
-  PaginationLast,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { cn } from "@/lib/utils";
-
 usePageMeta("news");
 defineOptions({
   name: "news",
 });
+
+const route = useRoute();
+const router = useRouter();
 
 const postCardClasses = ref(
   "@xl:first:col-span-2 @4xl:col-span-4 @4xl:first:col-span-6 @4xl:nth-2:col-span-6 @5xl:col-span-3 @[90rem]:col-span-3 @7xl:[&:nth-child(-n+3)]:col-span-4"
@@ -205,23 +145,81 @@ const postCardClasses = ref(
 
 const postStore = usePostStore();
 const { posts, pending, error, meta } = storeToRefs(postStore);
-postStore.fetchPosts();
 
-const searchInput = defineModel({ default: "" });
-const debouncedSearchInput = refDebounced(searchInput, 200);
+// Get initial values from URL query parameters
+const initialPage = Number(route.query.page) || 1;
+const initialSearchQuery = (route.query.q || "").toString();
+
+// Initialize search input with URL query
+const searchInput = ref(initialSearchQuery);
+const debouncedSearchInput = refDebounced(searchInput, 400);
+
+// Fetch initial data based on URL parameters
+// Always force fetch to ensure data matches current URL state
+if (initialSearchQuery) {
+  await postStore.searchPosts(initialSearchQuery, { page: initialPage });
+} else {
+  await postStore.fetchPosts({ page: initialPage, force: true });
+}
 
 // Check if user is searching
 const isSearching = computed(() => debouncedSearchInput.value.length > 0);
 
 // Current page for pagination
-const currentPage = ref(meta.value.current_page);
+const currentPage = ref(initialPage);
 
-// Watch for page changes and fetch new data
+// Flag to prevent duplicate fetches when search triggers page reset
+const isSearchTriggeredPageChange = ref(false);
+
+// Watch for search input changes and search from backend
+watch(debouncedSearchInput, async (newSearchTerm) => {
+  if (newSearchTerm.trim()) {
+    // Mark that search is triggering the page change to prevent duplicate fetch
+    isSearchTriggeredPageChange.value = true;
+    currentPage.value = 1;
+    await postStore.searchPosts(newSearchTerm, { page: 1 });
+    isSearchTriggeredPageChange.value = false;
+
+    // Update URL with search query (without page param since it's page 1)
+    router.push({
+      query: { q: newSearchTerm },
+    });
+  } else {
+    // Mark that search clear is triggering the page change
+    isSearchTriggeredPageChange.value = true;
+    currentPage.value = 1;
+    await postStore.clearSearch();
+    isSearchTriggeredPageChange.value = false;
+
+    // Remove search query from URL
+    router.push({
+      query: {},
+    });
+  }
+});
+
+// Watch for page changes and fetch new data (only for user-initiated pagination)
 watch(currentPage, async (newPage) => {
+  // Skip if this page change was triggered by search (already handled above)
+  if (isSearchTriggeredPageChange.value) {
+    return;
+  }
+
   if (newPage !== meta.value.current_page) {
-    await postStore.goToPage(newPage);
+    if (isSearching.value) {
+      await postStore.searchPosts(debouncedSearchInput.value, { page: newPage });
+    } else {
+      await postStore.goToPage(newPage);
+    }
+
+    // Update URL query parameter
+    const query = {};
+    if (newPage > 1) query.page = newPage;
+    if (isSearching.value) query.q = debouncedSearchInput.value;
+    router.push({ query });
+
     // Scroll to top of the page
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0 });
   }
 });
 
@@ -232,61 +230,6 @@ watch(
     currentPage.value = newPage;
   }
 );
-
-// Generate pagination items with ellipsis
-const paginationItems = computed(() => {
-  const items = [];
-  const totalPages = meta.value.last_page;
-  const current = currentPage.value;
-  const siblingCount = 1;
-
-  // Always show first page
-  items.push({ type: "page", value: 1 });
-
-  // Calculate range around current page
-  const leftSibling = Math.max(2, current - siblingCount);
-  const rightSibling = Math.min(totalPages - 1, current + siblingCount);
-
-  // Add ellipsis after first page if needed
-  if (leftSibling > 2) {
-    items.push({ type: "ellipsis" });
-  }
-
-  // Add pages around current page
-  for (let i = leftSibling; i <= rightSibling; i++) {
-    if (i !== 1 && i !== totalPages) {
-      items.push({ type: "page", value: i });
-    }
-  }
-
-  // Add ellipsis before last page if needed
-  if (rightSibling < totalPages - 1) {
-    items.push({ type: "ellipsis" });
-  }
-
-  // Always show last page if more than 1 page
-  if (totalPages > 1) {
-    items.push({ type: "page", value: totalPages });
-  }
-
-  return items;
-});
-
-const filteredPosts = computed(() => {
-  if (!posts.value) return [];
-  if (!isSearching.value) return posts.value;
-
-  return posts.value.filter((post) => {
-    const titleMatch = post.title.toLowerCase().includes(debouncedSearchInput.value.toLowerCase());
-
-    // PM One: tags is an array of strings
-    const tagMatch = post.tags?.some((tag) =>
-      tag.toLowerCase().includes(debouncedSearchInput.value.toLowerCase())
-    );
-
-    return titleMatch || tagMatch;
-  });
-});
 
 const searchInputEl = ref();
 const { metaSymbol } = useShortcuts();

@@ -32,7 +32,7 @@
         </CollapsibleTrigger>
         <select
           v-model="analyticsPeriod"
-          class="border-border bg-background text-sm rounded-md border px-2 py-1"
+          class="border-border bg-background rounded-md border px-2 py-1 text-sm"
         >
           <option value="7">Last 7 days</option>
           <option value="30">Last 30 days</option>
@@ -100,14 +100,15 @@
           </div>
 
           <!-- Requests Chart -->
-          <div v-if="analyticsChartData?.length > 0" class="border-border rounded-lg border p-4">
+          <div v-if="analyticsChartData?.length > 0" class="">
             <h3 class="mb-3 text-sm font-medium tracking-tight">Requests Over Time</h3>
+
             <ChartLine
               :data="analyticsChartData"
               :config="analyticsChartConfig"
               :gradient="true"
               data-key="count"
-              class="h-32! overflow-hidden"
+              class="bg-background overflow-hidden rounded-xl border py-2.5"
             />
           </div>
 
@@ -126,10 +127,14 @@
               >
                 <div class="min-w-0 flex-1">
                   <div class="truncate text-sm font-medium tracking-tight">{{ consumer.name }}</div>
-                  <div class="text-muted-foreground truncate text-xs">{{ consumer.website_url }}</div>
+                  <div class="text-muted-foreground truncate text-xs">
+                    {{ consumer.website_url }}
+                  </div>
                 </div>
                 <div class="ml-4 text-right">
-                  <div class="text-sm font-semibold">{{ consumer.request_count.toLocaleString() }}</div>
+                  <div class="text-sm font-semibold">
+                    {{ consumer.request_count.toLocaleString() }}
+                  </div>
                   <div class="text-muted-foreground text-xs">{{ consumer.avg_time }}ms avg</div>
                 </div>
               </nuxt-link>
@@ -311,7 +316,10 @@ const analyticsData = computed(() => analyticsResponse.value?.data || null);
 
 // Chart data for analytics
 const analyticsChartData = computed(() => {
-  if (!analyticsData.value?.requests_per_day || !Array.isArray(analyticsData.value.requests_per_day)) {
+  if (
+    !analyticsData.value?.requests_per_day ||
+    !Array.isArray(analyticsData.value.requests_per_day)
+  ) {
     return [];
   }
 

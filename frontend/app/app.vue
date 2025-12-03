@@ -16,6 +16,7 @@
           }"
         />
       </NuxtLayout>
+      <ScrollToTop />
       <Toaster class="pointer-events-auto" />
     </Body>
   </Html>

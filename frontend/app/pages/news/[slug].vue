@@ -4,9 +4,9 @@
       v-if="['news-slug'].includes(route.name)"
       side="right"
       variant="sidebar"
-      class="border-border top-[var(--navbar-height-desktop)]"
+      class="border-border top-(--navbar-height-desktop)"
     >
-      <SidebarContent class="scroll-fade-y relative">
+      <SidebarContent class="scroll-fade-y relative pb-10">
         <button
           v-if="isMobile"
           @click="setOpenMobile(false)"
@@ -27,7 +27,9 @@
             @headings-found="onHeadingsFound"
           />
 
-          <LazyBlogPostRecommendation />
+          <ClientOnly>
+            <LazyBlogPostRelated variant="sidebar" title="Editor's Picks" />
+          </ClientOnly>
         </div>
       </SidebarContent>
       <SidebarRail />
@@ -40,7 +42,7 @@
       </div>
     </div>
 
-    <div v-else-if="post" class="pb-6">
+    <div v-else-if="post" class="pb-24">
       <div class="container-wider flex items-start justify-between gap-x-12">
         <main class="mx-auto w-full max-w-[38rem] py-4">
           <div class="flex items-center justify-between lg:-mx-3">
@@ -48,9 +50,7 @@
             <DialogShare :pageTitle="title" />
           </div>
 
-          <div
-            class="mt-4 flex flex-col items-center text-center xl:items-center xl:text-center"
-          >
+          <div class="mt-4 flex flex-col items-center text-center xl:items-center xl:text-center">
             <span
               v-if="post.tags?.length > 0"
               class="text-primary border-border mb-3 flex items-center justify-center rounded-full border px-3 py-2 text-xs font-semibold tracking-tighter capitalize sm:text-sm"
@@ -95,15 +95,10 @@
                 </div>
 
                 <div class="flex flex-col gap-y-1">
-                  <div
-                    class="text-primary line-clamp-1 font-medium tracking-tight"
-                  >
+                  <div class="text-primary line-clamp-1 font-medium tracking-tight">
                     <span v-for="(author, index) in post.authors" :key="index">
                       {{ author.name
-                      }}<span
-                        v-if="index != Object.keys(post.authors).length - 1"
-                        >,
-                      </span>
+                      }}<span v-if="index != Object.keys(post.authors).length - 1">, </span>
                     </span>
                   </div>
 
@@ -135,16 +130,10 @@
                 Posted {{ $dayjs(post.published_at).fromNow() }}
               </span>
 
-              <span
-                v-if="post.reading_time"
-                class="flex items-center gap-x-1.5"
-              >
+              <span v-if="post.reading_time" class="flex items-center gap-x-1.5">
                 <Icon name="lucide:clock-fading" class="size-4 shrink-0" />
                 <span
-                  >{{ post.reading_time }} min<span v-if="post.reading_time > 1"
-                    >s</span
-                  >
-                  read</span
+                  >{{ post.reading_time }} min<span v-if="post.reading_time > 1">s</span> read</span
                 >
               </span>
             </div>
@@ -157,10 +146,7 @@
             </div>
           </div>
 
-          <div
-            v-if="post.featured_image"
-            class="bg-muted mx-auto mt-10 block overflow-hidden"
-          >
+          <div v-if="post.featured_image" class="bg-muted mx-auto mt-10 block overflow-hidden">
             <NuxtImg
               :src="
                 post.featured_image?.lg ||
@@ -186,10 +172,7 @@
           >
             <article :id="post.slug" v-html="processedHtml"></article>
 
-            <div
-              v-if="post.tags?.length"
-              class="mt-8 flex items-start gap-x-3 lg:mt-10"
-            >
+            <div v-if="post.tags?.length" class="mt-8 flex items-start gap-x-3 lg:mt-10">
               <Icon name="hugeicons:tag-01" class="mt-2.5 size-5 shrink-0" />
               <div class="flex flex-wrap gap-x-2 gap-y-3">
                 <span
@@ -204,8 +187,7 @@
           </div>
 
           <div class="mt-10 flex flex-col items-center gap-y-4">
-            <span
-              class="text-primary text-center text-lg font-semibold tracking-tighter sm:text-xl"
+            <span class="text-primary text-center text-lg font-semibold tracking-tighter sm:text-xl"
               >Share this post</span
             >
             <SharePage
@@ -217,12 +199,8 @@
         </main>
       </div>
 
-      <!-- <LazyBlogPostSlider
-        :headline="useContentStore().components.postSlider.title.morePosts"
-        class="mt-10 lg:mt-24"
-      /> -->
-
-      <LazyBlogPostMore
+      <LazyBlogPostRelated
+        variant="grid"
         class="container-wider mt-10 transition-all duration-200 ease-linear"
         :class="{
           'pr-(--sidebar-width)': open && !isMobile,
@@ -242,9 +220,7 @@ const { open, isMobile, setOpenMobile } = useSidebar();
 
 // Call local Nuxt server API (which proxies to PM One API)
 // API key is kept secure on the server, not exposed to browser
-const { data, pending, error } = await useFetch(
-  `/api/blog/posts/${route.params.slug}`,
-);
+const { data, pending, error } = await useFetch(`/api/blog/posts/${route.params.slug}`);
 
 const post = computed(() => data?.value?.data);
 
@@ -273,11 +249,12 @@ function generatePostExcerpt(postBody) {
 }
 
 const title = computed(() => post.value?.meta_title || post.value?.title || "");
-const description = computed(() =>
-  post.value?.meta_description ||
-  post.value?.excerpt ||
-  generatePostExcerpt(post.value?.content) ||
-  ""
+const description = computed(
+  () =>
+    post.value?.meta_description ||
+    post.value?.excerpt ||
+    generatePostExcerpt(post.value?.content) ||
+    ""
 );
 
 usePageMeta("", {
