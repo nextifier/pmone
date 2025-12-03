@@ -72,7 +72,12 @@ const route = useRoute();
 
 // Use Pinia store - data is cached and shared across components
 const postStore = usePostStore();
-postStore.fetchPosts();
+
+// Fetch posts on component mount (works for both SSR and client-side)
+await useAsyncData("post-slider-posts", async () => {
+  await postStore.fetchPosts();
+  return postStore.posts;
+});
 
 const filteredPosts = computed(() => {
   const posts = Array.isArray(postStore.posts) ? postStore.posts : [];
