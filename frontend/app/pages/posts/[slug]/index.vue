@@ -103,7 +103,10 @@
             class="h-auto w-full object-cover"
           />
         </div>
-        <p v-if="post.featured_image.caption" class="text-muted-foreground text-center text-sm italic">
+        <p
+          v-if="post.featured_image.caption"
+          class="text-muted-foreground text-center text-sm italic"
+        >
           {{ post.featured_image.caption }}
         </p>
       </div>
@@ -152,7 +155,9 @@
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  layout: "default",
+  middleware: ["sanctum:auth", "role"],
+  roles: ["writer", "staff", "admin", "master"],
+  layout: "app",
 });
 
 const route = useRoute();

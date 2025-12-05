@@ -67,7 +67,8 @@
 import QRCode from "qrcode";
 
 definePageMeta({
-  layout: "default",
+  middleware: ["sanctum:auth"],
+  layout: "app",
 });
 
 usePageMeta(null, {
