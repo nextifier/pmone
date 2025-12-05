@@ -6,8 +6,5 @@
 </template>
 
 <script setup>
-definePageMeta({
-  //   middleware: ["sanctum:guest"],
-});
 usePageMeta("home");
 </script>

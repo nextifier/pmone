@@ -8,19 +8,19 @@
     :siblingCount="props.siblingCount"
   >
     <PaginationContent
-      class="text-muted-foreground flex w-full items-center justify-center-safe gap-0 -space-x-px overflow-auto text-sm *:shrink-0"
+      class="text-foreground flex w-full items-center justify-center-safe gap-x-0.5 overflow-auto rounded-full text-sm *:shrink-0 sm:gap-x-1"
       v-slot="{ items }"
     >
       <PaginationFirst as-child>
         <button
-          class="xs:flex border-border hover:text-foreground hidden size-9 items-center justify-center rounded-none border text-center shadow-none first:rounded-s-md last:rounded-e-md focus-visible:z-10 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
+          class="border-border hover:bg-muted xs:flex hidden size-8 items-center justify-center rounded-lg text-center shadow-none transition focus-visible:z-10 active:scale-98 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
         >
           <Icon name="lucide:chevron-first" class="size-4 shrink-0" />
         </button>
       </PaginationFirst>
       <PaginationPrevious as-child>
         <button
-          class="border-border hover:text-foreground flex size-9 items-center justify-center rounded-none border text-center shadow-none focus-visible:z-10 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
+          class="border-border hover:bg-muted flex size-8 items-center justify-center rounded-lg text-center shadow-none transition focus-visible:z-10 active:scale-98 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
         >
           <Icon name="lucide:chevron-left" class="size-4 shrink-0" />
         </button>
@@ -28,9 +28,9 @@
       <template v-for="item in items">
         <PaginationItem v-if="item.type === 'page'" :value="item.value" asChild>
           <button
-            class="border-border hover:text-foreground flex size-9 items-center justify-center rounded-none border text-center shadow-none focus-visible:z-10 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
+            class="border-primary/20 hover:bg-muted flex size-8 items-center justify-center rounded-lg text-center shadow-none transition focus-visible:z-10 active:scale-98 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
             :class="{
-              'bg-border/75 text-foreground': item.value === page,
+              'border font-medium': item.value === page,
             }"
           >
             {{ item.value }}
@@ -38,7 +38,7 @@
         </PaginationItem>
         <PaginationEllipsis v-if="item.type === 'ellipsis'" as-child>
           <button
-            class="border-border hover:text-foreground flex size-9 items-center justify-center rounded-none border text-center shadow-none focus-visible:z-10 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
+            class="flex size-8 cursor-default items-center justify-center rounded-lg text-center shadow-none focus-visible:z-10 active:scale-98 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
           >
             <Icon name="lucide:ellipsis" class="size-4 shrink-0" />
           </button>
@@ -46,14 +46,14 @@
       </template>
       <PaginationNext as-child>
         <button
-          class="border-border hover:text-foreground flex size-9 items-center justify-center rounded-none border text-center shadow-none focus-visible:z-10 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
+          class="border-border hover:bg-muted flex size-8 items-center justify-center rounded-lg text-center shadow-none transition focus-visible:z-10 active:scale-98 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
         >
           <Icon name="lucide:chevron-right" class="size-4 shrink-0" />
         </button>
       </PaginationNext>
       <PaginationLast as-child>
         <button
-          class="xs:flex border-border hover:text-foreground flex hidden size-9 items-center justify-center rounded-none border text-center shadow-none first:rounded-s-md last:rounded-e-md focus-visible:z-10 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
+          class="border-border hover:bg-muted xs:flex hidden size-8 items-center justify-center rounded-lg text-center shadow-none transition focus-visible:z-10 active:scale-98 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
         >
           <Icon name="lucide:chevron-last" class="size-4 shrink-0" />
         </button>

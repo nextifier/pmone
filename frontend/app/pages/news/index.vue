@@ -1,5 +1,5 @@
 <template>
-  <div id="blog-page" class="min-h-screen-offset pt-4 pb-16 lg:pt-8 lg:pb-24">
+  <div id="blog-page" class="min-h-screen-offset pt-4 pb-24 lg:pt-8">
     <div class="container-wider">
       <div class="@container">
         <div class="flex flex-col gap-x-6 gap-y-6 lg:flex-row lg:items-end lg:justify-between">
@@ -13,7 +13,7 @@
                 type="text"
                 v-model="searchInput"
                 ref="searchInputEl"
-                class="input-base peer h-10 px-9 py-2 text-sm tracking-tight"
+                class="input-base peer dark:bg-muted/50! h-9 px-9 py-2 text-sm tracking-tight"
                 placeholder="Search posts"
               />
 
@@ -23,7 +23,7 @@
 
               <span
                 id="shortcut-key"
-                class="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 items-center justify-center gap-x-0.5 transition peer-placeholder-shown:flex peer-focus-within:hidden"
+                class="pointer-events-none absolute top-1/2 right-2 hidden -translate-y-1/2 items-center justify-center gap-x-0.5 transition peer-placeholder-shown:flex peer-focus-within:hidden"
               >
                 <kbd class="keyboard-symbol">{{ metaSymbol }} K</kbd>
               </span>

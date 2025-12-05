@@ -24,7 +24,7 @@
 const props = defineProps({
   threshold: {
     type: Number,
-    default: 300,
+    default: 1000,
   },
 });
 
