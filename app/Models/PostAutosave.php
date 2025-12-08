@@ -29,6 +29,33 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Post|null $post
  * @property-read \App\Models\User $user
+ *
+ * @method static \Database\Factories\PostAutosaveFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereAuthors($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereContent($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereContentFormat($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereExcerpt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereFeatured($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereMetaDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereMetaTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave wherePostId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave wherePublishedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereReadingTime($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereSettings($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereTags($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereTmpMedia($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereVisibility($value)
+ *
+ * @mixin \Eloquent
  */
 class PostAutosave extends Model
 {

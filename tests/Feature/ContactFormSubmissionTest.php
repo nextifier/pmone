@@ -2,6 +2,7 @@
 
 use App\Enums\ContactFormStatus;
 use App\Jobs\ProcessContactFormSubmission;
+use App\Models\ApiConsumer;
 use App\Models\ContactFormSubmission;
 use App\Models\Project;
 use App\Models\User;
@@ -34,12 +35,43 @@ beforeEach(function () {
     ]);
 
     $this->user = User::factory()->create();
+
+    // Create API consumer for contact form tests
+    $this->apiConsumer = ApiConsumer::factory()->create([
+        'name' => 'Test Consumer',
+        'api_key' => 'pk_test_api_key_12345',
+        'is_active' => true,
+        'allowed_origins' => [],
+        'rate_limit' => 0, // Unlimited for tests
+    ]);
 });
+
+// Helper function to generate valid honeypot timestamp token
+function generateValidTimestampToken(): string
+{
+    $timestamp = time() - 5; // 5 seconds ago (passes minimum time check)
+    $random1 = bin2hex(random_bytes(4));
+    $random2 = bin2hex(random_bytes(4));
+
+    return base64_encode("{$random1}_{$timestamp}_{$random2}");
+}
+
+// Helper function to make authenticated API requests with API key and honeypot
+function postJsonWithApiKey($test, string $uri, array $data = [])
+{
+    // Add honeypot fields if not present
+    $data['website'] = $data['website'] ?? '';
+    $data['_token_time'] = $data['_token_time'] ?? generateValidTimestampToken();
+
+    return $test->withHeaders([
+        'X-API-Key' => 'pk_test_api_key_12345',
+    ])->postJson($uri, $data);
+}
 
 // Submit Contact Form Tests
 
 test('can submit contact form with valid data', function () {
-    $response = $this->postJson('/api/contact-forms/submit', [
+    $response = postJsonWithApiKey($this, '/api/contact-forms/submit', [
         'project_username' => 'testproject',
         'subject' => 'New Product Inquiry',
         'data' => [
@@ -71,11 +103,12 @@ test('can submit contact form with valid data', function () {
 });
 
 test('contact form submission requires project username', function () {
-    $response = $this->postJson('/api/contact-forms/submit', [
+    $response = postJsonWithApiKey($this, '/api/contact-forms/submit', [
         'subject' => 'Test',
         'data' => [
             'name' => 'John Doe',
             'email' => 'john@example.com',
+            'phone' => '08123456789',
         ],
     ]);
 
@@ -84,7 +117,7 @@ test('contact form submission requires project username', function () {
 });
 
 test('contact form submission requires form data', function () {
-    $response = $this->postJson('/api/contact-forms/submit', [
+    $response = postJsonWithApiKey($this, '/api/contact-forms/submit', [
         'project_username' => 'testproject',
         'subject' => 'Test',
     ]);
@@ -94,7 +127,7 @@ test('contact form submission requires form data', function () {
 });
 
 test('contact form submission validates project exists', function () {
-    $response = $this->postJson('/api/contact-forms/submit', [
+    $response = postJsonWithApiKey($this, '/api/contact-forms/submit', [
         'project_username' => 'nonexistent',
         'subject' => 'Test',
         'data' => [
@@ -107,11 +140,12 @@ test('contact form submission validates project exists', function () {
 });
 
 test('contact form submission uses default subject when not provided', function () {
-    $response = $this->postJson('/api/contact-forms/submit', [
+    $response = postJsonWithApiKey($this, '/api/contact-forms/submit', [
         'project_username' => 'testproject',
         'data' => [
             'name' => 'John Doe',
             'email' => 'john@example.com',
+            'phone' => '08123456789',
         ],
     ]);
 
@@ -122,11 +156,12 @@ test('contact form submission uses default subject when not provided', function 
 });
 
 test('contact form submission sanitizes form data', function () {
-    $response = $this->postJson('/api/contact-forms/submit', [
+    $response = postJsonWithApiKey($this, '/api/contact-forms/submit', [
         'project_username' => 'testproject',
         'data' => [
             'name' => '<script>alert("xss")</script>John Doe',
             'email' => 'john@example.com',
+            'phone' => '08123456789',
         ],
     ]);
 
@@ -137,11 +172,12 @@ test('contact form submission sanitizes form data', function () {
 });
 
 test('contact form submission supports dynamic fields', function () {
-    $response = $this->postJson('/api/contact-forms/submit', [
+    $response = postJsonWithApiKey($this, '/api/contact-forms/submit', [
         'project_username' => 'testproject',
         'data' => [
             'name' => 'Jane Smith',
             'email' => 'jane@example.com',
+            'phone' => '08123456789',
             'brand_name' => 'ACME Corp',
             'product_category' => 'Electronics',
         ],
@@ -157,13 +193,17 @@ test('contact form submission supports dynamic fields', function () {
 
 test('contact form submission stores IP address and user agent', function () {
     $response = $this->withHeaders([
+        'X-API-Key' => 'pk_test_api_key_12345',
         'User-Agent' => 'Mozilla/5.0 Test Browser',
     ])->postJson('/api/contact-forms/submit', [
         'project_username' => 'testproject',
         'data' => [
             'name' => 'John Doe',
             'email' => 'john@example.com',
+            'phone' => '08123456789',
         ],
+        'website' => '',
+        '_token_time' => generateValidTimestampToken(),
     ]);
 
     $response->assertStatus(201);
@@ -171,6 +211,95 @@ test('contact form submission stores IP address and user agent', function () {
     $submission = ContactFormSubmission::latest()->first();
     expect($submission->ip_address)->not->toBeNull();
     expect($submission->user_agent)->toBe('Mozilla/5.0 Test Browser');
+});
+
+test('contact form submission requires API key', function () {
+    $response = $this->postJson('/api/contact-forms/submit', [
+        'project_username' => 'testproject',
+        'data' => [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'phone' => '08123456789',
+        ],
+    ]);
+
+    $response->assertStatus(401)
+        ->assertJson([
+            'message' => 'API key is required',
+        ]);
+});
+
+test('contact form submission rejects invalid API key', function () {
+    $response = $this->withHeaders([
+        'X-API-Key' => 'pk_invalid_key',
+    ])->postJson('/api/contact-forms/submit', [
+        'project_username' => 'testproject',
+        'data' => [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'phone' => '08123456789',
+        ],
+    ]);
+
+    $response->assertStatus(401)
+        ->assertJson([
+            'message' => 'Invalid or inactive API key',
+        ]);
+});
+
+// Honeypot Tests
+
+test('contact form submission rejects when honeypot field is filled', function () {
+    $response = $this->withHeaders([
+        'X-API-Key' => 'pk_test_api_key_12345',
+    ])->postJson('/api/contact-forms/submit', [
+        'project_username' => 'testproject',
+        'data' => [
+            'name' => 'Bot User',
+            'email' => 'bot@example.com',
+            'phone' => '08123456789',
+        ],
+        'website' => 'https://spam-site.com', // Bot filled this field
+        '_token_time' => generateValidTimestampToken(),
+    ]);
+
+    $response->assertStatus(422);
+});
+
+test('contact form submission rejects when submitted too quickly', function () {
+    // Generate token with current timestamp (too fast)
+    $timestamp = time();
+    $token = base64_encode("abc_{$timestamp}_xyz");
+
+    $response = $this->withHeaders([
+        'X-API-Key' => 'pk_test_api_key_12345',
+    ])->postJson('/api/contact-forms/submit', [
+        'project_username' => 'testproject',
+        'data' => [
+            'name' => 'Fast Bot',
+            'email' => 'fastbot@example.com',
+            'phone' => '08123456789',
+        ],
+        'website' => '',
+        '_token_time' => $token,
+    ]);
+
+    $response->assertStatus(422);
+});
+
+test('contact form submission accepts valid honeypot data', function () {
+    $response = postJsonWithApiKey($this, '/api/contact-forms/submit', [
+        'project_username' => 'testproject',
+        'data' => [
+            'name' => 'Real User',
+            'email' => 'real@example.com',
+            'phone' => '08123456789',
+        ],
+        'website' => '', // Empty as expected
+        '_token_time' => generateValidTimestampToken(),
+    ]);
+
+    $response->assertStatus(201);
 });
 
 // Inbox Management Tests (Authenticated)
@@ -306,7 +435,8 @@ test('can delete submission', function () {
 
     $response->assertSuccessful();
 
-    $this->assertDatabaseMissing('contact_form_submissions', [
+    // Check that the submission is soft-deleted
+    $this->assertSoftDeleted('contact_form_submissions', [
         'id' => $submission->id,
     ]);
 });

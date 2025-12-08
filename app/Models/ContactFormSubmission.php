@@ -6,6 +6,7 @@ use App\Enums\ContactFormStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -27,6 +28,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property-read int|null $activities_count
  * @property-read \App\Models\User|null $followedUpByUser
  * @property-read \App\Models\Project $project
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission byStatus(string $status)
  * @method static \Database\Factories\ContactFormSubmissionFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission forProject(int $projectId)
@@ -47,12 +49,14 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereUlid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereUserAgent($value)
+ *
  * @mixin \Eloquent
  */
 class ContactFormSubmission extends Model
 {
     use HasFactory;
     use LogsActivity;
+    use SoftDeletes;
 
     protected $fillable = [
         'project_id',
@@ -61,6 +65,9 @@ class ContactFormSubmission extends Model
         'status',
         'ip_address',
         'user_agent',
+        'followed_up_at',
+        'followed_up_by',
+        'deleted_by',
     ];
 
     protected function casts(): array
@@ -103,6 +110,11 @@ class ContactFormSubmission extends Model
     public function followedUpByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'followed_up_by');
+    }
+
+    public function deleter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 
     public function scopeByStatus($query, string $status)

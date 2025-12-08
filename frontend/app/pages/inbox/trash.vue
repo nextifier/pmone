@@ -1,18 +1,18 @@
 <template>
-  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
-    <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
-      <div class="flex shrink-0 items-center gap-x-2.5">
-        <Icon name="hugeicons:mail-open-01" class="size-5 sm:size-6" />
-        <h1 class="page-title">Inbox</h1>
+  <div class="mx-auto max-w-4xl space-y-6 pt-4 pb-16 xl:max-w-6xl">
+    <div class="flex items-center justify-between gap-x-2.5">
+      <div class="flex items-center gap-x-2.5">
+        <Icon name="hugeicons:delete-01" class="size-5 sm:size-6" />
+        <h1 class="page-title">Inbox Trash</h1>
       </div>
 
-      <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+      <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <nuxt-link
-          to="/inbox/trash"
+          to="/inbox"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
-          <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
-          <span>Trash</span>
+          <Icon name="hugeicons:mail-open-01" class="size-4 shrink-0" />
+          <span>All Inbox</span>
         </nuxt-link>
       </div>
 
@@ -35,12 +35,11 @@
       :meta="meta"
       :pending="pending"
       :error="error"
-      model="inbox"
-      label="Submission"
+      model="inbox-trash"
       search-column="subject"
-      search-placeholder="Search subject, name, email..."
-      error-title="Error loading submissions"
       :show-add-button="false"
+      search-placeholder="Search subject, name, email..."
+      error-title="Error loading trashed submissions"
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
@@ -79,20 +78,61 @@
                 :selected="selectedStatuses"
                 @change="handleFilterChange('status', $event)"
               />
-
-              <FilterSection
-                v-if="projects.length > 0"
-                title="Project"
-                :options="projectOptions"
-                :selected="selectedProjects"
-                @change="handleFilterChange('project_id', $event)"
-              />
             </div>
           </PopoverContent>
         </Popover>
       </template>
 
       <template #actions="{ selectedRows }">
+        <DialogResponsive
+          v-if="selectedRows.length > 0"
+          v-model:open="restoreDialogOpen"
+          class="h-full"
+        >
+          <template #trigger="{ open }">
+            <button
+              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
+              @click="open()"
+            >
+              <Icon name="hugeicons:undo-02" class="size-4 shrink-0" />
+              <span class="text-sm tracking-tight">Restore</span>
+              <span
+                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
+              >
+                {{ selectedRows.length }}
+              </span>
+            </button>
+          </template>
+          <template #default>
+            <div class="px-4 pb-10 md:px-6 md:py-5">
+              <div class="text-primary text-lg font-semibold tracking-tight">
+                Restore submissions?
+              </div>
+              <p class="text-body mt-1.5 text-sm tracking-tight">
+                This will restore {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "submission" : "submissions" }}.
+              </p>
+              <div class="mt-3 flex justify-end gap-2">
+                <button
+                  class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  @click="restoreDialogOpen = false"
+                  :disabled="restorePending"
+                >
+                  Cancel
+                </button>
+                <button
+                  @click="handleRestoreRows(selectedRows)"
+                  :disabled="restorePending"
+                  class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Spinner v-if="restorePending" class="size-4 text-white" />
+                  <span v-else>Restore</span>
+                </button>
+              </div>
+            </div>
+          </template>
+        </DialogResponsive>
+
         <DialogResponsive
           v-if="selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
@@ -103,8 +143,8 @@
               class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
               @click="open()"
             >
-              <Icon name="lucide:trash" class="size-4 shrink-0" />
-              <span class="text-sm tracking-tight">Delete</span>
+              <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
+              <span class="text-sm tracking-tight">Delete Permanently</span>
               <span
                 class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
               >
@@ -114,10 +154,13 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+              <div class="text-primary text-lg font-semibold tracking-tight">
+                Are you absolutely sure?
+              </div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
-                This will move {{ selectedRows.length }} selected
-                {{ selectedRows.length === 1 ? "submission" : "submissions" }} to trash.
+                This action can't be undone. This will permanently delete
+                {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "submission" : "submissions" }}.
               </p>
               <div class="mt-3 flex justify-end gap-2">
                 <button
@@ -133,7 +176,7 @@
                   class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Spinner v-if="deletePending" class="size-4 text-white" />
-                  <span v-else>Delete</span>
+                  <span v-else>Delete Permanently</span>
                 </button>
               </div>
             </div>
@@ -151,6 +194,7 @@ import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { PopoverClose } from "reka-ui";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
 
@@ -160,17 +204,19 @@ definePageMeta({
 });
 
 defineOptions({
-  name: "inbox",
+  name: "inbox-trash",
 });
 
-usePageMeta("inbox");
+usePageMeta(null, {
+  title: "Inbox Trash",
+});
 
 const { $dayjs } = useNuxtApp();
 
 // Table state
 const columnFilters = ref([]);
 const pagination = ref({ pageIndex: 0, pageSize: 10 });
-const sorting = ref([{ id: "created_at", desc: true }]);
+const sorting = ref([{ id: "deleted_at", desc: true }]);
 
 // Data state
 const clientOnly = ref(true);
@@ -188,7 +234,6 @@ const buildQueryParams = () => {
     const filters = {
       subject: "filter_search",
       status: "filter_status",
-      project_id: "filter_project",
     };
 
     Object.entries(filters).forEach(([columnId, paramKey]) => {
@@ -199,7 +244,7 @@ const buildQueryParams = () => {
       }
     });
 
-    const sortField = sorting.value[0]?.id || "created_at";
+    const sortField = sorting.value[0]?.id || "deleted_at";
     const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
     params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
   }
@@ -207,52 +252,20 @@ const buildQueryParams = () => {
   return params.toString();
 };
 
-// Fetch projects for filter
-const { data: projectsResponse } = await useLazySanctumFetch("/api/projects?client_only=true", {
-  key: "inbox-projects",
-});
-
-const projects = computed(() => {
-  const response = projectsResponse.value;
-  if (Array.isArray(response)) {
-    return response;
-  } else if (response && response.data) {
-    return Array.isArray(response.data) ? response.data : [];
-  }
-  return [];
-});
-
-const projectOptions = computed(() =>
-  projects.value.map((p) => ({ label: p.name, value: p.id.toString() }))
-);
-
-// Fetch submissions with lazy loading
+// Fetch trashed submissions with lazy loading
 const {
   data: submissionsResponse,
   pending,
   error,
   refresh: fetchSubmissions,
-} = await useLazySanctumFetch(() => `/api/contact-form-submissions?${buildQueryParams()}`, {
-  key: "inbox-list",
+} = await useLazySanctumFetch(() => `/api/contact-form-submissions/trash?${buildQueryParams()}`, {
+  key: "inbox-trash-list",
   watch: clientOnly.value ? [] : [columnFilters, sorting, pagination],
   immediate: !clientOnly.value,
 });
 
 const data = computed(() => submissionsResponse.value?.data || []);
-const meta = computed(
-  () => submissionsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 10, total: 0 }
-);
-
-// Global state for refresh tracking
-const needsRefresh = useState("inbox-needs-refresh", () => false);
-
-// Refresh when component is activated from KeepAlive
-onActivated(async () => {
-  if (needsRefresh.value) {
-    await fetchSubmissions();
-    needsRefresh.value = false;
-  }
-});
+const meta = computed(() => submissionsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 10, total: 0 });
 
 const refresh = fetchSubmissions;
 
@@ -308,7 +321,7 @@ const columns = [
       h(InboxTableItem, {
         submission: row.original,
       }),
-    size: 350,
+    size: 300,
     enableHiding: false,
     filterFn: (row, columnId, filterValue) => {
       const searchValue = filterValue.toLowerCase();
@@ -349,19 +362,24 @@ const columns = [
       return h("div", { class: "text-sm tracking-tight" }, project.name);
     },
     size: 120,
-    filterFn: (row, columnId, filterValue) => {
-      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
-      const projectId = row.original.project?.id?.toString();
-      return filterValue.includes(projectId);
-    },
-    accessorFn: (row) => row.project?.id?.toString(),
-    id: "project_id",
   },
   {
-    header: "Created",
-    accessorKey: "created_at",
+    header: "Deleted By",
+    accessorKey: "deleter",
     cell: ({ row }) => {
-      const date = row.getValue("created_at");
+      const deleter = row.getValue("deleter");
+      if (!deleter) {
+        return h("div", { class: "text-sm text-muted-foreground tracking-tight" }, "-");
+      }
+      return h("div", { class: "text-sm tracking-tight" }, deleter.name);
+    },
+    size: 120,
+  },
+  {
+    header: "Deleted At",
+    accessorKey: "deleted_at",
+    cell: ({ row }) => {
+      const date = row.getValue("deleted_at");
       return withDirectives(
         h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $dayjs(date).fromNow()),
         [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
@@ -372,7 +390,7 @@ const columns = [
   {
     id: "actions",
     header: () => h("span", { class: "sr-only" }, "Actions"),
-    cell: ({ row }) => h(RowActions, { submission: row.original }),
+    cell: ({ row }) => h(RowActions, { submissionId: row.original.id }),
     size: 60,
     enableHiding: false,
   },
@@ -402,8 +420,7 @@ const getFilterValue = (columnId) => {
 };
 
 const selectedStatuses = computed(() => getFilterValue("status"));
-const selectedProjects = computed(() => getFilterValue("project_id"));
-const totalActiveFilters = computed(() => selectedStatuses.value.length + selectedProjects.value.length);
+const totalActiveFilters = computed(() => selectedStatuses.value.length);
 
 const handleFilterChange = (columnId, { checked, value }) => {
   if (clientOnly.value && tableRef.value?.table) {
@@ -435,6 +452,64 @@ const handleFilterChange = (columnId, { checked, value }) => {
   }
 };
 
+// Restore handlers
+const restoreDialogOpen = ref(false);
+const restorePending = ref(false);
+const handleRestoreRows = async (selectedRows) => {
+  const ids = selectedRows.map((row) => row.original.id);
+  try {
+    restorePending.value = true;
+    const client = useSanctumClient();
+    const response = await client("/api/contact-form-submissions/trash/restore/bulk", {
+      method: "POST",
+      body: { ids },
+    });
+    await refresh();
+    restoreDialogOpen.value = false;
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
+    }
+
+    toast.success(response.message || "Submissions restored successfully", {
+      description:
+        response.errors?.length > 0
+          ? `${response.restored_count} restored, ${response.errors.length} failed`
+          : `${response.restored_count} submission(s) restored`,
+    });
+  } catch (error) {
+    console.error("Failed to restore submissions:", error);
+    toast.error("Failed to restore submissions", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    restorePending.value = false;
+  }
+};
+
+const handleRestoreSingleRow = async (id) => {
+  try {
+    restorePending.value = true;
+    const client = useSanctumClient();
+    const response = await client(`/api/contact-form-submissions/trash/${id}/restore`, {
+      method: "POST",
+    });
+    await refresh();
+
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
+    }
+
+    toast.success(response.message || "Submission restored successfully");
+  } catch (error) {
+    console.error("Failed to restore submission:", error);
+    toast.error("Failed to restore submission", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    restorePending.value = false;
+  }
+};
+
 // Delete handlers
 const deleteDialogOpen = ref(false);
 const deletePending = ref(false);
@@ -443,7 +518,7 @@ const handleDeleteRows = async (selectedRows) => {
   try {
     deletePending.value = true;
     const client = useSanctumClient();
-    const response = await client("/api/contact-form-submissions/bulk", {
+    const response = await client("/api/contact-form-submissions/trash/bulk", {
       method: "DELETE",
       body: { ids },
     });
@@ -453,15 +528,15 @@ const handleDeleteRows = async (selectedRows) => {
       tableRef.value.resetRowSelection();
     }
 
-    toast.success(response.message || "Submissions deleted", {
+    toast.success(response.message || "Submissions permanently deleted", {
       description:
         response.errors?.length > 0
           ? `${response.deleted_count} deleted, ${response.errors.length} failed`
-          : `${response.deleted_count} submission(s) moved to trash`,
+          : `${response.deleted_count} submission(s) permanently deleted`,
     });
   } catch (error) {
-    console.error("Failed to delete submissions:", error);
-    toast.error("Failed to delete submissions", {
+    console.error("Failed to permanently delete submissions:", error);
+    toast.error("Failed to permanently delete submissions", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
   } finally {
@@ -469,21 +544,21 @@ const handleDeleteRows = async (selectedRows) => {
   }
 };
 
-const handleDeleteSingleRow = async (ulid) => {
+const handleDeleteSingleRow = async (id) => {
   try {
     deletePending.value = true;
     const client = useSanctumClient();
-    const response = await client(`/api/contact-form-submissions/${ulid}`, { method: "DELETE" });
+    const response = await client(`/api/contact-form-submissions/trash/${id}`, { method: "DELETE" });
     await refresh();
 
     if (tableRef.value) {
       tableRef.value.resetRowSelection();
     }
 
-    toast.success(response.message || "Submission deleted successfully");
+    toast.success(response.message || "Submission permanently deleted");
   } catch (error) {
-    console.error("Failed to delete submission:", error);
-    toast.error("Failed to delete submission", {
+    console.error("Failed to permanently delete submission:", error);
+    toast.error("Failed to permanently delete submission", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
   } finally {
@@ -494,11 +569,12 @@ const handleDeleteSingleRow = async (ulid) => {
 // Row Actions Component
 const RowActions = defineComponent({
   props: {
-    submission: { type: Object, required: true },
+    submissionId: { type: Number, required: true },
   },
   setup(props) {
-    const router = useRouter();
-    const dialogOpen = ref(false);
+    const restoreDialogOpen = ref(false);
+    const deleteDialogOpen = ref(false);
+    const singleRestorePending = ref(false);
     const singleDeletePending = ref(false);
     return () =>
       h("div", { class: "flex justify-end" }, [
@@ -538,14 +614,14 @@ const RowActions = defineComponent({
                               {
                                 class:
                                   "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                onClick: () => router.push(`/inbox/${props.submission.ulid}`),
+                                onClick: () => (restoreDialogOpen.value = true),
                               },
                               [
                                 h(resolveComponent("Icon"), {
-                                  name: "lucide:eye",
+                                  name: "lucide:undo-2",
                                   class: "size-4 shrink-0",
                                 }),
-                                h("span", {}, "View"),
+                                h("span", {}, "Restore"),
                               ]
                             ),
                         }
@@ -560,7 +636,7 @@ const RowActions = defineComponent({
                               {
                                 class:
                                   "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                onClick: () => (dialogOpen.value = true),
+                                onClick: () => (deleteDialogOpen.value = true),
                               },
                               [
                                 h(resolveComponent("Icon"), {
@@ -581,8 +657,8 @@ const RowActions = defineComponent({
         h(
           DialogResponsive,
           {
-            open: dialogOpen.value,
-            "onUpdate:open": (value) => (dialogOpen.value = value),
+            open: restoreDialogOpen.value,
+            "onUpdate:open": (value) => (restoreDialogOpen.value = value),
           },
           {
             default: () =>
@@ -590,12 +666,12 @@ const RowActions = defineComponent({
                 h(
                   "div",
                   { class: "text-primary text-lg font-semibold tracking-tight" },
-                  "Are you sure?"
+                  "Restore submission?"
                 ),
                 h(
                   "p",
                   { class: "text-body mt-1.5 text-sm tracking-tight" },
-                  "This will move this submission to trash."
+                  "This will restore this submission."
                 ),
                 h("div", { class: "mt-3 flex justify-end gap-2" }, [
                   h(
@@ -603,7 +679,61 @@ const RowActions = defineComponent({
                     {
                       class:
                         "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
-                      onClick: () => (dialogOpen.value = false),
+                      onClick: () => (restoreDialogOpen.value = false),
+                      disabled: singleRestorePending.value,
+                    },
+                    "Cancel"
+                  ),
+                  h(
+                    "button",
+                    {
+                      class:
+                        "bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50",
+                      disabled: singleRestorePending.value,
+                      onClick: async () => {
+                        singleRestorePending.value = true;
+                        try {
+                          await handleRestoreSingleRow(props.submissionId);
+                          restoreDialogOpen.value = false;
+                        } finally {
+                          singleRestorePending.value = false;
+                        }
+                      },
+                    },
+                    singleRestorePending.value
+                      ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
+                      : "Restore"
+                  ),
+                ]),
+              ]),
+          }
+        ),
+        h(
+          DialogResponsive,
+          {
+            open: deleteDialogOpen.value,
+            "onUpdate:open": (value) => (deleteDialogOpen.value = value),
+          },
+          {
+            default: () =>
+              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
+                h(
+                  "div",
+                  { class: "text-primary text-lg font-semibold tracking-tight" },
+                  "Are you absolutely sure?"
+                ),
+                h(
+                  "p",
+                  { class: "text-body mt-1.5 text-sm tracking-tight" },
+                  "This action can't be undone. This will permanently delete this submission."
+                ),
+                h("div", { class: "mt-3 flex justify-end gap-2" }, [
+                  h(
+                    "button",
+                    {
+                      class:
+                        "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                      onClick: () => (deleteDialogOpen.value = false),
                       disabled: singleDeletePending.value,
                     },
                     "Cancel"
@@ -617,8 +747,8 @@ const RowActions = defineComponent({
                       onClick: async () => {
                         singleDeletePending.value = true;
                         try {
-                          await handleDeleteSingleRow(props.submission.ulid);
-                          dialogOpen.value = false;
+                          await handleDeleteSingleRow(props.submissionId);
+                          deleteDialogOpen.value = false;
                         } finally {
                           singleDeletePending.value = false;
                         }
@@ -626,7 +756,7 @@ const RowActions = defineComponent({
                     },
                     singleDeletePending.value
                       ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
-                      : "Delete"
+                      : "Delete Permanently"
                   ),
                 ]),
               ]),
@@ -674,7 +804,4 @@ const FilterSection = defineComponent({
       ]);
   },
 });
-
-// Import PopoverClose
-import { PopoverClose } from "reka-ui";
 </script>

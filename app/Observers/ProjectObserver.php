@@ -13,11 +13,18 @@ class ProjectObserver
     public function created(Project $project): void
     {
         // Create a short link for the project profile
+        $userId = $project->created_by ?? auth()->id();
+
+        // Skip short link creation if no user is available (e.g., during tests without auth)
+        if (! $userId) {
+            return;
+        }
+
         $frontendUrl = config('app.frontend_url', config('app.url'));
         $profileUrl = rtrim($frontendUrl, '/').'/projects/'.$project->username;
 
         ShortLink::create([
-            'user_id' => $project->created_by ?? auth()->id(),
+            'user_id' => $userId,
             'slug' => $project->username,
             'destination_url' => $profileUrl,
             'is_active' => true,

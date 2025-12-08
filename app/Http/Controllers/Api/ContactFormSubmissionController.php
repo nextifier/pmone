@@ -23,6 +23,21 @@ class ContactFormSubmissionController extends Controller
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
 
+        // Client-only mode - return all data for client-side pagination
+        if ($request->boolean('client_only')) {
+            $submissions = $query->get();
+
+            return response()->json([
+                'data' => ContactFormSubmissionIndexResource::collection($submissions),
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => $submissions->count(),
+                    'total' => $submissions->count(),
+                ],
+            ]);
+        }
+
         $submissions = $query->paginate($request->input('per_page', 15));
 
         return response()->json([
@@ -152,9 +167,10 @@ class ContactFormSubmissionController extends Controller
         }
     }
 
-    public function destroy(ContactFormSubmission $contactFormSubmission): JsonResponse
+    public function destroy(Request $request, ContactFormSubmission $contactFormSubmission): JsonResponse
     {
         try {
+            $contactFormSubmission->update(['deleted_by' => $request->user()->id]);
             $contactFormSubmission->delete();
 
             return response()->json([
@@ -173,5 +189,203 @@ class ContactFormSubmissionController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function bulkDestroy(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer', 'exists:contact_form_submissions,id'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $deletedCount = 0;
+        $errors = [];
+
+        foreach ($request->input('ids') as $id) {
+            try {
+                $submission = ContactFormSubmission::find($id);
+                if ($submission) {
+                    $submission->update(['deleted_by' => $request->user()->id]);
+                    $submission->delete();
+                    $deletedCount++;
+                }
+            } catch (\Exception $e) {
+                $errors[] = ['id' => $id, 'error' => $e->getMessage()];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$deletedCount} submission(s) deleted successfully",
+            'deleted_count' => $deletedCount,
+            'errors' => $errors,
+        ]);
+    }
+
+    public function trash(Request $request): JsonResponse
+    {
+        $query = ContactFormSubmission::onlyTrashed()->with(['project', 'followedUpByUser', 'deleter']);
+
+        $this->applyFilters($query, $request);
+        $this->applySorting($query, $request);
+
+        // Client-only mode - return all data for client-side pagination
+        if ($request->boolean('client_only')) {
+            $submissions = $query->get();
+
+            return response()->json([
+                'data' => ContactFormSubmissionIndexResource::collection($submissions),
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => $submissions->count(),
+                    'total' => $submissions->count(),
+                ],
+            ]);
+        }
+
+        $submissions = $query->paginate($request->input('per_page', 15));
+
+        return response()->json([
+            'data' => ContactFormSubmissionIndexResource::collection($submissions->items()),
+            'meta' => [
+                'current_page' => $submissions->currentPage(),
+                'last_page' => $submissions->lastPage(),
+                'per_page' => $submissions->perPage(),
+                'total' => $submissions->total(),
+            ],
+        ]);
+    }
+
+    public function restore(int $id): JsonResponse
+    {
+        try {
+            $submission = ContactFormSubmission::onlyTrashed()->findOrFail($id);
+            $submission->restore();
+            $submission->update(['deleted_by' => null]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Contact form submission restored successfully',
+                'data' => new ContactFormSubmissionResource($submission->fresh(['project', 'followedUpByUser'])),
+            ]);
+        } catch (\Exception $e) {
+            logger()->error('Failed to restore contact form submission', [
+                'error' => $e->getMessage(),
+                'submission_id' => $id,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to restore submission',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function bulkRestore(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $restoredCount = 0;
+        $errors = [];
+
+        foreach ($request->input('ids') as $id) {
+            try {
+                $submission = ContactFormSubmission::onlyTrashed()->find($id);
+                if ($submission) {
+                    $submission->restore();
+                    $submission->update(['deleted_by' => null]);
+                    $restoredCount++;
+                }
+            } catch (\Exception $e) {
+                $errors[] = ['id' => $id, 'error' => $e->getMessage()];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$restoredCount} submission(s) restored successfully",
+            'restored_count' => $restoredCount,
+            'errors' => $errors,
+        ]);
+    }
+
+    public function forceDelete(int $id): JsonResponse
+    {
+        try {
+            $submission = ContactFormSubmission::onlyTrashed()->findOrFail($id);
+            $submission->forceDelete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Contact form submission permanently deleted',
+            ]);
+        } catch (\Exception $e) {
+            logger()->error('Failed to permanently delete contact form submission', [
+                'error' => $e->getMessage(),
+                'submission_id' => $id,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to permanently delete submission',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function bulkForceDelete(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $deletedCount = 0;
+        $errors = [];
+
+        foreach ($request->input('ids') as $id) {
+            try {
+                $submission = ContactFormSubmission::onlyTrashed()->find($id);
+                if ($submission) {
+                    $submission->forceDelete();
+                    $deletedCount++;
+                }
+            } catch (\Exception $e) {
+                $errors[] = ['id' => $id, 'error' => $e->getMessage()];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$deletedCount} submission(s) permanently deleted",
+            'deleted_count' => $deletedCount,
+            'errors' => $errors,
+        ]);
     }
 }

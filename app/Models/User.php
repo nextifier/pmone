@@ -81,6 +81,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read int|null $visits_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visitsMade
  * @property-read int|null $visits_made_count
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User byStatus(string $status)
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
@@ -123,6 +124,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutPermission($permissions)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutRole($roles, $guard = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class User extends Authenticatable implements HasMedia, MustVerifyEmail
@@ -159,7 +161,7 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         'status',
         'visibility',
         'last_seen',
-        'email_verified_at'
+        'email_verified_at',
     ];
 
     /**
@@ -251,7 +253,8 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
                 $maxAttempts = 10;
 
                 // Ensure username is unique (retry with numeric suffix if taken)
-                while (static::where('username', $username)->exists()) {
+                // Include soft-deleted records to respect database unique constraint
+                while (static::withTrashed()->where('username', $username)->exists()) {
                     if ($counter > $maxAttempts) {
                         // After max attempts, use a random suffix to guarantee uniqueness
                         $username = $baseUsername.'_'.strtolower(Str::random(6));
@@ -263,7 +266,7 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
                 }
 
                 // Final check: if still exists (rare race condition), add timestamp
-                if (static::where('username', $username)->exists()) {
+                if (static::withTrashed()->where('username', $username)->exists()) {
                     $username = $baseUsername.'_'.time();
                 }
 

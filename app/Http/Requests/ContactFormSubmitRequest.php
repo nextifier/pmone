@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\HoneypotPassed;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ContactFormSubmitRequest extends FormRequest
@@ -23,14 +24,18 @@ class ContactFormSubmitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'project_username' => ['required', 'string', 'exists:projects,username'],
+            'project_username' => ['required', 'string', 'exists:projects,username', new HoneypotPassed],
             'subject' => ['nullable', 'string', 'max:255'],
             'data' => ['required', 'array', 'min:1'],
-            'data.name' => ['sometimes', 'string', 'max:255'],
-            'data.email' => ['sometimes', 'email', 'max:255'],
-            'data.phone' => ['sometimes', 'string', 'max:50'],
+            'data.*' => ['nullable'], // Allow dynamic fields
+            'data.name' => ['required', 'string', 'max:255'],
+            'data.email' => ['required', 'email', 'max:255'],
+            'data.phone' => ['required', 'string', 'max:50'],
             'data.message' => ['sometimes', 'string', 'max:5000'],
-            // Dynamic fields allowed (no strict validation for other fields)
+
+            // Honeypot fields (should not be filled by real users)
+            'website' => ['nullable', 'max:0'],
+            '_token_time' => ['nullable', 'string'],
         ];
     }
 
@@ -48,8 +53,14 @@ class ContactFormSubmitRequest extends FormRequest
             'data.required' => 'Form data is required.',
             'data.array' => 'Form data must be an array.',
             'data.min' => 'Form data must contain at least one field.',
+            'data.name.required' => 'Name is required.',
+            'data.name.max' => 'Name must not exceed 255 characters.',
+            'data.email.required' => 'Email is required.',
             'data.email.email' => 'Please provide a valid email address.',
+            'data.phone.required' => 'Phone number is required.',
+            'data.phone.max' => 'Phone number must not exceed 50 characters.',
             'data.message.max' => 'Message must not exceed 5000 characters.',
+            'website.max' => 'Form submission failed. Please try again.',
         ];
     }
 

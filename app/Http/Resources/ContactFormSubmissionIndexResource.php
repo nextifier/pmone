@@ -39,6 +39,14 @@ class ContactFormSubmissionIndexResource extends JsonResource
                 'name' => $this->followedUpByUser->name,
                 'username' => $this->followedUpByUser->username,
             ] : null),
+
+            // Soft delete info
+            'deleted_at' => $this->deleted_at?->toISOString(),
+            'deleter' => $this->whenLoaded('deleter', fn () => $this->deleter ? [
+                'id' => $this->deleter->id,
+                'name' => $this->deleter->name,
+                'username' => $this->deleter->username,
+            ] : null),
         ];
     }
 }

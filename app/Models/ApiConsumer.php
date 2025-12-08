@@ -28,11 +28,15 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
+ * @property string|null $description
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
  * @property-read int|null $activities_count
  * @property-read \App\Models\User|null $creator
  * @property-read \App\Models\User|null $deleter
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ApiConsumerRequest> $requests
+ * @property-read int|null $requests_count
  * @property-read \App\Models\User|null $updater
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer byApiKey(string $apiKey)
  * @method static \Database\Factories\ApiConsumerFactory factory($count = null, $state = [])
@@ -46,6 +50,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereCreatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereDeletedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereDeletedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereDescription($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereFilters($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereIsActive($value)
@@ -58,6 +63,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereWebsiteUrl($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class ApiConsumer extends Model

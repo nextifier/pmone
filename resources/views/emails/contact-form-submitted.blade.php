@@ -6,21 +6,46 @@ You have received a new contact form submission from your website.
 @component('mail::panel')
 @foreach($formData as $field => $value)
 @if(is_string($value) || is_numeric($value))
+@if($field === 'message')
+**{{ ucwords(str_replace('_', ' ', $field)) }}:**
+<br>{{ $value }}
+
+@else
 **{{ ucwords(str_replace('_', ' ', $field)) }}:**
 {{ $value }}
 
 @endif
+@endif
 @endforeach
 @endcomponent
 
-**Submission Details:**
-- Submitted at: {{ $submittedAt->format('F j, Y \a\t g:i A T') }}
-- IP Address: {{ $ipAddress ?? 'N/A' }}
+@if(!empty($formData['email']))
+@component('mail::button', ['url' => 'mailto:' . $formData['email']])
+Reply via Email
+@endcomponent
+@endif
+
+@if(!empty($formData['phone']))
+@php
+$phone = preg_replace('/[^0-9+]/', '', $formData['phone']);
+if (str_starts_with($phone, '0')) {
+    $phone = '62' . substr($phone, 1);
+} elseif (!str_starts_with($phone, '+') && !str_starts_with($phone, '62')) {
+    $phone = '62' . $phone;
+}
+$phone = ltrim($phone, '+');
+@endphp
+@component('mail::button', ['url' => 'https://wa.me/' . $phone])
+Reply via WhatsApp
+@endcomponent
+@endif
 
 @component('mail::button', ['url' => config('app.frontend_url') . '/inbox'])
 View in Inbox
 @endcomponent
 
-Thanks,<br>
-{{ config('app.name') }}
+@component('mail::subcopy')
+Submitted at: {{ $submittedAt->format('F j, Y \a\t g:i A T') }}
+@endcomponent
+
 @endcomponent

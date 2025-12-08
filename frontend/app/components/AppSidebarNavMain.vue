@@ -89,11 +89,7 @@ const navMainGroups = computed(() => {
           path: "/posts",
           iconName: "hugeicons:task-edit-01",
         },
-        {
-          label: "Web Analytics",
-          path: "/web-analytics",
-          iconName: "hugeicons:analysis-text-link",
-        },
+
         {
           label: "Short Links",
           path: "/short-links",
@@ -103,6 +99,16 @@ const navMainGroups = computed(() => {
           label: "QR Code Generator",
           path: "/qr",
           iconName: "hugeicons:qr-code",
+        },
+        {
+          label: "Web Analytics",
+          path: "/web-analytics",
+          iconName: "hugeicons:analysis-text-link",
+        },
+        {
+          label: "API Consumers",
+          path: "/api-consumers",
+          iconName: "hugeicons:api",
         },
       ],
     },
@@ -132,14 +138,6 @@ const navMainGroups = computed(() => {
       label: "Google Analytics Properties",
       path: "/ga-properties",
       iconName: "hugeicons:analytics-01",
-    });
-  }
-
-  if (user.value?.roles?.some((role) => ["master", "admin"].includes(role))) {
-    adminItems.push({
-      label: "API Consumers",
-      path: "/api-consumers",
-      iconName: "hugeicons:api",
     });
   }
 

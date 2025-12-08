@@ -22,7 +22,7 @@ use Spatie\Tags\Tag;
  * @property int $id
  * @property string $ulid
  * @property string $title
- * @property string $slug
+ * @property string|null $slug
  * @property string|null $excerpt
  * @property string $content
  * @property string $content_format
@@ -45,16 +45,20 @@ use Spatie\Tags\Tag;
  * @property-read int|null $activities_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $authors
  * @property-read int|null $authors_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Tag> $categories
+ * @property-read int|null $categories_count
  * @property-read \App\Models\User|null $creator
  * @property-read \App\Models\User|null $deleter
  * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
  * @property-read int|null $media_count
- * @property \Illuminate\Database\Eloquent\Collection<int, \Spatie\Tags\Tag> $tags
+ * @property-read \App\Models\User|null $primaryAuthor
+ * @property \Illuminate\Database\Eloquent\Collection<int, Tag> $tags
  * @property-read int|null $tags_count
  * @property-read \App\Models\User|null $updater
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
  * @property-read int|null $visits_count
  *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byAuthor(int $authorId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byCreator(int $userId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byStatus(string $status)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byTag(string $tagName)

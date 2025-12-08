@@ -139,6 +139,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Contact form submission management (inbox)
     Route::prefix('contact-form-submissions')->group(function () {
         Route::get('/', [ContactFormSubmissionController::class, 'index'])->name('contact-form-submissions.index');
+        Route::delete('/bulk', [ContactFormSubmissionController::class, 'bulkDestroy'])->name('contact-form-submissions.bulk-destroy');
+        Route::get('/trash', [ContactFormSubmissionController::class, 'trash'])->name('contact-form-submissions.trash');
+        Route::post('/trash/restore/bulk', [ContactFormSubmissionController::class, 'bulkRestore'])->name('contact-form-submissions.bulk-restore');
+        Route::post('/trash/{id}/restore', [ContactFormSubmissionController::class, 'restore'])->name('contact-form-submissions.restore');
+        Route::delete('/trash/bulk', [ContactFormSubmissionController::class, 'bulkForceDelete'])->name('contact-form-submissions.bulk-force-delete');
+        Route::delete('/trash/{id}', [ContactFormSubmissionController::class, 'forceDelete'])->name('contact-form-submissions.force-delete');
         Route::get('/{contactFormSubmission:ulid}', [ContactFormSubmissionController::class, 'show'])->name('contact-form-submissions.show');
         Route::patch('/{contactFormSubmission:ulid}/status', [ContactFormSubmissionController::class, 'updateStatus'])->name('contact-form-submissions.update-status');
         Route::patch('/{contactFormSubmission:ulid}/follow-up', [ContactFormSubmissionController::class, 'markAsFollowedUp'])->name('contact-form-submissions.follow-up');
@@ -166,8 +172,8 @@ Route::get('/s/{slug}', [ProfileController::class, 'resolveShortLink'])
 Route::post('/track/click', [TrackingController::class, 'trackLinkClick'])->middleware('throttle:api');
 Route::post('/track/visit', [TrackingController::class, 'trackProfileVisit'])->middleware('throttle:api');
 
-// Contact form submission (public - no authentication required)
-Route::post('/contact-forms/submit', [ContactFormController::class, 'submit'])->middleware('throttle:api');
+// Contact form submission (requires API key for CORS and rate limiting)
+Route::post('/contact-forms/submit', [ContactFormController::class, 'submit'])->middleware(['api.key']);
 
 // Analytics routes (authenticated)
 Route::middleware(['auth:sanctum'])->prefix('analytics')->group(function () {

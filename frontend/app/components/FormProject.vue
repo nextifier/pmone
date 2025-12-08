@@ -268,7 +268,150 @@
       </div>
     </div>
 
-    <ContactFormEmailConfig v-model="form.settings.contact_form" />
+    <div class="frame">
+      <div class="frame-header">
+        <div class="frame-title">Contact Form Email Configuration</div>
+        <p class="text-muted-foreground text-xs tracking-tight">
+          Configure email settings for contact form submissions
+        </p>
+      </div>
+      <div class="frame-panel">
+        <div class="grid grid-cols-1 gap-y-6">
+          <!-- Enable Contact Form -->
+          <div class="flex items-center justify-between">
+            <div class="space-y-0.5">
+              <Label>Enable Contact Form</Label>
+              <p class="text-muted-foreground text-xs">
+                Allow external websites to submit contact forms for this project
+              </p>
+            </div>
+            <Switch v-model="form.settings.contact_form.enabled" />
+          </div>
+
+          <template v-if="form.settings.contact_form.enabled">
+            <!-- To Recipients -->
+            <div class="space-y-3">
+              <Label>To (Recipients)</Label>
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Primary email recipients for form submissions
+              </p>
+              <div class="space-y-2">
+                <div
+                  v-for="(email, index) in form.settings.contact_form.email_config.to"
+                  :key="`to-${index}`"
+                  class="flex items-center gap-1.5"
+                >
+                  <Input v-model="form.settings.contact_form.email_config.to[index]" type="email" placeholder="email@example.com" />
+                  <button
+                    type="button"
+                    @click="form.settings.contact_form.email_config.to.splice(index, 1)"
+                    class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                  >
+                    <Icon name="hugeicons:delete-01" class="size-4" />
+                  </button>
+                </div>
+              </div>
+              <button
+                type="button"
+                @click="form.settings.contact_form.email_config.to.push('')"
+                class="text-primary hover:text-primary/80 flex items-center gap-x-1 py-1 text-sm font-medium tracking-tight transition"
+              >
+                <Icon name="hugeicons:add-01" class="size-4" />
+                Add To Email
+              </button>
+            </div>
+
+            <!-- CC Recipients -->
+            <div class="space-y-3">
+              <Label>CC (Carbon Copy)</Label>
+              <p class="text-muted-foreground text-xs tracking-tight">Optional CC recipients</p>
+              <div v-if="form.settings.contact_form.email_config.cc.length > 0" class="space-y-2">
+                <div
+                  v-for="(email, index) in form.settings.contact_form.email_config.cc"
+                  :key="`cc-${index}`"
+                  class="flex items-center gap-1.5"
+                >
+                  <Input v-model="form.settings.contact_form.email_config.cc[index]" type="email" placeholder="email@example.com" />
+                  <button
+                    type="button"
+                    @click="form.settings.contact_form.email_config.cc.splice(index, 1)"
+                    class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                  >
+                    <Icon name="hugeicons:delete-01" class="size-4" />
+                  </button>
+                </div>
+              </div>
+              <button
+                type="button"
+                @click="form.settings.contact_form.email_config.cc.push('')"
+                class="text-primary hover:text-primary/80 flex items-center gap-x-1 py-1 text-sm font-medium tracking-tight transition"
+              >
+                <Icon name="hugeicons:add-01" class="size-4" />
+                Add CC Email
+              </button>
+            </div>
+
+            <!-- BCC Recipients -->
+            <div class="space-y-3">
+              <Label>BCC (Blind Carbon Copy)</Label>
+              <p class="text-muted-foreground text-xs tracking-tight">Optional BCC recipients</p>
+              <div v-if="form.settings.contact_form.email_config.bcc.length > 0" class="space-y-2">
+                <div
+                  v-for="(email, index) in form.settings.contact_form.email_config.bcc"
+                  :key="`bcc-${index}`"
+                  class="flex items-center gap-1.5"
+                >
+                  <Input v-model="form.settings.contact_form.email_config.bcc[index]" type="email" placeholder="email@example.com" />
+                  <button
+                    type="button"
+                    @click="form.settings.contact_form.email_config.bcc.splice(index, 1)"
+                    class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                  >
+                    <Icon name="hugeicons:delete-01" class="size-4" />
+                  </button>
+                </div>
+              </div>
+              <button
+                type="button"
+                @click="form.settings.contact_form.email_config.bcc.push('')"
+                class="text-primary hover:text-primary/80 flex items-center gap-x-1 py-1 text-sm font-medium tracking-tight transition"
+              >
+                <Icon name="hugeicons:add-01" class="size-4" />
+                Add BCC Email
+              </button>
+            </div>
+
+            <!-- From Name -->
+            <div class="space-y-2">
+              <Label for="from_name">From Name</Label>
+              <Input
+                id="from_name"
+                v-model="form.settings.contact_form.email_config.from_name"
+                type="text"
+                placeholder="Your Project Name"
+              />
+              <p class="text-muted-foreground text-xs tracking-tight">
+                The sender name that appears in the email
+              </p>
+            </div>
+
+            <!-- Reply To -->
+            <div class="space-y-2">
+              <Label for="reply_to">Reply To Email</Label>
+              <Input
+                id="reply_to"
+                v-model="form.settings.contact_form.email_config.reply_to"
+                type="email"
+                placeholder="noreply@example.com"
+              />
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Email address for replies (defaults to submitter's email if not set)
+              </p>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
 
     <div class="flex justify-end">
       <button
@@ -284,8 +427,8 @@
 </template>
 
 <script setup>
-import ContactFormEmailConfig from "@/components/project/ContactFormEmailConfig.vue";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -451,6 +594,7 @@ function handlePhoneLabelChange(index, value) {
   }
 }
 
+
 // Populate form with initial data
 function populateForm(data) {
   if (!data || Object.keys(data).length === 0) return;
@@ -504,21 +648,40 @@ function populateForm(data) {
     form.phones.push(...formattedPhones);
   }
 
-  // Handle settings
-  if (data.settings) {
-    if (data.settings.contact_form) {
-      form.settings.contact_form = {
-        enabled: data.settings.contact_form.enabled || false,
-        email_config: {
-          to: data.settings.contact_form.email_config?.to || [],
-          cc: data.settings.contact_form.email_config?.cc || [],
-          bcc: data.settings.contact_form.email_config?.bcc || [],
-          from_name: data.settings.contact_form.email_config?.from_name || "",
-          reply_to: data.settings.contact_form.email_config?.reply_to || "",
-        },
-      };
-    }
+  // Handle settings - reset to default first, then populate
+  const defaultContactForm = {
+    enabled: false,
+    email_config: {
+      to: [],
+      cc: [],
+      bcc: [],
+      from_name: "",
+      reply_to: "",
+    },
+  };
+
+  let newContactFormConfig = { ...defaultContactForm };
+
+  if (data.settings?.contact_form) {
+    newContactFormConfig = {
+      enabled: data.settings.contact_form.enabled ?? false,
+      email_config: {
+        to: [...(data.settings.contact_form.email_config?.to || [])],
+        cc: [...(data.settings.contact_form.email_config?.cc || [])],
+        bcc: [...(data.settings.contact_form.email_config?.bcc || [])],
+        from_name: data.settings.contact_form.email_config?.from_name || "",
+        reply_to: data.settings.contact_form.email_config?.reply_to || "",
+      },
+    };
   }
+
+  // Update form.settings
+  form.settings.contact_form.enabled = newContactFormConfig.enabled;
+  form.settings.contact_form.email_config.to = newContactFormConfig.email_config.to;
+  form.settings.contact_form.email_config.cc = newContactFormConfig.email_config.cc;
+  form.settings.contact_form.email_config.bcc = newContactFormConfig.email_config.bcc;
+  form.settings.contact_form.email_config.from_name = newContactFormConfig.email_config.from_name;
+  form.settings.contact_form.email_config.reply_to = newContactFormConfig.email_config.reply_to;
 
   // Clear file uploads and reset delete flags
   imageFiles.value.profile_image = [];
@@ -581,9 +744,16 @@ function handleSubmit() {
   }));
 
   const payload = {
-    ...form,
+    name: form.name,
+    username: form.username,
+    email: form.email,
+    bio: form.bio,
+    status: form.status,
+    visibility: form.visibility,
+    member_ids: form.member_ids,
     links: formattedLinks,
     phones: formattedPhones,
+    settings: JSON.parse(JSON.stringify(form.settings)),
   };
 
   // Handle profile image
