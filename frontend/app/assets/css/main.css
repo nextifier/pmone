@@ -560,10 +560,26 @@
 }
 
 @utility format-html {
-  @apply prose dark:prose-invert prose-headings:font-semibold prose-headings:tracking-tighter sm:prose-lg prose-h1:font-semibold prose-figcaption:capitalize prose-figcaption:text-center prose-figcaption:text-xs prose-img:w-full max-w-2xl tracking-[-0.015em] break-words;
+  @apply prose dark:prose-invert prose-headings:font-semibold! prose-headings:tracking-tighter sm:prose-lg prose-h1:font-semibold prose-h2:font-semibold prose-figcaption:capitalize prose-figcaption:text-center prose-figcaption:text-xs prose-img:w-full max-w-2xl tracking-[-0.015em] break-words;
 
   & *:not(h1, h2, h3, h4, h5, h6, a) {
     @apply !bg-inherit !text-inherit;
+  }
+
+  & :where(h1 strong):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    @apply font-semibold;
+  }
+
+  & :where(h2 strong):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    @apply font-semibold;
+  }
+
+  & :where(h3 strong):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    @apply font-medium;
+  }
+
+  & :where(h4 strong):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    @apply font-medium;
   }
 
   & table {
