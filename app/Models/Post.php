@@ -498,14 +498,14 @@ class Post extends Model implements HasMedia
     }
 
     /**
-     * Scope: Search posts by title, excerpt, or content
+     * Scope: Search posts by title, excerpt, or content (case-insensitive)
      */
     public function scopeSearch($query, string $search)
     {
         return $query->where(function ($q) use ($search) {
-            $q->where('title', 'like', "%{$search}%")
-                ->orWhere('excerpt', 'like', "%{$search}%")
-                ->orWhere('content', 'like', "%{$search}%");
+            $q->where('title', 'ilike', "%{$search}%")
+                ->orWhere('excerpt', 'ilike', "%{$search}%")
+                ->orWhere('content', 'ilike', "%{$search}%");
         });
     }
 
