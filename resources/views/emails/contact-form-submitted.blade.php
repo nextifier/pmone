@@ -1,7 +1,7 @@
 @component('mail::message')
-# New Contact Form Submission - {{ $project->name }}
+# {{ $subject }}
 
-You have received a new contact form submission from your website.
+You have received a new form submission from your website.
 
 @component('mail::panel')
 @foreach($formData as $field => $value)

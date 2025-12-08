@@ -42,6 +42,7 @@ class ContactFormSubmitted extends Mailable
                 'formData' => $this->submission->form_data,
                 'submittedAt' => $this->submission->created_at,
                 'ipAddress' => $this->submission->ip_address,
+                'subject' => $this->submission->subject,
             ],
         );
     }
