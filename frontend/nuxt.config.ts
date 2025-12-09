@@ -15,8 +15,6 @@ export default defineNuxtConfig({
       siteUrl: process.env.NODE_ENV === "production" ? "https://pmone.id" : "http://localhost:3000",
       apiUrl:
         process.env.NODE_ENV === "production" ? "https://api.pmone.id" : "http://localhost:8000",
-      pmOneApiUrl:
-        process.env.NODE_ENV === "production" ? "https://api.pmone.id" : "http://localhost:8000",
       blogUsernames: "", // Empty string means show all posts (no author filter)
     },
   },

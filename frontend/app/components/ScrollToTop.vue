@@ -11,7 +11,7 @@
       <button
         v-if="showButton"
         @click="scrollToTop"
-        class="text-foreground ring-foreground/15 bg-background/70 pointer-fine:hover:bg-primary pointer-fine:hover:text-primary-foreground flex size-12 items-center justify-center gap-x-1.5 rounded-full text-sm font-semibold tracking-tighter ring-1 backdrop-blur-xs transition-all duration-300"
+        class="text-foreground ring-foreground/15 bg-background/70 pointer-fine:hover:bg-primary pointer-fine:hover:text-primary-foreground flex size-11 items-center justify-center gap-x-1.5 rounded-full text-sm font-semibold tracking-tighter ring-1 backdrop-blur-xs transition-all duration-300"
         v-ripple
       >
         <Icon name="lucide:chevron-up" class="size-4.5 shrink-0" />
