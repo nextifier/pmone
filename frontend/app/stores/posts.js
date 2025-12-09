@@ -53,7 +53,10 @@ export const usePostStore = defineStore("posts", {
           this.meta = response.meta;
         }
       } catch (err) {
-        this.error = err;
+        this.error = {
+          message: err?.message || 'An error occurred',
+          status: err?.status || err?.statusCode || null,
+        };
         console.error("Fetching posts failed: ", err);
       } finally {
         this.pending = false;
@@ -102,7 +105,10 @@ export const usePostStore = defineStore("posts", {
           this.meta = response.meta;
         }
       } catch (err) {
-        this.error = err;
+        this.error = {
+          message: err?.message || 'An error occurred',
+          status: err?.status || err?.statusCode || null,
+        };
         console.error("Searching posts failed: ", err);
       } finally {
         this.pending = false;
