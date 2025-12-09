@@ -50,7 +50,7 @@
     >
       <NuxtLink
         v-if="!isTrash"
-        :to="`/projects/${project.username}`"
+        :to="`/projects/${project.username}/edit`"
         class="absolute inset-0 z-10"
       />
 
