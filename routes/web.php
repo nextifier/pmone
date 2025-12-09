@@ -1,7 +1,9 @@
 <?php
 
 use App\Mail\ContactFormSubmitted;
+use App\Mail\MagicLinkMail;
 use App\Models\ContactFormSubmission;
+use App\Models\MagicLink;
 use App\Models\Project;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +43,17 @@ if (app()->environment('local')) {
             $submission->setRelation('project', $project);
 
             return new ContactFormSubmitted($submission);
+        });
+
+        Route::get('/magic-link', function () {
+            // Create a fake magic link for preview
+            $magicLink = new MagicLink([
+                'email' => 'preview@example.com',
+                'token' => 'preview-token-'.str_repeat('x', 50),
+                'expires_at' => Carbon::now()->addMinutes(15),
+            ]);
+
+            return new MagicLinkMail($magicLink);
         });
     });
 }

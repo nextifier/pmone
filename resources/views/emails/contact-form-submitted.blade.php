@@ -20,9 +20,11 @@ You have received a new form submission from your website.
 @endcomponent
 
 @if(!empty($formData['email']))
+<div style="margin-bottom: -8px;">
 @component('mail::button', ['url' => 'mailto:' . $formData['email']])
 Reply via Email
 @endcomponent
+</div>
 @endif
 
 @if(!empty($formData['phone']))
@@ -35,9 +37,11 @@ if (str_starts_with($phone, '0')) {
 }
 $phone = ltrim($phone, '+');
 @endphp
+<div style="margin-bottom: -8px;">
 @component('mail::button', ['url' => 'https://wa.me/' . $phone])
 Reply via WhatsApp
 @endcomponent
+</div>
 @endif
 
 @component('mail::button', ['url' => config('app.frontend_url') . '/inbox'])

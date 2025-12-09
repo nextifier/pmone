@@ -19,6 +19,10 @@ body {
     width: 100% !important;
 }
 
+* {
+    letter-spacing: -0.025em;
+}
+
 p,
 ul,
 ol,
@@ -114,11 +118,11 @@ img {
 /* Logo */
 
 .logo {
-    height: 75px;
-    margin-top: 15px;
-    margin-bottom: 10px;
-    max-height: 75px;
-    width: 75px;
+    width: 48px;
+    height: 48px;
+    max-height: 48px;
+    margin-top: 12px;
+    margin-bottom: 12px;
 }
 
 /* Body */
@@ -223,7 +227,7 @@ img {
     -premailer-cellpadding: 0;
     -premailer-cellspacing: 0;
     -premailer-width: 100%;
-    margin: 8px auto;
+    margin: 16px auto;
     padding: 0;
     text-align: center;
     width: 100%;
