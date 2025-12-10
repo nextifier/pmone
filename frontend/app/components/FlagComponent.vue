@@ -1,5 +1,5 @@
 <template>
-  <span class="flex h-4 w-6 overflow-hidden rounded-sm bg-foreground/20">
+  <span class="flex aspect-3/2 h-4 overflow-hidden rounded-sm">
     <img
       v-if="country"
       :src="flagUrl"

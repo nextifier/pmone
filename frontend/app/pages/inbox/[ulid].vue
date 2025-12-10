@@ -157,13 +157,21 @@
                   </a>
                 </template>
                 <template v-else-if="key === 'phone'">
-                  <a
-                    :href="`https://wa.me/${formatWhatsAppNumber(value)}`"
-                    target="_blank"
-                    class="text-primary hover:underline"
-                  >
-                    {{ value }}
-                  </a>
+                  <div class="flex items-center gap-2">
+                    <FlagComponent
+                      v-if="getCountryFromPhone(value)"
+                      v-tippy="getCountryFromPhone(value)?.name"
+                      :country="getCountryFromPhone(value)?.code"
+                      class="cursor-help"
+                    />
+                    <a
+                      :href="`https://wa.me/${formatWhatsAppNumber(value)}`"
+                      target="_blank"
+                      class="text-primary hover:underline"
+                    >
+                      {{ value }}
+                    </a>
+                  </div>
                 </template>
                 <template v-else-if="key === 'message'">
                   <div class="whitespace-pre-wrap">{{ value }}</div>
@@ -223,6 +231,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import FlagComponent from "@/components/FlagComponent.vue";
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -254,6 +263,9 @@ const error = computed(
 
 // Page meta
 usePageMeta("inbox");
+
+// Phone country helper
+const { getCountryFromPhone } = usePhoneCountry();
 
 // Status options
 const statuses = [

@@ -169,7 +169,7 @@ const { $dayjs } = useNuxtApp();
 
 // Table state
 const columnFilters = ref([]);
-const pagination = ref({ pageIndex: 0, pageSize: 10 });
+const pagination = ref({ pageIndex: 0, pageSize: 20 });
 const sorting = ref([{ id: "created_at", desc: true }]);
 
 // Data state
@@ -315,7 +315,9 @@ const columns = [
       const subject = row.original.subject?.toLowerCase() || "";
       const name = row.original.form_data_preview?.name?.toLowerCase() || "";
       const email = row.original.form_data_preview?.email?.toLowerCase() || "";
-      return subject.includes(searchValue) || name.includes(searchValue) || email.includes(searchValue);
+      return (
+        subject.includes(searchValue) || name.includes(searchValue) || email.includes(searchValue)
+      );
     },
   },
   {
@@ -403,7 +405,9 @@ const getFilterValue = (columnId) => {
 
 const selectedStatuses = computed(() => getFilterValue("status"));
 const selectedProjects = computed(() => getFilterValue("project_id"));
-const totalActiveFilters = computed(() => selectedStatuses.value.length + selectedProjects.value.length);
+const totalActiveFilters = computed(
+  () => selectedStatuses.value.length + selectedProjects.value.length
+);
 
 const handleFilterChange = (columnId, { checked, value }) => {
   if (clientOnly.value && tableRef.value?.table) {
