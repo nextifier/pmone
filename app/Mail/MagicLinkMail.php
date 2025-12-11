@@ -21,6 +21,13 @@ class MagicLinkMail extends Mailable
     {
         return new Envelope(
             subject: 'Your PM One Login Link',
+            from: new \Illuminate\Mail\Mailables\Address(
+                config('mail.from.address'),
+                config('mail.from.name')
+            ),
+            replyTo: [
+                new \Illuminate\Mail\Mailables\Address(config('mail.from.address')),
+            ],
         );
     }
 

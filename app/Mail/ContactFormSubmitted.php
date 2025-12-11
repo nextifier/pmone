@@ -20,12 +20,16 @@ class ContactFormSubmitted extends Mailable
     public function envelope(): Envelope
     {
         $project = $this->submission->project;
-        $fromName = data_get($project->settings, 'contact_form.email_config.from_name', $project->name);
 
         return new Envelope(
             subject: $this->submission->subject,
-            from: config('mail.from.address'),
-            replyTo: data_get($this->submission->form_data, 'email'),
+            from: new \Illuminate\Mail\Mailables\Address(
+                config('mail.from.address'),
+                config('mail.from.name')
+            ),
+            replyTo: [
+                new \Illuminate\Mail\Mailables\Address(config('mail.from.address')),
+            ],
             metadata: [
                 'project_id' => $project->id,
                 'submission_id' => $this->submission->id,
