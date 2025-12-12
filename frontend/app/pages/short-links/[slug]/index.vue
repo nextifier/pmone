@@ -223,7 +223,6 @@
 
 <script setup>
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
-import QRCode from "qrcode";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -237,10 +236,19 @@ const slug = computed(() => route.params.slug);
 const { $dayjs } = useNuxtApp();
 const config = useRuntimeConfig();
 
+// QR Code - dynamic import for client-side only
+const QRCode = ref(null);
+
 // QR Code state
 const qrCanvas = ref(null);
 const copied = ref(false);
 const qrSize = 512;
+
+// Load QRCode library on client-side
+onMounted(async () => {
+  const qrcodeModule = await import("qrcode");
+  QRCode.value = qrcodeModule.default;
+});
 
 const selectedPeriod = ref("7");
 
@@ -285,12 +293,12 @@ const shortLinkUrl = computed(() => {
 
 // Generate QR code whenever short link is available
 watch(
-  [shortLink, qrCanvas],
-  async ([link, canvas]) => {
-    if (!link || !canvas) return;
+  [shortLink, qrCanvas, QRCode],
+  async ([link, canvas, qrLib]) => {
+    if (!link || !canvas || !qrLib) return;
 
     try {
-      await QRCode.toCanvas(canvas, shortLinkUrl.value, {
+      await qrLib.toCanvas(canvas, shortLinkUrl.value, {
         width: qrSize,
         margin: 4,
         errorCorrectionLevel: "M",
@@ -351,10 +359,10 @@ const downloadJPG = () => {
 
 // Download as SVG
 const downloadSVG = async () => {
-  if (!shortLinkUrl.value) return;
+  if (!shortLinkUrl.value || !QRCode.value) return;
 
   try {
-    const svgString = await QRCode.toString(shortLinkUrl.value, {
+    const svgString = await QRCode.value.toString(shortLinkUrl.value, {
       type: "svg",
       width: qrSize,
       margin: 4,
