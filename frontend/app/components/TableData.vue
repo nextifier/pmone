@@ -225,9 +225,18 @@
             </TableBody>
           </Table>
 
+          <!-- Loading State -->
+          <div
+            v-if="isInitialLoading"
+            class="mx-auto flex w-full max-w-md flex-col items-center gap-4 py-10 text-center"
+          >
+            <Spinner class="size-8" />
+            <p class="text-muted-foreground text-sm tracking-tight">Loading data...</p>
+          </div>
+
           <!-- Empty State -->
           <div
-            v-if="!hasRows"
+            v-else-if="!hasRows"
             class="mx-auto flex w-full max-w-md flex-col items-center gap-4 py-10 text-center"
           >
             <div
@@ -650,6 +659,7 @@ defineShortcuts({
 // Computed properties for better readability
 const isClientSidePagination = computed(() => isClientSideMode.value);
 const hasRows = computed(() => table.getRowModel().rows?.length > 0);
+const isInitialLoading = computed(() => props.pending && props.data.length === 0);
 const hasActiveFilters = computed(() => table.getState().columnFilters.length > 0);
 const selectedRowsCount = computed(() => table.getSelectedRowModel().rows.length);
 const hasSelectedRows = computed(() => selectedRowsCount.value > 0);

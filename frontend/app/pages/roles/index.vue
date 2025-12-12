@@ -176,8 +176,7 @@ const {
   refresh: fetchRoles,
 } = await useLazySanctumFetch(() => `/api/roles?${buildQueryParams()}`, {
   key: "roles-list",
-  watch: clientOnly.value ? [] : [columnFilters, sorting, pagination],
-  immediate: !clientOnly.value,
+  watch: false,
 });
 
 const data = computed(() => rolesResponse.value?.data || []);

@@ -7,9 +7,13 @@
         <NuxtPage
           :keepalive="{
             include: [
+              'dashboard',
+              'inbox',
+              'projects',
               'posts',
-              'users',
               'short-links',
+              'users',
+              'api-consumers',
               // 'web-analytics',
               // 'web-analytics-id'
             ],

@@ -234,8 +234,7 @@ const {
   refresh: fetchSubmissions,
 } = await useLazySanctumFetch(() => `/api/contact-form-submissions?${buildQueryParams()}`, {
   key: "inbox-list",
-  watch: clientOnly.value ? [] : [columnFilters, sorting, pagination],
-  immediate: !clientOnly.value,
+  watch: false,
 });
 
 const data = computed(() => submissionsResponse.value?.data || []);

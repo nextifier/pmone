@@ -259,8 +259,7 @@ const {
   refresh: fetchPosts,
 } = await useLazySanctumFetch(() => `/api/posts/trash?${buildQueryParams()}`, {
   key: "posts-trash-list",
-  watch: clientOnly.value ? [] : [columnFilters, sorting, pagination],
-  immediate: !clientOnly.value,
+  watch: false,
 });
 
 const data = computed(() => postsResponse.value?.data || []);

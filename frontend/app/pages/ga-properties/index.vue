@@ -236,8 +236,7 @@ const {
   refresh: fetchGaProperties,
 } = await useLazySanctumFetch(() => `/api/google-analytics/ga-properties?${buildQueryParams()}`, {
   key: "ga-properties-list",
-  watch: clientOnly.value ? [] : [columnFilters, sorting, pagination],
-  immediate: !clientOnly.value,
+  watch: false,
 });
 
 const data = computed(() => gaPropertiesResponse.value?.data || []);

@@ -42,16 +42,9 @@
           <!-- Short Link URL with Copy Button -->
           <div class="w-full max-w-md">
             <div class="flex items-center gap-2">
-              <Input
-                :model-value="shortLinkUrl"
-                readonly
-                class="flex-1 font-mono text-sm"
-              />
+              <Input :model-value="shortLinkUrl" readonly class="flex-1 font-mono text-sm" />
               <Button @click="copyToClipboard" variant="outline" size="icon">
-                <Icon
-                  :name="copied ? 'lucide:check' : 'lucide:copy'"
-                  class="size-4"
-                />
+                <Icon :name="copied ? 'lucide:check' : 'lucide:copy'" class="size-4" />
               </Button>
             </div>
           </div>
@@ -192,37 +185,38 @@
       </div>
 
       <!-- OG Preview Card -->
-      <NuxtLink
-        v-if="shortLink?.og_image && shortLink?.og_title"
-        :to="`${useRuntimeConfig().public.siteUrl}/${shortLink.slug}`"
-        target="_blank"
-        class="frame flex w-full max-w-sm flex-col"
-      >
-        <div class="bg-muted aspect-1200/630 shrink-0 overflow-hidden rounded-lg">
-          <img
-            v-if="shortLink?.og_image"
-            :src="shortLink?.og_image"
-            :alt="shortLink?.og_title"
-            class="size-full object-cover"
-            @error="$event.target.closest('.frame').style.display = 'none'"
-          />
-        </div>
+      <ClientOnly>
+        <NuxtLink
+          v-if="shortLink?.og_image && shortLink?.og_title"
+          :to="`${useRuntimeConfig().public.siteUrl}/${shortLink.slug}`"
+          target="_blank"
+          class="frame flex w-full max-w-sm flex-col"
+        >
+          <div class="bg-muted aspect-1200/630 shrink-0 overflow-hidden rounded-lg">
+            <img
+              :src="shortLink?.og_image"
+              :alt="shortLink?.og_title"
+              class="size-full object-cover"
+              @error="$event.target.closest('.frame').style.display = 'none'"
+            />
+          </div>
 
-        <div class="bg-background flex flex-col p-4">
-          <h6
-            v-if="shortLink?.og_title"
-            class="text-foreground text-base font-semibold tracking-tighter"
-          >
-            {{ shortLink?.og_title }}
-          </h6>
-          <p
-            v-if="shortLink?.og_description"
-            class="text-muted-foreground mt-1 text-xs tracking-tight"
-          >
-            {{ shortLink?.og_description }}
-          </p>
-        </div>
-      </NuxtLink>
+          <div class="bg-background flex flex-col p-4">
+            <h6
+              v-if="shortLink?.og_title"
+              class="text-foreground text-base font-semibold tracking-tighter"
+            >
+              {{ shortLink?.og_title }}
+            </h6>
+            <p
+              v-if="shortLink?.og_description"
+              class="text-muted-foreground mt-1 text-xs tracking-tight"
+            >
+              {{ shortLink?.og_description }}
+            </p>
+          </div>
+        </NuxtLink>
+      </ClientOnly>
     </div>
   </div>
 </template>

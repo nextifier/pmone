@@ -260,8 +260,7 @@ const {
   refresh: fetchShortLinks,
 } = await useLazySanctumFetch(() => `/api/short-links/trash?${buildQueryParams()}`, {
   key: "short-links-trash-list",
-  watch: clientOnly.value ? [] : [columnFilters, sorting, pagination],
-  immediate: !clientOnly.value,
+  watch: false,
 });
 
 const data = computed(() => shortLinksResponse.value?.data || []);

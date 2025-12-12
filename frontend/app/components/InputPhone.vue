@@ -1,17 +1,19 @@
 <template>
   <PhoneInput
+    v-model="phoneValue"
     noUseBrowserLocale
     fetchCountry
     country-code="ID"
     :ignored-countries="['AC']"
     class="flex"
+    @update:model-value="handlePhoneUpdate"
   >
     <template #selector="{ inputValue, updateInputValue, countries }">
       <Popover v-model:open="open">
         <PopoverTrigger as-child>
           <Button
             variant="outline"
-            class="border-border flex h-9 gap-1 rounded-s-lg rounded-e-none border border-e-0 px-3"
+            class="border-border flex h-full gap-1 rounded-s-lg rounded-e-none border border-e-0 px-3"
           >
             <FlagComponent :country="inputValue" />
             <ChevronsUpDown class="h-4 w-4 opacity-50" />
@@ -64,7 +66,31 @@
 import { useFocus } from "@vueuse/core";
 import PhoneInput from "base-vue-phone-input";
 import { ChevronsUpDown } from "lucide-vue-next";
+
+const props = defineProps<{
+  modelValue?: string;
+}>();
+
+const emit = defineEmits<{
+  "update:modelValue": [value: string];
+}>();
+
 const open = ref(false);
 const phoneInput = ref(null);
 const { focused } = useFocus(phoneInput);
+
+// Internal phone value - must be a string for base-vue-phone-input
+const phoneValue = ref(props.modelValue || "");
+
+// Handle phone value updates and emit formatted phone number
+const handlePhoneUpdate = (value: any) => {
+  // base-vue-phone-input emits an object with phone details
+  if (value?.e164) {
+    emit("update:modelValue", value.e164);
+  } else if (value?.nationalNumber) {
+    emit("update:modelValue", value.nationalNumber);
+  } else if (typeof value === "string") {
+    emit("update:modelValue", value);
+  }
+};
 </script>

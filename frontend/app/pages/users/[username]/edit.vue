@@ -181,13 +181,6 @@ async function updateUser(payload) {
   try {
     const sanctumFetch = useSanctumClient();
 
-    // Remove empty values
-    Object.keys(payload).forEach((key) => {
-      if (payload[key] === "" || payload[key] === null) {
-        delete payload[key];
-      }
-    });
-
     // If not admin/master, only allow certain fields
     if (!canEditUsers.value) {
       const allowedFields = [

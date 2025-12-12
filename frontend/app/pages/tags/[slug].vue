@@ -175,8 +175,7 @@ const {
   refresh: fetchPosts,
 } = await useLazySanctumFetch(() => `/api/posts?${buildQueryParams()}`, {
   key: `tag-posts-${tagSlug.value}`,
-  watch: clientOnly.value ? [] : [columnFilters, sorting, pagination],
-  immediate: !clientOnly.value && !!tagName.value,
+  watch: false,
 });
 
 const data = computed(() => postsResponse.value?.data || []);

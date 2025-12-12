@@ -209,14 +209,13 @@
         <div class="grid grid-cols-1 gap-y-6">
           <div v-if="showPassword" class="space-y-2">
             <Label for="password">Password</Label>
-            <Input
-              id="password"
-              v-model="form.password"
-              type="password"
-              minlength="8"
-            />
+            <Input id="password" v-model="form.password" type="password" minlength="8" />
             <p class="text-muted-foreground text-xs tracking-tight">
-              {{ isCreate ? "Optional. User can log in via magic link if no password is set." : "Leave empty to keep current password." }}
+              {{
+                isCreate
+                  ? "Optional. User can log in via magic link if no password is set."
+                  : "Leave empty to keep current password."
+              }}
             </p>
             <InputErrorMessage :errors="errors.password" />
           </div>

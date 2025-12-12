@@ -258,8 +258,7 @@ const {
   refresh: fetchApiConsumers,
 } = await useLazySanctumFetch(() => `/api/api-consumers/trash?${buildQueryParams()}`, {
   key: "api-consumers-trash-list",
-  watch: clientOnly.value ? [] : [columnFilters, sorting, pagination],
-  immediate: !clientOnly.value,
+  watch: false,
 });
 
 const data = computed(() => apiConsumersResponse.value?.data || []);

@@ -13,6 +13,15 @@
     </p>
   </div>
 
+  <!-- Loading State -->
+  <div
+    v-else-if="isInitialLoading"
+    class="flex flex-col items-center gap-4 rounded-lg border border-dashed py-12 text-center"
+  >
+    <Spinner class="size-8" />
+    <p class="text-muted-foreground text-sm tracking-tight">Loading projects...</p>
+  </div>
+
   <!-- Empty State -->
   <div
     v-else-if="projects.length === 0"
@@ -144,6 +153,10 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  pending: {
+    type: Boolean,
+    default: false,
+  },
   error: {
     type: [Object, null],
     default: null,
@@ -173,6 +186,8 @@ const props = defineProps({
     default: false,
   },
 });
+
+const isInitialLoading = computed(() => props.pending && props.projects.length === 0);
 
 const projectsListEl = ref(null);
 

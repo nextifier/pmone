@@ -275,8 +275,7 @@ const {
   refresh: fetchUsers,
 } = await useLazySanctumFetch(() => `/api/users/trash?${buildQueryParams()}`, {
   key: "users-trash-list",
-  watch: clientOnly.value ? [] : [columnFilters, sorting, pagination],
-  immediate: !clientOnly.value,
+  watch: false,
 });
 
 const data = computed(() => usersResponse.value?.data || []);

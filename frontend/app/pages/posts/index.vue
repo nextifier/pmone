@@ -232,7 +232,6 @@ const {
 } = await useLazySanctumFetch(() => `/api/posts?${buildQueryParams()}`, {
   key: "posts-list",
   watch: false,
-  immediate: !clientOnly.value,
 });
 
 const data = computed(() => postsResponse.value?.data || []);

@@ -389,7 +389,6 @@ const {
 } = await useLazySanctumFetch(() => `/api/api-consumers?${buildQueryParams()}`, {
   key: "api-consumers-list",
   watch: false,
-  immediate: !clientOnly.value,
 });
 
 const data = computed(() => apiConsumersResponse.value?.data || []);

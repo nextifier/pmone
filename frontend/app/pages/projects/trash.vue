@@ -35,6 +35,7 @@
 
     <ProjectsList
       :projects="filteredProjects"
+      :pending="pending"
       :error="error"
       :enable-drag-drop="false"
       :has-active-filters="hasActiveFilters"

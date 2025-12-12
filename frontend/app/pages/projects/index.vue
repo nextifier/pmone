@@ -57,6 +57,7 @@
     <ProjectsList
       ref="projectsListRef"
       :projects="filteredProjects"
+      :pending="pending"
       :error="error"
       :has-active-filters="hasActiveFilters"
       :empty-description="
