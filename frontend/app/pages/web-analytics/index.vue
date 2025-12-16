@@ -34,15 +34,7 @@
       </div>
     </div>
 
-    <div
-      v-if="loading && !aggregateData"
-      class="border-border bg-pattern-diagonal flex grow items-center justify-center overflow-hidden rounded-xl border p-6"
-    >
-      <div class="flex items-center gap-2">
-        <Spinner class="size-5 shrink-0" />
-        <span class="text-sm tracking-tight">Loading analytics data..</span>
-      </div>
-    </div>
+    <LoadingState v-if="loading && !aggregateData" label="Loading analytics data.." />
 
     <div v-else-if="error && !aggregateData" class="flex items-center justify-center p-6">
       <div class="flex flex-col items-center gap-3 text-center">

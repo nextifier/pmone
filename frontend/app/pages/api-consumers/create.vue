@@ -35,9 +35,10 @@ usePageMeta("api-consumers", {
 
 const loading = ref(false);
 
+const { signalRefresh } = useDataRefresh();
+
 async function handleSuccess() {
-  const needsRefresh = useState("api-consumers-needs-refresh", () => false);
-  needsRefresh.value = true;
+  signalRefresh("api-consumers-list");
   await navigateTo("/api-consumers");
 }
 </script>

@@ -4,9 +4,7 @@
       <BackButton destination="/api-consumers" />
     </div>
 
-    <div v-if="pending" class="flex items-center justify-center py-20">
-      <LoadingChaoticOrbit />
-    </div>
+    <LoadingState v-if="pending" label="Loading API consumer.." />
 
     <div v-else-if="error" class="py-10">
       <ErrorState
@@ -74,9 +72,10 @@ const error = computed(() => {
   };
 });
 
+const { signalRefresh } = useDataRefresh();
+
 async function handleSuccess() {
-  const needsRefresh = useState("api-consumers-needs-refresh", () => false);
-  needsRefresh.value = true;
+  signalRefresh("api-consumers-list");
   await navigateTo("/api-consumers");
 }
 </script>

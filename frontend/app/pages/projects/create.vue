@@ -1,6 +1,6 @@
 <template>
-  <div class="mx-auto max-w-xl space-y-9 pt-4 pb-16">
-    <div class="flex flex-col items-start gap-y-6">
+  <div class="mx-auto flex max-w-xl flex-col gap-y-5 pt-4 pb-16">
+    <div class="flex flex-col items-start gap-y-5">
       <BackButton destination="/projects" />
 
       <h1 class="page-title">Create New Project</h1>
@@ -36,6 +36,7 @@ usePageMeta("", {
 });
 
 const sanctumFetch = useSanctumClient();
+const { signalRefresh } = useDataRefresh();
 
 // State
 const loading = ref(false);
@@ -44,9 +45,12 @@ const success = ref(null);
 const errors = ref({});
 
 // Fetch eligible members with lazy loading
-const { data: eligibleMembersResponse } = await useLazySanctumFetch("/api/projects/eligible-members", {
-  key: "projects-eligible-members",
-});
+const { data: eligibleMembersResponse } = await useLazySanctumFetch(
+  "/api/projects/eligible-members",
+  {
+    key: "projects-eligible-members",
+  }
+);
 
 const eligibleMembers = computed(() => eligibleMembersResponse.value?.data || []);
 
@@ -65,6 +69,9 @@ async function createProject(payload) {
 
     if (response.data) {
       toast.success(`Project "${response.data.name}" created successfully!`);
+
+      // Signal that projects list needs refresh
+      signalRefresh("projects-list");
 
       // Navigate to projects list
       navigateTo("/projects");

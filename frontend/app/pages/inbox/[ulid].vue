@@ -35,9 +35,7 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="pending" class="flex items-center justify-center py-12">
-      <Spinner class="size-6" />
-    </div>
+    <LoadingState v-if="pending" label="Loading submission.." />
 
     <!-- Error State -->
     <div v-else-if="error" class="frame">

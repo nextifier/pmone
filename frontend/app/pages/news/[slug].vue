@@ -35,12 +35,7 @@
       <SidebarRail />
     </Sidebar>
 
-    <div v-if="pending" class="min-h-screen-offset grid place-items-center">
-      <div class="flex items-center gap-2">
-        <LoadingSpinner class="border-primary size-4" />
-        <span class="tracking-tight">Loading</span>
-      </div>
-    </div>
+    <LoadingState v-if="pending" />
 
     <div v-else-if="post" class="pb-24">
       <div class="container-wider flex items-start justify-between gap-x-12">

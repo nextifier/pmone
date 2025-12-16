@@ -1,10 +1,7 @@
 <template>
   <div class="container mx-auto max-w-4xl px-4 py-8">
     <!-- Loading State -->
-    <div v-if="loading" class="py-12 text-center">
-      <Spinner class="mx-auto" />
-      <p class="text-muted-foreground mt-4">Loading post...</p>
-    </div>
+    <LoadingState v-if="loading" label="Loading post.." />
 
     <!-- Post Content -->
     <article v-else-if="post" class="space-y-8">

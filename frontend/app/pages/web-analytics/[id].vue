@@ -51,15 +51,7 @@
     </div>
 
     <ClientOnly>
-      <div
-        v-if="loading && !propertyData"
-        class="border-border bg-pattern-diagonal flex grow items-center justify-center overflow-hidden rounded-xl border p-6"
-      >
-        <div class="flex items-center gap-2">
-          <Spinner class="size-5 shrink-0" />
-          <span class="text-sm tracking-tight">Loading property analytics..</span>
-        </div>
-      </div>
+      <LoadingState v-if="loading && !propertyData" label="Loading property analytics.." />
 
       <div v-else-if="error && !propertyData" class="flex items-center justify-center p-6">
         <div class="flex flex-col items-center gap-3 text-center">
@@ -206,14 +198,7 @@
       </div>
 
       <template #fallback>
-        <div
-          class="border-border bg-pattern-diagonal flex grow items-center justify-center overflow-hidden rounded-xl border p-6"
-        >
-          <div class="flex items-center gap-2">
-            <Spinner class="size-5 shrink-0" />
-            <span class="text-sm tracking-tight">Loading property analytics..</span>
-          </div>
-        </div>
+        <LoadingState label="Loading property analytics.." />
       </template>
     </ClientOnly>
   </div>

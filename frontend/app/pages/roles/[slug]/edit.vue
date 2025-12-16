@@ -8,9 +8,7 @@
       </div>
     </div>
 
-    <div v-if="loadingData" class="flex justify-center py-12">
-      <Spinner class="size-5" />
-    </div>
+    <LoadingState v-if="loadingData" label="Loading role.." />
 
     <FormRole v-else-if="role" ref="formRef" mode="edit" :role="role" />
 

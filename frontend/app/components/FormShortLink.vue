@@ -83,6 +83,7 @@ const props = defineProps({
 const emit = defineEmits(["submit", "update:loading"]);
 
 const sanctumFetch = useSanctumClient();
+const { signalRefresh } = useDataRefresh();
 
 // Form state
 const formData = ref({
@@ -137,9 +138,10 @@ async function handleSubmit() {
           : "Short link updated successfully!";
       toast.success(successMessage);
 
-      // Set refresh flag and navigate to short link detail page
-      const needsRefresh = useState('short-links-needs-refresh', () => false);
-      needsRefresh.value = true;
+      // Signal that short-links list needs refresh
+      signalRefresh("short-links-list");
+
+      // Navigate to short link detail page
       navigateTo(`/short-links/${response.data.slug}`);
     }
   } catch (err) {

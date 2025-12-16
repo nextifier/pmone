@@ -177,6 +177,7 @@ defineOptions({
 
 const { $dayjs } = useNuxtApp();
 const { formatDate } = useFormatters();
+const { getRefreshSignal, clearRefreshSignal } = useDataRefresh();
 
 // Permission checking using composable
 const { isAdminOrMaster, canEditPost, canDeletePost } = usePermission();
@@ -262,14 +263,12 @@ const onColumnFiltersUpdate = (newValue) => {
   columnFilters.value = newValue;
 };
 
-// Global state for refresh tracking
-const needsRefresh = useState("posts-needs-refresh", () => false);
-
-// Refresh when component is activated from KeepAlive
+// Handle keepalive reactivation - check if data needs refresh
 onActivated(async () => {
-  if (needsRefresh.value) {
+  const refreshSignal = getRefreshSignal("posts-list");
+  if (refreshSignal > 0) {
     await fetchPosts();
-    needsRefresh.value = false;
+    clearRefreshSignal("posts-list");
   }
 });
 

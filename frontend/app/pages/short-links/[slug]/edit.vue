@@ -17,9 +17,7 @@
       </div>
     </div>
 
-    <div v-if="loadingData" class="flex justify-center py-12">
-      <Spinner class="size-5" />
-    </div>
+    <LoadingState v-if="loadingData" label="Loading short link.." />
 
     <FormShortLink v-else-if="shortLink" ref="formRef" mode="edit" :short-link="shortLink" />
 

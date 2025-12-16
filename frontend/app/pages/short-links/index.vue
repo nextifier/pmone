@@ -163,7 +163,7 @@ import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Switch } from "@/components/ui/switch";
+import TableSwitch from "@/components/TableSwitch.vue";
 import { PopoverClose } from "reka-ui";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
@@ -187,6 +187,7 @@ usePageMeta("", {
 
 const { user } = useSanctumAuth();
 const { $dayjs } = useNuxtApp();
+const { getRefreshSignal, clearRefreshSignal } = useDataRefresh();
 
 // Export state
 const exportPending = ref(false);
@@ -250,14 +251,12 @@ const meta = computed(
   () => shortLinksResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 10, total: 0 }
 );
 
-// Global state for refresh tracking
-const needsRefresh = useState("short-links-needs-refresh", () => false);
-
-// Refresh when component is activated from KeepAlive
+// Handle keepalive reactivation - check if data needs refresh
 onActivated(async () => {
-  if (needsRefresh.value) {
+  const refreshSignal = getRefreshSignal("short-links-list");
+  if (refreshSignal > 0) {
     await fetchShortLinks();
-    needsRefresh.value = false;
+    clearRefreshSignal("short-links-list");
   }
 });
 
@@ -280,7 +279,7 @@ const handleToggleStatus = async (shortLink) => {
       },
     });
 
-    // Update with server response to ensure consistency
+    // Update with server response
     if (response.data) {
       const updatedLink = data.value.find((link) => link.id === shortLink.id);
       if (updatedLink) {
@@ -353,12 +352,12 @@ const columns = [
     accessorKey: "is_active",
     cell: ({ row }) => {
       const shortLink = row.original;
-      return h("div", { class: "flex items-center gap-x-2" }, [
-        h(Switch, {
-          modelValue: shortLink.is_active,
-          "onUpdate:modelValue": () => handleToggleStatus(shortLink),
-        }),
-      ]);
+      return h(TableSwitch, {
+        modelValue: shortLink.is_active,
+        itemId: shortLink.id,
+        statusKey: "short-links",
+        "onUpdate:modelValue": () => handleToggleStatus(shortLink),
+      });
     },
     size: 80,
     filterFn: (row, columnId, filterValue) => {

@@ -1,6 +1,6 @@
 <template>
-  <div class="mx-auto max-w-xl space-y-9 pt-4 pb-16">
-    <div class="flex flex-col items-start gap-y-6">
+  <div class="mx-auto flex max-w-xl flex-col gap-y-5 pt-4 pb-16">
+    <div class="flex flex-col items-start gap-y-5">
       <BackButton destination="/users" />
 
       <h1 class="page-title">Create New User</h1>
@@ -40,6 +40,7 @@ usePageMeta("", {
 });
 
 const sanctumFetch = useSanctumClient();
+const { signalRefresh } = useDataRefresh();
 
 // State
 const loading = ref(false);
@@ -70,9 +71,10 @@ async function createUser(payload) {
     if (response.data) {
       toast.success(`User "${response.data.name}" created successfully!`);
 
-      // Set refresh flag and navigate to users list
-      const needsRefresh = useState('users-needs-refresh', () => false);
-      needsRefresh.value = true;
+      // Signal that users list needs refresh
+      signalRefresh("users-list");
+
+      // Navigate to users list
       navigateTo("/users");
     }
   } catch (err) {

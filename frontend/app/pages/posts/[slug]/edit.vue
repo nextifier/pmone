@@ -9,10 +9,7 @@
       <p class="page-description">Update your blog post.</p>
     </div>
 
-    <div v-if="loading" class="py-12 text-center">
-      <Spinner class="mx-auto" />
-      <p class="text-muted-foreground mt-4">Loading post...</p>
-    </div>
+    <LoadingState v-if="loading" label="Loading post.." />
 
     <PostForm
       v-else-if="post"
@@ -75,9 +72,10 @@ watchEffect(() => {
   }
 });
 
+const { signalRefresh } = useDataRefresh();
+
 async function handleSuccess() {
-  const needsRefresh = useState('posts-needs-refresh', () => false);
-  needsRefresh.value = true;
+  signalRefresh("posts-list");
   await navigateTo("/posts");
 }
 </script>

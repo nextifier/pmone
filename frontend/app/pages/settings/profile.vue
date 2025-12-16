@@ -36,12 +36,7 @@
     </template>
 
     <template v-else>
-      <div class="min-h-screen-offset flex w-full items-center justify-center">
-        <div class="flex items-center gap-1.5">
-          <Spinner class="size-4 shrink-0" />
-          <span class="tracking-tight">Loading</span>
-        </div>
-      </div>
+      <LoadingState />
     </template>
   </div>
 </template>

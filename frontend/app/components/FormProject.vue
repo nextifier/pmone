@@ -2,38 +2,6 @@
   <form @submit.prevent="handleSubmit" class="grid gap-y-8">
     <div class="frame">
       <div class="frame-header">
-        <div class="frame-title">Images</div>
-      </div>
-      <div class="frame-panel">
-        <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-4">
-            <Label>Profile Image</Label>
-            <InputFileImage
-              ref="profileImageInputRef"
-              v-model="imageFiles.profile_image"
-              :initial-image="initialData?.profile_image"
-              v-model:delete-flag="deleteFlags.profile_image"
-              container-class="squircle relative isolate aspect-square max-w-40"
-            />
-            <InputErrorMessage :errors="errors.tmp_profile_image" />
-          </div>
-
-          <div class="space-y-4">
-            <Label>Cover Image</Label>
-            <InputFileImage
-              ref="coverImageInputRef"
-              v-model="imageFiles.cover_image"
-              :initial-image="initialData?.cover_image"
-              v-model:delete-flag="deleteFlags.cover_image"
-            />
-            <InputErrorMessage :errors="errors.tmp_cover_image" />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="frame">
-      <div class="frame-header">
         <div class="frame-title">Project Information</div>
       </div>
       <div class="frame-panel">
@@ -63,6 +31,38 @@
             <Label for="bio">Description</Label>
             <Textarea id="bio" v-model="form.bio" maxlength="1000" />
             <InputErrorMessage :errors="errors.bio" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="frame">
+      <div class="frame-header">
+        <div class="frame-title">Images</div>
+      </div>
+      <div class="frame-panel">
+        <div class="grid grid-cols-1 gap-y-6">
+          <div class="space-y-4">
+            <Label>Profile Image</Label>
+            <InputFileImage
+              ref="profileImageInputRef"
+              v-model="imageFiles.profile_image"
+              :initial-image="initialData?.profile_image"
+              v-model:delete-flag="deleteFlags.profile_image"
+              container-class="squircle relative isolate aspect-square max-w-40"
+            />
+            <InputErrorMessage :errors="errors.tmp_profile_image" />
+          </div>
+
+          <div class="space-y-4">
+            <Label>Cover Image</Label>
+            <InputFileImage
+              ref="coverImageInputRef"
+              v-model="imageFiles.cover_image"
+              :initial-image="initialData?.cover_image"
+              v-model:delete-flag="deleteFlags.cover_image"
+            />
+            <InputErrorMessage :errors="errors.tmp_cover_image" />
           </div>
         </div>
       </div>
@@ -301,7 +301,11 @@
                   :key="`to-${index}`"
                   class="flex items-center gap-1.5"
                 >
-                  <Input v-model="form.settings.contact_form.email_config.to[index]" type="email" placeholder="email@example.com" />
+                  <Input
+                    v-model="form.settings.contact_form.email_config.to[index]"
+                    type="email"
+                    placeholder="email@example.com"
+                  />
                   <button
                     type="button"
                     @click="form.settings.contact_form.email_config.to.splice(index, 1)"
@@ -331,7 +335,11 @@
                   :key="`cc-${index}`"
                   class="flex items-center gap-1.5"
                 >
-                  <Input v-model="form.settings.contact_form.email_config.cc[index]" type="email" placeholder="email@example.com" />
+                  <Input
+                    v-model="form.settings.contact_form.email_config.cc[index]"
+                    type="email"
+                    placeholder="email@example.com"
+                  />
                   <button
                     type="button"
                     @click="form.settings.contact_form.email_config.cc.splice(index, 1)"
@@ -361,7 +369,11 @@
                   :key="`bcc-${index}`"
                   class="flex items-center gap-1.5"
                 >
-                  <Input v-model="form.settings.contact_form.email_config.bcc[index]" type="email" placeholder="email@example.com" />
+                  <Input
+                    v-model="form.settings.contact_form.email_config.bcc[index]"
+                    type="email"
+                    placeholder="email@example.com"
+                  />
                   <button
                     type="button"
                     @click="form.settings.contact_form.email_config.bcc.splice(index, 1)"
@@ -428,7 +440,6 @@
 
 <script setup>
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -437,6 +448,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "vue-sonner";
 
 // Constants
@@ -593,7 +605,6 @@ function handlePhoneLabelChange(index, value) {
     form.phones[index].label = value;
   }
 }
-
 
 // Populate form with initial data
 function populateForm(data) {

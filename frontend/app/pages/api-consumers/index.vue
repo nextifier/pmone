@@ -41,9 +41,7 @@
       </div>
 
       <CollapsibleContent>
-        <div v-if="analyticsLoading" class="flex justify-center py-8">
-          <Spinner class="size-6" />
-        </div>
+        <LoadingState v-if="analyticsLoading" label="Loading analytics.." />
 
         <div v-else-if="analyticsData" class="space-y-4">
           <!-- Summary Cards -->
@@ -272,7 +270,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Switch } from "@/components/ui/switch";
+import TableSwitch from "@/components/TableSwitch.vue";
 import { PopoverClose } from "reka-ui";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
@@ -297,6 +295,7 @@ usePageMeta("", {
 
 const { user } = useSanctumAuth();
 const { $dayjs } = useNuxtApp();
+const { getRefreshSignal, clearRefreshSignal } = useDataRefresh();
 
 // Analytics state
 const analyticsOpen = ref(true);
@@ -424,6 +423,15 @@ const onColumnFiltersUpdate = (newValue) => {
 
 const refresh = fetchApiConsumers;
 
+// Handle keepalive reactivation - check if data needs refresh
+onActivated(async () => {
+  const refreshSignal = getRefreshSignal("api-consumers-list");
+  if (refreshSignal > 0) {
+    await fetchApiConsumers();
+    clearRefreshSignal("api-consumers-list");
+  }
+});
+
 // Toggle status handler
 const handleToggleStatus = async (consumer) => {
   const newStatus = !consumer.is_active;
@@ -530,10 +538,11 @@ const columns = [
     accessorKey: "is_active",
     cell: ({ row }) => {
       const consumer = row.original;
-      return h(Switch, {
+      return h(TableSwitch, {
         modelValue: consumer.is_active,
+        itemId: consumer.id,
+        statusKey: "api-consumers",
         "onUpdate:modelValue": () => handleToggleStatus(consumer),
-        disabled: false,
       });
     },
     size: 80,

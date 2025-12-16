@@ -5,9 +5,7 @@
       <h1 class="page-title">Edit GA4 Property</h1>
     </div>
 
-    <div v-if="loadingData" class="flex justify-center py-12">
-      <Spinner class="size-8" />
-    </div>
+    <LoadingState v-if="loadingData" label="Loading property.." />
 
     <FormGaProperty v-else-if="gaProperty" ref="formRef" mode="edit" :ga-property="gaProperty" />
 

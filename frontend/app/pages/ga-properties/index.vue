@@ -158,7 +158,7 @@ import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Switch } from "@/components/ui/switch";
+import TableSwitch from "@/components/TableSwitch.vue";
 import { PopoverClose } from "reka-ui";
 import { toast } from "vue-sonner";
 
@@ -402,12 +402,12 @@ const columns = [
     accessorKey: "is_active",
     cell: ({ row }) => {
       const property = row.original;
-      return h("div", { class: "flex items-center gap-x-2" }, [
-        h(Switch, {
-          modelValue: property.is_active,
-          "onUpdate:modelValue": () => handleToggleStatus(property),
-        }),
-      ]);
+      return h(TableSwitch, {
+        modelValue: property.is_active,
+        itemId: property.id,
+        statusKey: "ga-properties",
+        "onUpdate:modelValue": () => handleToggleStatus(property),
+      });
     },
     size: 80,
     filterFn: (row, columnId, filterValue) => {

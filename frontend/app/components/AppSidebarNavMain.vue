@@ -91,12 +91,12 @@ const navMainGroups = computed(() => {
         },
 
         {
-          label: "Short Links",
+          label: "Short Links & Dynamic QR Code",
           path: "/short-links",
           iconName: "hugeicons:unlink-02",
         },
         {
-          label: "QR Code Generator",
+          label: "Static QR Code Generator",
           path: "/qr",
           iconName: "hugeicons:qr-code",
         },

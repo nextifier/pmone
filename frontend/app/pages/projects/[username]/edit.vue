@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen-offset mx-auto max-w-xl pt-4 pb-16">
+  <div class="min-h-screen-offset mx-auto flex max-w-xl flex-col gap-y-5 pt-4 pb-16">
     <template v-if="project">
-      <div class="flex flex-col gap-y-6">
+      <div class="flex flex-col gap-y-5">
         <div class="flex w-full items-center justify-between">
           <BackButton destination="/projects" />
 
@@ -57,13 +57,9 @@
     </template>
 
     <template v-else>
-      <div class="min-h-screen-offset flex w-full items-center justify-center">
-        <div v-if="initialLoading" class="flex items-center gap-1.5">
-          <Spinner class="size-4 shrink-0" />
-          <span class="tracking-tight">Loading</span>
-        </div>
-
-        <div v-else-if="error" class="frame w-full">
+      <LoadingState v-if="initialLoading" />
+      <div v-else class="min-h-screen-offset flex w-full items-center justify-center">
+        <div v-if="error" class="frame w-full">
           <div class="frame-panel">
             <div class="flex w-full flex-col items-center justify-center gap-y-4 text-center">
               <div
@@ -111,6 +107,7 @@ const { user: currentUser } = useSanctumAuth();
 const sanctumFetch = useSanctumClient();
 const { $dayjs } = useNuxtApp();
 const { metaSymbol } = useShortcuts();
+const { signalRefresh } = useDataRefresh();
 
 // Refs
 const formProjectRef = ref(null);
@@ -130,7 +127,11 @@ usePageMeta("", {
 });
 
 // Permission checking using composable
-const { isAdminOrMaster: canEditprojects, isAdminOrMaster: canDeleteprojects, isMaster } = usePermission();
+const {
+  isAdminOrMaster: canEditprojects,
+  isAdminOrMaster: canDeleteprojects,
+  isMaster,
+} = usePermission();
 
 // Fetch project data with lazy loading
 const {
@@ -156,11 +157,12 @@ const error = computed(() => {
 });
 
 // Fetch eligible members with lazy loading
-const {
-  data: eligibleMembersResponse,
-} = await useLazySanctumFetch("/api/projects/eligible-members", {
-  key: "projects-eligible-members",
-});
+const { data: eligibleMembersResponse } = await useLazySanctumFetch(
+  "/api/projects/eligible-members",
+  {
+    key: "projects-eligible-members",
+  }
+);
 
 const eligibleMembers = computed(() => eligibleMembersResponse.value?.data || []);
 
@@ -211,6 +213,9 @@ async function updateproject(payload) {
     if (response.data) {
       toast.success("Project updated successfully!");
 
+      // Signal that projects list needs refresh
+      signalRefresh("projects-list");
+
       // Navigate to projects list
       navigateTo("/projects");
     }
@@ -246,6 +251,9 @@ async function confirmDeleteproject() {
     await sanctumFetch(`/api/projects/${project.value.username}`, {
       method: "DELETE",
     });
+
+    // Signal that projects list needs refresh
+    signalRefresh("projects-list");
 
     // Navigate back to projects list
     navigateTo("/projects");

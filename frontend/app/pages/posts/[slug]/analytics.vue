@@ -18,9 +18,7 @@
       </div>
     </div>
 
-    <div v-if="loading" class="flex justify-center py-12">
-      <Spinner class="size-8" />
-    </div>
+    <LoadingState v-if="loading" label="Loading analytics.." />
 
     <div v-else-if="error" class="py-12 text-center">
       <p class="text-destructive">{{ error }}</p>

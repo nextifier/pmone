@@ -163,6 +163,7 @@ defineOptions({
 usePageMeta("projects");
 
 const { user } = useSanctumAuth();
+const { getRefreshSignal, clearRefreshSignal } = useDataRefresh();
 const { isAdminOrMaster } = usePermission();
 
 // Filter state
@@ -313,6 +314,15 @@ const initializeSortable = () => {
 
 onMounted(() => {
   initializeSortable();
+});
+
+// Handle keepalive reactivation - check if data needs refresh
+onActivated(async () => {
+  const refreshSignal = getRefreshSignal("projects-list");
+  if (refreshSignal > 0) {
+    await refresh();
+    clearRefreshSignal("projects-list");
+  }
 });
 
 // Watch for filter changes to reinitialize sortable

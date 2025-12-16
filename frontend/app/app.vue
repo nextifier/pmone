@@ -14,8 +14,6 @@
               'short-links',
               'users',
               'api-consumers',
-              // 'web-analytics',
-              // 'web-analytics-id'
             ],
           }"
         />

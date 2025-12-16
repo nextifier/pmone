@@ -22,9 +22,10 @@ definePageMeta({
 
 usePageMeta("posts");
 
+const { signalRefresh } = useDataRefresh();
+
 async function handleSuccess() {
-  const needsRefresh = useState('posts-needs-refresh', () => false);
-  needsRefresh.value = true;
+  signalRefresh("posts-list");
   await navigateTo("/posts");
 }
 </script>

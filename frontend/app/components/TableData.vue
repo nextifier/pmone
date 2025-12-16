@@ -226,13 +226,7 @@
           </Table>
 
           <!-- Loading State -->
-          <div
-            v-if="isInitialLoading"
-            class="mx-auto flex w-full max-w-md flex-col items-center gap-4 py-10 text-center"
-          >
-            <Spinner class="size-8" />
-            <p class="text-muted-foreground text-sm tracking-tight">Loading data...</p>
-          </div>
+          <LoadingState v-if="isInitialLoading" label="Loading data.." class="my-6 border-0" />
 
           <!-- Empty State -->
           <div

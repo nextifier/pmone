@@ -276,7 +276,7 @@ import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Switch } from "@/components/ui/switch";
+import TableSwitch from "@/components/TableSwitch.vue";
 import ImportDialog from "@/components/user/ImportDialog.vue";
 import UserProfile from "@/components/user/Profile.vue";
 import { PopoverClose } from "reka-ui";
@@ -297,6 +297,7 @@ usePageMeta("users");
 
 const { user } = useSanctumAuth();
 const { isAdminOrMaster } = usePermission();
+const { getRefreshSignal, clearRefreshSignal } = useDataRefresh();
 
 const { $dayjs } = useNuxtApp();
 
@@ -386,14 +387,12 @@ const onColumnFiltersUpdate = (newValue) => {
   columnFilters.value = newValue;
 };
 
-// Global state for refresh tracking
-const needsRefresh = useState("users-needs-refresh", () => false);
-
-// Refresh when component is activated from KeepAlive
+// Handle keepalive reactivation - check if data needs refresh
 onActivated(async () => {
-  if (needsRefresh.value) {
+  const refreshSignal = getRefreshSignal("users-list");
+  if (refreshSignal > 0) {
     await fetchUsers();
-    needsRefresh.value = false;
+    clearRefreshSignal("users-list");
   }
 });
 
@@ -552,13 +551,12 @@ const columns = [
     accessorKey: "status",
     cell: ({ row }) => {
       const user = row.original;
-      const isActive = user.status === "active";
-      return h("div", { class: "flex items-center gap-x-2" }, [
-        h(Switch, {
-          modelValue: isActive,
-          "onUpdate:modelValue": () => handleToggleStatus(user),
-        }),
-      ]);
+      return h(TableSwitch, {
+        modelValue: user.status === "active",
+        itemId: user.id,
+        statusKey: "users",
+        "onUpdate:modelValue": () => handleToggleStatus(user),
+      });
     },
     size: 80,
     filterFn: (row, columnId, filterValue) => {

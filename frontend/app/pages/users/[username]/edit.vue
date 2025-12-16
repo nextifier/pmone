@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen-offset mx-auto max-w-xl space-y-9 pt-4 pb-16">
+  <div class="min-h-screen-offset mx-auto flex max-w-xl flex-col gap-y-5 pt-4 pb-16">
     <template v-if="user">
-      <div class="flex flex-col gap-y-6">
+      <div class="flex flex-col gap-y-5">
         <div class="flex w-full items-center justify-between">
           <BackButton destination="/users" />
 
@@ -60,12 +60,9 @@
     </template>
 
     <template v-else>
-      <div class="min-h-screen-offset flex w-full items-center justify-center">
-        <div v-if="initialLoading" class="flex items-center gap-1.5">
-          <Spinner class="size-4 shrink-0" />
-          <span class="tracking-tight">Loading</span>
-        </div>
-        <div v-else-if="error" class="frame w-full">
+      <LoadingState v-if="initialLoading" />
+      <div v-else class="min-h-screen-offset flex w-full items-center justify-center">
+        <div v-if="error" class="frame w-full">
           <div class="frame-panel">
             <div class="flex w-full flex-col items-center justify-center gap-y-4 text-center">
               <div
@@ -113,6 +110,7 @@ const { user: currentUser } = useSanctumAuth();
 const sanctumFetch = useSanctumClient();
 const { $dayjs } = useNuxtApp();
 const { metaSymbol } = useShortcuts();
+const { signalRefresh } = useDataRefresh();
 
 // Refs
 const formUserRef = ref(null);
@@ -132,7 +130,11 @@ usePageMeta("", {
 });
 
 // Permission checking using composable
-const { isAdminOrMaster: canEditUsers, isAdminOrMaster: canDeleteUsers, isMaster } = usePermission();
+const {
+  isAdminOrMaster: canEditUsers,
+  isAdminOrMaster: canDeleteUsers,
+  isMaster,
+} = usePermission();
 
 // Fetch user data with lazy loading
 const {
@@ -147,10 +149,8 @@ const {
 const user = computed(() => userResponse.value?.data || null);
 
 // Fetch roles data with lazy loading
-const {
-  data: rolesResponse,
-} = await useLazySanctumFetch(() => `/api/users/roles`, {
-  key: 'user-roles',
+const { data: rolesResponse } = await useLazySanctumFetch(() => `/api/users/roles`, {
+  key: "user-roles",
 });
 
 const roles = computed(() => rolesResponse.value?.data || []);
@@ -210,9 +210,10 @@ async function updateUser(payload) {
     if (response.data) {
       toast.success("User updated successfully!");
 
-      // Set refresh flag and navigate to users list
-      const needsRefresh = useState('users-needs-refresh', () => false);
-      needsRefresh.value = true;
+      // Signal that users list needs refresh
+      signalRefresh("users-list");
+
+      // Navigate to users list
       navigateTo("/users");
     }
   } catch (err) {
@@ -246,6 +247,9 @@ async function confirmDeleteUser() {
     await sanctumFetch(`/api/users/${user.value.username}`, {
       method: "DELETE",
     });
+
+    // Signal that users list needs refresh
+    signalRefresh("users-list");
 
     // Navigate back to users list
     navigateTo("/users");

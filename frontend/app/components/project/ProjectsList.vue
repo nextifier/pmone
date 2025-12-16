@@ -14,13 +14,7 @@
   </div>
 
   <!-- Loading State -->
-  <div
-    v-else-if="isInitialLoading"
-    class="flex flex-col items-center gap-4 rounded-lg border border-dashed py-12 text-center"
-  >
-    <Spinner class="size-8" />
-    <p class="text-muted-foreground text-sm tracking-tight">Loading projects...</p>
-  </div>
+  <LoadingState v-else-if="isInitialLoading" label="Loading projects.." />
 
   <!-- Empty State -->
   <div
@@ -128,7 +122,10 @@
           {{ project.status }}
         </span>
 
-        <Popover>
+        <Popover
+          :open="openPopoverId[project.id] ?? false"
+          @update:open="(val) => (openPopoverId[project.id] = val)"
+        >
           <PopoverTrigger asChild>
             <button
               class="hover:bg-muted data-[state=open]:bg-muted text-muted-foreground hover:text-foreground data-[state=open]:text-foreground relative z-20 inline-flex size-8 items-center justify-center rounded-md"
@@ -190,6 +187,23 @@ const props = defineProps({
 const isInitialLoading = computed(() => props.pending && props.projects.length === 0);
 
 const projectsListEl = ref(null);
+
+// Track open popover state by project ID
+const openPopoverId = ref({});
+
+// Close all popovers on route change (handles keepalive navigation)
+const route = useRoute();
+watch(
+  () => route.fullPath,
+  () => {
+    openPopoverId.value = {};
+  }
+);
+
+// Also close popovers when component is deactivated (keepalive)
+onDeactivated(() => {
+  openPopoverId.value = {};
+});
 
 defineExpose({
   projectsListEl,
