@@ -1,14 +1,14 @@
 <template>
   <div class="mx-auto max-w-lg space-y-6 pt-4 pb-16">
     <div class="flex flex-col items-start gap-y-6">
-      <BackButton destination="/short-links" />
+      <BackButton destination="/links" />
 
       <div class="flex w-full items-center justify-between gap-2">
         <h1 class="page-title">Edit Short Link</h1>
 
         <nuxt-link
           v-if="shortLink?.slug"
-          :to="`/short-links/${shortLink.slug}`"
+          :to="`/links/${shortLink.slug}`"
           class="text-primary bg-muted hover:bg-border inline-flex items-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight"
         >
           <Icon name="lucide:chart-no-axes-combined" class="size-4" />

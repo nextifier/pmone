@@ -29,6 +29,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  forceDestination: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const router = useRouter();
@@ -55,6 +59,12 @@ const fallbackDestination = computed(() => {
 });
 
 const goBack = () => {
+  // Jika forceDestination aktif, langsung arahkan ke fallbackDestination
+  if (props.forceDestination) {
+    router.push(fallbackDestination.value);
+    return;
+  }
+
   // Cek apakah ada histori navigasi di dalam sesi browser saat ini.
   if (window?.history?.length > 2) {
     // Jika ada, kembali ke halaman sebelumnya

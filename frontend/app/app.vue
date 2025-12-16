@@ -6,15 +6,7 @@
       <NuxtLayout>
         <NuxtPage
           :keepalive="{
-            include: [
-              'dashboard',
-              'inbox',
-              'projects',
-              'posts',
-              'short-links',
-              'users',
-              'api-consumers',
-            ],
+            include: ['dashboard', 'inbox', 'projects', 'posts', 'links', 'users', 'api-consumers'],
           }"
         />
       </NuxtLayout>

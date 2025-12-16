@@ -1,7 +1,7 @@
 <template>
   <form @submit.prevent="handleSubmit" class="grid gap-y-8">
     <!-- Autosave Status & Preview -->
-    <div class="flex items-center justify-between gap-4 rounded-lg border bg-muted/50 p-3">
+    <div class="bg-muted/50 flex items-center justify-between gap-4 rounded-lg border p-3">
       <PostAutosaveStatus
         :is-saving="autosave.isSaving.value"
         :is-saved="autosave.isSaved.value"
@@ -12,10 +12,10 @@
       <button
         type="button"
         @click="showPreview"
-        class="flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-background"
+        class="hover:bg-background flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors"
       >
         <Icon name="lucide:eye" class="size-4" />
-        <span>{{ mode === 'edit' ? 'Preview Changes' : 'Preview Post' }}</span>
+        <span>{{ mode === "edit" ? "Preview Changes" : "Preview Post" }}</span>
       </button>
     </div>
 
@@ -53,7 +53,7 @@
         </div>
         <div
           v-else-if="slugAvailable === true"
-          class="text-green-600 dark:text-green-400 flex items-center gap-2 text-xs tracking-tight"
+          class="flex items-center gap-2 text-xs tracking-tight text-green-600 dark:text-green-400"
         >
           <Icon name="lucide:check-circle" class="size-3" />
           Slug is available
@@ -277,7 +277,7 @@
         @click="discardAutosave"
         class="border-input hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium tracking-tighter transition"
       >
-        <IconTrash class="size-4" />
+        <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
         Discard Draft
       </button>
       <button
@@ -310,13 +310,16 @@
   <DialogResponsive v-model:open="showRestoreDialog" dialog-max-width="450px">
     <div class="px-4 pb-10 md:px-6 md:py-5">
       <div class="flex items-start gap-3">
-        <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
+        <div
+          class="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900"
+        >
           <Icon name="lucide:archive-restore" class="size-5 text-blue-600 dark:text-blue-400" />
         </div>
         <div class="flex-1">
           <h3 class="text-primary text-lg font-semibold">Restore Draft?</h3>
           <p class="text-muted-foreground mt-1.5 text-sm leading-relaxed">
-            You have unsaved changes from a previous session. Would you like to restore them or start fresh?
+            You have unsaved changes from a previous session. Would you like to restore them or
+            start fresh?
           </p>
         </div>
       </div>
@@ -424,7 +427,7 @@ const autosave = useAutosave(toRef(form), {
   enabled: autosaveEnabled,
   debounceTime: 2000,
   localStorageKey: computed(() =>
-    postId.value ? `post-autosave-${postId.value}` : 'post-autosave-new'
+    postId.value ? `post-autosave-${postId.value}` : "post-autosave-new"
   ),
 });
 
@@ -588,7 +591,7 @@ async function checkAndRestoreAutosave() {
       autosaveEnabled.value = true;
     }
   } catch (error) {
-    console.error('Failed to check autosave:', error);
+    console.error("Failed to check autosave:", error);
     // Enable autosave even if there was an error
     autosaveEnabled.value = true;
   }
@@ -613,7 +616,7 @@ async function handleRestoreChanges() {
       form.published_at = date.toISOString().slice(0, 16);
     }
 
-    toast.success('Draft restored successfully');
+    toast.success("Draft restored successfully");
   }
   showRestoreDialog.value = false;
   pendingRestoreData.value = null;
@@ -634,7 +637,7 @@ async function handleDiscardRestore() {
 
 async function discardAutosave() {
   const confirmed = confirm(
-    'Are you sure you want to discard your draft? This action cannot be undone.'
+    "Are you sure you want to discard your draft? This action cannot be undone."
   );
   if (confirmed) {
     await autosave.discardAutosave();
@@ -652,7 +655,7 @@ const previewFormData = computed(() => {
   if (imageFiles.value.featured_image?.[0]) {
     const imgValue = imageFiles.value.featured_image[0];
     // If it's a temporary upload, try to get URL
-    if (typeof imgValue === 'string') {
+    if (typeof imgValue === "string") {
       featuredImage = imgValue;
     } else if (imgValue instanceof File) {
       // Create object URL for preview
@@ -663,14 +666,14 @@ const previewFormData = computed(() => {
   }
 
   return {
-    title: form.title || 'Untitled Post',
-    excerpt: form.excerpt || '',
-    content: form.content || '',
-    status: form.status || 'draft',
-    visibility: form.visibility || 'public',
+    title: form.title || "Untitled Post",
+    excerpt: form.excerpt || "",
+    content: form.content || "",
+    status: form.status || "draft",
+    visibility: form.visibility || "public",
     featured: form.featured || false,
-    meta_title: form.meta_title || form.title || '',
-    meta_description: form.meta_description || form.excerpt || '',
+    meta_title: form.meta_title || form.title || "",
+    meta_description: form.meta_description || form.excerpt || "",
     featured_image: featuredImage,
     tags: form.tags || [],
     authors: form.authors || [],

@@ -50,7 +50,7 @@
           <span>{{ loading ? loadingText : submitText }}</span>
         </button>
         <nuxt-link
-          to="/short-links"
+          to="/links"
           class="border-border hover:bg-muted rounded-md border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
         >
           Cancel
@@ -142,7 +142,7 @@ async function handleSubmit() {
       signalRefresh("short-links-list");
 
       // Navigate to short link detail page
-      navigateTo(`/short-links/${response.data.slug}`);
+      navigateTo(`/links/${response.data.slug}`);
     }
   } catch (err) {
     if (err.response?.status === 422 && err.response?._data?.errors) {

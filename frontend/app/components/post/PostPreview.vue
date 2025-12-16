@@ -3,16 +3,16 @@
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-50 bg-black/50" />
       <DialogContent
-        class="fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-[95vw] max-w-5xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg border bg-background shadow-lg"
+        class="bg-background fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-[95vw] max-w-5xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg border shadow-lg"
       >
         <div class="flex h-full max-h-[90vh] flex-col">
           <!-- Header -->
           <div class="flex items-center justify-between border-b p-6 pb-4">
             <DialogTitle class="text-2xl font-semibold">Post Preview</DialogTitle>
             <DialogClose
-              class="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100"
+              class="ring-offset-background rounded-sm opacity-70 transition-opacity hover:opacity-100"
             >
-              <IconX class="size-5" />
+              <Icon name="hugeicons:cancel-01" class="size-5" />
               <span class="sr-only">Close</span>
             </DialogClose>
           </div>
@@ -49,7 +49,7 @@
                 <header class="mb-8 space-y-4">
                   <!-- Title -->
                   <h1 class="text-4xl font-bold tracking-tight">
-                    {{ previewData.title || 'Untitled Post' }}
+                    {{ previewData.title || "Untitled Post" }}
                   </h1>
 
                   <!-- Excerpt -->
@@ -58,13 +58,16 @@
                   </p>
 
                   <!-- Meta -->
-                  <div class="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                  <div class="text-muted-foreground flex flex-wrap items-center gap-4 text-sm">
                     <!-- Authors -->
-                    <div v-if="previewData.authors && previewData.authors.length > 0" class="flex items-center gap-2">
+                    <div
+                      v-if="previewData.authors && previewData.authors.length > 0"
+                      class="flex items-center gap-2"
+                    >
                       <Icon name="lucide:user" class="size-4" />
                       <span>
                         {{
-                          previewData.authors.map((a) => a.name || `User ${a.user_id}`).join(', ')
+                          previewData.authors.map((a) => a.name || `User ${a.user_id}`).join(", ")
                         }}
                       </span>
                     </div>
@@ -74,7 +77,7 @@
                       class="rounded-full px-3 py-1 text-xs font-medium"
                       :class="getStatusClass(previewData.status)"
                     >
-                      {{ previewData.status || 'draft' }}
+                      {{ previewData.status || "draft" }}
                     </span>
 
                     <!-- Visibility Badge -->
@@ -82,7 +85,7 @@
                       class="rounded-full px-3 py-1 text-xs font-medium"
                       :class="getVisibilityClass(previewData.visibility)"
                     >
-                      {{ previewData.visibility || 'public' }}
+                      {{ previewData.visibility || "public" }}
                     </span>
 
                     <!-- Featured Badge -->
@@ -95,11 +98,14 @@
                   </div>
 
                   <!-- Tags -->
-                  <div v-if="previewData.tags && previewData.tags.length > 0" class="flex flex-wrap gap-2">
+                  <div
+                    v-if="previewData.tags && previewData.tags.length > 0"
+                    class="flex flex-wrap gap-2"
+                  >
                     <span
                       v-for="tag in previewData.tags"
                       :key="tag"
-                      class="inline-flex items-center gap-1 rounded-md bg-muted px-2.5 py-1 text-xs font-medium"
+                      class="bg-muted inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium"
                     >
                       <Icon name="lucide:tag" class="size-3" />
                       {{ tag }}
@@ -110,23 +116,28 @@
                 <!-- Post Content -->
                 <div
                   class="prose prose-lg dark:prose-invert max-w-none"
-                  v-html="previewData.content || '<p class=\'text-muted-foreground\'>No content yet...</p>'"
+                  v-html="
+                    previewData.content ||
+                    '<p class=\'text-muted-foreground\'>No content yet...</p>'
+                  "
                 ></div>
 
                 <!-- SEO Preview -->
-                <div class="mt-12 space-y-4 rounded-lg border bg-muted/50 p-6">
+                <div class="bg-muted/50 mt-12 space-y-4 rounded-lg border p-6">
                   <h3 class="text-lg font-semibold">SEO Preview</h3>
                   <div class="space-y-2">
                     <div class="text-sm">
                       <span class="font-medium">Meta Title:</span>
                       <span class="text-muted-foreground ml-2">
-                        {{ previewData.meta_title || previewData.title || 'Untitled Post' }}
+                        {{ previewData.meta_title || previewData.title || "Untitled Post" }}
                       </span>
                     </div>
                     <div class="text-sm">
                       <span class="font-medium">Meta Description:</span>
                       <p class="text-muted-foreground mt-1">
-                        {{ previewData.meta_description || previewData.excerpt || 'No description' }}
+                        {{
+                          previewData.meta_description || previewData.excerpt || "No description"
+                        }}
                       </p>
                     </div>
                   </div>
@@ -146,19 +157,19 @@
                   <h3 class="text-lg font-semibold text-green-600 dark:text-green-500">
                     📝 Published Version
                   </h3>
-                  <div class="space-y-4 rounded-lg border bg-muted/50 p-4">
+                  <div class="bg-muted/50 space-y-4 rounded-lg border p-4">
                     <div>
-                      <p class="text-xs font-medium uppercase text-muted-foreground">Title</p>
+                      <p class="text-muted-foreground text-xs font-medium uppercase">Title</p>
                       <p class="mt-1 text-sm font-medium">{{ publishedPost.title }}</p>
                     </div>
 
                     <div v-if="publishedPost.excerpt">
-                      <p class="text-xs font-medium uppercase text-muted-foreground">Excerpt</p>
+                      <p class="text-muted-foreground text-xs font-medium uppercase">Excerpt</p>
                       <p class="mt-1 text-sm">{{ publishedPost.excerpt }}</p>
                     </div>
 
                     <div>
-                      <p class="text-xs font-medium uppercase text-muted-foreground">Content</p>
+                      <p class="text-muted-foreground text-xs font-medium uppercase">Content</p>
                       <div
                         class="prose prose-sm dark:prose-invert mt-1 max-h-96 overflow-y-auto"
                         v-html="publishedPost.content"
@@ -172,21 +183,23 @@
                   <h3 class="text-lg font-semibold text-blue-600 dark:text-blue-500">
                     ✏️ Your Draft
                   </h3>
-                  <div class="space-y-4 rounded-lg border bg-muted/50 p-4">
+                  <div class="bg-muted/50 space-y-4 rounded-lg border p-4">
                     <div>
-                      <p class="text-xs font-medium uppercase text-muted-foreground">Title</p>
+                      <p class="text-muted-foreground text-xs font-medium uppercase">Title</p>
                       <p
                         class="mt-1 text-sm font-medium"
                         :class="
-                          publishedPost.title !== previewData.title ? 'bg-blue-100 dark:bg-blue-950' : ''
+                          publishedPost.title !== previewData.title
+                            ? 'bg-blue-100 dark:bg-blue-950'
+                            : ''
                         "
                       >
-                        {{ previewData.title || 'Untitled' }}
+                        {{ previewData.title || "Untitled" }}
                       </p>
                     </div>
 
                     <div v-if="previewData.excerpt">
-                      <p class="text-xs font-medium uppercase text-muted-foreground">Excerpt</p>
+                      <p class="text-muted-foreground text-xs font-medium uppercase">Excerpt</p>
                       <p
                         class="mt-1 text-sm"
                         :class="
@@ -200,7 +213,7 @@
                     </div>
 
                     <div>
-                      <p class="text-xs font-medium uppercase text-muted-foreground">Content</p>
+                      <p class="text-muted-foreground text-xs font-medium uppercase">Content</p>
                       <div
                         class="prose prose-sm dark:prose-invert mt-1 max-h-96 overflow-y-auto"
                         :class="
@@ -223,16 +236,16 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  DialogRoot,
-  DialogPortal,
-  DialogOverlay,
-  DialogContent,
-  DialogTitle,
   DialogClose,
-} from 'reka-ui'
+  DialogContent,
+  DialogOverlay,
+  DialogPortal,
+  DialogRoot,
+  DialogTitle,
+} from "reka-ui";
+import { ref, watch } from "vue";
 
 const props = defineProps({
   open: {
@@ -249,41 +262,41 @@ const props = defineProps({
   },
   mode: {
     type: String,
-    default: 'create', // 'create' or 'edit'
+    default: "create", // 'create' or 'edit'
   },
-})
+});
 
-const emit = defineEmits(['update:open'])
+const emit = defineEmits(["update:open"]);
 
-const isOpen = ref(props.open)
+const isOpen = ref(props.open);
 
 watch(
   () => props.open,
   (newValue) => {
-    isOpen.value = newValue
+    isOpen.value = newValue;
   }
-)
+);
 
 watch(isOpen, (newValue) => {
-  emit('update:open', newValue)
-})
+  emit("update:open", newValue);
+});
 
 function getStatusClass(status) {
   const classes = {
-    draft: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
-    published: 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200',
-    scheduled: 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200',
-    archived: 'bg-orange-100 text-orange-800 dark:bg-orange-800 dark:text-orange-200',
-  }
-  return classes[status] || classes.draft
+    draft: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
+    published: "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200",
+    scheduled: "bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200",
+    archived: "bg-orange-100 text-orange-800 dark:bg-orange-800 dark:text-orange-200",
+  };
+  return classes[status] || classes.draft;
 }
 
 function getVisibilityClass(visibility) {
   const classes = {
-    public: 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200',
-    private: 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-200',
-    members_only: 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200',
-  }
-  return classes[visibility] || classes.public
+    public: "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200",
+    private: "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-200",
+    members_only: "bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200",
+  };
+  return classes[visibility] || classes.public;
 }
 </script>

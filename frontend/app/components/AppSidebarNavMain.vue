@@ -92,7 +92,7 @@ const navMainGroups = computed(() => {
 
         {
           label: "Short Links & Dynamic QR Code",
-          path: "/short-links",
+          path: "/links",
           iconName: "hugeicons:unlink-02",
         },
         {

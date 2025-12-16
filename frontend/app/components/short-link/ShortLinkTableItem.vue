@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-y-0.5 overflow-hidden">
     <div class="flex items-center gap-x-0.5">
       <NuxtLink
-        :to="`/short-links/${link.slug}`"
+        :to="`/links/${link.slug}`"
         class="text-muted-foreground inline text-sm tracking-tight"
       >
         {{ useRuntimeConfig().public.siteUrl.replace(/^https?:\/\//, "") }}/<span

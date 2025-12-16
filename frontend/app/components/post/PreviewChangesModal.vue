@@ -3,14 +3,16 @@
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-50 bg-black/50" />
       <DialogContent
-        class="fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-[95vw] max-w-6xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border bg-background p-6 shadow-lg"
+        class="bg-background fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-[95vw] max-w-6xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border p-6 shadow-lg"
       >
         <div class="space-y-6">
           <!-- Header -->
           <div class="flex items-center justify-between">
             <DialogTitle class="text-2xl font-semibold">Preview Changes</DialogTitle>
-            <DialogClose class="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100">
-              <IconX class="size-5" />
+            <DialogClose
+              class="ring-offset-background rounded-sm opacity-70 transition-opacity hover:opacity-100"
+            >
+              <Icon name="hugeicons:cancel-01" class="size-5" />
               <span class="sr-only">Close</span>
             </DialogClose>
           </div>
@@ -29,7 +31,10 @@
               class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-950"
             >
               <div class="flex items-center gap-2">
-                <IconAlertCircle class="size-5 text-yellow-600 dark:text-yellow-500" />
+                <Icon
+                  name="hugeicons:alert-circle"
+                  class="size-5 text-yellow-600 dark:text-yellow-500"
+                />
                 <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
                   You have unsaved changes
                 </p>
@@ -55,26 +60,26 @@
                 <h3 class="text-lg font-semibold text-green-600 dark:text-green-500">
                   📝 Published Version
                 </h3>
-                <div class="space-y-4 rounded-lg border bg-muted/50 p-4">
+                <div class="bg-muted/50 space-y-4 rounded-lg border p-4">
                   <div>
-                    <p class="text-xs font-medium uppercase text-muted-foreground">Title</p>
+                    <p class="text-muted-foreground text-xs font-medium uppercase">Title</p>
                     <p class="mt-1 text-sm font-medium">{{ previewData.published.title }}</p>
                   </div>
 
                   <div v-if="previewData.published.excerpt">
-                    <p class="text-xs font-medium uppercase text-muted-foreground">Excerpt</p>
+                    <p class="text-muted-foreground text-xs font-medium uppercase">Excerpt</p>
                     <p class="mt-1 text-sm">{{ previewData.published.excerpt }}</p>
                   </div>
 
                   <div>
-                    <p class="text-xs font-medium uppercase text-muted-foreground">Content</p>
+                    <p class="text-muted-foreground text-xs font-medium uppercase">Content</p>
                     <div
                       class="prose prose-sm dark:prose-invert mt-1 max-h-96 overflow-y-auto"
                       v-html="previewData.published.content"
                     ></div>
                   </div>
 
-                  <div class="flex gap-4 text-xs text-muted-foreground">
+                  <div class="text-muted-foreground flex gap-4 text-xs">
                     <div>
                       <span class="font-medium">Status:</span>
                       <span
@@ -97,9 +102,9 @@
                 <h3 class="text-lg font-semibold text-blue-600 dark:text-blue-500">
                   ✏️ Your Draft
                 </h3>
-                <div class="space-y-4 rounded-lg border bg-muted/50 p-4">
+                <div class="bg-muted/50 space-y-4 rounded-lg border p-4">
                   <div>
-                    <p class="text-xs font-medium uppercase text-muted-foreground">Title</p>
+                    <p class="text-muted-foreground text-xs font-medium uppercase">Title</p>
                     <p
                       class="mt-1 text-sm font-medium"
                       :class="
@@ -113,7 +118,7 @@
                   </div>
 
                   <div v-if="previewData.autosave.excerpt">
-                    <p class="text-xs font-medium uppercase text-muted-foreground">Excerpt</p>
+                    <p class="text-muted-foreground text-xs font-medium uppercase">Excerpt</p>
                     <p
                       class="mt-1 text-sm"
                       :class="
@@ -127,7 +132,7 @@
                   </div>
 
                   <div>
-                    <p class="text-xs font-medium uppercase text-muted-foreground">Content</p>
+                    <p class="text-muted-foreground text-xs font-medium uppercase">Content</p>
                     <div
                       class="prose prose-sm dark:prose-invert mt-1 max-h-96 overflow-y-auto"
                       :class="
@@ -139,7 +144,7 @@
                     ></div>
                   </div>
 
-                  <div class="flex gap-4 text-xs text-muted-foreground">
+                  <div class="text-muted-foreground flex gap-4 text-xs">
                     <div>
                       <span class="font-medium">Status:</span>
                       <span
@@ -163,7 +168,7 @@
           <div class="flex justify-end gap-3 border-t pt-4">
             <button
               @click="close"
-              class="rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+              class="hover:bg-muted rounded-md border px-4 py-2 text-sm font-medium transition-colors"
             >
               Close
             </button>
@@ -175,7 +180,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch } from "vue";
 
 const props = defineProps({
   open: {
@@ -190,57 +195,57 @@ const props = defineProps({
     type: Function,
     default: null,
   },
-})
+});
 
-const emit = defineEmits(['update:open', 'close'])
+const emit = defineEmits(["update:open", "close"]);
 
-const isOpen = ref(props.open)
-const loading = ref(false)
-const previewData = ref(null)
+const isOpen = ref(props.open);
+const loading = ref(false);
+const previewData = ref(null);
 
 watch(
   () => props.open,
   (newValue) => {
-    isOpen.value = newValue
+    isOpen.value = newValue;
     if (newValue) {
-      loadPreview()
+      loadPreview();
     }
   }
-)
+);
 
 watch(isOpen, (newValue) => {
-  emit('update:open', newValue)
+  emit("update:open", newValue);
   if (!newValue) {
-    emit('close')
+    emit("close");
   }
-})
+});
 
 async function loadPreview() {
-  if (!props.postSlug) return
+  if (!props.postSlug) return;
 
-  loading.value = true
+  loading.value = true;
   try {
     if (props.onPreviewLoad) {
-      previewData.value = await props.onPreviewLoad(props.postSlug)
+      previewData.value = await props.onPreviewLoad(props.postSlug);
     }
   } catch (error) {
-    console.error('Failed to load preview:', error)
+    console.error("Failed to load preview:", error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 function close() {
-  isOpen.value = false
+  isOpen.value = false;
 }
 
 function getStatusColor(status) {
   const colors = {
-    draft: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
-    published: 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200',
-    scheduled: 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200',
-    archived: 'bg-orange-100 text-orange-800 dark:bg-orange-800 dark:text-orange-200',
-  }
-  return colors[status] || colors.draft
+    draft: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
+    published: "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200",
+    scheduled: "bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200",
+    archived: "bg-orange-100 text-orange-800 dark:bg-orange-800 dark:text-orange-200",
+  };
+  return colors[status] || colors.draft;
 }
 </script>
