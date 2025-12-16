@@ -3,19 +3,19 @@
     <!-- Saving -->
     <div v-if="isSaving" class="text-muted-foreground flex items-center gap-2">
       <Spinner class="size-4" />
-      <span>Saving...</span>
+      <span>Autosaving...</span>
     </div>
 
     <!-- Saved -->
-    <div v-else-if="isSaved && lastSavedAt" class="text-muted-foreground flex items-center gap-2">
-      <IconCheck class="size-4 text-green-600" />
-      <span>Saved {{ formattedTime }}</span>
+    <div v-else-if="isSaved && lastSavedAt" class="text-muted-foreground flex items-center gap-1.5">
+      <Icon name="lucide:check" class="text-success-foreground size-4 shrink-0" />
+      <span>Autosaved {{ formattedTime }}</span>
     </div>
 
     <!-- Error -->
     <div v-else-if="hasError" class="flex items-center gap-2 text-red-600">
       <Icon name="hugeicons:alert-circle" class="size-4 shrink-0" />
-      <span>{{ error || "Failed to save" }}</span>
+      <span>{{ error || "Failed to autosave" }}</span>
     </div>
 
     <!-- Idle -->

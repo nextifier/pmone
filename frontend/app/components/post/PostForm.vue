@@ -1,41 +1,28 @@
 <template>
   <form @submit.prevent="handleSubmit" class="grid gap-y-8">
     <!-- Autosave Status & Preview -->
-    <div class="bg-muted/50 flex items-center justify-between gap-4 rounded-lg border p-3">
-      <div class="flex items-center gap-4">
-        <!-- Autosave Toggle -->
-        <div class="flex items-center gap-2">
-          <Switch
-            id="autosave-toggle"
-            v-model="autosaveEnabled"
-            :disabled="showRestoreDialog"
+    <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-4">
+      <div class="flex items-center gap-2">
+        <Switch id="autosave-toggle" v-model="autosaveEnabled" :disabled="showRestoreDialog" />
+        <Label for="autosave-toggle" class="text-muted-foreground cursor-pointer text-sm">
+          <PostAutosaveStatus
+            v-if="autosaveEnabled"
+            :is-saving="autosave.isSaving.value"
+            :is-saved="autosave.isSaved.value"
+            :has-error="autosave.hasError.value"
+            :last-saved-at="autosave.lastSavedAt.value"
+            :error="autosave.autosaveStatus.value.error"
           />
-          <Label for="autosave-toggle" class="text-muted-foreground cursor-pointer text-sm">
-            Autosave
-          </Label>
-        </div>
-
-        <!-- Divider -->
-        <div class="bg-border h-5 w-px"></div>
-
-        <!-- Autosave Status -->
-        <PostAutosaveStatus
-          v-if="autosaveEnabled"
-          :is-saving="autosave.isSaving.value"
-          :is-saved="autosave.isSaved.value"
-          :has-error="autosave.hasError.value"
-          :last-saved-at="autosave.lastSavedAt.value"
-          :error="autosave.autosaveStatus.value.error"
-        />
-        <span v-else class="text-muted-foreground text-sm">Autosave disabled</span>
+          <span v-else class="text-muted-foreground text-sm">Autosave disabled</span>
+        </Label>
       </div>
 
       <button
         type="button"
         @click="showPreview"
-        class="hover:bg-background flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors"
+        class="bg-muted hover:bg-border flex items-center gap-x-1.5 rounded-lg px-3 py-2 text-sm tracking-tight transition active:scale-98"
       >
-        <Icon name="lucide:eye" class="size-4" />
+        <Icon name="hugeicons:view" class="size-4.5 shrink-0" />
         <span>{{ mode === "edit" ? "Preview Changes" : "Preview Post" }}</span>
       </button>
     </div>
@@ -727,7 +714,8 @@ async function handleRestoreChanges() {
     if (savedData.status) form.status = savedData.status;
     if (savedData.visibility) form.visibility = savedData.visibility;
     if (savedData.meta_title !== undefined) form.meta_title = savedData.meta_title;
-    if (savedData.meta_description !== undefined) form.meta_description = savedData.meta_description;
+    if (savedData.meta_description !== undefined)
+      form.meta_description = savedData.meta_description;
     if (savedData.featured_image_caption !== undefined)
       form.featured_image_caption = savedData.featured_image_caption;
     if (savedData.featured !== undefined) form.featured = savedData.featured;

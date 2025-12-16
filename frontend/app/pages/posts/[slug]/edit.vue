@@ -6,7 +6,6 @@
 
     <div class="space-y-1">
       <h1 class="page-title">Edit Post</h1>
-      <p class="page-description">Update your blog post.</p>
     </div>
 
     <LoadingState v-if="loading" label="Loading post.." />
@@ -33,8 +32,6 @@
 </template>
 
 <script setup>
-import { toast } from "vue-sonner";
-
 definePageMeta({
   middleware: ["sanctum:auth"],
   layout: "app",
