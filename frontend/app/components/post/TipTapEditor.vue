@@ -215,6 +215,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "vue-sonner";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -348,13 +349,27 @@ const handleImageUpload = async (event) => {
   const file = event.target.files?.[0];
   if (!file) return;
 
+  // Validate file size (max 10MB)
+  const maxSize = 10 * 1024 * 1024;
+  if (file.size > maxSize) {
+    toast.error("Image size must be less than 10MB");
+    if (imageInput.value) {
+      imageInput.value.value = "";
+    }
+    return;
+  }
+
   try {
-    // Create FormData for upload
+    // Create FormData for upload - use temporary media endpoint for new posts
     const formData = new FormData();
     formData.append("file", file);
     formData.append("model_type", "App\\Models\\Post");
-    formData.append("model_id", props.postId || "0"); // Use 0 for new posts
     formData.append("collection", "content_images");
+
+    // Only include model_id if we have a valid post ID
+    if (props.postId) {
+      formData.append("model_id", props.postId.toString());
+    }
 
     // Upload image using API
     const response = await client("/api/media/upload", {
@@ -376,8 +391,7 @@ const handleImageUpload = async (event) => {
     }
   } catch (error) {
     console.error("Image upload failed:", error);
-    // You can add toast notification here
-    alert("Failed to upload image. Please try again.");
+    toast.error("Failed to upload image. Please try again.");
   }
 };
 

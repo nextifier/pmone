@@ -148,6 +148,79 @@ class PostController extends Controller
         }
     }
 
+    /**
+     * Check if a slug is available
+     */
+    public function checkSlug(Request $request): JsonResponse
+    {
+        $request->validate([
+            'slug' => ['required', 'string', 'max:255'],
+            'exclude_id' => ['nullable', 'integer', 'exists:posts,id'],
+        ]);
+
+        $query = Post::where('slug', $request->input('slug'));
+
+        if ($excludeId = $request->input('exclude_id')) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        $exists = $query->exists();
+
+        return response()->json([
+            'available' => ! $exists,
+            'slug' => $request->input('slug'),
+        ]);
+    }
+
+    /**
+     * Get eligible authors for post authorship
+     * Returns a simplified list of users who can be added as post authors
+     */
+    public function eligibleAuthors(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        // If user has users.read permission, return all verified users
+        if ($user->can('users.read')) {
+            $users = \App\Models\User::query()
+                ->whereNotNull('email_verified_at')
+                ->select('id', 'name', 'email', 'username', 'title')
+                ->with(['media' => function ($query) {
+                    $query->where('collection_name', 'profile_image');
+                }])
+                ->orderBy('name')
+                ->get()
+                ->map(function ($u) {
+                    return [
+                        'id' => $u->id,
+                        'name' => $u->name,
+                        'email' => $u->email,
+                        'username' => $u->username,
+                        'title' => $u->title,
+                        'profile_image' => $u->hasMedia('profile_image')
+                            ? $u->getMediaUrls('profile_image')
+                            : null,
+                    ];
+                });
+        } else {
+            // Regular users can only select themselves
+            $users = collect([[
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'username' => $user->username,
+                'title' => $user->title,
+                'profile_image' => $user->hasMedia('profile_image')
+                    ? $user->getMediaUrls('profile_image')
+                    : null,
+            ]]);
+        }
+
+        return response()->json([
+            'data' => $users,
+        ]);
+    }
+
     public function show(Post $post): JsonResponse
     {
         $this->authorize('view', $post);

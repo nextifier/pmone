@@ -9,7 +9,7 @@
         <div
           class="bg-sidebar-primary text-sidebar-primary-foreground squircle flex aspect-square size-10 items-center justify-center rounded-lg group-data-[state=collapsed]:size-8"
         >
-          <LogoMark class="text-primary-foreground size-5 group-data-[state=expanded]:size-6" />
+          <LogoMark class="text-primary-foreground size-4 group-data-[state=expanded]:size-5" />
         </div>
 
         <div class="flex flex-col group-data-[state=collapsed]:hidden">

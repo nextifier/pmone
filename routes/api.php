@@ -222,6 +222,8 @@ Route::middleware(['auth:sanctum'])->prefix('google-analytics')->group(function 
 Route::middleware(['auth:sanctum', 'verified'])->prefix('posts')->group(function () {
     Route::get('/', [PostController::class, 'index'])->name('posts.index');
     Route::post('/', [PostController::class, 'store'])->name('posts.store');
+    Route::get('/check-slug', [PostController::class, 'checkSlug'])->name('posts.check-slug');
+    Route::get('/eligible-authors', [PostController::class, 'eligibleAuthors'])->name('posts.eligible-authors');
     Route::get('/analytics', [PostController::class, 'overallAnalytics'])->name('posts.overall-analytics');
     Route::delete('/bulk', [PostController::class, 'bulkDestroy'])->name('posts.bulk-destroy');
     Route::post('/bulk/status', [PostController::class, 'bulkUpdateStatus'])->name('posts.bulk-update-status');
@@ -230,17 +232,19 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('posts')->group(function
     Route::post('/trash/{id}/restore', [PostController::class, 'restore'])->name('posts.restore');
     Route::delete('/trash/bulk', [PostController::class, 'bulkForceDestroy'])->name('posts.bulk-force-destroy');
     Route::delete('/trash/{id}', [PostController::class, 'forceDestroy'])->name('posts.force-destroy');
-    Route::get('/{post:slug}/revisions', [PostController::class, 'revisions'])->name('posts.revisions');
-    Route::post('/{post:slug}/revisions/compare', [PostController::class, 'compareRevisions'])->name('posts.compare-revisions');
-    Route::get('/{post:slug}/analytics', [PostController::class, 'analytics'])->name('posts.analytics');
-    Route::put('/{post:slug}', [PostController::class, 'update'])->name('posts.update');
-    Route::delete('/{post:slug}', [PostController::class, 'destroy'])->name('posts.destroy');
 
-    // Autosave endpoints
+    // Autosave endpoints (must be before {post:slug} wildcard routes)
     Route::post('/autosave', [PostAutosaveController::class, 'save'])->name('posts.autosave.save');
     Route::get('/autosave', [PostAutosaveController::class, 'retrieve'])->name('posts.autosave.retrieve');
     Route::delete('/autosave', [PostAutosaveController::class, 'discard'])->name('posts.autosave.discard');
+
+    // Wildcard routes (must be last to avoid matching specific routes like /autosave)
+    Route::get('/{post:slug}/revisions', [PostController::class, 'revisions'])->name('posts.revisions');
+    Route::post('/{post:slug}/revisions/compare', [PostController::class, 'compareRevisions'])->name('posts.compare-revisions');
+    Route::get('/{post:slug}/analytics', [PostController::class, 'analytics'])->name('posts.analytics');
     Route::get('/{post:slug}/preview', [PostAutosaveController::class, 'preview'])->name('posts.autosave.preview');
+    Route::put('/{post:slug}', [PostController::class, 'update'])->name('posts.update');
+    Route::delete('/{post:slug}', [PostController::class, 'destroy'])->name('posts.destroy');
 });
 
 // Public post routes (must be after authenticated routes to avoid conflicts)

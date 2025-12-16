@@ -52,9 +52,12 @@ const props = defineProps({
   },
 });
 
+// Compute the date to use for timeAgo - use a fallback date when null
+const dateForTimeAgo = computed(() => props.lastSavedAt || new Date());
+const timeAgo = useTimeAgo(dateForTimeAgo);
+
 const formattedTime = computed(() => {
   if (!props.lastSavedAt) return "";
-  const timeAgo = useTimeAgo(props.lastSavedAt);
   return timeAgo.value;
 });
 </script>

@@ -86,5 +86,8 @@
   "overrides": {
     "vue": "latest",
     "esm-env": "npm:esm-env-runtime@^0.1.1"
+  },
+  "dependencies": {
+    "isomorphic-dompurify": "^2.34.0"
   }
 }

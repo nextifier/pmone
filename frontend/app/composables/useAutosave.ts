@@ -1,15 +1,17 @@
-import { ref, computed, watch, toValue } from 'vue'
-import { useDebounceFn, useLocalStorage } from '@vueuse/core'
+import { ref, computed, watch, toValue, onUnmounted } from 'vue'
+import { useDebounceFn } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 
 export interface AutosaveData {
   post_id?: number | null
   title?: string
+  slug?: string
   excerpt?: string
   content?: string
   content_format?: string
   meta_title?: string
   meta_description?: string
+  featured_image_caption?: string
   status?: string
   visibility?: string
   published_at?: string | null
@@ -51,9 +53,63 @@ export function useAutosave(
     error: null,
   })
 
-  // Local storage backup - properly unwrap the key if it's a ref
+  // Local storage backup - use reactive key with manual localStorage management
   const storageKey = computed(() => toValue(localStorageKey))
-  const localBackup = useLocalStorage<AutosaveData | null>(storageKey, null)
+  const localBackup = ref<AutosaveData | null>(null)
+
+  // Check if we're in browser environment
+  const isBrowser = typeof window !== 'undefined' && typeof localStorage !== 'undefined'
+
+  // Initialize local backup from localStorage
+  const initLocalBackup = () => {
+    if (!isBrowser) return
+
+    try {
+      const stored = localStorage.getItem(storageKey.value)
+      if (stored) {
+        // Validate that it's proper JSON before parsing
+        const parsed = JSON.parse(stored)
+        // Ensure it's an object and has expected shape
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          localBackup.value = parsed
+        } else {
+          // Invalid data, clear it
+          localStorage.removeItem(storageKey.value)
+          localBackup.value = null
+        }
+      }
+    } catch (e) {
+      // Invalid JSON in storage, clear it
+      console.warn('Clearing invalid autosave data from localStorage')
+      localStorage.removeItem(storageKey.value)
+      localBackup.value = null
+    }
+  }
+
+  // Save to localStorage whenever localBackup changes
+  const saveToLocalStorage = (data: AutosaveData | null) => {
+    if (!isBrowser) return
+
+    try {
+      if (data && typeof data === 'object') {
+        localStorage.setItem(storageKey.value, JSON.stringify(data))
+      } else {
+        localStorage.removeItem(storageKey.value)
+      }
+    } catch (e) {
+      console.error('Failed to save to localStorage:', e)
+    }
+  }
+
+  // Watch for storage key changes and reinitialize
+  watch(storageKey, () => {
+    initLocalBackup()
+  }, { immediate: true })
+
+  // Watch localBackup and sync to localStorage
+  watch(localBackup, (newValue) => {
+    saveToLocalStorage(newValue)
+  }, { deep: true })
 
   // Computed properties
   const isSaving = computed(() => autosaveStatus.value.status === 'saving')
@@ -117,10 +173,20 @@ export function useAutosave(
       }
 
       const response = await client(`/api/posts/autosave?${params.toString()}`)
-      return response.data
+
+      // Server now returns 200 with null data when no autosave exists
+      if (response.data) {
+        return response.data
+      }
+
+      // No autosave on server, check local storage
+      if (localBackup.value) {
+        return localBackup.value
+      }
+      return null
     } catch (error: any) {
+      // Handle legacy 404 response (in case of old API)
       if (error.statusCode === 404) {
-        // No autosave found, check local storage
         if (localBackup.value) {
           return localBackup.value
         }
@@ -143,18 +209,18 @@ export function useAutosave(
         method: 'DELETE',
       })
 
-      // Clear local storage
-      localBackup.value = null
-      autosaveStatus.value.status = 'idle'
-      autosaveStatus.value.lastSavedAt = null
-
       toast.success('Draft discarded')
     } catch (error: any) {
-      if (error.statusCode !== 404) {
-        console.error('Failed to discard autosave:', error)
-        toast.error('Failed to discard draft')
-        throw error
-      }
+      console.error('Failed to discard autosave:', error)
+      toast.error('Failed to discard draft')
+      throw error
+    } finally {
+      // Always clear local storage, regardless of server response
+      localBackup.value = null
+      // Explicitly clear localStorage to ensure it's removed immediately
+      saveToLocalStorage(null)
+      autosaveStatus.value.status = 'idle'
+      autosaveStatus.value.lastSavedAt = null
     }
   }
 

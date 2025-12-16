@@ -2,13 +2,34 @@
   <form @submit.prevent="handleSubmit" class="grid gap-y-8">
     <!-- Autosave Status & Preview -->
     <div class="bg-muted/50 flex items-center justify-between gap-4 rounded-lg border p-3">
-      <PostAutosaveStatus
-        :is-saving="autosave.isSaving.value"
-        :is-saved="autosave.isSaved.value"
-        :has-error="autosave.hasError.value"
-        :last-saved-at="autosave.lastSavedAt.value"
-        :error="autosave.autosaveStatus.value.error"
-      />
+      <div class="flex items-center gap-4">
+        <!-- Autosave Toggle -->
+        <div class="flex items-center gap-2">
+          <Switch
+            id="autosave-toggle"
+            v-model="autosaveEnabled"
+            :disabled="showRestoreDialog"
+          />
+          <Label for="autosave-toggle" class="text-muted-foreground cursor-pointer text-sm">
+            Autosave
+          </Label>
+        </div>
+
+        <!-- Divider -->
+        <div class="bg-border h-5 w-px"></div>
+
+        <!-- Autosave Status -->
+        <PostAutosaveStatus
+          v-if="autosaveEnabled"
+          :is-saving="autosave.isSaving.value"
+          :is-saved="autosave.isSaved.value"
+          :has-error="autosave.hasError.value"
+          :last-saved-at="autosave.lastSavedAt.value"
+          :error="autosave.autosaveStatus.value.error"
+        />
+        <span v-else class="text-muted-foreground text-sm">Autosave disabled</span>
+      </div>
+
       <button
         type="button"
         @click="showPreview"
@@ -173,7 +194,11 @@
                   <SelectValue placeholder="Select author..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem v-for="user in availableUsers" :key="user.id" :value="user.id">
+                  <SelectItem
+                    v-for="user in getAvailableUsersForRow(index)"
+                    :key="user.id"
+                    :value="user.id"
+                  >
                     {{ user.name }} ({{ user.email }})
                   </SelectItem>
                 </SelectContent>
@@ -418,10 +443,32 @@ const slugAvailable = ref(null);
 const showPreviewModal = ref(false);
 const showRestoreDialog = ref(false);
 const pendingRestoreData = ref(null);
+const currentPreviewImageUrl = ref(null);
 let slugCheckTimeout = null;
+
+// Autosave preference storage key
+const AUTOSAVE_PREF_KEY = "post-autosave-preference";
+
+// Load autosave preference from localStorage (default to true if not set)
+function loadAutosavePreference() {
+  if (import.meta.client) {
+    const stored = localStorage.getItem(AUTOSAVE_PREF_KEY);
+    return stored === null ? true : stored === "true";
+  }
+  return true;
+}
+
+// Save autosave preference to localStorage
+function saveAutosavePreference(enabled) {
+  if (import.meta.client) {
+    localStorage.setItem(AUTOSAVE_PREF_KEY, String(enabled));
+  }
+}
 
 // Autosave composable - initially disabled to prevent autosave during initialization
 const autosaveEnabled = ref(false);
+const userAutosavePreference = ref(loadAutosavePreference());
+
 const autosave = useAutosave(toRef(form), {
   postId: postId,
   enabled: autosaveEnabled,
@@ -429,6 +476,15 @@ const autosave = useAutosave(toRef(form), {
   localStorageKey: computed(() =>
     postId.value ? `post-autosave-${postId.value}` : "post-autosave-new"
   ),
+});
+
+// Watch for user preference changes and persist to localStorage
+watch(autosaveEnabled, (newValue) => {
+  // Only save preference if we're past initialization (restore dialog closed)
+  if (!showRestoreDialog.value) {
+    saveAutosavePreference(newValue);
+    userAutosavePreference.value = newValue;
+  }
 });
 
 onMounted(async () => {
@@ -443,14 +499,19 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   clearTimeout(slugCheckTimeout);
+  // Cleanup preview image URL if exists
+  if (currentPreviewImageUrl.value) {
+    URL.revokeObjectURL(currentPreviewImageUrl.value);
+  }
 });
 
 async function loadUsers() {
   try {
-    const response = await client("/api/users");
+    // Use dedicated endpoint that handles permissions internally
+    const response = await client("/api/posts/eligible-authors");
     availableUsers.value = response.data || [];
   } catch (error) {
-    console.error("Failed to load users:", error);
+    console.error("Failed to load eligible authors:", error);
     availableUsers.value = [];
   }
 }
@@ -525,6 +586,17 @@ function moveAuthorDown(index) {
   });
 }
 
+// Get available users for a specific author row (excludes already selected users)
+function getAvailableUsersForRow(currentIndex) {
+  const selectedUserIds = form.authors
+    .map((author, idx) => (idx !== currentIndex ? author.user_id : null))
+    .filter((id) => id !== null);
+
+  return availableUsers.value.filter(
+    (user) => !selectedUserIds.includes(user.id) || user.id === form.authors[currentIndex]?.user_id
+  );
+}
+
 // Watch for slug changes to check availability
 watch(
   () => form.slug,
@@ -561,39 +633,86 @@ async function checkSlugAvailability(slug) {
   try {
     slugChecking.value = true;
 
-    // Use client_only mode to get all posts for checking
-    const response = await client(`/api/posts?client_only=true`);
+    // Use dedicated slug check endpoint with proper query params
+    const params = new URLSearchParams({ slug });
+    if (props.initialData?.id) {
+      params.append("exclude_id", props.initialData.id);
+    }
 
-    // Check if any post has this exact slug
-    const posts = response.data || [];
-    const existingPost = posts.find(
-      (p) => p.slug === slug && (!props.initialData || p.id !== props.initialData.id)
-    );
-
-    slugAvailable.value = !existingPost;
+    const response = await client(`/api/posts/check-slug?${params.toString()}`);
+    slugAvailable.value = response.available;
   } catch (error) {
     console.error("Failed to check slug availability:", error);
+    // Fallback: assume available if check fails
     slugAvailable.value = null;
   } finally {
     slugChecking.value = false;
   }
 }
 
+// Check if autosave data is different from initial/published data
+function hasAutosaveChanges(savedData) {
+  if (!savedData) return false;
+
+  const initialData = props.initialData;
+
+  // For new posts, any saved data is a change
+  if (!initialData) {
+    return !!(savedData.title || savedData.content || savedData.excerpt);
+  }
+
+  // For existing posts, compare key fields
+  const fieldsToCompare = ["title", "excerpt", "content", "status", "visibility", "featured"];
+  for (const field of fieldsToCompare) {
+    const savedValue = savedData[field];
+    const initialValue = initialData[field];
+
+    // Skip if saved value is undefined
+    if (savedValue === undefined) continue;
+
+    // Compare values (handle null/undefined/empty string cases)
+    if ((savedValue || "") !== (initialValue || "")) {
+      return true;
+    }
+  }
+
+  // Check meta fields
+  if (
+    (savedData.meta_title || "") !== (initialData.meta_title || "") ||
+    (savedData.meta_description || "") !== (initialData.meta_description || "")
+  ) {
+    return true;
+  }
+
+  // Check tags
+  const savedTags = savedData.tags || [];
+  const initialTags = (initialData.tags || []).map((t) => t.name || t);
+  if (JSON.stringify(savedTags.sort()) !== JSON.stringify(initialTags.sort())) {
+    return true;
+  }
+
+  return false;
+}
+
 // New autosave functions
 async function checkAndRestoreAutosave() {
   try {
     const savedData = await autosave.retrieveAutosave();
-    if (savedData && Object.keys(savedData).length > 0) {
+    // Only show dialog if there are actual changes from initial data
+    if (savedData && Object.keys(savedData).length > 0 && hasAutosaveChanges(savedData)) {
       pendingRestoreData.value = savedData;
       showRestoreDialog.value = true;
     } else {
-      // No autosave found, enable autosave for future changes
-      autosaveEnabled.value = true;
+      // No meaningful autosave found, discard it silently and enable autosave based on user preference
+      if (savedData) {
+        await autosave.discardAutosave();
+      }
+      autosaveEnabled.value = userAutosavePreference.value;
     }
   } catch (error) {
     console.error("Failed to check autosave:", error);
-    // Enable autosave even if there was an error
-    autosaveEnabled.value = true;
+    // Enable autosave based on user preference even if there was an error
+    autosaveEnabled.value = userAutosavePreference.value;
   }
 }
 
@@ -601,13 +720,16 @@ async function handleRestoreChanges() {
   const savedData = pendingRestoreData.value;
   if (savedData) {
     // Restore form data from autosave
-    if (savedData.title) form.title = savedData.title;
-    if (savedData.excerpt) form.excerpt = savedData.excerpt;
-    if (savedData.content) form.content = savedData.content;
+    if (savedData.title !== undefined) form.title = savedData.title;
+    if (savedData.slug !== undefined) form.slug = savedData.slug;
+    if (savedData.excerpt !== undefined) form.excerpt = savedData.excerpt;
+    if (savedData.content !== undefined) form.content = savedData.content;
     if (savedData.status) form.status = savedData.status;
     if (savedData.visibility) form.visibility = savedData.visibility;
-    if (savedData.meta_title) form.meta_title = savedData.meta_title;
-    if (savedData.meta_description) form.meta_description = savedData.meta_description;
+    if (savedData.meta_title !== undefined) form.meta_title = savedData.meta_title;
+    if (savedData.meta_description !== undefined) form.meta_description = savedData.meta_description;
+    if (savedData.featured_image_caption !== undefined)
+      form.featured_image_caption = savedData.featured_image_caption;
     if (savedData.featured !== undefined) form.featured = savedData.featured;
     if (savedData.tags) form.tags = savedData.tags;
     if (savedData.authors) form.authors = savedData.authors;
@@ -631,8 +753,11 @@ async function handleDiscardRestore() {
   showRestoreDialog.value = false;
   pendingRestoreData.value = null;
 
-  // Enable autosave after discard
-  autosaveEnabled.value = true;
+  // Enable autosave after a short delay based on user preference
+  // This ensures localStorage is fully cleared before autosave kicks in
+  setTimeout(() => {
+    autosaveEnabled.value = userAutosavePreference.value;
+  }, 100);
 }
 
 async function discardAutosave() {
@@ -648,23 +773,27 @@ async function discardAutosave() {
   }
 }
 
-// Preview data computed from current form state
-const previewFormData = computed(() => {
-  // Get featured image from either imageFiles or initialData
-  let featuredImage = null;
+// Helper to get featured image for preview
+function getPreviewFeaturedImage() {
   if (imageFiles.value.featured_image?.[0]) {
     const imgValue = imageFiles.value.featured_image[0];
-    // If it's a temporary upload, try to get URL
     if (typeof imgValue === "string") {
-      featuredImage = imgValue;
+      return imgValue;
     } else if (imgValue instanceof File) {
-      // Create object URL for preview
-      featuredImage = URL.createObjectURL(imgValue);
+      // Reuse existing URL if same file, otherwise create new
+      if (!currentPreviewImageUrl.value) {
+        currentPreviewImageUrl.value = URL.createObjectURL(imgValue);
+      }
+      return currentPreviewImageUrl.value;
     }
   } else if (props.initialData?.featured_image && !deleteFlags.value.featured_image) {
-    featuredImage = props.initialData.featured_image;
+    return props.initialData.featured_image;
   }
+  return null;
+}
 
+// Preview data computed from current form state
+const previewFormData = computed(() => {
   return {
     title: form.title || "Untitled Post",
     excerpt: form.excerpt || "",
@@ -674,11 +803,31 @@ const previewFormData = computed(() => {
     featured: form.featured || false,
     meta_title: form.meta_title || form.title || "",
     meta_description: form.meta_description || form.excerpt || "",
-    featured_image: featuredImage,
+    featured_image: getPreviewFeaturedImage(),
     tags: form.tags || [],
     authors: form.authors || [],
     published_at: form.published_at || null,
   };
+});
+
+// Clean up preview image URL when image changes or preview closes
+watch(
+  () => imageFiles.value.featured_image?.[0],
+  (newValue, oldValue) => {
+    // If file changed, revoke old URL and reset
+    if (oldValue instanceof File && currentPreviewImageUrl.value) {
+      URL.revokeObjectURL(currentPreviewImageUrl.value);
+      currentPreviewImageUrl.value = null;
+    }
+  }
+);
+
+// Cleanup object URLs when preview modal closes
+watch(showPreviewModal, (isOpen) => {
+  if (!isOpen && currentPreviewImageUrl.value) {
+    URL.revokeObjectURL(currentPreviewImageUrl.value);
+    currentPreviewImageUrl.value = null;
+  }
 });
 
 function showPreview() {
@@ -727,7 +876,7 @@ async function handleSubmit() {
     }
 
     const featuredValue = imageFiles.value.featured_image?.[0];
-    if (featuredValue && featuredValue.startsWith("tmp-")) {
+    if (typeof featuredValue === "string" && featuredValue.startsWith("tmp-")) {
       payload.tmp_featured_image = featuredValue;
     } else if (deleteFlags.value.featured_image && !featuredValue) {
       payload.delete_featured_image = true;
@@ -739,7 +888,7 @@ async function handleSubmit() {
     }
 
     const ogImageValue = imageFiles.value.og_image?.[0];
-    if (ogImageValue && ogImageValue.startsWith("tmp-")) {
+    if (typeof ogImageValue === "string" && ogImageValue.startsWith("tmp-")) {
       payload.tmp_og_image = ogImageValue;
     } else if (deleteFlags.value.og_image && !ogImageValue) {
       payload.delete_og_image = true;

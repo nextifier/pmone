@@ -92,11 +92,11 @@ class PostAutosaveController extends Controller
             ->where('post_id', $postId)
             ->first();
 
+        // Return 200 with null data instead of 404 to avoid console errors
         if (! $autosave) {
             return response()->json([
-                'message' => 'No autosave found',
                 'data' => null,
-            ], 404);
+            ]);
         }
 
         return response()->json([
@@ -122,10 +122,12 @@ class PostAutosaveController extends Controller
             ->where('post_id', $postId)
             ->first();
 
+        // Return 200 even if no autosave exists - the end result is the same (no autosave)
+        // This avoids console errors on the frontend
         if (! $autosave) {
             return response()->json([
                 'message' => 'No autosave to discard',
-            ], 404);
+            ]);
         }
 
         $autosave->delete();

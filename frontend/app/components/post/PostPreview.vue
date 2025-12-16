@@ -117,7 +117,7 @@
                 <div
                   class="prose prose-lg dark:prose-invert max-w-none"
                   v-html="
-                    previewData.content ||
+                    sanitizeHtml(previewData.content) ||
                     '<p class=\'text-muted-foreground\'>No content yet...</p>'
                   "
                 ></div>
@@ -172,7 +172,7 @@
                       <p class="text-muted-foreground text-xs font-medium uppercase">Content</p>
                       <div
                         class="prose prose-sm dark:prose-invert mt-1 max-h-96 overflow-y-auto"
-                        v-html="publishedPost.content"
+                        v-html="sanitizeHtml(publishedPost.content) || '<p>No content</p>'"
                       ></div>
                     </div>
                   </div>
@@ -221,7 +221,7 @@
                             ? 'bg-blue-100 dark:bg-blue-950'
                             : ''
                         "
-                        v-html="previewData.content || '<p>No content</p>'"
+                        v-html="sanitizeHtml(previewData.content) || '<p>No content</p>'"
                       ></div>
                     </div>
                   </div>
@@ -245,7 +245,9 @@ import {
   DialogRoot,
   DialogTitle,
 } from "reka-ui";
-import { ref, watch } from "vue";
+import { useVModel } from "@vueuse/core";
+
+const { sanitizeHtml } = useSanitize();
 
 const props = defineProps({
   open: {
@@ -268,18 +270,8 @@ const props = defineProps({
 
 const emit = defineEmits(["update:open"]);
 
-const isOpen = ref(props.open);
-
-watch(
-  () => props.open,
-  (newValue) => {
-    isOpen.value = newValue;
-  }
-);
-
-watch(isOpen, (newValue) => {
-  emit("update:open", newValue);
-});
+// Use useVModel for simpler two-way binding
+const isOpen = useVModel(props, "open", emit, { passive: true });
 
 function getStatusClass(status) {
   const classes = {

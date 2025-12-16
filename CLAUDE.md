@@ -355,4 +355,20 @@ $pages->assertNoJavascriptErrors()->assertNoConsoleLogs();
 | overflow-ellipsis | text-ellipsis |
 | decoration-slice | box-decoration-slice |
 | decoration-clone | box-decoration-clone |
+
+
+=== tiptap rules ===
+
+## TipTap Editor
+
+### CRITICAL: Do NOT install @tiptap/extension-underline
+- In this project, StarterKit already includes the Underline extension (or it's loaded from another source)
+- Installing `@tiptap/extension-underline` separately will cause "Duplicate extension names found: ['underline']" warning
+- NEVER install or import `@tiptap/extension-underline` package
+- The Underline button in TipTapEditor.vue works without any additional imports
+
+### TipTap Extensions
+- Current extensions used: StarterKit, Image, Link, Placeholder, TextAlign
+- CustomImage extends the base Image extension with data-caption support
+- StarterKit is configured with `link: false` to use custom Link configuration
 </laravel-boost-guidelines>
