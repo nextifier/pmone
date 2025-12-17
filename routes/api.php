@@ -228,6 +228,7 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('posts')->group(function
     Route::delete('/bulk', [PostController::class, 'bulkDestroy'])->name('posts.bulk-destroy');
     Route::post('/bulk/status', [PostController::class, 'bulkUpdateStatus'])->name('posts.bulk-update-status');
     Route::get('/trash', [PostController::class, 'trash'])->name('posts.trash');
+    Route::get('/trash/eligible-authors', [PostController::class, 'trashEligibleAuthors'])->name('posts.trash-eligible-authors');
     Route::post('/trash/restore/bulk', [PostController::class, 'bulkRestore'])->name('posts.bulk-restore');
     Route::post('/trash/{id}/restore', [PostController::class, 'restore'])->name('posts.restore');
     Route::delete('/trash/bulk', [PostController::class, 'bulkForceDestroy'])->name('posts.bulk-force-destroy');

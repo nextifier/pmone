@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-6xl space-y-6 pt-4 pb-16">
+  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
     <div class="flex items-center justify-between gap-x-2.5">
       <div class="flex items-center gap-x-2.5">
         <Icon name="hugeicons:delete-01" class="size-5 sm:size-6" />
@@ -271,10 +271,12 @@ const {
 });
 
 const data = computed(() => postsResponse.value?.data || []);
-const meta = computed(() => postsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 });
+const meta = computed(
+  () => postsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 }
+);
 
-// Fetch eligible authors for filter
-const { data: authorsResponse } = await useLazySanctumFetch("/api/posts/eligible-authors", {
+// Fetch eligible authors for trash filter (with trashed posts count)
+const { data: authorsResponse } = await useLazySanctumFetch("/api/posts/trash/eligible-authors", {
   key: "posts-trash-eligible-authors",
 });
 const authorOptions = computed(() => {
@@ -282,7 +284,7 @@ const authorOptions = computed(() => {
     label: `${author.name} (${author.posts_count || 0})`,
     value: author.id,
   }));
-  // Add "No Author" option at the end if there are posts without author
+  // Add "No Author" option at the end if there are trashed posts without author
   const noAuthorCount = authorsResponse.value?.no_author_count || 0;
   if (noAuthorCount > 0) {
     authors.push({ label: `No Author (${noAuthorCount})`, value: "none" });
@@ -331,6 +333,25 @@ const columns = [
     },
   },
   {
+    header: "Status",
+    accessorKey: "status",
+    cell: ({ row }) => {
+      const status = row.getValue("status");
+      return h(
+        "span",
+        {
+          class: "inline-flex items-center text-sm text-muted-foreground tracking-tight capitalize",
+        },
+        status
+      );
+    },
+    size: 100,
+    filterFn: (row, columnId, filterValue) => {
+      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+      return filterValue.includes(row.getValue(columnId));
+    },
+  },
+  {
     header: "Views",
     accessorKey: "visits_count",
     cell: ({ row }) => {
@@ -365,6 +386,13 @@ const columns = [
     },
     size: 150,
     enableSorting: true,
+    filterFn: (row, columnId, filterValue) => {
+      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+      const creator = row.getValue(columnId);
+      if (filterValue.includes("none") && !creator) return true;
+      if (creator && filterValue.includes(creator.id)) return true;
+      return false;
+    },
   },
   {
     header: "Deleted At",
@@ -412,7 +440,9 @@ const getFilterValue = (columnId) => {
 
 const selectedStatuses = computed(() => getFilterValue("status"));
 const selectedAuthors = computed(() => getFilterValue("creator"));
-const totalActiveFilters = computed(() => selectedStatuses.value.length + selectedAuthors.value.length);
+const totalActiveFilters = computed(
+  () => selectedStatuses.value.length + selectedAuthors.value.length
+);
 
 const handleFilterChange = (columnId, { checked, value }) => {
   if (clientOnly.value && tableRef.value?.table) {

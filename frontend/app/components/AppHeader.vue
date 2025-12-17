@@ -2,7 +2,7 @@
   <header
     class="border-border/50 bg-background/95 supports-backdrop-filter:bg-background/90 sticky inset-x-0 top-0 z-50 flex h-(--navbar-height-mobile) items-center justify-center border-b px-4 text-sm backdrop-blur-sm lg:h-(--navbar-height-desktop)"
   >
-    <Tippy>
+    <Tippy v-if="!['posts-create', 'posts-slug-edit'].includes(route.name)">
       <button
         data-sidebar="trigger"
         data-slot="sidebar-trigger"
@@ -68,4 +68,5 @@ import { useSidebar } from "@/components/ui/sidebar/utils";
 const { toggleSidebar, open, isMobile } = useSidebar();
 const { metaSymbol } = useShortcuts();
 const { isAuthenticated } = useSanctumAuth();
+const route = useRoute();
 </script>

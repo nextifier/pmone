@@ -543,6 +543,72 @@ class PostController extends Controller
     }
 
     /**
+     * Get eligible authors for trash filter
+     * Returns users who have trashed posts with the count of their trashed posts
+     */
+    public function trashEligibleAuthors(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        // If user is master/admin or has users.read permission, return all users with trashed posts
+        if ($user->hasRole(['master', 'admin']) || $user->can('users.read')) {
+            $users = \App\Models\User::query()
+                ->whereNotNull('email_verified_at')
+                ->whereHas('createdPosts', function ($query) {
+                    $query->onlyTrashed();
+                })
+                ->select('id', 'name', 'email', 'username', 'title')
+                ->withCount(['createdPosts' => function ($query) {
+                    $query->onlyTrashed();
+                }])
+                ->with(['media' => function ($query) {
+                    $query->where('collection_name', 'profile_image');
+                }])
+                ->orderBy('name')
+                ->get()
+                ->map(function ($u) {
+                    return [
+                        'id' => $u->id,
+                        'name' => $u->name,
+                        'email' => $u->email,
+                        'username' => $u->username,
+                        'title' => $u->title,
+                        'posts_count' => $u->created_posts_count,
+                        'profile_image' => $u->hasMedia('profile_image')
+                            ? $u->getMediaUrls('profile_image')
+                            : null,
+                    ];
+                });
+        } else {
+            // Regular users can only see themselves if they have trashed posts
+            $postsCount = Post::onlyTrashed()->where('created_by', $user->id)->count();
+            if ($postsCount > 0) {
+                $users = collect([[
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'username' => $user->username,
+                    'title' => $user->title,
+                    'posts_count' => $postsCount,
+                    'profile_image' => $user->hasMedia('profile_image')
+                        ? $user->getMediaUrls('profile_image')
+                        : null,
+                ]]);
+            } else {
+                $users = collect([]);
+            }
+        }
+
+        // Count trashed posts without author
+        $noAuthorCount = Post::onlyTrashed()->whereNull('created_by')->count();
+
+        return response()->json([
+            'data' => $users,
+            'no_author_count' => $noAuthorCount,
+        ]);
+    }
+
+    /**
      * Restore a trashed post
      */
     public function restore(int $id): JsonResponse

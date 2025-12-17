@@ -59,6 +59,7 @@
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
+      :initial-column-visibility="{ status: false, media_count: false }"
       @update:pagination="onPaginationUpdate"
       @update:sorting="onSortingUpdate"
       @update:column-filters="onColumnFiltersUpdate"
@@ -196,7 +197,7 @@ const sorting = ref([{ id: "published_at", desc: true }]);
 
 // Data state
 // Client-only mode flag
-const clientOnly = ref(false);
+const clientOnly = ref(true);
 
 // Build query params
 const buildQueryParams = () => {
@@ -339,25 +340,25 @@ const columns = [
       return title.includes(searchValue) || excerpt.includes(searchValue);
     },
   },
-  //   {
-  //     header: "Status",
-  //     accessorKey: "status",
-  //     cell: ({ row }) => {
-  //       const status = row.getValue("status");
-  //       return h(
-  //         "span",
-  //         {
-  //           class: "inline-flex items-center text-sm text-muted-foreground tracking-tight capitalize",
-  //         },
-  //         status
-  //       );
-  //     },
-  //     size: 100,
-  //     filterFn: (row, columnId, filterValue) => {
-  //       if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
-  //       return filterValue.includes(row.getValue(columnId));
-  //     },
-  //   },
+  {
+    header: "Status",
+    accessorKey: "status",
+    cell: ({ row }) => {
+      const status = row.getValue("status");
+      return h(
+        "span",
+        {
+          class: "inline-flex items-center text-sm text-muted-foreground tracking-tight capitalize",
+        },
+        status
+      );
+    },
+    size: 100,
+    filterFn: (row, columnId, filterValue) => {
+      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+      return filterValue.includes(row.getValue(columnId));
+    },
+  },
   {
     header: "Views",
     accessorKey: "visits_count",
@@ -409,6 +410,13 @@ const columns = [
     },
     size: 150,
     enableSorting: true,
+    filterFn: (row, columnId, filterValue) => {
+      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+      const creator = row.getValue(columnId);
+      if (filterValue.includes("none") && !creator) return true;
+      if (creator && filterValue.includes(creator.id)) return true;
+      return false;
+    },
   },
   {
     id: "actions",

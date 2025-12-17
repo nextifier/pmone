@@ -1,6 +1,9 @@
 <template>
   <SidebarProvider variant="sidebar" :defaultOpen="defaultOpen" id="layout-app">
-    <AppSidebar class="select-none" />
+    <AppSidebar
+      v-if="!['posts-create', 'posts-slug-edit'].includes(route.name)"
+      class="select-none"
+    />
 
     <SidebarInset class="mx-auto min-h-screen max-w-[1920px]">
       <AppHeader />
@@ -13,4 +16,5 @@
 
 <script setup>
 const defaultOpen = useCookie("sidebar_state");
+const route = useRoute();
 </script>
