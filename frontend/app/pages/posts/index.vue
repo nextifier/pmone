@@ -80,7 +80,7 @@
               </span>
             </button>
           </PopoverTrigger>
-          <PopoverContent class="w-auto min-w-48 p-3" align="start">
+          <PopoverContent class="w-auto min-w-48 p-3 pb-4.5" align="end">
             <div class="space-y-4">
               <FilterSection
                 title="Status"
@@ -92,6 +92,13 @@
                 ]"
                 :selected="selectedStatuses"
                 @change="handleFilterChange('status', $event)"
+              />
+              <FilterSection
+                v-if="authorOptions.length > 0"
+                title="Author"
+                :options="authorOptions"
+                :selected="selectedAuthors"
+                @change="handleFilterChange('creator', $event)"
               />
             </div>
           </PopoverContent>
@@ -205,6 +212,7 @@ const buildQueryParams = () => {
     const filters = {
       title: "filter_search",
       status: "filter_status",
+      creator: "filter_creator",
     };
 
     Object.entries(filters).forEach(([columnId, paramKey]) => {
@@ -236,7 +244,26 @@ const {
 });
 
 const data = computed(() => postsResponse.value?.data || []);
-const meta = computed(() => postsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 });
+const meta = computed(
+  () => postsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 }
+);
+
+// Fetch eligible authors for filter
+const { data: authorsResponse } = await useLazySanctumFetch("/api/posts/eligible-authors", {
+  key: "posts-eligible-authors",
+});
+const authorOptions = computed(() => {
+  const authors = (authorsResponse.value?.data || []).map((author) => ({
+    label: `${author.name} (${author.posts_count || 0})`,
+    value: author.id,
+  }));
+  // Add "No Author" option at the end if there are posts without author
+  const noAuthorCount = authorsResponse.value?.no_author_count || 0;
+  if (noAuthorCount > 0) {
+    authors.push({ label: `No Author (${noAuthorCount})`, value: "none" });
+  }
+  return authors;
+});
 
 // Watch for changes and refetch (only in server-side mode)
 watch(
@@ -381,7 +408,7 @@ const columns = [
       ]);
     },
     size: 150,
-    enableSorting: false,
+    enableSorting: true,
   },
   {
     id: "actions",
@@ -416,7 +443,10 @@ const getFilterValue = (columnId) => {
 };
 
 const selectedStatuses = computed(() => getFilterValue("status"));
-const totalActiveFilters = computed(() => selectedStatuses.value.length);
+const selectedAuthors = computed(() => getFilterValue("creator"));
+const totalActiveFilters = computed(
+  () => selectedStatuses.value.length + selectedAuthors.value.length
+);
 
 const handleFilterChange = (columnId, { checked, value }) => {
   if (clientOnly.value && tableRef.value?.table) {

@@ -112,9 +112,29 @@ class PostController extends Controller
             $query->where('featured', $request->boolean('filter_featured'));
         }
 
-        // Creator filter
-        if ($creatorId = $request->input('filter_creator')) {
-            $query->byCreator($creatorId);
+        // Creator filter - support single, multiple, or comma-separated values
+        // Special value "none" filters posts with no author (created_by is null)
+        if ($creator = $request->input('filter_creator')) {
+            $creators = is_array($creator) ? $creator : explode(',', $creator);
+            $creators = array_filter($creators); // Remove empty values
+
+            $hasNone = in_array('none', $creators);
+            $creatorIds = array_filter($creators, fn ($c) => $c !== 'none');
+
+            if ($hasNone && count($creatorIds) > 0) {
+                // Filter: no author OR specific authors
+                $query->where(function ($q) use ($creatorIds) {
+                    $q->whereNull('created_by')
+                        ->orWhereIn('created_by', $creatorIds);
+                });
+            } elseif ($hasNone) {
+                // Filter: only posts with no author
+                $query->whereNull('created_by');
+            } elseif (count($creatorIds) > 1) {
+                $query->whereIn('created_by', $creatorIds);
+            } elseif (count($creatorIds) === 1) {
+                $query->where('created_by', $creatorIds[0]);
+            }
         }
 
         // Tag filter
@@ -141,8 +161,12 @@ class PostController extends Controller
         $direction = str_starts_with($sortField, '-') ? 'desc' : 'asc';
         $field = ltrim($sortField, '-');
 
-        if (in_array($field, ['title', 'status', 'published_at', 'created_at', 'updated_at'])) {
+        if (in_array($field, ['title', 'status', 'published_at', 'created_at', 'updated_at', 'visits_count', 'media_count'])) {
             $query->orderBy($field, $direction);
+        } elseif ($field === 'creator') {
+            $query->leftJoin('users', 'posts.created_by', '=', 'users.id')
+                ->orderBy('users.name', $direction)
+                ->select('posts.*');
         } else {
             $query->orderBy('published_at', 'desc');
         }
@@ -180,11 +204,13 @@ class PostController extends Controller
     {
         $user = $request->user();
 
-        // If user has users.read permission, return all verified users
-        if ($user->can('users.read')) {
+        // If user is master/admin or has users.read permission, return all verified users with posts
+        if ($user->hasRole(['master', 'admin']) || $user->can('users.read')) {
             $users = \App\Models\User::query()
                 ->whereNotNull('email_verified_at')
+                ->whereHas('createdPosts')
                 ->select('id', 'name', 'email', 'username', 'title')
+                ->withCount(['createdPosts'])
                 ->with(['media' => function ($query) {
                     $query->where('collection_name', 'profile_image');
                 }])
@@ -197,27 +223,38 @@ class PostController extends Controller
                         'email' => $u->email,
                         'username' => $u->username,
                         'title' => $u->title,
+                        'posts_count' => $u->created_posts_count,
                         'profile_image' => $u->hasMedia('profile_image')
                             ? $u->getMediaUrls('profile_image')
                             : null,
                     ];
                 });
         } else {
-            // Regular users can only select themselves
-            $users = collect([[
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'username' => $user->username,
-                'title' => $user->title,
-                'profile_image' => $user->hasMedia('profile_image')
-                    ? $user->getMediaUrls('profile_image')
-                    : null,
-            ]]);
+            // Regular users can only select themselves if they have posts
+            $postsCount = Post::where('created_by', $user->id)->count();
+            if ($postsCount > 0) {
+                $users = collect([[
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'username' => $user->username,
+                    'title' => $user->title,
+                    'posts_count' => $postsCount,
+                    'profile_image' => $user->hasMedia('profile_image')
+                        ? $user->getMediaUrls('profile_image')
+                        : null,
+                ]]);
+            } else {
+                $users = collect([]);
+            }
         }
+
+        // Count posts without author (for "No Author" filter option)
+        $noAuthorCount = Post::whereNull('created_by')->count();
 
         return response()->json([
             'data' => $users,
+            'no_author_count' => $noAuthorCount,
         ]);
     }
 
@@ -422,6 +459,40 @@ class PostController extends Controller
             $query->search($searchTerm);
         }
 
+        // Status filter
+        if ($status = $request->input('filter_status')) {
+            $statuses = is_array($status) ? $status : explode(',', $status);
+            $statuses = array_filter($statuses);
+
+            if (count($statuses) > 1) {
+                $query->whereIn('status', $statuses);
+            } elseif (count($statuses) === 1) {
+                $query->where('status', $statuses[0]);
+            }
+        }
+
+        // Creator filter
+        if ($creator = $request->input('filter_creator')) {
+            $creators = is_array($creator) ? $creator : explode(',', $creator);
+            $creators = array_filter($creators);
+
+            $hasNone = in_array('none', $creators);
+            $creatorIds = array_filter($creators, fn ($c) => $c !== 'none');
+
+            if ($hasNone && count($creatorIds) > 0) {
+                $query->where(function ($q) use ($creatorIds) {
+                    $q->whereNull('created_by')
+                        ->orWhereIn('created_by', $creatorIds);
+                });
+            } elseif ($hasNone) {
+                $query->whereNull('created_by');
+            } elseif (count($creatorIds) > 1) {
+                $query->whereIn('created_by', $creatorIds);
+            } elseif (count($creatorIds) === 1) {
+                $query->where('created_by', $creatorIds[0]);
+            }
+        }
+
         // If client_only is true, return all data without pagination for client-side filtering
         if ($request->boolean('client_only')) {
             $posts = $query->orderBy('deleted_at', 'desc')->get();
@@ -437,9 +508,11 @@ class PostController extends Controller
             ]);
         }
 
+        // Apply sorting
+        $this->applyTrashSorting($query, $request);
+
         // Server-side pagination
-        $posts = $query->orderBy('deleted_at', 'desc')
-            ->paginate($request->input('per_page', 15));
+        $posts = $query->paginate($request->input('per_page', 15));
 
         return response()->json([
             'data' => PostResource::collection($posts->items()),
@@ -450,6 +523,23 @@ class PostController extends Controller
                 'total' => $posts->total(),
             ],
         ]);
+    }
+
+    private function applyTrashSorting($query, Request $request): void
+    {
+        $sortField = $request->input('sort', '-deleted_at');
+        $direction = str_starts_with($sortField, '-') ? 'desc' : 'asc';
+        $field = ltrim($sortField, '-');
+
+        if (in_array($field, ['title', 'status', 'deleted_at', 'created_at', 'updated_at', 'visits_count', 'media_count'])) {
+            $query->orderBy($field, $direction);
+        } elseif ($field === 'creator') {
+            $query->leftJoin('users', 'posts.created_by', '=', 'users.id')
+                ->orderBy('users.name', $direction)
+                ->select('posts.*');
+        } else {
+            $query->orderBy('deleted_at', 'desc');
+        }
     }
 
     /**

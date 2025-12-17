@@ -230,7 +230,7 @@
         <button
           type="button"
           @click="addAuthor"
-          class="border-input hover:bg-accent flex w-full items-center justify-center gap-2 rounded-lg border border-dashed py-3 text-sm font-medium transition"
+          class="border-input hover:bg-muted flex w-full items-center justify-center gap-2 rounded-lg border border-dashed py-3 text-sm font-medium transition"
         >
           <Icon name="lucide:plus" class="size-4" />
           Add Author

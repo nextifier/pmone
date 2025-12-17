@@ -513,6 +513,11 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
             ->orderBy('post_authors.order');
     }
 
+    public function createdPosts(): HasMany
+    {
+        return $this->hasMany(Post::class, 'created_by');
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
