@@ -9,7 +9,7 @@
       <p class="page-description">What do you want to do today?</p>
     </div>
 
-    <div v-if="!loading && aggregateData" class="flex flex-col gap-y-2.5">
+    <div v-if="canViewAnalytics && !loading && aggregateData" class="flex flex-col gap-y-2.5">
       <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
         <div class="flex flex-col">
           <h2 class="text-foreground text-lg font-semibold tracking-tighter">Web Analytics</h2>
@@ -85,7 +85,7 @@
       </div>
     </div>
 
-    <LoadingState v-else-if="loading" />
+    <LoadingState v-else-if="canViewAnalytics && loading" />
   </div>
 </template>
 
@@ -93,6 +93,10 @@
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
 
 const { $dayjs } = useNuxtApp();
+const { hasPermission } = usePermission();
+
+// Check if user has analytics permission
+const canViewAnalytics = computed(() => hasPermission("analytics.view"));
 
 definePageMeta({
   middleware: ["sanctum:auth"],

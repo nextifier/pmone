@@ -22,7 +22,8 @@
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth"],
+  middleware: ["sanctum:auth", "permission"],
+  permissions: ["roles.update"],
   layout: "app",
 });
 

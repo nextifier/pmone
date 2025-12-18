@@ -25,8 +25,14 @@ return [
         ],
         'roles' => [
             'label' => 'Role Management',
-            'description' => 'Manage roles and permissions',
+            'description' => 'Manage roles',
             'model' => \Spatie\Permission\Models\Role::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'permissions' => [
+            'label' => 'Permission Management',
+            'description' => 'Manage permissions',
+            'model' => \Spatie\Permission\Models\Permission::class,
             'actions' => ['create', 'read', 'update', 'delete'],
         ],
         'posts' => [

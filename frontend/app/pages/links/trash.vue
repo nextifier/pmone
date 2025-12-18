@@ -198,7 +198,8 @@ import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth"],
+  middleware: ["sanctum:auth", "permission"],
+  permissions: ["short_links.delete"],
   layout: "app",
 });
 

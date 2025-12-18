@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ContactFormController;
 use App\Http\Controllers\Api\ContactFormSubmissionController;
 use App\Http\Controllers\Api\LogController;
+use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\PostAutosaveController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\ProfileController;
@@ -86,8 +87,16 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/{name}', [RoleController::class, 'destroy']);
     });
 
-    // Permission endpoints (master only)
-    Route::get('/permissions', [RoleController::class, 'permissions']);
+    // Permission management endpoints
+    Route::prefix('permissions')->group(function () {
+        Route::get('/', [PermissionController::class, 'index']);
+        Route::get('/grouped', [PermissionController::class, 'grouped']);
+        Route::post('/', [PermissionController::class, 'store']);
+        Route::delete('/bulk', [PermissionController::class, 'bulkDestroy']);
+        Route::get('/{id}', [PermissionController::class, 'show']);
+        Route::put('/{id}', [PermissionController::class, 'update']);
+        Route::delete('/{id}', [PermissionController::class, 'destroy']);
+    });
 
     // Project management endpoints
     Route::prefix('projects')->group(function () {

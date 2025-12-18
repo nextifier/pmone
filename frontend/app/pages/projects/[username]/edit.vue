@@ -97,8 +97,8 @@
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth", "role"],
-  roles: ["admin", "master"],
+  middleware: ["sanctum:auth", "permission"],
+  permissions: ["projects.update"],
   layout: "app",
 });
 

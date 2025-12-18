@@ -11,7 +11,9 @@ class GetAnalyticsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->hasRole(['master', 'admin']);
+        // Allow users with analytics.view permission OR master/admin roles
+        return $this->user()->hasPermissionTo('analytics.view')
+            || $this->user()->hasRole(['master', 'admin']);
     }
 
     /**

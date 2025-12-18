@@ -6,7 +6,7 @@
         <h1 class="page-title">API Consumers</h1>
       </div>
 
-      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div v-if="canDelete" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <nuxt-link
           to="/api-consumers/trash"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
@@ -162,6 +162,7 @@
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
+      :show-add-button="canCreate"
       @update:pagination="onPaginationUpdate"
       @update:sorting="onSortingUpdate"
       @update:column-filters="onColumnFiltersUpdate"
@@ -212,7 +213,7 @@
 
       <template #actions="{ selectedRows }">
         <DialogResponsive
-          v-if="selectedRows.length > 0"
+          v-if="canDelete && selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
           class="h-full"
         >
@@ -276,8 +277,8 @@ import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth", "role"],
-  roles: ["admin", "master"],
+  middleware: ["sanctum:auth", "permission"],
+  permissions: ["api_consumers.read"],
   layout: "app",
 });
 
@@ -296,6 +297,11 @@ usePageMeta("", {
 const { user } = useSanctumAuth();
 const { $dayjs } = useNuxtApp();
 const { getRefreshSignal, clearRefreshSignal } = useDataRefresh();
+const { hasPermission } = usePermission();
+
+// Permission checks
+const canCreate = computed(() => hasPermission("api_consumers.create"));
+const canDelete = computed(() => hasPermission("api_consumers.delete"));
 
 // Analytics state
 const analyticsOpen = ref(true);

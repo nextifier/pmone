@@ -9,7 +9,7 @@
       </div>
 
       <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <ImportDialog v-if="isAdminOrMaster" @imported="refresh">
+        <ImportDialog v-if="canCreate" @imported="refresh">
           <template #trigger="{ open }">
             <button
               @click="open()"
@@ -22,7 +22,6 @@
         </ImportDialog>
 
         <button
-          v-if="isAdminOrMaster"
           @click="handleExport"
           :disabled="exportPending"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
@@ -33,7 +32,7 @@
         </button>
 
         <nuxt-link
-          v-if="isAdminOrMaster"
+          v-if="canDelete"
           to="/users/trash"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
@@ -69,6 +68,7 @@
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
+      :show-add-button="canCreate"
       @update:pagination="onPaginationUpdate"
       @update:sorting="onSortingUpdate"
       @update:column-filters="onColumnFiltersUpdate"
@@ -220,7 +220,7 @@
         </DialogResponsive>
 
         <DialogResponsive
-          v-if="selectedRows.length > 0"
+          v-if="canDelete && selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
           class="h-full"
         >
@@ -284,8 +284,8 @@ import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth", "role"],
-  roles: ["staff", "admin", "master"],
+  middleware: ["sanctum:auth", "permission"],
+  permissions: ["users.read"],
   layout: "app",
 });
 
@@ -296,10 +296,14 @@ defineOptions({
 usePageMeta("users");
 
 const { user } = useSanctumAuth();
-const { isAdminOrMaster } = usePermission();
+const { hasPermission, canDeleteUser } = usePermission();
 const { getRefreshSignal, clearRefreshSignal } = useDataRefresh();
 
 const { $dayjs } = useNuxtApp();
+
+// Permission checks
+const canCreate = computed(() => hasPermission("users.create"));
+const canDelete = computed(() => hasPermission("users.delete"));
 
 // Table state
 const columnFilters = ref([]);

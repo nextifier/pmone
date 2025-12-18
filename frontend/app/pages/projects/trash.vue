@@ -163,8 +163,8 @@ import ProjectsList from "@/components/project/ProjectsList.vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth", "role"],
-  roles: ["admin", "master"],
+  middleware: ["sanctum:auth", "permission"],
+  permissions: ["projects.delete"],
   layout: "app",
 });
 

@@ -305,8 +305,8 @@
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
 
 definePageMeta({
-  middleware: ["sanctum:auth", "role"],
-  roles: ["admin", "master"],
+  middleware: ["sanctum:auth", "permission"],
+  permissions: ["api_consumers.read"],
   layout: "app",
 });
 

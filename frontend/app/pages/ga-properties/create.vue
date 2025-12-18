@@ -12,7 +12,7 @@
 <script setup>
 definePageMeta({
   middleware: ["sanctum:auth", "role"],
-  roles: ["admin", "master"],
+  roles: ["master"],
   layout: "app",
 });
 

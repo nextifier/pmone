@@ -19,6 +19,10 @@ export default defineNuxtConfig({
     },
   },
 
+  routeRules: {
+    "/": { redirect: "/dashboard" },
+  },
+
   app: {
     head: {
       title: "PM One",

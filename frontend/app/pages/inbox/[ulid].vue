@@ -232,7 +232,8 @@ import {
 import FlagComponent from "@/components/FlagComponent.vue";
 
 definePageMeta({
-  middleware: ["sanctum:auth"],
+  middleware: ["sanctum:auth", "permission"],
+  permissions: ["contact_forms.read"],
   layout: "app",
 });
 

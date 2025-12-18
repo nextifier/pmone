@@ -371,8 +371,8 @@ class AnalyticsController extends Controller
             return true;
         }
 
-        // Master and admin can view all analytics
-        if ($user->hasRole(['master', 'admin'])) {
+        // Users with analytics.view permission can view all analytics
+        if ($user->hasPermissionTo('analytics.view')) {
             return true;
         }
 

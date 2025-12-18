@@ -14,10 +14,9 @@ class LogController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        // Check if user has master or admin role
-        if (! $request->user()->hasAnyRole(['master', 'admin'])) {
+        if (! $request->user()->hasPermissionTo('admin.logs')) {
             return response()->json([
-                'message' => 'Unauthorized. Only master and admin roles can access logs.',
+                'message' => 'Unauthorized. You do not have permission to access logs.',
             ], 403);
         }
 
@@ -102,9 +101,9 @@ class LogController extends Controller
     {
         $user = auth()->user();
 
-        if (! $user->hasAnyRole(['master', 'admin'])) {
+        if (! $user->hasPermissionTo('admin.logs')) {
             return response()->json([
-                'message' => 'Unauthorized. Only master and admin roles can access logs.',
+                'message' => 'Unauthorized. You do not have permission to access logs.',
             ], 403);
         }
 
@@ -119,9 +118,9 @@ class LogController extends Controller
     {
         $user = auth()->user();
 
-        if (! $user->hasAnyRole(['master', 'admin'])) {
+        if (! $user->hasPermissionTo('admin.logs')) {
             return response()->json([
-                'message' => 'Unauthorized. Only master and admin roles can access logs.',
+                'message' => 'Unauthorized. You do not have permission to access logs.',
             ], 403);
         }
 
@@ -134,10 +133,9 @@ class LogController extends Controller
 
     public function clear(Request $request): JsonResponse
     {
-        // Only master role can clear logs
-        if (! $request->user()->hasRole('master')) {
+        if (! $request->user()->hasPermissionTo('admin.logs')) {
             return response()->json([
-                'message' => 'Unauthorized. Only master role can clear logs.',
+                'message' => 'Unauthorized. You do not have permission to clear logs.',
             ], 403);
         }
 

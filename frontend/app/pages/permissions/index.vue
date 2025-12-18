@@ -2,8 +2,8 @@
   <div class="mx-auto max-w-4xl space-y-6 pt-4 pb-16">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
-        <Icon name="hugeicons:user-settings-01" class="size-5 sm:size-6" />
-        <h1 class="page-title">Roles</h1>
+        <Icon name="hugeicons:shield-key" class="size-5 sm:size-6" />
+        <h1 class="page-title">Permissions</h1>
       </div>
 
       <div v-if="hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
@@ -25,11 +25,11 @@
       :meta="meta"
       :pending="pending"
       :error="error"
-      model="roles"
-      label="Role"
+      model="permissions"
+      label="Permission"
       search-column="name"
-      search-placeholder="Search role name"
-      error-title="Error loading roles"
+      search-placeholder="Search permission name"
+      error-title="Error loading permissions"
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
@@ -65,7 +65,7 @@
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This action can't be undone. This will permanently delete
                 {{ selectedRows.length }} selected
-                {{ selectedRows.length === 1 ? "role" : "roles" }}.
+                {{ selectedRows.length === 1 ? "permission" : "permissions" }}.
               </p>
               <div class="mt-3 flex justify-end gap-2">
                 <button
@@ -94,7 +94,7 @@
 
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
-import RoleTableItem from "@/components/role/RoleTableItem.vue";
+import PermissionTableItem from "@/components/permission/PermissionTableItem.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -104,16 +104,16 @@ import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: ["sanctum:auth", "permission"],
-  permissions: ["roles.read"],
+  permissions: ["permissions.read"],
   layout: "app",
 });
 
 defineOptions({
-  name: "roles",
+  name: "permissions",
 });
 
-const title = "Roles";
-const description = "Manage user roles.";
+const title = "Permissions";
+const description = "Manage system permissions.";
 
 usePageMeta("", {
   title: title,
@@ -125,8 +125,8 @@ const { $dayjs } = useNuxtApp();
 const { hasPermission } = usePermission();
 
 // Permission checks
-const canCreate = computed(() => hasPermission("roles.create"));
-const canDelete = computed(() => hasPermission("roles.delete"));
+const canCreate = computed(() => hasPermission("permissions.create"));
+const canDelete = computed(() => hasPermission("permissions.delete"));
 
 // Table state
 const columnFilters = ref([]);
@@ -170,21 +170,21 @@ const buildQueryParams = () => {
   return params.toString();
 };
 
-// Fetch roles with lazy loading
+// Fetch permissions with lazy loading
 const {
-  data: rolesResponse,
+  data: permissionsResponse,
   pending,
   error,
-  refresh: fetchRoles,
-} = await useLazySanctumFetch(() => `/api/roles?${buildQueryParams()}`, {
-  key: "roles-list",
+  refresh: fetchPermissions,
+} = await useLazySanctumFetch(() => `/api/permissions?${buildQueryParams()}`, {
+  key: "permissions-list",
   watch: false,
 });
 
-const data = computed(() => rolesResponse.value?.data || []);
-const meta = computed(() => rolesResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 10, total: 0 });
+const data = computed(() => permissionsResponse.value?.data || []);
+const meta = computed(() => permissionsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 10, total: 0 });
 
-const refresh = fetchRoles;
+const refresh = fetchPermissions;
 
 // Table columns
 const columns = [
@@ -209,11 +209,11 @@ const columns = [
     enableHiding: false,
   },
   {
-    header: "Role",
+    header: "Permission",
     accessorKey: "name",
     cell: ({ row }) =>
-      h(RoleTableItem, {
-        role: row.original,
+      h(PermissionTableItem, {
+        permission: row.original,
       }),
     size: 300,
     enableHiding: false,
@@ -223,16 +223,6 @@ const columns = [
       return name.includes(searchValue);
     },
   },
-  //   {
-  //     header: "Permissions",
-  //     accessorKey: "permissions_count",
-  //     cell: ({ row }) => {
-  //       const count = row.original.permissions?.length || 0;
-  //       return h("div", { class: "text-sm tracking-tight" }, count.toLocaleString());
-  //     },
-  //     size: 120,
-  //     enableSorting: true,
-  //   },
   {
     header: "Created",
     accessorKey: "created_at",
@@ -248,7 +238,7 @@ const columns = [
   {
     id: "actions",
     header: () => h("span", { class: "sr-only" }, "Actions"),
-    cell: ({ row }) => h(RowActions, { role: row.original }),
+    cell: ({ row }) => h(RowActions, { permission: row.original }),
     size: 60,
     enableHiding: false,
   },
@@ -273,13 +263,13 @@ const clearSelection = () => {
 const deleteDialogOpen = ref(false);
 const deletePending = ref(false);
 const handleDeleteRows = async (selectedRows) => {
-  const roleIds = selectedRows.map((row) => row.original.id);
+  const permissionIds = selectedRows.map((row) => row.original.id);
   try {
     deletePending.value = true;
     const client = useSanctumClient();
-    const response = await client("/api/roles/bulk", {
+    const response = await client("/api/permissions/bulk", {
       method: "DELETE",
-      body: { ids: roleIds },
+      body: { ids: permissionIds },
     });
     await refresh();
     deleteDialogOpen.value = false;
@@ -288,15 +278,15 @@ const handleDeleteRows = async (selectedRows) => {
     }
 
     // Show success toast
-    toast.success(response.message || "Roles deleted", {
+    toast.success(response.message || "Permissions deleted", {
       description:
         response.errors?.length > 0
           ? `${response.deleted_count} deleted, ${response.errors.length} failed`
-          : `${response.deleted_count} role(s) deleted`,
+          : `${response.deleted_count} permission(s) deleted`,
     });
   } catch (error) {
-    console.error("Failed to delete roles:", error);
-    toast.error("Failed to delete roles", {
+    console.error("Failed to delete permissions:", error);
+    toast.error("Failed to delete permissions", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
   } finally {
@@ -304,11 +294,11 @@ const handleDeleteRows = async (selectedRows) => {
   }
 };
 
-const handleDeleteSingleRow = async (name) => {
+const handleDeleteSingleRow = async (id) => {
   try {
     deletePending.value = true;
     const client = useSanctumClient();
-    const response = await client(`/api/roles/${name}`, { method: "DELETE" });
+    const response = await client(`/api/permissions/${id}`, { method: "DELETE" });
     await refresh();
 
     // Reset row selection after delete
@@ -317,10 +307,10 @@ const handleDeleteSingleRow = async (name) => {
     }
 
     // Show success toast
-    toast.success(response.message || "Role deleted successfully");
+    toast.success(response.message || "Permission deleted successfully");
   } catch (error) {
-    console.error("Failed to delete role:", error);
-    toast.error("Failed to delete role", {
+    console.error("Failed to delete permission:", error);
+    toast.error("Failed to delete permission", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
   } finally {
@@ -331,11 +321,15 @@ const handleDeleteSingleRow = async (name) => {
 // Row Actions Component
 const RowActions = defineComponent({
   props: {
-    role: { type: Object, required: true },
+    permission: { type: Object, required: true },
   },
   setup(props) {
     const dialogOpen = ref(false);
     const singleDeletePending = ref(false);
+    const { hasPermission } = usePermission();
+    const canUpdate = hasPermission("permissions.update");
+    const canDeletePermission = hasPermission("permissions.delete");
+
     return () =>
       h("div", { class: "flex justify-end" }, [
         h(
@@ -364,54 +358,56 @@ const RowActions = defineComponent({
                 {
                   default: () =>
                     h("div", { class: "flex flex-col" }, [
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
-                            h(
-                              resolveComponent("NuxtLink"),
-                              {
-                                to: `/roles/${props.role.name}/edit`,
-                                class:
-                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                              },
-                              {
-                                default: () => [
+                      canUpdate &&
+                        h(
+                          PopoverClose,
+                          { asChild: true },
+                          {
+                            default: () =>
+                              h(
+                                resolveComponent("NuxtLink"),
+                                {
+                                  to: `/permissions/${props.permission.id}/edit`,
+                                  class:
+                                    "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                },
+                                {
+                                  default: () => [
+                                    h(resolveComponent("Icon"), {
+                                      name: "lucide:pencil-line",
+                                      class: "size-4 shrink-0",
+                                    }),
+                                    h("span", {}, "Edit"),
+                                  ],
+                                }
+                              ),
+                          }
+                        ),
+
+                      canDeletePermission &&
+                        h(
+                          PopoverClose,
+                          { asChild: true },
+                          {
+                            default: () =>
+                              h(
+                                "button",
+                                {
+                                  class:
+                                    "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                  onClick: () => (dialogOpen.value = true),
+                                },
+                                [
                                   h(resolveComponent("Icon"), {
-                                    name: "lucide:pencil-line",
+                                    name: "lucide:trash",
                                     class: "size-4 shrink-0",
                                   }),
-                                  h("span", {}, "Edit"),
-                                ],
-                              }
-                            ),
-                        }
-                      ),
-
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
-                            h(
-                              "button",
-                              {
-                                class:
-                                  "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                onClick: () => (dialogOpen.value = true),
-                              },
-                              [
-                                h(resolveComponent("Icon"), {
-                                  name: "lucide:trash",
-                                  class: "size-4 shrink-0",
-                                }),
-                                h("span", {}, "Delete"),
-                              ]
-                            ),
-                        }
-                      ),
-                    ]),
+                                  h("span", {}, "Delete"),
+                                ]
+                              ),
+                          }
+                        ),
+                    ].filter(Boolean)),
                 }
               ),
             ],
@@ -434,7 +430,7 @@ const RowActions = defineComponent({
                 h(
                   "p",
                   { class: "text-body mt-1.5 text-sm tracking-tight" },
-                  "This action can't be undone. This will permanently delete this role."
+                  "This action can't be undone. This will permanently delete this permission."
                 ),
                 h("div", { class: "mt-3 flex justify-end gap-2" }, [
                   h(
@@ -456,7 +452,7 @@ const RowActions = defineComponent({
                       onClick: async () => {
                         singleDeletePending.value = true;
                         try {
-                          await handleDeleteSingleRow(props.role.name);
+                          await handleDeleteSingleRow(props.permission.id);
                           dialogOpen.value = false;
                         } finally {
                           singleDeletePending.value = false;

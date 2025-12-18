@@ -34,8 +34,8 @@
 import ApiConsumerForm from "@/components/api-consumer/Form.vue";
 
 definePageMeta({
-  middleware: ["sanctum:auth", "role"],
-  roles: ["admin", "master"],
+  middleware: ["sanctum:auth", "permission"],
+  permissions: ["api_consumers.update"],
   layout: "app",
 });
 

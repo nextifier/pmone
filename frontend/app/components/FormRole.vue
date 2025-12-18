@@ -232,7 +232,7 @@ async function loadPermissions() {
   try {
     loadingPermissions.value = true;
     permissionsError.value = false;
-    const response = await sanctumFetch("/api/permissions");
+    const response = await sanctumFetch("/api/permissions/grouped");
     permissionGroups.value = response.data || [];
   } catch (err) {
     console.error("Error loading permissions:", err);

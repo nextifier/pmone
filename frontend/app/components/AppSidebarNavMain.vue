@@ -62,62 +62,92 @@
 import { useSidebar } from "@/components/ui/sidebar/utils";
 import { ChevronRight } from "lucide-vue-next";
 const { setOpenMobile } = useSidebar();
-const { user } = useSanctumAuth();
+const { hasPermission, hasRole } = usePermission();
 
 const navMainGroups = computed(() => {
+  // Platform section - filter based on user permissions
+  const platformItems = [];
+
+  // Dashboard - accessible by all users
+  platformItems.push({
+    label: "Dashboard",
+    path: "/dashboard",
+    iconName: "hugeicons:dashboard-circle",
+  });
+
+  // Inbox - requires contact_forms.read permission
+  if (hasPermission("contact_forms.read")) {
+    platformItems.push({
+      label: "Inbox",
+      path: "/inbox",
+      iconName: "hugeicons:mail-open-love",
+    });
+  }
+
+  // Projects - requires projects.read permission
+  if (hasPermission("projects.read")) {
+    platformItems.push({
+      label: "Projects",
+      path: "/projects",
+      iconName: "hugeicons:layers-01",
+    });
+  }
+
+  // Posts - requires posts.read permission
+  if (hasPermission("posts.read")) {
+    platformItems.push({
+      label: "Posts",
+      path: "/posts",
+      iconName: "hugeicons:task-edit-01",
+    });
+  }
+
+  // Short Links & Dynamic QR Code - requires short_links.read permission
+  if (hasPermission("short_links.read")) {
+    platformItems.push({
+      label: "Short Links & Dynamic QR Code",
+      path: "/links",
+      iconName: "hugeicons:unlink-02",
+    });
+  }
+
+  // Static QR Code Generator - accessible by all users
+  platformItems.push({
+    label: "Static QR Code Generator",
+    path: "/qr",
+    iconName: "hugeicons:qr-code",
+  });
+
+  // Web Analytics - requires analytics.view permission
+  if (hasPermission("analytics.view")) {
+    platformItems.push({
+      label: "Web Analytics",
+      path: "/web-analytics",
+      iconName: "hugeicons:analysis-text-link",
+    });
+  }
+
+  // API Consumers - requires api_consumers.read permission
+  if (hasPermission("api_consumers.read")) {
+    platformItems.push({
+      label: "API Consumers",
+      path: "/api-consumers",
+      iconName: "hugeicons:api",
+    });
+  }
+
   const groups = [
     {
       label: "Platform",
-      items: [
-        {
-          label: "Dashboard",
-          path: "/dashboard",
-          iconName: "hugeicons:dashboard-circle",
-        },
-        {
-          label: "Inbox",
-          path: "/inbox",
-          iconName: "hugeicons:mail-open-love",
-        },
-        {
-          label: "Projects",
-          path: "/projects",
-          iconName: "hugeicons:layers-01",
-        },
-        {
-          label: "Posts",
-          path: "/posts",
-          iconName: "hugeicons:task-edit-01",
-        },
-
-        {
-          label: "Short Links & Dynamic QR Code",
-          path: "/links",
-          iconName: "hugeicons:unlink-02",
-        },
-        {
-          label: "Static QR Code Generator",
-          path: "/qr",
-          iconName: "hugeicons:qr-code",
-        },
-        {
-          label: "Web Analytics",
-          path: "/web-analytics",
-          iconName: "hugeicons:analysis-text-link",
-        },
-        {
-          label: "API Consumers",
-          path: "/api-consumers",
-          iconName: "hugeicons:api",
-        },
-      ],
+      items: platformItems,
     },
   ];
 
   // Admin section - filter based on user permissions
   const adminItems = [];
 
-  if (user.value?.roles?.some((role) => ["master", "admin", "staff"].includes(role))) {
+  // Users - requires users.read permission
+  if (hasPermission("users.read")) {
     adminItems.push({
       label: "Users",
       path: "/users",
@@ -125,15 +155,26 @@ const navMainGroups = computed(() => {
     });
   }
 
-  if (user.value?.roles?.includes("master")) {
+  // Roles - requires roles.read permission
+  if (hasPermission("roles.read")) {
     adminItems.push({
-      label: "Roles & Permissions",
+      label: "Roles",
       path: "/roles",
       iconName: "hugeicons:user-settings-01",
     });
   }
 
-  if (user.value?.roles?.some((role) => ["master", "admin"].includes(role))) {
+  // Permissions - requires permissions.read permission
+  if (hasPermission("permissions.read")) {
+    adminItems.push({
+      label: "Permissions",
+      path: "/permissions",
+      iconName: "hugeicons:shield-key",
+    });
+  }
+
+  // Google Analytics Properties - only master role
+  if (hasRole("master")) {
     adminItems.push({
       label: "Google Analytics Properties",
       path: "/ga-properties",
@@ -141,8 +182,8 @@ const navMainGroups = computed(() => {
     });
   }
 
-  // Activity Logs - only master and admin
-  if (user.value?.roles?.some((role) => ["master", "admin"].includes(role))) {
+  // Activity Logs - requires admin.logs permission
+  if (hasPermission("admin.logs")) {
     adminItems.push({
       label: "Activity Logs",
       path: "/logs",

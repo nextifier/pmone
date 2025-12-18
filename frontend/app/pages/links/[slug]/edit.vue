@@ -29,7 +29,8 @@
 
 <script setup>
 definePageMeta({
-  middleware: ["sanctum:auth"],
+  middleware: ["sanctum:auth", "permission"],
+  permissions: ["short_links.update"],
   layout: "app",
 });
 

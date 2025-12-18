@@ -12,7 +12,9 @@ class ShortLinkPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['master', 'admin', 'staff']);
+        // All authenticated users can view short links
+        // Filtering is done in the controller based on role
+        return true;
     }
 
     /**

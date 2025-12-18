@@ -1,32 +1,25 @@
 <template>
   <div class="mx-auto max-w-xl space-y-9 pt-4 pb-16">
     <div class="flex flex-col items-start gap-y-6">
-      <BackButton destination="/roles" />
-      <h1 class="page-title">Create Role</h1>
+      <BackButton destination="/permissions" />
+      <h1 class="page-title">Create Permission</h1>
     </div>
 
-    <FormRole ref="formRef" mode="create" />
+    <FormPermission ref="formRef" mode="create" />
   </div>
 </template>
 
 <script setup>
 definePageMeta({
   middleware: ["sanctum:auth", "permission"],
-  permissions: ["roles.create"],
+  permissions: ["permissions.create"],
   layout: "app",
 });
 
 usePageMeta("", {
-  title: "Create Role",
-  description: "Create a new role",
+  title: "Create Permission",
+  description: "Create a new permission",
 });
-
-const { user } = useSanctumAuth();
-
-// Check if user has master role
-if (!user.value?.roles?.includes("master")) {
-  navigateTo("/dashboard");
-}
 
 const formRef = ref(null);
 

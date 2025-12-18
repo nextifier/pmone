@@ -29,6 +29,17 @@ class ProjectController extends Controller
         $query = Project::query()->with(['members.media']);
         $clientOnly = $request->boolean('client_only', false);
 
+        // Role-based filtering: Non-admin users can only see projects they are members of or created
+        $user = $request->user();
+        if ($user && ! $user->hasRole(['master', 'admin'])) {
+            $query->where(function ($q) use ($user) {
+                $q->where('created_by', $user->id)
+                    ->orWhereHas('members', function ($memberQuery) use ($user) {
+                        $memberQuery->where('user_id', $user->id);
+                    });
+            });
+        }
+
         if (! $clientOnly) {
             $this->applyFilters($query, $request);
             $this->applySorting($query, $request);
@@ -70,6 +81,17 @@ class ProjectController extends Controller
 
         $query = Project::onlyTrashed()->with(['members']);
         $clientOnly = $request->boolean('client_only', false);
+
+        // Role-based filtering: Non-admin users can only see projects they are members of or created
+        $user = $request->user();
+        if ($user && ! $user->hasRole(['master', 'admin'])) {
+            $query->where(function ($q) use ($user) {
+                $q->where('created_by', $user->id)
+                    ->orWhereHas('members', function ($memberQuery) use ($user) {
+                        $memberQuery->where('user_id', $user->id);
+                    });
+            });
+        }
 
         if (! $clientOnly) {
             $this->applyFilters($query, $request);

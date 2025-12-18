@@ -2,7 +2,7 @@
   <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
     <ProjectsHeader title="Project Management">
       <template #actions>
-        <ImportDialog v-if="isAdminOrMaster" @imported="refresh">
+        <ImportDialog v-if="canCreate" @imported="refresh">
           <template #trigger="{ open }">
             <button
               @click="open()"
@@ -15,7 +15,6 @@
         </ImportDialog>
 
         <button
-          v-if="isAdminOrMaster"
           @click="handleExport"
           :disabled="exportPending"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
@@ -26,7 +25,7 @@
         </button>
 
         <nuxt-link
-          v-if="isAdminOrMaster"
+          v-if="canDelete"
           to="/projects/trash"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
@@ -44,7 +43,7 @@
     >
       <template #actions>
         <NuxtLink
-          v-if="isAdminOrMaster"
+          v-if="canCreate"
           to="/projects/create"
           class="hover:bg-primary/80 text-primary-foreground bg-primary flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
         >
@@ -66,7 +65,7 @@
     >
       <template #empty-actions>
         <NuxtLink
-          v-if="!searchQuery"
+          v-if="canCreate && !searchQuery"
           to="/projects/create"
           class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
         >
@@ -101,6 +100,7 @@
         </NuxtLink>
 
         <button
+          v-if="canDeleteProject(project)"
           @click="openDeleteDialog(project)"
           class="hover:bg-destructive/10 text-destructive flex w-full items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
         >
@@ -151,8 +151,8 @@ import { useSortable } from "@vueuse/integrations/useSortable";
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth", "role"],
-  roles: ["staff", "admin", "master"],
+  middleware: ["sanctum:auth", "permission"],
+  permissions: ["projects.read"],
   layout: "app",
 });
 
@@ -164,7 +164,11 @@ usePageMeta("projects");
 
 const { user } = useSanctumAuth();
 const { getRefreshSignal, clearRefreshSignal } = useDataRefresh();
-const { isAdminOrMaster } = usePermission();
+const { hasPermission, canDeleteProject } = usePermission();
+
+// Permission checks
+const canCreate = computed(() => hasPermission("projects.create"));
+const canDelete = computed(() => hasPermission("projects.delete"));
 
 // Filter state
 const searchQuery = ref("");

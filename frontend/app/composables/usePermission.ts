@@ -98,61 +98,61 @@ export const usePermission = () => {
 
   /**
    * Check if user can edit a specific post
-   * Rules: Admin/Master can edit any post, or user must be the creator
+   * Rules: User with posts.update permission can edit any post, or user must be the creator
    */
   const canEditPost = (post: { created_by: number }): boolean => {
     if (!user.value) return false;
-    if (isAdminOrMaster.value) return true;
+    if (hasPermission("posts.update")) return true;
     return post.created_by === user.value.id;
   };
 
   /**
    * Check if user can delete a specific post
-   * Rules: Admin/Master can delete any post, or user must be the creator
+   * Rules: User with posts.delete permission can delete any post, or user must be the creator
    */
   const canDeletePost = (post: { created_by: number }): boolean => {
     if (!user.value) return false;
-    if (isAdminOrMaster.value) return true;
+    if (hasPermission("posts.delete")) return true;
     return post.created_by === user.value.id;
   };
 
   /**
    * Check if user can edit a specific project
-   * Rules: Admin/Master can edit any project, or user must be the creator
+   * Rules: User with projects.update permission can edit any project, or user must be the creator
    */
   const canEditProject = (project: { created_by: number }): boolean => {
     if (!user.value) return false;
-    if (isAdminOrMaster.value) return true;
+    if (hasPermission("projects.update")) return true;
     return project.created_by === user.value.id;
   };
 
   /**
    * Check if user can delete a specific project
-   * Rules: Admin/Master can delete any project
+   * Rules: User with projects.delete permission can delete any project, or user must be the creator
    */
   const canDeleteProject = (project: { created_by: number }): boolean => {
     if (!user.value) return false;
-    if (isAdminOrMaster.value) return true;
+    if (hasPermission("projects.delete")) return true;
     return project.created_by === user.value.id;
   };
 
   /**
    * Check if user can edit a specific user
-   * Rules: Admin/Master can edit any user, or user must be editing themselves
+   * Rules: User with users.update permission can edit any user, or user must be editing themselves
    */
   const canEditUser = (targetUser: { id: number }): boolean => {
     if (!user.value) return false;
-    if (isAdminOrMaster.value) return true;
+    if (hasPermission("users.update")) return true;
     return targetUser.id === user.value.id;
   };
 
   /**
    * Check if user can delete a specific user
-   * Rules: Only Admin/Master can delete users (cannot delete yourself)
+   * Rules: Only users with users.delete permission can delete users (cannot delete yourself)
    */
   const canDeleteUser = (targetUser: { id: number }): boolean => {
     if (!user.value) return false;
-    if (!isAdminOrMaster.value) return false;
+    if (!hasPermission("users.delete")) return false;
     return targetUser.id !== user.value.id; // Cannot delete yourself
   };
 
@@ -167,11 +167,10 @@ export const usePermission = () => {
 
   /**
    * Check if user can perform action on resource
-   * Rules: Admin/Master can do anything, or user must be the owner
+   * Rules: Check ownership - for permission-based access, use specific permission checks
    */
   const canManageResource = (resource: { created_by: number }): boolean => {
     if (!user.value) return false;
-    if (isAdminOrMaster.value) return true;
     return isOwner(resource);
   };
 

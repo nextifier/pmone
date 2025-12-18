@@ -26,8 +26,16 @@ class ShortLinkController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', ShortLink::class);
+
         $query = ShortLink::query()->with(['user'])->excludeProfileLinks();
         $clientOnly = $request->boolean('client_only', false);
+
+        // Role-based filtering: Non-admin users can only see their own short links
+        $user = $request->user();
+        if ($user && ! $user->hasRole(['master', 'admin'])) {
+            $query->where('user_id', $user->id);
+        }
 
         // Apply filters and sorting only if not client-only mode
         if (! $clientOnly) {
@@ -400,8 +408,16 @@ class ShortLinkController extends Controller
 
     public function trash(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', ShortLink::class);
+
         $query = ShortLink::onlyTrashed()->with(['user', 'deleter'])->excludeProfileLinks();
         $clientOnly = $request->boolean('client_only', false);
+
+        // Role-based filtering: Non-admin users can only see their own short links
+        $user = $request->user();
+        if ($user && ! $user->hasRole(['master', 'admin'])) {
+            $query->where('user_id', $user->id);
+        }
 
         if (! $clientOnly) {
             $this->applyFilters($query, $request);

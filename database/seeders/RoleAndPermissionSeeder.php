@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Artisan;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -26,6 +25,11 @@ class RoleAndPermissionSeeder extends Seeder
             'roles.read',
             'roles.update',
             'roles.delete',
+            // Permission management
+            'permissions.create',
+            'permissions.read',
+            'permissions.update',
+            'permissions.delete',
             // Posts
             'posts.create',
             'posts.read',
@@ -177,4 +181,3 @@ class RoleAndPermissionSeeder extends Seeder
         }
     }
 }
-

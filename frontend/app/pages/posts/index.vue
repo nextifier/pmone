@@ -24,6 +24,7 @@
         </nuxt-link>
 
         <nuxt-link
+          v-if="canDelete"
           to="/posts/trash"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
@@ -60,6 +61,7 @@
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
       :initial-column-visibility="{ status: false, media_count: false }"
+      :show-add-button="canCreate"
       @update:pagination="onPaginationUpdate"
       @update:sorting="onSortingUpdate"
       @update:column-filters="onColumnFiltersUpdate"
@@ -108,7 +110,7 @@
 
       <template #actions="{ selectedRows }">
         <DialogResponsive
-          v-if="selectedRows.length > 0"
+          v-if="canDelete && selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
           class="h-full"
         >
@@ -171,7 +173,8 @@ import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth"],
+  middleware: ["sanctum:auth", "permission"],
+  permissions: ["posts.read"],
   layout: "app",
 });
 
@@ -188,7 +191,11 @@ const { formatDate } = useFormatters();
 const { getRefreshSignal, clearRefreshSignal } = useDataRefresh();
 
 // Permission checking using composable
-const { isAdminOrMaster, canEditPost, canDeletePost } = usePermission();
+const { hasPermission, canEditPost, canDeletePost } = usePermission();
+
+// Permission checks for buttons
+const canCreate = computed(() => hasPermission("posts.create"));
+const canDelete = computed(() => hasPermission("posts.delete"));
 
 // Table state
 const columnFilters = ref([]);

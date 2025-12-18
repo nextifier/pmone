@@ -223,7 +223,8 @@ const route = useRoute();
 const sanctumFetch = useSanctumClient();
 
 definePageMeta({
-  middleware: ["sanctum:auth"],
+  middleware: ["sanctum:auth", "permission"],
+  permissions: ["analytics.view"],
   layout: "app",
 });
 

@@ -72,8 +72,18 @@ class ProjectPolicy
      */
     public function delete(User $user, Project $project): bool
     {
-        // Only master and admin can delete projects
-        return $user->hasRole(['master', 'admin']);
+        // Master and admin can delete all projects
+        if ($user->hasRole(['master', 'admin'])) {
+            return true;
+        }
+
+        // Creator can delete their own project
+        if ($project->created_by === $user->id) {
+            return true;
+        }
+
+        // Members can delete projects they belong to
+        return $project->members()->where('user_id', $user->id)->exists();
     }
 
     /**
@@ -81,8 +91,28 @@ class ProjectPolicy
      */
     public function restore(User $user, Project $project): bool
     {
-        // Only master and admin can restore projects
-        return $user->hasRole(['master', 'admin']);
+        // Master and admin can restore all projects
+        if ($user->hasRole(['master', 'admin'])) {
+            return true;
+        }
+
+        // Creator can restore their own project
+        if ($project->created_by === $user->id) {
+            return true;
+        }
+
+        // Members can restore projects they belong to
+        return $project->members()->where('user_id', $user->id)->exists();
+    }
+
+    /**
+     * Determine whether the user can restore any projects (for bulk operations).
+     */
+    public function restoreAny(User $user): bool
+    {
+        // All authenticated users can attempt to restore projects
+        // Individual authorization will be checked per project in the controller
+        return true;
     }
 
     /**
@@ -90,8 +120,17 @@ class ProjectPolicy
      */
     public function forceDelete(User $user, Project $project): bool
     {
-        // Only master can force delete projects
-        return $user->hasRole('master');
+        // Only master and admin can force delete projects
+        return $user->hasRole(['master', 'admin']);
+    }
+
+    /**
+     * Determine whether the user can force delete any projects (for bulk operations).
+     */
+    public function forceDeleteAny(User $user): bool
+    {
+        // Only master and admin can force delete projects
+        return $user->hasRole(['master', 'admin']);
     }
 
     /**

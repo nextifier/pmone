@@ -185,8 +185,13 @@ class GoogleAnalyticsController extends Controller
     /**
      * Get list of all GA properties (simple list without pagination).
      */
-    public function getProperties(): JsonResponse
+    public function getProperties(Request $request): JsonResponse
     {
+        // Authorization check
+        if (! $request->user()->hasPermissionTo('analytics.view')) {
+            abort(403, 'Unauthorized. You do not have permission to view analytics.');
+        }
+
         $properties = GaProperty::with(['tags', 'project'])->get();
 
         return response()->json([
@@ -199,6 +204,11 @@ class GoogleAnalyticsController extends Controller
      */
     public function getPropertyAnalytics(GetAnalyticsRequest $request, string $id): JsonResponse
     {
+        // Authorization check
+        if (! $request->user()->hasPermissionTo('analytics.view')) {
+            abort(403, 'Unauthorized. You do not have permission to view analytics.');
+        }
+
         // Rate limiting for analytics endpoints
         $this->applyAnalyticsRateLimit($request);
 
@@ -222,6 +232,11 @@ class GoogleAnalyticsController extends Controller
      */
     public function getAggregatedAnalytics(GetAnalyticsRequest $request): JsonResponse
     {
+        // Authorization check
+        if (! $request->user()->hasPermissionTo('analytics.view')) {
+            abort(403, 'Unauthorized. You do not have permission to view analytics.');
+        }
+
         // Rate limiting for analytics endpoints
         $this->applyAnalyticsRateLimit($request);
 
@@ -488,6 +503,11 @@ class GoogleAnalyticsController extends Controller
      */
     public function getRealtimeActiveUsers(Request $request): JsonResponse
     {
+        // Authorization check
+        if (! $request->user()->hasPermissionTo('analytics.view')) {
+            abort(403, 'Unauthorized. You do not have permission to view analytics.');
+        }
+
         $propertyIds = $request->input('property_ids');
 
         $data = $this->analyticsService->getRealtimeActiveUsers($propertyIds);
@@ -500,6 +520,11 @@ class GoogleAnalyticsController extends Controller
      */
     public function getComparison(GetAnalyticsRequest $request): JsonResponse
     {
+        // Authorization check
+        if (! $request->user()->hasPermissionTo('analytics.view')) {
+            abort(403, 'Unauthorized. You do not have permission to view analytics.');
+        }
+
         // Rate limiting for analytics endpoints
         $this->applyAnalyticsRateLimit($request);
 
@@ -519,6 +544,11 @@ class GoogleAnalyticsController extends Controller
      */
     public function getPropertyComparison(GetAnalyticsRequest $request, string $id): JsonResponse
     {
+        // Authorization check
+        if (! $request->user()->hasPermissionTo('analytics.view')) {
+            abort(403, 'Unauthorized. You do not have permission to view analytics.');
+        }
+
         // Rate limiting for analytics endpoints
         $this->applyAnalyticsRateLimit($request);
 
@@ -602,6 +632,11 @@ class GoogleAnalyticsController extends Controller
      */
     public function exportAggregatedAnalytics(GetAnalyticsRequest $request): BinaryFileResponse
     {
+        // Authorization check
+        if (! $request->user()->hasPermissionTo('analytics.export')) {
+            abort(403, 'Unauthorized. You do not have permission to export analytics.');
+        }
+
         // Rate limiting for analytics endpoints
         $this->applyAnalyticsRateLimit($request);
 
@@ -629,6 +664,11 @@ class GoogleAnalyticsController extends Controller
      */
     public function exportPropertyAnalytics(GetAnalyticsRequest $request, string $id): BinaryFileResponse
     {
+        // Authorization check
+        if (! $request->user()->hasPermissionTo('analytics.export')) {
+            abort(403, 'Unauthorized. You do not have permission to export analytics.');
+        }
+
         // Rate limiting for analytics endpoints
         $this->applyAnalyticsRateLimit($request);
 
