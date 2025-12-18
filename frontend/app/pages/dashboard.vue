@@ -1,7 +1,6 @@
 <template>
-  <div
-    class="min-h-screen-offset mx-auto flex flex-col space-y-6 pt-4 pb-4 lg:max-w-4xl xl:max-w-6xl"
-  >
+  <div class="mx-auto flex flex-col gap-y-8 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
+    <!-- Header -->
     <div class="flex flex-col gap-y-1">
       <h2 class="page-title">
         <DashboardGreeting />
@@ -9,94 +8,302 @@
       <p class="page-description">What do you want to do today?</p>
     </div>
 
-    <div v-if="canViewAnalytics && !loading && aggregateData" class="flex flex-col gap-y-2.5">
-      <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
-        <div class="flex flex-col">
-          <h2 class="text-foreground text-lg font-semibold tracking-tighter">Web Analytics</h2>
-          <ClientOnly>
-            <span
-              v-if="formatDate(startDate) && formatDate(endDate)"
-              class="text-foreground/70 text-sm font-medium tracking-tighter"
-            >
-              {{ formatDate(startDate) }}
-              <span v-if="formatDate(startDate) !== formatDate(endDate)">
-                - {{ formatDate(endDate) }}</span
-              >
-            </span>
-          </ClientOnly>
-        </div>
-
-        <div class="ml-auto flex shrink-0 items-center gap-2">
-          <ClientOnly>
-            <DateRangeSelect v-model="selectedRange" />
-          </ClientOnly>
-        </div>
+    <!-- Quick Actions -->
+    <section class="flex flex-col gap-y-4">
+      <div class="flex items-center gap-x-2">
+        <Icon name="hugeicons:flash" class="text-primary size-5" />
+        <h3 class="text-foreground text-base font-semibold tracking-tight">Quick Actions</h3>
       </div>
 
-      <div class="space-y-6 pb-10">
-        <div v-if="aggregatedChartData?.length >= 2" class="frame">
-          <div class="frame-header">
-            <div class="flex items-center justify-between gap-2">
-              <div class="flex flex-col gap-y-1">
-                <h6 class="text-foreground text-base font-medium tracking-tighter">
-                  {{ selectedMetricInfo?.label }}
-                </h6>
-                <p class="text-muted-foreground xs:block hidden text-xs tracking-tight">
-                  {{ selectedMetricInfo?.description }}
-                </p>
-              </div>
-              <Select v-model="selectedMetric" class="absolute top-2 right-2">
-                <SelectTrigger data-size="sm" class="w-36">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem
-                    v-for="option in metricOptions"
-                    :key="option.value"
-                    :value="option.value"
-                  >
-                    {{ option.label }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <ChartLine
-            :data="aggregatedChartData"
-            :config="aggregatedChartConfig"
-            :data-key="selectedMetric"
-            :gradient="true"
-            class="bg-background h-auto! overflow-hidden rounded-xl border py-2.5"
-          />
-        </div>
-
-        <AnalyticsSummaryCards :metrics="summaryMetrics" :property-breakdown="propertyBreakdown" />
-
-        <div class="flex items-center justify-center">
-          <NuxtLink
-            to="/web-analytics"
-            class="bg-muted text-foreground hover:bg-border flex items-center gap-x-1.5 rounded-lg px-3 py-2 text-sm font-medium tracking-tight transition active:scale-98"
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <NuxtLink
+          v-if="canCreatePost"
+          to="/posts/create"
+          class="group bg-card hover:border-primary/50 flex flex-col items-center gap-y-3 rounded-xl border p-4 transition-all hover:shadow-sm active:scale-98"
+        >
+          <div
+            class="bg-primary/10 group-hover:bg-primary/20 flex size-12 items-center justify-center rounded-xl transition-colors"
           >
-            <span>Full Report</span>
-            <Icon name="hugeicons:arrow-right-02" class="size-4 shrink-0" />
-          </NuxtLink>
-        </div>
-      </div>
-    </div>
+            <Icon name="hugeicons:quill-write-02" class="text-primary size-6" />
+          </div>
+          <span class="text-foreground text-sm font-medium tracking-tight">New Post</span>
+        </NuxtLink>
 
-    <LoadingState v-else-if="canViewAnalytics && loading" />
+        <NuxtLink
+          v-if="canCreateLink"
+          to="/links/create"
+          class="group bg-card hover:border-violet-500/50 flex flex-col items-center gap-y-3 rounded-xl border p-4 transition-all hover:shadow-sm active:scale-98"
+        >
+          <div
+            class="flex size-12 items-center justify-center rounded-xl bg-violet-500/10 transition-colors group-hover:bg-violet-500/20"
+          >
+            <Icon name="hugeicons:link-02" class="size-6 text-violet-600 dark:text-violet-400" />
+          </div>
+          <span class="text-foreground text-sm font-medium tracking-tight">New Link</span>
+        </NuxtLink>
+
+        <NuxtLink
+          v-if="canCreateProject"
+          to="/projects/create"
+          class="group bg-card hover:border-emerald-500/50 flex flex-col items-center gap-y-3 rounded-xl border p-4 transition-all hover:shadow-sm active:scale-98"
+        >
+          <div
+            class="flex size-12 items-center justify-center rounded-xl bg-emerald-500/10 transition-colors group-hover:bg-emerald-500/20"
+          >
+            <Icon
+              name="hugeicons:folder-add"
+              class="size-6 text-emerald-600 dark:text-emerald-400"
+            />
+          </div>
+          <span class="text-foreground text-sm font-medium tracking-tight">New Project</span>
+        </NuxtLink>
+
+        <NuxtLink
+          to="/qr"
+          class="group bg-card hover:border-amber-500/50 flex flex-col items-center gap-y-3 rounded-xl border p-4 transition-all hover:shadow-sm active:scale-98"
+        >
+          <div
+            class="flex size-12 items-center justify-center rounded-xl bg-amber-500/10 transition-colors group-hover:bg-amber-500/20"
+          >
+            <Icon name="hugeicons:qr-code" class="size-6 text-amber-600 dark:text-amber-400" />
+          </div>
+          <span class="text-foreground text-sm font-medium tracking-tight">QR Code</span>
+        </NuxtLink>
+      </div>
+    </section>
+
+    <!-- Browse Features -->
+    <section class="flex flex-col gap-y-4">
+      <div class="flex items-center gap-x-2">
+        <Icon name="hugeicons:dashboard-square-02" class="text-muted-foreground size-5" />
+        <h3 class="text-foreground text-base font-semibold tracking-tight">Browse</h3>
+      </div>
+
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <!-- Inbox -->
+        <NuxtLink
+          v-if="canViewInbox"
+          to="/inbox"
+          class="group bg-card hover:bg-muted/50 flex items-start gap-x-4 rounded-xl border p-4 transition-all hover:shadow-sm active:scale-98"
+        >
+          <div
+            class="flex size-11 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 transition-colors group-hover:bg-rose-500/20"
+          >
+            <Icon name="hugeicons:mail-open-love" class="size-5 text-rose-600 dark:text-rose-400" />
+          </div>
+          <div class="flex flex-col gap-y-0.5">
+            <span class="text-foreground text-sm font-semibold tracking-tight">Inbox</span>
+            <span class="text-muted-foreground text-xs tracking-tight"
+              >View contact form submissions</span
+            >
+          </div>
+        </NuxtLink>
+
+        <!-- Posts -->
+        <NuxtLink
+          v-if="canViewPosts"
+          to="/posts"
+          class="group bg-card hover:bg-muted/50 flex items-start gap-x-4 rounded-xl border p-4 transition-all hover:shadow-sm active:scale-98"
+        >
+          <div
+            class="bg-primary/10 group-hover:bg-primary/20 flex size-11 shrink-0 items-center justify-center rounded-lg transition-colors"
+          >
+            <Icon name="hugeicons:task-edit-01" class="text-primary size-5" />
+          </div>
+          <div class="flex flex-col gap-y-0.5">
+            <span class="text-foreground text-sm font-semibold tracking-tight">Posts</span>
+            <span class="text-muted-foreground text-xs tracking-tight"
+              >Manage your blog content</span
+            >
+          </div>
+        </NuxtLink>
+
+        <!-- Short Links -->
+        <NuxtLink
+          v-if="canViewLinks"
+          to="/links"
+          class="group bg-card hover:bg-muted/50 flex items-start gap-x-4 rounded-xl border p-4 transition-all hover:shadow-sm active:scale-98"
+        >
+          <div
+            class="flex size-11 shrink-0 items-center justify-center rounded-lg bg-violet-500/10 transition-colors group-hover:bg-violet-500/20"
+          >
+            <Icon name="hugeicons:unlink-02" class="size-5 text-violet-600 dark:text-violet-400" />
+          </div>
+          <div class="flex flex-col gap-y-0.5">
+            <span class="text-foreground text-sm font-semibold tracking-tight"
+              >Short Links & QR</span
+            >
+            <span class="text-muted-foreground text-xs tracking-tight"
+              >Manage short URLs & dynamic QR</span
+            >
+          </div>
+        </NuxtLink>
+
+        <!-- Projects -->
+        <NuxtLink
+          v-if="canViewProjects"
+          to="/projects"
+          class="group bg-card hover:bg-muted/50 flex items-start gap-x-4 rounded-xl border p-4 transition-all hover:shadow-sm active:scale-98"
+        >
+          <div
+            class="flex size-11 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 transition-colors group-hover:bg-emerald-500/20"
+          >
+            <Icon name="hugeicons:layers-01" class="size-5 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <div class="flex flex-col gap-y-0.5">
+            <span class="text-foreground text-sm font-semibold tracking-tight">Projects</span>
+            <span class="text-muted-foreground text-xs tracking-tight"
+              >Manage portfolios & projects</span
+            >
+          </div>
+        </NuxtLink>
+
+        <!-- Web Analytics -->
+        <NuxtLink
+          v-if="canViewAnalytics"
+          to="/web-analytics"
+          class="group bg-card hover:bg-muted/50 flex items-start gap-x-4 rounded-xl border p-4 transition-all hover:shadow-sm active:scale-98"
+        >
+          <div
+            class="flex size-11 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 transition-colors group-hover:bg-sky-500/20"
+          >
+            <Icon
+              name="hugeicons:analysis-text-link"
+              class="size-5 text-sky-600 dark:text-sky-400"
+            />
+          </div>
+          <div class="flex flex-col gap-y-0.5">
+            <span class="text-foreground text-sm font-semibold tracking-tight">Web Analytics</span>
+            <span class="text-muted-foreground text-xs tracking-tight"
+              >View traffic & visitor stats</span
+            >
+          </div>
+        </NuxtLink>
+
+        <!-- API Consumers -->
+        <NuxtLink
+          v-if="canViewApiConsumers"
+          to="/api-consumers"
+          class="group bg-card hover:bg-muted/50 flex items-start gap-x-4 rounded-xl border p-4 transition-all hover:shadow-sm active:scale-98"
+        >
+          <div
+            class="flex size-11 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 transition-colors group-hover:bg-indigo-500/20"
+          >
+            <Icon name="hugeicons:api" class="size-5 text-indigo-600 dark:text-indigo-400" />
+          </div>
+          <div class="flex flex-col gap-y-0.5">
+            <span class="text-foreground text-sm font-semibold tracking-tight">API Consumers</span>
+            <span class="text-muted-foreground text-xs tracking-tight"
+              >Manage external API access</span
+            >
+          </div>
+        </NuxtLink>
+      </div>
+    </section>
+
+    <!-- Admin Section -->
+    <section v-if="showAdminSection" class="flex flex-col gap-y-4">
+      <div class="flex items-center gap-x-2">
+        <Icon name="hugeicons:setting-06" class="text-muted-foreground size-5" />
+        <h3 class="text-foreground text-base font-semibold tracking-tight">Administration</h3>
+      </div>
+
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <!-- Users -->
+        <NuxtLink
+          v-if="canViewUsers"
+          to="/users"
+          class="group bg-card hover:bg-muted/50 flex items-center gap-x-3 rounded-xl border p-3 transition-all hover:shadow-sm active:scale-98"
+        >
+          <div
+            class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-slate-500/10 transition-colors group-hover:bg-slate-500/20"
+          >
+            <Icon name="hugeicons:user-group" class="size-4.5 text-slate-600 dark:text-slate-400" />
+          </div>
+          <span class="text-foreground text-sm font-medium tracking-tight">Users</span>
+        </NuxtLink>
+
+        <!-- Roles -->
+        <NuxtLink
+          v-if="canViewRoles"
+          to="/roles"
+          class="group bg-card hover:bg-muted/50 flex items-center gap-x-3 rounded-xl border p-3 transition-all hover:shadow-sm active:scale-98"
+        >
+          <div
+            class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-cyan-500/10 transition-colors group-hover:bg-cyan-500/20"
+          >
+            <Icon
+              name="hugeicons:user-settings-01"
+              class="size-4.5 text-cyan-600 dark:text-cyan-400"
+            />
+          </div>
+          <span class="text-foreground text-sm font-medium tracking-tight">Roles</span>
+        </NuxtLink>
+
+        <!-- Permissions -->
+        <NuxtLink
+          v-if="canViewPermissions"
+          to="/permissions"
+          class="group bg-card hover:bg-muted/50 flex items-center gap-x-3 rounded-xl border p-3 transition-all hover:shadow-sm active:scale-98"
+        >
+          <div
+            class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-orange-500/10 transition-colors group-hover:bg-orange-500/20"
+          >
+            <Icon
+              name="hugeicons:shield-key"
+              class="size-4.5 text-orange-600 dark:text-orange-400"
+            />
+          </div>
+          <span class="text-foreground text-sm font-medium tracking-tight">Permissions</span>
+        </NuxtLink>
+
+        <!-- GA Properties -->
+        <NuxtLink
+          v-if="isMaster"
+          to="/ga-properties"
+          class="group bg-card hover:bg-muted/50 flex items-center gap-x-3 rounded-xl border p-3 transition-all hover:shadow-sm active:scale-98"
+        >
+          <div
+            class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-green-500/10 transition-colors group-hover:bg-green-500/20"
+          >
+            <Icon name="hugeicons:analytics-01" class="size-4.5 text-green-600 dark:text-green-400" />
+          </div>
+          <span class="text-foreground text-sm font-medium tracking-tight">GA Properties</span>
+        </NuxtLink>
+
+        <!-- Activity Logs -->
+        <NuxtLink
+          v-if="canViewLogs"
+          to="/logs"
+          class="group bg-card hover:bg-muted/50 flex items-center gap-x-3 rounded-xl border p-3 transition-all hover:shadow-sm active:scale-98"
+        >
+          <div
+            class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-pink-500/10 transition-colors group-hover:bg-pink-500/20"
+          >
+            <Icon name="hugeicons:activity-03" class="size-4.5 text-pink-600 dark:text-pink-400" />
+          </div>
+          <span class="text-foreground text-sm font-medium tracking-tight">Activity Logs</span>
+        </NuxtLink>
+
+        <!-- Settings -->
+        <NuxtLink
+          to="/settings/profile"
+          class="group bg-card hover:bg-muted/50 flex items-center gap-x-3 rounded-xl border p-3 transition-all hover:shadow-sm active:scale-98"
+        >
+          <div
+            class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gray-500/10 transition-colors group-hover:bg-gray-500/20"
+          >
+            <Icon name="hugeicons:settings-01" class="size-4.5 text-gray-600 dark:text-gray-400" />
+          </div>
+          <span class="text-foreground text-sm font-medium tracking-tight">Settings</span>
+        </NuxtLink>
+      </div>
+    </section>
   </div>
 </template>
 
 <script setup>
-import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
-
-const { $dayjs } = useNuxtApp();
-const { hasPermission } = usePermission();
-
-// Check if user has analytics permission
-const canViewAnalytics = computed(() => hasPermission("analytics.view"));
+const { hasPermission, hasRole } = usePermission();
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -105,299 +312,34 @@ definePageMeta({
 
 usePageMeta("dashboard");
 
-// Load selected range from localStorage immediately (client-side only)
-const getInitialRange = () => {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem("dashboard_selected_range") || "30";
-  }
-  return "30";
-};
+// Permission checks for Quick Actions
+const canCreatePost = computed(() => hasPermission("posts.create"));
+const canCreateLink = computed(() => hasPermission("short_links.create"));
+const canCreateProject = computed(() => hasPermission("projects.create"));
 
-const getInitialMetric = () => {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem("dashboard_selected_metric") || "activeUsers";
-  }
-  return "activeUsers";
-};
+// Permission checks for Browse section
+const canViewInbox = computed(() => hasPermission("contact_forms.read"));
+const canViewPosts = computed(() => hasPermission("posts.read"));
+const canViewLinks = computed(() => hasPermission("short_links.read"));
+const canViewProjects = computed(() => hasPermission("projects.read"));
+const canViewAnalytics = computed(() => hasPermission("analytics.view"));
+const canViewApiConsumers = computed(() => hasPermission("api_consumers.read"));
 
-const selectedRange = ref(getInitialRange());
+// Permission checks for Admin section
+const canViewUsers = computed(() => hasPermission("users.read"));
+const canViewRoles = computed(() => hasPermission("roles.read"));
+const canViewPermissions = computed(() => hasPermission("permissions.read"));
+const canViewLogs = computed(() => hasPermission("admin.logs"));
+const isMaster = computed(() => hasRole("master"));
 
-// Selected metric for chart
-const selectedMetric = ref(getInitialMetric());
-
-// Metric options for chart
-const metricOptions = [
-  {
-    value: "activeUsers",
-    label: "Active Visitors",
-    description: "Visitors who truly engaged with your site",
-  },
-  {
-    value: "totalUsers",
-    label: "Total Visitors",
-    description: "All unique visitors who ever came",
-  },
-  {
-    value: "newUsers",
-    label: "New Visitors",
-    description: "First-time visitors to your site",
-  },
-  {
-    value: "sessions",
-    label: "Sessions",
-    description: "How many times your site was opened",
-  },
-  {
-    value: "screenPageViews",
-    label: "Page Views",
-    description: "Total count of pages being viewed",
-  },
-];
-
-// Get selected metric info
-const selectedMetricInfo = computed(() => {
-  return metricOptions.find((m) => m.value === selectedMetric.value);
-});
-
-// Watch for changes and save to localStorage
-watch(selectedRange, async (newValue) => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("dashboard_selected_range", newValue);
-  }
-  await changeDateRange(newValue);
-});
-
-// Watch selectedMetric and save to localStorage
-watch(selectedMetric, (newValue) => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("dashboard_selected_metric", newValue);
-  }
-});
-
-// Fetch analytics data
-const { aggregateData, loading, fetchAnalytics, changeDateRange, startRealtimeRefresh } =
-  useMergedAnalytics(selectedRange.value);
-
-/**
- * Calculate start and end dates based on the selected range
- */
-const getDateRange = (range) => {
-  const today = $dayjs();
-
-  switch (range) {
-    case "today":
-      return { start: today.startOf("day"), end: today.endOf("day") };
-    case "yesterday":
-      return {
-        start: today.subtract(1, "day").startOf("day"),
-        end: today.subtract(1, "day").endOf("day"),
-      };
-    case "this_week":
-      return { start: today.startOf("week"), end: today.endOf("day") };
-    case "last_week":
-      return {
-        start: today.subtract(1, "week").startOf("week"),
-        end: today.subtract(1, "week").endOf("week"),
-      };
-    case "this_month":
-      return { start: today.startOf("month"), end: today.endOf("day") };
-    case "last_month":
-      return {
-        start: today.subtract(1, "month").startOf("month"),
-        end: today.subtract(1, "month").endOf("month"),
-      };
-    case "this_year":
-      return { start: today.startOf("year"), end: today.endOf("day") };
-    default:
-      // Numeric values like 7, 30, 90, 365 - "last N days"
-      const days = parseInt(range);
-      return { start: today.subtract(days - 1, "day").startOf("day"), end: today.endOf("day") };
-  }
-};
-
-const dateRange = computed(() => getDateRange(selectedRange.value));
-const startDate = computed(() => dateRange.value.start);
-const endDate = computed(() => dateRange.value.end);
-
-const formatDate = (date) => date.format("MMM D");
-
-// Fetch analytics on client-side mount
-onMounted(async () => {
-  // Start realtime refresh for online users
-  startRealtimeRefresh();
-
-  // Fetch aggregate data (will use cache if available)
-  // Composable handles cache checking internally
-  await fetchAnalytics();
-});
-
-// Metric configurations
-const METRIC_CONFIGS = [
-  {
-    key: "onlineUsers",
-    label: "Online Now",
-    description: "People viewing your site right now",
-    icon: "hugeicons:wifi-02",
-    bgClass: "bg-green-500/10",
-    iconClass: "text-green-700 dark:text-green-400",
-  },
-  {
-    key: "activeUsers",
-    label: "Active Visitors",
-    description: "Visitors who truly engaged with your site",
-    icon: "hugeicons:user-multiple-02",
-    bgClass: "bg-blue-500/10",
-    iconClass: "text-blue-700 dark:text-blue-400",
-  },
-  {
-    key: "newUsers",
-    label: "New Visitors",
-    description: "First-time visitors to your site",
-    icon: "hugeicons:user-add-02",
-    bgClass: "bg-sky-500/10",
-    iconClass: "text-sky-700 dark:text-sky-400",
-  },
-  {
-    key: "totalUsers",
-    label: "Total Visitors",
-    description: "All unique visitors who ever came",
-    icon: "hugeicons:user-group",
-    bgClass: "bg-purple-500/10",
-    iconClass: "text-purple-700 dark:text-purple-400",
-  },
-  {
-    key: "sessions",
-    label: "Total Sessions",
-    description: "How many times your site was opened",
-    icon: "hugeicons:cursor-pointer-02",
-    bgClass: "bg-indigo-500/10",
-    iconClass: "text-indigo-700 dark:text-indigo-400",
-  },
-  {
-    key: "screenPageViews",
-    label: "Page Views",
-    description: "Total count of pages being viewed",
-    icon: "hugeicons:view",
-    bgClass: "bg-pink-500/10",
-    iconClass: "text-pink-700 dark:text-pink-400",
-  },
-  {
-    key: "bounceRate",
-    label: "Bounce Rate",
-    description: "Visitors who left immediately",
-    format: "percent",
-    icon: "hugeicons:undo-02",
-    bgClass: "bg-red-500/10",
-    iconClass: "text-red-700 dark:text-red-400",
-  },
-  {
-    key: "averageSessionDuration",
-    label: "Average Duration",
-    description: "How long visitors stay on your site",
-    format: "duration",
-    icon: "hugeicons:time-quarter-02",
-    bgClass: "bg-yellow-500/10",
-    iconClass: "text-yellow-700 dark:text-yellow-400",
-  },
-];
-
-const formatNumber = (value) => {
-  if (value == null) return "0";
-  return new Intl.NumberFormat().format(Math.round(value));
-};
-
-const formatPercent = (value) => {
-  if (value == null) return "0%";
-  return `${(value * 100).toFixed(1)}%`;
-};
-
-const formatDuration = (seconds) => {
-  if (!seconds) return "0m 0s";
-  const minutes = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${minutes}m ${secs}s`;
-};
-
-const summaryMetrics = computed(() => {
-  if (!aggregateData.value?.totals) return [];
-
-  const totals = aggregateData.value.totals;
-
-  return METRIC_CONFIGS.map((config) => {
-    const value = totals[config.key] || 0;
-    const computedValue = config.format === "percent" ? value * 100 : value;
-    const formattedValue =
-      config.format === "percent"
-        ? formatPercent(value)
-        : config.format === "duration"
-          ? formatDuration(value)
-          : formatNumber(value);
-
-    return {
-      ...config,
-      value: computedValue,
-      formattedValue,
-    };
-  });
-});
-
-const propertyBreakdown = computed(() => {
-  const breakdown = aggregateData.value?.property_breakdown || [];
-  return [...breakdown].sort((a, b) => {
-    const aUsers = a.metrics?.activeUsers || 0;
-    const bUsers = b.metrics?.activeUsers || 0;
-    return bUsers - aUsers;
-  });
-});
-
-// Aggregate daily chart data from all properties
-const aggregatedChartData = computed(() => {
-  if (!propertyBreakdown.value || propertyBreakdown.value.length === 0) {
-    return [];
-  }
-
-  const dailyDataMap = new Map();
-
-  propertyBreakdown.value.forEach((property) => {
-    if (property.rows && Array.isArray(property.rows)) {
-      property.rows.forEach((row) => {
-        const date = row.date;
-
-        if (!dailyDataMap.has(date)) {
-          dailyDataMap.set(date, {
-            activeUsers: 0,
-            totalUsers: 0,
-            newUsers: 0,
-            sessions: 0,
-            screenPageViews: 0,
-          });
-        }
-
-        const existing = dailyDataMap.get(date);
-        existing.activeUsers += row.activeUsers || 0;
-        existing.totalUsers += row.totalUsers || 0;
-        existing.newUsers += row.newUsers || 0;
-        existing.sessions += row.sessions || 0;
-        existing.screenPageViews += row.screenPageViews || 0;
-      });
-    }
-  });
-
-  return Array.from(dailyDataMap.entries())
-    .map(([date, metrics]) => ({
-      date: new Date(date),
-      ...metrics,
-    }))
-    .sort((a, b) => a.date - b.date);
-});
-
-const aggregatedChartConfig = computed(() => {
-  const metricConfig = metricOptions.find((m) => m.value === selectedMetric.value);
-  return {
-    [selectedMetric.value]: {
-      label: metricConfig?.label || "Metric",
-      color: "var(--chart-1)",
-    },
-  };
+// Show admin section if user has any admin permission
+const showAdminSection = computed(() => {
+  return (
+    canViewUsers.value ||
+    canViewRoles.value ||
+    canViewPermissions.value ||
+    canViewLogs.value ||
+    isMaster.value
+  );
 });
 </script>

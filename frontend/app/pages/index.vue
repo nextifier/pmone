@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-10 pb-16 lg:space-y-16">
     <Hero />
-    <LazyBlogPostSlider />
+    <!-- <LazyBlogPostSlider /> -->
   </div>
 </template>
 

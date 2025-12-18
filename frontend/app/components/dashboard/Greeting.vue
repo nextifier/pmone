@@ -26,10 +26,10 @@
           aria-hidden="true"
           >{{ timeGreeting }}</span
         ></span
-      ><span class="inline-block">, {{ firstName }}!</span>
+      ><span class="inline-block">, {{ user?.name || "User" }}!</span>
     </span>
 
-    <template #fallback> Hello, {{ firstName }}!</template>
+    <template #fallback> Hello, {{ user?.name || "User" }}!</template>
   </ClientOnly>
 </template>
 

@@ -19,9 +19,9 @@ export default defineNuxtConfig({
     },
   },
 
-  routeRules: {
-    "/": { redirect: "/dashboard" },
-  },
+  //   routeRules: {
+  //     "/": { redirect: "/dashboard" },
+  //   },
 
   app: {
     head: {
