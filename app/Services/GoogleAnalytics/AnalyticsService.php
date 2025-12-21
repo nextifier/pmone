@@ -164,8 +164,10 @@ class AnalyticsService
      * Get aggregated analytics from all active properties with cache-first strategy.
      * CRITICAL: Always return cache immediately if available, NEVER wait for fresh data.
      * Uses dynamic cache TTL based on period length for optimal performance.
+     *
+     * @param  bool  $includeComparison  Whether to include comparison data from previous period
      */
-    public function getAggregatedAnalytics(Period $period, ?array $propertyIds = null): array
+    public function getAggregatedAnalytics(Period $period, ?array $propertyIds = null, bool $includeComparison = false): array
     {
         // Create cache key for aggregate data using centralized generator
         $cacheKey = CacheKey::forAggregate($propertyIds, $period->startDate, $period->endDate);
@@ -323,6 +325,118 @@ class AnalyticsService
 
             return $this->getEmptyDataStructure($period, false, $e->getMessage());
         }
+    }
+
+    /**
+     * Get aggregated analytics with comparison data from previous period.
+     * Fetches both current and previous period data and calculates changes.
+     */
+    public function getAggregatedAnalyticsWithComparison(Period $currentPeriod, ?array $propertyIds = null): array
+    {
+        // Calculate previous period with same duration
+        $duration = $currentPeriod->startDate->diffInDays($currentPeriod->endDate);
+        $previousStart = $currentPeriod->startDate->copy()->subDays($duration + 1);
+        $previousEnd = $currentPeriod->startDate->copy()->subDay();
+        $previousPeriod = Period::create($previousStart, $previousEnd);
+
+        // Fetch current period data
+        $currentData = $this->getAggregatedAnalytics($currentPeriod, $propertyIds);
+
+        // Fetch previous period data (for comparison)
+        $previousData = $this->getAggregatedAnalytics($previousPeriod, $propertyIds);
+
+        // Calculate comparison changes for totals
+        $comparison = $this->calculateChanges(
+            $currentData['totals'] ?? [],
+            $previousData['totals'] ?? []
+        );
+
+        // Build previous period rows indexed by date for chart comparison
+        $previousRows = $this->buildPreviousRowsForComparison(
+            $currentData['property_breakdown'] ?? [],
+            $previousData['property_breakdown'] ?? [],
+            $currentPeriod,
+            $previousPeriod
+        );
+
+        // Add comparison data to current data
+        return array_merge($currentData, [
+            'comparison' => [
+                'changes' => $comparison,
+                'previous_period' => [
+                    'start_date' => $previousPeriod->startDate->format('Y-m-d'),
+                    'end_date' => $previousPeriod->endDate->format('Y-m-d'),
+                    'days' => $duration + 1,
+                ],
+                'previous_totals' => $previousData['totals'] ?? [],
+                'previous_rows' => $previousRows,
+            ],
+        ]);
+    }
+
+    /**
+     * Build previous rows aligned with current period dates for chart comparison.
+     * Maps previous period dates to current period dates for overlay display.
+     */
+    protected function buildPreviousRowsForComparison(
+        array $currentPropertyBreakdown,
+        array $previousPropertyBreakdown,
+        Period $currentPeriod,
+        Period $previousPeriod
+    ): array {
+        // Aggregate daily data from previous period properties
+        $previousDailyData = [];
+
+        foreach ($previousPropertyBreakdown as $property) {
+            if (! isset($property['rows']) || ! is_array($property['rows'])) {
+                continue;
+            }
+
+            foreach ($property['rows'] as $row) {
+                $date = $row['date'];
+
+                if (! isset($previousDailyData[$date])) {
+                    $previousDailyData[$date] = [
+                        'activeUsers' => 0,
+                        'totalUsers' => 0,
+                        'newUsers' => 0,
+                        'sessions' => 0,
+                        'screenPageViews' => 0,
+                    ];
+                }
+
+                $previousDailyData[$date]['activeUsers'] += $row['activeUsers'] ?? 0;
+                $previousDailyData[$date]['totalUsers'] += $row['totalUsers'] ?? 0;
+                $previousDailyData[$date]['newUsers'] += $row['newUsers'] ?? 0;
+                $previousDailyData[$date]['sessions'] += $row['sessions'] ?? 0;
+                $previousDailyData[$date]['screenPageViews'] += $row['screenPageViews'] ?? 0;
+            }
+        }
+
+        // Map previous dates to current dates (align by day offset)
+        $currentStart = $currentPeriod->startDate->copy();
+        $previousStart = $previousPeriod->startDate->copy();
+        $daysDiff = $previousStart->diffInDays($currentStart);
+
+        $mappedRows = [];
+        foreach ($previousDailyData as $prevDate => $metrics) {
+            // Calculate offset from previous start date
+            $prevDateObj = \Carbon\Carbon::parse($prevDate);
+            $dayOffset = $previousStart->diffInDays($prevDateObj);
+
+            // Map to corresponding current date
+            $mappedDate = $currentStart->copy()->addDays($dayOffset)->format('Y-m-d');
+
+            $mappedRows[] = array_merge($metrics, [
+                'date' => $mappedDate,
+                'original_date' => $prevDate,
+            ]);
+        }
+
+        // Sort by mapped date
+        usort($mappedRows, fn ($a, $b) => strcmp($a['date'], $b['date']));
+
+        return $mappedRows;
     }
 
     /**

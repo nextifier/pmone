@@ -151,6 +151,8 @@
             :config="aggregatedChartConfig"
             :gradient="true"
             :data-key="selectedMetric"
+            :comparison-data="comparisonChartData"
+            :comparison-label="getPreviousPeriodLabel()"
             class="bg-background h-auto! overflow-hidden rounded-xl border py-2.5"
           />
         </div>
@@ -504,6 +506,7 @@ const summaryMetrics = computed(() => {
   if (!aggregateData.value?.totals) return [];
 
   const totals = aggregateData.value.totals;
+  const changes = comparisonChanges.value;
 
   return METRIC_CONFIGS.map((config) => {
     const value = totals[config.key] || 0;
@@ -515,10 +518,17 @@ const summaryMetrics = computed(() => {
           ? formatDuration(value)
           : formatNumber(value);
 
+    // Get comparison data for this metric
+    const metricChange = changes?.[config.key];
+    const percentageChange = metricChange?.percentage_change ?? null;
+    const trend = metricChange?.trend ?? null;
+
     return {
       ...config,
       value: computedValue,
       formattedValue,
+      percentageChange,
+      trend,
     };
   });
 });
@@ -574,6 +584,29 @@ const aggregatedChartData = computed(() => {
       ...metrics,
     }))
     .sort((a, b) => a.date - b.date);
+});
+
+// Comparison chart data from previous period
+const comparisonChartData = computed(() => {
+  const previousRows = aggregateData.value?.comparison?.previous_rows;
+  if (!previousRows || previousRows.length === 0) {
+    return [];
+  }
+
+  // Convert to chart format with Date objects
+  return previousRows.map((row) => ({
+    date: new Date(row.date),
+    activeUsers: row.activeUsers || 0,
+    totalUsers: row.totalUsers || 0,
+    newUsers: row.newUsers || 0,
+    sessions: row.sessions || 0,
+    screenPageViews: row.screenPageViews || 0,
+  }));
+});
+
+// Get comparison changes for metrics
+const comparisonChanges = computed(() => {
+  return aggregateData.value?.comparison?.changes || null;
 });
 
 const aggregatedChartConfig = computed(() => {
@@ -632,6 +665,16 @@ const DATE_RANGE_LABELS = {
 
 const getDateRangeLabel = () => {
   return DATE_RANGE_LABELS[selectedRange.value] || `Last ${selectedRange.value} days`;
+};
+
+const getPreviousPeriodLabel = () => {
+  const prevPeriod = aggregateData.value?.comparison?.previous_period;
+  if (!prevPeriod) {
+    return "Previous Period";
+  }
+  const startDate = $dayjs(prevPeriod.start_date).format("MMM D");
+  const endDate = $dayjs(prevPeriod.end_date).format("MMM D");
+  return startDate === endDate ? startDate : `${startDate} - ${endDate}`;
 };
 
 const formatNumber = (value) => {

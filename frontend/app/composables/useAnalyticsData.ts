@@ -2,8 +2,11 @@
  * Composable for managing analytics data fetching and caching.
  * Provides reactive state and auto-refresh capabilities.
  * Uses Pinia store for cross-page caching.
+ *
+ * @param initialPeriod - Initial period to fetch (days number or named period)
+ * @param withComparison - Whether to include comparison data from previous period
  */
-export function useAnalyticsData(initialPeriod: string | number = 30) {
+export function useAnalyticsData(initialPeriod: string | number = 30, withComparison: boolean = true) {
   const client = useSanctumClient();
   const analyticsStore = useAnalyticsStore();
 
@@ -93,7 +96,10 @@ export function useAnalyticsData(initialPeriod: string | number = 30) {
     error.value = null;
 
     try {
-      const params = getPeriodParams(selectedPeriod.value);
+      const params = {
+        ...getPeriodParams(selectedPeriod.value),
+        with_comparison: withComparison,
+      };
       const response = await client(`/api/google-analytics/aggregate`, {
         params,
         signal: abortController.signal,

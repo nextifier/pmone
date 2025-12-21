@@ -229,6 +229,7 @@ class GoogleAnalyticsController extends Controller
 
     /**
      * Get aggregated analytics from multiple/all properties.
+     * Optionally include comparison data with previous period.
      */
     public function getAggregatedAnalytics(GetAnalyticsRequest $request): JsonResponse
     {
@@ -245,8 +246,14 @@ class GoogleAnalyticsController extends Controller
 
         $period = $this->createPeriodFromRequest($request);
         $propertyIds = $request->input('property_ids');
+        $withComparison = filter_var($request->input('with_comparison', false), FILTER_VALIDATE_BOOLEAN);
 
-        $analytics = $this->analyticsService->getAggregatedAnalytics($period, $propertyIds);
+        // Use comparison method if requested
+        if ($withComparison) {
+            $analytics = $this->analyticsService->getAggregatedAnalyticsWithComparison($period, $propertyIds);
+        } else {
+            $analytics = $this->analyticsService->getAggregatedAnalytics($period, $propertyIds);
+        }
 
         return response()->json($analytics);
     }

@@ -35,7 +35,7 @@
           </div>
         </div>
 
-        <div>
+        <div class="flex items-end gap-x-2">
           <NumberFlow
             class="text-foreground text-3xl leading-none! font-medium tracking-tighter"
             :class="{
@@ -57,6 +57,25 @@
             :suffix="{ percent: '%', duration: 's' }[metric.format]"
             @click="!['percent', 'duration'].includes(metric.format) && (isExpanded = !isExpanded)"
           />
+
+          <!-- Percentage Change Badge -->
+          <div
+            v-if="metric.percentageChange !== null && metric.percentageChange !== undefined"
+            class="mb-0.5 flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-medium"
+            :class="getChangeClass(metric.trend, metric.key)"
+          >
+            <Icon
+              v-if="metric.trend === 'up'"
+              name="hugeicons:arrow-up-01"
+              class="size-3.5 shrink-0"
+            />
+            <Icon
+              v-else-if="metric.trend === 'down'"
+              name="hugeicons:arrow-down-01"
+              class="size-3.5 shrink-0"
+            />
+            <span>{{ formatChangePercent(metric.percentageChange) }}</span>
+          </div>
         </div>
 
         <p class="text-muted-foreground mt-1.5 line-clamp-1 text-xs tracking-tight">
@@ -147,5 +166,33 @@ const formatDuration = (seconds) => {
   const minutes = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return minutes === 0 ? `${secs}s` : `${minutes}m ${secs}s`;
+};
+
+const formatChangePercent = (value) => {
+  if (value == null) return "0%";
+  const absValue = Math.abs(value);
+  if (absValue >= 1000) {
+    return `${(absValue / 1000).toFixed(1)}K%`;
+  }
+  return `${absValue.toFixed(1)}%`;
+};
+
+// Determine color classes for change indicator
+// For bounceRate: lower is better (down = green, up = red)
+// For other metrics: higher is better (up = green, down = red)
+const getChangeClass = (trend, metricKey) => {
+  const isInverseMetric = metricKey === "bounceRate";
+
+  if (trend === "up") {
+    return isInverseMetric
+      ? "bg-red-500/10 text-red-700 dark:text-red-400"
+      : "bg-green-500/10 text-green-700 dark:text-green-400";
+  }
+  if (trend === "down") {
+    return isInverseMetric
+      ? "bg-green-500/10 text-green-700 dark:text-green-400"
+      : "bg-red-500/10 text-red-700 dark:text-red-400";
+  }
+  return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
 };
 </script>
