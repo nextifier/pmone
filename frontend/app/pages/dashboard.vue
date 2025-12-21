@@ -1,11 +1,112 @@
 <template>
-  <div class="mx-auto flex flex-col gap-y-8 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
+  <div class="mx-auto flex flex-col gap-y-6 pt-4 pb-16 lg:max-w-5xl xl:max-w-6xl">
     <!-- Header -->
     <div class="flex flex-col gap-y-1">
       <h2 class="page-title">
         <DashboardGreeting />
       </h2>
-      <p class="page-description">What do you want to do today?</p>
+      <p class="page-description">Here's what's happening with your profile</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <DashboardStatsCard
+        title="Visits"
+        description="Profile page views"
+        :value="stats?.visits?.current ?? 0"
+        :change="stats?.visits?.change"
+        :trend="stats?.visits?.trend"
+        icon="hugeicons:view"
+        icon-color="text-emerald-600 dark:text-emerald-400"
+        :loading="loading"
+      />
+      <DashboardStatsCard
+        title="Clicks"
+        description="Link clicks on your profile"
+        :value="stats?.clicks?.current ?? 0"
+        :change="stats?.clicks?.change"
+        :trend="stats?.clicks?.trend"
+        icon="hugeicons:cursor-pointer-02"
+        icon-color="text-violet-600 dark:text-violet-400"
+        :loading="loading"
+      />
+      <DashboardStatsCard
+        v-if="canViewInbox"
+        title="Inbox"
+        description="Unread messages"
+        :value="stats?.inbox?.unread ?? 0"
+        icon="hugeicons:mail-open-love"
+        icon-color="text-rose-600 dark:text-rose-400"
+        href="/inbox"
+        :loading="loading"
+      />
+      <DashboardStatsCard
+        v-else
+        title="Links"
+        description="Your short links"
+        :value="stats?.links?.total ?? 0"
+        icon="hugeicons:link-02"
+        icon-color="text-sky-600 dark:text-sky-400"
+        href="/links"
+        :loading="loading"
+      />
+      <DashboardStatsCard
+        v-if="canViewInbox"
+        title="Active Links"
+        description="Your short links"
+        :value="stats?.links?.total ?? 0"
+        icon="hugeicons:link-02"
+        icon-color="text-sky-600 dark:text-sky-400"
+        href="/links"
+        :loading="loading"
+      />
+    </div>
+
+    <!-- Chart Section -->
+    <Card>
+      <CardHeader class="flex flex-row items-center justify-between pb-2">
+        <div class="flex flex-col gap-1">
+          <CardTitle class="text-base font-semibold tracking-tight">Visits Overview</CardTitle>
+          <CardDescription class="text-xs">Last 14 days activity</CardDescription>
+        </div>
+        <div class="bg-primary/10 flex size-9 items-center justify-center rounded-lg">
+          <Icon name="hugeicons:chart-line-data-01" class="text-primary size-4.5" />
+        </div>
+      </CardHeader>
+      <CardContent class="px-2 pb-4 pt-0 sm:px-6">
+        <template v-if="loading">
+          <div class="flex h-[180px] w-full items-center justify-center">
+            <Skeleton class="h-[140px] w-full" />
+          </div>
+        </template>
+        <template v-else-if="!chartData || chartData.length === 0">
+          <div class="flex h-[180px] w-full flex-col items-center justify-center gap-2">
+            <div class="bg-muted flex size-12 items-center justify-center rounded-full">
+              <Icon name="hugeicons:chart-line-data-01" class="text-muted-foreground size-6" />
+            </div>
+            <p class="text-muted-foreground text-sm">No visit data yet</p>
+          </div>
+        </template>
+        <template v-else>
+          <ClientOnly>
+            <ChartLine :data="chartData" :config="chartConfig" :gradient="true" data-key="count" class="h-[180px]" />
+            <template #fallback>
+              <div class="flex h-[180px] w-full items-center justify-center">
+                <Skeleton class="h-[140px] w-full" />
+              </div>
+            </template>
+          </ClientOnly>
+        </template>
+      </CardContent>
+    </Card>
+
+    <!-- Two Column Layout -->
+    <div class="grid gap-4 lg:grid-cols-2">
+      <!-- Recent Activity -->
+      <DashboardRecentActivity :visits="recentVisits" :clicks="recentClicks" :loading="loading" />
+
+      <!-- Top Links -->
+      <DashboardTopLinks :links="topLinks" :loading="loading" />
     </div>
 
     <!-- Quick Actions -->
@@ -50,10 +151,7 @@
           <div
             class="flex size-12 items-center justify-center rounded-xl bg-emerald-500/10 transition-colors group-hover:bg-emerald-500/20"
           >
-            <Icon
-              name="hugeicons:folder-add"
-              class="size-6 text-emerald-600 dark:text-emerald-400"
-            />
+            <Icon name="hugeicons:folder-add" class="size-6 text-emerald-600 dark:text-emerald-400" />
           </div>
           <span class="text-foreground text-sm font-medium tracking-tight">New Project</span>
         </NuxtLink>
@@ -93,9 +191,7 @@
           </div>
           <div class="flex flex-col gap-y-0.5">
             <span class="text-foreground text-sm font-semibold tracking-tight">Inbox</span>
-            <span class="text-muted-foreground text-xs tracking-tight"
-              >View contact form submissions</span
-            >
+            <span class="text-muted-foreground text-xs tracking-tight">View contact form submissions</span>
           </div>
         </NuxtLink>
 
@@ -112,9 +208,7 @@
           </div>
           <div class="flex flex-col gap-y-0.5">
             <span class="text-foreground text-sm font-semibold tracking-tight">Posts</span>
-            <span class="text-muted-foreground text-xs tracking-tight"
-              >Manage your blog content</span
-            >
+            <span class="text-muted-foreground text-xs tracking-tight">Manage your blog content</span>
           </div>
         </NuxtLink>
 
@@ -130,12 +224,8 @@
             <Icon name="hugeicons:unlink-02" class="size-5 text-violet-600 dark:text-violet-400" />
           </div>
           <div class="flex flex-col gap-y-0.5">
-            <span class="text-foreground text-sm font-semibold tracking-tight"
-              >Short Links & QR</span
-            >
-            <span class="text-muted-foreground text-xs tracking-tight"
-              >Manage short URLs & dynamic QR</span
-            >
+            <span class="text-foreground text-sm font-semibold tracking-tight">Short Links & QR</span>
+            <span class="text-muted-foreground text-xs tracking-tight">Manage short URLs & dynamic QR</span>
           </div>
         </NuxtLink>
 
@@ -152,9 +242,7 @@
           </div>
           <div class="flex flex-col gap-y-0.5">
             <span class="text-foreground text-sm font-semibold tracking-tight">Projects</span>
-            <span class="text-muted-foreground text-xs tracking-tight"
-              >Manage portfolios & projects</span
-            >
+            <span class="text-muted-foreground text-xs tracking-tight">Manage portfolios & projects</span>
           </div>
         </NuxtLink>
 
@@ -167,16 +255,11 @@
           <div
             class="flex size-11 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 transition-colors group-hover:bg-sky-500/20"
           >
-            <Icon
-              name="hugeicons:analysis-text-link"
-              class="size-5 text-sky-600 dark:text-sky-400"
-            />
+            <Icon name="hugeicons:analysis-text-link" class="size-5 text-sky-600 dark:text-sky-400" />
           </div>
           <div class="flex flex-col gap-y-0.5">
             <span class="text-foreground text-sm font-semibold tracking-tight">Web Analytics</span>
-            <span class="text-muted-foreground text-xs tracking-tight"
-              >View traffic & visitor stats</span
-            >
+            <span class="text-muted-foreground text-xs tracking-tight">View traffic & visitor stats</span>
           </div>
         </NuxtLink>
 
@@ -193,9 +276,7 @@
           </div>
           <div class="flex flex-col gap-y-0.5">
             <span class="text-foreground text-sm font-semibold tracking-tight">API Consumers</span>
-            <span class="text-muted-foreground text-xs tracking-tight"
-              >Manage external API access</span
-            >
+            <span class="text-muted-foreground text-xs tracking-tight">Manage external API access</span>
           </div>
         </NuxtLink>
       </div>
@@ -232,10 +313,7 @@
           <div
             class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-cyan-500/10 transition-colors group-hover:bg-cyan-500/20"
           >
-            <Icon
-              name="hugeicons:user-settings-01"
-              class="size-4.5 text-cyan-600 dark:text-cyan-400"
-            />
+            <Icon name="hugeicons:user-settings-01" class="size-4.5 text-cyan-600 dark:text-cyan-400" />
           </div>
           <span class="text-foreground text-sm font-medium tracking-tight">Roles</span>
         </NuxtLink>
@@ -249,10 +327,7 @@
           <div
             class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-orange-500/10 transition-colors group-hover:bg-orange-500/20"
           >
-            <Icon
-              name="hugeicons:shield-key"
-              class="size-4.5 text-orange-600 dark:text-orange-400"
-            />
+            <Icon name="hugeicons:shield-key" class="size-4.5 text-orange-600 dark:text-orange-400" />
           </div>
           <span class="text-foreground text-sm font-medium tracking-tight">Permissions</span>
         </NuxtLink>
@@ -304,6 +379,7 @@
 
 <script setup>
 const { hasPermission, hasRole } = usePermission();
+const client = useSanctumClient();
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -341,5 +417,55 @@ const showAdminSection = computed(() => {
     canViewLogs.value ||
     isMaster.value
   );
+});
+
+// Dashboard data
+const loading = ref(true);
+const stats = ref(null);
+const visitsChartRaw = ref([]);
+const recentVisits = ref([]);
+const recentClicks = ref([]);
+const topLinks = ref([]);
+
+// Chart data transformation for ChartLine component
+const chartData = computed(() => {
+  if (!visitsChartRaw.value || visitsChartRaw.value.length === 0) return [];
+  return visitsChartRaw.value.map((item) => ({
+    date: new Date(item.date),
+    count: item.count || 0,
+  }));
+});
+
+// Chart config for ChartLine component
+const chartConfig = {
+  count: {
+    label: "Visits",
+    color: "var(--chart-1)",
+  },
+};
+
+// Fetch dashboard stats
+const fetchDashboardStats = async () => {
+  try {
+    loading.value = true;
+    const response = await client("/api/dashboard/stats");
+
+    if (response?.data) {
+      stats.value = response.data.stats;
+      visitsChartRaw.value = response.data.visits_chart || [];
+      recentVisits.value = response.data.recent_visits || [];
+      recentClicks.value = response.data.recent_clicks || [];
+      topLinks.value = response.data.top_links || [];
+    }
+  } catch (error) {
+    console.error("Failed to fetch dashboard stats:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Fetch stats on mount
+onMounted(() => {
+  fetchDashboardStats();
 });
 </script>

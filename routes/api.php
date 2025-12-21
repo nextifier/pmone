@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\ApiConsumerController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ContactFormController;
 use App\Http\Controllers\Api\ContactFormSubmissionController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\PostAutosaveController;
@@ -23,6 +24,11 @@ use Illuminate\Support\Facades\Route;
 
 // Basic authenticated routes
 Route::middleware(['auth:sanctum'])->get('/user', [UserController::class, 'profile']);
+
+// Dashboard routes (authenticated + verified)
+Route::middleware(['auth:sanctum', 'verified'])->prefix('dashboard')->group(function () {
+    Route::get('/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
+});
 
 // Protected API routes (authenticated + verified)
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
