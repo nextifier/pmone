@@ -74,6 +74,7 @@ class SyncTodayAnalyticsJob implements ShouldBeUnique, ShouldQueue
         // Create sync log entry
         $syncLog = AnalyticsSyncLog::startSync(
             syncType: 'today',
+            gaPropertyId: null,
             days: 1,
             jobId: $this->job?->getJobId()
         );

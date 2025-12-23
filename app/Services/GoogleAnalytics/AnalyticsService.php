@@ -730,7 +730,7 @@ class AnalyticsService
                 'property_id' => $property->property_id,
                 'property_name' => $property->name,
                 'last_synced_at' => $property->last_synced_at,
-                'needs_sync' => $property->needsSync(),
+                'needs_sync' => $property->shouldSync(),
                 'sync_frequency' => $property->sync_frequency,
             ];
         }

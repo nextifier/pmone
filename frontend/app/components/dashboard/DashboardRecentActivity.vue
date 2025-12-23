@@ -3,7 +3,7 @@ interface Visitor {
   id: number;
   name: string;
   username: string;
-  profile_image: { thumbnail: string; original: string } | null;
+  profile_image: { sm: string; original: string } | null;
 }
 
 interface VisitItem {
@@ -112,7 +112,7 @@ const combinedActivities = computed(() => {
                 <template v-if="activity.type === 'visit'">
                   <template v-if="(activity.data as VisitItem).visitor?.profile_image">
                     <img
-                      :src="(activity.data as VisitItem).visitor!.profile_image!.thumbnail"
+                      :src="(activity.data as VisitItem).visitor!.profile_image!.sm"
                       :alt="(activity.data as VisitItem).visitor!.name"
                       class="size-8 rounded-full object-cover ring-2 ring-white dark:ring-zinc-900"
                     />
@@ -142,7 +142,7 @@ const combinedActivities = computed(() => {
                 <template v-else>
                   <template v-if="(activity.data as ClickItem).clicker?.profile_image">
                     <img
-                      :src="(activity.data as ClickItem).clicker!.profile_image!.thumbnail"
+                      :src="(activity.data as ClickItem).clicker!.profile_image!.sm"
                       :alt="(activity.data as ClickItem).clicker!.name"
                       class="size-8 rounded-full object-cover ring-2 ring-white dark:ring-zinc-900"
                     />

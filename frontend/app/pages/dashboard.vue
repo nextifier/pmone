@@ -63,24 +63,19 @@
     </div>
 
     <!-- Chart Section -->
-    <Card>
-      <CardHeader class="flex flex-row items-center justify-between pb-2">
-        <div class="flex flex-col gap-1">
-          <CardTitle class="text-base font-semibold tracking-tight">Visits Overview</CardTitle>
-          <CardDescription class="text-xs">Last 14 days activity</CardDescription>
-        </div>
-        <div class="bg-primary/10 flex size-9 items-center justify-center rounded-lg">
-          <Icon name="hugeicons:chart-line-data-01" class="text-primary size-4.5" />
-        </div>
-      </CardHeader>
-      <CardContent class="px-2 pb-4 pt-0 sm:px-6">
+    <div class="frame">
+      <div class="frame-header">
+        <h2 class="text-foreground text-base font-medium tracking-tight">Visits Over Time</h2>
+        <p class="text-muted-foreground text-sm tracking-tight">Last 14 days activity</p>
+      </div>
+      <div class="frame-panel px-0!">
         <template v-if="loading">
-          <div class="flex h-[180px] w-full items-center justify-center">
-            <Skeleton class="h-[140px] w-full" />
+          <div class="flex h-[40vh] w-full items-center justify-center">
+            <Spinner class="size-8" />
           </div>
         </template>
         <template v-else-if="!chartData || chartData.length === 0">
-          <div class="flex h-[180px] w-full flex-col items-center justify-center gap-2">
+          <div class="flex h-[40vh] w-full flex-col items-center justify-center gap-2">
             <div class="bg-muted flex size-12 items-center justify-center rounded-full">
               <Icon name="hugeicons:chart-line-data-01" class="text-muted-foreground size-6" />
             </div>
@@ -89,16 +84,17 @@
         </template>
         <template v-else>
           <ClientOnly>
-            <ChartLine :data="chartData" :config="chartConfig" :gradient="true" data-key="count" class="h-[180px]" />
-            <template #fallback>
-              <div class="flex h-[180px] w-full items-center justify-center">
-                <Skeleton class="h-[140px] w-full" />
-              </div>
-            </template>
+            <ChartLine
+              :data="chartData"
+              :config="chartConfig"
+              :gradient="true"
+              data-key="count"
+              class="h-auto!"
+            />
           </ClientOnly>
         </template>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
 
     <!-- Two Column Layout -->
     <div class="grid gap-4 lg:grid-cols-2">
@@ -133,7 +129,7 @@
         <NuxtLink
           v-if="canCreateLink"
           to="/links/create"
-          class="group bg-card hover:border-violet-500/50 flex flex-col items-center gap-y-3 rounded-xl border p-4 transition-all hover:shadow-sm active:scale-98"
+          class="group bg-card flex flex-col items-center gap-y-3 rounded-xl border p-4 transition-all hover:border-violet-500/50 hover:shadow-sm active:scale-98"
         >
           <div
             class="flex size-12 items-center justify-center rounded-xl bg-violet-500/10 transition-colors group-hover:bg-violet-500/20"
@@ -146,19 +142,22 @@
         <NuxtLink
           v-if="canCreateProject"
           to="/projects/create"
-          class="group bg-card hover:border-emerald-500/50 flex flex-col items-center gap-y-3 rounded-xl border p-4 transition-all hover:shadow-sm active:scale-98"
+          class="group bg-card flex flex-col items-center gap-y-3 rounded-xl border p-4 transition-all hover:border-emerald-500/50 hover:shadow-sm active:scale-98"
         >
           <div
             class="flex size-12 items-center justify-center rounded-xl bg-emerald-500/10 transition-colors group-hover:bg-emerald-500/20"
           >
-            <Icon name="hugeicons:folder-add" class="size-6 text-emerald-600 dark:text-emerald-400" />
+            <Icon
+              name="hugeicons:folder-add"
+              class="size-6 text-emerald-600 dark:text-emerald-400"
+            />
           </div>
           <span class="text-foreground text-sm font-medium tracking-tight">New Project</span>
         </NuxtLink>
 
         <NuxtLink
           to="/qr"
-          class="group bg-card hover:border-amber-500/50 flex flex-col items-center gap-y-3 rounded-xl border p-4 transition-all hover:shadow-sm active:scale-98"
+          class="group bg-card flex flex-col items-center gap-y-3 rounded-xl border p-4 transition-all hover:border-amber-500/50 hover:shadow-sm active:scale-98"
         >
           <div
             class="flex size-12 items-center justify-center rounded-xl bg-amber-500/10 transition-colors group-hover:bg-amber-500/20"
@@ -191,7 +190,9 @@
           </div>
           <div class="flex flex-col gap-y-0.5">
             <span class="text-foreground text-sm font-semibold tracking-tight">Inbox</span>
-            <span class="text-muted-foreground text-xs tracking-tight">View contact form submissions</span>
+            <span class="text-muted-foreground text-xs tracking-tight"
+              >View contact form submissions</span
+            >
           </div>
         </NuxtLink>
 
@@ -208,7 +209,9 @@
           </div>
           <div class="flex flex-col gap-y-0.5">
             <span class="text-foreground text-sm font-semibold tracking-tight">Posts</span>
-            <span class="text-muted-foreground text-xs tracking-tight">Manage your blog content</span>
+            <span class="text-muted-foreground text-xs tracking-tight"
+              >Manage your blog content</span
+            >
           </div>
         </NuxtLink>
 
@@ -224,8 +227,12 @@
             <Icon name="hugeicons:unlink-02" class="size-5 text-violet-600 dark:text-violet-400" />
           </div>
           <div class="flex flex-col gap-y-0.5">
-            <span class="text-foreground text-sm font-semibold tracking-tight">Short Links & QR</span>
-            <span class="text-muted-foreground text-xs tracking-tight">Manage short URLs & dynamic QR</span>
+            <span class="text-foreground text-sm font-semibold tracking-tight"
+              >Short Links & QR</span
+            >
+            <span class="text-muted-foreground text-xs tracking-tight"
+              >Manage short URLs & dynamic QR</span
+            >
           </div>
         </NuxtLink>
 
@@ -238,11 +245,16 @@
           <div
             class="flex size-11 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 transition-colors group-hover:bg-emerald-500/20"
           >
-            <Icon name="hugeicons:layers-01" class="size-5 text-emerald-600 dark:text-emerald-400" />
+            <Icon
+              name="hugeicons:layers-01"
+              class="size-5 text-emerald-600 dark:text-emerald-400"
+            />
           </div>
           <div class="flex flex-col gap-y-0.5">
             <span class="text-foreground text-sm font-semibold tracking-tight">Projects</span>
-            <span class="text-muted-foreground text-xs tracking-tight">Manage portfolios & projects</span>
+            <span class="text-muted-foreground text-xs tracking-tight"
+              >Manage portfolios & projects</span
+            >
           </div>
         </NuxtLink>
 
@@ -255,11 +267,16 @@
           <div
             class="flex size-11 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 transition-colors group-hover:bg-sky-500/20"
           >
-            <Icon name="hugeicons:analysis-text-link" class="size-5 text-sky-600 dark:text-sky-400" />
+            <Icon
+              name="hugeicons:analysis-text-link"
+              class="size-5 text-sky-600 dark:text-sky-400"
+            />
           </div>
           <div class="flex flex-col gap-y-0.5">
             <span class="text-foreground text-sm font-semibold tracking-tight">Web Analytics</span>
-            <span class="text-muted-foreground text-xs tracking-tight">View traffic & visitor stats</span>
+            <span class="text-muted-foreground text-xs tracking-tight"
+              >View traffic & visitor stats</span
+            >
           </div>
         </NuxtLink>
 
@@ -276,7 +293,9 @@
           </div>
           <div class="flex flex-col gap-y-0.5">
             <span class="text-foreground text-sm font-semibold tracking-tight">API Consumers</span>
-            <span class="text-muted-foreground text-xs tracking-tight">Manage external API access</span>
+            <span class="text-muted-foreground text-xs tracking-tight"
+              >Manage external API access</span
+            >
           </div>
         </NuxtLink>
       </div>
@@ -313,7 +332,10 @@
           <div
             class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-cyan-500/10 transition-colors group-hover:bg-cyan-500/20"
           >
-            <Icon name="hugeicons:user-settings-01" class="size-4.5 text-cyan-600 dark:text-cyan-400" />
+            <Icon
+              name="hugeicons:user-settings-01"
+              class="size-4.5 text-cyan-600 dark:text-cyan-400"
+            />
           </div>
           <span class="text-foreground text-sm font-medium tracking-tight">Roles</span>
         </NuxtLink>
@@ -327,7 +349,10 @@
           <div
             class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-orange-500/10 transition-colors group-hover:bg-orange-500/20"
           >
-            <Icon name="hugeicons:shield-key" class="size-4.5 text-orange-600 dark:text-orange-400" />
+            <Icon
+              name="hugeicons:shield-key"
+              class="size-4.5 text-orange-600 dark:text-orange-400"
+            />
           </div>
           <span class="text-foreground text-sm font-medium tracking-tight">Permissions</span>
         </NuxtLink>
@@ -341,7 +366,10 @@
           <div
             class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-green-500/10 transition-colors group-hover:bg-green-500/20"
           >
-            <Icon name="hugeicons:analytics-01" class="size-4.5 text-green-600 dark:text-green-400" />
+            <Icon
+              name="hugeicons:analytics-01"
+              class="size-4.5 text-green-600 dark:text-green-400"
+            />
           </div>
           <span class="text-foreground text-sm font-medium tracking-tight">GA Properties</span>
         </NuxtLink>

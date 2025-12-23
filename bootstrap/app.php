@@ -71,4 +71,21 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(function (Request $request) {
             return $request->is('api/*') || $request->expectsJson();
         });
+
+        // Add CORS headers to API exception responses
+        $exceptions->respond(function ($response, $exception, $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                $allowedOrigins = explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://pmone.test'));
+                $origin = $request->header('Origin');
+
+                if ($origin && in_array($origin, $allowedOrigins)) {
+                    $response->headers->set('Access-Control-Allow-Origin', $origin);
+                    $response->headers->set('Access-Control-Allow-Credentials', 'true');
+                    $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+                    $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-XSRF-TOKEN');
+                }
+            }
+
+            return $response;
+        });
     })->create();

@@ -60,7 +60,7 @@ const componentIs = computed(() => (props.href ? resolveComponent("NuxtLink") : 
 const containerClass = computed(() => {
   const base = "bg-card group relative flex flex-col gap-3 rounded-xl border p-5 transition-all";
   if (props.href) {
-    return `${base} hover:border-primary/50 cursor-pointer hover:shadow-sm active:scale-98`;
+    return `${base}  cursor-pointer hover:shadow-sm active:scale-98`;
   }
   return base;
 });
@@ -96,8 +96,12 @@ const containerClass = computed(() => {
       </div>
 
       <div class="flex items-baseline gap-2">
-        <span class="text-foreground text-3xl font-bold tracking-tight">{{ value }}</span>
-        <div v-if="change !== undefined && trendIcon" class="flex items-center gap-0.5" :class="trendColor">
+        <span class="text-foreground text-3xl font-medium tracking-tighter">{{ value }}</span>
+        <div
+          v-if="change !== undefined && trendIcon"
+          class="flex items-center gap-0.5"
+          :class="trendColor"
+        >
           <Icon :name="trendIcon" class="size-4" />
           <span class="text-xs font-medium">{{ formattedChange }}</span>
         </div>

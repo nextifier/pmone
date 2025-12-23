@@ -214,6 +214,7 @@ class GoogleAnalyticsController extends Controller
 
         // Increase execution time for API requests
         set_time_limit(config('analytics.timeout', 120));
+        ini_set('memory_limit', '512M');
 
         // Find property by property_id (Google Analytics Property ID), not database id
         $property = GaProperty::where('property_id', $id)->firstOrFail();
@@ -241,8 +242,9 @@ class GoogleAnalyticsController extends Controller
         // Rate limiting for analytics endpoints
         $this->applyAnalyticsRateLimit($request);
 
-        // Increase execution time for API requests
+        // Increase execution time and memory for API requests
         set_time_limit(config('analytics.timeout', 120));
+        ini_set('memory_limit', '512M');
 
         $period = $this->createPeriodFromRequest($request);
         $propertyIds = $request->input('property_ids');
@@ -537,6 +539,7 @@ class GoogleAnalyticsController extends Controller
 
         // Increase execution time for API requests
         set_time_limit(config('analytics.timeout', 120));
+        ini_set('memory_limit', '512M');
 
         $period = $this->createPeriodFromRequest($request);
         $propertyIds = $request->input('property_ids');
@@ -561,6 +564,7 @@ class GoogleAnalyticsController extends Controller
 
         // Increase execution time for API requests
         set_time_limit(config('analytics.timeout', 120));
+        ini_set('memory_limit', '512M');
 
         // Find property by property_id (Google Analytics Property ID), not database id
         $property = GaProperty::where('property_id', $id)->firstOrFail();
@@ -649,6 +653,7 @@ class GoogleAnalyticsController extends Controller
 
         // Increase execution time for API requests
         set_time_limit(config('analytics.timeout', 120));
+        ini_set('memory_limit', '512M');
 
         $period = $this->createPeriodFromRequest($request);
         $propertyIds = $request->input('property_ids');
@@ -681,6 +686,7 @@ class GoogleAnalyticsController extends Controller
 
         // Increase execution time for API requests
         set_time_limit(config('analytics.timeout', 120));
+        ini_set('memory_limit', '512M');
 
         // Find property by property_id (Google Analytics Property ID), not database id
         $property = GaProperty::where('property_id', $id)->firstOrFail();

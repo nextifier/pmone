@@ -153,13 +153,19 @@ export const useAnalyticsStore = defineStore("analytics", {
     },
 
     /**
-     * Clear stale entries based on their individual TTL
+     * Clear stale entries - BUT KEEP AS FALLBACK until fresh data arrives
+     *
+     * STALE-WHILE-REVALIDATE STRATEGY:
+     * - Never delete cached data automatically
+     * - Keep stale data as fallback for instant page loads
+     * - Only clear when explicitly requested or memory pressure
+     * - Backend handles the revalidation, frontend just displays
      */
     clearStale() {
       const now = Date.now();
-      const maxAge = 30 * 60 * 1000; // 30 minutes for properties
+      const maxAge = 60 * 60 * 1000; // 1 hour for properties (increased from 30 min)
 
-      // Clear stale properties
+      // Only clear very old properties (>1 hour) to free memory
       Object.keys(this.timestamps).forEach((id) => {
         if (now - this.timestamps[id] > maxAge) {
           delete this.propertiesCache[id];
@@ -167,24 +173,24 @@ export const useAnalyticsStore = defineStore("analytics", {
         }
       });
 
-      // Clear stale aggregates based on their cache_ttl_minutes
+      // NEVER clear aggregates automatically - they serve as fallback for instant loads
+      // The backend implements stale-while-revalidate, frontend should always show cached data
+      // Only clear aggregates older than 24 hours to prevent unbounded memory growth
+      const maxAggregateAge = 24 * 60 * 60 * 1000; // 24 hours
       Object.keys(this.aggregateCache).forEach((cacheKey) => {
         const cached = this.aggregateCache[cacheKey];
         if (!cached || !cached.timestamp) {
-          delete this.aggregateCache[cacheKey];
-          return;
+          return; // Keep even if no timestamp - might still be useful
         }
 
-        const age = (now - cached.timestamp) / 1000 / 60; // in minutes
-        const maxAge = cached.data?.cache_info?.cache_ttl_minutes || 5;
-
-        if (age >= maxAge) {
+        const age = now - cached.timestamp;
+        if (age >= maxAggregateAge) {
           delete this.aggregateCache[cacheKey];
         }
       });
 
-      // Clear stale realtime data (older than 1 minute)
-      if (this.realtimeTimestamp && now - this.realtimeTimestamp > 60 * 1000) {
+      // Clear stale realtime data (older than 5 minutes)
+      if (this.realtimeTimestamp && now - this.realtimeTimestamp > 5 * 60 * 1000) {
         this.realtimeData = null;
         this.realtimeTimestamp = null;
       }

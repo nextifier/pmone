@@ -3,6 +3,12 @@
  * Provides reactive state and auto-refresh capabilities.
  * Uses Pinia store for cross-page caching.
  *
+ * CACHE-FIRST STRATEGY:
+ * - Always show cached data immediately if available
+ * - Fetch fresh data in background, don't block UI
+ * - Never show loading spinner if cached data exists
+ * - Never show error if cached data exists (silent background retry)
+ *
  * @param initialPeriod - Initial period to fetch (days number or named period)
  * @param withComparison - Whether to include comparison data from previous period
  */
@@ -10,8 +16,8 @@ export function useAnalyticsData(initialPeriod: string | number = 30, withCompar
   const client = useSanctumClient();
   const analyticsStore = useAnalyticsStore();
 
-  // State
-  const loading = ref(true); // Start with true for SSR hydration
+  // State - Start with false, only show loading if no cached data
+  const loading = ref(false);
   const error = ref<string | null>(null);
   const selectedPeriod = ref(initialPeriod);
 
@@ -63,15 +69,37 @@ export function useAnalyticsData(initialPeriod: string | number = 30, withCompar
   }
 
   /**
-   * Fetch analytics data.
-   * First checks store cache, then fetches if needed.
+   * Fetch analytics data with cache-first strategy.
+   *
+   * BEHAVIOR:
+   * 1. If fresh cache exists -> return immediately, no loading
+   * 2. If stale cache exists -> show data immediately, fetch in background (silent)
+   * 3. If no cache -> show loading, fetch with timeout
+   * 4. On error with cache -> ignore error, keep showing cached data
+   * 5. On error without cache -> show error message
    */
   async function fetchAnalytics(silent: boolean = false, skipAutoRefresh: boolean = false) {
     const period = String(selectedPeriod.value);
+    const hasCachedData = !!analyticsStore.getAggregate(period);
 
-    // Check if we have fresh data in store
+    // Check if we have fresh data in store - return immediately
     if (analyticsStore.isAggregateFresh(period)) {
       loading.value = false;
+      error.value = null;
+      return analyticsStore.getAggregate(period);
+    }
+
+    // If we have stale cached data, return it immediately and refresh in background
+    if (hasCachedData && !silent) {
+      // Don't show loading spinner - we have data to show
+      loading.value = false;
+      error.value = null;
+
+      // Fetch fresh data silently in background
+      fetchAnalytics(true, skipAutoRefresh).catch(() => {
+        // Silently ignore background fetch errors - we have cached data
+      });
+
       return analyticsStore.getAggregate(period);
     }
 
@@ -89,8 +117,8 @@ export function useAnalyticsData(initialPeriod: string | number = 30, withCompar
       autoRefreshTimeout = null;
     }
 
-    // Show loading unless it's a silent background refresh
-    if (!silent) {
+    // Show loading only if no cached data and not silent
+    if (!silent && !hasCachedData) {
       loading.value = true;
     }
     error.value = null;
@@ -100,10 +128,21 @@ export function useAnalyticsData(initialPeriod: string | number = 30, withCompar
         ...getPeriodParams(selectedPeriod.value),
         with_comparison: withComparison,
       };
+
+      // Add timeout to prevent hanging requests - 120 seconds (matches backend timeout)
+      // First-time aggregation can take 60-90 seconds when processing all GA properties
+      const timeoutId = setTimeout(() => {
+        if (abortController) {
+          abortController.abort();
+        }
+      }, 120000);
+
       const response = await client(`/api/google-analytics/aggregate`, {
         params,
         signal: abortController.signal,
       });
+
+      clearTimeout(timeoutId);
 
       // Handle response - client might return { data } or just the data directly
       const data = response?.data || response;
@@ -115,6 +154,9 @@ export function useAnalyticsData(initialPeriod: string | number = 30, withCompar
 
       // Store in Pinia
       analyticsStore.setAggregate(period, data);
+
+      // Clear any previous error since we got fresh data
+      error.value = null;
 
       // Only set up auto-refresh if not skipping (i.e., not a manual period change)
       // and only on client-side
@@ -134,24 +176,37 @@ export function useAnalyticsData(initialPeriod: string | number = 30, withCompar
 
       return data;
     } catch (err: any) {
-      // Ignore abort errors - this is expected when navigating away
+      // Ignore abort errors - this is expected when navigating away or timeout
       if (err.name === 'AbortError') {
-        // Silent return - don't log or throw for aborted requests
+        // If we have cached data, return it silently
+        if (hasCachedData) {
+          return analyticsStore.getAggregate(period);
+        }
+        // Otherwise show timeout error
+        if (!silent) {
+          error.value = "Request timed out after 2 minutes. Please try again.";
+        }
         return null;
+      }
+
+      // If we have cached data, ignore the error and return cached data
+      if (hasCachedData) {
+        console.warn("Background fetch failed, using cached data:", err.message);
+        return analyticsStore.getAggregate(period);
       }
 
       console.error("Error fetching analytics:", err);
 
-      // Handle rate limit errors specifically
+      // Only show error if we don't have cached data to fall back on
       if (err.status === 429 || err.statusCode === 429) {
         error.value = "Too many requests. Please wait a moment and try again.";
-      } else if (!aggregateData.value) {
-        // Only show error if we don't have cached data to fall back on
+      } else {
         error.value =
           err.data?.message || err.message || "Failed to load analytics data";
       }
 
-      throw err;
+      // Don't throw - just return null and let error state be shown
+      return null;
     } finally {
       if (!silent) {
         loading.value = false;
@@ -161,12 +216,27 @@ export function useAnalyticsData(initialPeriod: string | number = 30, withCompar
 
   /**
    * Change date range and refresh data.
+   * Shows cached data immediately if available, fetches fresh in background.
    */
   async function changeDateRange(period: string | number) {
     selectedPeriod.value = period;
-    // Fetch new data without auto-refresh (user initiated action)
-    // Don't clear aggregateData to null - let loading state handle UX
-    await fetchAnalytics(false, true);
+
+    // Check if we have any cached data for the new period
+    const hasCachedData = !!analyticsStore.getAggregate(String(period));
+
+    if (hasCachedData) {
+      // We have cached data - show it immediately, fetch fresh in background
+      loading.value = false;
+      error.value = null;
+
+      // Fetch fresh data silently in background
+      fetchAnalytics(true, true).catch(() => {
+        // Silently ignore background fetch errors
+      });
+    } else {
+      // No cached data - need to fetch with loading state
+      await fetchAnalytics(false, true);
+    }
   }
 
   /**

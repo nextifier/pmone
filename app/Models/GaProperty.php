@@ -133,9 +133,9 @@ class GaProperty extends Model implements HasMedia
     }
 
     /**
-     * Check if this property needs to be synced.
+     * Check if this property needs to be synced (instance method).
      */
-    public function needsSync(): bool
+    public function shouldSync(): bool
     {
         if (! $this->is_active) {
             return false;
