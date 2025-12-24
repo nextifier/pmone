@@ -121,7 +121,7 @@
     --warning: var(--color-yellow-500);
     --warning-foreground: var(--color-yellow-700);
 
-    --destructive: var(--color-red-500);
+    --destructive: var(--color-red-600);
     --destructive-foreground: var(--color-red-700);
 
     --card: var(--color-white);
@@ -177,7 +177,7 @@
     --warning: var(--color-yellow-500);
     --warning-foreground: var(--color-yellow-400);
 
-    --destructive: var(--color-red-500);
+    --destructive: var(--color-red-600);
     --destructive-foreground: var(--color-red-400);
 
     --card: --alpha(var(--color-gray-900) / 50%);

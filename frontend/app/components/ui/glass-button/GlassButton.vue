@@ -4,6 +4,7 @@ import type { HTMLAttributes } from "vue";
 import { computed } from "vue";
 import { Primitive } from "reka-ui";
 import { cn } from "@/lib/utils";
+import Spinner from "@/components/ui/spinner/Spinner.vue";
 
 type ButtonVariant =
   | "default"
@@ -65,28 +66,9 @@ function handleClick(event: MouseEvent) {
       :class="cn('glass-button', props.class)"
       @click="handleClick"
     >
-      <!-- Loading spinner -->
-      <svg
-        v-if="loading"
-        class="glass-button-spinner"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <circle
-          class="opacity-25"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          stroke-width="4"
-        />
-        <path
-          class="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-        />
-      </svg>
+      <span v-if="loading" class="glass-button-text glass-button-loading">
+        <Spinner class="size-4 shrink-0" />
+      </span>
       <span v-else class="glass-button-text">
         <slot />
       </span>
@@ -175,9 +157,15 @@ function handleClick(event: MouseEvent) {
   --global-size: 1.125rem;
 }
 
-/* Button Shadow Container */
+/* Button Shadow Container - Hidden by default for most variants */
 .glass-button-shadow {
+  display: none;
+}
+
+/* Shadow styling when enabled (for outline variant in light mode) */
+.glass-button-shadow-enabled {
   --shadow-cutoff-fix: 2em;
+  display: block;
   position: absolute;
   width: calc(100% + var(--shadow-cutoff-fix));
   height: calc(100% + var(--shadow-cutoff-fix));
@@ -188,8 +176,7 @@ function handleClick(event: MouseEvent) {
   pointer-events: none;
 }
 
-/* Shadow pseudo element */
-.glass-button-shadow::after {
+.glass-button-shadow-enabled::after {
   content: "";
   position: absolute;
   z-index: 0;
@@ -209,7 +196,7 @@ function handleClick(event: MouseEvent) {
   opacity: 1;
 }
 
-/* Main Button */
+/* Main Button - Light Mode: Dark/Black glass */
 .glass-button {
   all: unset;
   cursor: pointer;
@@ -219,16 +206,15 @@ function handleClick(event: MouseEvent) {
   z-index: 3;
   background: linear-gradient(
     -75deg,
-    rgba(255, 255, 255, 0.05),
-    rgba(255, 255, 255, 0.2),
-    rgba(255, 255, 255, 0.05)
+    rgba(0, 0, 0, 0.85),
+    rgba(0, 0, 0, 0.95),
+    rgba(0, 0, 0, 0.85)
   );
   border-radius: 999vw;
   box-shadow:
-    inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
-    inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
-    0 0.25em 0.125em -0.125em rgba(0, 0, 0, 0.2),
-    inset 0 0 0.1em 0.25em rgba(255, 255, 255, 0.2);
+    inset 0 0.125em 0.125em rgba(255, 255, 255, 0.1),
+    inset 0 -0.125em 0.125em rgba(0, 0, 0, 0.3),
+    inset 0 0 0.1em 0.25em rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(clamp(1px, 0.125em, 4px));
   -webkit-backdrop-filter: blur(clamp(1px, 0.125em, 4px));
   transition: all var(--anim-hover-time) var(--anim-hover-ease);
@@ -239,10 +225,9 @@ function handleClick(event: MouseEvent) {
   backdrop-filter: blur(0.01em);
   -webkit-backdrop-filter: blur(0.01em);
   box-shadow:
-    inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
-    inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
-    0 0.15em 0.05em -0.1em rgba(0, 0, 0, 0.25),
-    inset 0 0 0.05em 0.1em rgba(255, 255, 255, 0.5);
+    inset 0 0.125em 0.125em rgba(255, 255, 255, 0.15),
+    inset 0 -0.125em 0.125em rgba(0, 0, 0, 0.4),
+    inset 0 0 0.05em 0.1em rgba(255, 255, 255, 0.08);
 }
 
 .glass-button:disabled {
@@ -250,26 +235,29 @@ function handleClick(event: MouseEvent) {
   opacity: 0.5;
 }
 
-/* Button Text */
+/* Button Text - Light Mode: White text on dark button */
 .glass-button-text {
   position: relative;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
   user-select: none;
   font-family: inherit;
   letter-spacing: -0.02em;
   font-weight: 600;
   font-size: 1em;
-  color: var(--color-foreground);
+  color: var(--color-white, #fff);
   transition: all var(--anim-hover-time) var(--anim-hover-ease);
   padding-inline: 1.5em;
   padding-block: 0.875em;
 }
 
 .glass-button:hover .glass-button-text {
-  text-shadow: 0.025em 0.025em 0.025em rgba(0, 0, 0, 0.12);
+  text-shadow: 0.025em 0.025em 0.025em rgba(255, 255, 255, 0.2);
 }
 
-/* Shine effect on text span */
+/* Shine effect on text span - Light Mode: subtle white shine on dark button */
 .glass-button-text::after {
   content: "";
   display: block;
@@ -285,7 +273,7 @@ function handleClick(event: MouseEvent) {
   background: linear-gradient(
     var(--angle-2),
     rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.5) 40% 50%,
+    rgba(255, 255, 255, 0.15) 40% 50%,
     rgba(255, 255, 255, 0) 55%
   );
   mix-blend-mode: screen;
@@ -307,7 +295,7 @@ function handleClick(event: MouseEvent) {
   --angle-2: -15deg;
 }
 
-/* Button border/outline */
+/* Button border/outline - Light Mode: subtle light border on dark button */
 .glass-button::after {
   content: "";
   position: absolute;
@@ -323,19 +311,19 @@ function handleClick(event: MouseEvent) {
   background:
     conic-gradient(
       from var(--angle-1) at 50% 50%,
-      rgba(0, 0, 0, 0.5),
-      rgba(0, 0, 0, 0) 5% 40%,
-      rgba(0, 0, 0, 0.5) 50%,
-      rgba(0, 0, 0, 0) 60% 95%,
-      rgba(0, 0, 0, 0.5)
+      rgba(255, 255, 255, 0.3),
+      rgba(255, 255, 255, 0) 5% 40%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0) 60% 95%,
+      rgba(255, 255, 255, 0.3)
     ),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5));
+    linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
   transition:
     all var(--anim-hover-time) var(--anim-hover-ease),
     --angle-1 500ms ease;
-  box-shadow: inset 0 0 0 calc(var(--border-width) / 2) rgba(255, 255, 255, 0.5);
+  box-shadow: inset 0 0 0 calc(var(--border-width) / 2) rgba(255, 255, 255, 0.1);
 }
 
 .glass-button:hover::after {
@@ -364,13 +352,13 @@ function handleClick(event: MouseEvent) {
 
 .glass-button-wrap:has(.glass-button:active) .glass-button {
   box-shadow:
-    inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
-    inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
-    0 0.125em 0.125em -0.125em rgba(0, 0, 0, 0.2),
-    inset 0 0 0.1em 0.25em rgba(255, 255, 255, 0.2),
-    0 0.225em 0.05em 0 rgba(0, 0, 0, 0.05),
-    0 0.25em 0 0 rgba(255, 255, 255, 0.75),
-    inset 0 0.25em 0.05em 0 rgba(0, 0, 0, 0.15);
+    inset 0 0.125em 0.125em rgba(255, 255, 255, 0.05),
+    inset 0 -0.125em 0.125em rgba(0, 0, 0, 0.5),
+    0 0.125em 0.125em -0.125em rgba(0, 0, 0, 0.3),
+    inset 0 0 0.1em 0.25em rgba(255, 255, 255, 0.03),
+    0 0.225em 0.05em 0 rgba(0, 0, 0, 0.15),
+    0 0.25em 0 0 rgba(0, 0, 0, 0.2),
+    inset 0 0.25em 0.05em 0 rgba(0, 0, 0, 0.25);
 }
 
 .glass-button-wrap:has(.glass-button:active) .glass-button-shadow {
@@ -386,23 +374,6 @@ function handleClick(event: MouseEvent) {
   text-shadow: 0.025em 0.25em 0.05em rgba(0, 0, 0, 0.12);
 }
 
-/* Loading spinner */
-.glass-button-spinner {
-  width: 1.25em;
-  height: 1.25em;
-  animation: spin 1s linear infinite;
-  margin: 0.875em 1.5em;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* =========================
    VARIANT STYLES
    ========================= */
@@ -412,97 +383,332 @@ function handleClick(event: MouseEvent) {
   /* Uses base glass styles */
 }
 
-/* Destructive variant - red tinted glass */
+/* Destructive variant - same glass effect as outline but with destructive background */
 .glass-button-variant-destructive .glass-button {
-  background: linear-gradient(
-    -75deg,
-    rgba(239, 68, 68, 0.1),
-    rgba(239, 68, 68, 0.25),
-    rgba(239, 68, 68, 0.1)
-  );
+  background: var(--color-destructive);
   box-shadow:
-    inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
-    inset 0 -0.125em 0.125em rgba(254, 202, 202, 0.5),
-    0 0.25em 0.125em -0.125em rgba(185, 28, 28, 0.3),
-    inset 0 0 0.1em 0.25em rgba(254, 202, 202, 0.2);
+    inset 0 0.125em 0.125em rgba(255, 255, 255, 0.15),
+    inset 0 -0.125em 0.125em rgba(0, 0, 0, 0.2),
+    0 0.25em 0.125em -0.125em rgba(0, 0, 0, 0.3),
+    inset 0 0 0.1em 0.25em rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(clamp(1px, 0.125em, 4px));
+  -webkit-backdrop-filter: blur(clamp(1px, 0.125em, 4px));
+}
+
+.glass-button-variant-destructive .glass-button:hover {
+  transform: scale(0.975);
+  backdrop-filter: blur(0.01em);
+  -webkit-backdrop-filter: blur(0.01em);
+  box-shadow:
+    inset 0 0.125em 0.125em rgba(255, 255, 255, 0.2),
+    inset 0 -0.125em 0.125em rgba(0, 0, 0, 0.25),
+    0 0.2em 0.1em -0.1em rgba(0, 0, 0, 0.35),
+    inset 0 0 0.05em 0.1em rgba(255, 255, 255, 0.15);
 }
 
 .glass-button-variant-destructive .glass-button-text {
-  color: hsl(0, 72%, 51%);
+  color: var(--color-white, #fff);
+}
+
+.glass-button-variant-destructive .glass-button:hover .glass-button-text {
+  text-shadow: 0.025em 0.025em 0.025em rgba(0, 0, 0, 0.2);
 }
 
 .glass-button-variant-destructive .glass-button::after {
   background:
     conic-gradient(
       from var(--angle-1) at 50% 50%,
-      rgba(185, 28, 28, 0.5),
-      rgba(185, 28, 28, 0) 5% 40%,
-      rgba(185, 28, 28, 0.5) 50%,
-      rgba(185, 28, 28, 0) 60% 95%,
-      rgba(185, 28, 28, 0.5)
+      rgba(255, 255, 255, 0.3),
+      rgba(255, 255, 255, 0) 5% 40%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0) 60% 95%,
+      rgba(255, 255, 255, 0.3)
     ),
-    linear-gradient(180deg, rgba(254, 202, 202, 0.5), rgba(254, 202, 202, 0.5));
-  box-shadow: inset 0 0 0 calc(var(--border-width) / 2) rgba(254, 202, 202, 0.5);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+  box-shadow: inset 0 0 0 calc(var(--border-width) / 2) rgba(255, 255, 255, 0.2);
+}
+
+.glass-button-variant-destructive .glass-button-text::after {
+  display: none;
+}
+
+/* Enable shadow for destructive variant */
+.glass-button-variant-destructive .glass-button-shadow {
+  --shadow-cutoff-fix: 2em;
+  display: block;
+  position: absolute;
+  width: calc(100% + var(--shadow-cutoff-fix));
+  height: calc(100% + var(--shadow-cutoff-fix));
+  top: calc(0% - var(--shadow-cutoff-fix) / 2);
+  left: calc(0% - var(--shadow-cutoff-fix) / 2);
+  filter: blur(clamp(2px, 0.125em, 12px));
+  overflow: visible;
+  pointer-events: none;
 }
 
 .glass-button-variant-destructive .glass-button-shadow::after {
-  background: linear-gradient(180deg, rgba(185, 28, 28, 0.3), rgba(185, 28, 28, 0.15));
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: 999vw;
+  background: linear-gradient(180deg, rgba(220, 38, 38, 0.3), rgba(220, 38, 38, 0.15));
+  width: calc(100% - var(--shadow-cutoff-fix) - 0.25em);
+  height: calc(100% - var(--shadow-cutoff-fix) - 0.25em);
+  top: calc(var(--shadow-cutoff-fix) - 0.5em);
+  left: calc(var(--shadow-cutoff-fix) - 0.875em);
+  padding: 0.125em;
+  box-sizing: border-box;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  transition: all var(--anim-hover-time) var(--anim-hover-ease);
+  overflow: visible;
+  opacity: 1;
 }
 
-/* Destructive Outline variant */
+/* Shadow hover effects for destructive variant */
+.glass-button-variant-destructive:has(.glass-button:hover) .glass-button-shadow {
+  filter: blur(clamp(2px, 0.0625em, 6px));
+}
+
+.glass-button-variant-destructive:has(.glass-button:hover) .glass-button-shadow::after {
+  top: calc(var(--shadow-cutoff-fix) - 0.875em);
+  opacity: 1;
+}
+
+.glass-button-variant-destructive:has(.glass-button:active) .glass-button-shadow {
+  filter: blur(clamp(2px, 0.125em, 12px));
+}
+
+.glass-button-variant-destructive:has(.glass-button:active) .glass-button-shadow::after {
+  top: calc(var(--shadow-cutoff-fix) - 0.5em);
+  opacity: 0.75;
+}
+
+/* Destructive Outline variant - same as outline but with destructive text color */
 .glass-button-variant-destructive-outline .glass-button {
-  background: transparent;
+  background: linear-gradient(
+    -75deg,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0.05)
+  );
   box-shadow:
-    inset 0 0 0 1px rgba(239, 68, 68, 0.3),
-    0 0.125em 0.25em rgba(0, 0, 0, 0.05);
-  backdrop-filter: blur(4px);
-}
-
-.glass-button-variant-destructive-outline .glass-button-text {
-  color: hsl(0, 72%, 51%);
-}
-
-.glass-button-variant-destructive-outline .glass-button::after {
-  background: linear-gradient(180deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
-  box-shadow: none;
-}
-
-.glass-button-variant-destructive-outline .glass-button-text::after {
-  display: none;
-}
-
-.glass-button-variant-destructive-outline .glass-button-shadow {
-  display: none;
+    inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
+    inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
+    0 0.25em 0.125em -0.125em rgba(0, 0, 0, 0.2),
+    inset 0 0 0.1em 0.25em rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(clamp(1px, 0.125em, 4px));
+  -webkit-backdrop-filter: blur(clamp(1px, 0.125em, 4px));
 }
 
 .glass-button-variant-destructive-outline .glass-button:hover {
-  background: rgba(239, 68, 68, 0.08);
-}
-
-/* Outline variant */
-.glass-button-variant-outline .glass-button {
-  background: transparent;
+  transform: scale(0.975);
+  backdrop-filter: blur(0.01em);
+  -webkit-backdrop-filter: blur(0.01em);
   box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.1),
-    0 0.125em 0.25em rgba(0, 0, 0, 0.05);
-  backdrop-filter: blur(4px);
+    inset 0 0.125em 0.125em rgba(0, 0, 0, 0.08),
+    inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.6),
+    0 0.2em 0.1em -0.1em rgba(0, 0, 0, 0.25),
+    inset 0 0 0.05em 0.1em rgba(255, 255, 255, 0.25);
 }
 
-.glass-button-variant-outline .glass-button::after {
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.04));
-  box-shadow: none;
+.glass-button-variant-destructive-outline .glass-button-text {
+  color: var(--color-destructive-foreground);
 }
 
-.glass-button-variant-outline .glass-button-text::after {
-  display: none;
+.glass-button-variant-destructive-outline .glass-button:hover .glass-button-text {
+  text-shadow: 0.025em 0.025em 0.025em rgba(0, 0, 0, 0.1);
 }
 
-.glass-button-variant-outline .glass-button-shadow {
-  display: none;
+.glass-button-variant-destructive-outline .glass-button::after {
+  background:
+    conic-gradient(
+      from var(--angle-1) at 50% 50%,
+      rgba(0, 0, 0, 0.5),
+      rgba(0, 0, 0, 0) 5% 40%,
+      rgba(0, 0, 0, 0.5) 50%,
+      rgba(0, 0, 0, 0) 60% 95%,
+      rgba(0, 0, 0, 0.5)
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5));
+  box-shadow: inset 0 0 0 calc(var(--border-width) / 2) rgba(255, 255, 255, 0.5);
+}
+
+.glass-button-variant-destructive-outline .glass-button-text::after {
+  background: linear-gradient(
+    var(--angle-2),
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.5) 40% 50%,
+    rgba(255, 255, 255, 0) 55%
+  );
+  display: block;
+}
+
+/* Enable shadow for destructive-outline variant */
+.glass-button-variant-destructive-outline .glass-button-shadow {
+  --shadow-cutoff-fix: 2em;
+  display: block;
+  position: absolute;
+  width: calc(100% + var(--shadow-cutoff-fix));
+  height: calc(100% + var(--shadow-cutoff-fix));
+  top: calc(0% - var(--shadow-cutoff-fix) / 2);
+  left: calc(0% - var(--shadow-cutoff-fix) / 2);
+  filter: blur(clamp(2px, 0.125em, 12px));
+  overflow: visible;
+  pointer-events: none;
+}
+
+.glass-button-variant-destructive-outline .glass-button-shadow::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: 999vw;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
+  width: calc(100% - var(--shadow-cutoff-fix) - 0.25em);
+  height: calc(100% - var(--shadow-cutoff-fix) - 0.25em);
+  top: calc(var(--shadow-cutoff-fix) - 0.5em);
+  left: calc(var(--shadow-cutoff-fix) - 0.875em);
+  padding: 0.125em;
+  box-sizing: border-box;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  transition: all var(--anim-hover-time) var(--anim-hover-ease);
+  overflow: visible;
+  opacity: 1;
+}
+
+/* Shadow hover effects for destructive-outline variant */
+.glass-button-variant-destructive-outline:has(.glass-button:hover) .glass-button-shadow {
+  filter: blur(clamp(2px, 0.0625em, 6px));
+}
+
+.glass-button-variant-destructive-outline:has(.glass-button:hover) .glass-button-shadow::after {
+  top: calc(var(--shadow-cutoff-fix) - 0.875em);
+  opacity: 1;
+}
+
+.glass-button-variant-destructive-outline:has(.glass-button:active) .glass-button-shadow {
+  filter: blur(clamp(2px, 0.125em, 12px));
+}
+
+.glass-button-variant-destructive-outline:has(.glass-button:active) .glass-button-shadow::after {
+  top: calc(var(--shadow-cutoff-fix) - 0.5em);
+  opacity: 0.75;
+}
+
+/* Outline variant - Light Mode: Exact copy of pmone.id default variant */
+.glass-button-variant-outline .glass-button {
+  background: linear-gradient(
+    -75deg,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0.05)
+  );
+  box-shadow:
+    inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
+    inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
+    0 0.25em 0.125em -0.125em rgba(0, 0, 0, 0.2),
+    inset 0 0 0.1em 0.25em rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(clamp(1px, 0.125em, 4px));
+  -webkit-backdrop-filter: blur(clamp(1px, 0.125em, 4px));
 }
 
 .glass-button-variant-outline .glass-button:hover {
-  background: rgba(0, 0, 0, 0.04);
+  transform: scale(0.975);
+  backdrop-filter: blur(0.01em);
+  -webkit-backdrop-filter: blur(0.01em);
+  box-shadow:
+    inset 0 0.125em 0.125em rgba(0, 0, 0, 0.08),
+    inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.6),
+    0 0.2em 0.1em -0.1em rgba(0, 0, 0, 0.25),
+    inset 0 0 0.05em 0.1em rgba(255, 255, 255, 0.25);
+}
+
+.glass-button-variant-outline .glass-button::after {
+  background:
+    conic-gradient(
+      from var(--angle-1) at 50% 50%,
+      rgba(0, 0, 0, 0.5),
+      rgba(0, 0, 0, 0) 5% 40%,
+      rgba(0, 0, 0, 0.5) 50%,
+      rgba(0, 0, 0, 0) 60% 95%,
+      rgba(0, 0, 0, 0.5)
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5));
+  box-shadow: inset 0 0 0 calc(var(--border-width) / 2) rgba(255, 255, 255, 0.5);
+}
+
+.glass-button-variant-outline .glass-button-text {
+  color: var(--color-foreground);
+}
+
+.glass-button-variant-outline .glass-button:hover .glass-button-text {
+  text-shadow: 0.025em 0.025em 0.025em rgba(0, 0, 0, 0.1);
+}
+
+.glass-button-variant-outline .glass-button-text::after {
+  background: linear-gradient(
+    var(--angle-2),
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.5) 40% 50%,
+    rgba(255, 255, 255, 0) 55%
+  );
+  display: block;
+}
+
+/* Enable shadow for outline variant in light mode */
+.glass-button-variant-outline .glass-button-shadow {
+  --shadow-cutoff-fix: 2em;
+  display: block;
+  position: absolute;
+  width: calc(100% + var(--shadow-cutoff-fix));
+  height: calc(100% + var(--shadow-cutoff-fix));
+  top: calc(0% - var(--shadow-cutoff-fix) / 2);
+  left: calc(0% - var(--shadow-cutoff-fix) / 2);
+  filter: blur(clamp(2px, 0.125em, 12px));
+  overflow: visible;
+  pointer-events: none;
+}
+
+.glass-button-variant-outline .glass-button-shadow::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: 999vw;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
+  width: calc(100% - var(--shadow-cutoff-fix) - 0.25em);
+  height: calc(100% - var(--shadow-cutoff-fix) - 0.25em);
+  top: calc(var(--shadow-cutoff-fix) - 0.5em);
+  left: calc(var(--shadow-cutoff-fix) - 0.875em);
+  padding: 0.125em;
+  box-sizing: border-box;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  transition: all var(--anim-hover-time) var(--anim-hover-ease);
+  overflow: visible;
+  opacity: 1;
+}
+
+/* Shadow hover effects for outline variant */
+.glass-button-variant-outline:has(.glass-button:hover) .glass-button-shadow {
+  filter: blur(clamp(2px, 0.0625em, 6px));
+}
+
+.glass-button-variant-outline:has(.glass-button:hover) .glass-button-shadow::after {
+  top: calc(var(--shadow-cutoff-fix) - 0.875em);
+  opacity: 1;
+}
+
+.glass-button-variant-outline:has(.glass-button:active) .glass-button-shadow {
+  filter: blur(clamp(2px, 0.125em, 12px));
+}
+
+.glass-button-variant-outline:has(.glass-button:active) .glass-button-shadow::after {
+  top: calc(var(--shadow-cutoff-fix) - 0.5em);
+  opacity: 0.75;
 }
 
 /* Secondary variant - muted glass */
@@ -570,6 +776,13 @@ function handleClick(event: MouseEvent) {
   color: var(--color-muted-foreground);
 }
 
+/* Loading State */
+.glass-button-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .glass-button-variant-ghost .glass-button:hover .glass-button-text {
   color: var(--color-foreground);
 }
@@ -607,48 +820,87 @@ function handleClick(event: MouseEvent) {
    DARK MODE VARIANT OVERRIDES
    ========================= */
 
-/* Dark mode - Destructive */
+/* Dark mode - Destructive: Same red background as light mode */
 :global(.dark .glass-button-variant-destructive .glass-button) {
-  background: rgba(239, 68, 68, 0.15);
+  background: var(--color-destructive);
   box-shadow:
-    inset 0 1px 0 rgba(254, 202, 202, 0.1),
-    0 1px 3px rgba(0, 0, 0, 0.3);
+    inset 0 0.125em 0.125em rgba(255, 255, 255, 0.15),
+    inset 0 -0.125em 0.125em rgba(0, 0, 0, 0.2),
+    0 0.25em 0.125em -0.125em rgba(0, 0, 0, 0.3),
+    inset 0 0 0.1em 0.25em rgba(255, 255, 255, 0.1);
+}
+
+:global(.dark .glass-button-variant-destructive .glass-button:hover) {
+  transform: scale(0.975);
+  box-shadow:
+    inset 0 0.125em 0.125em rgba(255, 255, 255, 0.2),
+    inset 0 -0.125em 0.125em rgba(0, 0, 0, 0.25),
+    0 0.2em 0.1em -0.1em rgba(0, 0, 0, 0.35),
+    inset 0 0 0.05em 0.1em rgba(255, 255, 255, 0.15);
 }
 
 :global(.dark .glass-button-variant-destructive .glass-button-text) {
-  color: hsl(0, 90%, 70%);
+  color: var(--color-white, #fff);
 }
 
-:global(.dark .glass-button-variant-destructive .glass-button::after) {
-  background: linear-gradient(180deg, rgba(254, 202, 202, 0.1), rgba(254, 202, 202, 0.02));
-}
-
-/* Dark mode - Destructive Outline */
+/* Dark mode - Destructive Outline: Simple transparent with white border */
 :global(.dark .glass-button-variant-destructive-outline .glass-button) {
   background: transparent;
-  box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.4);
-}
-
-:global(.dark .glass-button-variant-destructive-outline .glass-button-text) {
-  color: hsl(0, 90%, 70%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 :global(.dark .glass-button-variant-destructive-outline .glass-button:hover) {
-  background: rgba(239, 68, 68, 0.1);
+  transform: scale(0.975);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
 }
 
-/* Dark mode - Outline */
+:global(.dark .glass-button-variant-destructive-outline .glass-button-text) {
+  color: var(--color-destructive-foreground);
+}
+
+:global(.dark .glass-button-variant-destructive-outline .glass-button::after) {
+  display: none;
+}
+
+:global(.dark .glass-button-variant-destructive-outline .glass-button-text::after) {
+  display: none;
+}
+
+:global(.dark .glass-button-variant-destructive-outline .glass-button-shadow) {
+  display: none;
+}
+
+/* Dark mode - Outline: Simple transparent with white border (matches pmone.id dark mode) */
 :global(.dark .glass-button-variant-outline .glass-button) {
   background: transparent;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-}
-
-:global(.dark .glass-button-variant-outline .glass-button::after) {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 :global(.dark .glass-button-variant-outline .glass-button:hover) {
+  transform: scale(0.975);
   background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+:global(.dark .glass-button-variant-outline .glass-button::after) {
+  display: none;
+}
+
+:global(.dark .glass-button-variant-outline .glass-button-text) {
+  color: var(--color-foreground);
+}
+
+:global(.dark .glass-button-variant-outline .glass-button-text::after) {
+  display: none;
+}
+
+:global(.dark .glass-button-variant-outline .glass-button-shadow) {
+  display: none;
 }
 
 /* Dark mode - Secondary */
@@ -681,45 +933,87 @@ function handleClick(event: MouseEvent) {
   color: var(--color-primary);
 }
 
-/* Dark mode adjustments */
-:global(.dark .glass-button) {
-  background: rgba(255, 255, 255, 0.05);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 1px 3px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-:global(.dark .glass-button:hover) {
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    0 2px 6px rgba(0, 0, 0, 0.4);
-}
-
-:global(.dark .glass-button::after) {
+/* Dark mode - Default variant: Opaque white/light glass effect (same visual as light mode outline) */
+:global(.dark .glass-button-variant-default .glass-button) {
   background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.08),
-    rgba(255, 255, 255, 0.02)
+    -75deg,
+    rgb(240, 240, 240),
+    rgb(250, 250, 250),
+    rgb(240, 240, 240)
   );
-  box-shadow: none;
-  opacity: 0.5;
-}
-
-:global(.dark .glass-button-text::after) {
-  display: none;
-}
-
-:global(.dark .glass-button-shadow) {
-  display: none;
-}
-
-:global(.dark .glass-button-wrap:has(.glass-button:active) .glass-button) {
-  background: rgba(255, 255, 255, 0.03);
   box-shadow:
-    inset 0 2px 4px rgba(0, 0, 0, 0.2),
-    0 1px 2px rgba(0, 0, 0, 0.2);
+    inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
+    inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
+    inset 0 0 0.1em 0.25em rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(clamp(1px, 0.125em, 4px));
+  -webkit-backdrop-filter: blur(clamp(1px, 0.125em, 4px));
+}
+
+:global(.dark .glass-button-variant-default .glass-button:hover) {
+  transform: scale(0.975);
+  background: linear-gradient(
+    -75deg,
+    rgb(230, 230, 230),
+    rgb(245, 245, 245),
+    rgb(230, 230, 230)
+  );
+  box-shadow:
+    inset 0 0.125em 0.125em rgba(0, 0, 0, 0.08),
+    inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.6),
+    inset 0 0 0.05em 0.1em rgba(255, 255, 255, 0.2);
+}
+
+:global(.dark .glass-button-variant-default .glass-button::after) {
+  background:
+    conic-gradient(
+      from var(--angle-1) at 50% 50%,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0) 5% 40%,
+      rgba(0, 0, 0, 0.15) 50%,
+      rgba(0, 0, 0, 0) 60% 95%,
+      rgba(0, 0, 0, 0.15)
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.2));
+  box-shadow: inset 0 0 0 calc(var(--border-width) / 2) rgba(255, 255, 255, 0.4);
+  opacity: 1;
+}
+
+:global(.dark .glass-button-variant-default .glass-button-text) {
+  color: rgb(30, 30, 30);
+}
+
+:global(.dark .glass-button-variant-default .glass-button:hover .glass-button-text) {
+  text-shadow: 0.025em 0.025em 0.025em rgba(0, 0, 0, 0.1);
+}
+
+:global(.dark .glass-button-variant-default .glass-button-text::after) {
+  background: linear-gradient(
+    var(--angle-2),
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.5) 40% 50%,
+    rgba(255, 255, 255, 0) 55%
+  );
+  display: block;
+}
+
+:global(.dark .glass-button-variant-default .glass-button-shadow::after) {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
+}
+
+:global(.dark .glass-button-variant-default:has(.glass-button:active) .glass-button) {
+  background: linear-gradient(
+    -75deg,
+    rgb(195, 195, 195),
+    rgb(210, 210, 210),
+    rgb(195, 195, 195)
+  );
+  box-shadow:
+    inset 0 0.125em 0.125em rgba(0, 0, 0, 0.1),
+    inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.4),
+    0 0.125em 0.125em -0.125em rgba(0, 0, 0, 0.15),
+    inset 0 0 0.1em 0.25em rgba(255, 255, 255, 0.1),
+    0 0.225em 0.05em 0 rgba(0, 0, 0, 0.08),
+    0 0.25em 0 0 rgba(200, 200, 200, 0.5),
+    inset 0 0.25em 0.05em 0 rgba(0, 0, 0, 0.08);
 }
 </style>
