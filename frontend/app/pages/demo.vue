@@ -1,16 +1,16 @@
 <template>
   <div class="bg-background relative min-h-screen w-full overflow-x-hidden">
     <!-- CodePen Reference Comparison Section -->
+    <section class="bg-muted/50 flex flex-col items-center justify-center px-8 py-20">
+      <div class="flex items-center justify-center [--global-size:clamp(2rem,4vw,5rem)]">
+        <GlassButton variant="outline" size="inherit">Generate</GlassButton>
+      </div>
+    </section>
+
     <section
-      class="flex w-full flex-col items-center justify-center bg-[rgb(215,215,215)] px-8 py-12 font-sans antialiased"
+      class="flex flex-col items-center justify-center bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-400 px-8 py-20"
     >
-      <h2 class="mb-2 text-center text-2xl font-semibold text-[rgb(50,50,50)]">
-        CodePen Reference Comparison
-      </h2>
-      <p class="mb-8 text-center text-sm text-[rgb(100,100,100)]">
-        Background dan ukuran sama persis dengan referensi CodePen
-      </p>
-      <div class="flex min-h-[200px] w-full items-center justify-center [--global-size:clamp(2rem,4vw,5rem)]">
+      <div class="flex items-center justify-center [--global-size:clamp(2rem,4vw,5rem)]">
         <GlassButton variant="outline" size="inherit">Generate</GlassButton>
       </div>
     </section>
