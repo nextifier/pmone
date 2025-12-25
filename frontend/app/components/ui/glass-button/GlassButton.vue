@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import Spinner from "@/components/ui/spinner/Spinner.vue";
+import { cn } from "@/lib/utils";
 import type { PrimitiveProps } from "reka-ui";
+import { Primitive } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 import { computed } from "vue";
-import { Primitive } from "reka-ui";
-import { cn } from "@/lib/utils";
-import Spinner from "@/components/ui/spinner/Spinner.vue";
 
 type ButtonVariant =
   | "default"
@@ -25,7 +25,8 @@ type ButtonSize =
   | "icon-xs"
   | "icon-sm"
   | "icon-lg"
-  | "icon-xl";
+  | "icon-xl"
+  | "inherit";
 
 interface Props extends PrimitiveProps {
   class?: HTMLAttributes["class"];
@@ -47,7 +48,9 @@ const emit = defineEmits<{
   click: [event: MouseEvent];
 }>();
 
-const sizeClass = computed(() => `glass-button-size-${props.size}`);
+const sizeClass = computed(() =>
+  props.size === "inherit" ? "" : `glass-button-size-${props.size}`
+);
 const variantClass = computed(() => `glass-button-variant-${props.variant}`);
 
 function handleClick(event: MouseEvent) {
@@ -93,7 +96,6 @@ function handleClick(event: MouseEvent) {
 
 /* Button Wrap Container */
 .glass-button-wrap {
-  --global-size: 1rem;
   --anim-hover-time: 400ms;
   --anim-hover-ease: cubic-bezier(0.25, 1, 0.5, 1);
   --border-width: clamp(1px, 0.0625em, 4px);
@@ -103,7 +105,7 @@ function handleClick(event: MouseEvent) {
   border-radius: 999vw;
   background: transparent;
   pointer-events: none;
-  font-size: var(--global-size);
+  font-size: var(--global-size, 1rem);
   transition: all var(--anim-hover-time) var(--anim-hover-ease);
 }
 
@@ -189,7 +191,9 @@ function handleClick(event: MouseEvent) {
   left: calc(var(--shadow-cutoff-fix) - 0.875em);
   padding: 0.125em;
   box-sizing: border-box;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
   mask-composite: exclude;
   transition: all var(--anim-hover-time) var(--anim-hover-ease);
   overflow: visible;
@@ -318,7 +322,9 @@ function handleClick(event: MouseEvent) {
       rgba(255, 255, 255, 0.3)
     ),
     linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
   mask-composite: exclude;
   transition:
     all var(--anim-hover-time) var(--anim-hover-ease),
@@ -459,7 +465,9 @@ function handleClick(event: MouseEvent) {
   left: calc(var(--shadow-cutoff-fix) - 0.875em);
   padding: 0.125em;
   box-sizing: border-box;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
   mask-composite: exclude;
   transition: all var(--anim-hover-time) var(--anim-hover-ease);
   overflow: visible;
@@ -572,7 +580,9 @@ function handleClick(event: MouseEvent) {
   left: calc(var(--shadow-cutoff-fix) - 0.875em);
   padding: 0.125em;
   box-sizing: border-box;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
   mask-composite: exclude;
   transition: all var(--anim-hover-time) var(--anim-hover-ease);
   overflow: visible;
@@ -598,7 +608,7 @@ function handleClick(event: MouseEvent) {
   opacity: 0.75;
 }
 
-/* Outline variant - Light Mode: Exact copy of pmone.id default variant */
+/* Outline variant - Light Mode: Exact match with CodePen reference */
 .glass-button-variant-outline .glass-button {
   background: linear-gradient(
     -75deg,
@@ -610,7 +620,8 @@ function handleClick(event: MouseEvent) {
     inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
     inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
     0 0.25em 0.125em -0.125em rgba(0, 0, 0, 0.2),
-    inset 0 0 0.1em 0.25em rgba(255, 255, 255, 0.2);
+    inset 0 0 0.1em 0.25em rgba(255, 255, 255, 0.2),
+    0 0 0 0 rgba(255, 255, 255, 1);
   backdrop-filter: blur(clamp(1px, 0.125em, 4px));
   -webkit-backdrop-filter: blur(clamp(1px, 0.125em, 4px));
 }
@@ -620,10 +631,11 @@ function handleClick(event: MouseEvent) {
   backdrop-filter: blur(0.01em);
   -webkit-backdrop-filter: blur(0.01em);
   box-shadow:
-    inset 0 0.125em 0.125em rgba(0, 0, 0, 0.08),
-    inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.6),
-    0 0.2em 0.1em -0.1em rgba(0, 0, 0, 0.25),
-    inset 0 0 0.05em 0.1em rgba(255, 255, 255, 0.25);
+    inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
+    inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
+    0 0.15em 0.05em -0.1em rgba(0, 0, 0, 0.25),
+    inset 0 0 0.05em 0.1em rgba(255, 255, 255, 0.5),
+    0 0 0 0 rgba(255, 255, 255, 1);
 }
 
 .glass-button-variant-outline .glass-button::after {
@@ -640,12 +652,43 @@ function handleClick(event: MouseEvent) {
   box-shadow: inset 0 0 0 calc(var(--border-width) / 2) rgba(255, 255, 255, 0.5);
 }
 
+.glass-button-variant-outline .glass-button:hover::after {
+  --angle-1: -125deg;
+}
+
+.glass-button-variant-outline .glass-button:active::after {
+  --angle-1: -75deg;
+}
+
 .glass-button-variant-outline .glass-button-text {
-  color: var(--color-foreground);
+  color: rgba(50, 50, 50, 1);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  text-shadow: 0em 0.25em 0.05em rgba(0, 0, 0, 0.1);
 }
 
 .glass-button-variant-outline .glass-button:hover .glass-button-text {
-  text-shadow: 0.025em 0.025em 0.025em rgba(0, 0, 0, 0.1);
+  text-shadow: 0em 0.2em 0.04em rgba(0, 0, 0, 0.12);
+}
+
+/* Active state for outline variant */
+.glass-button-variant-outline:has(.glass-button:active) {
+  transform: rotate3d(1, 0, 0, 25deg);
+}
+
+.glass-button-variant-outline:has(.glass-button:active) .glass-button {
+  box-shadow:
+    inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
+    inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
+    0 0.125em 0.125em -0.125em rgba(0, 0, 0, 0.2),
+    inset 0 0 0.1em 0.25em rgba(255, 255, 255, 0.2),
+    0 0.225em 0.05em 0 rgba(0, 0, 0, 0.05),
+    0 0.25em 0 0 rgba(255, 255, 255, 0.75),
+    inset 0 0.25em 0.05em 0 rgba(0, 0, 0, 0.15);
+}
+
+.glass-button-variant-outline:has(.glass-button:active) .glass-button-text {
+  text-shadow: 0.025em 0.25em 0.05em rgba(0, 0, 0, 0.12);
 }
 
 .glass-button-variant-outline .glass-button-text::after {
@@ -656,6 +699,18 @@ function handleClick(event: MouseEvent) {
     rgba(255, 255, 255, 0) 55%
   );
   display: block;
+  mix-blend-mode: overlay;
+  background-size: 200% 200%;
+  background-position: 0% 50%;
+}
+
+.glass-button-variant-outline .glass-button:hover .glass-button-text::after {
+  background-position: 25% 50%;
+}
+
+.glass-button-variant-outline .glass-button:active .glass-button-text::after {
+  background-position: 50% 15%;
+  --angle-2: -15deg;
 }
 
 /* Enable shadow for outline variant in light mode */
@@ -685,7 +740,9 @@ function handleClick(event: MouseEvent) {
   left: calc(var(--shadow-cutoff-fix) - 0.875em);
   padding: 0.125em;
   box-sizing: border-box;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
   mask-composite: exclude;
   transition: all var(--anim-hover-time) var(--anim-hover-ease);
   overflow: visible;
@@ -935,12 +992,7 @@ function handleClick(event: MouseEvent) {
 
 /* Dark mode - Default variant: Opaque white/light glass effect (same visual as light mode outline) */
 :global(.dark .glass-button-variant-default .glass-button) {
-  background: linear-gradient(
-    -75deg,
-    rgb(240, 240, 240),
-    rgb(250, 250, 250),
-    rgb(240, 240, 240)
-  );
+  background: linear-gradient(-75deg, rgb(240, 240, 240), rgb(250, 250, 250), rgb(240, 240, 240));
   box-shadow:
     inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
     inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
@@ -951,12 +1003,7 @@ function handleClick(event: MouseEvent) {
 
 :global(.dark .glass-button-variant-default .glass-button:hover) {
   transform: scale(0.975);
-  background: linear-gradient(
-    -75deg,
-    rgb(230, 230, 230),
-    rgb(245, 245, 245),
-    rgb(230, 230, 230)
-  );
+  background: linear-gradient(-75deg, rgb(230, 230, 230), rgb(245, 245, 245), rgb(230, 230, 230));
   box-shadow:
     inset 0 0.125em 0.125em rgba(0, 0, 0, 0.08),
     inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.6),
@@ -1001,12 +1048,7 @@ function handleClick(event: MouseEvent) {
 }
 
 :global(.dark .glass-button-variant-default:has(.glass-button:active) .glass-button) {
-  background: linear-gradient(
-    -75deg,
-    rgb(195, 195, 195),
-    rgb(210, 210, 210),
-    rgb(195, 195, 195)
-  );
+  background: linear-gradient(-75deg, rgb(195, 195, 195), rgb(210, 210, 210), rgb(195, 195, 195));
   box-shadow:
     inset 0 0.125em 0.125em rgba(0, 0, 0, 0.1),
     inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.4),
