@@ -15,6 +15,20 @@
       </div>
     </section>
 
+    <section class="relative isolate flex flex-col items-center justify-center">
+      <NuxtImg
+        src="/img/wonyoungdollz_1766704382_3795713926466650278_60528094907.jpg"
+        alt=""
+        class="size-full object-cover"
+      />
+
+      <div
+        class="absolute inset-0 z-10 flex items-center justify-center [--global-size:clamp(2rem,4vw,5rem)]"
+      >
+        <GlassButton variant="outline" size="inherit">Generate</GlassButton>
+      </div>
+    </section>
+
     <!-- Main Content -->
     <div class="relative z-10 flex flex-col items-center gap-16 px-8 py-16">
       <!-- All Variants -->

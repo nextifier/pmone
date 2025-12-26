@@ -661,7 +661,7 @@ function handleClick(event: MouseEvent) {
 }
 
 .glass-button-variant-outline .glass-button-text {
-  color: rgba(50, 50, 50, 1);
+  color: var(--color-foreground);
   font-weight: 500;
   letter-spacing: -0.05em;
   text-shadow: 0em 0.25em 0.05em rgba(0, 0, 0, 0.1);
