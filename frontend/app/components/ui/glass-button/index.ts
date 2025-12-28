@@ -1,16 +1,21 @@
+import type { VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
+
 export { default as GlassButton } from "./GlassButton.vue";
 
-export type GlassButtonVariant = "default";
+export const glassButtonVariants = cva("", {
+  variants: {
+    variant: {
+      default: "",
+    },
+    size: {
+      default: "",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+    size: "default",
+  },
+});
 
-export type GlassButtonSize =
-  | "xs"
-  | "sm"
-  | "default"
-  | "lg"
-  | "xl"
-  | "icon"
-  | "icon-xs"
-  | "icon-sm"
-  | "icon-lg"
-  | "icon-xl"
-  | "inherit";
+export type GlassButtonVariants = VariantProps<typeof glassButtonVariants>;
