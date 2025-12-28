@@ -104,7 +104,7 @@
     --primary-foreground: var(--color-white);
 
     --secondary: var(--color-gray-100);
-    --secondary-foreground: var(--color-gray-900);
+    --secondary-foreground: var(--color-gray-950);
 
     --muted: var(--color-gray-100);
     --muted-foreground: var(--color-gray-600);
@@ -160,7 +160,7 @@
     --primary-foreground: var(--color-black);
 
     --secondary: var(--color-gray-900);
-    --secondary-foreground: var(--color-gray-300);
+    --secondary-foreground: var(--color-white);
 
     --muted: var(--color-gray-900);
     --muted-foreground: --alpha(var(--color-gray-300) / 80%);

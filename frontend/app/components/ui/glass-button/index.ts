@@ -1,13 +1,6 @@
 export { default as GlassButton } from "./GlassButton.vue";
 
-export type GlassButtonVariant =
-  | "default"
-  | "destructive"
-  | "destructive-outline"
-  | "outline"
-  | "secondary"
-  | "ghost"
-  | "link";
+export type GlassButtonVariant = "default";
 
 export type GlassButtonSize =
   | "xs"
@@ -19,4 +12,5 @@ export type GlassButtonSize =
   | "icon-xs"
   | "icon-sm"
   | "icon-lg"
-  | "icon-xl";
+  | "icon-xl"
+  | "inherit";
