@@ -8,7 +8,7 @@
       enter-from-class="translate-y-full opacity-0"
       leave-to-class="translate-y-full opacity-0"
     >
-      <GlassButton v-if="showButton" @click="scrollToTop" variant="outline" size="icon">
+      <GlassButton v-if="showButton" @click="scrollToTop" size="icon">
         <Icon name="lucide:arrow-up" class="size-4.5 shrink-0" />
       </GlassButton>
     </Transition>

@@ -90,7 +90,7 @@
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <GlassButton variant="outline">
+            <GlassButton variant="default">
               <Icon name="lucide:star" class="size-4" />
               Star Project
             </GlassButton>
@@ -135,7 +135,7 @@
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <GlassButton variant="outline" size="icon" rounded="lg">
+            <GlassButton variant="default" size="icon" rounded="lg">
               <Icon name="lucide:pencil" class="size-4" />
             </GlassButton>
             <span class="text-muted-foreground text-xs">Edit Icon</span>
@@ -153,7 +153,7 @@
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <GlassButton variant="outline" rounded="xl">
+            <GlassButton variant="default" rounded="xl">
               <Icon name="lucide:share-2" class="size-4" />
               Share
             </GlassButton>
@@ -188,7 +188,7 @@
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <GlassButton variant="outline" disabled>
+            <GlassButton variant="default" disabled>
               <Spinner class="size-4" />
               Processing
             </GlassButton>
@@ -227,7 +227,7 @@
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <GlassButton variant="outline" disabled>Disabled</GlassButton>
+            <GlassButton variant="default" disabled>Disabled</GlassButton>
             <span class="text-muted-foreground text-xs">Outline Disabled</span>
           </div>
           <div
@@ -258,16 +258,16 @@
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
             <div class="flex items-center gap-2">
-              <GlassButton variant="outline" size="icon" rounded="lg">
+              <GlassButton variant="default" size="icon" rounded="lg">
                 <Icon name="lucide:bold" class="size-4" />
               </GlassButton>
-              <GlassButton variant="outline" size="icon" rounded="lg">
+              <GlassButton variant="default" size="icon" rounded="lg">
                 <Icon name="lucide:italic" class="size-4" />
               </GlassButton>
-              <GlassButton variant="outline" size="icon" rounded="lg">
+              <GlassButton variant="default" size="icon" rounded="lg">
                 <Icon name="lucide:underline" class="size-4" />
               </GlassButton>
-              <GlassButton variant="outline" size="icon" rounded="lg">
+              <GlassButton variant="default" size="icon" rounded="lg">
                 <Icon name="lucide:strikethrough" class="size-4" />
               </GlassButton>
             </div>
@@ -277,7 +277,7 @@
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
             <div class="flex items-center gap-2">
-              <GlassButton variant="outline" rounded="xl">Cancel</GlassButton>
+              <GlassButton variant="default" rounded="xl">Cancel</GlassButton>
               <GlassButton rounded="xl">
                 <Icon name="lucide:check" class="size-4" />
                 Confirm
@@ -310,7 +310,7 @@
           >
             <span class="font-medium tracking-tight">Light Background</span>
             <GlassButton variant="default">Default</GlassButton>
-            <GlassButton variant="outline">Outline</GlassButton>
+            <GlassButton variant="default">Outline</GlassButton>
           </div>
 
           <!-- Gradient bg -->
@@ -319,7 +319,7 @@
           >
             <span class="font-medium tracking-tight">Gradient Background</span>
             <GlassButton variant="default">Default</GlassButton>
-            <GlassButton variant="outline">Outline</GlassButton>
+            <GlassButton variant="default">Outline</GlassButton>
           </div>
 
           <!-- Dark bg -->
@@ -328,7 +328,7 @@
           >
             <span class="font-medium tracking-tight">Dark Background</span>
             <GlassButton variant="default">Default</GlassButton>
-            <GlassButton variant="outline">Outline</GlassButton>
+            <GlassButton variant="default">Outline</GlassButton>
           </div>
 
           <div class="relative overflow-hidden rounded-xl">
@@ -343,7 +343,7 @@
             >
               <span class="font-medium tracking-tight">Image Background</span>
               <GlassButton variant="default">Default</GlassButton>
-              <GlassButton variant="outline">Outline</GlassButton>
+              <GlassButton variant="default">Outline</GlassButton>
             </div>
           </div>
         </div>
