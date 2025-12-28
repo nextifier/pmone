@@ -190,16 +190,28 @@
   // Git configuration
   "git.ignoreLimitWarning": true,
 
-  // Tailwind CSS
+  // Tailwind CSS v4
   "tailwindCSS.includeLanguages": {
     "blade": "html",
-    "vue": "html"
+    "vue": "html",
+    "typescript": "javascript",
+    "typescriptreact": "javascript"
   },
   "tailwindCSS.files.exclude": [
     "**/.git/**",
     "**/node_modules/**",
     "**/dist/**",
     "**/build/**"
+  ],
+  // For Tailwind v4 CSS-based config
+  "tailwindCSS.experimental.configFile": "frontend/app/assets/css/main.css",
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\\(\\s*\\[([^\\]]*)\\]", "\"([^\"]*)\""],
+    ["cva\\(\\s*['\"`]([^'\"`]*)['\"`]", "([^'\"`]*)"],
+    ["cn\\(([^)]*)\\)", "\"([^\"]*)\""],
+    ["clsx\\(([^)]*)\\)", "\"([^\"]*)\""],
+    "\"([^\"]*)\"",
+    "'([^']*)'"
   ],
 
   // Vue/Nuxt Configuration
