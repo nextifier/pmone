@@ -9,13 +9,13 @@ export const glassButtonVariants = cva(
     "group pointer-events-auto relative inline-flex items-center justify-center font-medium tracking-tighter backdrop-blur-[clamp(1px,0.125em,4px)] transition-all duration-(--transition-duration) ease-(--transition-ease) select-none [--angle-1:-75deg] [--angle-2:-45deg] [--border-width:clamp(1px,0.0625em,4px)] [--transition-duration:300ms] [--transition-ease:cubic-bezier(0.25,1,0.5,1)] active:transform-[rotate3d(1,0,0,25deg)]",
 
     // Base - Color
-    "bg-linear-[-75deg] from-white/5 via-white/20 to-white/5 dark:via-transparent dark:to-transparent dark:from-transparent shadow-[inset_0_0.125em_0.125em_--alpha(var(--color-black)/5%),inset_0_-0.125em_0.125em_--alpha(var(--color-white)/50%),0_0.25em_0.125em_-0.125em_--alpha(var(--color-black)/20%),inset_0_0_0.1em_0.25em_--alpha(var(--color-white)/20%),0_0_0_0_--alpha(var(--color-white)/10%)] text-shadow-[0em_0.25em_0.05em_--alpha(var(--color-black)/10%)] dark:shadow-[inset_0_0.125em_0.125em_--alpha(var(--color-black)/5%),inset_0_-0.125em_0.125em_--alpha(var(--color-white)/10%),0_0.25em_0.125em_-0.125em_--alpha(var(--color-black)/20%),inset_0_0_0.1em_0.25em_--alpha(var(--color-white)/5%),0_0_0_0_--alpha(var(--color-white)/5%)]",
+    "bg-linear-[-75deg] from-white/5 via-white/20 to-white/5 dark:via-transparent dark:to-transparent dark:from-transparent shadow-[inset_0_0.125em_0.125em_--alpha(var(--color-black)/5%),inset_0_-0.125em_0.125em_--alpha(var(--color-white)/50%),0_0.25em_0.125em_-0.125em_--alpha(var(--color-black)/20%),inset_0_0_0.1em_0.25em_--alpha(var(--color-white)/20%),0_0_0_0_--alpha(var(--color-white)/10%)] dark:shadow-[inset_0_0.125em_0.125em_--alpha(var(--color-black)/5%),inset_0_-0.125em_0.125em_--alpha(var(--color-white)/10%),0_0.25em_0.125em_-0.125em_--alpha(var(--color-black)/20%),inset_0_0_0.1em_0.25em_--alpha(var(--color-white)/5%),0_0_0_0_--alpha(var(--color-white)/5%)]",
 
     // Hover State
     "hover:scale-98",
 
     // Hover State - Color
-    "hover:shadow-[inset_0_0.125em_0.125em_--alpha(var(--color-black)/5%),inset_0_-0.125em_0.125em_--alpha(var(--color-white)/50%),0_0.15em_0.05em_-0.1em_--alpha(var(--color-black)/25%),inset_0_0_0.05em_0.1em_--alpha(var(--color-white)/50%),0_0_0_0_--alpha(var(--color-white)/100%)] hover:text-shadow-[0.025em_0.025em_0.025em_--alpha(var(--color-black)/12%)]",
+    "hover:shadow-[inset_0_0.125em_0.125em_--alpha(var(--color-black)/5%),inset_0_-0.125em_0.125em_--alpha(var(--color-white)/50%),0_0.15em_0.05em_-0.1em_--alpha(var(--color-black)/25%),inset_0_0_0.05em_0.1em_--alpha(var(--color-white)/50%),0_0_0_0_--alpha(var(--color-white)/100%)]",
 
     // Active State - Color
     "active:shadow-[inset_0_0.125em_0.125em_--alpha(var(--color-black)/5%),inset_0_-0.125em_0.125em_--alpha(var(--color-white)/50%),0_0.125em_0.125em_-0.125em_--alpha(var(--color-black)/20%),inset_0_0_0.1em_0.25em_--alpha(var(--color-white)/20%),0_0.225em_0.05em_0_--alpha(var(--color-black)/5%),0_0.25em_0_0_--alpha(var(--color-white)/75%),inset_0_0.25em_0.05em_0_--alpha(var(--color-black)/15%)] active:text-shadow-[0em_0.25em_0.05em_--alpha(var(--color-black)/10%)]",
@@ -24,13 +24,13 @@ export const glassButtonVariants = cva(
     "before:pointer-events-none before:absolute before:top-[calc(0%+var(--border-width)/2)] before:left-[calc(0%+var(--border-width)/2)] before:size-[calc(100%-var(--border-width))] before:overflow-clip before:bg-size-[200%_200%]! before:bg-position-[0%_50%]! before:bg-no-repeat before:mix-blend-screen before:transition-[background-position,--angle-2] before:duration-[calc(var(--transition-duration)*1.25)] before:ease-(--transition-ease) hover:before:bg-position-[25%_50%]! active:before:bg-position-[50%_15%]! active:before:[--angle-2:-15deg]! pointer-coarse:before:[--angle-2:-45deg] active:pointer-coarse:before:[--angle-2:-45deg]",
 
     // Shine Effect (::before) - Color
-    "before:[background:linear-gradient(var(--angle-2),--alpha(var(--color-white)/0%)_0%,--alpha(var(--color-white)/35%)_40%_50%,--alpha(var(--color-white)/0%)_55%)] dark:before:[background:linear-gradient(var(--angle-2),--alpha(var(--color-white)/0%)_0%,--alpha(var(--color-white)/5%)_40%_50%,--alpha(var(--color-white)/0%)_55%)]",
+    "before:[background:linear-gradient(var(--angle-2),--alpha(var(--color-white)/0%)_0%,--alpha(var(--color-white)/35%)_40%_50%,--alpha(var(--color-white)/0%)_55%)] dark:before:[background:linear-gradient(var(--angle-2),--alpha(var(--color-white)/0%)_0%,--alpha(var(--color-white)/0%)_40%_50%,--alpha(var(--color-white)/0%)_55%)]",
 
     // Outline Effect (::after) - rounded removed, now in variants
     "after:absolute after:inset-0 after:top-[calc(0%-var(--border-width)/2)] after:left-[calc(0%-var(--border-width)/2)] after:size-[calc(100%+var(--border-width))] after:mask-exclude! after:p-(--border-width) after:[mask:linear-gradient(#000_0_0)_content-box,linear-gradient(#000_0_0)] after:[transition:all_var(--transition-duration)_var(--transition-ease),--angle-1_500ms_ease] hover:after:[--angle-1:-125deg] active:after:[--angle-1:-75deg] pointer-coarse:after:[--angle-1:-75deg] pointer-coarse:hover:after:[--angle-1:-75deg] pointer-coarse:active:after:[--angle-1:-75deg]",
 
     // Outline Effect (::after) - Color
-    "after:shadow-[inset_0_0_0_calc(var(--border-width)/2)_--alpha(var(--color-white)/50%)] after:[background:conic-gradient(from_var(--angle-1)_at_50%_50%,--alpha(var(--color-black)/50%),--alpha(var(--color-black)/0%)_5%_40%,--alpha(var(--color-black)/50%)_50%,--alpha(var(--color-black)/0%)_60%_95%,--alpha(var(--color-black)/50%)),linear-gradient(180deg,--alpha(var(--color-white)/50%),--alpha(var(--color-white)/50%))] dark:after:opacity-25 dark:hover:after:opacity-100",
+    "dark:shadow-none after:shadow-[inset_0_0_0_calc(var(--border-width)/2)_--alpha(var(--color-white)/50%)] after:[background:conic-gradient(from_var(--angle-1)_at_50%_50%,--alpha(var(--color-black)/50%),--alpha(var(--color-black)/0%)_5%_40%,--alpha(var(--color-black)/50%)_50%,--alpha(var(--color-black)/0%)_60%_95%,--alpha(var(--color-black)/50%)),linear-gradient(180deg,--alpha(var(--color-white)/50%),--alpha(var(--color-white)/50%))] dark:after:opacity-25 dark:hover:after:opacity-50",
   ],
   {
     variants: {
