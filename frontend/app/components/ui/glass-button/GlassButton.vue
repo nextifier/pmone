@@ -4,6 +4,7 @@ import type { PrimitiveProps } from "reka-ui";
 import { Primitive } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 import type { GlassButtonVariants } from ".";
+import { glassButtonVariants } from ".";
 
 interface Props extends PrimitiveProps {
   variant?: GlassButtonVariants["variant"];
@@ -13,14 +14,7 @@ interface Props extends PrimitiveProps {
 
 const props = withDefaults(defineProps<Props>(), {
   as: "button",
-  variant: "default",
-  size: "default",
 });
-
-const sizeClass = computed(() =>
-  props.size === "inherit" ? "" : `glass-button-size-${props.size}`
-);
-const variantClass = computed(() => `glass-button-variant-${props.variant}`);
 </script>
 
 <template>
@@ -30,18 +24,22 @@ const variantClass = computed(() => `glass-button-variant-${props.variant}`);
     :as-child="asChild"
     :class="
       cn(
-        'relative isolate rounded-full [font-size:var(--global-size,1rem)] transition-all duration-(--transition-duration) ease-(--transition-ease) [--angle-1:-75deg] [--angle-2:-45deg] [--border-width:clamp(1px,0.0625em,4px)] [--shadow-offset:2em] [--transition-duration:400ms] [--transition-ease:cubic-bezier(0.25,1,0.5,1)] has-[.glass-button:active]:transform-[rotate3d(1,0,0,25deg)]',
+        // Base
+        'group pointer-events-auto relative inline-flex items-center justify-center rounded-full bg-linear-[-75deg] from-white/5 via-white/20 to-white/5 font-medium tracking-tighter shadow-[inset_0_0.125em_0.125em_--alpha(var(--color-black)/5%),inset_0_-0.125em_0.125em_--alpha(var(--color-white)/50%),0_0.25em_0.125em_-0.125em_--alpha(var(--color-black)/20%),inset_0_0_0.1em_0.25em_--alpha(var(--color-white)/20%),0_0_0_0_--alpha(var(--color-white)/10%)] backdrop-blur-[clamp(1px,0.125em,4px)] transition-all duration-(--transition-duration) ease-(--transition-ease) select-none [--angle-1:-75deg] [--angle-2:-45deg] [--border-width:clamp(1px,0.0625em,4px)] [--shadow-offset:2em] [--transition-duration:400ms] [--transition-ease:cubic-bezier(0.25,1,0.5,1)] text-shadow-[0em_0.25em_0.05em_--alpha(var(--color-black)/10%)] hover:text-shadow-[0.025em_0.025em_0.025em_--alpha(var(--color-black)/12%)] active:transform-[rotate3d(1,0,0,25deg)] active:text-shadow-[0em_0.25em_0.05em_--alpha(var(--color-black)/10%)]',
 
-        'group peer pointer-events-auto relative rounded-full bg-linear-[-75deg] from-white/5 via-white/20 to-white/5 shadow-[inset_0_0.125em_0.125em_--alpha(var(--color-black)/5%),inset_0_-0.125em_0.125em_--alpha(var(--color-white)/50%),0_0.25em_0.125em_-0.125em_--alpha(var(--color-black)/20%),inset_0_0_0.1em_0.25em_--alpha(var(--color-white)/20%),0_0_0_0_--alpha(var(--color-white)/10%)] backdrop-blur-[clamp(1px,0.125em,4px)] transition-all duration-(--transition-duration) ease-(--transition-ease)',
-
+        // Hover State
         'hover:scale-98 hover:shadow-[inset_0_0.125em_0.125em_--alpha(var(--color-black)/5%),inset_0_-0.125em_0.125em_--alpha(var(--color-white)/50%),0_0.15em_0.05em_-0.1em_--alpha(var(--color-black)/25%),inset_0_0_0.05em_0.1em_--alpha(var(--color-white)/50%),0_0_0_0_--alpha(var(--color-white)/100%)]',
 
+        // Active State
         'active:shadow-[inset_0_0.125em_0.125em_--alpha(var(--color-black)/5%),inset_0_-0.125em_0.125em_--alpha(var(--color-white)/50%),0_0.125em_0.125em_-0.125em_--alpha(var(--color-black)/20%),inset_0_0_0.1em_0.25em_--alpha(var(--color-white)/20%),0_0.225em_0.05em_0_--alpha(var(--color-black)/5%),0_0.25em_0_0_--alpha(var(--color-white)/75%),inset_0_0.25em_0.05em_0_--alpha(var(--color-black)/15%)]',
 
+        // Shine effect
+        'before:pointer-events-none before:absolute before:top-[calc(0%+var(--border-width)/2)] before:left-[calc(0%+var(--border-width)/2)] before:size-[calc(100%-var(--border-width))] before:overflow-clip before:rounded-full before:bg-size-[200%_200%]! before:bg-position-[0%_50%]! before:bg-no-repeat before:mix-blend-screen before:transition-[background-position,--angle-2] before:duration-[calc(var(--transition-duration)*1.25)] before:ease-(--transition-ease) before:[background:linear-gradient(var(--angle-2),--alpha(var(--color-white)/0%)_0%,--alpha(var(--color-white)/50%)_40%_50%,--alpha(var(--color-white)/0%)_55%)] hover:before:bg-position-[25%_50%]! active:before:bg-position-[50%_15%]! active:before:[--angle-2:-15deg]! pointer-coarse:before:[--angle-2:-45deg] active:pointer-coarse:before:[--angle-2:-45deg]',
+
+        // Outline
         'after:absolute after:inset-0 after:top-[calc(0%-var(--border-width)/2)] after:left-[calc(0%-var(--border-width)/2)] after:size-[calc(100%+var(--border-width))] after:rounded-full after:mask-exclude! after:p-(--border-width) after:shadow-[inset_0_0_0_calc(var(--border-width)/2)_--alpha(var(--color-white)/50%)] after:[background:conic-gradient(from_var(--angle-1)_at_50%_50%,--alpha(var(--color-black)/50%),--alpha(var(--color-black)/0%)_5%_40%,--alpha(var(--color-black)/50%)_50%,--alpha(var(--color-black)/0%)_60%_95%,--alpha(var(--color-black)/50%)),linear-gradient(180deg,--alpha(var(--color-white)/50%),--alpha(var(--color-white)/50%))] after:[mask:linear-gradient(#000_0_0)_content-box,linear-gradient(#000_0_0)] after:[transition:all_var(--transition-duration)_var(--transition-ease),--angle-1_500ms_ease] hover:after:[--angle-1:-125deg] active:after:[--angle-1:-75deg] pointer-coarse:after:[--angle-1:-75deg] pointer-coarse:hover:after:[--angle-1:-75deg] pointer-coarse:active:after:[--angle-1:-75deg]',
 
-        sizeClass,
-        variantClass,
+        glassButtonVariants({ variant, size }),
         props.class
       )
     "
@@ -58,25 +56,9 @@ const variantClass = computed(() => `glass-button-variant-${props.variant}`);
           'group-active:blur-[clamp(2px,0.125em,12px)] group-active:after:top-[calc(var(--shadow-offset)-0.5em)] group-active:after:opacity-75'
         )
       "
-    ></div>
+    />
 
-    <span
-      :class="
-        cn(
-          'relative block rounded-full px-[1.5em] py-[0.875em] font-medium tracking-tighter transition-all duration-(--transition-duration) ease-(--transition-ease) select-none text-shadow-[0em_0.25em_0.05em_--alpha(var(--color-black)/10%)] group-active:text-shadow-[0em_0.25em_0.05em_--alpha(var(--color-black)/10%)]',
-
-          'after:pointer-events-none after:absolute after:top-[calc(0%+var(--border-width)/2)] after:left-[calc(0%+var(--border-width)/2)] after:size-[calc(100%-var(--border-width))] after:overflow-clip after:rounded-full after:bg-size-[200%_200%]! after:bg-position-[0%_50%]! after:bg-no-repeat after:mix-blend-screen after:transition-[background-position,--angle-2] after:duration-[calc(var(--transition-duration)*1.25)] after:ease-(--transition-ease) after:[background:linear-gradient(var(--angle-2),--alpha(var(--color-white)/0%)_0%,--alpha(var(--color-white)/50%)_40%_50%,--alpha(var(--color-white)/0%)_55%)]',
-
-          'group-hover:text-shadow-[0.025em_0.025em_0.025em_--alpha(var(--color-black)/12%)] group-hover:after:bg-position-[25%_50%]!',
-
-          'group-active:after:bg-position-[50%_15%]! group-active:after:[--angle-2:-15deg]!',
-
-          'pointer-coarse:after:[--angle-2:-45deg] group-active:pointer-coarse:after:[--angle-2:-45deg]'
-        )
-      "
-    >
-      <slot />
-    </span>
+    <slot />
   </Primitive>
 </template>
 
@@ -92,46 +74,5 @@ const variantClass = computed(() => `glass-button-variant-${props.variant}`);
   syntax: "<angle>";
   inherits: false;
   initial-value: -45deg;
-}
-
-/* Size Variants */
-.glass-button-size-xs {
-  --global-size: 0.625rem;
-}
-
-.glass-button-size-sm {
-  --global-size: 0.75rem;
-}
-
-.glass-button-size-default {
-  --global-size: 0.875rem;
-}
-
-.glass-button-size-lg {
-  --global-size: 1rem;
-}
-
-.glass-button-size-xl {
-  --global-size: 1.125rem;
-}
-
-.glass-button-size-icon {
-  --global-size: 0.875rem;
-}
-
-.glass-button-size-icon-xs {
-  --global-size: 0.625rem;
-}
-
-.glass-button-size-icon-sm {
-  --global-size: 0.75rem;
-}
-
-.glass-button-size-icon-lg {
-  --global-size: 1rem;
-}
-
-.glass-button-size-icon-xl {
-  --global-size: 1.125rem;
 }
 </style>
