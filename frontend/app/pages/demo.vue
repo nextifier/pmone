@@ -250,6 +250,39 @@
         </div>
       </div>
 
+      <!-- As Link -->
+      <div class="space-y-2.5">
+        <h2 class="page-title">As Link (NuxtLink)</h2>
+        <div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-2.5">
+          <div
+            class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
+          >
+            <GlassButton to="/">
+              <Icon name="lucide:home" class="size-4" />
+              Go Home
+            </GlassButton>
+            <span class="text-muted-foreground text-xs">to="/" (internal)</span>
+          </div>
+          <div
+            class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
+          >
+            <GlassButton to="https://nuxt.com" variant="default" rounded="xl">
+              <Icon name="lucide:external-link" class="size-4" />
+              External Link
+            </GlassButton>
+            <span class="text-muted-foreground text-xs">to="https://..." (new tab)</span>
+          </div>
+          <div
+            class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
+          >
+            <GlassButton to="/" variant="secondary" size="icon" rounded="lg">
+              <Icon name="lucide:arrow-left" class="size-4" />
+            </GlassButton>
+            <span class="text-muted-foreground text-xs">Icon Link</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Button Group Example -->
       <div class="space-y-2.5">
         <h2 class="page-title">Button Groups</h2>

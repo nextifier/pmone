@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import type { PrimitiveProps } from "reka-ui";
 import { Primitive } from "reka-ui";
 import type { HTMLAttributes } from "vue";
+import type { RouteLocationRaw } from "vue-router";
 import type { GlassButtonVariants } from ".";
 import { glassButtonVariants } from ".";
 
@@ -11,10 +12,23 @@ interface Props extends PrimitiveProps {
   size?: GlassButtonVariants["size"];
   rounded?: GlassButtonVariants["rounded"];
   class?: HTMLAttributes["class"];
+  to?: RouteLocationRaw;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   as: "button",
+});
+
+const resolvedComponent = computed(() => {
+  if (props.to) return resolveComponent("NuxtLink");
+  return props.as;
+});
+
+const resolvedTarget = computed(() => {
+  if (typeof props.to === "string" && props.to.startsWith("http")) {
+    return "_blank";
+  }
+  return undefined;
 });
 
 const innerShadowRoundedClass = computed(() => {
@@ -35,8 +49,10 @@ const innerShadowRoundedClass = computed(() => {
 <template>
   <Primitive
     data-slot="button"
-    :as="as"
+    :as="resolvedComponent"
     :as-child="asChild"
+    :to="to"
+    :target="resolvedTarget"
     :class="cn(glassButtonVariants({ variant, size, rounded }), props.class)"
   >
     <!-- Inner Shadow Effect -->
