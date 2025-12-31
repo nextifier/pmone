@@ -112,13 +112,13 @@
     --accent: var(--color-primary);
     --accent-foreground: var(--color-primary-foreground);
 
-    --info: var(--color-blue-500);
+    --info: var(--color-blue-600);
     --info-foreground: var(--color-blue-700);
 
-    --success: var(--color-green-500);
+    --success: var(--color-green-600);
     --success-foreground: var(--color-green-700);
 
-    --warning: var(--color-yellow-500);
+    --warning: var(--color-yellow-600);
     --warning-foreground: var(--color-yellow-700);
 
     --destructive: var(--color-red-600);
@@ -168,13 +168,13 @@
     --accent: var(--color-primary);
     --accent-foreground: var(--color-primary-foreground);
 
-    --info: var(--color-blue-500);
+    --info: var(--color-blue-600);
     --info-foreground: var(--color-blue-400);
 
-    --success: var(--color-green-500);
+    --success: var(--color-green-600);
     --success-foreground: var(--color-green-400);
 
-    --warning: var(--color-yellow-500);
+    --warning: var(--color-yellow-600);
     --warning-foreground: var(--color-yellow-400);
 
     --destructive: var(--color-red-600);
@@ -560,68 +560,50 @@
 }
 
 @utility format-html {
-  @apply prose dark:prose-invert prose-headings:font-semibold! prose-headings:tracking-tighter sm:prose-lg prose-h1:font-semibold prose-h2:font-semibold prose-figcaption:capitalize prose-figcaption:text-center prose-figcaption:text-xs prose-img:w-full max-w-2xl tracking-[-0.015em] break-words;
+  @apply prose dark:prose-invert prose-headings:font-medium! prose-strong:font-semibold prose-headings:tracking-tighter sm:prose-lg prose-figcaption:capitalize prose-figcaption:text-center prose-figcaption:text-xs prose-img:w-full prose-headings:not-first:mt-[1.5em] prose-headings:mb-[0.5em] prose-p:not-first:mt-[1em] prose-p:not-last:mb-[1em] prose-ul:my-[1em] prose-p:first:mt-0 prose-p:last:mb-0 text-foreground dark:text-body max-w-2xl tracking-[-0.015em] wrap-break-word;
 
-  & *:not(h1, h2, h3, h4, h5, h6, a) {
-    @apply !bg-inherit !text-inherit;
-  }
-
-  & :where(h1 strong):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-    @apply font-semibold;
-  }
-
-  & :where(h2 strong):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-    @apply font-semibold;
-  }
-
-  & :where(h3 strong):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-    @apply font-medium;
-  }
-
-  & :where(h4 strong):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-    @apply font-medium;
-  }
-
-  & table {
-    @apply !block !w-full !border-collapse !overflow-x-auto !whitespace-nowrap;
-  }
-
-  & th,
-  & td {
-    @apply !border-border !px-2 !py-4;
-
-    & p,
-    & span {
-      @apply !my-0 !align-middle !leading-normal !text-nowrap;
+  & :is(:not(:where([class~="not-prose"], [class~="not-prose"] *))) {
+    & *:not(h1, h2, h3, h4, h5, h6, a) {
+      @apply bg-inherit! text-inherit!;
     }
-  }
 
-  & h1 {
-    @apply text-4xl sm:text-5xl;
-  }
+    & table {
+      @apply block! w-full! border-collapse! overflow-x-auto! whitespace-nowrap!;
+    }
 
-  & h2 {
-    @apply text-3xl sm:text-4xl;
-  }
+    & th,
+    & td {
+      @apply border-border! px-2! py-4!;
 
-  & h3 {
-    @apply text-xl sm:text-2xl;
-  }
+      & p,
+      & span {
+        @apply my-0 align-middle! leading-normal! text-nowrap!;
+      }
+    }
 
-  & h4 {
-    @apply text-lg sm:text-xl;
-  }
+    & h1 {
+      @apply text-4xl font-medium! sm:text-5xl;
+    }
 
-  & p {
-    @apply !leading-[1.6] not-first:mt-6;
-  }
+    & h2 {
+      @apply text-2xl font-medium! sm:text-3xl;
+    }
 
-  & blockquote {
-    @apply mt-6 border-l-2 pl-6 italic;
-  }
+    & h3 {
+      @apply text-xl font-medium! sm:text-2xl;
+    }
 
-  & code {
-    @apply bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
+    & h4 {
+      @apply text-lg font-medium! sm:text-xl;
+    }
+
+    & blockquote {
+      @apply mt-6 border-l-2 pl-6 italic;
+    }
+
+    & code {
+      @apply bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
+    }
   }
 }
 
