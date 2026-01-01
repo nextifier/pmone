@@ -113,7 +113,28 @@ type PresetName =
   | "orange-honey"
   | "orange-copper"
   | "orange-apricot"
-  | "orange-flame";
+  | "orange-flame"
+  // New 20 diverse gradients
+  | "electric-blue"
+  | "deep-sea"
+  | "northern-lights"
+  | "bubblegum"
+  | "rose-garden"
+  | "toxic"
+  | "grape"
+  | "ice"
+  | "desert"
+  | "tropical"
+  | "cherry"
+  | "ocean-sunset"
+  | "spring"
+  | "cyberpunk"
+  | "autumn"
+  | "royal"
+  | "aquamarine"
+  | "volcano"
+  | "pastel-dream"
+  | "twilight";
 
 interface Props {
   preset?: PresetName;
@@ -425,6 +446,269 @@ const presets: Record<PresetName, PresetConfig> = {
       { size: "130%", top: "-15%", left: "-15%", blur: "35px" },
       { size: "145%", top: "-22%", left: "-22%", blur: "50px" },
       { size: "75%", top: "12%", left: "12%", blur: "18px" },
+    ],
+  },
+
+  // ========== NEW 20 DIVERSE GRADIENTS ==========
+
+  "electric-blue": {
+    // Blob 1: Vibrant electric blue, Blob 2: Deep navy, Blob 3: Bright cyan
+    gradients: [
+      "conic-gradient(oklch(65% 0.45 250) 0deg, oklch(58% 0.48 240) 60deg, oklch(70% 0.42 260) 120deg, oklch(62% 0.46 245) 180deg, oklch(68% 0.44 255) 240deg, oklch(60% 0.47 248) 300deg, oklch(65% 0.45 250) 360deg)",
+      "conic-gradient(oklch(35% 0.4 255) 0deg, oklch(28% 0.42 245) 90deg, oklch(32% 0.38 260) 180deg, oklch(25% 0.4 250) 270deg, oklch(35% 0.4 255) 360deg)",
+      "conic-gradient(oklch(85% 0.4 200) 0deg, oklch(80% 0.42 190) 120deg, oklch(88% 0.38 210) 240deg, oklch(85% 0.4 200) 360deg)",
+    ],
+    blobs: [
+      { size: "140%", top: "-20%", left: "-20%", blur: "45px" },
+      { size: "160%", top: "-30%", left: "-30%", blur: "60px" },
+      { size: "70%", top: "15%", left: "15%", blur: "20px" },
+    ],
+  },
+  "deep-sea": {
+    // Blob 1: Deep ocean blue, Blob 2: Bioluminescent teal, Blob 3: Dark abyss
+    gradients: [
+      "conic-gradient(oklch(40% 0.35 230) 0deg, oklch(35% 0.38 220) 60deg, oklch(45% 0.32 240) 120deg, oklch(38% 0.36 225) 180deg, oklch(42% 0.34 235) 240deg, oklch(36% 0.37 228) 300deg, oklch(40% 0.35 230) 360deg)",
+      "conic-gradient(oklch(70% 0.4 185) 0deg, oklch(65% 0.42 175) 90deg, oklch(75% 0.38 195) 180deg, oklch(68% 0.4 180) 270deg, oklch(70% 0.4 185) 360deg)",
+      "conic-gradient(oklch(22% 0.25 250) 0deg, oklch(18% 0.28 240) 120deg, oklch(25% 0.22 260) 240deg, oklch(22% 0.25 250) 360deg)",
+    ],
+    blobs: [
+      { size: "150%", top: "-25%", left: "-25%", blur: "55px" },
+      { size: "80%", top: "10%", left: "10%", blur: "25px" },
+      { size: "170%", top: "-35%", left: "-35%", blur: "70px" },
+    ],
+  },
+  "northern-lights": {
+    // Blob 1: Aurora green, Blob 2: Purple shimmer, Blob 3: Cyan glow
+    gradients: [
+      "conic-gradient(oklch(75% 0.45 145) 0deg, oklch(68% 0.48 135) 60deg, oklch(80% 0.42 155) 120deg, oklch(72% 0.46 140) 180deg, oklch(78% 0.44 150) 240deg, oklch(70% 0.47 142) 300deg, oklch(75% 0.45 145) 360deg)",
+      "conic-gradient(oklch(55% 0.42 300) 0deg, oklch(48% 0.45 290) 90deg, oklch(60% 0.4 310) 180deg, oklch(52% 0.43 295) 270deg, oklch(55% 0.42 300) 360deg)",
+      "conic-gradient(oklch(82% 0.38 195) 0deg, oklch(78% 0.4 185) 120deg, oklch(85% 0.35 205) 240deg, oklch(82% 0.38 195) 360deg)",
+    ],
+    blobs: [
+      { size: "135%", top: "-18%", left: "-18%", blur: "50px" },
+      { size: "120%", top: "-10%", left: "-10%", blur: "40px" },
+      { size: "90%", top: "5%", left: "5%", blur: "30px" },
+    ],
+  },
+  "bubblegum": {
+    // Blob 1: Hot pink, Blob 2: Light pink, Blob 3: Magenta pop
+    gradients: [
+      "conic-gradient(oklch(72% 0.45 350) 0deg, oklch(65% 0.48 340) 60deg, oklch(78% 0.42 355) 120deg, oklch(68% 0.46 345) 180deg, oklch(75% 0.44 352) 240deg, oklch(70% 0.47 348) 300deg, oklch(72% 0.45 350) 360deg)",
+      "conic-gradient(oklch(88% 0.32 5) 0deg, oklch(85% 0.35 355) 90deg, oklch(90% 0.3 10) 180deg, oklch(86% 0.33 0) 270deg, oklch(88% 0.32 5) 360deg)",
+      "conic-gradient(oklch(62% 0.48 320) 0deg, oklch(55% 0.5 310) 120deg, oklch(68% 0.45 330) 240deg, oklch(62% 0.48 320) 360deg)",
+    ],
+    blobs: [
+      { size: "125%", top: "-12%", left: "-12%", blur: "42px" },
+      { size: "140%", top: "-20%", left: "-20%", blur: "55px" },
+      { size: "65%", top: "18%", left: "18%", blur: "18px" },
+    ],
+  },
+  "rose-garden": {
+    // Blob 1: Deep rose, Blob 2: Soft blush, Blob 3: Crimson accent
+    gradients: [
+      "conic-gradient(oklch(58% 0.42 10) 0deg, oklch(52% 0.45 0) 60deg, oklch(62% 0.4 18) 120deg, oklch(55% 0.43 5) 180deg, oklch(60% 0.41 15) 240deg, oklch(54% 0.44 8) 300deg, oklch(58% 0.42 10) 360deg)",
+      "conic-gradient(oklch(85% 0.3 15) 0deg, oklch(82% 0.33 8) 90deg, oklch(88% 0.28 20) 180deg, oklch(84% 0.31 12) 270deg, oklch(85% 0.3 15) 360deg)",
+      "conic-gradient(oklch(48% 0.48 358) 0deg, oklch(42% 0.5 350) 120deg, oklch(52% 0.45 5) 240deg, oklch(48% 0.48 358) 360deg)",
+    ],
+    blobs: [
+      { size: "130%", top: "-15%", left: "-15%", blur: "48px" },
+      { size: "155%", top: "-28%", left: "-28%", blur: "65px" },
+      { size: "60%", top: "20%", left: "20%", blur: "15px" },
+    ],
+  },
+  "toxic": {
+    // Blob 1: Neon green, Blob 2: Acid yellow, Blob 3: Dark green glow
+    gradients: [
+      "conic-gradient(oklch(80% 0.5 130) 0deg, oklch(75% 0.52 120) 60deg, oklch(85% 0.48 140) 120deg, oklch(78% 0.5 125) 180deg, oklch(82% 0.49 135) 240deg, oklch(76% 0.51 128) 300deg, oklch(80% 0.5 130) 360deg)",
+      "conic-gradient(oklch(92% 0.48 105) 0deg, oklch(88% 0.5 95) 90deg, oklch(95% 0.45 110) 180deg, oklch(90% 0.48 100) 270deg, oklch(92% 0.48 105) 360deg)",
+      "conic-gradient(oklch(45% 0.4 145) 0deg, oklch(40% 0.42 135) 120deg, oklch(50% 0.38 155) 240deg, oklch(45% 0.4 145) 360deg)",
+    ],
+    blobs: [
+      { size: "120%", top: "-10%", left: "-10%", blur: "35px" },
+      { size: "95%", top: "2%", left: "2%", blur: "28px" },
+      { size: "150%", top: "-25%", left: "-25%", blur: "55px" },
+    ],
+  },
+  "grape": {
+    // Blob 1: Rich purple, Blob 2: Deep violet, Blob 3: Light lavender
+    gradients: [
+      "conic-gradient(oklch(50% 0.42 305) 0deg, oklch(45% 0.45 295) 60deg, oklch(55% 0.4 315) 120deg, oklch(48% 0.43 300) 180deg, oklch(52% 0.41 310) 240deg, oklch(46% 0.44 302) 300deg, oklch(50% 0.42 305) 360deg)",
+      "conic-gradient(oklch(35% 0.45 290) 0deg, oklch(30% 0.48 280) 90deg, oklch(40% 0.42 300) 180deg, oklch(32% 0.46 285) 270deg, oklch(35% 0.45 290) 360deg)",
+      "conic-gradient(oklch(82% 0.3 295) 0deg, oklch(78% 0.33 285) 120deg, oklch(85% 0.28 305) 240deg, oklch(82% 0.3 295) 360deg)",
+    ],
+    blobs: [
+      { size: "135%", top: "-18%", left: "-18%", blur: "50px" },
+      { size: "110%", top: "-5%", left: "-5%", blur: "38px" },
+      { size: "85%", top: "8%", left: "8%", blur: "22px" },
+    ],
+  },
+  "ice": {
+    // Blob 1: Icy blue, Blob 2: Frost white, Blob 3: Deep glacier
+    gradients: [
+      "conic-gradient(oklch(82% 0.28 220) 0deg, oklch(78% 0.3 210) 60deg, oklch(85% 0.25 230) 120deg, oklch(80% 0.28 215) 180deg, oklch(84% 0.26 225) 240deg, oklch(79% 0.29 218) 300deg, oklch(82% 0.28 220) 360deg)",
+      "conic-gradient(oklch(95% 0.12 220) 0deg, oklch(92% 0.15 210) 90deg, oklch(97% 0.1 230) 180deg, oklch(94% 0.13 215) 270deg, oklch(95% 0.12 220) 360deg)",
+      "conic-gradient(oklch(55% 0.3 235) 0deg, oklch(50% 0.33 225) 120deg, oklch(60% 0.28 245) 240deg, oklch(55% 0.3 235) 360deg)",
+    ],
+    blobs: [
+      { size: "145%", top: "-22%", left: "-22%", blur: "60px" },
+      { size: "125%", top: "-12%", left: "-12%", blur: "45px" },
+      { size: "75%", top: "12%", left: "12%", blur: "25px" },
+    ],
+  },
+  "desert": {
+    // Blob 1: Sandy beige, Blob 2: Terracotta, Blob 3: Golden sand
+    gradients: [
+      "conic-gradient(oklch(78% 0.25 70) 0deg, oklch(74% 0.28 60) 60deg, oklch(82% 0.22 80) 120deg, oklch(76% 0.26 65) 180deg, oklch(80% 0.24 75) 240deg, oklch(75% 0.27 68) 300deg, oklch(78% 0.25 70) 360deg)",
+      "conic-gradient(oklch(58% 0.38 40) 0deg, oklch(52% 0.4 32) 90deg, oklch(62% 0.36 48) 180deg, oklch(55% 0.39 36) 270deg, oklch(58% 0.38 40) 360deg)",
+      "conic-gradient(oklch(88% 0.32 85) 0deg, oklch(84% 0.35 75) 120deg, oklch(90% 0.3 92) 240deg, oklch(88% 0.32 85) 360deg)",
+    ],
+    blobs: [
+      { size: "140%", top: "-20%", left: "-20%", blur: "52px" },
+      { size: "100%", top: "0%", left: "0%", blur: "35px" },
+      { size: "80%", top: "10%", left: "10%", blur: "22px" },
+    ],
+  },
+  "tropical": {
+    // Blob 1: Tropical teal, Blob 2: Mango orange, Blob 3: Palm green
+    gradients: [
+      "conic-gradient(oklch(72% 0.38 190) 0deg, oklch(68% 0.4 180) 60deg, oklch(76% 0.36 200) 120deg, oklch(70% 0.38 185) 180deg, oklch(74% 0.37 195) 240deg, oklch(69% 0.39 188) 300deg, oklch(72% 0.38 190) 360deg)",
+      "conic-gradient(oklch(78% 0.48 55) 0deg, oklch(72% 0.5 45) 90deg, oklch(82% 0.45 62) 180deg, oklch(75% 0.48 50) 270deg, oklch(78% 0.48 55) 360deg)",
+      "conic-gradient(oklch(62% 0.4 145) 0deg, oklch(58% 0.42 135) 120deg, oklch(66% 0.38 155) 240deg, oklch(62% 0.4 145) 360deg)",
+    ],
+    blobs: [
+      { size: "130%", top: "-15%", left: "-15%", blur: "45px" },
+      { size: "115%", top: "-8%", left: "-8%", blur: "35px" },
+      { size: "95%", top: "2%", left: "2%", blur: "28px" },
+    ],
+  },
+  "cherry": {
+    // Blob 1: Cherry red, Blob 2: Dark burgundy, Blob 3: Bright pink
+    gradients: [
+      "conic-gradient(oklch(55% 0.48 15) 0deg, oklch(50% 0.5 8) 60deg, oklch(60% 0.46 22) 120deg, oklch(52% 0.48 12) 180deg, oklch(58% 0.47 18) 240deg, oklch(51% 0.49 10) 300deg, oklch(55% 0.48 15) 360deg)",
+      "conic-gradient(oklch(32% 0.42 5) 0deg, oklch(28% 0.44 358) 90deg, oklch(36% 0.4 12) 180deg, oklch(30% 0.43 2) 270deg, oklch(32% 0.42 5) 360deg)",
+      "conic-gradient(oklch(78% 0.45 350) 0deg, oklch(72% 0.48 342) 120deg, oklch(82% 0.42 358) 240deg, oklch(78% 0.45 350) 360deg)",
+    ],
+    blobs: [
+      { size: "125%", top: "-12%", left: "-12%", blur: "42px" },
+      { size: "155%", top: "-28%", left: "-28%", blur: "60px" },
+      { size: "70%", top: "15%", left: "15%", blur: "20px" },
+    ],
+  },
+  "ocean-sunset": {
+    // Blob 1: Sunset orange, Blob 2: Ocean blue, Blob 3: Horizon purple
+    gradients: [
+      "conic-gradient(oklch(72% 0.48 45) 0deg, oklch(65% 0.5 35) 60deg, oklch(78% 0.45 55) 120deg, oklch(68% 0.48 40) 180deg, oklch(75% 0.46 50) 240deg, oklch(67% 0.49 42) 300deg, oklch(72% 0.48 45) 360deg)",
+      "conic-gradient(oklch(55% 0.4 235) 0deg, oklch(50% 0.42 225) 90deg, oklch(60% 0.38 245) 180deg, oklch(52% 0.4 230) 270deg, oklch(55% 0.4 235) 360deg)",
+      "conic-gradient(oklch(50% 0.4 310) 0deg, oklch(45% 0.42 300) 120deg, oklch(55% 0.38 320) 240deg, oklch(50% 0.4 310) 360deg)",
+    ],
+    blobs: [
+      { size: "135%", top: "-18%", left: "-18%", blur: "48px" },
+      { size: "145%", top: "-22%", left: "-22%", blur: "55px" },
+      { size: "80%", top: "10%", left: "10%", blur: "25px" },
+    ],
+  },
+  "spring": {
+    // Blob 1: Fresh green, Blob 2: Blossom pink, Blob 3: Sunny yellow
+    gradients: [
+      "conic-gradient(oklch(75% 0.42 140) 0deg, oklch(70% 0.45 130) 60deg, oklch(80% 0.4 150) 120deg, oklch(72% 0.43 135) 180deg, oklch(78% 0.41 145) 240deg, oklch(71% 0.44 138) 300deg, oklch(75% 0.42 140) 360deg)",
+      "conic-gradient(oklch(85% 0.35 350) 0deg, oklch(80% 0.38 342) 90deg, oklch(88% 0.32 358) 180deg, oklch(82% 0.36 345) 270deg, oklch(85% 0.35 350) 360deg)",
+      "conic-gradient(oklch(92% 0.42 95) 0deg, oklch(88% 0.45 85) 120deg, oklch(95% 0.4 102) 240deg, oklch(92% 0.42 95) 360deg)",
+    ],
+    blobs: [
+      { size: "130%", top: "-15%", left: "-15%", blur: "45px" },
+      { size: "110%", top: "-5%", left: "-5%", blur: "35px" },
+      { size: "85%", top: "8%", left: "8%", blur: "22px" },
+    ],
+  },
+  "cyberpunk": {
+    // Blob 1: Neon pink, Blob 2: Electric cyan, Blob 3: Deep purple
+    gradients: [
+      "conic-gradient(oklch(68% 0.5 340) 0deg, oklch(62% 0.52 330) 60deg, oklch(72% 0.48 350) 120deg, oklch(65% 0.5 335) 180deg, oklch(70% 0.49 345) 240deg, oklch(63% 0.51 338) 300deg, oklch(68% 0.5 340) 360deg)",
+      "conic-gradient(oklch(82% 0.45 200) 0deg, oklch(78% 0.48 190) 90deg, oklch(85% 0.42 210) 180deg, oklch(80% 0.46 195) 270deg, oklch(82% 0.45 200) 360deg)",
+      "conic-gradient(oklch(38% 0.45 295) 0deg, oklch(32% 0.48 285) 120deg, oklch(42% 0.42 305) 240deg, oklch(38% 0.45 295) 360deg)",
+    ],
+    blobs: [
+      { size: "120%", top: "-10%", left: "-10%", blur: "38px" },
+      { size: "135%", top: "-18%", left: "-18%", blur: "48px" },
+      { size: "95%", top: "2%", left: "2%", blur: "28px" },
+    ],
+  },
+  "autumn": {
+    // Blob 1: Fall orange, Blob 2: Deep red leaf, Blob 3: Golden brown
+    gradients: [
+      "conic-gradient(oklch(68% 0.45 55) 0deg, oklch(62% 0.48 45) 60deg, oklch(72% 0.42 65) 120deg, oklch(65% 0.46 50) 180deg, oklch(70% 0.44 60) 240deg, oklch(64% 0.47 52) 300deg, oklch(68% 0.45 55) 360deg)",
+      "conic-gradient(oklch(45% 0.45 20) 0deg, oklch(40% 0.48 12) 90deg, oklch(50% 0.42 28) 180deg, oklch(42% 0.46 16) 270deg, oklch(45% 0.45 20) 360deg)",
+      "conic-gradient(oklch(62% 0.38 75) 0deg, oklch(58% 0.4 65) 120deg, oklch(66% 0.36 82) 240deg, oklch(62% 0.38 75) 360deg)",
+    ],
+    blobs: [
+      { size: "140%", top: "-20%", left: "-20%", blur: "50px" },
+      { size: "115%", top: "-8%", left: "-8%", blur: "38px" },
+      { size: "75%", top: "12%", left: "12%", blur: "20px" },
+    ],
+  },
+  "royal": {
+    // Blob 1: Royal purple, Blob 2: Rich gold, Blob 3: Deep navy
+    gradients: [
+      "conic-gradient(oklch(45% 0.4 295) 0deg, oklch(40% 0.42 285) 60deg, oklch(50% 0.38 305) 120deg, oklch(42% 0.4 290) 180deg, oklch(48% 0.39 300) 240deg, oklch(41% 0.41 292) 300deg, oklch(45% 0.4 295) 360deg)",
+      "conic-gradient(oklch(78% 0.45 85) 0deg, oklch(72% 0.48 75) 90deg, oklch(82% 0.42 92) 180deg, oklch(75% 0.46 80) 270deg, oklch(78% 0.45 85) 360deg)",
+      "conic-gradient(oklch(28% 0.32 260) 0deg, oklch(24% 0.35 250) 120deg, oklch(32% 0.3 270) 240deg, oklch(28% 0.32 260) 360deg)",
+    ],
+    blobs: [
+      { size: "135%", top: "-18%", left: "-18%", blur: "48px" },
+      { size: "100%", top: "0%", left: "0%", blur: "32px" },
+      { size: "160%", top: "-30%", left: "-30%", blur: "65px" },
+    ],
+  },
+  "aquamarine": {
+    // Blob 1: Aquamarine teal, Blob 2: Sea foam, Blob 3: Deep turquoise
+    gradients: [
+      "conic-gradient(oklch(75% 0.38 180) 0deg, oklch(70% 0.4 170) 60deg, oklch(80% 0.36 190) 120deg, oklch(72% 0.38 175) 180deg, oklch(78% 0.37 185) 240deg, oklch(71% 0.39 178) 300deg, oklch(75% 0.38 180) 360deg)",
+      "conic-gradient(oklch(88% 0.3 175) 0deg, oklch(85% 0.32 165) 90deg, oklch(90% 0.28 185) 180deg, oklch(86% 0.3 170) 270deg, oklch(88% 0.3 175) 360deg)",
+      "conic-gradient(oklch(52% 0.4 195) 0deg, oklch(48% 0.42 185) 120deg, oklch(56% 0.38 205) 240deg, oklch(52% 0.4 195) 360deg)",
+    ],
+    blobs: [
+      { size: "130%", top: "-15%", left: "-15%", blur: "45px" },
+      { size: "145%", top: "-22%", left: "-22%", blur: "58px" },
+      { size: "85%", top: "8%", left: "8%", blur: "25px" },
+    ],
+  },
+  "volcano": {
+    // Blob 1: Molten orange, Blob 2: Lava red, Blob 3: Volcanic black
+    gradients: [
+      "conic-gradient(oklch(65% 0.52 45) 0deg, oklch(58% 0.54 35) 60deg, oklch(70% 0.5 55) 120deg, oklch(62% 0.52 40) 180deg, oklch(68% 0.51 50) 240deg, oklch(60% 0.53 42) 300deg, oklch(65% 0.52 45) 360deg)",
+      "conic-gradient(oklch(48% 0.5 20) 0deg, oklch(42% 0.52 12) 90deg, oklch(52% 0.48 28) 180deg, oklch(45% 0.5 16) 270deg, oklch(48% 0.5 20) 360deg)",
+      "conic-gradient(oklch(20% 0.15 30) 0deg, oklch(15% 0.18 20) 120deg, oklch(25% 0.12 40) 240deg, oklch(20% 0.15 30) 360deg)",
+    ],
+    blobs: [
+      { size: "125%", top: "-12%", left: "-12%", blur: "40px" },
+      { size: "140%", top: "-20%", left: "-20%", blur: "52px" },
+      { size: "165%", top: "-32%", left: "-32%", blur: "70px" },
+    ],
+  },
+  "pastel-dream": {
+    // Blob 1: Pastel pink, Blob 2: Pastel blue, Blob 3: Pastel yellow
+    gradients: [
+      "conic-gradient(oklch(88% 0.22 350) 0deg, oklch(85% 0.25 342) 60deg, oklch(90% 0.2 358) 120deg, oklch(86% 0.23 345) 180deg, oklch(89% 0.21 355) 240deg, oklch(87% 0.24 348) 300deg, oklch(88% 0.22 350) 360deg)",
+      "conic-gradient(oklch(88% 0.2 230) 0deg, oklch(85% 0.23 220) 90deg, oklch(90% 0.18 240) 180deg, oklch(86% 0.21 225) 270deg, oklch(88% 0.2 230) 360deg)",
+      "conic-gradient(oklch(94% 0.22 95) 0deg, oklch(91% 0.25 85) 120deg, oklch(96% 0.2 102) 240deg, oklch(94% 0.22 95) 360deg)",
+    ],
+    blobs: [
+      { size: "135%", top: "-18%", left: "-18%", blur: "55px" },
+      { size: "120%", top: "-10%", left: "-10%", blur: "45px" },
+      { size: "100%", top: "0%", left: "0%", blur: "35px" },
+    ],
+  },
+  "twilight": {
+    // Blob 1: Twilight purple, Blob 2: Dusk orange, Blob 3: Night blue
+    gradients: [
+      "conic-gradient(oklch(48% 0.4 290) 0deg, oklch(42% 0.42 280) 60deg, oklch(52% 0.38 300) 120deg, oklch(45% 0.4 285) 180deg, oklch(50% 0.39 295) 240deg, oklch(44% 0.41 288) 300deg, oklch(48% 0.4 290) 360deg)",
+      "conic-gradient(oklch(68% 0.45 40) 0deg, oklch(62% 0.48 30) 90deg, oklch(72% 0.42 50) 180deg, oklch(65% 0.46 35) 270deg, oklch(68% 0.45 40) 360deg)",
+      "conic-gradient(oklch(30% 0.35 260) 0deg, oklch(25% 0.38 250) 120deg, oklch(35% 0.32 270) 240deg, oklch(30% 0.35 260) 360deg)",
+    ],
+    blobs: [
+      { size: "140%", top: "-20%", left: "-20%", blur: "50px" },
+      { size: "110%", top: "-5%", left: "-5%", blur: "38px" },
+      { size: "155%", top: "-28%", left: "-28%", blur: "62px" },
     ],
   },
 };

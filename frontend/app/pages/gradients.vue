@@ -88,7 +88,27 @@ type PresetName =
   | "orange-honey"
   | "orange-copper"
   | "orange-apricot"
-  | "orange-flame";
+  | "orange-flame"
+  | "electric-blue"
+  | "deep-sea"
+  | "northern-lights"
+  | "bubblegum"
+  | "rose-garden"
+  | "toxic"
+  | "grape"
+  | "ice"
+  | "desert"
+  | "tropical"
+  | "cherry"
+  | "ocean-sunset"
+  | "spring"
+  | "cyberpunk"
+  | "autumn"
+  | "royal"
+  | "aquamarine"
+  | "volcano"
+  | "pastel-dream"
+  | "twilight";
 
 definePageMeta({
   layout: "default",
@@ -135,5 +155,26 @@ const allGradients = [
   { name: "orange-copper" as const, label: "Copper" },
   { name: "orange-apricot" as const, label: "Apricot" },
   { name: "orange-flame" as const, label: "Flame" },
+  // Diverse gradient collection
+  { name: "electric-blue" as const, label: "Electric Blue" },
+  { name: "deep-sea" as const, label: "Deep Sea" },
+  { name: "northern-lights" as const, label: "Northern Lights" },
+  { name: "bubblegum" as const, label: "Bubblegum" },
+  { name: "rose-garden" as const, label: "Rose Garden" },
+  { name: "toxic" as const, label: "Toxic" },
+  { name: "grape" as const, label: "Grape" },
+  { name: "ice" as const, label: "Ice" },
+  { name: "desert" as const, label: "Desert" },
+  { name: "tropical" as const, label: "Tropical" },
+  { name: "cherry" as const, label: "Cherry" },
+  { name: "ocean-sunset" as const, label: "Ocean Sunset" },
+  { name: "spring" as const, label: "Spring" },
+  { name: "cyberpunk" as const, label: "Cyberpunk" },
+  { name: "autumn" as const, label: "Autumn" },
+  { name: "royal" as const, label: "Royal" },
+  { name: "aquamarine" as const, label: "Aquamarine" },
+  { name: "volcano" as const, label: "Volcano" },
+  { name: "pastel-dream" as const, label: "Pastel Dream" },
+  { name: "twilight" as const, label: "Twilight" },
 ];
 </script>
