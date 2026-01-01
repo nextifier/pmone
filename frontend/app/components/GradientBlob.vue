@@ -2,26 +2,92 @@
   <div
     ref="containerRef"
     class="pointer-events-none absolute inset-0 overflow-hidden"
-    :class="[containerClass, { paused: !isVisible }]"
+    :class="containerClass"
   >
-    <div class="blob-container" :style="containerStyle">
-      <!-- Blob 1 - Large -->
-      <div class="blob blob-1" :style="blob1Style">
-        <div class="blob-inner blob-morph-1" :style="{ background: gradient1 }" />
-      </div>
-      <!-- Blob 2 - Medium -->
-      <div class="blob blob-2" :style="blob2Style">
-        <div class="blob-inner blob-morph-2" :style="{ background: gradient2 }" />
-      </div>
-      <!-- Blob 3 - Small -->
-      <div class="blob blob-3" :style="blob3Style">
-        <div class="blob-inner blob-morph-3" :style="{ background: gradient3 }" />
-      </div>
+    <div
+      :style="{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        width: '100%',
+        height: '100%',
+        transform: `translate(${positionOffset.x}, ${positionOffset.y})`,
+        transformOrigin: 'center',
+      }"
+    >
+      <!-- Animated state with Motion -->
+      <template v-if="isAnimating">
+        <Motion
+          tag="div"
+          :animate="blob1Animate"
+          :transition="rotateTransition"
+          :style="blob1BaseStyle"
+        >
+          <Motion
+            tag="div"
+            :animate="morph1Animate"
+            :transition="morphTransition"
+            :style="{ background: gradient1, ...morphBaseStyle }"
+          />
+        </Motion>
+
+        <Motion
+          tag="div"
+          :animate="blob2Animate"
+          :transition="rotateTransition"
+          :style="blob2BaseStyle"
+        >
+          <Motion
+            tag="div"
+            :animate="morph2Animate"
+            :transition="morphTransition"
+            :style="{ background: gradient2, ...morphBaseStyle }"
+          />
+        </Motion>
+
+        <Motion
+          tag="div"
+          :animate="blob3Animate"
+          :transition="rotateTransition"
+          :style="blob3BaseStyle"
+        >
+          <Motion
+            tag="div"
+            :animate="morph3Animate"
+            :transition="morphTransition"
+            :style="{ background: gradient3, ...morphBaseStyle, mixBlendMode: 'overlay' }"
+          />
+        </Motion>
+      </template>
+
+      <!-- Static state without Motion -->
+      <template v-else>
+        <div :style="blob1BaseStyle">
+          <div :style="{ background: gradient1, ...morphBaseStyle, ...morph1StaticStyle }" />
+        </div>
+
+        <div :style="blob2BaseStyle">
+          <div :style="{ background: gradient2, ...morphBaseStyle, ...morph2StaticStyle }" />
+        </div>
+
+        <div :style="blob3BaseStyle">
+          <div
+            :style="{
+              background: gradient3,
+              ...morphBaseStyle,
+              ...morph3StaticStyle,
+              mixBlendMode: 'overlay',
+            }"
+          />
+        </div>
+      </template>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { Motion } from "motion-v";
+
 type PresetName =
   | "aurora"
   | "sunset"
@@ -37,11 +103,20 @@ type PresetName =
   | "gold"
   | "framer-wireframer"
   | "framer-translate"
-  | "framer-plugins";
+  | "framer-plugins"
+  | "orange-sunset"
+  | "orange-tangerine"
+  | "orange-peach"
+  | "orange-amber"
+  | "orange-coral"
+  | "orange-fire"
+  | "orange-honey"
+  | "orange-copper"
+  | "orange-apricot"
+  | "orange-flame";
 
 interface Props {
   preset?: PresetName;
-  scale?: number;
   position?:
     | "center"
     | "top"
@@ -53,174 +128,316 @@ interface Props {
     | "bottom-left"
     | "bottom-right";
   speed?: "slow" | "normal" | "fast";
-  intensity?: "subtle" | "normal" | "vivid";
   containerClass?: string;
+  animate?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   preset: "aurora",
-  scale: 6,
   position: "center",
   speed: "normal",
-  intensity: "normal",
+  animate: false,
 });
 
-// Intersection Observer for performance - pause when not visible
+// Hover detection
 const containerRef = ref<HTMLElement | null>(null);
-const isVisible = ref(true);
+const isHovered = ref(false);
+
+// Animation state: animate if prop is true OR if hovered
+const isAnimating = computed(() => props.animate || isHovered.value);
 
 onMounted(() => {
-  if (!containerRef.value || typeof IntersectionObserver === "undefined") return;
+  if (!containerRef.value) return;
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      isVisible.value = entries[0]?.isIntersecting ?? true;
-    },
-    { threshold: 0.1 }
-  );
+  const parent = containerRef.value.parentElement;
+  if (!parent) return;
 
-  observer.observe(containerRef.value);
+  const handleMouseEnter = () => {
+    isHovered.value = true;
+  };
 
-  onUnmounted(() => observer.disconnect());
+  const handleMouseLeave = () => {
+    isHovered.value = false;
+  };
+
+  parent.addEventListener("mouseenter", handleMouseEnter);
+  parent.addEventListener("mouseleave", handleMouseLeave);
+
+  onUnmounted(() => {
+    parent.removeEventListener("mouseenter", handleMouseEnter);
+    parent.removeEventListener("mouseleave", handleMouseLeave);
+  });
 });
 
-// Static preset data - no reactivity needed for these
-const presets: Record<PresetName, { gradients: string[]; filter: string }> = {
+// Blob configuration interface
+interface BlobConfig {
+  size: string;
+  top: string;
+  left: string;
+  blur: string;
+}
+
+interface PresetConfig {
+  gradients: string[];
+  blobs?: [BlobConfig, BlobConfig, BlobConfig];
+}
+
+// Default blob configurations
+const defaultBlobs: [BlobConfig, BlobConfig, BlobConfig] = [
+  { size: "130%", top: "-15%", left: "-15%", blur: "40px" },
+  { size: "100%", top: "0%", left: "0%", blur: "25px" },
+  { size: "70%", top: "15%", left: "15%", blur: "15px" },
+];
+
+// Preset configurations - vibrant colors without filter
+const presets: Record<PresetName, PresetConfig> = {
   aurora: {
     gradients: [
-      "conic-gradient(oklch(65% 0.32 330) 0deg, oklch(55% 0.35 290) 60deg, oklch(50% 0.3 260) 120deg, oklch(60% 0.28 220) 180deg, oklch(55% 0.32 280) 240deg, oklch(62% 0.3 310) 300deg, oklch(65% 0.32 330) 360deg)",
-      "conic-gradient(oklch(70% 0.28 340) 0deg, oklch(58% 0.32 280) 120deg, oklch(65% 0.25 230) 240deg, oklch(70% 0.28 340) 360deg)",
-      "conic-gradient(oklch(75% 0.22 350) 0deg, oklch(62% 0.28 270) 180deg, oklch(68% 0.2 200) 360deg)",
+      "conic-gradient(oklch(70% 0.42 330) 0deg, oklch(55% 0.45 290) 60deg, oklch(45% 0.4 260) 120deg, oklch(60% 0.38 220) 180deg, oklch(52% 0.42 280) 240deg, oklch(65% 0.4 310) 300deg, oklch(70% 0.42 330) 360deg)",
+      "conic-gradient(oklch(75% 0.38 340) 0deg, oklch(55% 0.42 280) 120deg, oklch(65% 0.35 230) 240deg, oklch(75% 0.38 340) 360deg)",
+      "conic-gradient(oklch(80% 0.32 350) 0deg, oklch(60% 0.38 270) 180deg, oklch(70% 0.3 200) 360deg)",
     ],
-    filter: "contrast(1.3) saturate(1.45)",
   },
   sunset: {
     gradients: [
-      "conic-gradient(oklch(65% 0.35 35) 0deg, oklch(58% 0.38 20) 60deg, oklch(52% 0.34 5) 120deg, oklch(60% 0.32 50) 180deg, oklch(55% 0.36 25) 240deg, oklch(62% 0.33 40) 300deg, oklch(65% 0.35 35) 360deg)",
-      "conic-gradient(oklch(70% 0.3 45) 0deg, oklch(55% 0.35 15) 120deg, oklch(62% 0.28 55) 240deg, oklch(70% 0.3 45) 360deg)",
-      "conic-gradient(oklch(75% 0.25 50) 0deg, oklch(58% 0.32 25) 180deg, oklch(68% 0.22 60) 360deg)",
+      "conic-gradient(oklch(70% 0.45 35) 0deg, oklch(60% 0.48 20) 60deg, oklch(50% 0.44 5) 120deg, oklch(65% 0.42 50) 180deg, oklch(55% 0.46 25) 240deg, oklch(68% 0.43 40) 300deg, oklch(70% 0.45 35) 360deg)",
+      "conic-gradient(oklch(75% 0.4 45) 0deg, oklch(55% 0.45 15) 120deg, oklch(65% 0.38 55) 240deg, oklch(75% 0.4 45) 360deg)",
+      "conic-gradient(oklch(80% 0.35 50) 0deg, oklch(58% 0.42 25) 180deg, oklch(72% 0.32 60) 360deg)",
     ],
-    filter: "contrast(1.35) saturate(1.5)",
   },
   ocean: {
     gradients: [
-      "conic-gradient(oklch(50% 0.28 240) 0deg, oklch(58% 0.32 220) 60deg, oklch(65% 0.28 200) 120deg, oklch(70% 0.22 185) 180deg, oklch(62% 0.26 210) 240deg, oklch(55% 0.3 230) 300deg, oklch(50% 0.28 240) 360deg)",
-      "conic-gradient(oklch(55% 0.3 235) 0deg, oklch(68% 0.25 195) 120deg, oklch(60% 0.28 215) 240deg, oklch(55% 0.3 235) 360deg)",
-      "conic-gradient(oklch(60% 0.25 230) 0deg, oklch(72% 0.2 190) 180deg, oklch(65% 0.22 205) 360deg)",
+      "conic-gradient(oklch(50% 0.38 240) 0deg, oklch(60% 0.42 220) 60deg, oklch(70% 0.38 200) 120deg, oklch(78% 0.32 185) 180deg, oklch(65% 0.36 210) 240deg, oklch(55% 0.4 230) 300deg, oklch(50% 0.38 240) 360deg)",
+      "conic-gradient(oklch(55% 0.4 235) 0deg, oklch(72% 0.35 195) 120deg, oklch(62% 0.38 215) 240deg, oklch(55% 0.4 235) 360deg)",
+      "conic-gradient(oklch(60% 0.35 230) 0deg, oklch(78% 0.3 190) 180deg, oklch(68% 0.32 205) 360deg)",
     ],
-    filter: "contrast(1.3) saturate(1.4)",
   },
   forest: {
     gradients: [
-      "conic-gradient(oklch(52% 0.3 150) 0deg, oklch(58% 0.32 135) 60deg, oklch(48% 0.28 165) 120deg, oklch(55% 0.3 145) 180deg, oklch(50% 0.32 155) 240deg, oklch(56% 0.28 140) 300deg, oklch(52% 0.3 150) 360deg)",
-      "conic-gradient(oklch(58% 0.28 155) 0deg, oklch(50% 0.32 140) 120deg, oklch(55% 0.25 165) 240deg, oklch(58% 0.28 155) 360deg)",
-      "conic-gradient(oklch(62% 0.24 148) 0deg, oklch(52% 0.28 160) 180deg, oklch(58% 0.22 138) 360deg)",
+      "conic-gradient(oklch(55% 0.4 150) 0deg, oklch(62% 0.42 135) 60deg, oklch(48% 0.38 165) 120deg, oklch(58% 0.4 145) 180deg, oklch(52% 0.42 155) 240deg, oklch(60% 0.38 140) 300deg, oklch(55% 0.4 150) 360deg)",
+      "conic-gradient(oklch(62% 0.38 155) 0deg, oklch(52% 0.42 140) 120deg, oklch(58% 0.35 165) 240deg, oklch(62% 0.38 155) 360deg)",
+      "conic-gradient(oklch(68% 0.34 148) 0deg, oklch(55% 0.38 160) 180deg, oklch(62% 0.32 138) 360deg)",
     ],
-    filter: "contrast(1.32) saturate(1.45)",
   },
   neon: {
     gradients: [
-      "conic-gradient(oklch(72% 0.38 330) 0deg, oklch(68% 0.4 300) 60deg, oklch(75% 0.35 200) 120deg, oklch(80% 0.32 100) 180deg, oklch(70% 0.38 280) 240deg, oklch(74% 0.36 320) 300deg, oklch(72% 0.38 330) 360deg)",
-      "conic-gradient(oklch(78% 0.35 340) 0deg, oklch(72% 0.38 260) 120deg, oklch(82% 0.3 120) 240deg, oklch(78% 0.35 340) 360deg)",
-      "conic-gradient(oklch(82% 0.3 350) 0deg, oklch(75% 0.35 220) 180deg, oklch(85% 0.25 150) 360deg)",
+      "conic-gradient(oklch(78% 0.48 330) 0deg, oklch(72% 0.5 300) 60deg, oklch(82% 0.45 200) 120deg, oklch(88% 0.42 100) 180deg, oklch(75% 0.48 280) 240deg, oklch(80% 0.46 320) 300deg, oklch(78% 0.48 330) 360deg)",
+      "conic-gradient(oklch(85% 0.45 340) 0deg, oklch(78% 0.48 260) 120deg, oklch(90% 0.4 120) 240deg, oklch(85% 0.45 340) 360deg)",
+      "conic-gradient(oklch(90% 0.4 350) 0deg, oklch(82% 0.45 220) 180deg, oklch(92% 0.35 150) 360deg)",
     ],
-    filter: "contrast(1.4) saturate(1.55)",
   },
   candy: {
     gradients: [
-      "conic-gradient(oklch(75% 0.3 350) 0deg, oklch(70% 0.32 320) 60deg, oklch(72% 0.28 280) 120deg, oklch(78% 0.25 250) 180deg, oklch(74% 0.3 300) 240deg, oklch(76% 0.28 340) 300deg, oklch(75% 0.3 350) 360deg)",
-      "conic-gradient(oklch(78% 0.28 355) 0deg, oklch(72% 0.3 290) 120deg, oklch(80% 0.22 240) 240deg, oklch(78% 0.28 355) 360deg)",
-      "conic-gradient(oklch(82% 0.24 5) 0deg, oklch(75% 0.28 270) 180deg, oklch(85% 0.2 230) 360deg)",
+      "conic-gradient(oklch(80% 0.4 350) 0deg, oklch(75% 0.42 320) 60deg, oklch(78% 0.38 280) 120deg, oklch(85% 0.35 250) 180deg, oklch(80% 0.4 300) 240deg, oklch(82% 0.38 340) 300deg, oklch(80% 0.4 350) 360deg)",
+      "conic-gradient(oklch(85% 0.38 355) 0deg, oklch(78% 0.4 290) 120deg, oklch(88% 0.32 240) 240deg, oklch(85% 0.38 355) 360deg)",
+      "conic-gradient(oklch(90% 0.34 5) 0deg, oklch(82% 0.38 270) 180deg, oklch(92% 0.3 230) 360deg)",
     ],
-    filter: "contrast(1.28) saturate(1.4)",
   },
   midnight: {
     gradients: [
-      "conic-gradient(oklch(38% 0.28 280) 0deg, oklch(32% 0.32 260) 60deg, oklch(42% 0.25 300) 120deg, oklch(35% 0.3 240) 180deg, oklch(40% 0.28 270) 240deg, oklch(36% 0.3 290) 300deg, oklch(38% 0.28 280) 360deg)",
-      "conic-gradient(oklch(42% 0.25 285) 0deg, oklch(35% 0.3 250) 120deg, oklch(38% 0.22 295) 240deg, oklch(42% 0.25 285) 360deg)",
-      "conic-gradient(oklch(45% 0.2 278) 0deg, oklch(38% 0.26 265) 180deg, oklch(42% 0.18 288) 360deg)",
+      "conic-gradient(oklch(35% 0.38 280) 0deg, oklch(28% 0.42 260) 60deg, oklch(40% 0.35 300) 120deg, oklch(32% 0.4 240) 180deg, oklch(38% 0.38 270) 240deg, oklch(34% 0.4 290) 300deg, oklch(35% 0.38 280) 360deg)",
+      "conic-gradient(oklch(40% 0.35 285) 0deg, oklch(32% 0.4 250) 120deg, oklch(36% 0.32 295) 240deg, oklch(40% 0.35 285) 360deg)",
+      "conic-gradient(oklch(45% 0.3 278) 0deg, oklch(35% 0.36 265) 180deg, oklch(42% 0.28 288) 360deg)",
     ],
-    filter: "contrast(1.35) saturate(1.4)",
   },
   ember: {
     gradients: [
-      "conic-gradient(oklch(62% 0.35 35) 0deg, oklch(55% 0.38 15) 60deg, oklch(50% 0.36 355) 120deg, oklch(58% 0.34 25) 180deg, oklch(52% 0.37 5) 240deg, oklch(60% 0.35 30) 300deg, oklch(62% 0.35 35) 360deg)",
-      "conic-gradient(oklch(65% 0.32 40) 0deg, oklch(52% 0.36 10) 120deg, oklch(58% 0.3 350) 240deg, oklch(65% 0.32 40) 360deg)",
-      "conic-gradient(oklch(70% 0.28 45) 0deg, oklch(55% 0.34 20) 180deg, oklch(62% 0.25 0) 360deg)",
+      "conic-gradient(oklch(68% 0.45 35) 0deg, oklch(58% 0.48 15) 60deg, oklch(50% 0.46 355) 120deg, oklch(62% 0.44 25) 180deg, oklch(54% 0.47 5) 240deg, oklch(65% 0.45 30) 300deg, oklch(68% 0.45 35) 360deg)",
+      "conic-gradient(oklch(72% 0.42 40) 0deg, oklch(55% 0.46 10) 120deg, oklch(62% 0.4 350) 240deg, oklch(72% 0.42 40) 360deg)",
+      "conic-gradient(oklch(78% 0.38 45) 0deg, oklch(58% 0.44 20) 180deg, oklch(68% 0.35 0) 360deg)",
     ],
-    filter: "contrast(1.38) saturate(1.52)",
   },
   cosmic: {
     gradients: [
-      "conic-gradient(oklch(55% 0.35 300) 0deg, oklch(48% 0.38 330) 60deg, oklch(52% 0.32 270) 120deg, oklch(58% 0.35 350) 180deg, oklch(50% 0.36 310) 240deg, oklch(54% 0.34 285) 300deg, oklch(55% 0.35 300) 360deg)",
-      "conic-gradient(oklch(58% 0.32 310) 0deg, oklch(50% 0.36 340) 120deg, oklch(55% 0.3 275) 240deg, oklch(58% 0.32 310) 360deg)",
-      "conic-gradient(oklch(62% 0.28 305) 0deg, oklch(52% 0.34 335) 180deg, oklch(58% 0.25 280) 360deg)",
+      "conic-gradient(oklch(58% 0.45 300) 0deg, oklch(48% 0.48 330) 60deg, oklch(55% 0.42 270) 120deg, oklch(62% 0.45 350) 180deg, oklch(52% 0.46 310) 240deg, oklch(56% 0.44 285) 300deg, oklch(58% 0.45 300) 360deg)",
+      "conic-gradient(oklch(62% 0.42 310) 0deg, oklch(52% 0.46 340) 120deg, oklch(58% 0.4 275) 240deg, oklch(62% 0.42 310) 360deg)",
+      "conic-gradient(oklch(68% 0.38 305) 0deg, oklch(55% 0.44 335) 180deg, oklch(62% 0.35 280) 360deg)",
     ],
-    filter: "contrast(1.4) saturate(1.48)",
   },
   mint: {
     gradients: [
-      "conic-gradient(oklch(72% 0.28 175) 0deg, oklch(68% 0.32 160) 60deg, oklch(75% 0.26 190) 120deg, oklch(70% 0.3 150) 180deg, oklch(73% 0.28 180) 240deg, oklch(69% 0.3 165) 300deg, oklch(72% 0.28 175) 360deg)",
-      "conic-gradient(oklch(75% 0.26 180) 0deg, oklch(68% 0.3 155) 120deg, oklch(72% 0.22 195) 240deg, oklch(75% 0.26 180) 360deg)",
-      "conic-gradient(oklch(78% 0.22 178) 0deg, oklch(70% 0.28 162) 180deg, oklch(75% 0.2 188) 360deg)",
+      "conic-gradient(oklch(78% 0.38 175) 0deg, oklch(72% 0.42 160) 60deg, oklch(82% 0.36 190) 120deg, oklch(75% 0.4 150) 180deg, oklch(80% 0.38 180) 240deg, oklch(74% 0.4 165) 300deg, oklch(78% 0.38 175) 360deg)",
+      "conic-gradient(oklch(82% 0.36 180) 0deg, oklch(74% 0.4 155) 120deg, oklch(78% 0.32 195) 240deg, oklch(82% 0.36 180) 360deg)",
+      "conic-gradient(oklch(86% 0.32 178) 0deg, oklch(76% 0.38 162) 180deg, oklch(82% 0.3 188) 360deg)",
     ],
-    filter: "contrast(1.3) saturate(1.42)",
   },
   lavender: {
     gradients: [
-      "conic-gradient(oklch(70% 0.28 295) 0deg, oklch(65% 0.32 275) 60deg, oklch(72% 0.25 315) 120deg, oklch(68% 0.3 260) 180deg, oklch(71% 0.28 285) 240deg, oklch(67% 0.3 305) 300deg, oklch(70% 0.28 295) 360deg)",
-      "conic-gradient(oklch(73% 0.25 300) 0deg, oklch(66% 0.3 270) 120deg, oklch(70% 0.22 320) 240deg, oklch(73% 0.25 300) 360deg)",
-      "conic-gradient(oklch(76% 0.2 298) 0deg, oklch(68% 0.26 278) 180deg, oklch(74% 0.18 312) 360deg)",
+      "conic-gradient(oklch(75% 0.38 295) 0deg, oklch(68% 0.42 275) 60deg, oklch(78% 0.35 315) 120deg, oklch(72% 0.4 260) 180deg, oklch(76% 0.38 285) 240deg, oklch(70% 0.4 305) 300deg, oklch(75% 0.38 295) 360deg)",
+      "conic-gradient(oklch(80% 0.35 300) 0deg, oklch(70% 0.4 270) 120deg, oklch(76% 0.32 320) 240deg, oklch(80% 0.35 300) 360deg)",
+      "conic-gradient(oklch(84% 0.3 298) 0deg, oklch(74% 0.36 278) 180deg, oklch(80% 0.28 312) 360deg)",
     ],
-    filter: "contrast(1.28) saturate(1.38)",
   },
   gold: {
     gradients: [
-      "conic-gradient(oklch(72% 0.3 85) 0deg, oklch(65% 0.34 70) 60deg, oklch(70% 0.28 95) 120deg, oklch(62% 0.32 55) 180deg, oklch(68% 0.3 80) 240deg, oklch(74% 0.28 90) 300deg, oklch(72% 0.3 85) 360deg)",
-      "conic-gradient(oklch(75% 0.28 88) 0deg, oklch(64% 0.32 65) 120deg, oklch(70% 0.24 98) 240deg, oklch(75% 0.28 88) 360deg)",
-      "conic-gradient(oklch(78% 0.24 86) 0deg, oklch(68% 0.3 72) 180deg, oklch(74% 0.2 95) 360deg)",
+      "conic-gradient(oklch(78% 0.4 85) 0deg, oklch(68% 0.44 70) 60deg, oklch(75% 0.38 95) 120deg, oklch(65% 0.42 55) 180deg, oklch(72% 0.4 80) 240deg, oklch(80% 0.38 90) 300deg, oklch(78% 0.4 85) 360deg)",
+      "conic-gradient(oklch(82% 0.38 88) 0deg, oklch(68% 0.42 65) 120deg, oklch(76% 0.34 98) 240deg, oklch(82% 0.38 88) 360deg)",
+      "conic-gradient(oklch(86% 0.34 86) 0deg, oklch(72% 0.4 72) 180deg, oklch(80% 0.3 95) 360deg)",
     ],
-    filter: "contrast(1.35) saturate(1.48)",
   },
   "framer-wireframer": {
     gradients: [
-      "conic-gradient(oklch(65% 0.32 330) 0deg, oklch(55% 0.35 300) 90deg, oklch(50% 0.3 270) 180deg, oklch(60% 0.25 240) 270deg, oklch(65% 0.32 330) 360deg)",
-      "conic-gradient(oklch(70% 0.28 320) 0deg, oklch(58% 0.3 280) 120deg, oklch(65% 0.22 230) 240deg, oklch(70% 0.28 320) 360deg)",
-      "conic-gradient(oklch(75% 0.2 340) 0deg, oklch(62% 0.25 260) 180deg, oklch(68% 0.18 210) 360deg)",
+      "conic-gradient(oklch(70% 0.42 330) 0deg, oklch(55% 0.45 300) 90deg, oklch(48% 0.4 270) 180deg, oklch(62% 0.35 240) 270deg, oklch(70% 0.42 330) 360deg)",
+      "conic-gradient(oklch(76% 0.38 320) 0deg, oklch(58% 0.4 280) 120deg, oklch(68% 0.32 230) 240deg, oklch(76% 0.38 320) 360deg)",
+      "conic-gradient(oklch(82% 0.3 340) 0deg, oklch(65% 0.35 260) 180deg, oklch(74% 0.28 210) 360deg)",
     ],
-    filter: "contrast(1.3) saturate(1.4)",
   },
   "framer-translate": {
     gradients: [
-      "conic-gradient(oklch(45% 0.2 250) 0deg, oklch(55% 0.25 220) 90deg, oklch(65% 0.22 195) 180deg, oklch(70% 0.18 180) 270deg, oklch(45% 0.2 250) 360deg)",
-      "conic-gradient(oklch(50% 0.22 240) 0deg, oklch(60% 0.2 210) 120deg, oklch(72% 0.15 185) 240deg, oklch(50% 0.22 240) 360deg)",
-      "conic-gradient(oklch(55% 0.18 230) 0deg, oklch(68% 0.16 200) 180deg, oklch(75% 0.12 175) 360deg)",
+      "conic-gradient(oklch(48% 0.3 250) 0deg, oklch(58% 0.35 220) 90deg, oklch(70% 0.32 195) 180deg, oklch(78% 0.28 180) 270deg, oklch(48% 0.3 250) 360deg)",
+      "conic-gradient(oklch(55% 0.32 240) 0deg, oklch(65% 0.3 210) 120deg, oklch(78% 0.25 185) 240deg, oklch(55% 0.32 240) 360deg)",
+      "conic-gradient(oklch(60% 0.28 230) 0deg, oklch(72% 0.26 200) 180deg, oklch(82% 0.22 175) 360deg)",
     ],
-    filter: "contrast(1.2) saturate(1.3)",
   },
   "framer-plugins": {
     gradients: [
-      "conic-gradient(oklch(60% 0.3 30) 0deg, oklch(55% 0.35 350) 90deg, oklch(50% 0.32 320) 180deg, oklch(58% 0.28 15) 270deg, oklch(60% 0.3 30) 360deg)",
-      "conic-gradient(oklch(65% 0.28 40) 0deg, oklch(52% 0.32 340) 120deg, oklch(58% 0.25 10) 240deg, oklch(65% 0.28 40) 360deg)",
-      "conic-gradient(oklch(70% 0.22 50) 0deg, oklch(55% 0.28 355) 180deg, oklch(62% 0.2 25) 360deg)",
+      "conic-gradient(oklch(65% 0.4 30) 0deg, oklch(58% 0.45 350) 90deg, oklch(52% 0.42 320) 180deg, oklch(62% 0.38 15) 270deg, oklch(65% 0.4 30) 360deg)",
+      "conic-gradient(oklch(72% 0.38 40) 0deg, oklch(55% 0.42 340) 120deg, oklch(62% 0.35 10) 240deg, oklch(72% 0.38 40) 360deg)",
+      "conic-gradient(oklch(78% 0.32 50) 0deg, oklch(58% 0.38 355) 180deg, oklch(68% 0.3 25) 360deg)",
     ],
-    filter: "contrast(1.35) saturate(1.5)",
+  },
+  // Orange gradient presets with varied blob configurations and contrasting colors
+  "orange-sunset": {
+    // Blob 1: Deep red-orange, Blob 2: Warm pink-magenta, Blob 3: Golden yellow
+    gradients: [
+      "conic-gradient(oklch(65% 0.48 25) 0deg, oklch(55% 0.5 15) 60deg, oklch(48% 0.46 5) 120deg, oklch(58% 0.48 20) 180deg, oklch(52% 0.5 10) 240deg, oklch(62% 0.47 28) 300deg, oklch(65% 0.48 25) 360deg)",
+      "conic-gradient(oklch(72% 0.42 350) 0deg, oklch(65% 0.45 340) 90deg, oklch(58% 0.4 330) 180deg, oklch(68% 0.43 345) 270deg, oklch(72% 0.42 350) 360deg)",
+      "conic-gradient(oklch(85% 0.44 75) 0deg, oklch(78% 0.46 65) 120deg, oklch(82% 0.42 80) 240deg, oklch(85% 0.44 75) 360deg)",
+    ],
+    blobs: [
+      { size: "150%", top: "-25%", left: "-25%", blur: "50px" },
+      { size: "110%", top: "-5%", left: "-5%", blur: "35px" },
+      { size: "80%", top: "10%", left: "10%", blur: "20px" },
+    ],
+  },
+  "orange-tangerine": {
+    // Blob 1: Vivid orange, Blob 2: Coral pink, Blob 3: Lime yellow
+    gradients: [
+      "conic-gradient(oklch(75% 0.5 50) 0deg, oklch(68% 0.52 42) 60deg, oklch(72% 0.48 55) 120deg, oklch(65% 0.5 45) 180deg, oklch(78% 0.47 52) 240deg, oklch(70% 0.49 48) 300deg, oklch(75% 0.5 50) 360deg)",
+      "conic-gradient(oklch(78% 0.42 20) 0deg, oklch(70% 0.45 10) 90deg, oklch(75% 0.4 25) 180deg, oklch(72% 0.43 15) 270deg, oklch(78% 0.42 20) 360deg)",
+      "conic-gradient(oklch(88% 0.45 95) 0deg, oklch(82% 0.48 85) 120deg, oklch(85% 0.43 100) 240deg, oklch(88% 0.45 95) 360deg)",
+    ],
+    blobs: [
+      { size: "120%", top: "-10%", left: "-10%", blur: "45px" },
+      { size: "140%", top: "-20%", left: "-20%", blur: "30px" },
+      { size: "60%", top: "20%", left: "20%", blur: "18px" },
+    ],
+  },
+  "orange-peach": {
+    // Blob 1: Warm peach-orange, Blob 2: Soft rose pink, Blob 3: Creamy coral
+    gradients: [
+      "conic-gradient(oklch(82% 0.38 45) 0deg, oklch(78% 0.4 38) 60deg, oklch(85% 0.35 50) 120deg, oklch(80% 0.38 42) 180deg, oklch(88% 0.32 52) 240deg, oklch(84% 0.36 48) 300deg, oklch(82% 0.38 45) 360deg)",
+      "conic-gradient(oklch(85% 0.35 15) 0deg, oklch(80% 0.38 8) 90deg, oklch(88% 0.32 20) 180deg, oklch(82% 0.36 12) 270deg, oklch(85% 0.35 15) 360deg)",
+      "conic-gradient(oklch(80% 0.4 30) 0deg, oklch(75% 0.42 22) 120deg, oklch(82% 0.38 35) 240deg, oklch(80% 0.4 30) 360deg)",
+    ],
+    blobs: [
+      { size: "130%", top: "-15%", left: "-15%", blur: "55px" },
+      { size: "100%", top: "0%", left: "0%", blur: "40px" },
+      { size: "80%", top: "10%", left: "10%", blur: "25px" },
+    ],
+  },
+  "orange-amber": {
+    // Blob 1: Deep amber, Blob 2: Burnt sienna/brown, Blob 3: Warm gold
+    gradients: [
+      "conic-gradient(oklch(62% 0.48 60) 0deg, oklch(55% 0.5 50) 60deg, oklch(58% 0.46 65) 120deg, oklch(52% 0.48 55) 180deg, oklch(65% 0.45 62) 240deg, oklch(58% 0.47 58) 300deg, oklch(62% 0.48 60) 360deg)",
+      "conic-gradient(oklch(48% 0.4 35) 0deg, oklch(42% 0.42 25) 90deg, oklch(45% 0.38 40) 180deg, oklch(40% 0.4 30) 270deg, oklch(48% 0.4 35) 360deg)",
+      "conic-gradient(oklch(82% 0.45 85) 0deg, oklch(75% 0.48 75) 120deg, oklch(78% 0.43 90) 240deg, oklch(82% 0.45 85) 360deg)",
+    ],
+    blobs: [
+      { size: "160%", top: "-30%", left: "-30%", blur: "55px" },
+      { size: "85%", top: "8%", left: "8%", blur: "22px" },
+      { size: "75%", top: "12%", left: "12%", blur: "12px" },
+    ],
+  },
+  "orange-coral": {
+    // Blob 1: Vibrant coral, Blob 2: Deep magenta-pink, Blob 3: Soft salmon
+    gradients: [
+      "conic-gradient(oklch(72% 0.46 28) 0deg, oklch(65% 0.48 18) 60deg, oklch(78% 0.42 32) 120deg, oklch(68% 0.46 22) 180deg, oklch(75% 0.44 30) 240deg, oklch(70% 0.47 25) 300deg, oklch(72% 0.46 28) 360deg)",
+      "conic-gradient(oklch(62% 0.48 345) 0deg, oklch(55% 0.5 335) 90deg, oklch(58% 0.46 350) 180deg, oklch(52% 0.48 340) 270deg, oklch(62% 0.48 345) 360deg)",
+      "conic-gradient(oklch(82% 0.38 35) 0deg, oklch(78% 0.4 25) 120deg, oklch(85% 0.35 40) 240deg, oklch(82% 0.38 35) 360deg)",
+    ],
+    blobs: [
+      { size: "140%", top: "-20%", left: "-20%", blur: "45px" },
+      { size: "110%", top: "-5%", left: "-5%", blur: "35px" },
+      { size: "70%", top: "15%", left: "15%", blur: "20px" },
+    ],
+  },
+  "orange-fire": {
+    // Blob 1: Intense red, Blob 2: Deep orange, Blob 3: Bright yellow
+    gradients: [
+      "conic-gradient(oklch(58% 0.52 15) 0deg, oklch(50% 0.54 5) 60deg, oklch(45% 0.5 0) 120deg, oklch(52% 0.52 10) 180deg, oklch(48% 0.53 3) 240deg, oklch(55% 0.51 12) 300deg, oklch(58% 0.52 15) 360deg)",
+      "conic-gradient(oklch(68% 0.5 45) 0deg, oklch(60% 0.52 35) 90deg, oklch(65% 0.48 50) 180deg, oklch(62% 0.5 40) 270deg, oklch(68% 0.5 45) 360deg)",
+      "conic-gradient(oklch(92% 0.48 95) 0deg, oklch(88% 0.5 85) 120deg, oklch(90% 0.46 100) 240deg, oklch(92% 0.48 95) 360deg)",
+    ],
+    blobs: [
+      { size: "140%", top: "-20%", left: "-20%", blur: "30px" },
+      { size: "100%", top: "0%", left: "0%", blur: "45px" },
+      { size: "120%", top: "-10%", left: "-10%", blur: "20px" },
+    ],
+  },
+  "orange-honey": {
+    // Blob 1: Golden honey, Blob 2: Warm brown, Blob 3: Cream white
+    gradients: [
+      "conic-gradient(oklch(78% 0.45 70) 0deg, oklch(72% 0.48 60) 60deg, oklch(82% 0.42 75) 120deg, oklch(75% 0.46 65) 180deg, oklch(85% 0.4 78) 240deg, oklch(80% 0.44 68) 300deg, oklch(78% 0.45 70) 360deg)",
+      "conic-gradient(oklch(52% 0.38 50) 0deg, oklch(45% 0.4 40) 90deg, oklch(48% 0.36 55) 180deg, oklch(42% 0.38 45) 270deg, oklch(52% 0.38 50) 360deg)",
+      "conic-gradient(oklch(95% 0.18 85) 0deg, oklch(92% 0.22 75) 120deg, oklch(94% 0.16 90) 240deg, oklch(95% 0.18 85) 360deg)",
+    ],
+    blobs: [
+      { size: "95%", top: "2%", left: "2%", blur: "55px" },
+      { size: "120%", top: "-10%", left: "-10%", blur: "35px" },
+      { size: "85%", top: "8%", left: "8%", blur: "18px" },
+    ],
+  },
+  "orange-copper": {
+    // Blob 1: Deep copper/bronze, Blob 2: Dark burgundy, Blob 3: Bright rose gold
+    gradients: [
+      "conic-gradient(oklch(52% 0.42 45) 0deg, oklch(45% 0.44 38) 60deg, oklch(48% 0.4 50) 120deg, oklch(42% 0.42 42) 180deg, oklch(55% 0.38 48) 240deg, oklch(48% 0.43 44) 300deg, oklch(52% 0.42 45) 360deg)",
+      "conic-gradient(oklch(38% 0.38 15) 0deg, oklch(32% 0.4 8) 90deg, oklch(35% 0.36 20) 180deg, oklch(30% 0.38 12) 270deg, oklch(38% 0.38 15) 360deg)",
+      "conic-gradient(oklch(75% 0.4 30) 0deg, oklch(68% 0.43 22) 120deg, oklch(72% 0.38 35) 240deg, oklch(75% 0.4 30) 360deg)",
+    ],
+    blobs: [
+      { size: "150%", top: "-25%", left: "-25%", blur: "55px" },
+      { size: "120%", top: "-10%", left: "-10%", blur: "40px" },
+      { size: "70%", top: "15%", left: "15%", blur: "18px" },
+    ],
+  },
+  "orange-apricot": {
+    // Blob 1: Warm apricot orange, Blob 2: Soft peachy pink, Blob 3: Creamy yellow
+    gradients: [
+      "conic-gradient(oklch(80% 0.42 50) 0deg, oklch(75% 0.44 42) 60deg, oklch(82% 0.38 55) 120deg, oklch(78% 0.42 48) 180deg, oklch(85% 0.36 58) 240deg, oklch(82% 0.4 52) 300deg, oklch(80% 0.42 50) 360deg)",
+      "conic-gradient(oklch(85% 0.36 25) 0deg, oklch(80% 0.38 18) 90deg, oklch(88% 0.33 30) 180deg, oklch(82% 0.36 22) 270deg, oklch(85% 0.36 25) 360deg)",
+      "conic-gradient(oklch(90% 0.35 75) 0deg, oklch(86% 0.38 65) 120deg, oklch(92% 0.32 80) 240deg, oklch(90% 0.35 75) 360deg)",
+    ],
+    blobs: [
+      { size: "135%", top: "-18%", left: "-18%", blur: "50px" },
+      { size: "105%", top: "-2%", left: "-2%", blur: "35px" },
+      { size: "75%", top: "12%", left: "12%", blur: "22px" },
+    ],
+  },
+  "orange-flame": {
+    // Blob 1: Hot orange-red, Blob 2: Deep crimson red, Blob 3: Bright golden yellow
+    gradients: [
+      "conic-gradient(oklch(68% 0.5 38) 0deg, oklch(62% 0.52 28) 60deg, oklch(55% 0.48 18) 120deg, oklch(65% 0.5 32) 180deg, oklch(58% 0.51 22) 240deg, oklch(70% 0.48 42) 300deg, oklch(68% 0.5 38) 360deg)",
+      "conic-gradient(oklch(48% 0.48 15) 0deg, oklch(42% 0.5 8) 90deg, oklch(45% 0.46 20) 180deg, oklch(40% 0.48 12) 270deg, oklch(48% 0.48 15) 360deg)",
+      "conic-gradient(oklch(92% 0.48 90) 0deg, oklch(88% 0.5 80) 120deg, oklch(95% 0.45 95) 240deg, oklch(92% 0.48 90) 360deg)",
+    ],
+    blobs: [
+      { size: "130%", top: "-15%", left: "-15%", blur: "35px" },
+      { size: "145%", top: "-22%", left: "-22%", blur: "50px" },
+      { size: "75%", top: "12%", left: "12%", blur: "18px" },
+    ],
   },
 };
 
+// Speed configurations
 const speedConfig = {
   slow: { rotate: 30, morph: 15 },
   normal: { rotate: 20, morph: 10 },
   fast: { rotate: 12, morph: 6 },
 };
 
-const intensityConfig = {
-  subtle: { contrast: 1.1, saturate: 1.1 },
-  normal: { contrast: 1.2, saturate: 1.2 },
-  vivid: { contrast: 1.4, saturate: 1.5 },
-};
-
-const positionConfig: Record<string, { x: string; y: string }> = {
+// Position offsets
+const positionOffsets: Record<string, { x: string; y: string }> = {
   center: { x: "-50%", y: "-50%" },
   top: { x: "-50%", y: "-80%" },
   bottom: { x: "-50%", y: "-20%" },
@@ -232,209 +449,124 @@ const positionConfig: Record<string, { x: string; y: string }> = {
   "bottom-right": { x: "-25%", y: "-25%" },
 };
 
-// Memoized values - only recalculate when props change
-const preset = computed(() => presets[props.preset]);
-const speed = computed(() => speedConfig[props.speed]);
-const intensity = computed(() => intensityConfig[props.intensity]);
-const position = computed(() => positionConfig[props.position]);
+// Computed values
+const currentPreset = computed(() => presets[props.preset]);
+const currentSpeed = computed(() => speedConfig[props.speed]);
+const positionOffset = computed(() => positionOffsets[props.position]);
+const currentBlobs = computed(() => currentPreset.value.blobs || defaultBlobs);
 
-// Gradients - direct access, no extra computed
-const gradient1 = computed(() => preset.value.gradients[0]);
-const gradient2 = computed(() => preset.value.gradients[1]);
-const gradient3 = computed(() => preset.value.gradients[2]);
+const gradient1 = computed(() => currentPreset.value.gradients[0]);
+const gradient2 = computed(() => currentPreset.value.gradients[1]);
+const gradient3 = computed(() => currentPreset.value.gradients[2]);
 
-// Container style with CSS custom properties for animations
-const containerStyle = computed(() => ({
-  "--rotate-duration": `${speed.value.rotate}s`,
-  "--morph-duration": `${speed.value.morph}s`,
-  "--scale": props.scale,
-  "--translate-x": position.value.x,
-  "--translate-y": position.value.y,
-  filter: `contrast(${intensity.value.contrast}) saturate(${intensity.value.saturate})`,
+// Transition configs
+const rotateTransition = computed(() => ({
+  duration: currentSpeed.value.rotate,
+  ease: "linear",
+  repeat: Infinity,
 }));
 
-// Blob styles - minimal, using CSS for animations
-const blob1Style = computed(() => ({
-  "--rotate-direction": "1",
-  "--rotate-offset": "0s",
+const morphTransition = computed(() => ({
+  duration: currentSpeed.value.morph,
+  ease: "easeInOut",
+  repeat: Infinity,
 }));
 
-const blob2Style = computed(() => ({
-  "--rotate-direction": "-1",
-  "--rotate-offset": `${speed.value.rotate * 0.33}s`,
+// Blob base styles - computed from preset configuration
+const blob1BaseStyle = computed(() => ({
+  position: "absolute" as const,
+  top: currentBlobs.value[0].top,
+  left: currentBlobs.value[0].left,
+  width: currentBlobs.value[0].size,
+  height: currentBlobs.value[0].size,
+  borderRadius: "50%",
+  filter: `blur(${currentBlobs.value[0].blur})`,
 }));
 
-const blob3Style = computed(() => ({
-  "--rotate-direction": "1",
-  "--rotate-offset": `${speed.value.rotate * 0.66}s`,
+const blob2BaseStyle = computed(() => ({
+  position: "absolute" as const,
+  top: currentBlobs.value[1].top,
+  left: currentBlobs.value[1].left,
+  width: currentBlobs.value[1].size,
+  height: currentBlobs.value[1].size,
+  borderRadius: "50%",
+  filter: `blur(${currentBlobs.value[1].blur})`,
 }));
+
+const blob3BaseStyle = computed(() => ({
+  position: "absolute" as const,
+  top: currentBlobs.value[2].top,
+  left: currentBlobs.value[2].left,
+  width: currentBlobs.value[2].size,
+  height: currentBlobs.value[2].size,
+  borderRadius: "50%",
+  filter: `blur(${currentBlobs.value[2].blur})`,
+}));
+
+const morphBaseStyle = {
+  position: "absolute" as const,
+  inset: "0",
+  width: "100%",
+  height: "100%",
+  borderRadius: "inherit",
+};
+
+// Static styles for non-animated state
+const morph1StaticStyle = {
+  transform: "scale(0.85)",
+  borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%",
+  opacity: 0.8,
+};
+
+const morph2StaticStyle = {
+  transform: "scale(0.9)",
+  borderRadius: "40% 60% 60% 40% / 70% 30% 70% 30%",
+};
+
+const morph3StaticStyle = {
+  transform: "scale(0.95)",
+  borderRadius: "50% 50% 40% 60% / 40% 60% 50% 50%",
+};
+
+// Animated state
+const blob1Animate = { rotate: [0, 360] };
+const blob2Animate = { rotate: [0, -360] };
+const blob3Animate = { rotate: [0, 360] };
+
+const morph1Animate = {
+  scale: [0.85, 1.05, 0.9, 1.1, 0.95, 0.85],
+  borderRadius: [
+    "60% 40% 30% 70% / 60% 30% 70% 40%",
+    "25% 75% 65% 35% / 45% 55% 25% 75%",
+    "70% 30% 45% 55% / 35% 65% 55% 45%",
+    "30% 60% 70% 40% / 50% 60% 30% 60%",
+    "55% 45% 35% 65% / 65% 35% 60% 40%",
+    "60% 40% 30% 70% / 60% 30% 70% 40%",
+  ],
+  opacity: 0.8,
+};
+
+const morph2Animate = {
+  scale: [0.9, 1.1, 0.85, 1.05, 0.92, 0.9],
+  borderRadius: [
+    "40% 60% 60% 40% / 70% 30% 70% 30%",
+    "65% 35% 40% 60% / 30% 70% 55% 45%",
+    "35% 65% 55% 45% / 60% 40% 35% 65%",
+    "60% 40% 30% 70% / 40% 60% 50% 50%",
+    "45% 55% 65% 35% / 55% 45% 40% 60%",
+    "40% 60% 60% 40% / 70% 30% 70% 30%",
+  ],
+};
+
+const morph3Animate = {
+  scale: [0.95, 1.15, 0.88, 1.02, 1.08, 0.95],
+  borderRadius: [
+    "50% 50% 40% 60% / 40% 60% 50% 50%",
+    "35% 65% 60% 40% / 55% 45% 35% 65%",
+    "65% 35% 35% 65% / 45% 55% 65% 35%",
+    "70% 30% 50% 50% / 30% 70% 40% 60%",
+    "40% 60% 55% 45% / 60% 40% 55% 45%",
+    "50% 50% 40% 60% / 40% 60% 50% 50%",
+  ],
+};
 </script>
-
-<style scoped>
-.blob-container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 172px;
-  height: 172px;
-  transform: translate(var(--translate-x), var(--translate-y)) scale(var(--scale));
-  transform-origin: center;
-  contain: layout style paint;
-}
-
-.blob {
-  position: absolute;
-  border-radius: 50%;
-  will-change: transform;
-  animation: blob-rotate var(--rotate-duration) linear infinite;
-  animation-direction: normal;
-  animation-delay: var(--rotate-offset, 0s);
-}
-
-.blob-1 {
-  top: 36px;
-  left: 36px;
-  width: 100px;
-  height: 100px;
-  filter: blur(9px);
-  animation-direction: normal;
-}
-
-.blob-2 {
-  top: 48.5px;
-  left: 48.5px;
-  width: 75px;
-  height: 75px;
-  filter: blur(4px);
-}
-
-.blob-3 {
-  top: 66.5px;
-  left: 66.5px;
-  width: 39px;
-  height: 39px;
-  filter: blur(4px);
-  mix-blend-mode: overlay;
-}
-
-.blob-inner {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  will-change: transform, border-radius;
-}
-
-.blob-morph-1 {
-  opacity: 0.8;
-  animation: blob-morph-1 var(--morph-duration) ease-in-out infinite;
-}
-
-.blob-morph-2 {
-  animation: blob-morph-2 var(--morph-duration) ease-in-out infinite;
-  animation-delay: calc(var(--morph-duration) * 0.33);
-}
-
-.blob-morph-3 {
-  animation: blob-morph-3 var(--morph-duration) ease-in-out infinite;
-  animation-delay: calc(var(--morph-duration) * 0.66);
-}
-
-/* Rotation animation */
-@keyframes blob-rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(calc(360deg * var(--rotate-direction, 1)));
-  }
-}
-
-/* Morph animations - organic blob shapes */
-@keyframes blob-morph-1 {
-  0%,
-  100% {
-    transform: scale(0.85);
-    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-  }
-  20% {
-    transform: scale(1.05);
-    border-radius: 25% 75% 65% 35% / 45% 55% 25% 75%;
-  }
-  40% {
-    transform: scale(0.9);
-    border-radius: 70% 30% 45% 55% / 35% 65% 55% 45%;
-  }
-  60% {
-    transform: scale(1.1);
-    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
-  }
-  80% {
-    transform: scale(0.95);
-    border-radius: 55% 45% 35% 65% / 65% 35% 60% 40%;
-  }
-}
-
-@keyframes blob-morph-2 {
-  0%,
-  100% {
-    transform: scale(0.9);
-    border-radius: 40% 60% 60% 40% / 70% 30% 70% 30%;
-  }
-  20% {
-    transform: scale(1.1);
-    border-radius: 65% 35% 40% 60% / 30% 70% 55% 45%;
-  }
-  40% {
-    transform: scale(0.85);
-    border-radius: 35% 65% 55% 45% / 60% 40% 35% 65%;
-  }
-  60% {
-    transform: scale(1.05);
-    border-radius: 60% 40% 30% 70% / 40% 60% 50% 50%;
-  }
-  80% {
-    transform: scale(0.92);
-    border-radius: 45% 55% 65% 35% / 55% 45% 40% 60%;
-  }
-}
-
-@keyframes blob-morph-3 {
-  0%,
-  100% {
-    transform: scale(0.95);
-    border-radius: 50% 50% 40% 60% / 40% 60% 50% 50%;
-  }
-  20% {
-    transform: scale(1.15);
-    border-radius: 35% 65% 60% 40% / 55% 45% 35% 65%;
-  }
-  40% {
-    transform: scale(0.88);
-    border-radius: 65% 35% 35% 65% / 45% 55% 65% 35%;
-  }
-  60% {
-    transform: scale(1.02);
-    border-radius: 70% 30% 50% 50% / 30% 70% 40% 60%;
-  }
-  80% {
-    transform: scale(1.08);
-    border-radius: 40% 60% 55% 45% / 60% 40% 55% 45%;
-  }
-}
-
-/* Pause animations when not visible */
-.paused .blob,
-.paused .blob-inner {
-  animation-play-state: paused;
-}
-
-/* Reduced motion preference */
-@media (prefers-reduced-motion: reduce) {
-  .blob,
-  .blob-inner {
-    animation: none;
-  }
-}
-</style>

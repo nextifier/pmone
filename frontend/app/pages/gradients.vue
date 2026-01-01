@@ -20,24 +20,12 @@
           @click="openGradientDialog(gradient.name)"
         >
           <ClientOnly>
-            <GradientBlob
-              :preset="gradient.name"
-              :scale="6"
-              position="center"
-              speed="normal"
-              intensity="vivid"
-            />
+            <GradientBlob :preset="gradient.name" position="center" speed="normal" />
           </ClientOnly>
-          <div
-            class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/20 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100"
-          >
-            <span class="text-lg font-semibold text-white">{{ gradient.label }}</span>
-            <span class="mt-1 text-sm text-white/60">Click to view fullscreen</span>
-          </div>
           <div class="absolute bottom-4 left-4 z-10">
-            <span class="text-sm font-medium tracking-tight text-white">
+            <Button variant="outline" class="text-sm font-medium tracking-tight text-white">
               {{ gradient.label }}
-            </span>
+            </Button>
           </div>
         </div>
       </div>
@@ -56,10 +44,9 @@
             <GradientBlob
               v-if="selectedPreset"
               :preset="selectedPreset"
-              :scale="10"
               position="center"
               speed="normal"
-              intensity="vivid"
+              :animate="isDialogOpen"
             />
           </ClientOnly>
           <div class="absolute inset-x-0 bottom-8 z-10 text-center">
@@ -91,7 +78,17 @@ type PresetName =
   | "gold"
   | "framer-wireframer"
   | "framer-translate"
-  | "framer-plugins";
+  | "framer-plugins"
+  | "orange-sunset"
+  | "orange-tangerine"
+  | "orange-peach"
+  | "orange-amber"
+  | "orange-coral"
+  | "orange-fire"
+  | "orange-honey"
+  | "orange-copper"
+  | "orange-apricot"
+  | "orange-flame";
 
 definePageMeta({
   layout: "default",
@@ -127,20 +124,16 @@ const allGradients = [
   { name: "mint" as const, label: "Mint" },
   { name: "lavender" as const, label: "Lavender" },
   { name: "gold" as const, label: "Gold" },
+  // Orange gradient collection
+  { name: "orange-sunset" as const, label: "Orange Sunset" },
+  { name: "orange-tangerine" as const, label: "Tangerine" },
+  { name: "orange-peach" as const, label: "Peach" },
+  { name: "orange-amber" as const, label: "Amber" },
+  { name: "orange-coral" as const, label: "Coral" },
+  { name: "orange-fire" as const, label: "Fire" },
+  { name: "orange-honey" as const, label: "Honey" },
+  { name: "orange-copper" as const, label: "Copper" },
+  { name: "orange-apricot" as const, label: "Apricot" },
+  { name: "orange-flame" as const, label: "Flame" },
 ];
-
-const positions = [
-  "center",
-  "top",
-  "bottom",
-  "left",
-  "right",
-  "top-left",
-  "top-right",
-  "bottom-left",
-  "bottom-right",
-] as const;
-
-const speeds = ["slow", "normal", "fast"] as const;
-const intensities = ["subtle", "normal", "vivid"] as const;
 </script>
