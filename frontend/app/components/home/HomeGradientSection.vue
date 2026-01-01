@@ -13,22 +13,48 @@
             <!-- Animated Gradient Background -->
             <div class="absolute inset-0">
               <!-- Grandparent: contrast + saturate + scale -->
-              <div
-                class="gradient-grandparent absolute"
-                :style="{ filter: gradientFilter, ...gradientPositionStyle }"
-              >
-                <!-- Large gradient circle with blur parent -->
-                <div class="gradient-parent gradient-parent-1">
-                  <div class="gradient-circle gradient-circle-1" />
-                </div>
-                <!-- Medium gradient circle -->
-                <div class="gradient-parent gradient-parent-2">
-                  <div class="gradient-circle gradient-circle-2" />
-                </div>
-                <!-- Small gradient circle -->
-                <div class="gradient-parent gradient-parent-3">
-                  <div class="gradient-circle gradient-circle-3" />
-                </div>
+              <div class="gradient-grandparent absolute" :style="grandparentStyle">
+                <!-- Large gradient circle with blur parent (100px) -->
+                <Motion
+                  class="gradient-parent"
+                  :style="blurParent1Style"
+                  :animate="rotateAnimation1"
+                  :transition="rotateTransition1"
+                >
+                  <Motion
+                    class="gradient-circle gradient-circle-1"
+                    :animate="scaleAnimation"
+                    :transition="scaleTransition1"
+                  />
+                </Motion>
+
+                <!-- Medium gradient circle (75px) -->
+                <Motion
+                  class="gradient-parent"
+                  :style="blurParent2Style"
+                  :animate="rotateAnimation2"
+                  :transition="rotateTransition2"
+                >
+                  <Motion
+                    class="gradient-circle gradient-circle-2"
+                    :animate="scaleAnimation"
+                    :transition="scaleTransition2"
+                  />
+                </Motion>
+
+                <!-- Small gradient circle (39px) -->
+                <Motion
+                  class="gradient-parent"
+                  :style="blurParent3Style"
+                  :animate="rotateAnimation3"
+                  :transition="rotateTransition3"
+                >
+                  <Motion
+                    class="gradient-circle gradient-circle-3"
+                    :animate="scaleAnimation"
+                    :transition="scaleTransition3"
+                  />
+                </Motion>
               </div>
             </div>
 
@@ -36,7 +62,7 @@
             <div class="relative z-10 flex h-full flex-col p-4">
               <!-- Browser Chrome Header -->
               <div
-                class="mb-3 flex items-center justify-between rounded-t-lg bg-black/40 px-4 py-2 backdrop-blur-sm"
+                class="mb-3 flex items-center justify-between rounded-t-lg bg-black/30 px-4 py-2 backdrop-blur-sm"
               >
                 <div class="flex items-center gap-2">
                   <div class="flex size-6 items-center justify-center rounded bg-white/10">
@@ -60,7 +86,9 @@
               >
                 <slot name="card">
                   <!-- Default portfolio card content -->
-                  <div class="mb-4 flex size-10 items-center justify-center rounded-full bg-white/10">
+                  <div
+                    class="mb-4 flex size-10 items-center justify-center rounded-full bg-white/10"
+                  >
                     <Icon name="lucide:user" class="size-5 text-white/60" />
                   </div>
                   <h4 class="mb-1 text-lg font-semibold text-white">{{ cardTitle }}</h4>
@@ -130,6 +158,8 @@
 </template>
 
 <script setup lang="ts">
+import { Motion } from "motion-v";
+
 interface Project {
   name: string;
   year: string;
@@ -166,54 +196,126 @@ const projects: Project[] = [
   { name: "Project Six", year: "2024" },
 ];
 
-// Compute hue-rotate filter based on variant (exact Framer values)
-const gradientFilter = computed(() => {
-  switch (props.variant) {
-    case "cyan":
-      return "contrast(1.2) hue-rotate(310deg) saturate(1.2)";
-    case "orange":
-      return "contrast(1.2) hue-rotate(110deg) saturate(1.2)";
-    default:
-      return "contrast(1.2) saturate(1.2)";
-  }
-});
+// Grandparent style with filter and transform (exact Framer values)
+const grandparentStyle = computed(() => {
+  const filter =
+    props.variant === "cyan"
+      ? "contrast(1.2) hue-rotate(310deg) saturate(1.2)"
+      : props.variant === "orange"
+        ? "contrast(1.2) hue-rotate(110deg) saturate(1.2)"
+        : "contrast(1.2) saturate(1.2)";
 
-// Gradient position style based on variant (Framer uses different positions)
-// Purple: top 34%, scale 7.2x | Cyan/Orange: top 68%, scale 6x
-const gradientPositionStyle = computed(() => {
-  if (props.variant === "cyan" || props.variant === "orange") {
-    return {
-      top: "68%",
-      left: "50%",
-      transform: "translate(-50%, -50%) perspective(1200px) scale(6)",
-    };
-  }
+  // Purple: top 34%, scale 7.2 | Cyan/Orange: top 68%, scale 6
+  const isPurple = props.variant === "purple";
+  const scale = isPurple ? 7.2 : 6;
+  const top = isPurple ? "34%" : "68%";
+
   return {
-    top: "34%",
+    filter,
+    top,
     left: "50%",
-    transform: "translate(-50%, -50%) perspective(1200px) scale(7.2)",
+    transform: `translate(-50%, -50%) perspective(1200px) scale(${scale})`,
   };
 });
+
+// Blur parent styles (exact Framer positions and sizes)
+const blurParent1Style = {
+  position: "absolute" as const,
+  top: "36px",
+  left: "36px",
+  width: "100px",
+  height: "100px",
+  filter: "blur(9px)",
+  borderRadius: "500px",
+};
+
+const blurParent2Style = {
+  position: "absolute" as const,
+  top: "48.5px",
+  left: "48.5px",
+  width: "75px",
+  height: "75px",
+  filter: "blur(8px)",
+  borderRadius: "500px",
+};
+
+const blurParent3Style = {
+  position: "absolute" as const,
+  top: "66.5px",
+  left: "66.5px",
+  width: "39px",
+  height: "39px",
+  filter: "blur(8px)",
+  borderRadius: "500px",
+  mixBlendMode: "overlay" as const,
+};
+
+// Rotation animations for blur parents (continuous rotation like Framer)
+const rotateAnimation1 = { rotate: 360 };
+const rotateAnimation2 = { rotate: 360 };
+const rotateAnimation3 = { rotate: 360 };
+
+// Rotation transitions (faster, matching Framer's speed)
+const rotateTransition1 = {
+  duration: 8,
+  repeat: Infinity,
+  ease: "linear",
+};
+
+const rotateTransition2 = {
+  duration: 10,
+  repeat: Infinity,
+  ease: "linear",
+};
+
+const rotateTransition3 = {
+  duration: 12,
+  repeat: Infinity,
+  ease: "linear",
+};
+
+// Scale animation for gradient circles (0.8 to 1.0 like Framer)
+const scaleAnimation = {
+  scale: [0.8, 1, 0.8],
+};
+
+// Scale transitions with faster durations matching Framer
+const scaleTransition1 = {
+  duration: 4,
+  repeat: Infinity,
+  ease: "easeInOut",
+};
+
+const scaleTransition2 = {
+  duration: 5,
+  repeat: Infinity,
+  ease: "easeInOut",
+};
+
+const scaleTransition3 = {
+  duration: 6,
+  repeat: Infinity,
+  ease: "easeInOut",
+};
 
 // Progress bar gradient class based on variant
 const progressBarClass = computed(() => {
   switch (props.variant) {
     case "cyan":
-      return "bg-gradient-to-r from-cyan-400 to-teal-400";
+      return "bg-linear-to-r from-cyan-400 to-teal-400";
     case "orange":
-      return "bg-gradient-to-r from-orange-400 to-red-400";
+      return "bg-linear-to-r from-orange-400 to-red-400";
     default:
-      return "bg-gradient-to-r from-purple-400 to-blue-400";
+      return "bg-linear-to-r from-purple-400 to-blue-400";
   }
 });
 </script>
 
 <style scoped>
-.gradient-box {
+/* .gradient-box {
   background: rgb(10, 10, 10);
-}
+} */
 
-/* Grandparent: 172x172px container - position and scale set via inline style based on variant */
 .gradient-grandparent {
   width: 172px;
   height: 172px;
@@ -221,86 +323,47 @@ const progressBarClass = computed(() => {
 }
 
 .gradient-parent {
-  position: absolute;
-  border-radius: 500px;
   will-change: transform;
 }
 
-/* Large circle: 100px centered in 172px container → top/left = (172-100)/2 = 36px */
-.gradient-parent-1 {
-  top: 36px;
-  left: 36px;
-  width: 100px;
-  height: 100px;
-  filter: blur(9px);
-}
-
-/* Medium circle: 75px centered → top/left = (172-75)/2 = 48.5px */
-.gradient-parent-2 {
-  top: 48.5px;
-  left: 48.5px;
-  width: 75px;
-  height: 75px;
-  filter: blur(8px);
-}
-
-/* Small circle: 39px centered → top/left = (172-39)/2 = 66.5px */
-.gradient-parent-3 {
-  top: 66.5px;
-  left: 66.5px;
-  width: 39px;
-  height: 39px;
-  filter: blur(8px);
-}
-
 .gradient-circle {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   border-radius: 50%;
   will-change: transform;
-  animation: scale-pulse 12s ease-in-out infinite;
 }
 
+/* Using oklch for more vivid/saturated colors */
 .gradient-circle-1 {
   background: conic-gradient(
-    rgb(255, 0, 0) 0deg,
-    rgb(142, 36, 255) 54.89deg,
-    rgb(0, 81, 255) 106.7deg,
-    rgb(71, 151, 255) 162deg,
-    rgb(0, 68, 255) 252deg,
-    rgb(85, 0, 255) 306deg,
-    rgb(221, 0, 255) 360deg
+    oklch(0.63 0.29 29) 0deg,
+    oklch(0.49 0.32 303) 54.8916deg,
+    oklch(0.49 0.28 264) 106.699deg,
+    oklch(0.66 0.19 250) 162deg,
+    oklch(0.46 0.29 265) 252deg,
+    oklch(0.42 0.33 292) 306deg,
+    oklch(0.57 0.33 318) 360deg
   );
   opacity: 0.8;
 }
 
 .gradient-circle-2 {
   background: conic-gradient(
-    rgb(255, 173, 236) 0deg,
-    rgb(19, 156, 229) 180deg,
-    rgb(161, 76, 252) 360deg
+    oklch(0.82 0.15 340) 0deg,
+    oklch(0.64 0.18 230) 180deg,
+    oklch(0.56 0.28 298) 360deg
   );
   opacity: 1;
-  animation-delay: -4s;
 }
 
 .gradient-circle-3 {
   background: conic-gradient(
-    rgb(255, 173, 173) 0deg,
-    rgb(19, 156, 229) 180deg,
-    rgb(207, 179, 255) 360deg
+    oklch(0.81 0.13 20) 0deg,
+    oklch(0.64 0.18 230) 180deg,
+    oklch(0.8 0.16 295) 360deg
   );
   opacity: 1;
-  animation-delay: -8s;
-}
-
-@keyframes scale-pulse {
-  0%,
-  100% {
-    transform: scale(0.80);
-  }
-  50% {
-    transform: scale(1);
-  }
 }
 </style>
