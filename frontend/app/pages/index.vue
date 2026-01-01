@@ -9,6 +9,42 @@
     <!-- Problem Section -->
     <HomeProblem />
 
+    <!-- AI-Style Gradient Sections -->
+    <HomeGradientSection
+      title="Smart Project Management"
+      description="Skip the blank canvas and spark ideas by organizing with PM One. Get a responsive dashboard with structure and starter templates, ready to customize."
+      link="/projects"
+      link-text="Try Projects"
+      variant="purple"
+      card-title="Wireframer"
+      card-description="Creating your project structure..."
+      show-project-list
+    />
+
+    <HomeGradientSection
+      title="Multi-Language Support"
+      description="Let our platform translate your content into multiple languages with a click. No plugins, no more manual work. Reach a global audience effortlessly."
+      link="/posts"
+      link-text="Try Translations"
+      variant="cyan"
+      reverse
+      card-title="AI Translate"
+      card-progress="99 / 99"
+      card-description="Translating... please keep the project open until the process is complete."
+      card-button="Cancel"
+    />
+
+    <HomeGradientSection
+      title="API Integrations"
+      description="Build your own 3rd party integrations in PM One—connect with top services like Google Analytics, Slack, and more to generate reports, sync data, and automate workflows."
+      link="/api-consumers"
+      link-text="Start with API"
+      variant="orange"
+      card-title="Visual Dashboard"
+      card-description="Connect your favorite tools and services."
+      card-button="Generate Report"
+    />
+
     <!-- Feature: Projects Management -->
     <HomeFeatureSection
       badge="Projects"
