@@ -14,12 +14,8 @@
 
         <!-- CTA Buttons -->
         <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Button to="/signup" variant="default" size="xl" rounded="lg">
-            Get started free
-          </Button>
-          <Button to="/demo" variant="outline" size="xl" rounded="lg">
-            Watch demo
-          </Button>
+          <Button to="/signup" variant="default" rounded="lg"> Get started free </Button>
+          <Button to="/demo" variant="outline" rounded="lg"> Watch demo </Button>
         </div>
 
         <!-- Trust Badges -->

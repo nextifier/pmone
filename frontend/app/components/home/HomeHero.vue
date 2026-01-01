@@ -19,12 +19,7 @@
             height="60"
             patternUnits="userSpaceOnUse"
           >
-            <path
-              d="M 60 0 L 0 0 0 60"
-              fill="transparent"
-              stroke="currentColor"
-              stroke-width="1"
-            />
+            <path d="M 60 0 L 0 0 0 60" fill="transparent" stroke="currentColor" stroke-width="1" />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#grid-pattern-light)" />
@@ -65,19 +60,17 @@
 
         <!-- Subtitle -->
         <p class="section-description mt-5 max-w-2xl text-center">
-          PM One brings your projects, short links, analytics, and content together in one place.
-          No more tab chaos. No more scattered data. Just everything you need, where you need it.
+          PM One brings your projects, short links, analytics, and content together in one place. No
+          more tab chaos. No more scattered data. Just everything you need, where you need it.
         </p>
 
         <!-- CTA Buttons -->
         <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Button to="/signup" variant="default" size="xl" rounded="lg">
+          <Button to="/signup" variant="default" rounded="lg">
             Start for free
             <Icon name="lucide:arrow-right" class="size-4" />
           </Button>
-          <Button to="/demo" variant="outline" size="xl" rounded="lg">
-            See it in action
-          </Button>
+          <Button to="/demo" variant="outline" rounded="lg"> See it in action </Button>
         </div>
 
         <!-- Feature Tabs -->

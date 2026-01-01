@@ -12,7 +12,7 @@
           <span v-html="title" />
         </h2>
         <p class="section-description mt-4 max-w-xl">{{ description }}</p>
-        <Button :to="link" variant="outline" size="lg" rounded="lg" class="mt-6">
+        <Button :to="link" variant="outline" rounded="lg" class="mt-6">
           {{ linkText }}
         </Button>
       </div>
