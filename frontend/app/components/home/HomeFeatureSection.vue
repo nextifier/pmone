@@ -12,12 +12,9 @@
           <span v-html="title" />
         </h2>
         <p class="section-description mt-4 max-w-xl">{{ description }}</p>
-        <NuxtLink
-          :to="link"
-          class="border-border hover:bg-muted mt-6 inline-flex h-10 items-center justify-center rounded-lg border px-5 text-sm font-medium tracking-tight transition"
-        >
+        <Button :to="link" variant="outline" size="lg" rounded="lg" class="mt-6">
           {{ linkText }}
-        </NuxtLink>
+        </Button>
       </div>
 
       <!-- Feature Cards Grid -->

@@ -8,7 +8,13 @@
       enter-from-class="translate-y-full opacity-0"
       leave-to-class="translate-y-full opacity-0"
     >
-      <Button v-if="showButton" @click="scrollToTop" variant="outline" size="icon-xl">
+      <Button
+        v-if="showButton"
+        @click="scrollToTop"
+        variant="outline"
+        size="icon-xl"
+        class="transition-all"
+      >
         <Icon name="lucide:arrow-up" class="size-4.5 shrink-0" />
       </Button>
     </Transition>

@@ -71,19 +71,13 @@
 
         <!-- CTA Buttons -->
         <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <NuxtLink
-            to="/signup"
-            class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-11 items-center justify-center gap-2 rounded-lg px-6 text-sm font-semibold tracking-tight shadow-sm transition active:scale-98"
-          >
+          <Button to="/signup" variant="default" size="xl" rounded="lg">
             Start for free
             <Icon name="lucide:arrow-right" class="size-4" />
-          </NuxtLink>
-          <NuxtLink
-            to="/demo"
-            class="border-border hover:bg-muted inline-flex h-11 items-center justify-center gap-2 rounded-lg border bg-transparent px-6 text-sm font-semibold tracking-tight transition active:scale-98"
-          >
+          </Button>
+          <Button to="/demo" variant="outline" size="xl" rounded="lg">
             See it in action
-          </NuxtLink>
+          </Button>
         </div>
 
         <!-- Feature Tabs -->
