@@ -47,6 +47,10 @@ const innerShadowRoundedClass = computed(() => {
 const hasInnerShadow = computed(() => {
   return !["ghost", "link", "white-ghost", "black-ghost"].includes(props.variant ?? "default");
 });
+
+const isOutlineVariant = computed(() => {
+  return (props.variant ?? "").includes("outline");
+});
 </script>
 
 <template>
@@ -65,7 +69,8 @@ const hasInnerShadow = computed(() => {
         cn(
           'pointer-events-none absolute top-[calc(0%-var(--shadow-offset)/2)] left-[calc(0%-var(--shadow-offset)/2)] size-[calc(100%+var(--shadow-offset))] overflow-visible blur-[clamp(2px,0.125em,12px)] [--shadow-offset:2em]',
 
-          'after:absolute after:inset-0 after:top-[calc(var(--shadow-offset)-0.5em)] after:left-[calc(var(--shadow-offset)-0.875em)] after:size-[calc(100%-var(--shadow-offset)-0.25em)] after:overflow-visible after:bg-linear-to-b after:from-black/20 after:to-black/10 after:mask-exclude! after:p-[0.125em] after:opacity-100 after:transition-[top,opacity] after:duration-(--transition-duration) after:ease-(--transition-ease) after:[mask:linear-gradient(#000_0_0)_content-box,linear-gradient(#000_0_0)]',
+          isOutlineVariant &&
+            'after:absolute after:inset-0 after:top-[calc(var(--shadow-offset)-0.5em)] after:left-[calc(var(--shadow-offset)-0.875em)] after:size-[calc(100%-var(--shadow-offset)-0.25em)] after:overflow-visible after:bg-linear-to-b after:from-black/20 after:to-black/10 after:mask-exclude! after:p-[0.125em] after:opacity-100 after:transition-[top,opacity] after:duration-(--transition-duration) after:ease-(--transition-ease) after:[mask:linear-gradient(#000_0_0)_content-box,linear-gradient(#000_0_0)]',
 
           innerShadowRoundedClass,
 

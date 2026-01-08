@@ -51,6 +51,31 @@ class ContactFormSubmissionController extends Controller
         ]);
     }
 
+    public function export(Request $request): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    {
+        // Get filters and sorting from request
+        $filters = [];
+        if ($search = $request->input('filter_search')) {
+            $filters['search'] = $search;
+        }
+        if ($status = $request->input('filter_status')) {
+            $filters['status'] = $status;
+        }
+        if ($project = $request->input('filter_project')) {
+            $filters['project'] = $project;
+        }
+
+        $sort = $request->input('sort', '-created_at');
+
+        // Create the export with filters and sorting
+        $export = new \App\Exports\ContactFormSubmissionsExport($filters, $sort);
+
+        // Generate filename with timestamp
+        $filename = 'inbox_'.now()->format('Y-m-d_His').'.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
+    }
+
     private function applyFilters($query, Request $request): void
     {
         // Search filter (search in form data)

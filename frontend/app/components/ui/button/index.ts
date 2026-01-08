@@ -13,7 +13,7 @@ const ghost = (text: string, hover: string, active: string) =>
 export const buttonVariants = cva(
   [
     // Base layout & interaction
-    "group pointer-events-auto relative inline-flex items-center justify-center font-medium tracking-tighter select-none shrink-0 whitespace-nowrap outline-none disabled:cursor-not-allowed disabled:opacity-50",
+    "group pointer-events-auto relative inline-flex items-center justify-center font-medium tracking-tight select-none shrink-0 whitespace-nowrap outline-none disabled:cursor-not-allowed disabled:opacity-50",
     // Transitions
     "transition-[transform,box-shadow,opacity] duration-(--transition-duration) ease-(--transition-ease) [--transition-duration:300ms] [--transition-ease:cubic-bezier(0.25,1,0.5,1)]",
     // CSS variables
@@ -65,7 +65,7 @@ export const buttonVariants = cva(
       size: {
         xs: "h-7 gap-1 px-2.5 text-xs sm:h-6",
         sm: "h-8 gap-1.5 px-3 text-sm sm:h-7",
-        default: "h-9 gap-2 px-4 text-sm sm:h-8",
+        default: "h-9 gap-1.5 px-4 text-sm sm:text-base sm:h-10",
         lg: "h-10 gap-2 px-5 text-base sm:h-9",
         xl: "h-11 gap-2.5 px-6 text-lg sm:h-10 sm:text-base",
         icon: "size-9 sm:size-8",

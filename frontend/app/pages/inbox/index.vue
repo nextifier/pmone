@@ -7,6 +7,16 @@
       </div>
 
       <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+        <button
+          @click="handleExport"
+          :disabled="exportPending"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Spinner v-if="exportPending" class="size-4 shrink-0" />
+          <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
+          <span>Export {{ totalActiveFilters > 0 ? "filtered" : "all" }}</span>
+        </button>
+
         <nuxt-link
           to="/inbox/trash"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
@@ -94,7 +104,7 @@
 
       <template #actions="{ selectedRows }">
         <DialogResponsive
-          v-if="selectedRows.length > 0"
+          v-if="canDelete && selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
           class="h-full"
         >
@@ -167,6 +177,10 @@ defineOptions({
 usePageMeta("inbox");
 
 const { $dayjs } = useNuxtApp();
+
+// Permission checking
+const { hasPermission } = usePermission();
+const canDelete = computed(() => hasPermission("contact_forms.delete"));
 
 // Table state
 const columnFilters = ref([]);
@@ -375,7 +389,7 @@ const columns = [
     id: "actions",
     header: () => h("span", { class: "sr-only" }, "Actions"),
     cell: ({ row }) => h(RowActions, { submission: row.original }),
-    size: 60,
+    size: 120,
     enableHiding: false,
   },
 ];
@@ -495,6 +509,67 @@ const handleDeleteSingleRow = async (ulid) => {
   }
 };
 
+// Export handler
+const exportPending = ref(false);
+const handleExport = async () => {
+  try {
+    exportPending.value = true;
+
+    // Build query params
+    const params = new URLSearchParams();
+
+    // Add search filter if present
+    const searchFilter = columnFilters.value.find((f) => f.id === "subject");
+    if (searchFilter?.value) {
+      params.append("filter_search", searchFilter.value);
+    }
+
+    // Add status filter if present
+    if (selectedStatuses.value.length > 0) {
+      params.append("filter_status", selectedStatuses.value.join(","));
+    }
+
+    // Add project filter if present
+    if (selectedProjects.value.length > 0) {
+      params.append("filter_project", selectedProjects.value.join(","));
+    }
+
+    // Add sorting
+    const sortField = sorting.value[0]?.id || "created_at";
+    const sortDirection = sorting.value[0]?.desc ? "-" : "";
+    params.append("sort", `${sortDirection}${sortField}`);
+
+    const client = useSanctumClient();
+
+    // Fetch the file as blob
+    const response = await client(`/api/contact-form-submissions/export?${params.toString()}`, {
+      responseType: "blob",
+    });
+
+    // Create a download link and trigger download
+    const blob = new Blob([response], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `inbox_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    toast.success("Inbox exported successfully");
+  } catch (error) {
+    console.error("Failed to export inbox:", error);
+    toast.error("Failed to export inbox", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    exportPending.value = false;
+  }
+};
+
 // Row Actions Component
 const RowActions = defineComponent({
   props: {
@@ -504,8 +579,56 @@ const RowActions = defineComponent({
     const router = useRouter();
     const dialogOpen = ref(false);
     const singleDeletePending = ref(false);
+
+    const phone = computed(() => props.submission.form_data_preview?.phone);
+    const email = computed(() => props.submission.form_data_preview?.email);
+
+    // Format phone for WhatsApp (remove non-digits)
+    const whatsappLink = computed(() => {
+      if (!phone.value) return null;
+      const cleanPhone = phone.value.replace(/\D/g, "");
+      return `https://wa.me/${cleanPhone}`;
+    });
+
+    const emailLink = computed(() => {
+      if (!email.value) return null;
+      return `mailto:${email.value}`;
+    });
+
     return () =>
-      h("div", { class: "flex justify-end" }, [
+      h("div", { class: "flex items-center justify-end gap-1" }, [
+        // WhatsApp button (only if phone exists)
+        phone.value
+          ? withDirectives(
+              h(
+                "a",
+                {
+                  href: whatsappLink.value,
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                  class:
+                    "hover:bg-muted inline-flex size-8 items-center justify-center rounded-md text-success-foreground",
+                },
+                [h(resolveComponent("Icon"), { name: "hugeicons:whatsapp", class: "size-4" })]
+              ),
+              [[resolveDirective("tippy"), "WhatsApp"]]
+            )
+          : null,
+        // Email button
+        email.value
+          ? withDirectives(
+              h(
+                "a",
+                {
+                  href: emailLink.value,
+                  class:
+                    "hover:bg-muted inline-flex size-8 items-center justify-center rounded-md text-info-foreground",
+                },
+                [h(resolveComponent("Icon"), { name: "hugeicons:mail-01", class: "size-4" })]
+              ),
+              [[resolveDirective("tippy"), "Email"]]
+            )
+          : null,
         h(
           Popover,
           {},
@@ -554,28 +677,33 @@ const RowActions = defineComponent({
                             ),
                         }
                       ),
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
+                      // Delete button (only if user has permission)
+                      ...(canDelete.value
+                        ? [
                             h(
-                              "button",
+                              PopoverClose,
+                              { asChild: true },
                               {
-                                class:
-                                  "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                onClick: () => (dialogOpen.value = true),
-                              },
-                              [
-                                h(resolveComponent("Icon"), {
-                                  name: "lucide:trash",
-                                  class: "size-4 shrink-0",
-                                }),
-                                h("span", {}, "Delete"),
-                              ]
+                                default: () =>
+                                  h(
+                                    "button",
+                                    {
+                                      class:
+                                        "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                      onClick: () => (dialogOpen.value = true),
+                                    },
+                                    [
+                                      h(resolveComponent("Icon"), {
+                                        name: "lucide:trash",
+                                        class: "size-4 shrink-0",
+                                      }),
+                                      h("span", {}, "Delete"),
+                                    ]
+                                  ),
+                              }
                             ),
-                        }
-                      ),
+                          ]
+                        : []),
                     ]),
                 }
               ),
