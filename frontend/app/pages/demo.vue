@@ -16,7 +16,7 @@
                 : 'bg-muted/20 border-border/50'
             "
           >
-            <Button :variant="variant">{{ variant }}</Button>
+            <GlassButton :variant="variant">{{ variant }}</GlassButton>
             <span class="text-xs">{{ variant }}</span>
           </div>
         </div>
@@ -29,18 +29,18 @@
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
             <div class="flex items-center gap-1">
-              <Button variant="ghost" size="icon-sm">
+              <GlassButton variant="ghost" size="icon-sm">
                 <Icon name="lucide:heart" />
-              </Button>
-              <Button variant="ghost" size="icon-sm">
+              </GlassButton>
+              <GlassButton variant="ghost" size="icon-sm">
                 <Icon name="lucide:message-circle" />
-              </Button>
-              <Button variant="ghost" size="icon-sm">
+              </GlassButton>
+              <GlassButton variant="ghost" size="icon-sm">
                 <Icon name="lucide:share" />
-              </Button>
-              <Button variant="ghost" size="icon-sm">
+              </GlassButton>
+              <GlassButton variant="ghost" size="icon-sm">
                 <Icon name="lucide:bookmark" />
-              </Button>
+              </GlassButton>
             </div>
             <span class="text-muted-foreground text-xs">Social Actions</span>
           </div>
@@ -48,18 +48,18 @@
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
             <div class="flex items-center gap-2">
-              <Button variant="ghost" size="sm">
+              <GlassButton variant="ghost" size="sm">
                 <Icon name="lucide:copy" />
                 Copy
-              </Button>
-              <Button variant="ghost" size="sm">
+              </GlassButton>
+              <GlassButton variant="ghost" size="sm">
                 <Icon name="lucide:pencil" />
                 Edit
-              </Button>
-              <Button variant="ghost" size="sm">
+              </GlassButton>
+              <GlassButton variant="ghost" size="sm">
                 <Icon name="lucide:trash-2" />
                 Delete
-              </Button>
+              </GlassButton>
             </div>
             <span class="text-muted-foreground text-xs">Ghost Actions</span>
           </div>
@@ -68,9 +68,9 @@
           >
             <p class="text-muted-foreground text-sm">
               Read our
-              <Button variant="link" class="text-primary">Terms of Service</Button>
+              <GlassButton variant="link" class="text-primary">Terms of Service</GlassButton>
               and
-              <Button variant="link" class="text-primary">Privacy Policy</Button>
+              <GlassButton variant="link" class="text-primary">Privacy Policy</GlassButton>
             </p>
             <span class="text-muted-foreground text-xs">Inline Links</span>
           </div>
@@ -78,18 +78,18 @@
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
             <div class="flex flex-col items-start gap-1">
-              <Button variant="link" size="sm">
+              <GlassButton variant="link" size="sm">
                 <Icon name="lucide:file-text" />
                 Documentation
-              </Button>
-              <Button variant="link" size="sm">
+              </GlassButton>
+              <GlassButton variant="link" size="sm">
                 <Icon name="lucide:github" />
                 View on GitHub
-              </Button>
-              <Button variant="link" size="sm">
+              </GlassButton>
+              <GlassButton variant="link" size="sm">
                 <Icon name="lucide:message-square" />
                 Get Support
-              </Button>
+              </GlassButton>
             </div>
             <span class="text-muted-foreground text-xs">Link List</span>
           </div>
@@ -104,7 +104,7 @@
             :key="rounded"
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button :rounded="rounded">Button</Button>
+            <GlassButton :rounded="rounded">Button</GlassButton>
             <span class="text-muted-foreground text-xs">{{ rounded }}</span>
           </div>
         </div>
@@ -118,7 +118,7 @@
             :key="size"
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button :size="size">Button</Button>
+            <GlassButton :size="size">Button</GlassButton>
             <span class="text-muted-foreground text-xs">{{ size }}</span>
           </div>
         </div>
@@ -132,9 +132,9 @@
             :key="size"
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button :size="size">
+            <GlassButton :size="size">
               <Icon name="lucide:plus" />
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">{{ size }}</span>
           </div>
         </div>
@@ -146,37 +146,37 @@
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button>
+            <GlassButton>
               <Icon name="lucide:download" />
               Download
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Leading Icon</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button>
+            <GlassButton>
               Continue
               <Icon name="lucide:arrow-right" />
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Trailing Icon</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="outline">
+            <GlassButton variant="outline">
               <Icon name="lucide:star" />
               Star Project
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Outline + Icon</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button rounded="lg">
+            <GlassButton rounded="lg">
               <Icon name="lucide:upload" />
               Upload File
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Rounded LG</span>
           </div>
         </div>
@@ -188,19 +188,19 @@
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button class="w-full" size="lg">
+            <GlassButton class="w-full" size="lg">
               <Icon name="lucide:log-in" />
               Sign In
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Full Width Primary</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="outline" class="w-full" size="lg">
+            <GlassButton variant="outline" class="w-full" size="lg">
               <Icon name="lucide:user-plus" />
               Create Account
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Full Width Outline</span>
           </div>
         </div>
@@ -212,28 +212,28 @@
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="outline" class="w-full" rounded="lg">
+            <GlassButton variant="outline" class="w-full" rounded="lg">
               <Icon name="logos:google-icon" class="size-5" />
               Continue with Google
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Google</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="outline" class="w-full" rounded="lg">
+            <GlassButton variant="outline" class="w-full" rounded="lg">
               <Icon name="logos:github-icon" class="size-5" />
               Continue with GitHub
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">GitHub</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="outline" class="w-full" rounded="lg">
+            <GlassButton variant="outline" class="w-full" rounded="lg">
               <Icon name="logos:apple" class="size-5" />
               Continue with Apple
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Apple</span>
           </div>
         </div>
@@ -245,37 +245,37 @@
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="success" rounded="lg">
+            <GlassButton variant="success" rounded="lg">
               <Icon name="lucide:check-circle" />
               Approve
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Success Action</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="warning" rounded="lg">
+            <GlassButton variant="warning" rounded="lg">
               <Icon name="lucide:alert-triangle" />
               Review Required
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Warning Action</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="destructive" rounded="lg">
+            <GlassButton variant="destructive" rounded="lg">
               <Icon name="lucide:x-circle" />
               Reject
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Destructive Action</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="info" rounded="lg">
+            <GlassButton variant="info" rounded="lg">
               <Icon name="lucide:info" />
               View Details
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Info Action</span>
           </div>
         </div>
@@ -287,37 +287,37 @@
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="success-outline" rounded="lg">
+            <GlassButton variant="success-outline" rounded="lg">
               <Icon name="lucide:check" />
               Mark Complete
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Success Outline</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="warning-outline" rounded="lg">
+            <GlassButton variant="warning-outline" rounded="lg">
               <Icon name="lucide:clock" />
               Set Pending
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Warning Outline</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="destructive-outline" rounded="lg">
+            <GlassButton variant="destructive-outline" rounded="lg">
               <Icon name="lucide:archive" />
               Archive
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Destructive Outline</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="info-outline" rounded="lg">
+            <GlassButton variant="info-outline" rounded="lg">
               <Icon name="lucide:eye" />
               Preview
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Info Outline</span>
           </div>
         </div>
@@ -329,52 +329,52 @@
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="destructive-outline" size="icon">
+            <GlassButton variant="destructive-outline" size="icon">
               <Icon name="lucide:trash-2" />
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Delete Icon</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="destructive" rounded="lg">
+            <GlassButton variant="destructive" rounded="lg">
               <Icon name="lucide:trash-2" />
               Delete Item
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Delete Button</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="outline" size="icon" rounded="lg">
+            <GlassButton variant="outline" size="icon" rounded="lg">
               <Icon name="lucide:pencil" />
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Edit Icon</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="ghost" size="icon">
+            <GlassButton variant="ghost" size="icon">
               <Icon name="lucide:settings" />
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Settings Ghost</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="outline" rounded="xl">
+            <GlassButton variant="outline" rounded="xl">
               <Icon name="lucide:share-2" />
               Share
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Share Button</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button rounded="xl">
+            <GlassButton rounded="xl">
               <Icon name="lucide:save" />
               Save Changes
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Save Button</span>
           </div>
         </div>
@@ -387,14 +387,14 @@
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
             <div class="flex w-full items-center justify-between">
-              <Button variant="outline" rounded="lg">
+              <GlassButton variant="outline" rounded="lg">
                 <Icon name="lucide:arrow-left" />
                 Previous
-              </Button>
-              <Button rounded="lg">
+              </GlassButton>
+              <GlassButton rounded="lg">
                 Next
                 <Icon name="lucide:arrow-right" />
-              </Button>
+              </GlassButton>
             </div>
             <span class="text-muted-foreground text-xs">Step Navigation</span>
           </div>
@@ -402,17 +402,17 @@
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
             <div class="flex items-center gap-1">
-              <Button variant="outline" size="icon-sm" rounded="lg">
+              <GlassButton variant="outline" size="icon-sm" rounded="lg">
                 <Icon name="lucide:chevron-left" />
-              </Button>
-              <Button variant="ghost" size="sm" rounded="lg">1</Button>
-              <Button variant="default" size="sm" rounded="lg">2</Button>
-              <Button variant="ghost" size="sm" rounded="lg">3</Button>
-              <Button variant="ghost" size="sm" rounded="lg">...</Button>
-              <Button variant="ghost" size="sm" rounded="lg">10</Button>
-              <Button variant="outline" size="icon-sm" rounded="lg">
+              </GlassButton>
+              <GlassButton variant="ghost" size="sm" rounded="lg">1</GlassButton>
+              <GlassButton variant="default" size="sm" rounded="lg">2</GlassButton>
+              <GlassButton variant="ghost" size="sm" rounded="lg">3</GlassButton>
+              <GlassButton variant="ghost" size="sm" rounded="lg">...</GlassButton>
+              <GlassButton variant="ghost" size="sm" rounded="lg">10</GlassButton>
+              <GlassButton variant="outline" size="icon-sm" rounded="lg">
                 <Icon name="lucide:chevron-right" />
-              </Button>
+              </GlassButton>
             </div>
             <span class="text-muted-foreground text-xs">Pagination</span>
           </div>
@@ -425,36 +425,36 @@
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button disabled>
+            <GlassButton disabled>
               <Spinner class="size-4" />
               Loading...
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Default Loading</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="outline" disabled>
+            <GlassButton variant="outline" disabled>
               <Spinner class="size-4" />
               Processing
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Outline Loading</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="success" disabled rounded="lg">
+            <GlassButton variant="success" disabled rounded="lg">
               <Spinner class="size-4" />
               Saving...
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Success Loading</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button size="icon" disabled>
+            <GlassButton size="icon" disabled>
               <Spinner class="size-4" />
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Icon Loading</span>
           </div>
         </div>
@@ -466,31 +466,31 @@
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button disabled>Disabled</Button>
+            <GlassButton disabled>Disabled</GlassButton>
             <span class="text-muted-foreground text-xs">Default Disabled</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="outline" disabled>Disabled</Button>
+            <GlassButton variant="outline" disabled>Disabled</GlassButton>
             <span class="text-muted-foreground text-xs">Outline Disabled</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="destructive" disabled>
+            <GlassButton variant="destructive" disabled>
               <Icon name="lucide:trash-2" />
               Delete
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Destructive Disabled</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button variant="ghost" disabled>
+            <GlassButton variant="ghost" disabled>
               <Icon name="lucide:plus" />
               Add Item
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Ghost Disabled</span>
           </div>
         </div>
@@ -502,27 +502,27 @@
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button to="/">
+            <GlassButton to="/">
               <Icon name="lucide:home" />
               Go Home
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">to="/" (internal)</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button to="https://nuxt.com" variant="outline" rounded="xl">
+            <GlassButton to="https://nuxt.com" variant="outline" rounded="xl">
               <Icon name="lucide:external-link" />
               External Link
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">to="https://..." (new tab)</span>
           </div>
           <div
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
-            <Button to="/" variant="ghost" size="icon" rounded="lg">
+            <GlassButton to="/" variant="ghost" size="icon" rounded="lg">
               <Icon name="lucide:arrow-left" />
-            </Button>
+            </GlassButton>
             <span class="text-muted-foreground text-xs">Ghost Icon Link</span>
           </div>
         </div>
@@ -535,28 +535,28 @@
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
             <div class="flex items-center gap-1">
-              <Button variant="ghost" size="icon-sm" rounded="lg">
+              <GlassButton variant="ghost" size="icon-sm" rounded="lg">
                 <Icon name="lucide:bold" />
-              </Button>
-              <Button variant="ghost" size="icon-sm" rounded="lg">
+              </GlassButton>
+              <GlassButton variant="ghost" size="icon-sm" rounded="lg">
                 <Icon name="lucide:italic" />
-              </Button>
-              <Button variant="ghost" size="icon-sm" rounded="lg">
+              </GlassButton>
+              <GlassButton variant="ghost" size="icon-sm" rounded="lg">
                 <Icon name="lucide:underline" />
-              </Button>
-              <Button variant="ghost" size="icon-sm" rounded="lg">
+              </GlassButton>
+              <GlassButton variant="ghost" size="icon-sm" rounded="lg">
                 <Icon name="lucide:strikethrough" />
-              </Button>
+              </GlassButton>
               <div class="bg-border mx-1 h-6 w-px" />
-              <Button variant="ghost" size="icon-sm" rounded="lg">
+              <GlassButton variant="ghost" size="icon-sm" rounded="lg">
                 <Icon name="lucide:align-left" />
-              </Button>
-              <Button variant="ghost" size="icon-sm" rounded="lg">
+              </GlassButton>
+              <GlassButton variant="ghost" size="icon-sm" rounded="lg">
                 <Icon name="lucide:align-center" />
-              </Button>
-              <Button variant="ghost" size="icon-sm" rounded="lg">
+              </GlassButton>
+              <GlassButton variant="ghost" size="icon-sm" rounded="lg">
                 <Icon name="lucide:align-right" />
-              </Button>
+              </GlassButton>
             </div>
             <span class="text-muted-foreground text-xs">Text Formatting Toolbar</span>
           </div>
@@ -564,12 +564,12 @@
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
             <div class="flex items-center gap-2">
-              <Button variant="ghost" rounded="lg">Cancel</Button>
-              <Button variant="outline" rounded="lg">Save Draft</Button>
-              <Button rounded="lg">
+              <GlassButton variant="ghost" rounded="lg">Cancel</GlassButton>
+              <GlassButton variant="outline" rounded="lg">Save Draft</GlassButton>
+              <GlassButton rounded="lg">
                 <Icon name="lucide:send" />
                 Publish
-              </Button>
+              </GlassButton>
             </div>
             <span class="text-muted-foreground text-xs">Action Group</span>
           </div>
@@ -577,12 +577,14 @@
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
             <div class="flex items-center gap-1">
-              <Button variant="outline" size="sm" rounded="none" class="rounded-l-lg"> Day </Button>
-              <Button variant="default" size="sm" rounded="none">Week</Button>
-              <Button variant="outline" size="sm" rounded="none">Month</Button>
-              <Button variant="outline" size="sm" rounded="none" class="rounded-r-lg">
+              <GlassButton variant="outline" size="sm" rounded="none" class="rounded-l-lg">
+                Day
+              </GlassButton>
+              <GlassButton variant="default" size="sm" rounded="none">Week</GlassButton>
+              <GlassButton variant="outline" size="sm" rounded="none">Month</GlassButton>
+              <GlassButton variant="outline" size="sm" rounded="none" class="rounded-r-lg">
                 Year
-              </Button>
+              </GlassButton>
             </div>
             <span class="text-muted-foreground text-xs">Segmented Control</span>
           </div>
@@ -590,15 +592,15 @@
             class="border-border/50 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-xl border p-6"
           >
             <div class="flex items-center gap-1">
-              <Button variant="outline" size="icon-sm" rounded="lg">
+              <GlassButton variant="outline" size="icon-sm" rounded="lg">
                 <Icon name="lucide:grid-2x2" />
-              </Button>
-              <Button variant="ghost" size="icon-sm" rounded="lg">
+              </GlassButton>
+              <GlassButton variant="ghost" size="icon-sm" rounded="lg">
                 <Icon name="lucide:list" />
-              </Button>
-              <Button variant="ghost" size="icon-sm" rounded="lg">
+              </GlassButton>
+              <GlassButton variant="ghost" size="icon-sm" rounded="lg">
                 <Icon name="lucide:layout-grid" />
-              </Button>
+              </GlassButton>
             </div>
             <span class="text-muted-foreground text-xs">View Toggle</span>
           </div>
@@ -614,13 +616,13 @@
               <h3 class="font-medium">Product Name</h3>
               <p class="text-muted-foreground text-sm">$99.00</p>
               <div class="flex gap-2">
-                <Button class="flex-1" size="sm">
+                <GlassButton class="flex-1" size="sm">
                   <Icon name="lucide:shopping-cart" />
                   Add to Cart
-                </Button>
-                <Button variant="outline" size="icon-sm">
+                </GlassButton>
+                <GlassButton variant="outline" size="icon-sm">
                   <Icon name="lucide:heart" />
-                </Button>
+                </GlassButton>
               </div>
             </div>
           </div>
@@ -629,10 +631,10 @@
             <div class="space-y-3 p-4">
               <h3 class="font-medium">Blog Post Title</h3>
               <p class="text-muted-foreground text-sm">A brief description of the post...</p>
-              <Button variant="link" size="sm" class="px-0">
+              <GlassButton variant="link" size="sm" class="px-0">
                 Read More
                 <Icon name="lucide:arrow-right" />
-              </Button>
+              </GlassButton>
             </div>
           </div>
           <div class="border-border/50 bg-muted/20 overflow-hidden rounded-xl border p-4">
@@ -644,8 +646,8 @@
               </div>
             </div>
             <div class="mt-4 flex gap-2">
-              <Button size="sm" class="flex-1">Follow</Button>
-              <Button variant="outline" size="sm" class="flex-1">Message</Button>
+              <GlassButton size="sm" class="flex-1">Follow</GlassButton>
+              <GlassButton variant="outline" size="sm" class="flex-1">Message</GlassButton>
             </div>
           </div>
         </div>
@@ -660,11 +662,11 @@
               Are you sure you want to delete this item? This action cannot be undone.
             </p>
             <div class="mt-4 flex justify-end gap-2">
-              <Button variant="ghost" rounded="lg">Cancel</Button>
-              <Button variant="destructive" rounded="lg">
+              <GlassButton variant="ghost" rounded="lg">Cancel</GlassButton>
+              <GlassButton variant="destructive" rounded="lg">
                 <Icon name="lucide:trash-2" />
                 Delete
-              </Button>
+              </GlassButton>
             </div>
           </div>
           <div class="border-border/50 bg-muted/20 rounded-xl border p-6">
@@ -673,12 +675,12 @@
               You have unsaved changes. Would you like to save them before leaving?
             </p>
             <div class="mt-4 flex justify-end gap-2">
-              <Button variant="ghost" rounded="lg">Discard</Button>
-              <Button variant="outline" rounded="lg">Cancel</Button>
-              <Button rounded="lg">
+              <GlassButton variant="ghost" rounded="lg">Discard</GlassButton>
+              <GlassButton variant="outline" rounded="lg">Cancel</GlassButton>
+              <GlassButton rounded="lg">
                 <Icon name="lucide:save" />
                 Save
-              </Button>
+              </GlassButton>
             </div>
           </div>
         </div>
@@ -693,11 +695,11 @@
               <div class="bg-muted/50 h-10 w-full rounded-lg" />
               <div class="bg-muted/50 h-24 w-full rounded-lg" />
               <div class="flex justify-end gap-2">
-                <Button variant="ghost" rounded="lg">Reset</Button>
-                <Button rounded="lg">
+                <GlassButton variant="ghost" rounded="lg">Reset</GlassButton>
+                <GlassButton rounded="lg">
                   <Icon name="lucide:send" />
                   Submit
-                </Button>
+                </GlassButton>
               </div>
             </div>
           </div>
@@ -705,10 +707,10 @@
             <div class="space-y-4">
               <div class="bg-muted/50 h-10 w-full rounded-lg" />
               <div class="bg-muted/50 h-10 w-full rounded-lg" />
-              <Button class="w-full" size="lg" rounded="lg">
+              <GlassButton class="w-full" size="lg" rounded="lg">
                 <Icon name="lucide:log-in" />
                 Sign In
-              </Button>
+              </GlassButton>
               <div class="relative">
                 <div class="absolute inset-0 flex items-center">
                   <div class="border-border w-full border-t" />
@@ -718,14 +720,14 @@
                 </div>
               </div>
               <div class="grid grid-cols-2 gap-2">
-                <Button variant="outline" rounded="lg">
+                <GlassButton variant="outline" rounded="lg">
                   <Icon name="logos:google-icon" class="size-4" />
                   Google
-                </Button>
-                <Button variant="outline" rounded="lg">
+                </GlassButton>
+                <GlassButton variant="outline" rounded="lg">
                   <Icon name="logos:github-icon" class="size-4" />
                   GitHub
-                </Button>
+                </GlassButton>
               </div>
             </div>
           </div>
@@ -739,9 +741,9 @@
         >
           <span class="text-muted-foreground text-sm">Page Content Area</span>
           <div class="absolute right-4 bottom-4 flex flex-col gap-2">
-            <Button size="icon-lg" class="shadow-lg">
+            <GlassButton size="icon-lg" class="shadow-lg">
               <Icon name="lucide:plus" class="size-6" />
-            </Button>
+            </GlassButton>
           </div>
         </div>
       </div>
@@ -752,7 +754,7 @@
           class="border-border/50 bg-muted/20 flex items-center justify-center rounded-xl border p-8"
         >
           <div class="text-[clamp(1.5rem,4vw,4rem)]">
-            <Button size="inherit">Responsive</Button>
+            <GlassButton size="inherit">Responsive</GlassButton>
           </div>
         </div>
       </div>
@@ -765,9 +767,9 @@
           >
             <span class="mb-2 font-medium tracking-tight">Light Background</span>
             <div class="flex flex-wrap justify-center gap-2">
-              <Button variant="black">black</Button>
-              <Button variant="black-outline">black-outline</Button>
-              <Button variant="black-ghost">black-ghost</Button>
+              <GlassButton variant="black">black</GlassButton>
+              <GlassButton variant="black-outline">black-outline</GlassButton>
+              <GlassButton variant="black-ghost">black-ghost</GlassButton>
             </div>
           </div>
           <div
@@ -775,9 +777,9 @@
           >
             <span class="mb-2 font-medium tracking-tight">Dark Background</span>
             <div class="flex flex-wrap justify-center gap-2">
-              <Button variant="white">white</Button>
-              <Button variant="white-outline">white-outline</Button>
-              <Button variant="white-ghost">white-ghost</Button>
+              <GlassButton variant="white">white</GlassButton>
+              <GlassButton variant="white-outline">white-outline</GlassButton>
+              <GlassButton variant="white-ghost">white-ghost</GlassButton>
             </div>
           </div>
           <div
@@ -785,9 +787,9 @@
           >
             <span class="mb-2 font-medium tracking-tight text-white">Gradient Background</span>
             <div class="flex flex-wrap justify-center gap-2">
-              <Button>Default</Button>
-              <Button variant="outline">Outline</Button>
-              <Button variant="ghost" class="text-white hover:bg-white/20">Ghost</Button>
+              <GlassButton>Default</GlassButton>
+              <GlassButton variant="outline">Outline</GlassButton>
+              <GlassButton variant="ghost" class="text-white hover:bg-white/20">Ghost</GlassButton>
             </div>
           </div>
           <div class="relative overflow-hidden rounded-xl">
@@ -802,8 +804,8 @@
             >
               <span class="mb-2 font-medium tracking-tight">Image Background</span>
               <div class="flex flex-wrap justify-center gap-2">
-                <Button variant="white">white</Button>
-                <Button variant="white-outline">white-outline</Button>
+                <GlassButton variant="white">white</GlassButton>
+                <GlassButton variant="white-outline">white-outline</GlassButton>
               </div>
             </div>
           </div>

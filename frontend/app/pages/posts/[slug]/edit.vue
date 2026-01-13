@@ -10,7 +10,7 @@
 
     <LoadingState v-if="loading" label="Loading post.." />
 
-    <PostForm
+    <PostEditor
       v-else-if="post"
       mode="edit"
       :initial-data="post"
@@ -35,7 +35,7 @@
 definePageMeta({
   middleware: ["sanctum:auth", "permission"],
   permissions: ["posts.update"],
-  layout: "app",
+  layout: "post-editor",
 });
 
 usePageMeta("posts");

@@ -9,7 +9,7 @@
       <p class="page-description">Write and publish a new blog post.</p>
     </div>
 
-    <PostForm mode="create" @cancel="navigateTo('/posts')" @success="handleSuccess" />
+    <PostEditor mode="create" @cancel="navigateTo('/posts')" @success="handleSuccess" />
   </div>
 </template>
 
@@ -17,7 +17,7 @@
 definePageMeta({
   middleware: ["sanctum:auth", "permission"],
   permissions: ["posts.create"],
-  layout: "app",
+  layout: "post-editor",
 });
 
 usePageMeta("posts");

@@ -1,358 +1,358 @@
 <template>
-  <form @submit.prevent="handleSubmit" class="grid gap-y-8">
-    <!-- Autosave Status & Preview -->
-    <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-4">
-      <div class="flex items-center gap-2">
-        <Switch id="autosave-toggle" v-model="autosaveEnabled" :disabled="showRestoreDialog" />
-        <Label for="autosave-toggle" class="text-muted-foreground cursor-pointer text-sm">
-          <PostAutosaveStatus
-            v-if="autosaveEnabled"
-            :is-saving="autosave.isSaving.value"
-            :is-saved="autosave.isSaved.value"
-            :has-error="autosave.hasError.value"
-            :last-saved-at="autosave.lastSavedAt.value"
-            :error="autosave.autosaveStatus.value.error"
-          />
-          <span v-else class="text-muted-foreground text-sm">Autosave disabled</span>
-        </Label>
-      </div>
-
-      <button
-        type="button"
-        @click="showPreview"
-        class="bg-muted hover:bg-border flex items-center gap-x-1.5 rounded-lg px-3 py-2 text-sm tracking-tight transition active:scale-98"
-      >
-        <Icon name="hugeicons:view" class="size-4.5 shrink-0" />
-        <span>{{ mode === "edit" ? "Preview Changes" : "Preview Post" }}</span>
-      </button>
-    </div>
-
-    <div class="grid grid-cols-1 gap-y-6">
-      <div class="space-y-2">
-        <Label for="title">Title</Label>
-        <Input id="title" v-model="form.title" type="text" required />
-        <InputErrorMessage :errors="errors.title" />
-      </div>
-
-      <div class="space-y-2">
-        <Label for="slug">Slug (Optional)</Label>
-        <Input
-          id="slug"
-          v-model="form.slug"
-          type="text"
-          placeholder="Leave empty to auto-generate from title"
-        />
-        <p class="text-muted-foreground text-xs tracking-tight">
-          URL-friendly version of the title. Leave empty to auto-generate.
-        </p>
-        <div
-          v-if="slugChecking"
-          class="text-muted-foreground flex items-center gap-2 text-xs tracking-tight"
-        >
-          <Spinner class="size-3" />
-          Checking availability...
+  <div>
+    <form @submit.prevent="handleSubmit" class="grid gap-y-8">
+      <!-- Autosave Status & Preview -->
+      <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-4">
+        <div class="flex items-center gap-2">
+          <Switch id="autosave-toggle" v-model="autosaveEnabled" :disabled="showRestoreDialog" />
+          <Label for="autosave-toggle" class="text-muted-foreground cursor-pointer text-sm">
+            <PostAutosaveStatus
+              v-if="autosaveEnabled"
+              :is-saving="autosave.isSaving.value"
+              :is-saved="autosave.isSaved.value"
+              :has-error="autosave.hasError.value"
+              :last-saved-at="autosave.lastSavedAt.value"
+              :error="autosave.autosaveStatus.value.error"
+            />
+            <span v-else class="text-muted-foreground text-sm">Autosave disabled</span>
+          </Label>
         </div>
-        <div
-          v-else-if="slugAvailable === false"
-          class="text-destructive flex items-center gap-2 text-xs tracking-tight"
+
+        <button
+          type="button"
+          @click="showPreview"
+          class="bg-muted hover:bg-border flex items-center gap-x-1.5 rounded-lg px-3 py-2 text-sm tracking-tight transition active:scale-98"
         >
-          <Icon name="lucide:x-circle" class="size-3" />
-          This slug is already taken
-        </div>
-        <div
-          v-else-if="slugAvailable === true"
-          class="flex items-center gap-2 text-xs tracking-tight text-green-600 dark:text-green-400"
-        >
-          <Icon name="lucide:check-circle" class="size-3" />
-          Slug is available
-        </div>
-        <InputErrorMessage :errors="errors.slug" />
+          <Icon name="hugeicons:view" class="size-4.5 shrink-0" />
+          <span>{{ mode === "edit" ? "Preview Changes" : "Preview Post" }}</span>
+        </button>
       </div>
 
-      <div class="space-y-2">
-        <Label for="excerpt">Excerpt</Label>
-        <Textarea id="excerpt" v-model="form.excerpt" maxlength="500" />
-        <p class="text-muted-foreground text-xs tracking-tight">
-          Brief description of the post (max 500 characters)
-        </p>
-        <InputErrorMessage :errors="errors.excerpt" />
-      </div>
-
-      <div class="space-y-4">
-        <Label>Featured Image</Label>
-        <InputFileImage
-          ref="featuredImageInputRef"
-          v-model="imageFiles.featured_image"
-          :initial-image="initialData?.featured_image"
-          v-model:delete-flag="deleteFlags.featured_image"
-          container-class="relative isolate aspect-video w-full"
-        />
-        <InputErrorMessage :errors="errors.tmp_featured_image" />
+      <div class="grid grid-cols-1 gap-y-6">
+        <div class="space-y-2">
+          <Label for="title">Title</Label>
+          <Input id="title" v-model="form.title" type="text" required />
+          <InputErrorMessage :errors="errors.title" />
+        </div>
 
         <div class="space-y-2">
-          <Label for="featured_image_caption">Image Caption (Optional)</Label>
+          <Label for="slug">Slug (Optional)</Label>
           <Input
-            id="featured_image_caption"
-            v-model="form.featured_image_caption"
+            id="slug"
+            v-model="form.slug"
             type="text"
-            maxlength="500"
-            placeholder="Add a caption for the featured image..."
+            placeholder="Leave empty to auto-generate from title"
           />
-          <InputErrorMessage :errors="errors.featured_image_caption" />
-        </div>
-      </div>
-
-      <div class="space-y-2">
-        <Label>Content <span class="text-destructive">*</span></Label>
-        <PostTipTapEditor
-          v-model="form.content"
-          :post-id="postId"
-          placeholder="Start writing your post content..."
-        />
-        <InputErrorMessage :errors="errors.content" />
-      </div>
-
-      <div class="space-y-2">
-        <Label for="tags">Tags</Label>
-        <TagsInputComponent v-model="form.tags" placeholder="Add tags..." />
-        <p class="text-muted-foreground text-xs tracking-tight">Press Enter to add a tag</p>
-        <InputErrorMessage :errors="errors.tags" />
-      </div>
-    </div>
-
-    <!-- Post Settings -->
-    <div class="grid grid-cols-1 gap-y-6">
-      <div class="grid grid-cols-2 gap-3">
-        <div class="space-y-2">
-          <Label for="status">Status</Label>
-          <Select v-model="form.status">
-            <SelectTrigger class="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="published">Published</SelectItem>
-              <SelectItem value="scheduled">Scheduled</SelectItem>
-              <SelectItem v-if="mode === 'edit'" value="archived">Archived</SelectItem>
-            </SelectContent>
-          </Select>
-          <InputErrorMessage :errors="errors.status" />
-        </div>
-
-        <div class="space-y-2">
-          <Label for="visibility">Visibility</Label>
-          <Select v-model="form.visibility">
-            <SelectTrigger class="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="public">Public</SelectItem>
-              <SelectItem value="private">Private</SelectItem>
-              <SelectItem value="members_only">Members Only</SelectItem>
-            </SelectContent>
-          </Select>
-          <InputErrorMessage :errors="errors.visibility" />
-        </div>
-      </div>
-
-      <div v-if="form.status === 'scheduled'" class="space-y-2">
-        <Label for="published_at">Publish Date & Time</Label>
-        <Input id="published_at" v-model="form.published_at" type="datetime-local" />
-        <InputErrorMessage :errors="errors.published_at" />
-      </div>
-
-      <div class="space-y-4">
-        <div class="space-y-2">
-          <Label>Post Authors</Label>
-          <p class="text-muted-foreground text-xs tracking-tight">Add authors for this post</p>
-        </div>
-
-        <!-- Authors List -->
-        <div v-if="form.authors.length > 0" class="space-y-3">
+          <p class="text-muted-foreground text-xs tracking-tight">
+            URL-friendly version of the title. Leave empty to auto-generate.
+          </p>
           <div
-            v-for="(author, index) in form.authors"
-            :key="index"
-            class="border-border flex items-center gap-3 rounded-lg border p-3"
+            v-if="slugChecking"
+            class="text-muted-foreground flex items-center gap-2 text-xs tracking-tight"
           >
-            <!-- User Select -->
-            <div class="flex-1">
-              <Select v-model="author.user_id">
-                <SelectTrigger class="w-full">
-                  <SelectValue placeholder="Select author..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem
-                    v-for="user in getAvailableUsersForRow(index)"
-                    :key="user.id"
-                    :value="user.id"
-                  >
-                    {{ user.name }} ({{ user.email }})
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Spinner class="size-3" />
+            Checking availability...
+          </div>
+          <div
+            v-else-if="slugAvailable === false"
+            class="text-destructive flex items-center gap-2 text-xs tracking-tight"
+          >
+            <Icon name="lucide:x-circle" class="size-3" />
+            This slug is already taken
+          </div>
+          <div
+            v-else-if="slugAvailable === true"
+            class="flex items-center gap-2 text-xs tracking-tight text-green-600 dark:text-green-400"
+          >
+            <Icon name="lucide:check-circle" class="size-3" />
+            Slug is available
+          </div>
+          <InputErrorMessage :errors="errors.slug" />
+        </div>
 
-            <!-- Reorder Buttons -->
-            <div class="flex gap-1">
-              <button
-                type="button"
-                @click="moveAuthorUp(index)"
-                :disabled="index === 0"
-                class="hover:bg-accent flex size-8 items-center justify-center rounded-lg transition disabled:opacity-30"
-                title="Move up"
-              >
-                <Icon name="lucide:chevron-up" class="size-4" />
-              </button>
-              <button
-                type="button"
-                @click="moveAuthorDown(index)"
-                :disabled="index === form.authors.length - 1"
-                class="hover:bg-accent flex size-8 items-center justify-center rounded-lg transition disabled:opacity-30"
-                title="Move down"
-              >
-                <Icon name="lucide:chevron-down" class="size-4" />
-              </button>
-            </div>
+        <div class="space-y-2">
+          <Label for="excerpt">Excerpt</Label>
+          <Textarea id="excerpt" v-model="form.excerpt" maxlength="500" />
+          <p class="text-muted-foreground text-xs tracking-tight">
+            Brief description of the post (max 500 characters)
+          </p>
+          <InputErrorMessage :errors="errors.excerpt" />
+        </div>
 
-            <!-- Remove Button -->
-            <button
-              type="button"
-              @click="removeAuthor(index)"
-              class="hover:bg-destructive/10 hover:text-destructive flex size-8 items-center justify-center rounded-lg transition"
-              title="Remove author"
-            >
-              <Icon name="lucide:x" class="size-4" />
-            </button>
+        <div class="space-y-4">
+          <Label>Featured Image</Label>
+          <InputFileImage
+            ref="featuredImageInputRef"
+            v-model="imageFiles.featured_image"
+            :initial-image="initialData?.featured_image"
+            v-model:delete-flag="deleteFlags.featured_image"
+            container-class="relative isolate aspect-video w-full"
+          />
+          <InputErrorMessage :errors="errors.tmp_featured_image" />
+
+          <div class="space-y-2">
+            <Label for="featured_image_caption">Image Caption (Optional)</Label>
+            <Input
+              id="featured_image_caption"
+              v-model="form.featured_image_caption"
+              type="text"
+              maxlength="500"
+              placeholder="Add a caption for the featured image..."
+            />
+            <InputErrorMessage :errors="errors.featured_image_caption" />
           </div>
         </div>
 
-        <!-- Add Author Button -->
-        <button
-          type="button"
-          @click="addAuthor"
-          class="border-input hover:bg-muted flex w-full items-center justify-center gap-2 rounded-lg border border-dashed py-3 text-sm font-medium transition"
-        >
-          <Icon name="lucide:plus" class="size-4" />
-          Add Author
-        </button>
-
-        <InputErrorMessage :errors="errors.authors" />
-      </div>
-
-      <div class="flex items-center gap-2">
-        <Switch id="featured" v-model="form.featured" />
-        <Label for="featured" class="cursor-pointer font-normal">Mark as featured post </Label>
-      </div>
-    </div>
-
-    <!-- SEO Meta -->
-    <div class="grid grid-cols-1 gap-y-6">
-      <div class="space-y-2">
-        <Label for="meta_title">Meta Title</Label>
-        <Input id="meta_title" v-model="form.meta_title" type="text" />
-        <p class="text-muted-foreground text-xs tracking-tight">
-          Leave empty to auto-generate from title
-        </p>
-        <InputErrorMessage :errors="errors.meta_title" />
-      </div>
-
-      <div class="space-y-2">
-        <Label for="meta_description">Meta Description</Label>
-        <Textarea id="meta_description" v-model="form.meta_description" />
-        <p class="text-muted-foreground text-xs tracking-tight">
-          Leave empty to auto-generate from excerpt
-        </p>
-        <InputErrorMessage :errors="errors.meta_description" />
-      </div>
-
-      <div class="space-y-4">
-        <Label>OG Image</Label>
-        <InputFileImage
-          ref="ogImageInputRef"
-          v-model="imageFiles.og_image"
-          :initial-image="initialData?.og_image"
-          v-model:delete-flag="deleteFlags.og_image"
-          container-class="relative isolate aspect-video w-full"
-        />
-        <p class="text-muted-foreground text-xs tracking-tight">
-          Image for social media sharing (Open Graph). Recommended size: 1200x630px
-        </p>
-        <InputErrorMessage :errors="errors.tmp_og_image" />
-      </div>
-    </div>
-
-    <!-- Actions -->
-    <div class="flex justify-end gap-2">
-      <button
-        v-if="mode === 'edit' && autosave.localBackup.value"
-        type="button"
-        @click="discardAutosave"
-        class="border-input hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium tracking-tighter transition"
-      >
-        <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
-        Discard Draft
-      </button>
-      <button
-        type="button"
-        @click="emit('cancel')"
-        class="border-input hover:bg-accent hover:text-accent-foreground rounded-lg border px-4 py-2 text-sm font-medium tracking-tighter transition"
-      >
-        Cancel
-      </button>
-      <button
-        type="submit"
-        :disabled="loading || !form.title || !form.content || hasFilesUploading()"
-        class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tighter transition disabled:opacity-50"
-      >
-        <Spinner v-if="loading" />
-        {{ submitButtonText }}
-      </button>
-    </div>
-  </form>
-
-  <!-- Preview Modal -->
-  <PostPreview
-    v-model:open="showPreviewModal"
-    :preview-data="previewFormData"
-    :published-post="initialData"
-    :mode="mode"
-  />
-
-  <!-- Restore Autosave Dialog -->
-  <DialogResponsive v-model:open="showRestoreDialog" dialog-max-width="450px">
-    <div class="px-4 pb-10 md:px-6 md:py-5">
-      <div class="flex items-start gap-3">
-        <div
-          class="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900"
-        >
-          <Icon name="lucide:archive-restore" class="size-5 text-blue-600 dark:text-blue-400" />
+        <div class="space-y-2">
+          <Label>Content <span class="text-destructive">*</span></Label>
+          <PostTipTapEditor
+            v-model="form.content"
+            :post-id="postId"
+            placeholder="Start writing your post content..."
+          />
+          <InputErrorMessage :errors="errors.content" />
         </div>
-        <div class="flex-1">
-          <h3 class="text-primary text-lg font-semibold">Restore Draft?</h3>
-          <p class="text-muted-foreground mt-1.5 text-sm leading-relaxed">
-            You have unsaved changes from a previous session. Would you like to restore them or
-            start fresh?
+
+        <div class="space-y-2">
+          <Label for="tags">Tags</Label>
+          <TagsInputComponent v-model="form.tags" placeholder="Add tags..." />
+          <p class="text-muted-foreground text-xs tracking-tight">Press Enter to add a tag</p>
+          <InputErrorMessage :errors="errors.tags" />
+        </div>
+      </div>
+
+      <!-- Post Settings -->
+      <div class="grid grid-cols-1 gap-y-6">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-2">
+            <Label for="status">Status</Label>
+            <Select v-model="form.status">
+              <SelectTrigger class="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="published">Published</SelectItem>
+                <SelectItem value="scheduled">Scheduled</SelectItem>
+                <SelectItem v-if="mode === 'edit'" value="archived">Archived</SelectItem>
+              </SelectContent>
+            </Select>
+            <InputErrorMessage :errors="errors.status" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="visibility">Visibility</Label>
+            <Select v-model="form.visibility">
+              <SelectTrigger class="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="public">Public</SelectItem>
+                <SelectItem value="private">Private</SelectItem>
+                <SelectItem value="members_only">Members Only</SelectItem>
+              </SelectContent>
+            </Select>
+            <InputErrorMessage :errors="errors.visibility" />
+          </div>
+        </div>
+
+        <div v-if="form.status === 'scheduled'" class="space-y-2">
+          <Label for="published_at">Publish Date & Time</Label>
+          <Input id="published_at" v-model="form.published_at" type="datetime-local" />
+          <InputErrorMessage :errors="errors.published_at" />
+        </div>
+
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <Label>Post Authors</Label>
+            <p class="text-muted-foreground text-xs tracking-tight">Add authors for this post</p>
+          </div>
+
+          <!-- Authors List -->
+          <div v-if="form.authors.length > 0" class="space-y-3">
+            <div
+              v-for="(author, index) in form.authors"
+              :key="index"
+              class="border-border flex items-center gap-3 rounded-lg border p-3"
+            >
+              <!-- User Select -->
+              <div class="flex-1">
+                <Select v-model="author.user_id">
+                  <SelectTrigger class="w-full">
+                    <SelectValue placeholder="Select author..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem
+                      v-for="user in getAvailableUsersForRow(index)"
+                      :key="user.id"
+                      :value="user.id"
+                    >
+                      {{ user.name }} ({{ user.email }})
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <!-- Reorder Buttons -->
+              <div class="flex gap-1">
+                <button
+                  type="button"
+                  @click="moveAuthorUp(index)"
+                  :disabled="index === 0"
+                  class="hover:bg-accent flex size-8 items-center justify-center rounded-lg transition disabled:opacity-30"
+                  title="Move up"
+                >
+                  <Icon name="lucide:chevron-up" class="size-4" />
+                </button>
+                <button
+                  type="button"
+                  @click="moveAuthorDown(index)"
+                  :disabled="index === form.authors.length - 1"
+                  class="hover:bg-accent flex size-8 items-center justify-center rounded-lg transition disabled:opacity-30"
+                  title="Move down"
+                >
+                  <Icon name="lucide:chevron-down" class="size-4" />
+                </button>
+              </div>
+
+              <!-- Remove Button -->
+              <button
+                type="button"
+                @click="removeAuthor(index)"
+                class="hover:bg-destructive/10 hover:text-destructive flex size-8 items-center justify-center rounded-lg transition"
+                title="Remove author"
+              >
+                <Icon name="lucide:x" class="size-4" />
+              </button>
+            </div>
+          </div>
+
+          <!-- Add Author Button -->
+          <button
+            type="button"
+            @click="addAuthor"
+            class="border-input hover:bg-muted flex w-full items-center justify-center gap-2 rounded-lg border border-dashed py-3 text-sm font-medium transition"
+          >
+            <Icon name="lucide:plus" class="size-4" />
+            Add Author
+          </button>
+
+          <InputErrorMessage :errors="errors.authors" />
+        </div>
+
+        <div class="flex items-center gap-2">
+          <Switch id="featured" v-model="form.featured" />
+          <Label for="featured" class="cursor-pointer font-normal">Mark as featured post </Label>
+        </div>
+      </div>
+
+      <!-- SEO Meta -->
+      <div class="grid grid-cols-1 gap-y-6">
+        <div class="space-y-2">
+          <Label for="meta_title">Meta Title</Label>
+          <Input id="meta_title" v-model="form.meta_title" type="text" />
+          <p class="text-muted-foreground text-xs tracking-tight">
+            Leave empty to auto-generate from title
           </p>
+          <InputErrorMessage :errors="errors.meta_title" />
+        </div>
+
+        <div class="space-y-2">
+          <Label for="meta_description">Meta Description</Label>
+          <Textarea id="meta_description" v-model="form.meta_description" />
+          <p class="text-muted-foreground text-xs tracking-tight">
+            Leave empty to auto-generate from excerpt
+          </p>
+          <InputErrorMessage :errors="errors.meta_description" />
+        </div>
+
+        <div class="space-y-4">
+          <Label>OG Image</Label>
+          <InputFileImage
+            ref="ogImageInputRef"
+            v-model="imageFiles.og_image"
+            :initial-image="initialData?.og_image"
+            v-model:delete-flag="deleteFlags.og_image"
+            container-class="relative isolate aspect-video w-full"
+          />
+          <p class="text-muted-foreground text-xs tracking-tight">
+            Image for social media sharing (Open Graph). Recommended size: 1200x630px
+          </p>
+          <InputErrorMessage :errors="errors.tmp_og_image" />
         </div>
       </div>
-      <div class="mt-5 flex justify-end gap-2">
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-2">
         <button
+          v-if="mode === 'edit' && autosave.localBackup.value"
           type="button"
-          @click="handleDiscardRestore"
-          class="border-input hover:bg-accent hover:text-accent-foreground rounded-lg border px-4 py-2 text-sm font-medium transition"
+          @click="discardAutosave"
+          class="border-input hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium tracking-tighter transition"
         >
-          Discard
+          <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
+          Discard Draft
         </button>
         <button
           type="button"
-          @click="handleRestoreChanges"
-          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+          @click="emit('cancel')"
+          class="border-input hover:bg-accent hover:text-accent-foreground rounded-lg border px-4 py-2 text-sm font-medium tracking-tighter transition"
         >
-          Restore Draft
+          Cancel
+        </button>
+        <button
+          type="submit"
+          :disabled="loading || !form.title || !form.content || hasFilesUploading()"
+          class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tighter transition disabled:opacity-50"
+        >
+          <Spinner v-if="loading" />
+          {{ submitButtonText }}
         </button>
       </div>
-    </div>
-  </DialogResponsive>
+    </form>
+
+    <PostPreview
+      v-model:open="showPreviewModal"
+      :preview-data="previewFormData"
+      :published-post="initialData"
+      :mode="mode"
+    />
+
+    <DialogResponsive v-model:open="showRestoreDialog" dialog-max-width="450px">
+      <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="flex items-start gap-3">
+          <div
+            class="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900"
+          >
+            <Icon name="lucide:archive-restore" class="size-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div class="flex-1">
+            <h3 class="text-primary text-lg font-semibold">Restore Draft?</h3>
+            <p class="text-muted-foreground mt-1.5 text-sm leading-relaxed">
+              You have unsaved changes from a previous session. Would you like to restore them or
+              start fresh?
+            </p>
+          </div>
+        </div>
+        <div class="mt-5 flex justify-end gap-2">
+          <button
+            type="button"
+            @click="handleDiscardRestore"
+            class="border-input hover:bg-accent hover:text-accent-foreground rounded-lg border px-4 py-2 text-sm font-medium transition"
+          >
+            Discard
+          </button>
+          <button
+            type="button"
+            @click="handleRestoreChanges"
+            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+          >
+            Restore Draft
+          </button>
+        </div>
+      </div>
+    </DialogResponsive>
+  </div>
 </template>
 
 <script setup>
