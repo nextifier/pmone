@@ -1,13 +1,13 @@
 <template>
   <div class="space-y-2">
-    <Popover v-model:open="isOpen">
+    <Popover v-model:open="isOpen" :modal="false">
       <PopoverTrigger as-child>
         <Button
           variant="outline"
           :disabled="disabled"
           :class="
             cn(
-              'w-full justify-start text-left font-normal text-sm',
+              'w-full justify-start text-left text-sm font-normal',
               !modelValue && 'text-muted-foreground'
             )
           "
@@ -21,10 +21,7 @@
       <PopoverContent class="w-auto p-0" align="start">
         <div class="p-3">
           <!-- Calendar -->
-          <Calendar
-            v-model="selectedDate"
-            initial-focus
-          />
+          <Calendar v-model="selectedDate" initial-focus />
 
           <!-- Time Picker -->
           <div class="border-border mt-3 flex items-center gap-2 border-t pt-3">
@@ -74,12 +71,7 @@
               >
                 Cancel
               </Button>
-              <Button
-                type="button"
-                size="sm"
-                @click="applyDateTime"
-                class="text-xs"
-              >
+              <Button type="button" size="sm" @click="applyDateTime" class="text-xs">
                 Apply
               </Button>
             </div>
@@ -91,6 +83,7 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -100,7 +93,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CalendarDate, getLocalTimeZone, today, type DateValue } from "@internationalized/date";
 
@@ -122,7 +114,7 @@ const selectedHour = ref(9);
 const selectedMinute = ref(0);
 
 const hours = Array.from({ length: 24 }, (_, i) => i);
-const minutes = Array.from({ length: 4 }, (_, i) => i * 15);
+const minutes = Array.from({ length: 60 }, (_, i) => i);
 
 // Initialize from modelValue
 watch(
@@ -136,7 +128,7 @@ watch(
         date.getDate()
       );
       selectedHour.value = date.getHours();
-      selectedMinute.value = Math.floor(date.getMinutes() / 15) * 15;
+      selectedMinute.value = date.getMinutes();
     } else {
       selectedDate.value = undefined;
       selectedHour.value = 9;

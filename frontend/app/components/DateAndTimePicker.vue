@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { Button } from "@/components/ui/button";
 import {
   CalendarCell,
   CalendarCellTrigger,
@@ -13,7 +12,13 @@ import {
   CalendarNextButton,
   CalendarPrevButton,
 } from "@/components/ui/calendar";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CalendarDateTime, getLocalTimeZone, today } from "@internationalized/date";
 import { formatDate } from "@vueuse/core";
 import { CalendarRoot } from "reka-ui";
@@ -34,6 +39,14 @@ const internalValue = ref(
   new CalendarDateTime(todayDate.year, todayDate.month, todayDate.day, 12, 0, 0)
 );
 
+// Selected hour and minute for dropdowns
+const selectedHour = ref(12);
+const selectedMinute = ref(0);
+
+// Generate hours (0-23) and minutes (0-59)
+const hours = Array.from({ length: 24 }, (_, i) => i);
+const minutes = Array.from({ length: 60 }, (_, i) => i);
+
 // Initialize from modelValue
 watch(
   () => props.modelValue,
@@ -45,12 +58,25 @@ watch(
         date.getMonth() + 1,
         date.getDate(),
         date.getHours(),
-        Math.floor(date.getMinutes() / 15) * 15
+        date.getMinutes()
       );
+      selectedHour.value = date.getHours();
+      selectedMinute.value = date.getMinutes();
     }
   },
   { immediate: true }
 );
+
+// Update internalValue when hour/minute changes
+watch([selectedHour, selectedMinute], ([hour, minute]) => {
+  internalValue.value = new CalendarDateTime(
+    internalValue.value.year,
+    internalValue.value.month,
+    internalValue.value.day,
+    hour,
+    minute
+  );
+});
 
 // Emit changes to parent
 watch(
@@ -61,33 +87,6 @@ watch(
   },
   { deep: true }
 );
-
-// Generate time slots from 00:00 to 23:45 with 15-minute intervals
-const timeSlots = Array.from({ length: 96 }, (_, i) => {
-  const hours = Math.floor(i / 4);
-  const minutes = (i % 4) * 15;
-  return {
-    time: `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`,
-    available: true,
-  };
-});
-
-const handleTimeClick = (time: string) => {
-  if (props.disabled) return;
-  const [hours, minutes] = time.split(":").map(Number);
-  internalValue.value = new CalendarDateTime(
-    internalValue.value.year,
-    internalValue.value.month,
-    internalValue.value.day,
-    hours,
-    minutes
-  );
-};
-
-const isSelectedTime = (time: string) => {
-  const [hours, minutes] = time.split(":").map(Number);
-  return internalValue.value.hour === hours && internalValue.value.minute === minutes;
-};
 </script>
 
 <template>
@@ -129,31 +128,41 @@ const isSelectedTime = (time: string) => {
             </CalendarGrid>
           </div>
         </CalendarRoot>
-        <div class="relative w-full max-sm:h-48 sm:w-40">
-          <div class="absolute inset-0 max-sm:border-t">
-            <ScrollArea class="h-full sm:border-s">
-              <div class="space-y-3">
-                <div class="flex h-5 shrink-0 items-center px-5">
-                  <p class="text-sm font-medium">
-                    {{ formatDate(internalValue.toDate(getLocalTimeZone()), "dddd, D") }}
-                  </p>
-                </div>
-                <div class="grid gap-1.5 px-5 max-sm:grid-cols-2">
-                  <Button
-                    v-for="time in timeSlots"
-                    :key="time.time"
-                    :variant="isSelectedTime(time.time) ? 'default' : 'outline'"
-                    size="sm"
-                    class="w-full"
-                    :disabled="disabled || !time.available"
-                    @click="handleTimeClick(time.time)"
-                  >
-                    {{ time.time }}
-                  </Button>
-                </div>
-              </div>
-            </ScrollArea>
+
+        <!-- Time Picker Section -->
+        <div class="flex flex-col justify-center gap-3 max-sm:border-t max-sm:pt-3 sm:border-s sm:ps-4">
+          <p class="text-sm font-medium">
+            {{ formatDate(internalValue.toDate(getLocalTimeZone()), "dddd, D") }}
+          </p>
+
+          <div class="flex items-center gap-2">
+            <Icon name="hugeicons:clock-04" class="text-muted-foreground size-4" />
+            <Select v-model="selectedHour" :disabled="disabled">
+              <SelectTrigger class="w-16 text-xs">
+                <SelectValue placeholder="HH" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="h in hours" :key="h" :value="h">
+                  {{ h.toString().padStart(2, "0") }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <span class="text-muted-foreground">:</span>
+            <Select v-model="selectedMinute" :disabled="disabled">
+              <SelectTrigger class="w-16 text-xs">
+                <SelectValue placeholder="MM" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="m in minutes" :key="m" :value="m">
+                  {{ m.toString().padStart(2, "0") }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
+          <p class="text-muted-foreground text-xs">
+            {{ selectedHour.toString().padStart(2, "0") }}:{{ selectedMinute.toString().padStart(2, "0") }}
+          </p>
         </div>
       </div>
     </div>

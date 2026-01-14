@@ -5,7 +5,8 @@
       variant="sidebar"
       class="select-none"
       :style="{
-        '--sidebar-width': '320px',
+        '--sidebar-width': '400px',
+        '--sidebar-width-mobile': '320px',
       }"
     />
 
@@ -19,33 +20,33 @@
 
   <!-- Restore Draft Dialog -->
   <DialogResponsive v-model:open="showRestoreDialog" dialog-max-width="450px">
-    <div class="px-4 pb-10 md:px-6 md:py-5">
-      <div class="flex items-start gap-3">
-        <div
-          class="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900"
-        >
-          <Icon name="lucide:archive-restore" class="size-5 text-blue-600 dark:text-blue-400" />
+    <div class="px-4 pb-8 md:pt-8">
+      <div class="flex items-start gap-x-3">
+        <div class="bg-info/15 flex size-10 shrink-0 items-center justify-center rounded-xl">
+          <Icon name="hugeicons:unarchive-03" class="text-info-foreground size-5" />
         </div>
-        <div class="flex-1">
-          <h3 class="text-primary text-lg font-semibold">Restore Draft?</h3>
-          <p class="text-muted-foreground mt-1.5 text-sm leading-relaxed">
+        <div class="grow">
+          <h3 class="text-primary text-lg font-semibold tracking-tighter">Restore Draft?</h3>
+          <p
+            class="text-muted-foreground mt-1.5 text-sm leading-relaxed tracking-tight text-pretty"
+          >
             You have unsaved changes from a previous session. Would you like to restore them or
             start fresh?
           </p>
         </div>
       </div>
-      <div class="mt-5 flex justify-end gap-2">
+      <div class="mt-4 flex justify-end gap-2">
         <button
           type="button"
           @click="handleDiscardRestore"
-          class="border-input hover:bg-accent hover:text-accent-foreground rounded-lg border px-4 py-2 text-sm font-medium transition"
+          class="bg-muted hover:bg-border rounded-lg px-3 py-2 text-sm font-medium tracking-tight transition"
         >
           Discard
         </button>
         <button
           type="button"
           @click="handleRestoreChanges"
-          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+          class="bg-info hover:bg-info/90 flex items-center gap-x-1.5 rounded-lg px-3 py-2 text-sm font-medium tracking-tight text-white transition disabled:opacity-50"
         >
           Restore Draft
         </button>
@@ -55,25 +56,25 @@
 
   <!-- Delete Confirmation Dialog -->
   <DialogResponsive v-model:open="showDeleteDialog" dialog-max-width="450px">
-    <div class="px-4 pb-10 md:px-6 md:py-5">
-      <div class="flex items-start gap-3">
-        <div
-          class="bg-destructive/10 flex size-10 shrink-0 items-center justify-center rounded-full"
-        >
-          <Icon name="lucide:trash-2" class="text-destructive size-5" />
+    <div class="px-4 pb-8 md:pt-8">
+      <div class="flex items-start gap-x-3">
+        <div class="bg-destructive/15 flex size-10 shrink-0 items-center justify-center rounded-xl">
+          <Icon name="hugeicons:delete-01" class="text-destructive-foreground size-5" />
         </div>
-        <div class="flex-1">
-          <h3 class="text-primary text-lg font-semibold">Delete Post?</h3>
-          <p class="text-muted-foreground mt-1.5 text-sm leading-relaxed">
-            Are you sure you want to delete this post? This action cannot be undone.
+        <div class="grow">
+          <h3 class="text-primary text-lg font-semibold tracking-tighter">Delete Post?</h3>
+          <p
+            class="text-muted-foreground mt-1.5 text-sm leading-relaxed tracking-tight text-pretty"
+          >
+            Are you sure you want to delete this post? This action can't be undone.
           </p>
         </div>
       </div>
-      <div class="mt-5 flex justify-end gap-2">
+      <div class="mt-4 flex justify-end gap-2">
         <button
           type="button"
           @click="showDeleteDialog = false"
-          class="border-input hover:bg-accent hover:text-accent-foreground rounded-lg border px-4 py-2 text-sm font-medium transition"
+          class="bg-muted hover:bg-border rounded-lg px-3 py-2 text-sm font-medium tracking-tight transition"
         >
           Cancel
         </button>
@@ -81,7 +82,7 @@
           type="button"
           @click="confirmDelete"
           :disabled="deleteLoading"
-          class="bg-destructive text-destructive-foreground hover:bg-destructive/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+          class="bg-destructive hover:bg-destructive/90 flex items-center gap-x-1.5 rounded-lg px-3 py-2 text-sm font-medium tracking-tight text-white transition disabled:opacity-50"
         >
           <Spinner v-if="deleteLoading" class="size-4" />
           Delete Post

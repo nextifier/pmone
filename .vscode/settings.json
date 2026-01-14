@@ -191,6 +191,7 @@
   "git.ignoreLimitWarning": true,
 
   // Tailwind CSS v4
+  "tailwindCSS.lint.cssConflict": "ignore",
   "tailwindCSS.includeLanguages": {
     "blade": "html",
     "vue": "html",

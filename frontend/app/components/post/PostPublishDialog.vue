@@ -182,7 +182,7 @@ const scheduledHour = ref(now.getHours());
 const scheduledMinute = ref(0);
 
 const hours = Array.from({ length: 24 }, (_, i) => i);
-const minutes = Array.from({ length: 4 }, (_, i) => i * 15);
+const minutes = Array.from({ length: 60 }, (_, i) => i);
 
 function formatDate(date: DateValue): string {
   return date.toDate(getLocalTimeZone()).toLocaleDateString("en-US", {

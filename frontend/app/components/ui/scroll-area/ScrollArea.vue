@@ -26,7 +26,7 @@ const delegatedProps = computed(() => {
     :class="cn('relative overflow-hidden', props.class)"
   >
     <ScrollAreaViewport
-      class="h-full w-full rounded-[inherit] outline-foreground"
+      class="h-full w-full rounded-[inherit] outline-hidden"
     >
       <slot />
     </ScrollAreaViewport>

@@ -1,11 +1,13 @@
 <template>
   <Sidebar v-bind="props">
-    <SidebarContent class="p-0">
-      <ScrollArea class="h-[calc(100vh-var(--navbar-height-desktop))]">
-        <div class="space-y-6 p-4">
+    <SidebarContent class="relative p-0">
+      <ScrollArea class="h-screen">
+        <div class="space-y-6 px-4 py-8">
           <!-- Post URL Section -->
-          <div class="space-y-3">
-            <SidebarGroupLabel class="text-muted-foreground px-0 text-xs font-medium tracking-tight">
+          <div class="space-y-1.5">
+            <SidebarGroupLabel
+              class="text-muted-foreground px-0 text-xs font-medium tracking-tight"
+            >
               Post URL
             </SidebarGroupLabel>
 
@@ -15,7 +17,7 @@
                 <Label for="slug" class="text-xs">Slug</Label>
                 <span
                   v-if="!editor.slugManuallyEdited.value"
-                  class="text-muted-foreground flex items-center gap-1 text-[10px]"
+                  class="text-muted-foreground flex items-center gap-1 text-xs"
                 >
                   <Icon name="hugeicons:link-01" class="size-3" />
                   Auto-sync
@@ -24,7 +26,7 @@
                   v-else
                   type="button"
                   @click="resetSlugSync"
-                  class="text-primary text-[10px] hover:underline"
+                  class="text-primary text-xs hover:underline"
                 >
                   Reset sync
                 </button>
@@ -62,31 +64,22 @@
             <!-- URL Preview -->
             <div
               v-if="postUrl"
-              class="bg-muted/50 flex items-center gap-2 rounded-lg border p-2"
+              class="bg-muted/50 relative flex items-center gap-2 rounded-lg border p-2"
             >
               <div class="text-muted-foreground min-w-0 flex-1 truncate text-xs">
                 {{ postUrl }}
               </div>
-              <Tippy>
-                <button
-                  type="button"
-                  @click="copyUrl"
-                  class="text-muted-foreground hover:text-primary shrink-0 transition"
-                >
-                  <Icon :name="copied ? 'hugeicons:tick-02' : 'hugeicons:copy-01'" class="size-4" />
-                </button>
-                <template #content>
-                  <span class="text-xs">{{ copied ? "Copied!" : "Copy URL" }}</span>
-                </template>
-              </Tippy>
+              <ButtonCopy :text="postUrl" />
             </div>
           </div>
 
           <Separator />
 
           <!-- Publish Settings -->
-          <div class="space-y-3">
-            <SidebarGroupLabel class="text-muted-foreground px-0 text-xs font-medium tracking-tight">
+          <div class="space-y-1.5">
+            <SidebarGroupLabel
+              class="text-muted-foreground px-0 text-xs font-medium tracking-tight"
+            >
               Publish Settings
             </SidebarGroupLabel>
 
@@ -102,8 +95,12 @@
                   <div class="bg-muted h-9 w-full animate-pulse rounded-md" />
                 </template>
               </ClientOnly>
-              <p class="text-muted-foreground text-[10px]">
-                {{ editor.form.status === "draft" ? "Set when publishing" : "When this post goes live" }}
+              <p class="text-muted-foreground text-xs">
+                {{
+                  editor.form.status === "draft"
+                    ? "Set when publishing"
+                    : "When this post goes live"
+                }}
               </p>
             </div>
           </div>
@@ -111,23 +108,29 @@
           <Separator />
 
           <!-- Tags -->
-          <div class="space-y-3">
-            <SidebarGroupLabel class="text-muted-foreground px-0 text-xs font-medium tracking-tight">
+          <div class="space-y-1.5">
+            <SidebarGroupLabel
+              class="text-muted-foreground px-0 text-xs font-medium tracking-tight"
+            >
               Tags
             </SidebarGroupLabel>
-            <TagsInputComponent
-              v-model="editor.form.tags"
-              placeholder="Add tag..."
-              class="text-sm"
-            />
-            <p class="text-muted-foreground text-[10px]">Press Enter to add a tag</p>
+            <TagsInput v-model="editor.form.tags" class="text-sm">
+              <TagsInputItem v-for="tag in editor.form.tags" :key="tag" :value="tag">
+                <TagsInputItemText />
+                <TagsInputItemDelete />
+              </TagsInputItem>
+              <TagsInputInput placeholder="Add tag..." />
+            </TagsInput>
+            <p class="text-muted-foreground text-xs">Press Enter to add a tag</p>
           </div>
 
           <Separator />
 
           <!-- Excerpt -->
-          <div class="space-y-3">
-            <SidebarGroupLabel class="text-muted-foreground px-0 text-xs font-medium tracking-tight">
+          <div class="space-y-1.5">
+            <SidebarGroupLabel
+              class="text-muted-foreground px-0 text-xs font-medium tracking-tight"
+            >
               Excerpt
             </SidebarGroupLabel>
             <Textarea
@@ -136,7 +139,7 @@
               maxlength="500"
               class="min-h-[80px] resize-none text-sm"
             />
-            <p class="text-muted-foreground text-[10px]">Max 500 characters</p>
+            <p class="text-muted-foreground text-xs">Max 500 characters</p>
           </div>
 
           <Separator />
@@ -145,7 +148,7 @@
           <div class="flex items-center justify-between">
             <div>
               <Label class="text-sm">Feature this post</Label>
-              <p class="text-muted-foreground text-[10px]">Show in featured section</p>
+              <p class="text-muted-foreground text-xs">Show in featured section</p>
             </div>
             <Switch v-model="editor.form.featured" />
           </div>
@@ -155,8 +158,10 @@
             <Separator />
 
             <!-- Visibility -->
-            <div class="space-y-3">
-              <SidebarGroupLabel class="text-muted-foreground px-0 text-xs font-medium tracking-tight">
+            <div class="space-y-1.5">
+              <SidebarGroupLabel
+                class="text-muted-foreground px-0 text-xs font-medium tracking-tight"
+              >
                 Post Access
               </SidebarGroupLabel>
               <Select v-model="editor.form.visibility">
@@ -189,8 +194,10 @@
             <Separator />
 
             <!-- Authors -->
-            <div class="space-y-3">
-              <SidebarGroupLabel class="text-muted-foreground px-0 text-xs font-medium tracking-tight">
+            <div class="space-y-1.5">
+              <SidebarGroupLabel
+                class="text-muted-foreground px-0 text-xs font-medium tracking-tight"
+              >
                 Authors
               </SidebarGroupLabel>
 
@@ -257,8 +264,10 @@
           <Separator />
 
           <!-- SEO Section -->
-          <div class="space-y-3">
-            <SidebarGroupLabel class="text-muted-foreground px-0 text-xs font-medium tracking-tight">
+          <div class="space-y-1.5">
+            <SidebarGroupLabel
+              class="text-muted-foreground px-0 text-xs font-medium tracking-tight"
+            >
               SEO Settings
             </SidebarGroupLabel>
 
@@ -295,7 +304,7 @@
                 v-model:delete-flag="editor.deleteFlags.value.og_image"
                 container-class="relative isolate aspect-video w-full"
               />
-              <p class="text-muted-foreground text-[10px]">
+              <p class="text-muted-foreground text-xs">
                 Image for social sharing. Recommended: 1200x630px
               </p>
             </div>
@@ -305,14 +314,14 @@
           <template v-if="editor.mode.value === 'edit'">
             <Separator />
 
-            <div class="space-y-3">
+            <div>
               <SidebarGroupLabel class="text-destructive px-0 text-xs font-medium tracking-tight">
                 Danger Zone
               </SidebarGroupLabel>
               <button
                 type="button"
                 @click="editor.deletePost"
-                class="border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground flex w-full items-center justify-center gap-2 rounded-lg border py-2 text-sm font-medium transition"
+                class="border-destructive text-destructive hover:bg-destructive flex w-full items-center justify-center gap-1 rounded-lg border py-2 text-sm font-medium tracking-tight transition hover:text-white"
               >
                 <Icon name="hugeicons:delete-01" class="size-4" />
                 Delete Post
@@ -321,6 +330,17 @@
           </template>
         </div>
       </ScrollArea>
+
+      <button
+        type="button"
+        @click="
+          setOpen(false);
+          setOpenMobile(false);
+        "
+        class="text-primary bg-muted hover:bg-border absolute top-3 right-4 flex size-8 items-center justify-center rounded-lg transition active:scale-98"
+      >
+        <Icon name="hugeicons:cancel-01" class="size-4" />
+      </button>
     </SidebarContent>
 
     <SidebarRail />
@@ -328,6 +348,9 @@
 </template>
 
 <script setup lang="ts">
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -335,12 +358,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { usePostEditor, usePostEditorOptional } from "@/composables/usePostEditor";
+import { useSidebar } from "@/components/ui/sidebar/utils";
+import {
+  TagsInput,
+  TagsInputInput,
+  TagsInputItem,
+  TagsInputItemDelete,
+  TagsInputItemText,
+} from "@/components/ui/tags-input";
+import { Textarea } from "@/components/ui/textarea";
+import { usePostEditorOptional } from "@/composables/usePostEditor";
 
 const props = defineProps({
   collapsible: {
@@ -388,8 +416,7 @@ const editor = computed(() => {
 });
 
 const { hasRole } = usePermission();
-const { useClipboard } = useNuxtApp().$clipboard || { useClipboard: () => ({ copy: () => {}, copied: ref(false) }) };
-const { copy, copied } = useClipboard();
+const { setOpen, setOpenMobile } = useSidebar();
 
 const ogImageInput = ref<any>(null);
 
@@ -422,12 +449,6 @@ const publishDateTime = computed({
 function resetSlugSync() {
   if (editorContext) {
     editorContext.slugManuallyEdited.value = false;
-  }
-}
-
-function copyUrl() {
-  if (postUrl.value) {
-    copy(postUrl.value);
   }
 }
 </script>
