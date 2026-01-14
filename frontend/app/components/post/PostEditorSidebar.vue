@@ -2,20 +2,14 @@
   <Sidebar v-bind="props">
     <SidebarContent class="relative p-0">
       <ScrollArea class="h-screen">
-        <div class="space-y-6 px-4 py-8">
+        <div class="space-y-6 px-4 py-14">
           <!-- Post URL Section -->
-          <div class="space-y-1.5">
-            <SidebarGroupLabel
-              class="text-muted-foreground px-0 text-xs font-medium tracking-tight"
-            >
-              Post URL
-            </SidebarGroupLabel>
-
+          <div class="space-y-2">
             <!-- Slug Input -->
             <div class="space-y-2">
               <div class="flex items-center justify-between">
-                <Label for="slug" class="text-xs">Slug</Label>
-                <span
+                <Label for="slug" class="text-xs">Post URL</Label>
+                <!-- <span
                   v-if="!editor.slugManuallyEdited.value"
                   class="text-muted-foreground flex items-center gap-1 text-xs"
                 >
@@ -29,7 +23,7 @@
                   class="text-primary text-xs hover:underline"
                 >
                   Reset sync
-                </button>
+                </button> -->
               </div>
               <Input
                 id="slug"
@@ -64,56 +58,32 @@
             <!-- URL Preview -->
             <div
               v-if="postUrl"
-              class="bg-muted/50 relative flex items-center gap-2 rounded-lg border p-2"
+              class="bg-muted/50 relative flex h-9 items-center gap-2 rounded-lg border px-3 py-1"
             >
-              <div class="text-muted-foreground min-w-0 flex-1 truncate text-xs">
+              <div class="text-muted-foreground min-w-0 grow truncate text-xs">
                 {{ postUrl }}
               </div>
               <ButtonCopy :text="postUrl" />
             </div>
           </div>
 
-          <Separator />
-
-          <!-- Publish Settings -->
-          <div class="space-y-1.5">
-            <SidebarGroupLabel
-              class="text-muted-foreground px-0 text-xs font-medium tracking-tight"
-            >
-              Publish Settings
-            </SidebarGroupLabel>
-
-            <!-- Publish Date -->
-            <div class="space-y-2">
-              <Label class="text-xs">Publish Date</Label>
-              <ClientOnly>
-                <PostEditorDateTimePicker
-                  v-model="publishDateTime"
-                  :disabled="editor.form.status === 'draft'"
-                />
-                <template #fallback>
-                  <div class="bg-muted h-9 w-full animate-pulse rounded-md" />
-                </template>
-              </ClientOnly>
-              <p class="text-muted-foreground text-xs">
-                {{
-                  editor.form.status === "draft"
-                    ? "Set when publishing"
-                    : "When this post goes live"
-                }}
-              </p>
-            </div>
+          <!-- Publish Date (only if published_at exists) -->
+          <div v-if="editor.form.published_at" class="space-y-2">
+            <Label class="text-xs">Publish Date</Label>
+            <PostEditorDateTimePicker
+              v-model="publishDateTime"
+              :disabled="editor.form.status === 'draft'"
+            />
+            <p class="text-muted-foreground text-xs">
+              {{
+                editor.form.status === "draft" ? "Set when publishing" : "When this post goes live"
+              }}
+            </p>
           </div>
 
-          <Separator />
-
           <!-- Tags -->
-          <div class="space-y-1.5">
-            <SidebarGroupLabel
-              class="text-muted-foreground px-0 text-xs font-medium tracking-tight"
-            >
-              Tags
-            </SidebarGroupLabel>
+          <div class="space-y-2">
+            <Label class="text-xs">Tags</Label>
             <TagsInput v-model="editor.form.tags" class="text-sm">
               <TagsInputItem v-for="tag in editor.form.tags" :key="tag" :value="tag">
                 <TagsInputItemText />
@@ -124,15 +94,9 @@
             <p class="text-muted-foreground text-xs">Press Enter to add a tag</p>
           </div>
 
-          <Separator />
-
           <!-- Excerpt -->
-          <div class="space-y-1.5">
-            <SidebarGroupLabel
-              class="text-muted-foreground px-0 text-xs font-medium tracking-tight"
-            >
-              Excerpt
-            </SidebarGroupLabel>
+          <div class="space-y-2">
+            <Label class="text-xs">Excerpt</Label>
             <Textarea
               v-model="editor.form.excerpt"
               placeholder="Brief description of the post..."
@@ -142,11 +106,9 @@
             <p class="text-muted-foreground text-xs">Max 500 characters</p>
           </div>
 
-          <Separator />
-
           <!-- Feature Toggle -->
-          <div class="flex items-center justify-between">
-            <div>
+          <div class="flex items-start justify-between">
+            <div class="space-y-1">
               <Label class="text-sm">Feature this post</Label>
               <p class="text-muted-foreground text-xs">Show in featured section</p>
             </div>
@@ -155,15 +117,9 @@
 
           <!-- Admin-only Settings -->
           <template v-if="isAdminOrMaster">
-            <Separator />
-
             <!-- Visibility -->
-            <div class="space-y-1.5">
-              <SidebarGroupLabel
-                class="text-muted-foreground px-0 text-xs font-medium tracking-tight"
-              >
-                Post Access
-              </SidebarGroupLabel>
+            <div class="space-y-2">
+              <Label class="text-xs">Post Access</Label>
               <Select v-model="editor.form.visibility">
                 <SelectTrigger class="w-full text-sm">
                   <SelectValue />
@@ -191,15 +147,9 @@
               </Select>
             </div>
 
-            <Separator />
-
             <!-- Authors -->
-            <div class="space-y-1.5">
-              <SidebarGroupLabel
-                class="text-muted-foreground px-0 text-xs font-medium tracking-tight"
-              >
-                Authors
-              </SidebarGroupLabel>
+            <div class="space-y-2">
+              <Label class="text-xs">Authors</Label>
 
               <!-- Authors List -->
               <div v-if="editor.form.authors.length > 0" class="space-y-2">
@@ -264,49 +214,51 @@
           <Separator />
 
           <!-- SEO Section -->
-          <div class="space-y-1.5">
+          <div class="space-y-4">
             <SidebarGroupLabel
               class="text-muted-foreground px-0 text-xs font-medium tracking-tight"
             >
               SEO Settings
             </SidebarGroupLabel>
 
-            <!-- Meta Title -->
-            <div class="space-y-2">
-              <Label for="meta_title" class="text-xs">Meta Title</Label>
-              <Input
-                id="meta_title"
-                v-model="editor.form.meta_title"
-                type="text"
-                placeholder="Auto-generated from title"
-                class="text-sm"
-              />
-            </div>
+            <div class="space-y-6">
+              <!-- Meta Title -->
+              <div class="space-y-2">
+                <Label for="meta_title" class="text-xs">Meta Title</Label>
+                <Input
+                  id="meta_title"
+                  v-model="editor.form.meta_title"
+                  type="text"
+                  placeholder="Auto-generated from title"
+                  class="text-sm"
+                />
+              </div>
 
-            <!-- Meta Description -->
-            <div class="space-y-2">
-              <Label for="meta_description" class="text-xs">Meta Description</Label>
-              <Textarea
-                id="meta_description"
-                v-model="editor.form.meta_description"
-                placeholder="Auto-generated from excerpt"
-                class="min-h-[60px] resize-none text-sm"
-              />
-            </div>
+              <!-- Meta Description -->
+              <div class="space-y-2">
+                <Label for="meta_description" class="text-xs">Meta Description</Label>
+                <Textarea
+                  id="meta_description"
+                  v-model="editor.form.meta_description"
+                  placeholder="Auto-generated from excerpt"
+                  class="min-h-[60px] resize-none text-sm"
+                />
+              </div>
 
-            <!-- OG Image -->
-            <div class="space-y-2">
-              <Label class="text-xs">OG Image</Label>
-              <InputFileImage
-                ref="ogImageInput"
-                v-model="editor.imageFiles.value.og_image"
-                :initial-image="editor.initialData.value?.og_image"
-                v-model:delete-flag="editor.deleteFlags.value.og_image"
-                container-class="relative isolate aspect-video w-full"
-              />
-              <p class="text-muted-foreground text-xs">
-                Image for social sharing. Recommended: 1200x630px
-              </p>
+              <!-- OG Image -->
+              <div class="space-y-2">
+                <Label class="text-xs">OG Image</Label>
+                <InputFileImage
+                  ref="ogImageInput"
+                  v-model="editor.imageFiles.value.og_image"
+                  :initial-image="editor.initialData.value?.og_image"
+                  v-model:delete-flag="editor.deleteFlags.value.og_image"
+                  container-class="relative isolate aspect-video w-full"
+                />
+                <p class="text-muted-foreground -mt-1 text-xs">
+                  Image for social sharing. Recommended: 1200x630px
+                </p>
+              </div>
             </div>
           </div>
 
@@ -358,7 +310,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { useSidebar } from "@/components/ui/sidebar/utils";
 import {
   TagsInput,

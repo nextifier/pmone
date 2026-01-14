@@ -1,5 +1,5 @@
 <template>
-  <Tabs v-model="activeTab" class="contents">
+  <TabsRoot v-model="activeTab" class="relative contents">
     <PostEditorSidebar
       side="right"
       variant="sidebar"
@@ -10,13 +10,21 @@
       }"
     />
 
-    <SidebarInset class="mx-auto min-h-screen max-w-480">
+    <SidebarInset class="relative mx-auto min-h-screen max-w-480">
       <PostEditorHeader />
       <main class="grow overflow-x-hidden px-4">
         <slot />
       </main>
     </SidebarInset>
-  </Tabs>
+
+    <!-- Tabs Trigger - Mobile only (fixed to viewport) -->
+    <div
+      v-if="isMobile"
+      class="fixed bottom-8 left-1/2 z-50 -translate-x-1/2"
+    >
+      <PostTabsTrigger />
+    </div>
+  </TabsRoot>
 
   <!-- Restore Draft Dialog -->
   <DialogResponsive v-model:open="showRestoreDialog" dialog-max-width="450px">
@@ -93,9 +101,12 @@
 </template>
 
 <script setup lang="ts">
-import { Tabs } from "@/components/ui/tabs";
+import { useSidebar } from "@/components/ui/sidebar/utils";
 import { providePostEditor, type PostForm } from "@/composables/usePostEditor";
+import { TabsRoot } from "reka-ui";
 import { toast } from "vue-sonner";
+
+const { isMobile } = useSidebar();
 
 const props = defineProps<{
   mode: "create" | "edit";

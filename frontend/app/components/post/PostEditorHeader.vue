@@ -2,14 +2,30 @@
   <header
     class="border-border/50 bg-background/95 supports-backdrop-filter:bg-background/90 sticky inset-x-0 top-0 z-50 h-(--navbar-height-mobile) border-b text-sm backdrop-blur-sm lg:h-(--navbar-height-desktop)"
   >
-    <div class="container-wider flex h-full items-center justify-between">
+    <div class="container-wider relative flex h-full items-center justify-between">
+      <!-- Tabs Trigger - Desktop only (absolute to header for content-area centering) -->
+      <div
+        v-if="!isMobile"
+        class="absolute top-1/2 left-1/2 z-50 hidden -translate-x-1/2 -translate-y-1/2 md:block"
+      >
+        <PostTabsTrigger />
+      </div>
+
       <!-- Left Area -->
-      <div class="flex h-full items-center gap-x-6">
+      <div class="flex h-full items-center gap-x-4">
         <!-- Back Button -->
-        <BackButton destination="/posts" :force-destination="true" />
+
+        <BackButton v-slot="{ goBack }" destination="/posts" :force-destination="true">
+          <button
+            @click="goBack"
+            class="text-primary bg-muted flex size-8 items-center justify-center rounded-lg"
+          >
+            <Icon name="lucide:arrow-left" class="size-4.5 shrink-0" />
+          </button>
+        </BackButton>
 
         <!-- Autosave Status -->
-        <div class="hidden items-center gap-2 lg:flex">
+        <div class="hidden items-center gap-x-2 lg:flex">
           <Switch
             id="autosave-toggle"
             v-model="editor.autosaveEnabled.value"
@@ -27,31 +43,6 @@
             />
             <span v-else>Autosave off</span>
           </Label>
-        </div>
-
-        <!-- Tabs Trigger -->
-        <div class="hidden lg:block">
-          <TabsList
-            class="bg-muted text-body relative isolate inline-flex items-center justify-center rounded-full border p-0.5"
-          >
-            <TabsIndicator
-              class="absolute inset-y-0.5 left-0 z-0 w-(--reka-tabs-indicator-size) translate-x-(--reka-tabs-indicator-position) rounded-full transition-all duration-300 ease-in-out"
-            >
-              <div class="bg-primary size-full rounded-full" />
-            </TabsIndicator>
-            <TabsTrigger
-              value="editor"
-              class="data-[state=active]:text-primary-foreground relative z-10 inline-flex h-7 items-center justify-center rounded-full px-2.5 text-xs font-medium tracking-tight whitespace-nowrap transition-all"
-            >
-              Editor
-            </TabsTrigger>
-            <TabsTrigger
-              value="preview"
-              class="data-[state=active]:text-primary-foreground relative z-10 inline-flex h-7 items-center justify-center rounded-full px-2.5 text-xs font-medium tracking-tight whitespace-nowrap transition-all"
-            >
-              Preview
-            </TabsTrigger>
-          </TabsList>
         </div>
       </div>
 
@@ -155,7 +146,6 @@
 <script setup lang="ts">
 import { useSidebar } from "@/components/ui/sidebar/utils";
 import { usePostEditor } from "@/composables/usePostEditor";
-import { TabsIndicator, TabsList, TabsTrigger } from "reka-ui";
 
 const editor = usePostEditor();
 const { toggleSidebar, open: sidebarOpen, isMobile } = useSidebar();
