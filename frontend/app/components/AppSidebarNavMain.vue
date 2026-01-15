@@ -93,6 +93,13 @@ const navMainGroups = computed(() => {
     });
   }
 
+  // Tasks - accessible by all authenticated users
+  platformItems.push({
+    label: "Tasks",
+    path: "/tasks",
+    iconName: "hugeicons:task-01",
+  });
+
   // Posts - requires posts.read permission
   if (hasPermission("posts.read")) {
     platformItems.push({
