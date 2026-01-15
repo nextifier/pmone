@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\PublicBlogController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ShortLinkController;
 use App\Http\Controllers\Api\TagController;
+use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TemporaryUploadController;
 use App\Http\Controllers\Api\TrackingController;
 use App\Http\Controllers\Api\UserController;
@@ -122,6 +123,21 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/{username}', [ProjectController::class, 'show'])->name('projects.show');
         Route::put('/{username}', [ProjectController::class, 'update'])->name('projects.update');
         Route::delete('/{username}', [ProjectController::class, 'destroy'])->name('projects.destroy');
+    });
+
+    // Task management endpoints
+    Route::prefix('tasks')->group(function () {
+        Route::get('/', [TaskController::class, 'index'])->name('tasks.index');
+        Route::post('/', [TaskController::class, 'store'])->name('tasks.store');
+        Route::delete('/bulk', [TaskController::class, 'bulkDestroy'])->name('tasks.bulk-destroy');
+        Route::get('/trash', [TaskController::class, 'trash'])->name('tasks.trash');
+        Route::post('/trash/restore/bulk', [TaskController::class, 'bulkRestore'])->name('tasks.bulk-restore');
+        Route::post('/trash/{id}/restore', [TaskController::class, 'restore'])->name('tasks.restore');
+        Route::delete('/trash/bulk', [TaskController::class, 'bulkForceDestroy'])->name('tasks.bulk-force-destroy');
+        Route::delete('/trash/{id}', [TaskController::class, 'forceDestroy'])->name('tasks.force-destroy');
+        Route::get('/{task:ulid}', [TaskController::class, 'show'])->name('tasks.show');
+        Route::put('/{task:ulid}', [TaskController::class, 'update'])->name('tasks.update');
+        Route::delete('/{task:ulid}', [TaskController::class, 'destroy'])->name('tasks.destroy');
     });
 
     // Log management endpoints (master and admin only)
