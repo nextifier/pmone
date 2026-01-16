@@ -19,6 +19,10 @@
     <div v-else-if="error" class="border-border bg-card rounded-lg border p-12 text-center">
       <Icon name="lucide:alert-circle" class="text-destructive mx-auto mb-3 size-12" />
       <p class="text-muted-foreground text-sm">Failed to load deleted tasks. Please try again.</p>
+      <Button variant="outline" size="sm" class="mt-4" @click="refresh">
+        <Icon name="lucide:refresh-cw" class="size-4" />
+        <span>Try Again</span>
+      </Button>
     </div>
 
     <div
@@ -26,7 +30,13 @@
       class="border-border bg-card rounded-lg border p-12 text-center"
     >
       <Icon name="lucide:trash-2" class="text-muted-foreground mx-auto mb-3 size-12" />
-      <p class="text-muted-foreground text-sm">No deleted tasks found.</p>
+      <p class="text-muted-foreground mb-4 text-sm">No deleted tasks found.</p>
+      <Button variant="outline" size="sm" as-child>
+        <NuxtLink to="/tasks">
+          <Icon name="lucide:arrow-left" class="size-4" />
+          <span>Back to Tasks</span>
+        </NuxtLink>
+      </Button>
     </div>
 
     <div v-else class="space-y-3">
@@ -37,48 +47,56 @@
       >
         <div class="flex items-start justify-between gap-4">
           <div class="flex-1 space-y-2">
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <h3 class="text-foreground font-medium tracking-tight">
                 {{ task.title }}
               </h3>
-              <span
+              <Badge
                 v-if="task.priority"
-                :class="{
-                  'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300': task.priority === 'high',
-                  'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300':
-                    task.priority === 'medium',
-                  'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300': task.priority === 'low',
-                }"
-                class="rounded-full px-2 py-0.5 text-xs font-medium"
+                :class="priorityBadgeClass(task.priority)"
+                variant="outline"
               >
                 {{ task.priority }}
-              </span>
+              </Badge>
             </div>
 
             <div class="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-              <span>Deleted {{ formatDate(task.deleted_at) }}</span>
-              <span v-if="task.assignee">Assigned to: {{ task.assignee.name }}</span>
-              <span v-if="task.project">Project: {{ task.project.name }}</span>
+              <span class="flex items-center gap-1">
+                <Icon name="lucide:trash" class="size-3" />
+                Deleted {{ formatDate(task.deleted_at) }}
+              </span>
+              <span v-if="task.assignee" class="flex items-center gap-1">
+                <Icon name="lucide:user" class="size-3" />
+                {{ task.assignee.name }}
+              </span>
+              <span v-if="task.project" class="flex items-center gap-1">
+                <Icon name="lucide:folder" class="size-3" />
+                {{ task.project.name }}
+              </span>
             </div>
           </div>
 
-          <div class="flex items-center gap-2">
-            <button
+          <div class="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              class="size-8"
               @click="handleRestore(task)"
               :disabled="restoring"
-              class="hover:bg-muted rounded-md p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               title="Restore"
             >
               <Icon name="lucide:undo-2" class="size-4" />
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              class="text-destructive hover:bg-destructive/10 hover:text-destructive size-8"
               @click="openForceDeleteDialog(task)"
               :disabled="forceDeleting"
-              class="hover:bg-destructive/10 text-destructive rounded-md p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               title="Delete Permanently"
             >
               <Icon name="lucide:trash-2" class="size-4" />
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -88,26 +106,23 @@
     <DialogResponsive v-model:open="forceDeleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tight">Permanently Delete Task?</div>
-          <p class="text-body mt-1.5 text-sm tracking-tight">
+          <div class="text-foreground text-lg font-semibold tracking-tight">Permanently Delete Task?</div>
+          <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             Are you sure you want to permanently delete <strong>{{ taskToForceDelete?.title }}</strong>?
             This action cannot be undone.
           </p>
           <div class="mt-4 flex justify-end gap-2">
-            <button
-              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-              @click="forceDeleteDialogOpen = false"
-            >
+            <Button variant="outline" @click="forceDeleteDialogOpen = false">
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="destructive"
               @click="handleForceDelete"
               :disabled="forceDeleting"
-              class="bg-destructive hover:bg-destructive/90 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Spinner v-if="forceDeleting" class="size-4" />
               <span v-else>Delete Permanently</span>
-            </button>
+            </Button>
           </div>
         </div>
       </template>
@@ -116,12 +131,15 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import BackButton from "@/components/BackButton.vue";
 import DialogResponsive from "@/components/DialogResponsive.vue";
+import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ['auth', 'verified'],
-  layout: 'default',
+  middleware: ["sanctum:auth"],
+  layout: "app",
 });
 
 const forceDeleteDialogOpen = ref(false);
@@ -130,7 +148,9 @@ const restoring = ref(false);
 const forceDeleting = ref(false);
 
 // Fetch trashed tasks
-const { data: tasks, pending, error, refresh } = await useFetch('/api/tasks/trash');
+const { data: tasks, pending, error, refresh } = await useLazySanctumFetch('/api/tasks/trash', {
+  key: 'tasks-trash',
+});
 const trashedTasks = computed(() => tasks.value?.data || []);
 
 const formatDate = (date) => {
@@ -142,21 +162,31 @@ const formatDate = (date) => {
   });
 };
 
+// Badge class helpers
+const priorityBadgeClass = (priority) => {
+  const classes = {
+    high: 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400',
+    medium: 'border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+    low: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+  };
+  return classes[priority] || '';
+};
+
 const handleRestore = async (task) => {
   restoring.value = true;
   try {
-    await $fetch(`/api/tasks/trash/${task.id}/restore`, {
+    const client = useSanctumClient();
+    await client(`/api/tasks/trash/${task.id}/restore`, {
       method: 'POST',
     });
 
     // Refresh the list
     await refresh();
 
-    // Show success toast (if you have toast component)
-    // toast.success('Task restored successfully');
-  } catch (error) {
-    console.error('Failed to restore task:', error);
-    // toast.error('Failed to restore task');
+    toast.success('Task restored successfully');
+  } catch (err) {
+    console.error('Failed to restore task:', err);
+    toast.error('Failed to restore task');
   } finally {
     restoring.value = false;
   }
@@ -172,7 +202,8 @@ const handleForceDelete = async () => {
 
   forceDeleting.value = true;
   try {
-    await $fetch(`/api/tasks/trash/${taskToForceDelete.value.id}`, {
+    const client = useSanctumClient();
+    await client(`/api/tasks/trash/${taskToForceDelete.value.id}`, {
       method: 'DELETE',
     });
 
@@ -183,11 +214,10 @@ const handleForceDelete = async () => {
     forceDeleteDialogOpen.value = false;
     taskToForceDelete.value = null;
 
-    // Show success toast (if you have toast component)
-    // toast.success('Task permanently deleted');
-  } catch (error) {
-    console.error('Failed to permanently delete task:', error);
-    // toast.error('Failed to permanently delete task');
+    toast.success('Task permanently deleted');
+  } catch (err) {
+    console.error('Failed to permanently delete task:', err);
+    toast.error('Failed to permanently delete task');
   } finally {
     forceDeleting.value = false;
   }

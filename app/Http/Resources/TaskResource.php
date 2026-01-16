@@ -36,6 +36,10 @@ class TaskResource extends JsonResource
                     'ulid' => $this->project->ulid,
                     'name' => $this->project->name,
                     'username' => $this->project->username,
+                    'profile_image' => $this->project->hasMedia('profile_image')
+                        ? $this->project->getMediaUrls('profile_image')
+                        : null,
+                    'more_details' => $this->project->more_details,
                 ]),
                 'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
                 'created_at' => $this->created_at,

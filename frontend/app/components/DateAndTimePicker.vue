@@ -34,6 +34,9 @@ const emit = defineEmits<{
 
 const todayDate = today(getLocalTimeZone());
 
+// Track if user has selected a date (to avoid emitting on initial mount when null)
+const hasUserInteracted = ref(false);
+
 // Internal calendar state
 const internalValue = ref(
   new CalendarDateTime(todayDate.year, todayDate.month, todayDate.day, 12, 0, 0)
@@ -52,6 +55,7 @@ watch(
   () => props.modelValue,
   (value) => {
     if (value) {
+      hasUserInteracted.value = true;
       const date = new Date(value);
       internalValue.value = new CalendarDateTime(
         date.getFullYear(),
@@ -69,6 +73,7 @@ watch(
 
 // Update internalValue when hour/minute changes
 watch([selectedHour, selectedMinute], ([hour, minute]) => {
+  hasUserInteracted.value = true;
   internalValue.value = new CalendarDateTime(
     internalValue.value.year,
     internalValue.value.month,
@@ -78,22 +83,29 @@ watch([selectedHour, selectedMinute], ([hour, minute]) => {
   );
 });
 
-// Emit changes to parent
+// Emit changes to parent only after user interaction
 watch(
   internalValue,
   (value) => {
-    const date = value.toDate(getLocalTimeZone());
-    emit("update:modelValue", date);
+    if (hasUserInteracted.value) {
+      const date = value.toDate(getLocalTimeZone());
+      emit("update:modelValue", date);
+    }
   },
   { deep: true }
 );
+
+// Mark as interacted when calendar date changes
+const handleCalendarChange = () => {
+  hasUserInteracted.value = true;
+};
 </script>
 
 <template>
   <div>
     <div class="rounded-md border p-3" :class="{ 'pointer-events-none opacity-50': disabled }">
       <div class="flex gap-4 max-sm:flex-col">
-        <CalendarRoot v-model="internalValue" v-slot="{ grid, weekDays }" data-slot="calendar">
+        <CalendarRoot v-model="internalValue" v-slot="{ grid, weekDays }" data-slot="calendar" @update:model-value="handleCalendarChange">
           <CalendarHeader>
             <CalendarHeading />
             <div class="flex items-center gap-1">
