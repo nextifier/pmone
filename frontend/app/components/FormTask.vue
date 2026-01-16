@@ -95,14 +95,14 @@
         <!-- Estimated Start -->
         <div class="space-y-2">
           <Label for="estimated_start_at">Estimated Start Time</Label>
-          <DateAndTimePicker v-model="form.estimated_start_at" />
+          <DateTimePicker v-model="form.estimated_start_at" placeholder="Select start time" :default-hour="9" />
           <p v-if="errors.estimated_start_at" class="text-destructive text-xs">{{ errors.estimated_start_at[0] }}</p>
         </div>
 
         <!-- Estimated Completion -->
         <div class="space-y-2">
           <Label for="estimated_completion_at">Estimated Completion Time</Label>
-          <DateAndTimePicker v-model="form.estimated_completion_at" />
+          <DateTimePicker v-model="form.estimated_completion_at" placeholder="Select completion time" :default-hour="17" />
           <p v-if="errors.estimated_completion_at" class="text-destructive text-xs">{{ errors.estimated_completion_at[0] }}</p>
         </div>
       </div>
@@ -136,12 +136,28 @@
         <Label for="project_id">Link to Project (Optional)</Label>
         <Select v-model="form.project_id">
           <SelectTrigger class="w-full">
-            <SelectValue placeholder="Select a project" />
+            <template #default>
+              <div v-if="selectedProject" class="flex items-center gap-2">
+                <Avatar :model="selectedProject" size="sm" class="size-5" rounded="rounded" />
+                <span class="truncate">{{ selectedProject.name }}</span>
+              </div>
+              <span v-else class="text-muted-foreground">Select a project</span>
+            </template>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem :value="null">None</SelectItem>
+            <SelectItem :value="null">
+              <div class="flex items-center gap-2">
+                <div class="bg-muted flex size-5 items-center justify-center rounded">
+                  <Icon name="lucide:minus" class="text-muted-foreground size-3" />
+                </div>
+                <span>None</span>
+              </div>
+            </SelectItem>
             <SelectItem v-for="project in eligibleProjects" :key="project.id" :value="project.id">
-              {{ project.name }}
+              <div class="flex items-center gap-2">
+                <Avatar :model="project" size="sm" class="size-5" rounded="rounded" />
+                <span class="truncate">{{ project.name }}</span>
+              </div>
             </SelectItem>
           </SelectContent>
         </Select>
@@ -237,7 +253,8 @@ import {
   RadioGroupItem,
 } from "@/components/ui/radio-group";
 import UserMultiSelect from "@/components/user/MultiSelect.vue";
-import DateAndTimePicker from "@/components/DateAndTimePicker.vue";
+import DateTimePicker from "@/components/DateTimePicker.vue";
+import Avatar from "@/components/Avatar.vue";
 
 const props = defineProps({
   task: {
@@ -322,6 +339,12 @@ watch(selectedSharedUsers, (users) => {
     roles[u.id] = form.shared_roles[u.id] || 'viewer';
   });
   form.shared_roles = roles;
+});
+
+// Selected project computed
+const selectedProject = computed(() => {
+  if (!form.project_id) return null;
+  return eligibleProjects.value.find(p => p.id === form.project_id);
 });
 
 const visibilityOptions = [

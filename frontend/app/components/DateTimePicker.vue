@@ -4,6 +4,7 @@
       <PopoverTrigger as-child>
         <Button
           variant="outline"
+          type="button"
           :disabled="disabled"
           :class="
             cn(
@@ -14,7 +15,7 @@
         >
           <Icon name="hugeicons:calendar-04" class="mr-2 size-4 shrink-0" />
           <span class="truncate">
-            {{ modelValue ? formatDateTime(modelValue) : "Not scheduled" }}
+            {{ modelValue ? formatDateTime(modelValue) : placeholder }}
           </span>
         </Button>
       </PopoverTrigger>
@@ -94,24 +95,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { CalendarDate, getLocalTimeZone, today, type DateValue } from "@internationalized/date";
+import { CalendarDate, getLocalTimeZone, type DateValue } from "@internationalized/date";
 
-const props = defineProps<{
-  modelValue: Date | null;
-  disabled?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    modelValue?: Date | null;
+    disabled?: boolean;
+    placeholder?: string;
+    defaultHour?: number;
+    defaultMinute?: number;
+  }>(),
+  {
+    modelValue: null,
+    disabled: false,
+    placeholder: "Select date and time",
+    defaultHour: 9,
+    defaultMinute: 0,
+  }
+);
 
 const emit = defineEmits<{
   "update:modelValue": [value: Date | null];
 }>();
 
 const isOpen = ref(false);
-const todayDate = today(getLocalTimeZone());
 
 // Internal state for calendar and time
 const selectedDate = ref<DateValue | undefined>();
-const selectedHour = ref(9);
-const selectedMinute = ref(0);
+const selectedHour = ref(props.defaultHour);
+const selectedMinute = ref(props.defaultMinute);
 
 const hours = Array.from({ length: 24 }, (_, i) => i);
 const minutes = Array.from({ length: 60 }, (_, i) => i);
@@ -131,8 +143,8 @@ watch(
       selectedMinute.value = date.getMinutes();
     } else {
       selectedDate.value = undefined;
-      selectedHour.value = 9;
-      selectedMinute.value = 0;
+      selectedHour.value = props.defaultHour;
+      selectedMinute.value = props.defaultMinute;
     }
   },
   { immediate: true }
@@ -163,8 +175,8 @@ function applyDateTime() {
 
 function clearDateTime() {
   selectedDate.value = undefined;
-  selectedHour.value = 9;
-  selectedMinute.value = 0;
+  selectedHour.value = props.defaultHour;
+  selectedMinute.value = props.defaultMinute;
   emit("update:modelValue", null);
   isOpen.value = false;
 }

@@ -24,12 +24,13 @@
 
     <!-- Task Content -->
     <div class="flex min-w-0 flex-1 flex-col gap-y-1.5">
-      <NuxtLink
-        :to="`/tasks/${task.ulid}`"
-        class="text-primary hover:text-primary/80 line-clamp-2 text-sm font-medium tracking-tight hover:underline"
+      <button
+        type="button"
+        @click="$emit('view', task)"
+        class="text-primary hover:text-primary/80 line-clamp-2 cursor-pointer text-left text-sm font-medium tracking-tight hover:underline"
       >
         {{ task.title }}
-      </NuxtLink>
+      </button>
 
       <!-- Description -->
       <p
@@ -86,7 +87,7 @@
 
       <!-- Assignee -->
       <div v-if="task.assignee" class="flex items-center gap-1.5 pt-1">
-        <Avatar :user="task.assignee" size="xs" />
+        <Avatar :model="task.assignee" size="sm" class="size-5" />
         <span class="text-muted-foreground text-xs">{{ task.assignee.name }}</span>
       </div>
     </div>
@@ -157,10 +158,13 @@
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" class="size-8" as-child>
-              <NuxtLink :to="`/tasks/${task.ulid}/edit`">
-                <Icon name="lucide:pencil" class="size-4" />
-              </NuxtLink>
+            <Button
+              variant="ghost"
+              size="icon"
+              class="size-8"
+              @click="$emit('edit', task)"
+            >
+              <Icon name="lucide:pencil" class="size-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -203,7 +207,7 @@ defineProps({
   },
 });
 
-defineEmits(['updateStatus', 'delete']);
+defineEmits(['updateStatus', 'delete', 'view', 'edit']);
 
 const stripHtml = (html) => {
   if (!html) return '';

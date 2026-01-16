@@ -1,17 +1,7 @@
 <template>
   <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
     <!-- Header -->
-    <TasksHeader title="Task Management" icon="hugeicons:task-01">
-      <template #actions>
-        <NuxtLink
-          to="/tasks/trash"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
-          <span>Trash</span>
-        </NuxtLink>
-      </template>
-    </TasksHeader>
+    <TasksHeader title="Task Management" icon="hugeicons:task-01" />
 
     <!-- Filters -->
     <TasksFilters
@@ -22,13 +12,14 @@
       @refresh="refresh"
     >
       <template #actions>
-        <NuxtLink
-          to="/tasks/create"
+        <button
+          type="button"
+          @click="openCreateDialog"
           class="hover:bg-primary/80 text-primary-foreground bg-primary flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
         >
           <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
           <span>Add task</span>
-        </NuxtLink>
+        </button>
       </template>
     </TasksFilters>
 
@@ -61,14 +52,15 @@
             : "Create your first task to get started!"
         }}
       </span>
-      <NuxtLink
+      <button
         v-if="!searchQuery"
-        to="/tasks/create"
+        type="button"
+        @click="openCreateDialog"
         class="bg-primary text-primary-foreground hover:bg-primary/80 mt-4 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
       >
         <Icon name="lucide:plus" class="size-4 shrink-0" />
         <span>Create Task</span>
-      </NuxtLink>
+      </button>
     </div>
 
     <!-- Projects with Tasks (Full Width) -->
@@ -167,6 +159,8 @@
                 :task="task"
                 @update-status="handleUpdateStatus"
                 @delete="openDeleteDialog"
+                @view="openDetailDialog"
+                @edit="openEditDialog"
               />
             </div>
             <div v-else class="flex flex-col items-center justify-center py-8 text-center">
@@ -195,6 +189,8 @@
                 :task="task"
                 @update-status="handleUpdateStatus"
                 @delete="openDeleteDialog"
+                @view="openDetailDialog"
+                @edit="openEditDialog"
               />
               <NuxtLink
                 v-if="projectGroup.project && projectGroup.completedTasks.length > 5"
@@ -213,6 +209,60 @@
         </div>
       </div>
     </div>
+
+    <!-- Create Task Dialog -->
+    <DialogResponsive v-model:open="createDialogOpen" dialog-max-width="600px">
+      <template #sticky-header>
+        <div class="border-border bg-background/95 sticky top-0 z-10 border-b px-4 py-4 backdrop-blur md:px-6">
+          <div class="text-lg font-semibold tracking-tight">Create New Task</div>
+          <p class="text-muted-foreground text-sm">Add a new task to your list</p>
+        </div>
+      </template>
+      <template #default>
+        <div class="px-4 py-4 md:px-6">
+          <FormTask
+            ref="createFormRef"
+            :loading="createLoading"
+            @submit="handleCreateTask"
+            @cancel="createDialogOpen = false"
+          />
+        </div>
+      </template>
+    </DialogResponsive>
+
+    <!-- Edit Task Dialog -->
+    <DialogResponsive v-model:open="editDialogOpen" dialog-max-width="600px">
+      <template #sticky-header>
+        <div class="border-border bg-background/95 sticky top-0 z-10 border-b px-4 py-4 backdrop-blur md:px-6">
+          <div class="text-lg font-semibold tracking-tight">Edit Task</div>
+          <p class="text-muted-foreground text-sm">Update task details</p>
+        </div>
+      </template>
+      <template #default>
+        <div class="px-4 py-4 md:px-6">
+          <FormTask
+            v-if="taskToEdit"
+            ref="editFormRef"
+            :task="taskToEdit"
+            :loading="editLoading"
+            @submit="handleEditTask"
+            @cancel="editDialogOpen = false"
+          />
+        </div>
+      </template>
+    </DialogResponsive>
+
+    <!-- Detail Task Dialog -->
+    <DialogResponsive v-model:open="detailDialogOpen" dialog-max-width="550px">
+      <template #default>
+        <TaskDetailDialog
+          v-if="taskToView"
+          :task="taskToView"
+          @close="detailDialogOpen = false"
+          @edit="handleEditFromDetail"
+        />
+      </template>
+    </DialogResponsive>
 
     <!-- Delete Dialog -->
     <DialogResponsive v-model:open="deleteDialogOpen">
@@ -238,7 +288,9 @@
 
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
+import FormTask from "@/components/FormTask.vue";
 import TaskCard from "@/components/task/TaskCard.vue";
+import TaskDetailDialog from "@/components/task/TaskDetailDialog.vue";
 import TasksFilters from "@/components/task/TasksFilters.vue";
 import TasksHeader from "@/components/task/TasksHeader.vue";
 import { Badge } from "@/components/ui/badge";
@@ -249,6 +301,8 @@ definePageMeta({
   middleware: ["sanctum:auth"],
   layout: "app",
 });
+
+const client = useSanctumClient();
 
 // Filter state
 const searchQuery = ref("");
@@ -388,7 +442,6 @@ const handleUpdateStatus = async (task, newStatus) => {
   };
 
   try {
-    const client = useSanctumClient();
     await client(`/api/tasks/${task.ulid}`, {
       method: "PUT",
       body: { status: newStatus },
@@ -407,7 +460,90 @@ const handleUpdateStatus = async (task, newStatus) => {
   }
 };
 
-// Delete functionality
+// ============ Create Task Dialog ============
+const createDialogOpen = ref(false);
+const createFormRef = ref(null);
+const createLoading = ref(false);
+
+const openCreateDialog = () => {
+  createDialogOpen.value = true;
+};
+
+const handleCreateTask = async (payload) => {
+  createLoading.value = true;
+  try {
+    await client("/api/tasks", {
+      method: "POST",
+      body: payload,
+    });
+
+    await refresh();
+    createDialogOpen.value = false;
+    toast.success("Task created successfully");
+  } catch (err) {
+    console.error("Failed to create task:", err);
+    if (err.response?._data?.errors) {
+      createFormRef.value?.setErrors(err.response._data.errors);
+    }
+    toast.error(err.response?._data?.message || "Failed to create task");
+  } finally {
+    createLoading.value = false;
+  }
+};
+
+// ============ Edit Task Dialog ============
+const editDialogOpen = ref(false);
+const editFormRef = ref(null);
+const editLoading = ref(false);
+const taskToEdit = ref(null);
+
+const openEditDialog = (task) => {
+  taskToEdit.value = task;
+  editDialogOpen.value = true;
+};
+
+const handleEditTask = async (payload) => {
+  if (!taskToEdit.value) return;
+
+  editLoading.value = true;
+  try {
+    await client(`/api/tasks/${taskToEdit.value.ulid}`, {
+      method: "PUT",
+      body: payload,
+    });
+
+    await refresh();
+    editDialogOpen.value = false;
+    taskToEdit.value = null;
+    toast.success("Task updated successfully");
+  } catch (err) {
+    console.error("Failed to update task:", err);
+    if (err.response?._data?.errors) {
+      editFormRef.value?.setErrors(err.response._data.errors);
+    }
+    toast.error(err.response?._data?.message || "Failed to update task");
+  } finally {
+    editLoading.value = false;
+  }
+};
+
+// ============ Detail Task Dialog ============
+const detailDialogOpen = ref(false);
+const taskToView = ref(null);
+
+const openDetailDialog = (task) => {
+  taskToView.value = task;
+  detailDialogOpen.value = true;
+};
+
+const handleEditFromDetail = (task) => {
+  detailDialogOpen.value = false;
+  nextTick(() => {
+    openEditDialog(task);
+  });
+};
+
+// ============ Delete Task Dialog ============
 const deleteDialogOpen = ref(false);
 const taskToDelete = ref(null);
 const deleteLoading = ref(false);
@@ -422,7 +558,6 @@ const handleDeleteTask = async () => {
 
   deleteLoading.value = true;
   try {
-    const client = useSanctumClient();
     await client(`/api/tasks/${taskToDelete.value.ulid}`, {
       method: "DELETE",
     });
