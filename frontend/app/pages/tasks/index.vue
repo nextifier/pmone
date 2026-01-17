@@ -219,7 +219,11 @@
     </div>
 
     <!-- Create Task Dialog -->
-    <DialogResponsive v-model:open="createDialogOpen" dialog-max-width="600px">
+    <DialogResponsive
+      v-model:open="createDialogOpen"
+      dialog-max-width="600px"
+      :overflow-content="true"
+    >
       <template #sticky-header>
         <div
           class="border-border bg-background/95 sticky top-0 z-10 border-b px-4 py-4 backdrop-blur md:px-6"

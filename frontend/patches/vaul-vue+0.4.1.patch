@@ -1,0 +1,169 @@
+diff --git a/node_modules/vaul-vue/dist/index.js b/node_modules/vaul-vue/dist/index.js
+index 264e0d2..4fc87b5 100644
+--- a/node_modules/vaul-vue/dist/index.js
++++ b/node_modules/vaul-vue/dist/index.js
+@@ -260,6 +260,136 @@ function mt({
+ function Te() {
+   return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+ }
++function isIOS() {
++  return Te() && (navigator.maxTouchPoints > 1 || /iPad|iPhone|iPod/.test(navigator.platform));
++}
++const visualViewport = typeof document < "u" && window.visualViewport;
++function isScrollable(node) {
++  const style = window.getComputedStyle(node);
++  return /(auto|scroll)/.test(style.overflow + style.overflowX + style.overflowY);
++}
++function getScrollParent(node) {
++  if (isScrollable(node)) {
++    node = node.parentElement;
++  }
++  while (node && !isScrollable(node)) {
++    node = node.parentElement;
++  }
++  return node || document.scrollingElement || document.documentElement;
++}
++const nonTextInputTypes = new Set([
++  'checkbox', 'radio', 'range', 'color', 'file', 'image', 'button', 'submit', 'reset',
++]);
++let preventScrollCount = 0;
++let restorePreventScroll;
++function usePreventScroll(options) {
++  ve(() => {
++    if (options.value.isDisabled) return;
++    preventScrollCount++;
++    if (preventScrollCount === 1) {
++      if (isIOS()) {
++        restorePreventScroll = preventScrollMobileSafari();
++      }
++    }
++  });
++  Xe(() => {
++    if (!options.value.isDisabled) {
++      preventScrollCount--;
++      if (preventScrollCount === 0) {
++        restorePreventScroll?.();
++      }
++    }
++  });
++}
++function preventScrollMobileSafari() {
++  let scrollable;
++  let lastY = 0;
++  const onTouchStart = (e) => {
++    scrollable = getScrollParent(e.target);
++    if (scrollable === document.documentElement || scrollable === document.body) return;
++    lastY = e.changedTouches[0].pageY;
++  };
++  const onTouchMove = (e) => {
++    if (!scrollable || scrollable === document.documentElement || scrollable === document.body) {
++      e.preventDefault();
++      return;
++    }
++    const y = e.changedTouches[0].pageY;
++    const scrollTop = scrollable.scrollTop;
++    const bottom = scrollable.scrollHeight - scrollable.clientHeight;
++    if (bottom === 0) return;
++    if ((scrollTop <= 0 && y > lastY) || (scrollTop >= bottom && y < lastY)) {
++      e.preventDefault();
++    }
++    lastY = y;
++  };
++  const onTouchEnd = (e) => {
++    const target = e.target;
++    if (isInputElement(target) && target !== document.activeElement) {
++      e.preventDefault();
++      target.style.transform = 'translateY(-2000px)';
++      target.focus();
++      requestAnimationFrame(() => { target.style.transform = ''; });
++    }
++  };
++  const onFocus = (e) => {
++    const target = e.target;
++    if (isInputElement(target)) {
++      target.style.transform = 'translateY(-2000px)';
++      requestAnimationFrame(() => {
++        target.style.transform = '';
++        if (visualViewport) {
++          if (visualViewport.height < window.innerHeight) {
++            requestAnimationFrame(() => { scrollIntoViewPrevent(target); });
++          } else {
++            visualViewport.addEventListener('resize', () => scrollIntoViewPrevent(target), { once: true });
++          }
++        }
++      });
++    }
++  };
++  const onWindowScroll = () => { window.scrollTo(0, 0); };
++  const scrollX = window.pageXOffset;
++  const scrollY = window.pageYOffset;
++  const origPaddingRight = document.documentElement.style.paddingRight;
++  document.documentElement.style.paddingRight = `${window.innerWidth - document.documentElement.clientWidth}px`;
++  window.scrollTo(0, 0);
++  document.addEventListener('touchstart', onTouchStart, { passive: false, capture: true });
++  document.addEventListener('touchmove', onTouchMove, { passive: false, capture: true });
++  document.addEventListener('touchend', onTouchEnd, { passive: false, capture: true });
++  document.addEventListener('focus', onFocus, true);
++  window.addEventListener('scroll', onWindowScroll);
++  return () => {
++    document.documentElement.style.paddingRight = origPaddingRight;
++    document.removeEventListener('touchstart', onTouchStart, { capture: true });
++    document.removeEventListener('touchmove', onTouchMove, { capture: true });
++    document.removeEventListener('touchend', onTouchEnd, { capture: true });
++    document.removeEventListener('focus', onFocus, true);
++    window.removeEventListener('scroll', onWindowScroll);
++    window.scrollTo(scrollX, scrollY);
++  };
++}
++function scrollIntoViewPrevent(target) {
++  const root = document.scrollingElement || document.documentElement;
++  while (target && target !== root) {
++    const scrollable = getScrollParent(target);
++    if (scrollable !== document.documentElement && scrollable !== document.body && scrollable !== target) {
++      const scrollableTop = scrollable.getBoundingClientRect().top;
++      const targetTop = target.getBoundingClientRect().top;
++      const targetBottom = target.getBoundingClientRect().bottom;
++      const keyboardHeight = scrollable.getBoundingClientRect().bottom + 24;
++      if (targetBottom > keyboardHeight) {
++        scrollable.scrollTop += targetTop - scrollableTop;
++      }
++    }
++    target = scrollable.parentElement;
++  }
++}
++function isInputElement(target) {
++  return (target instanceof HTMLInputElement && !nonTextInputTypes.has(target.type))
++    || target instanceof HTMLTextAreaElement
++    || (target instanceof HTMLElement && target.isContentEditable);
++}
+ let Q = null;
+ function wt(e) {
+   const { isOpen: n, modal: s, nested: i, hasBeenOpened: t, preventScrollRestoration: w, noBodyStyles: d } = e, v = S(typeof window < "u" ? window.location.href : ""), D = S(0);
+@@ -419,7 +549,7 @@ function yt(e) {
+       const De = Le(ce, le);
+       if (De !== null && (q = De), ye && q >= 1 || !j.value && !we(o.target, le))
+         return;
+-      if ((R = g == null ? void 0 : g.value) == null || R.$el.classList.add(Oe), j.value = !0, C((b = g.value) == null ? void 0 : b.$el, {
++      if ((R = g == null ? void 0 : g.value) == null || R.$el.classList.add(Oe), j.value = !0, isIOS() && window.addEventListener('touchend', () => (j.value = !1), { once: !0 }), C((b = g.value) == null ? void 0 : b.$el, {
+         transition: "none"
+       }), C((B = P.value) == null ? void 0 : B.$el, {
+         transition: "none"
+@@ -656,7 +786,7 @@ const St = /* @__PURE__ */ Z({
+           t("animationEnd", m);
+         }, O.DURATION * 1e3);
+       }
+-    }, { closeDrawer: $, hasBeenOpened: T, modal: r, isOpen: l } = ct(
++    }, { closeDrawer: $, hasBeenOpened: T, modal: r, isOpen: l, isDragging: drawerIsDragging } = ct(
+       yt({
+         ...D,
+         ...Ke(i),
+@@ -665,6 +795,9 @@ const St = /* @__PURE__ */ Z({
+         open: d
+       })
+     );
++    usePreventScroll(I(() => ({
++      isDisabled: !l.value || drawerIsDragging.value || !r.value || !T.value,
++    })));
+     function h(m) {
+       if (d.value !== void 0) {
+         D.emitOpenChange(m);
