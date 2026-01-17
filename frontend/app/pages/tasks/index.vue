@@ -17,7 +17,7 @@
           @click="openCreateDialog"
           class="hover:bg-primary/80 text-primary-foreground bg-primary flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
         >
-          <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
+          <Icon name="hugeicons:plus-sign" class="-ml-1 size-4 shrink-0" />
           <span>Add task</span>
         </button>
       </template>
@@ -30,10 +30,10 @@
 
     <!-- Error State -->
     <div v-else-if="error" class="border-border bg-card rounded-lg border p-12 text-center">
-      <Icon name="lucide:alert-circle" class="text-destructive mx-auto mb-3 size-12" />
+      <Icon name="hugeicons:alert-02" class="text-destructive mx-auto mb-3 size-12" />
       <p class="text-muted-foreground text-sm">Failed to load tasks. Please try again.</p>
       <Button variant="outline" size="sm" class="mt-4" @click="refresh">
-        <Icon name="lucide:refresh-cw" class="size-4" />
+        <Icon name="hugeicons:refresh" class="size-4" />
         <span>Try Again</span>
       </Button>
     </div>
@@ -58,7 +58,7 @@
         @click="openCreateDialog"
         class="bg-primary text-primary-foreground hover:bg-primary/80 mt-4 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
       >
-        <Icon name="lucide:plus" class="size-4 shrink-0" />
+        <Icon name="hugeicons:plus-sign" class="size-4 shrink-0" />
         <span>Create Task</span>
       </button>
     </div>
@@ -85,14 +85,14 @@
               class="size-full object-contain"
             />
             <div v-else class="flex size-full items-center justify-center">
-              <Icon name="lucide:folder" class="text-muted-foreground size-5" />
+              <Icon name="hugeicons:folder-02" class="text-muted-foreground size-5" />
             </div>
           </NuxtLink>
           <div
             v-else
             class="bg-muted border-border flex size-12 shrink-0 items-center justify-center rounded-2xl border"
           >
-            <Icon name="lucide:inbox" class="text-muted-foreground size-5" />
+            <Icon name="hugeicons:inbox" class="text-muted-foreground size-5" />
           </div>
 
           <!-- Project Info -->
@@ -136,23 +136,28 @@
               class="text-primary/80 hover:text-primary flex items-center gap-x-1 text-sm font-medium tracking-tight transition hover:underline"
             >
               <span>View all</span>
-              <Icon name="lucide:arrow-right" class="size-4 shrink-0" />
+              <Icon name="hugeicons:arrow-right-01" class="size-4 shrink-0" />
             </NuxtLink>
           </div>
         </div>
 
         <!-- Tasks by Status (2 columns: To Do & Completed) -->
-        <div class="divide-border grid grid-cols-2 divide-x">
+        <div
+          class="divide-border grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] divide-x divide-y"
+        >
           <!-- To Do Column (includes In Progress at top) -->
           <div class="p-4">
-            <div class="mb-3 flex items-center gap-2">
-              <Icon name="lucide:circle-dashed" class="text-muted-foreground size-4" />
-              <span class="text-xs font-semibold tracking-tight">To Do</span>
+            <div class="mb-3 flex items-center gap-x-1.5">
+              <Icon
+                name="hugeicons:dashed-line-circle"
+                class="text-muted-foreground size-4.5 shrink-0"
+              />
+              <span class="text-sm font-semibold tracking-tight">To Do</span>
               <Badge variant="outline" class="text-xs">
                 {{ projectGroup.pendingTasks.length }}
               </Badge>
             </div>
-            <div v-if="projectGroup.pendingTasks.length > 0" class="space-y-2">
+            <div v-if="projectGroup.pendingTasks.length > 0" v-auto-animate class="space-y-2">
               <TaskCard
                 v-for="task in projectGroup.pendingTasks"
                 :key="task.id"
@@ -164,16 +169,16 @@
               />
             </div>
             <div v-else class="flex flex-col items-center justify-center py-8 text-center">
-              <Icon name="lucide:inbox" class="text-muted-foreground/50 mb-2 size-8" />
+              <Icon name="hugeicons:inbox" class="text-muted-foreground/50 mb-2 size-8" />
               <span class="text-muted-foreground text-xs">No pending tasks</span>
             </div>
           </div>
 
           <!-- Completed Column -->
           <div class="p-4">
-            <div class="mb-3 flex items-center gap-2">
-              <Icon name="lucide:check" class="size-4 text-green-600 dark:text-green-500" />
-              <span class="text-xs font-semibold tracking-tight">Completed</span>
+            <div class="mb-3 flex items-center gap-x-1.5">
+              <Icon name="hugeicons:checkmark-circle-02" class="text-success size-5" />
+              <span class="text-sm font-semibold tracking-tight">Completed</span>
               <Badge variant="outline" class="text-xs">
                 {{
                   projectGroup.completedTasks.length > 5
@@ -182,7 +187,7 @@
                 }}
               </Badge>
             </div>
-            <div v-if="projectGroup.completedTasks.length > 0" class="space-y-2">
+            <div v-if="projectGroup.completedTasks.length > 0" v-auto-animate class="space-y-2">
               <TaskCard
                 v-for="task in projectGroup.completedTasks.slice(0, 5)"
                 :key="task.id"
@@ -198,11 +203,14 @@
                 class="text-muted-foreground hover:text-primary mt-3 flex items-center gap-x-1 text-xs font-medium tracking-tight transition"
               >
                 <span>View {{ projectGroup.completedTasks.length - 5 }} more completed tasks</span>
-                <Icon name="lucide:arrow-right" class="size-3 shrink-0" />
+                <Icon name="hugeicons:arrow-right-01" class="size-3 shrink-0" />
               </NuxtLink>
             </div>
             <div v-else class="flex flex-col items-center justify-center py-8 text-center">
-              <Icon name="lucide:circle-check" class="text-muted-foreground/50 mb-2 size-8" />
+              <Icon
+                name="hugeicons:checkmark-circle-02"
+                class="text-muted-foreground/50 mb-2 size-8"
+              />
               <span class="text-muted-foreground text-xs">No completed tasks</span>
             </div>
           </div>
@@ -213,7 +221,9 @@
     <!-- Create Task Dialog -->
     <DialogResponsive v-model:open="createDialogOpen" dialog-max-width="600px">
       <template #sticky-header>
-        <div class="border-border bg-background/95 sticky top-0 z-10 border-b px-4 py-4 backdrop-blur md:px-6">
+        <div
+          class="border-border bg-background/95 sticky top-0 z-10 border-b px-4 py-4 backdrop-blur md:px-6"
+        >
           <div class="text-lg font-semibold tracking-tight">Create New Task</div>
           <p class="text-muted-foreground text-sm">Add a new task to your list</p>
         </div>
@@ -233,7 +243,9 @@
     <!-- Edit Task Dialog -->
     <DialogResponsive v-model:open="editDialogOpen" dialog-max-width="600px">
       <template #sticky-header>
-        <div class="border-border bg-background/95 sticky top-0 z-10 border-b px-4 py-4 backdrop-blur md:px-6">
+        <div
+          class="border-border bg-background/95 sticky top-0 z-10 border-b px-4 py-4 backdrop-blur md:px-6"
+        >
           <div class="text-lg font-semibold tracking-tight">Edit Task</div>
           <p class="text-muted-foreground text-sm">Update task details</p>
         </div>

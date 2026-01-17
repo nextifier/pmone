@@ -1,26 +1,20 @@
 <template>
-  <div
-    class="border-border bg-card group flex items-start gap-x-3 rounded-lg border p-3 transition hover:border-primary/50"
-  >
+  <div class="border-border bg-card group flex items-start gap-x-3 rounded-lg border p-3">
     <!-- Status Icon -->
-    <div class="shrink-0 pt-0.5">
+    <!-- <div class="shrink-0 pt-0.5">
       <Icon
         v-if="task.status === 'completed'"
-        name="lucide:check-circle-2"
+        name="hugeicons:checkmark-circle-02"
         class="size-5 text-green-600 dark:text-green-500"
       />
       <TaskLoaderBars v-else-if="task.status === 'in_progress'" />
       <Icon
         v-else-if="task.status === 'todo'"
-        name="lucide:circle"
+        name="hugeicons:task-01"
         class="text-muted-foreground size-5"
       />
-      <Icon
-        v-else
-        name="lucide:archive"
-        class="text-muted-foreground size-5"
-      />
-    </div>
+      <Icon v-else name="hugeicons:archive-02" class="text-muted-foreground size-5" />
+    </div> -->
 
     <!-- Task Content -->
     <div class="flex min-w-0 flex-1 flex-col gap-y-1.5">
@@ -33,10 +27,7 @@
       </button>
 
       <!-- Description -->
-      <p
-        v-if="task.description"
-        class="text-muted-foreground line-clamp-2 text-xs"
-      >
+      <p v-if="task.description" class="text-muted-foreground line-clamp-2 text-xs">
         {{ stripHtml(task.description) }}
       </p>
 
@@ -54,11 +45,15 @@
           v-if="task.estimated_start_at || task.estimated_completion_at"
           class="flex items-center gap-x-1.5 text-xs"
         >
-          <Icon name="lucide:calendar" class="text-muted-foreground size-3" />
+          <Icon name="hugeicons:calendar-01" class="text-muted-foreground size-3" />
           <span v-if="task.estimated_start_at" class="text-muted-foreground">
             {{ formatDateShort(task.estimated_start_at) }}
           </span>
-          <span v-if="task.estimated_start_at && task.estimated_completion_at" class="text-muted-foreground">→</span>
+          <span
+            v-if="task.estimated_start_at && task.estimated_completion_at"
+            class="text-muted-foreground"
+            >→</span
+          >
           <span v-if="task.estimated_completion_at" class="text-muted-foreground">
             {{ formatDateShort(task.estimated_completion_at) }}
           </span>
@@ -93,112 +88,71 @@
     </div>
 
     <!-- Action Buttons -->
-    <div class="flex shrink-0 items-center gap-1 opacity-0 transition group-hover:opacity-100">
+    <div class="flex shrink-0 items-center gap-1">
       <!-- Mark as Completed -->
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              v-if="task.status !== 'completed'"
-              variant="ghost"
-              size="icon"
-              class="size-8 text-green-600 hover:bg-green-100 hover:text-green-700 dark:text-green-500 dark:hover:bg-green-900/30"
-              @click="$emit('updateStatus', task, 'completed')"
-            >
-              <Icon name="lucide:check" class="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Mark as completed</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Button
+        v-if="task.status !== 'completed'"
+        v-tippy="'Mark as completed'"
+        variant="ghost"
+        size="icon"
+        class="size-8 text-green-600 hover:bg-green-100 hover:text-green-700 dark:text-green-500 dark:hover:bg-green-900/30"
+        @click="$emit('updateStatus', task, 'completed')"
+      >
+        <Icon name="hugeicons:tick-02" class="size-4" />
+      </Button>
 
-      <!-- Reopen / Mark as To Do -->
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              v-if="task.status !== 'todo'"
-              variant="ghost"
-              size="icon"
-              class="text-muted-foreground hover:bg-muted size-8"
-              @click="$emit('updateStatus', task, 'todo')"
-            >
-              <Icon name="lucide:rotate-ccw" class="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Move to To Do</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <!-- Reopen / Stop Progress -->
+      <Button
+        v-if="task.status !== 'todo'"
+        v-tippy="task.status === 'completed' ? 'Reopen task' : 'Stop progress'"
+        variant="ghost"
+        size="icon"
+        class="text-muted-foreground hover:bg-muted size-8"
+        @click="$emit('updateStatus', task, 'todo')"
+      >
+        <Icon name="hugeicons:rotate-01" class="size-4" />
+      </Button>
 
       <!-- Set as In Progress -->
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              v-if="task.status !== 'in_progress'"
-              variant="ghost"
-              size="icon"
-              class="size-8 text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-900/30"
-              @click="$emit('updateStatus', task, 'in_progress')"
-            >
-              <Icon name="lucide:play" class="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Start working</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Button
+        v-if="task.status !== 'in_progress'"
+        v-tippy="'Start working'"
+        variant="ghost"
+        size="icon"
+        class="size-8 text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-900/30"
+        @click="$emit('updateStatus', task, 'in_progress')"
+      >
+        <Icon name="hugeicons:play" class="size-4" />
+      </Button>
 
       <!-- Edit -->
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              class="size-8"
-              @click="$emit('edit', task)"
-            >
-              <Icon name="lucide:pencil" class="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Edit task</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Button
+        v-tippy="'Edit task'"
+        variant="ghost"
+        size="icon"
+        class="size-8"
+        @click="$emit('edit', task)"
+      >
+        <Icon name="hugeicons:pencil-edit-01" class="size-4" />
+      </Button>
 
       <!-- Delete -->
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              class="text-destructive hover:bg-destructive/10 hover:text-destructive size-8"
-              @click="$emit('delete', task)"
-            >
-              <Icon name="lucide:trash" class="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Delete task</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Button
+        v-tippy="'Delete task'"
+        variant="ghost"
+        size="icon"
+        class="text-destructive hover:bg-destructive/10 hover:text-destructive size-8"
+        @click="$emit('delete', task)"
+      >
+        <Icon name="hugeicons:delete-01" class="size-4" />
+      </Button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import Avatar from "@/components/Avatar.vue";
+import { Button } from "@/components/ui/button";
 
 defineProps({
   task: {
@@ -207,23 +161,23 @@ defineProps({
   },
 });
 
-defineEmits(['updateStatus', 'delete', 'view', 'edit']);
+defineEmits(["updateStatus", "delete", "view", "edit"]);
 
 const stripHtml = (html) => {
-  if (!html) return '';
-  return html.replace(/<[^>]*>/g, '').substring(0, 150);
+  if (!html) return "";
+  return html.replace(/<[^>]*>/g, "").substring(0, 150);
 };
 
 const formatDateShort = (date) => {
-  if (!date) return '';
-  return new Date(date).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
+  if (!date) return "";
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
   });
 };
 
 const formatRelativeTime = (date) => {
-  if (!date) return '';
+  if (!date) return "";
   const now = new Date();
   const target = new Date(date);
   const diffMs = now - target;
@@ -234,7 +188,7 @@ const formatRelativeTime = (date) => {
     if (diffHours === 0) {
       const diffMinutes = Math.floor(diffMs / (1000 * 60));
       if (diffMinutes < 0) return `in ${Math.abs(diffMinutes)} minutes`;
-      if (diffMinutes === 0) return 'just now';
+      if (diffMinutes === 0) return "just now";
       return `${diffMinutes} minutes ago`;
     }
     if (diffHours < 0) return `in ${Math.abs(diffHours)} hours`;
@@ -242,7 +196,7 @@ const formatRelativeTime = (date) => {
   }
 
   if (diffDays < 0) return `in ${Math.abs(diffDays)} days`;
-  if (diffDays === 1) return 'yesterday';
+  if (diffDays === 1) return "yesterday";
   if (diffDays < 7) return `${diffDays} days ago`;
   if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
   if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;

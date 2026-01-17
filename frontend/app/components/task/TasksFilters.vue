@@ -3,7 +3,7 @@
     <div class="flex h-9 gap-x-2">
       <div class="relative flex h-full grow items-center">
         <Icon
-          name="lucide:search"
+          name="hugeicons:search-01"
           class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
         />
         <input
@@ -25,7 +25,7 @@
           class="bg-muted hover:bg-border absolute top-1/2 right-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full"
           aria-label="Clear search"
         >
-          <Icon name="lucide:x" class="size-3 shrink-0" />
+          <Icon name="hugeicons:cancel-01" class="size-3 shrink-0" />
         </button>
       </div>
 
@@ -34,7 +34,7 @@
           <button
             class="hover:bg-muted relative flex h-9 shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-3 text-sm tracking-tight active:scale-98"
           >
-            <Icon name="lucide:list-filter" class="size-4 shrink-0" />
+            <Icon name="hugeicons:filter" class="size-4 shrink-0" />
             <span>Filter</span>
             <span
               v-if="activeFilterCount > 0"
@@ -104,7 +104,7 @@
         @click="clearFilters"
         class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
       >
-        <Icon name="lucide:x" class="size-4 shrink-0" />
+        <Icon name="hugeicons:cancel-01" class="size-4 shrink-0" />
         <span class="hidden sm:flex">Clear filters</span>
       </button>
 
@@ -114,7 +114,7 @@
         class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
       >
         <Icon
-          name="lucide:refresh-cw"
+          name="hugeicons:refresh"
           class="size-4 shrink-0"
           :class="pending ? 'animate-spin' : ''"
         />

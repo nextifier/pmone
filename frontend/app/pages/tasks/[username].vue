@@ -7,7 +7,7 @@
           to="/tasks"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
-          <Icon name="lucide:arrow-left" class="size-4 shrink-0" />
+          <Icon name="hugeicons:arrow-left-01" class="size-4 shrink-0" />
           <span>Back to Tasks</span>
         </NuxtLink>
       </template>
@@ -27,7 +27,7 @@
             class="size-full object-contain"
           />
           <div v-else class="flex size-full items-center justify-center">
-            <Icon name="lucide:folder" class="text-muted-foreground size-6" />
+            <Icon name="hugeicons:folder-02" class="text-muted-foreground size-6" />
           </div>
         </NuxtLink>
 
@@ -83,7 +83,7 @@
           @click="openCreateDialog"
           class="hover:bg-primary/80 text-primary-foreground bg-primary flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
         >
-          <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
+          <Icon name="hugeicons:plus-sign" class="-ml-1 size-4 shrink-0" />
           <span>Add task</span>
         </button>
       </template>
@@ -96,10 +96,10 @@
 
     <!-- Error State -->
     <div v-else-if="error" class="border-border bg-card rounded-lg border p-12 text-center">
-      <Icon name="lucide:alert-circle" class="text-destructive mx-auto mb-3 size-12" />
+      <Icon name="hugeicons:alert-02" class="text-destructive mx-auto mb-3 size-12" />
       <p class="text-muted-foreground text-sm">Failed to load tasks. Please try again.</p>
       <Button variant="outline" size="sm" class="mt-4" @click="refresh">
-        <Icon name="lucide:refresh-cw" class="size-4" />
+        <Icon name="hugeicons:refresh" class="size-4" />
         <span>Try Again</span>
       </Button>
     </div>
@@ -120,7 +120,7 @@
         @click="openCreateDialog"
         class="bg-primary text-primary-foreground hover:bg-primary/80 mt-4 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
       >
-        <Icon name="lucide:plus" class="size-4 shrink-0" />
+        <Icon name="hugeicons:plus-sign" class="size-4 shrink-0" />
         <span>Create Task</span>
       </button>
     </div>
@@ -150,7 +150,7 @@
       <!-- To Do Tasks -->
       <div v-if="todoTasks.length > 0" class="space-y-3">
         <div class="flex items-center gap-2">
-          <Icon name="lucide:circle" class="text-muted-foreground size-4" />
+          <Icon name="hugeicons:task-01" class="text-muted-foreground size-4" />
           <h2 class="text-sm font-semibold tracking-tight">To Do</h2>
           <Badge variant="secondary" class="text-xs">{{ todoTasks.length }}</Badge>
         </div>
@@ -170,7 +170,7 @@
       <!-- Completed Tasks -->
       <div v-if="completedTasks.length > 0" class="space-y-3">
         <div class="flex items-center gap-2">
-          <Icon name="lucide:check" class="size-4 text-green-600 dark:text-green-500" />
+          <Icon name="hugeicons:tick-02" class="size-4 text-green-600 dark:text-green-500" />
           <h2 class="text-sm font-semibold tracking-tight">Completed</h2>
           <Badge variant="secondary" class="text-xs">{{ completedTasks.length }}</Badge>
         </div>
@@ -190,7 +190,7 @@
       <!-- Archived Tasks -->
       <div v-if="archivedTasks.length > 0" class="space-y-3">
         <div class="flex items-center gap-2">
-          <Icon name="lucide:archive" class="text-muted-foreground size-4" />
+          <Icon name="hugeicons:archive-02" class="text-muted-foreground size-4" />
           <h2 class="text-sm font-semibold tracking-tight">Archived</h2>
           <Badge variant="secondary" class="text-xs">{{ archivedTasks.length }}</Badge>
         </div>

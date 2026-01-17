@@ -5,10 +5,10 @@
       <span
         v-for="(_, index) in 3"
         :key="index"
-        class="bg-primary/20 w-1.5 rounded-xs"
+        class="w-1.5 rounded-xs"
         :class="[
           barHeightClass(index),
-          getActiveClass(index)
+          getBarClass(index)
         ]"
       ></span>
     </div>
@@ -34,23 +34,23 @@ const barHeightClass = (index) => {
   return 'h-2.5';
 };
 
-const getActiveClass = (index) => {
-  if (!props.level) return '';
+const getBarClass = (index) => {
+  if (!props.level) return 'bg-primary/20';
 
   const level = props.level.toLowerCase();
 
-  if (level === 'low' && index === 0) {
-    return 'bg-green-500';
+  if (level === 'low') {
+    return index === 0 ? 'bg-green-500' : 'bg-primary/20';
   }
 
-  if (level === 'medium' && index <= 1) {
-    return 'bg-yellow-500';
+  if (level === 'medium') {
+    return index <= 1 ? 'bg-yellow-500' : 'bg-primary/20';
   }
 
   if (level === 'high') {
     return 'bg-red-500';
   }
 
-  return '';
+  return 'bg-primary/20';
 };
 </script>

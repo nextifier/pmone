@@ -20,7 +20,7 @@
           {{ formatStatus(task.status) }}
         </Badge>
         <Badge v-if="task.complexity" variant="secondary">
-          <Icon name="lucide:gauge" class="size-3" />
+          <Icon name="hugeicons:dashboard-speed-01" class="size-3" />
           {{ task.complexity }}
         </Badge>
         <Badge v-if="task.visibility" variant="outline">
@@ -63,7 +63,7 @@
       <div v-if="task.estimated_start_at" class="space-y-1.5">
         <Label class="text-foreground text-xs font-semibold">Estimated Start</Label>
         <p class="text-muted-foreground flex items-center gap-1.5 text-sm">
-          <Icon name="lucide:calendar" class="size-4" />
+          <Icon name="hugeicons:calendar-01" class="size-4" />
           {{ formatDateTime(task.estimated_start_at) }}
         </p>
       </div>
@@ -75,7 +75,7 @@
           :class="task.is_overdue ? 'text-destructive' : 'text-muted-foreground'"
           class="flex items-center gap-1.5 text-sm"
         >
-          <Icon name="lucide:calendar-clock" class="size-4" />
+          <Icon name="hugeicons:time-schedule" class="size-4" />
           {{ formatDateTime(task.estimated_completion_at) }}
           <Badge v-if="task.is_overdue" variant="destructive" class="ml-1 text-xs">Overdue</Badge>
         </p>
@@ -85,7 +85,7 @@
       <div v-if="task.completed_at" class="space-y-1.5">
         <Label class="text-foreground text-xs font-semibold">Completed At</Label>
         <p class="text-muted-foreground flex items-center gap-1.5 text-sm">
-          <Icon name="lucide:check-circle" class="size-4 text-green-600" />
+          <Icon name="hugeicons:checkmark-circle-02" class="size-4 text-green-600" />
           {{ formatDateTime(task.completed_at) }}
         </p>
       </div>
@@ -111,15 +111,15 @@
     <div class="border-border space-y-2 border-t pt-4">
       <div class="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
         <span v-if="task.creator" class="flex items-center gap-1">
-          <Icon name="lucide:user" class="size-3" />
+          <Icon name="hugeicons:user" class="size-3" />
           Created by {{ task.creator.name }}
         </span>
         <span v-if="task.created_at" class="flex items-center gap-1">
-          <Icon name="lucide:calendar-plus" class="size-3" />
+          <Icon name="hugeicons:calendar-add-01" class="size-3" />
           {{ formatDateTime(task.created_at) }}
         </span>
         <span v-if="task.updated_at" class="flex items-center gap-1">
-          <Icon name="lucide:clock" class="size-3" />
+          <Icon name="hugeicons:clock-01" class="size-3" />
           Updated {{ formatDateTime(task.updated_at) }}
         </span>
       </div>
@@ -129,7 +129,7 @@
     <div class="flex items-center justify-end gap-2 pt-2">
       <Button variant="outline" size="sm" @click="$emit('close')">Close</Button>
       <Button size="sm" @click="$emit('edit', task)">
-        <Icon name="lucide:pencil" class="size-4" />
+        <Icon name="hugeicons:pencil-edit-01" class="size-4" />
         <span>Edit</span>
       </Button>
     </div>
@@ -187,21 +187,21 @@ const statusBadgeClass = (status) => {
 
 const statusIcon = (status) => {
   const icons = {
-    todo: "lucide:circle",
-    in_progress: "lucide:loader",
-    completed: "lucide:check-circle",
-    archived: "lucide:archive",
+    todo: "hugeicons:task-01",
+    in_progress: "hugeicons:loading-03",
+    completed: "hugeicons:checkmark-circle-02",
+    archived: "hugeicons:archive-02",
   };
-  return icons[status] || "lucide:circle";
+  return icons[status] || "hugeicons:task-01";
 };
 
 const visibilityIcon = (visibility) => {
   const icons = {
-    public: "lucide:globe",
-    private: "lucide:lock",
-    shared: "lucide:users",
+    public: "hugeicons:globe-02",
+    private: "hugeicons:lock",
+    shared: "hugeicons:users",
   };
-  return icons[visibility] || "lucide:eye";
+  return icons[visibility] || "hugeicons:view";
 };
 
 const formatStatus = (status) => {
