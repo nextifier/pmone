@@ -1,0 +1,6 @@
+export { default as SlideDrawer } from './SlideDrawer.vue'
+export { default as SlideDrawerHeader } from './SlideDrawerHeader.vue'
+export { default as SlideDrawerFooter } from './SlideDrawerFooter.vue'
+export { default as SlideDrawerTitle } from './SlideDrawerTitle.vue'
+export { default as SlideDrawerDescription } from './SlideDrawerDescription.vue'
+export { default as SlideDrawerBody } from './SlideDrawerBody.vue'
