@@ -13,6 +13,70 @@ const props = withDefaults(defineProps<Props>(), {
 
 const open = defineModel<boolean>('open', { default: false })
 
+// Manual scroll lock implementation (client-side only)
+const scrollbarWidth = ref(0)
+const scrollPosition = ref(0)
+
+function lockBodyScroll() {
+  if (import.meta.server) return
+
+  // Store current scroll position
+  scrollPosition.value = window.scrollY
+
+  // Calculate scrollbar width before hiding it
+  scrollbarWidth.value = window.innerWidth - document.documentElement.clientWidth
+
+  // Apply styles to both html and body to fully prevent scroll
+  document.documentElement.style.overflow = 'hidden'
+  document.body.style.overflow = 'hidden'
+  document.body.style.paddingRight = `${scrollbarWidth.value}px`
+
+  // Fix body position to prevent iOS bounce scroll
+  document.body.style.position = 'fixed'
+  document.body.style.top = `-${scrollPosition.value}px`
+  document.body.style.left = '0'
+  document.body.style.right = '0'
+}
+
+function unlockBodyScroll() {
+  if (import.meta.server) return
+
+  // Remove all scroll lock styles
+  document.documentElement.style.overflow = ''
+  document.body.style.overflow = ''
+  document.body.style.paddingRight = ''
+  document.body.style.position = ''
+  document.body.style.top = ''
+  document.body.style.left = ''
+  document.body.style.right = ''
+
+  // Restore scroll position
+  window.scrollTo(0, scrollPosition.value)
+}
+
+// Watch open state to lock/unlock body scroll (only on client)
+watch(open, (isOpen) => {
+  if (import.meta.server) return
+
+  if (isOpen) {
+    lockBodyScroll()
+  } else {
+    unlockBodyScroll()
+  }
+})
+
+// Lock on mount if already open
+onMounted(() => {
+  if (open.value) {
+    lockBodyScroll()
+  }
+})
+
+// Cleanup on unmount
+onUnmounted(() => {
+  unlockBodyScroll()
+})
+
 const drawerRef = ref<HTMLElement | null>(null)
 const contentRef = ref<HTMLElement | null>(null)
 const overlayRef = ref<HTMLElement | null>(null)
