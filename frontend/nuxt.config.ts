@@ -26,7 +26,13 @@ export default defineNuxtConfig({
   app: {
     head: {
       title: "PM One",
-      meta: [{ name: "google", content: "notranslate" }],
+      meta: [
+        { name: "google", content: "notranslate" },
+        {
+          name: "viewport",
+          content: "width=device-width, initial-scale=1, interactive-widget=resizes-content",
+        },
+      ],
       htmlAttrs: {
         lang: "en",
         translate: "no",

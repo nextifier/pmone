@@ -1,9 +1,5 @@
 <script setup lang="ts">
 import SlideDrawer from '../components/ui/slide-drawer/SlideDrawer.vue'
-import SlideDrawerHeader from '../components/ui/slide-drawer/SlideDrawerHeader.vue'
-import SlideDrawerTitle from '../components/ui/slide-drawer/SlideDrawerTitle.vue'
-import SlideDrawerDescription from '../components/ui/slide-drawer/SlideDrawerDescription.vue'
-import SlideDrawerBody from '../components/ui/slide-drawer/SlideDrawerBody.vue'
 
 definePageMeta({
   ssr: false,
@@ -19,26 +15,39 @@ function toggle() {
 </script>
 
 <template>
-  <div class="container py-8">
-    <h1 class="text-2xl font-bold mb-4">Drawer Test Page</h1>
+  <main class="min-h-screen bg-background">
+    <div class="container py-8">
+      <h1 class="text-2xl font-bold mb-4">Drawer Test Page</h1>
 
-    <p class="mb-4">isOpen: <strong>{{ isOpen }}</strong></p>
+      <p class="mb-4">isOpen: <strong>{{ isOpen }}</strong></p>
 
-    <button
-      class="px-4 py-2 bg-primary text-primary-foreground rounded-md"
-      @click="toggle"
-    >
-      Toggle (isOpen: {{ isOpen }})
-    </button>
+      <button
+        class="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+        @click="toggle"
+      >
+        Toggle (isOpen: {{ isOpen }})
+      </button>
 
-    <SlideDrawer v-model:open="isOpen">
-      <SlideDrawerHeader>
-        <SlideDrawerTitle>Test Drawer</SlideDrawerTitle>
-        <SlideDrawerDescription>This is a test drawer</SlideDrawerDescription>
-      </SlideDrawerHeader>
-      <SlideDrawerBody>
-        <p>Drawer content here! Swipe down to close.</p>
-      </SlideDrawerBody>
-    </SlideDrawer>
-  </div>
+      <SlideDrawer v-model:open="isOpen">
+        <div class="p-4">
+          <h2 class="text-lg font-semibold mb-2">Test Drawer</h2>
+          <p class="text-muted-foreground mb-4">This is a test drawer using scroll-snap</p>
+          <p>Swipe down to close. The drawer uses native scroll behavior!</p>
+
+          <div class="mt-4 space-y-2">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+            <p>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+            <p>Ut enim ad minim veniam, quis nostrud exercitation.</p>
+          </div>
+
+          <button
+            class="mt-4 px-4 py-2 bg-secondary text-secondary-foreground rounded-md"
+            @click="isOpen = false"
+          >
+            Close Drawer
+          </button>
+        </div>
+      </SlideDrawer>
+    </div>
+  </main>
 </template>
