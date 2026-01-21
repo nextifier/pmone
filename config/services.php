@@ -53,4 +53,11 @@ return [
         'redirect' => '/auth/facebook/callback',
     ],
 
+    'exchange_rate' => [
+        'api_url' => env('EXCHANGE_RATE_API_URL', 'https://api.exchangerate-api.com/v4/latest/USD'),
+        'base_currency' => env('EXCHANGE_RATE_BASE_CURRENCY', 'USD'),
+        'sync_interval_minutes' => (int) env('EXCHANGE_RATE_SYNC_INTERVAL', 60),
+        'cache_ttl_minutes' => (int) env('EXCHANGE_RATE_CACHE_TTL', 120),
+    ],
+
 ];

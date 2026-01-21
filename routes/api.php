@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ContactFormController;
 use App\Http\Controllers\Api\ContactFormSubmissionController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\ExchangeRateController;
 use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\PostAutosaveController;
@@ -343,4 +344,13 @@ Route::middleware(['api.key'])->prefix('public/blog')->group(function () {
 
     // Authors endpoints
     Route::get('/authors/{username}/posts', [PublicBlogController::class, 'postsByAuthor']);
+});
+
+// Public Exchange Rate API endpoints (no authentication required, public proxy)
+Route::prefix('exchange-rates')->middleware('throttle:api')->group(function () {
+    Route::get('/', [ExchangeRateController::class, 'index']);
+    Route::get('/currencies', [ExchangeRateController::class, 'currencies']);
+    Route::get('/popular', [ExchangeRateController::class, 'popular']);
+    Route::get('/convert', [ExchangeRateController::class, 'convert']);
+    Route::get('/{currency}', [ExchangeRateController::class, 'show']);
 });

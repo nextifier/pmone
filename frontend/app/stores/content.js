@@ -98,6 +98,10 @@ export const useContentStore = defineStore("content", {
         title: `News`,
         description: `Latest updates and articles`,
       },
+      "exchange-rate": {
+        title: `Exchange Rate`,
+        description: `Kurs mata uang terkini dari berbagai negara dengan kalkulator konversi`,
+      },
     },
 
     components: {},

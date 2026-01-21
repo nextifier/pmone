@@ -65,6 +65,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Realtime analytics - refresh every 2 minutes for live user counts
         $schedule->job(new \App\Jobs\RefreshRealtimeAnalytics)->everyTwoMinutes();
+
+        // Fetch exchange rates - interval configurable via EXCHANGE_RATE_SYNC_INTERVAL (default: 60 minutes)
+        $exchangeRateInterval = (int) config('services.exchange_rate.sync_interval_minutes', 60);
+        $schedule->job(new \App\Jobs\FetchExchangeRates)->cron("*/{$exchangeRateInterval} * * * *");
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Force JSON response for API requests
