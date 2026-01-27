@@ -31,6 +31,7 @@ class ContactFormSubmissionsExport extends BaseExport
             'Created At',
             'Followed Up At',
             'Followed Up By',
+            'Referral Source',
         ];
     }
 
@@ -45,6 +46,7 @@ class ContactFormSubmissionsExport extends BaseExport
         $email = $formData['email'] ?? '-';
         $phone = $formData['phone'] ?? '-';
         $message = $formData['message'] ?? '-';
+        $referralSource = $formData['referral_source'] ?? '-';
 
         // Clean phone number (remove non-digits except +)
         if ($phone !== '-') {
@@ -63,6 +65,7 @@ class ContactFormSubmissionsExport extends BaseExport
             $submission->created_at?->format('Y-m-d H:i:s'),
             $submission->followed_up_at?->format('Y-m-d H:i:s') ?? '-',
             $submission->followedUpByUser?->name ?? '-',
+            $referralSource,
         ];
     }
 
