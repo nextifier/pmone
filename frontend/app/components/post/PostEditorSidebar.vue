@@ -159,8 +159,8 @@
                   :key="index"
                   class="border-border flex items-center gap-2 rounded-lg border p-2"
                 >
-                  <Select v-model="author.user_id" class="flex-1">
-                    <SelectTrigger class="h-8 text-xs">
+                  <Select v-model="author.user_id" class="grow">
+                    <SelectTrigger class="h-8 w-full text-xs">
                       <SelectValue placeholder="Select author..." />
                     </SelectTrigger>
                     <SelectContent>

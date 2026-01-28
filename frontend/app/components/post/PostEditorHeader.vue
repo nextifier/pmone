@@ -56,9 +56,9 @@
             type="button"
             @click="editor.saveDraft"
             :disabled="editor.loading.value || !editor.form.title"
-            class="border-input hover:bg-accent hover:text-accent-foreground hidden items-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium tracking-tight transition disabled:opacity-50 lg:flex"
+            class="border-border hover:bg-muted flex items-center justify-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
           >
-            <Icon name="hugeicons:file-edit" class="size-3.5" />
+            <Icon name="hugeicons:file-edit" class="size-4 shrink-0" />
             Save Draft
           </button>
 
@@ -68,10 +68,10 @@
             type="button"
             @click="showPublishDialog = true"
             :disabled="editor.loading.value"
-            class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1.5 rounded-lg px-3 py-1.5 text-xs font-medium tracking-tight transition disabled:opacity-50"
+            class="bg-primary hover:bg-primary/80 text-primary-foreground flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
           >
-            <Spinner v-if="editor.loading.value" class="size-3.5" />
-            <Icon v-else name="hugeicons:sent" class="size-3.5" />
+            <Spinner v-if="editor.loading.value" class="size-4 shrink-0" />
+            <Icon v-else name="hugeicons:sent" class="size-4 shrink-0" />
             Publish
           </button>
 
@@ -81,9 +81,9 @@
             type="button"
             @click="editor.unpublish"
             :disabled="editor.loading.value"
-            class="border-input hover:bg-accent hover:text-accent-foreground hidden items-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium tracking-tight transition disabled:opacity-50 lg:flex"
+            class="border-border hover:bg-muted flex items-center justify-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
           >
-            <Icon name="hugeicons:file-withdraw" class="size-3.5" />
+            <Icon name="hugeicons:archive-02" class="size-4 shrink-0" />
             Unpublish
           </button>
 
@@ -93,10 +93,10 @@
             type="button"
             @click="editor.handleSubmit"
             :disabled="editor.loading.value"
-            class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1.5 rounded-lg px-3 py-1.5 text-xs font-medium tracking-tight transition disabled:opacity-50"
+            class="bg-primary hover:bg-primary/80 text-primary-foreground flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
           >
-            <Spinner v-if="editor.loading.value" class="size-3.5" />
-            <Icon v-else name="hugeicons:checkmark-circle-02" class="size-3.5" />
+            <Spinner v-if="editor.loading.value" class="size-4 shrink-0" />
+            <Icon v-else name="hugeicons:checkmark-circle-01" class="size-4 shrink-0" />
             Update
           </button>
         </div>
