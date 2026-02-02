@@ -2,16 +2,20 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exports\PostsExport;
 use App\Helpers\DateRangeHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
+use App\Services\PostExportService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PostController extends Controller
 {
@@ -1002,6 +1006,85 @@ class PostController extends Controller
         }
 
         return $html;
+    }
+
+    /**
+     * Export posts data to XLSX
+     */
+    public function export(Request $request): BinaryFileResponse
+    {
+        $this->authorize('viewAny', Post::class);
+
+        $filters = $this->extractExportFilters($request);
+        $sort = $request->input('sort', '-published_at');
+
+        $export = new PostsExport($filters, $sort);
+        $filename = 'posts_'.now()->format('Y-m-d_His').'.csv';
+
+        return Excel::download($export, $filename, \Maatwebsite\Excel\Excel::CSV);
+    }
+
+    /**
+     * Export posts with images as ZIP
+     */
+    public function exportWithImages(Request $request): BinaryFileResponse|JsonResponse
+    {
+        // Allow unlimited execution time for large exports
+        set_time_limit(0);
+
+        $this->authorize('viewAny', Post::class);
+
+        $filters = $this->extractExportFilters($request);
+        $sort = $request->input('sort', '-published_at');
+
+        $service = new PostExportService($filters, $sort);
+        $result = $service->exportWithImages();
+
+        if (isset($result['error'])) {
+            return response()->json([
+                'message' => $result['error'],
+            ], $result['code']);
+        }
+
+        return response()
+            ->download($result['path'], $result['filename'], [
+                'Content-Type' => 'application/zip',
+            ])
+            ->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Extract export filters from request
+     */
+    private function extractExportFilters(Request $request): array
+    {
+        $filters = [];
+
+        if ($search = $request->input('filter_search')) {
+            $filters['search'] = $search;
+        }
+
+        if ($status = $request->input('filter_status')) {
+            $filters['status'] = $status;
+        }
+
+        if ($visibility = $request->input('filter_visibility')) {
+            $filters['visibility'] = $visibility;
+        }
+
+        if ($request->has('filter_featured')) {
+            $filters['featured'] = $request->input('filter_featured');
+        }
+
+        if ($creator = $request->input('filter_creator')) {
+            $filters['creator'] = $creator;
+        }
+
+        if ($source = $request->input('filter_source')) {
+            $filters['source'] = $source;
+        }
+
+        return $filters;
     }
 
     /**

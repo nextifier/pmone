@@ -258,6 +258,8 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('posts')->group(function
     Route::get('/check-slug', [PostController::class, 'checkSlug'])->name('posts.check-slug');
     Route::get('/eligible-authors', [PostController::class, 'eligibleAuthors'])->name('posts.eligible-authors');
     Route::get('/analytics', [PostController::class, 'overallAnalytics'])->name('posts.overall-analytics');
+    Route::get('/export', [PostController::class, 'export'])->name('posts.export');
+    Route::get('/export/with-images', [PostController::class, 'exportWithImages'])->name('posts.export-with-images');
     Route::delete('/bulk', [PostController::class, 'bulkDestroy'])->name('posts.bulk-destroy');
     Route::post('/bulk/status', [PostController::class, 'bulkUpdateStatus'])->name('posts.bulk-update-status');
     Route::get('/trash', [PostController::class, 'trash'])->name('posts.trash');

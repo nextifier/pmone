@@ -7,6 +7,54 @@
       </div>
 
       <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+        <!-- Export Dropdown Menu -->
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+              :disabled="exportPending || exportImagesPending"
+            >
+              <Spinner v-if="exportPending || exportImagesPending" class="size-4 shrink-0" />
+              <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
+              <span>Export</span>
+              <Icon name="lucide:chevron-down" class="size-3.5 shrink-0 opacity-60" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="end" class="w-56 p-1">
+            <div class="flex flex-col">
+              <!-- Export Data (CSV) -->
+              <PopoverClose asChild>
+                <button
+                  @click="handleExport"
+                  :disabled="exportPending || exportImagesPending"
+                  class="hover:bg-muted flex items-center gap-x-2 rounded-md px-3 py-2 text-left text-sm tracking-tight disabled:opacity-50"
+                >
+                  <Icon name="hugeicons:csv-02" class="size-4 shrink-0" />
+                  <div class="flex flex-col">
+                    <span>Export Data</span>
+                    <span class="text-muted-foreground text-xs">Download as CSV</span>
+                  </div>
+                </button>
+              </PopoverClose>
+
+              <!-- Export with Images (ZIP) -->
+              <PopoverClose asChild>
+                <button
+                  @click="handleExportImages"
+                  :disabled="exportPending || exportImagesPending"
+                  class="hover:bg-muted flex items-center gap-x-2 rounded-md px-3 py-2 text-left text-sm tracking-tight disabled:opacity-50"
+                >
+                  <Icon name="hugeicons:image-download" class="size-4 shrink-0" />
+                  <div class="flex flex-col">
+                    <span>Export with Images</span>
+                    <span class="text-muted-foreground text-xs">Data + images as ZIP</span>
+                  </div>
+                </button>
+              </PopoverClose>
+            </div>
+          </PopoverContent>
+        </Popover>
+
         <nuxt-link
           to="/posts/analytics"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
@@ -490,6 +538,119 @@ const handleFilterChange = (columnId, { checked, value }) => {
       }
     }
     pagination.value.pageIndex = 0;
+  }
+};
+
+// Export handlers
+const exportPending = ref(false);
+const exportImagesPending = ref(false);
+
+const buildExportParams = () => {
+  const params = new URLSearchParams();
+
+  // Get current filters from table instance (for client-only mode) or refs (for server mode)
+  let currentFilters = {};
+  let currentSorting = [];
+
+  if (clientOnly.value && tableRef.value?.table) {
+    // Client-only mode: get filters from table instance
+    const titleFilter = tableRef.value.table.getColumn("title")?.getFilterValue();
+    const statusFilter = tableRef.value.table.getColumn("status")?.getFilterValue();
+    const creatorFilter = tableRef.value.table.getColumn("creator")?.getFilterValue();
+
+    if (titleFilter) currentFilters.title = titleFilter;
+    if (statusFilter) currentFilters.status = statusFilter;
+    if (creatorFilter) currentFilters.creator = creatorFilter;
+
+    // Get sorting from table state
+    currentSorting = tableRef.value.table.getState().sorting;
+  } else {
+    // Server mode: use refs
+    columnFilters.value.forEach((filter) => {
+      currentFilters[filter.id] = filter.value;
+    });
+    currentSorting = sorting.value;
+  }
+
+  // Add filters to params
+  const filterMapping = {
+    title: "filter_search",
+    status: "filter_status",
+    creator: "filter_creator",
+  };
+
+  Object.entries(currentFilters).forEach(([columnId, value]) => {
+    const paramKey = filterMapping[columnId];
+    if (paramKey && value) {
+      const paramValue = Array.isArray(value) ? value.join(",") : value;
+      params.append(paramKey, paramValue);
+    }
+  });
+
+  // Add sorting
+  const sortField = currentSorting[0]?.id || "published_at";
+  const sortDirection = currentSorting[0]?.desc ? "desc" : "asc";
+  params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
+
+  return params;
+};
+
+const downloadBlob = (blob, filename, mimeType) => {
+  const url = window.URL.createObjectURL(new Blob([blob], { type: mimeType }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
+const handleExport = async () => {
+  try {
+    exportPending.value = true;
+    const params = buildExportParams();
+    const client = useSanctumClient();
+
+    const response = await client(`/api/posts/export?${params.toString()}`, {
+      responseType: "blob",
+    });
+
+    const filename = `posts_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.csv`;
+    downloadBlob(response, filename, "text/csv");
+
+    toast.success("Posts exported successfully");
+  } catch (error) {
+    console.error("Failed to export posts:", error);
+    toast.error("Failed to export posts", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    exportPending.value = false;
+  }
+};
+
+const handleExportImages = async () => {
+  try {
+    exportImagesPending.value = true;
+    const params = buildExportParams();
+    const client = useSanctumClient();
+
+    const response = await client(`/api/posts/export/with-images?${params.toString()}`, {
+      responseType: "blob",
+    });
+
+    const filename = `posts_images_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.zip`;
+    downloadBlob(response, filename, "application/zip");
+
+    toast.success("Posts with images exported successfully");
+  } catch (error) {
+    console.error("Failed to export posts with images:", error);
+    toast.error("Failed to export posts with images", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    exportImagesPending.value = false;
   }
 };
 
