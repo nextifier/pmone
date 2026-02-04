@@ -13,9 +13,13 @@
         </p>
 
         <!-- CTA Buttons -->
-        <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Button to="/signup" variant="default" rounded="lg"> Get started free </Button>
-          <Button to="/demo" variant="outline" rounded="lg"> Watch demo </Button>
+        <div class="mt-6 flex w-full justify-center gap-2 md:flex-wrap md:gap-3">
+          <nuxt-link
+            to="/login"
+            class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center justify-center rounded-xl px-4 py-2 text-base font-medium tracking-tighter transition active:scale-95 md:basis-auto"
+            v-ripple
+            >Get started</nuxt-link
+          >
         </div>
 
         <!-- Trust Badges -->

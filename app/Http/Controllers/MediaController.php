@@ -897,14 +897,14 @@ class MediaController extends Controller
 
         // Store file in temporary storage
         $path = \Illuminate\Support\Facades\Storage::disk('local')->putFileAs(
-            "tmp/media/{$folder}",
+            "tmp/uploads/{$folder}",
             $file,
             $filename
         );
 
         // Store metadata
         \Illuminate\Support\Facades\Storage::disk('local')->put(
-            "tmp/media/{$folder}/metadata.json",
+            "tmp/uploads/{$folder}/metadata.json",
             json_encode([
                 'original_name' => $filename,
                 'mime_type' => $file->getMimeType(),
@@ -931,6 +931,35 @@ class MediaController extends Controller
     }
 
     /**
+     * Delete temporary media file
+     */
+    public function deleteTempMedia(string $folder): JsonResponse
+    {
+        if (! Str::startsWith($folder, 'tmp-media-')) {
+            return response()->json(['error' => 'Invalid folder'], 400);
+        }
+
+        $folderPath = "tmp/uploads/{$folder}";
+
+        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($folderPath)) {
+            return response()->json(['error' => 'File not found'], 404);
+        }
+
+        try {
+            \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory($folderPath);
+
+            return response()->json(['message' => 'Temporary media deleted successfully']);
+        } catch (\Exception $e) {
+            logger()->warning('Failed to delete temporary media', [
+                'folder' => $folder,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json(['error' => 'Failed to delete temporary media'], 500);
+        }
+    }
+
+    /**
      * Serve temporary media file
      */
     public function serveTempMedia(string $folder)
@@ -939,14 +968,14 @@ class MediaController extends Controller
             return response()->json(['error' => 'Invalid folder'], 400);
         }
 
-        $metadataPath = "tmp/media/{$folder}/metadata.json";
+        $metadataPath = "tmp/uploads/{$folder}/metadata.json";
 
         if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
             return response()->json(['error' => 'File not found'], 404);
         }
 
         $metadata = json_decode(\Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath), true);
-        $filePath = "tmp/media/{$folder}/{$metadata['original_name']}";
+        $filePath = "tmp/uploads/{$folder}/{$metadata['original_name']}";
 
         if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($filePath)) {
             return response()->json(['error' => 'File not found'], 404);

@@ -18,8 +18,6 @@
           >
         </div>
 
-        <!-- <LogoWithGuidelines class="mt-10 w-full" /> -->
-
         <nuxt-link to="/demo" class="mt-10 w-full">
           <LogoWithGuidelines />
         </nuxt-link>

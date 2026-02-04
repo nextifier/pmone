@@ -12,7 +12,7 @@
 
     <SidebarInset class="relative mx-auto min-h-screen max-w-480">
       <PostEditorHeader />
-      <main class="grow overflow-x-hidden px-4">
+      <main class="grow px-4">
         <slot />
       </main>
     </SidebarInset>
@@ -381,7 +381,15 @@ async function checkSlugAvailability(slug: string) {
       params.append("exclude_id", props.initialData.id);
     }
     const response = await client(`/api/posts/check-slug?${params.toString()}`);
-    slugAvailable.value = response.available;
+
+    // If slug is not available and we have a suggested slug, auto-apply it
+    if (!response.available && response.suggested_slug) {
+      form.slug = response.suggested_slug;
+      slugAvailable.value = true; // The suggested slug is guaranteed to be available
+      slugManuallyEdited.value = true; // Mark as manually edited to prevent auto-sync override
+    } else {
+      slugAvailable.value = response.available;
+    }
   } catch (error) {
     console.error("Failed to check slug availability:", error);
     slugAvailable.value = null;
@@ -483,6 +491,12 @@ function getPreviewFeaturedImage() {
   if (imageFiles.value.featured_image?.[0]) {
     const imgValue = imageFiles.value.featured_image[0];
     if (typeof imgValue === "string") {
+      // If it's a temp folder ID, construct the proper URL
+      if (imgValue.startsWith("tmp-")) {
+        const config = useRuntimeConfig();
+        const baseUrl = config.public.apiUrl || "";
+        return `${baseUrl}/api/tmp-upload/load?folder=${imgValue}`;
+      }
       return imgValue;
     } else if (imgValue instanceof File) {
       if (!currentPreviewImageUrl.value) {
@@ -603,7 +617,10 @@ async function confirmDelete() {
       method: "DELETE",
     });
     toast.success("Post deleted successfully!");
-    await autosave.discardAutosave();
+
+    // Discard autosave silently - post is already deleted
+    await autosave.discardAutosave({ silent: true });
+
     showDeleteDialog.value = false;
     emit("success", null);
   } catch (error: any) {

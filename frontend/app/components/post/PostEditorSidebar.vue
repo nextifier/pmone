@@ -384,8 +384,8 @@ const isAdminOrMaster = computed(() => hasRole("admin") || hasRole("master"));
 
 const postUrl = computed(() => {
   if (!editor.value.form.slug) return "";
-  // TODO: Replace with actual site URL
-  return `https://pmone.id/blog/${editor.value.form.slug}`;
+  const { siteUrl } = useRuntimeConfig().public;
+  return `${siteUrl}/news/${editor.value.form.slug}`;
 });
 
 const publishDateTime = computed({

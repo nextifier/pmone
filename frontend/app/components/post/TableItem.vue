@@ -9,7 +9,7 @@
         :src="
           typeof post.featured_image === 'string'
             ? post.featured_image
-            : post.featured_image?.lg || post.featured_image?.original
+            : post.featured_image?.sm || post.featured_image?.original
         "
         :alt="post.title"
         class="size-full object-cover select-none"
@@ -18,15 +18,20 @@
     </div>
 
     <div class="flex flex-col items-start gap-y-0.5 overflow-hidden">
-      <span
-        v-if="post.status"
-        class="text-xs font-medium tracking-tight capitalize"
-        :class="{
-          'text-success-foreground': post.status.toLowerCase() === 'published',
-          'text-warning-foreground': post.status.toLowerCase() === 'draft',
-        }"
-        >{{ post.status }}</span
-      >
+      <div class="flex items-center gap-x-2">
+        <span
+          v-if="post.status"
+          class="text-xs font-medium tracking-tight capitalize"
+          :class="{
+            'text-success-foreground': post.status.toLowerCase() === 'published',
+            'text-warning-foreground': post.status.toLowerCase() === 'draft',
+          }"
+          >{{ post.status }}</span
+        >
+        <DevOnly>
+          <span class="text-muted-foreground text-xs font-medium">ID: {{ post.id }}</span>
+        </DevOnly>
+      </div>
       <p>{{ post.title }}</p>
       <div
         v-if="post.tags?.length"

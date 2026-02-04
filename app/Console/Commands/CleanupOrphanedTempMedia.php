@@ -21,7 +21,7 @@ class CleanupOrphanedTempMedia extends Command
      *
      * @var string
      */
-    protected $description = 'Clean up orphaned temporary media files from content editor uploads';
+    protected $description = 'Clean up orphaned temporary media files from uploads';
 
     /**
      * Execute the console command.
@@ -31,25 +31,25 @@ class CleanupOrphanedTempMedia extends Command
         $hours = (int) $this->option('hours');
         $expiryTime = Carbon::now()->subHours($hours);
 
-        $this->info("Cleaning up temporary media older than {$hours} hours...");
+        $this->info("Cleaning up temporary uploads older than {$hours} hours...");
 
         $disk = Storage::disk('local');
-        $tempMediaPath = 'tmp/media';
+        $tempPath = 'tmp/uploads';
 
-        if (! $disk->exists($tempMediaPath)) {
-            $this->info('No temporary media directory found.');
+        if (! $disk->exists($tempPath)) {
+            $this->info('No temporary uploads directory found.');
 
             return Command::SUCCESS;
         }
 
-        $directories = $disk->directories($tempMediaPath);
+        $directories = $disk->directories($tempPath);
         $deletedCount = 0;
         $totalSize = 0;
 
         foreach ($directories as $directory) {
-            // Check if directory starts with 'tmp-media-'
+            // Check if directory starts with 'tmp-' (covers both 'tmp-' and 'tmp-media-')
             $folderName = basename($directory);
-            if (! str_starts_with($folderName, 'tmp-media-')) {
+            if (! str_starts_with($folderName, 'tmp-')) {
                 continue;
             }
 
@@ -90,16 +90,16 @@ class CleanupOrphanedTempMedia extends Command
         $formattedSize = $this->formatBytes($totalSize);
 
         if ($deletedCount > 0) {
-            $message = "Successfully deleted {$deletedCount} orphaned temporary media file(s), freed {$formattedSize}.";
+            $message = "Successfully deleted {$deletedCount} orphaned temporary upload(s), freed {$formattedSize}.";
             $this->info($message);
-            Log::info('Temporary media cleanup completed', [
+            Log::info('Temporary uploads cleanup completed', [
                 'deleted_count' => $deletedCount,
                 'freed_size' => $formattedSize,
                 'hours_threshold' => $hours,
             ]);
         } else {
-            $this->info('No orphaned temporary media found.');
-            Log::debug('Temporary media cleanup: no expired files found', [
+            $this->info('No orphaned temporary uploads found.');
+            Log::debug('Temporary uploads cleanup: no expired files found', [
                 'hours_threshold' => $hours,
             ]);
         }

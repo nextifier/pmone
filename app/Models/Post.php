@@ -220,8 +220,9 @@ class Post extends Model implements HasMedia
             }
 
             // Auto-cleanup media when post is force deleted
+            // Note: Spatie MediaLibrary also handles this via its own observer,
+            // but we keep this as a safety net for edge cases
             if ($model->isForceDeleting()) {
-                // Delete all media collections (featured_image, og_image, content_images)
                 foreach (array_keys($model->getMediaCollections()) as $collectionName) {
                     $model->clearMediaCollection($collectionName);
                 }
@@ -301,7 +302,8 @@ class Post extends Model implements HasMedia
         $this->addMediaConversion('lg')
             ->fit(Fit::Crop, 1200, 800)
             ->quality(90)
-            ->performOnCollections('featured_image', 'og_image');
+            ->performOnCollections('featured_image', 'og_image')
+            ->nonQueued();
 
         $this->addMediaConversion('xl')
             ->fit(Fit::Crop, 1500, 1000)
@@ -331,7 +333,8 @@ class Post extends Model implements HasMedia
         $this->addMediaConversion('lg')
             ->width(1200)
             ->quality(90)
-            ->performOnCollections('content_images');
+            ->performOnCollections('content_images')
+            ->nonQueued();
 
         $this->addMediaConversion('xl')
             ->width(1500)

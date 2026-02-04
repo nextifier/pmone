@@ -102,3 +102,61 @@ test('check-slug requires authentication', function () {
 
     $response->assertStatus(401);
 });
+
+test('check-slug returns suggested_slug when slug is taken', function () {
+    Post::factory()->create([
+        'slug' => 'existing-slug',
+        'created_by' => $this->user->id,
+    ]);
+
+    $response = $this->getJson('/api/posts/check-slug?slug=existing-slug');
+
+    $response->assertSuccessful()
+        ->assertJson([
+            'available' => false,
+            'slug' => 'existing-slug',
+            'suggested_slug' => 'existing-slug-1',
+        ]);
+});
+
+test('check-slug returns incremented suggested_slug when multiple exist', function () {
+    Post::factory()->create([
+        'slug' => 'test-slug',
+        'created_by' => $this->user->id,
+    ]);
+    Post::factory()->create([
+        'slug' => 'test-slug-1',
+        'created_by' => $this->user->id,
+    ]);
+    Post::factory()->create([
+        'slug' => 'test-slug-2',
+        'created_by' => $this->user->id,
+    ]);
+
+    $response = $this->getJson('/api/posts/check-slug?slug=test-slug');
+
+    $response->assertSuccessful()
+        ->assertJson([
+            'available' => false,
+            'slug' => 'test-slug',
+            'suggested_slug' => 'test-slug-3',
+        ]);
+});
+
+test('check-slug considers trashed posts when suggesting slug', function () {
+    // Create a trashed post with the slug
+    $trashedPost = Post::factory()->create([
+        'slug' => 'trashed-slug',
+        'created_by' => $this->user->id,
+    ]);
+    $trashedPost->delete();
+
+    $response = $this->getJson('/api/posts/check-slug?slug=trashed-slug');
+
+    $response->assertSuccessful()
+        ->assertJson([
+            'available' => false,
+            'slug' => 'trashed-slug',
+            'suggested_slug' => 'trashed-slug-1',
+        ]);
+});

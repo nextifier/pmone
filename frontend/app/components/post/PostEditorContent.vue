@@ -1,10 +1,15 @@
 <template>
   <div class="post-editor-content">
     <!-- Editor Tab -->
-    <TabsContent value="editor" class="mt-0">
+    <TabsContent value="editor" class="mt-0" force-mount>
       <div class="mx-auto max-w-2xl space-y-8 py-6 pb-20">
         <!-- Title -->
         <div class="space-y-2">
+          <DevOnly>
+            <div v-if="editor.postId.value" class="text-foreground text-sm font-medium">
+              ID: {{ editor.postId.value }}
+            </div>
+          </DevOnly>
           <Label for="title" class="sr-only">Title</Label>
           <Textarea
             id="title"
@@ -70,87 +75,134 @@
     </TabsContent>
 
     <!-- Preview Tab -->
-    <TabsContent value="preview" class="mt-0">
-      <div class="mx-auto max-w-2xl py-6 pb-20">
-        <article>
-          <!-- Featured Image Preview -->
-          <div
-            v-if="editor.previewData.value.featured_image"
-            class="mb-8 aspect-video w-full overflow-hidden rounded-lg"
+    <TabsContent value="preview" class="mt-0" force-mount>
+      <main class="mx-auto w-full max-w-[38rem] py-8">
+        <div class="flex flex-col items-center text-center xl:items-center xl:text-center">
+          <!-- First Tag Badge -->
+          <span
+            v-if="previewTags?.length > 0"
+            class="text-primary border-border mb-3 flex items-center justify-center rounded-full border px-3 py-2 text-xs font-semibold tracking-tighter capitalize sm:text-sm"
           >
-            <img
-              :src="getImageSrc(editor.previewData.value.featured_image)"
-              :alt="editor.previewData.value.title"
-              class="size-full object-cover"
-            />
-            <p
-              v-if="editor.previewData.value.featured_image_caption"
-              class="text-muted-foreground mt-2 text-center text-sm italic"
-            >
-              {{ editor.previewData.value.featured_image_caption }}
-            </p>
+            {{ previewTags[0] }}
+          </span>
+
+          <!-- Title -->
+          <h1
+            class="text-primary text-[clamp(2rem,9vw,3rem)] !leading-[1.2] font-semibold tracking-tighter text-balance xl:-mx-12"
+          >
+            {{ editor.previewData.value.title || "Untitled Post" }}
+          </h1>
+
+          <!-- Authors -->
+          <div v-if="previewAuthors?.length" class="mt-4">
+            <div class="flex items-center gap-x-2 text-left">
+              <div class="flex shrink-0 -space-x-4">
+                <div
+                  v-for="(author, index) in previewAuthors"
+                  :key="index"
+                  class="gradient-insta relative rounded-full bg-linear-to-tr p-0.5"
+                  :style="`z-index: ${previewAuthors.length - index}`"
+                >
+                  <div
+                    class="border-background bg-muted flex size-10 items-center justify-center overflow-hidden rounded-full border-2"
+                  >
+                    <NuxtImg
+                      v-if="author.profile_image"
+                      :src="
+                        author.profile_image?.sm ||
+                        author.profile_image?.original ||
+                        author.profile_image
+                      "
+                      class="size-full object-cover"
+                      width="56"
+                      height="56"
+                      sizes="120px"
+                      loading="lazy"
+                      format="webp"
+                    />
+                    <Icon v-else name="hugeicons:user" class="text-muted-foreground size-5" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-y-1">
+                <div class="text-primary line-clamp-1 font-medium tracking-tight">
+                  <span v-for="(author, index) in previewAuthors" :key="index">
+                    {{ author.name }}<span v-if="index != previewAuthors.length - 1">, </span>
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <!-- Post Header -->
-          <header class="mb-8 space-y-4">
-            <!-- Title -->
-            <h1 class="text-3xl font-bold tracking-tight lg:text-4xl">
-              {{ editor.previewData.value.title || "Untitled Post" }}
-            </h1>
+          <!-- Date & Reading Time -->
+          <div
+            class="text-muted-foreground mt-4 flex w-full items-center justify-between gap-x-3 text-xs tracking-tight sm:text-sm"
+          >
+            <span v-if="editor.previewData.value.published_at" v-tippy="formattedPublishedAt">
+              Posted {{ relativePublishedAt }}
+            </span>
+            <span v-else class="text-muted-foreground/50">Not published yet</span>
 
-            <!-- Meta -->
-            <div class="text-muted-foreground flex flex-wrap items-center gap-3 text-sm">
-              <!-- Status Badge -->
-              <span
-                class="rounded-full px-2.5 py-0.5 text-xs font-medium"
-                :class="getStatusClass(editor.previewData.value.status)"
-              >
-                {{ editor.previewData.value.status || "draft" }}
-              </span>
+            <span v-if="readingTime" class="flex items-center gap-x-1.5">
+              <Icon name="lucide:clock-fading" class="size-4 shrink-0" />
+              <span>{{ readingTime }} min<span v-if="readingTime > 1">s</span> read</span>
+            </span>
+          </div>
 
-              <!-- Visibility Badge -->
-              <span
-                class="rounded-full px-2.5 py-0.5 text-xs font-medium"
-                :class="getVisibilityClass(editor.previewData.value.visibility)"
-              >
-                {{ editor.previewData.value.visibility || "public" }}
-              </span>
+          <!-- Excerpt -->
+          <div
+            v-if="editor.previewData.value.excerpt"
+            class="text-primary mt-10 text-xl font-semibold tracking-tighter text-pretty sm:text-2xl"
+          >
+            {{ editor.previewData.value.excerpt }}
+          </div>
+        </div>
 
-              <!-- Featured Badge -->
-              <span
-                v-if="editor.previewData.value.featured"
-                class="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-200"
-              >
-                Featured
-              </span>
-            </div>
+        <!-- Featured Image -->
+        <div
+          v-if="editor.previewData.value.featured_image"
+          class="bg-muted mx-auto mt-10 block overflow-hidden"
+        >
+          <NuxtImg
+            :src="getImageSrc(editor.previewData.value.featured_image)"
+            :alt="editor.previewData.value.title || 'Featured image'"
+            class="size-full rounded-xl object-cover"
+            loading="lazy"
+            sizes="100vw lg:1024px"
+            width="1000"
+            height="auto"
+            format="webp"
+          />
+        </div>
 
-            <!-- Tags -->
-            <div v-if="editor.previewData.value.tags?.length > 0" class="flex flex-wrap gap-2">
-              <span
-                v-for="tag in editor.previewData.value.tags"
-                :key="tag"
-                class="bg-muted inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium"
-              >
-                <Icon name="lucide:tag" class="size-3" />
-                {{ tag }}
-              </span>
-            </div>
-          </header>
-
-          <!-- Post Content -->
-          <div class="prose prose-lg dark:prose-invert max-w-none" v-html="sanitizedContent" />
+        <!-- Content -->
+        <div
+          class="format-html prose-img:rounded-xl prose-headings:scroll-mt-[calc(var(--navbar-height-mobile)+var(--scroll-offset,2.5rem))] mx-auto mt-6 overflow-x-hidden [--scroll-offset:2.5rem] lg:mt-8"
+        >
+          <article v-if="sanitizedContent" v-html="sanitizedContent"></article>
 
           <!-- No Content Message -->
-          <div
-            v-if="!editor.previewData.value.content"
-            class="text-muted-foreground py-12 text-center"
-          >
+          <div v-else class="text-muted-foreground py-12 text-center">
             <Icon name="hugeicons:file-02" class="mx-auto mb-3 size-12 opacity-50" />
             <p>No content yet. Start writing in the Editor tab.</p>
           </div>
-        </article>
-      </div>
+
+          <!-- Tags at Bottom -->
+          <div v-if="previewTags?.length" class="mt-8 flex items-start gap-x-3 lg:mt-10">
+            <Icon name="hugeicons:tag-01" class="mt-2.5 size-5 shrink-0" />
+            <div class="flex flex-wrap gap-x-2 gap-y-3">
+              <span
+                v-for="(tag, index) in previewTags"
+                :key="index"
+                class="border-border rounded-full border px-3 py-2 text-sm capitalize"
+              >
+                {{ tag }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </main>
     </TabsContent>
   </div>
 </template>
@@ -164,6 +216,8 @@ import { usePostEditor } from "@/composables/usePostEditor";
 
 const editor = usePostEditor();
 const { sanitizeHtml } = useSanitize();
+const client = useSanctumClient();
+const { $dayjs } = useNuxtApp();
 
 const featuredImageInput = ref<any>(null);
 
@@ -185,34 +239,63 @@ const sanitizedContent = computed(() => {
   return sanitizeHtml(editor.previewData.value.content) || "";
 });
 
+// Preview computed properties
+const previewTags = computed(() => editor.previewData.value.tags || []);
+
+const previewAuthors = computed(() => {
+  const formAuthors = editor.previewData.value.authors || [];
+  if (!formAuthors.length) return [];
+
+  return formAuthors
+    .filter((a: any) => a.user_id)
+    .map((a: any) => {
+      const user = editor.availableUsers.value.find((u: any) => u.id === a.user_id);
+      return user || { id: a.user_id, name: "Unknown Author" };
+    });
+});
+
+const readingTime = computed(() => {
+  const content = editor.previewData.value.content || "";
+  const text = content.replace(/<[^>]*>/g, ""); // Strip HTML tags
+  const wordCount = text.split(/\s+/).filter((word: string) => word.length > 0).length;
+  const wordsPerMinute = 200;
+  return Math.max(1, Math.ceil(wordCount / wordsPerMinute));
+});
+
+const formattedPublishedAt = computed(() => {
+  const publishedAt = editor.previewData.value.published_at;
+  if (!publishedAt) return "";
+  return $dayjs(publishedAt).format("MMM D, YYYY h:mm A");
+});
+
+const relativePublishedAt = computed(() => {
+  const publishedAt = editor.previewData.value.published_at;
+  if (!publishedAt) return "";
+  return $dayjs(publishedAt).fromNow();
+});
+
 function getImageSrc(image: any): string {
   if (typeof image === "string") {
     return image;
   }
-  return image?.lg || image?.original || "";
+  return image?.lg || image?.md || image?.original || "";
 }
 
-function clearFeaturedImage() {
+async function clearFeaturedImage() {
+  // If there's a temp upload, delete it from server
+  const tempFolder = editor.imageFiles.value.featured_image?.[0];
+  if (typeof tempFolder === "string" && tempFolder.startsWith("tmp-")) {
+    try {
+      await client("/api/tmp-upload", {
+        method: "DELETE",
+        body: tempFolder,
+      });
+    } catch (err) {
+      console.warn("Failed to delete temp file:", err);
+    }
+  }
+
   editor.imageFiles.value.featured_image = [];
   editor.deleteFlags.value.featured_image = true;
-}
-
-function getStatusClass(status: string) {
-  const classes: Record<string, string> = {
-    draft: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
-    published: "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200",
-    scheduled: "bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200",
-    archived: "bg-orange-100 text-orange-800 dark:bg-orange-800 dark:text-orange-200",
-  };
-  return classes[status] || classes.draft;
-}
-
-function getVisibilityClass(visibility: string) {
-  const classes: Record<string, string> = {
-    public: "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200",
-    private: "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-200",
-    members_only: "bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200",
-  };
-  return classes[visibility] || classes.public;
 }
 </script>

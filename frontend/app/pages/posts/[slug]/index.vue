@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto max-w-4xl px-4 py-8">
+  <div class="min-h-screen-offset container mx-auto grid max-w-4xl place-items-center px-4 py-8">
     <!-- Loading State -->
     <LoadingState v-if="loading" label="Loading post.." />
 
@@ -10,7 +10,7 @@
         <div class="flex items-center gap-2">
           <button
             @click="navigateTo('/posts')"
-            class="hover:bg-accent hover:text-accent-foreground flex size-8 items-center justify-center rounded-lg transition"
+            class="hover:bg-muted hover:text-foreground flex size-8 items-center justify-center rounded-lg transition"
             title="Back to posts"
           >
             <Icon name="lucide:arrow-left" class="h-4 w-4" />
@@ -118,7 +118,7 @@
       <div class="border-border flex items-center justify-between border-t pt-8">
         <button
           @click="navigateTo('/posts')"
-          class="border-input hover:bg-accent hover:text-accent-foreground flex items-center gap-x-1.5 rounded-lg border px-4 py-2 text-sm font-semibold tracking-tighter transition"
+          class="border-input hover:bg-muted hover:text-foreground flex items-center gap-x-1.5 rounded-lg border px-4 py-2 text-sm font-semibold tracking-tighter transition"
         >
           <Icon name="lucide:arrow-left" class="h-4 w-4" />
           Back to Posts
@@ -135,14 +135,17 @@
     </article>
 
     <!-- Post Not Found -->
-    <div v-else class="py-12 text-center">
-      <Icon name="lucide:file-x" class="text-muted-foreground mx-auto h-16 w-16" />
-      <p class="text-muted-foreground mt-4 text-lg">Post not found</p>
+    <div v-else class="flex flex-col items-center justify-center gap-y-3 text-center">
+      <div class="bg-muted flex size-12 items-center justify-center rounded-full">
+        <Icon name="hugeicons:file-not-found" class="text-primary size-6" />
+      </div>
+      <p class="text-primary text-primary text-4xl font-medium tracking-tighter">Post not found.</p>
       <button
         @click="navigateTo('/posts')"
-        class="text-primary hover:text-primary/80 mt-4 underline"
+        class="bg-primary text-primary-foreground hover:bg-primary/80 mt-2 flex items-center justify-center gap-x-1 rounded-lg px-4 py-2 font-medium tracking-tight"
       >
-        Back to Posts
+        <Icon name="lucide:arrow-left" class="size-5" />
+        <span>Back to Posts</span>
       </button>
     </div>
   </div>

@@ -40,6 +40,9 @@
 </template>
 
 <script setup>
+const config = useRuntimeConfig();
+const client = useSanctumClient();
+
 const inputFileRef = ref(null);
 
 const props = defineProps({
@@ -78,21 +81,66 @@ const localFiles = computed({
   set: (value) => emit("update:modelValue", value),
 });
 
-const showInput = computed(() => !props.initialImage || props.deleteFlag);
-const showUndo = computed(() => props.deleteFlag && props.initialImage);
-const imageUrl = computed(() => {
-  if (!props.initialImage) return null;
-
-  // Handle string URL (Ghost imports)
-  if (typeof props.initialImage === "string") {
-    return props.initialImage;
-  }
-
-  // Handle object with lg/url properties (Media Library)
-  return props.initialImage?.lg || props.initialImage?.url;
+// Check if there's a temp file uploaded
+const hasTempUpload = computed(() => {
+  const value = props.modelValue?.[0];
+  return typeof value === "string" && value.startsWith("tmp-");
 });
 
-function handleDelete() {
+// When a new temp upload completes, reset deleteFlag
+watch(hasTempUpload, (hasUpload) => {
+  if (hasUpload && props.deleteFlag) {
+    emit("update:deleteFlag", false);
+  }
+});
+
+// Show input only if: no temp upload AND (no initial image OR deleteFlag is true)
+const showInput = computed(() => {
+  // Priority: If there's a temp upload, always show image preview
+  if (hasTempUpload.value) return false;
+  // Then check deleteFlag or no initial image
+  if (props.deleteFlag) return true;
+  return !props.initialImage;
+});
+
+// Show undo only if there's an initial image and it was deleted
+const showUndo = computed(() => props.deleteFlag && props.initialImage);
+
+const imageUrl = computed(() => {
+  // Priority 1: Check for temp uploaded file
+  if (hasTempUpload.value) {
+    const folder = props.modelValue[0];
+    const baseUrl = config.public.apiUrl || "";
+    return `${baseUrl}/api/tmp-upload/load?folder=${folder}`;
+  }
+
+  // Priority 2: Use initial image if available and not deleted
+  if (props.initialImage && !props.deleteFlag) {
+    // Handle string URL (Ghost imports)
+    if (typeof props.initialImage === "string") {
+      return props.initialImage;
+    }
+    // Handle object with lg/url properties (Media Library)
+    return props.initialImage?.lg || props.initialImage?.url;
+  }
+
+  return null;
+});
+
+async function handleDelete() {
+  // If there's a temp upload, delete it from server
+  if (hasTempUpload.value) {
+    const folder = props.modelValue[0];
+    try {
+      await client("/api/tmp-upload", {
+        method: "DELETE",
+        body: folder,
+      });
+    } catch (err) {
+      console.warn("Failed to delete temp file:", err);
+    }
+  }
+
   emit("update:deleteFlag", true);
   emit("update:modelValue", []);
   emit("delete");

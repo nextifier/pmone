@@ -39,7 +39,7 @@
               class="text-primary hover:bg-muted flex size-8 items-center justify-center rounded-lg"
               @click="toggleSidebar"
             >
-              <Icon name="lucide:panel-left" class="text-primary size-4 rotate-180" />
+              <Icon name="hugeicons:sidebar-right-01" class="text-primary size-5" />
             </button>
             <template #content>
               <span class="inline-flex items-center gap-x-1.5 tracking-tight">

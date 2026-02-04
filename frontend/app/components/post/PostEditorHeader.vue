@@ -18,9 +18,9 @@
         <BackButton v-slot="{ goBack }" destination="/posts" :force-destination="true">
           <button
             @click="goBack"
-            class="text-primary bg-muted flex size-8 items-center justify-center rounded-lg"
+            class="text-primary hover:bg-muted flex size-8 items-center justify-center rounded-lg"
           >
-            <Icon name="lucide:arrow-left" class="size-4.5 shrink-0" />
+            <Icon name="lucide:arrow-left" class="size-5 shrink-0" />
           </button>
         </BackButton>
 

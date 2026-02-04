@@ -177,7 +177,7 @@ class PostController extends Controller
     }
 
     /**
-     * Check if a slug is available
+     * Check if a slug is available and suggest alternative if taken
      */
     public function checkSlug(Request $request): JsonResponse
     {
@@ -186,18 +186,61 @@ class PostController extends Controller
             'exclude_id' => ['nullable', 'integer', 'exists:posts,id'],
         ]);
 
-        $query = Post::where('slug', $request->input('slug'));
+        $slug = $request->input('slug');
+        $excludeId = $request->input('exclude_id');
 
-        if ($excludeId = $request->input('exclude_id')) {
+        $query = Post::withTrashed()->where('slug', $slug);
+
+        if ($excludeId) {
             $query->where('id', '!=', $excludeId);
         }
 
         $exists = $query->exists();
 
-        return response()->json([
+        $response = [
             'available' => ! $exists,
-            'slug' => $request->input('slug'),
-        ]);
+            'slug' => $slug,
+        ];
+
+        // If slug is taken, suggest an available alternative with suffix
+        if ($exists) {
+            $suggestedSlug = $this->generateUniqueSlug($slug, $excludeId);
+            $response['suggested_slug'] = $suggestedSlug;
+        }
+
+        return response()->json($response);
+    }
+
+    /**
+     * Generate a unique slug by appending numeric suffix
+     */
+    private function generateUniqueSlug(string $baseSlug, ?int $excludeId = null): string
+    {
+        $suffix = 1;
+        $suggestedSlug = "{$baseSlug}-{$suffix}";
+
+        while (true) {
+            $query = Post::withTrashed()->where('slug', $suggestedSlug);
+
+            if ($excludeId) {
+                $query->where('id', '!=', $excludeId);
+            }
+
+            if (! $query->exists()) {
+                break;
+            }
+
+            $suffix++;
+            $suggestedSlug = "{$baseSlug}-{$suffix}";
+
+            // Safety limit to prevent infinite loop
+            if ($suffix > 1000) {
+                $suggestedSlug = "{$baseSlug}-".uniqid();
+                break;
+            }
+        }
+
+        return $suggestedSlug;
     }
 
     /**
@@ -811,7 +854,8 @@ class PostController extends Controller
         }
 
         $content = $post->content;
-        $pattern = '/<img[^>]+src="\/api\/tmp-media\/(tmp-media-[a-zA-Z0-9._-]+)"[^>]*>/';
+        // Match both relative URLs (/api/tmp-media/...) and absolute URLs (http://host/api/tmp-media/...)
+        $pattern = '/<img[^>]+src="(?:https?:\/\/[^\/]+)?\/api\/tmp-media\/(tmp-media-[a-zA-Z0-9._-]+)"[^>]*>/';
 
         // Find all temporary media URLs in content with full img tags
         if (! preg_match_all($pattern, $content, $matches, PREG_SET_ORDER)) {
@@ -823,7 +867,7 @@ class PostController extends Controller
             $folder = $match[1];
 
             try {
-                $metadataPath = "tmp/media/{$folder}/metadata.json";
+                $metadataPath = "tmp/uploads/{$folder}/metadata.json";
 
                 if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
                     continue;
@@ -831,7 +875,7 @@ class PostController extends Controller
 
                 $metadata = json_decode(\Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath), true);
                 $filename = $metadata['original_name'];
-                $tempFilePath = "tmp/media/{$folder}/{$filename}";
+                $tempFilePath = "tmp/uploads/{$folder}/{$filename}";
 
                 if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($tempFilePath)) {
                     continue;
@@ -861,7 +905,7 @@ class PostController extends Controller
                 $content = str_replace($fullImgTag, $responsiveImg, $content);
 
                 // Clean up temporary storage
-                \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/media/{$folder}");
+                \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$folder}");
             } catch (\Exception $e) {
                 logger()->warning('Failed to process content image', [
                     'folder' => $folder,
@@ -882,71 +926,80 @@ class PostController extends Controller
      */
     private function cleanupRemovedContentImages(Post $post, ?string $oldContent): void
     {
-        if (! $oldContent || ! $post->content) {
+        // Get all content_images media for this post
+        $contentImages = $post->getMedia('content_images');
+
+        if ($contentImages->isEmpty()) {
             return;
         }
 
-        // Extract all media URLs from old content
-        $oldUrls = $this->extractMediaUrlsFromContent($oldContent);
+        // Get current content
+        $currentContent = $post->content ?? '';
 
-        // Extract all media URLs from new content
-        $newUrls = $this->extractMediaUrlsFromContent($post->content);
+        // Check each media file - if its filename is not found in current content, delete it
+        foreach ($contentImages as $media) {
+            $filename = $media->file_name;
 
-        // Find URLs that were removed
-        $removedUrls = array_diff($oldUrls, $newUrls);
-
-        if (empty($removedUrls)) {
-            return;
-        }
-
-        // Delete media files that are no longer in content
-        foreach ($removedUrls as $removedUrl) {
-            try {
-                // Find media by URL
-                $media = $post->getMedia('content_images')
-                    ->first(function ($item) use ($removedUrl) {
-                        return str_contains($removedUrl, $item->file_name) ||
-                               str_contains($removedUrl, basename($item->getPath()));
-                    });
-
-                if ($media) {
+            // Check if filename appears in current content (in any URL format)
+            if (! $this->isMediaUsedInContent($media, $currentContent)) {
+                try {
                     // This will delete the file, all conversions, and database record
                     $media->delete();
 
                     logger()->info('Deleted orphaned content image', [
                         'post_id' => $post->id,
                         'media_id' => $media->id,
-                        'file_name' => $media->file_name,
+                        'file_name' => $filename,
+                    ]);
+                } catch (\Exception $e) {
+                    logger()->warning('Failed to cleanup removed content image', [
+                        'post_id' => $post->id,
+                        'media_id' => $media->id,
+                        'file_name' => $filename,
+                        'error' => $e->getMessage(),
                     ]);
                 }
-            } catch (\Exception $e) {
-                logger()->warning('Failed to cleanup removed content image', [
-                    'post_id' => $post->id,
-                    'url' => $removedUrl,
-                    'error' => $e->getMessage(),
-                ]);
             }
         }
     }
 
     /**
-     * Extract all media URLs from HTML content
+     * Check if a media file is used in content
+     * Checks by filename since URL format may vary (CDN, local storage, etc.)
      */
-    private function extractMediaUrlsFromContent(string $content): array
+    private function isMediaUsedInContent($media, string $content): bool
     {
-        $urls = [];
-
-        // Match img tags with src attribute
-        if (preg_match_all('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $matches)) {
-            $urls = array_merge($urls, $matches[1]);
+        if (empty($content)) {
+            return false;
         }
 
-        // Also match direct URL patterns for media library
-        if (preg_match_all('/\/storage\/media\/\d+\/[^"\')\s]+/i', $content, $matches)) {
-            $urls = array_merge($urls, $matches[0]);
+        $filename = $media->file_name;
+
+        // Check if filename appears in content (handles any URL format)
+        if (str_contains($content, $filename)) {
+            return true;
         }
 
-        return array_unique($urls);
+        // Also check URL-encoded filename
+        $encodedFilename = rawurlencode($filename);
+        if (str_contains($content, $encodedFilename)) {
+            return true;
+        }
+
+        // Check by base filename (without extension) for conversion URLs
+        // e.g., "image.jpg" might appear as "image-lg.jpg" in content
+        $baseName = pathinfo($filename, PATHINFO_FILENAME);
+        if (str_contains($content, $baseName)) {
+            return true;
+        }
+
+        // Also check URL-encoded base filename
+        $encodedBaseName = rawurlencode($baseName);
+        if (str_contains($content, $encodedBaseName)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

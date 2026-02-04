@@ -12,15 +12,18 @@
     <PostEditorContent />
   </PostEditor>
 
-  <div v-else class="py-20 text-center">
-    <Icon name="hugeicons:file-not-found" class="text-muted-foreground mx-auto mb-4 size-12" />
-    <p class="text-muted-foreground mb-4">Post not found</p>
-    <NuxtLink
-      to="/posts"
-      class="text-primary hover:text-primary/80 text-sm underline"
+  <div v-else class="flex w-full flex-col items-center justify-center gap-y-3 text-center">
+    <div class="bg-muted flex size-12 items-center justify-center rounded-full">
+      <Icon name="hugeicons:file-not-found" class="text-primary size-6" />
+    </div>
+    <p class="text-primary text-primary text-4xl font-medium tracking-tighter">Post not found.</p>
+    <button
+      @click="navigateTo('/posts')"
+      class="bg-primary text-primary-foreground hover:bg-primary/80 mt-2 flex items-center justify-center gap-x-1 rounded-lg px-4 py-2 font-medium tracking-tight"
     >
-      Back to Posts
-    </NuxtLink>
+      <Icon name="lucide:arrow-left" class="size-5" />
+      <span>Back to Posts</span>
+    </button>
   </div>
 </template>
 

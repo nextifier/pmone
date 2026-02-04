@@ -11,7 +11,7 @@
           title="Bold (Cmd+B)"
           v-tippy="'Bold (Cmd+B)'"
         >
-          <Icon name="lucide:bold" />
+          <Icon name="hugeicons:text-bold" class="size-4.5" />
         </button>
         <button
           type="button"
@@ -21,7 +21,7 @@
           title="Italic (Cmd+I)"
           v-tippy="'Italic (Cmd+I)'"
         >
-          <Icon name="lucide:italic" />
+          <Icon name="hugeicons:text-italic" class="size-4.5" />
         </button>
         <button
           type="button"
@@ -31,7 +31,7 @@
           title="Underline (Cmd+U)"
           v-tippy="'Underline (Cmd+U)'"
         >
-          <Icon name="lucide:underline" />
+          <Icon name="hugeicons:text-underline" class="size-4.5" />
         </button>
       </div>
 
@@ -46,7 +46,7 @@
           title="Heading 2"
           v-tippy="'Heading 2'"
         >
-          <Icon name="lucide:heading-2" />
+          <Icon name="hugeicons:heading-02" class="size-4.5" />
         </button>
         <button
           type="button"
@@ -56,7 +56,7 @@
           title="Heading 3"
           v-tippy="'Heading 3'"
         >
-          <Icon name="lucide:heading-3" />
+          <Icon name="hugeicons:heading-03" class="size-4.5" />
         </button>
       </div>
 
@@ -71,7 +71,7 @@
           title="Bullet List"
           v-tippy="'Bullet List'"
         >
-          <Icon name="lucide:list" />
+          <Icon name="hugeicons:left-to-right-list-bullet" class="size-4.5" />
         </button>
         <button
           type="button"
@@ -81,7 +81,7 @@
           title="Ordered List"
           v-tippy="'Ordered List'"
         >
-          <Icon name="lucide:list-ordered" />
+          <Icon name="hugeicons:left-to-right-list-number" class="size-4.5" />
         </button>
         <button
           type="button"
@@ -91,7 +91,7 @@
           title="Blockquote"
           v-tippy="'Blockquote'"
         >
-          <Icon name="lucide:quote" />
+          <Icon name="hugeicons:quote-down" class="size-4.5" />
         </button>
       </div>
 
@@ -106,7 +106,7 @@
           title="Add Link"
           v-tippy="'Add Link'"
         >
-          <Icon name="lucide:link" />
+          <Icon name="hugeicons:link-01" class="size-4.5" />
         </button>
         <button
           type="button"
@@ -115,7 +115,7 @@
           title="Upload Image"
           v-tippy="'Upload Image'"
         >
-          <Icon name="lucide:image" />
+          <Icon name="hugeicons:image-01" class="size-4.5" />
         </button>
       </div>
 
@@ -129,7 +129,7 @@
           title="Horizontal Rule"
           v-tippy="'Horizontal Rule'"
         >
-          <Icon name="lucide:minus" />
+          <Icon name="hugeicons:minus-sign" class="size-4.5" />
         </button>
         <button
           type="button"
@@ -138,7 +138,7 @@
           title="Line Break"
           v-tippy="'Line Break'"
         >
-          <Icon name="lucide:wrap-text" />
+          <Icon name="hugeicons:text-wrap" class="size-4.5" />
         </button>
       </div>
     </div>
@@ -187,7 +187,7 @@
           <button
             type="button"
             @click="skipCaption"
-            class="border-input hover:bg-accent rounded-lg border px-4 py-2 text-sm font-medium"
+            class="border-input hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium"
           >
             Skip
           </button>
@@ -215,13 +215,13 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "vue-sonner";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
 import StarterKit from "@tiptap/starter-kit";
 import { EditorContent, useEditor } from "@tiptap/vue-3";
+import { toast } from "vue-sonner";
 
 const props = defineProps({
   modelValue: {
@@ -242,6 +242,9 @@ const emit = defineEmits(["update:modelValue"]);
 
 const imageInput = ref(null);
 const client = useSanctumClient();
+
+// Track previous images to detect deletions
+const previousImages = ref(new Set());
 
 // Caption modal state
 const captionModal = ref({
@@ -302,7 +305,14 @@ const editor = useEditor({
     },
   },
   onUpdate: ({ editor }) => {
-    emit("update:modelValue", editor.getHTML());
+    const newContent = editor.getHTML();
+    // Check for deleted temp images and clean them up
+    handleImageDeletion(newContent);
+    emit("update:modelValue", newContent);
+  },
+  onCreate: ({ editor }) => {
+    // Initialize tracking of existing temp images
+    previousImages.value = extractTempImageFolders(editor.getHTML());
   },
 });
 
@@ -320,6 +330,45 @@ watch(
 onBeforeUnmount(() => {
   editor.value?.destroy();
 });
+
+// Helper function to extract temp image folders from content
+function extractTempImageFolders(content) {
+  const folders = new Set();
+  // Match temp media URLs: /api/tmp-media/tmp-media-xxxxx
+  const pattern = /\/api\/tmp-media\/(tmp-media-[a-zA-Z0-9._-]+)/g;
+  let match;
+  while ((match = pattern.exec(content)) !== null) {
+    folders.add(match[1]);
+  }
+  return folders;
+}
+
+// Delete temp image from server
+async function deleteTempImage(folder) {
+  try {
+    await client(`/api/tmp-media/${folder}`, {
+      method: "DELETE",
+    });
+  } catch (err) {
+    console.warn("Failed to delete temp content image:", err);
+  }
+}
+
+// Check for deleted temp images and clean them up
+function handleImageDeletion(newContent) {
+  const currentFolders = extractTempImageFolders(newContent || "");
+
+  // Find folders that were in previous but not in current (deleted)
+  for (const folder of previousImages.value) {
+    if (!currentFolders.has(folder)) {
+      // Image was deleted, clean up from server
+      deleteTempImage(folder);
+    }
+  }
+
+  // Update previous images for next comparison
+  previousImages.value = currentFolders;
+}
 
 // Link handling
 const setLink = () => {
@@ -360,16 +409,15 @@ const handleImageUpload = async (event) => {
   }
 
   try {
-    // Create FormData for upload - use temporary media endpoint for new posts
+    // Create FormData for upload - ALWAYS use temporary storage
+    // Even for existing posts, we upload to temp first, then process on save
+    // This ensures consistent behavior and proper cleanup
     const formData = new FormData();
     formData.append("file", file);
     formData.append("model_type", "App\\Models\\Post");
     formData.append("collection", "content_images");
-
-    // Only include model_id if we have a valid post ID
-    if (props.postId) {
-      formData.append("model_id", props.postId.toString());
-    }
+    // Always send model_id: 0 to use temporary storage
+    formData.append("model_id", "0");
 
     // Upload image using API
     const response = await client("/api/media/upload", {
@@ -452,11 +500,11 @@ const saveCaptionAndClose = () => {
 @reference "../../assets/css/main.css";
 
 .tiptap-editor {
-  @apply border-border overflow-hidden rounded-lg border;
+  @apply border-border rounded-lg border;
 }
 
 .editor-toolbar {
-  @apply border-border flex flex-wrap items-center gap-1 border-b p-2;
+  @apply border-border bg-background sticky top-(--navbar-height-mobile) z-10 flex flex-wrap items-center gap-1 rounded-t-lg border-b p-2 lg:top-(--navbar-height-desktop);
 }
 
 .toolbar-group {
@@ -468,7 +516,7 @@ const saveCaptionAndClose = () => {
 }
 
 .toolbar-button {
-  @apply text-muted-foreground hover:bg-muted rounded-lg border border-transparent p-2 transition-colors;
+  @apply text-muted-foreground hover:bg-muted flex size-8 items-center justify-center rounded-lg border border-transparent transition-colors;
 }
 
 .toolbar-button.is-active {
