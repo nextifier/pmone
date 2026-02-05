@@ -226,7 +226,7 @@ const sorting = ref([{ id: "deleted_at", desc: true }]);
 
 // Data state
 // Client-only mode flag
-const clientOnly = ref(true);
+const clientOnly = ref(false);
 
 // Build query params
 const buildQueryParams = () => {
