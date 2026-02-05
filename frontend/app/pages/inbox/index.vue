@@ -202,7 +202,7 @@ const pagination = ref({ pageIndex: 0, pageSize: 20 });
 const sorting = ref([{ id: "created_at", desc: true }]);
 
 // Data state
-const clientOnly = ref(true);
+const clientOnly = ref(false);
 
 // Build query params
 const buildQueryParams = () => {
