@@ -622,12 +622,12 @@ onMounted(() => {
   }
 });
 
-// Debounced search handler
+// Debounced search handler (300ms delay to prevent fetch on every keystroke)
 const debouncedSearch = useDebounceFn((value) => {
   table.getColumn(props.searchColumn)?.setFilterValue(value || undefined);
   // Reset to first page when search changes
   table.setPageIndex(0);
-}, 0);
+}, 300);
 
 const handleSearchInput = (event) => {
   searchValue.value = event.target.value;

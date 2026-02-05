@@ -79,7 +79,7 @@ class ContactFormSubmissionsExport extends BaseExport
             $searchTerm = strtolower($this->filters['search']);
             $query->where(function ($q) use ($searchTerm) {
                 $q->whereRaw('LOWER(subject) LIKE ?', ["%{$searchTerm}%"])
-                    ->orWhereRaw('LOWER(form_data) LIKE ?', ["%{$searchTerm}%"]);
+                    ->orWhereRaw('LOWER(form_data::text) LIKE ?', ["%{$searchTerm}%"]);
             });
         }
 
@@ -99,7 +99,12 @@ class ContactFormSubmissionsExport extends BaseExport
     {
         [$field, $direction] = $this->parseSortField($this->sort ?? '-created_at');
 
-        if (in_array($field, ['subject', 'status', 'created_at', 'updated_at', 'followed_up_at'])) {
+        // Handle project sorting by joining with projects table
+        if (in_array($field, ['project_id', 'project.name'])) {
+            $query->leftJoin('projects', 'contact_form_submissions.project_id', '=', 'projects.id')
+                ->orderBy('projects.name', $direction)
+                ->select('contact_form_submissions.*');
+        } elseif (in_array($field, ['subject', 'status', 'created_at', 'updated_at', 'followed_up_at'])) {
             $query->orderBy($field, $direction);
         } else {
             $query->orderBy('created_at', 'desc');

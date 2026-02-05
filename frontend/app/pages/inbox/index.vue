@@ -271,6 +271,17 @@ const meta = computed(
   () => submissionsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 10, total: 0 }
 );
 
+// Watch for changes and refetch (only in server-side mode)
+watch(
+  [columnFilters, sorting, pagination],
+  () => {
+    if (!clientOnly.value) {
+      fetchSubmissions();
+    }
+  },
+  { deep: true }
+);
+
 // Global state for refresh tracking
 const needsRefresh = useState("inbox-needs-refresh", () => false);
 
