@@ -21,8 +21,14 @@ class ContactFormSubmitted extends Mailable
     {
         $project = $this->submission->project;
 
+        // Build email subject with project name: "Exhibitor Registration - FLEI"
+        $emailSubject = $this->submission->subject;
+        if ($project && $project->name) {
+            $emailSubject .= ' - '.$project->name;
+        }
+
         return new Envelope(
-            subject: $this->submission->subject,
+            subject: $emailSubject,
             from: new \Illuminate\Mail\Mailables\Address(
                 config('mail.from.address'),
                 config('mail.from.name')

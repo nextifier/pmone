@@ -14,7 +14,7 @@ class ContactFormSubmissionsExport extends BaseExport
 
     protected function phoneColumns(): array
     {
-        return ['E'];
+        return ['F'];
     }
 
     public function headings(): array
@@ -23,6 +23,7 @@ class ContactFormSubmissionsExport extends BaseExport
             'ID',
             'Subject',
             'Name',
+            'Brand Name',
             'Email',
             'Phone',
             'Project',
@@ -43,6 +44,7 @@ class ContactFormSubmissionsExport extends BaseExport
         // Extract form data
         $formData = $submission->form_data ?? [];
         $name = $formData['name'] ?? '-';
+        $brandName = $formData['brand_name'] ?? '-';
         $email = $formData['email'] ?? '-';
         $phone = $formData['phone'] ?? '-';
         $message = $formData['message'] ?? '-';
@@ -57,6 +59,7 @@ class ContactFormSubmissionsExport extends BaseExport
             $submission->id,
             $submission->subject ?? '-',
             $name,
+            $brandName,
             $email,
             $phone,
             $submission->project?->name ?? '-',

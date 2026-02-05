@@ -48,20 +48,31 @@
           </div>
 
           <!-- QR Code Preview -->
-          <div class="bg-muted flex items-center justify-center rounded-lg p-6">
-            <canvas ref="qrCanvas" class="max-w-full rounded-md bg-white shadow-md" />
+          <div class="flex items-center justify-center">
+            <div
+              v-if="qrDataUrl"
+              class="xs:max-w-[280px] aspect-square w-full overflow-hidden rounded-lg bg-white shadow-lg"
+            >
+              <img :src="qrDataUrl" alt="QR Code" class="size-full object-contain" />
+            </div>
           </div>
 
           <!-- Download Buttons -->
-          <div class="flex w-full max-w-md flex-col gap-2">
-            <Button @click="downloadJPG" class="w-full">
-              <Icon name="lucide:download" class="mr-2 h-4 w-4" />
-              Download JPG
-            </Button>
-            <Button @click="downloadSVG" variant="outline" class="w-full">
-              <Icon name="lucide:download" class="mr-2 h-4 w-4" />
-              Download SVG
-            </Button>
+          <div class="flex flex-wrap justify-center gap-x-2 gap-y-4">
+            <button
+              @click="downloadJPG"
+              class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center justify-center gap-x-1.5 rounded-lg px-4 py-2 font-medium tracking-tight transition active:scale-98"
+            >
+              <Icon name="hugeicons:jpg-01" class="size-5 shrink-0" />
+              <span>Download JPG</span>
+            </button>
+            <button
+              @click="downloadSVG"
+              class="bg-muted text-foreground hover:bg-border flex items-center justify-center gap-x-1.5 rounded-lg px-4 py-2 font-medium tracking-tight transition active:scale-98"
+            >
+              <Icon name="hugeicons:svg-01" class="size-5 shrink-0" />
+              <span>Download SVG</span>
+            </button>
           </div>
         </CardContent>
       </Card>
@@ -150,7 +161,7 @@
       </div>
 
       <!-- Top Referrers -->
-      <div class="border-border rounded-lg border p-4">
+      <!-- <div class="border-border rounded-lg border p-4">
         <h2 class="mb-4 text-lg font-semibold tracking-tighter">Top Referrers</h2>
         <div v-if="analyticsData.top_referrers?.length" class="space-y-2">
           <div
@@ -180,7 +191,7 @@
         <div v-else class="text-muted-foreground py-8 text-center tracking-tight">
           No referrer data available
         </div>
-      </div>
+      </div> -->
 
       <!-- OG Preview Card -->
       <ClientOnly>
@@ -238,9 +249,12 @@ const config = useRuntimeConfig();
 const QRCode = ref(null);
 
 // QR Code state
-const qrCanvas = ref(null);
+const qrDataUrl = ref("");
 const copied = ref(false);
-const qrSize = 512;
+const previewSize = 300;
+const downloadSize = 1080;
+const errorCorrectionLevel = "H";
+const qrMargin = 2;
 
 // Load QRCode library on client-side
 onMounted(async () => {
@@ -291,15 +305,18 @@ const shortLinkUrl = computed(() => {
 
 // Generate QR code whenever short link is available
 watch(
-  [shortLink, qrCanvas, QRCode],
-  async ([link, canvas, qrLib]) => {
-    if (!link || !canvas || !qrLib) return;
+  [shortLink, QRCode],
+  async ([link, qrLib]) => {
+    if (!link || !qrLib) {
+      qrDataUrl.value = "";
+      return;
+    }
 
     try {
-      await qrLib.toCanvas(canvas, shortLinkUrl.value, {
-        width: qrSize,
-        margin: 4,
-        errorCorrectionLevel: "M",
+      qrDataUrl.value = await qrLib.toDataURL(shortLinkUrl.value, {
+        width: previewSize,
+        margin: qrMargin,
+        errorCorrectionLevel: errorCorrectionLevel,
         color: {
           dark: "#000000",
           light: "#FFFFFF",
@@ -307,6 +324,7 @@ watch(
       });
     } catch (err) {
       console.error("Error generating QR code:", err);
+      qrDataUrl.value = "";
     }
   },
   { immediate: true }
@@ -328,31 +346,29 @@ const copyToClipboard = async () => {
 };
 
 // Download as JPG
-const downloadJPG = () => {
-  if (!qrCanvas.value) return;
+const downloadJPG = async () => {
+  if (!shortLinkUrl.value || !QRCode.value) return;
 
-  const tempCanvas = document.createElement("canvas");
-  tempCanvas.width = qrCanvas.value.width;
-  tempCanvas.height = qrCanvas.value.height;
-  const ctx = tempCanvas.getContext("2d");
+  try {
+    const dataUrl = await QRCode.value.toDataURL(shortLinkUrl.value, {
+      width: downloadSize,
+      margin: qrMargin,
+      errorCorrectionLevel: errorCorrectionLevel,
+      color: {
+        dark: "#000000",
+        light: "#FFFFFF",
+      },
+    });
 
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-  ctx.drawImage(qrCanvas.value, 0, 0);
-
-  tempCanvas.toBlob(
-    (blob) => {
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.download = `qrcode-${shortLink.value.slug}.jpg`;
-      link.href = url;
-      link.click();
-      URL.revokeObjectURL(url);
-      toast.success("QR code downloaded!");
-    },
-    "image/jpeg",
-    1.0
-  );
+    const link = document.createElement("a");
+    link.download = `QR-${shortLink.value.slug}.png`;
+    link.href = dataUrl;
+    link.click();
+    toast.success("QR code downloaded!");
+  } catch (err) {
+    toast.error("Failed to download QR code");
+    console.error("Error generating QR code for download:", err);
+  }
 };
 
 // Download as SVG
@@ -362,9 +378,9 @@ const downloadSVG = async () => {
   try {
     const svgString = await QRCode.value.toString(shortLinkUrl.value, {
       type: "svg",
-      width: qrSize,
-      margin: 4,
-      errorCorrectionLevel: "M",
+      width: 512,
+      margin: qrMargin,
+      errorCorrectionLevel: errorCorrectionLevel,
       color: {
         dark: "#000000",
         light: "#FFFFFF",
@@ -374,7 +390,7 @@ const downloadSVG = async () => {
     const blob = new Blob([svgString], { type: "image/svg+xml" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.download = `qrcode-${shortLink.value.slug}.svg`;
+    link.download = `QR-${shortLink.value.slug}.svg`;
     link.href = url;
     link.click();
     URL.revokeObjectURL(url);

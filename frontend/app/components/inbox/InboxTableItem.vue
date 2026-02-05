@@ -6,6 +6,7 @@
         class="text-foreground text-sm font-medium tracking-tight hover:underline"
       >
         {{ submission.subject || "No Subject" }}
+        <span v-if="submission.project?.name"> - {{ submission.project.name }} </span>
       </NuxtLink>
     </div>
 
@@ -16,12 +17,17 @@
         :country="countryCode"
         class="h-3! shrink-0 rounded-xs! shadow-sm"
       />
-      <span v-if="submission.form_data_preview?.name">
-        {{ submission.form_data_preview.name }}
-      </span>
-      <span v-if="submission.form_data_preview?.email" class="text-muted-foreground">
-        {{ submission.form_data_preview.email }}
-      </span>
+      <div class="inline">
+        <span v-if="submission.form_data_preview?.name">
+          {{ submission.form_data_preview.name }}
+        </span>
+        <span v-if="submission.form_data_preview?.brand_name">
+          - {{ submission.form_data_preview.brand_name }}
+        </span>
+        <!-- <span v-if="submission.form_data_preview?.email" class="text-muted-foreground">
+          - {{ submission.form_data_preview.email }}
+        </span> -->
+      </div>
     </div>
   </div>
 </template>

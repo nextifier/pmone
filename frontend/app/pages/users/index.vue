@@ -570,6 +570,31 @@ const columns = [
     },
   },
   {
+    header: "Last Seen",
+    accessorKey: "last_seen",
+    cell: ({ row }) => {
+      const isOnline = row.original.is_online;
+      const lastSeen = row.getValue("last_seen");
+
+      if (isOnline) {
+        return h("div", { class: "flex items-center gap-x-1.5" }, [
+          h("span", { class: "size-2 rounded-full bg-green-500" }),
+          h("span", { class: "text-sm tracking-tight text-green-600 dark:text-green-500" }, "Online"),
+        ]);
+      }
+
+      if (!lastSeen) {
+        return h("span", { class: "text-sm text-muted-foreground tracking-tight" }, "-");
+      }
+
+      return withDirectives(
+        h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $dayjs(lastSeen).fromNow()),
+        [[resolveDirective("tippy"), $dayjs(lastSeen).format("MMMM D, YYYY [at] h:mm A")]]
+      );
+    },
+    size: 100,
+  },
+  {
     header: "Created",
     accessorKey: "created_at",
     cell: ({ row }) => {

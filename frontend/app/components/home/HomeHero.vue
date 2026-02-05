@@ -89,7 +89,7 @@
         </div>
 
         <!-- Hero Image -->
-        <div class="relative mt-12 w-full max-w-5xl lg:mt-16">
+        <!-- <div class="relative mt-12 w-full max-w-5xl lg:mt-16">
           <div class="shadow-wrapper rounded-xl">
             <div
               class="bg-muted/50 border-border flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border"
@@ -113,7 +113,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
   </section>

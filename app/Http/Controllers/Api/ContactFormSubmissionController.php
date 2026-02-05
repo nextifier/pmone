@@ -3,14 +3,20 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\ContactFormStatus;
+use App\Exports\ContactFormSubmissionsTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ContactFormSubmissionIndexResource;
 use App\Http\Resources\ContactFormSubmissionResource;
+use App\Imports\ContactFormSubmissionsImport;
 use App\Models\ContactFormSubmission;
+use App\Models\Project;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ContactFormSubmissionController extends Controller
 {
@@ -74,6 +80,98 @@ class ContactFormSubmissionController extends Controller
         $filename = 'inbox_'.now()->format('Y-m-d_His').'.xlsx';
 
         return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
+    }
+
+    public function downloadTemplate(): BinaryFileResponse
+    {
+        return Excel::download(new ContactFormSubmissionsTemplateExport, 'inbox_import_template.xlsx');
+    }
+
+    public function import(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'file' => ['required', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $tempFolder = null;
+
+        try {
+            $tempFolder = $request->input('file');
+
+            // Get file path from temporary storage
+            $metadataPath = "tmp/uploads/{$tempFolder}/metadata.json";
+
+            if (! Storage::disk('local')->exists($metadataPath)) {
+                return response()->json([
+                    'message' => 'File not found',
+                ], 404);
+            }
+
+            $metadata = json_decode(
+                Storage::disk('local')->get($metadataPath),
+                true
+            );
+
+            $filePath = "tmp/uploads/{$tempFolder}/{$metadata['original_name']}";
+
+            if (! Storage::disk('local')->exists($filePath)) {
+                return response()->json([
+                    'message' => 'File not found',
+                ], 404);
+            }
+
+            // Import contact form submissions (project is determined by name in the Excel file)
+            $import = new ContactFormSubmissionsImport;
+            Excel::import($import, Storage::disk('local')->path($filePath));
+
+            // Get import results
+            $failures = $import->getFailures();
+            $importedCount = $import->getImportedCount();
+            $errorMessages = [];
+
+            foreach ($failures as $failure) {
+                $errorMessages[] = [
+                    'row' => $failure->row(),
+                    'attribute' => $failure->attribute(),
+                    'errors' => $failure->errors(),
+                    'values' => $failure->values(),
+                ];
+            }
+
+            if (count($errorMessages) > 0) {
+                return response()->json([
+                    'message' => 'Import completed with errors',
+                    'errors' => $errorMessages,
+                    'imported_count' => $importedCount,
+                ], 422);
+            }
+
+            return response()->json([
+                'message' => 'Submissions imported successfully',
+                'imported_count' => $importedCount,
+            ]);
+        } catch (\Exception $e) {
+            logger()->error('Contact form submission import failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to import submissions',
+                'error' => $e->getMessage(),
+            ], 500);
+        } finally {
+            // Always clean up temporary files
+            if ($tempFolder) {
+                Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
+            }
+        }
     }
 
     private function applyFilters($query, Request $request): void

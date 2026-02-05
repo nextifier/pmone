@@ -17,6 +17,8 @@ class UserIndexResource extends JsonResource
             'title' => $this->title,
             'status' => $this->status,
             'email_verified_at' => $this->email_verified_at?->toISOString(),
+            'is_online' => $this->isOnline(),
+            'last_seen' => $this->last_seen?->toISOString(),
             'created_at' => $this->created_at->toISOString(),
 
             // Profile Image

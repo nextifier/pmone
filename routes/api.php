@@ -173,6 +173,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::prefix('contact-form-submissions')->group(function () {
         Route::get('/', [ContactFormSubmissionController::class, 'index'])->name('contact-form-submissions.index');
         Route::get('/export', [ContactFormSubmissionController::class, 'export'])->name('contact-form-submissions.export');
+        Route::get('/import/template', [ContactFormSubmissionController::class, 'downloadTemplate'])->name('contact-form-submissions.import.template');
+        Route::post('/import', [ContactFormSubmissionController::class, 'import'])->name('contact-form-submissions.import');
         Route::delete('/bulk', [ContactFormSubmissionController::class, 'bulkDestroy'])->name('contact-form-submissions.bulk-destroy');
         Route::get('/trash', [ContactFormSubmissionController::class, 'trash'])->name('contact-form-submissions.trash');
         Route::post('/trash/restore/bulk', [ContactFormSubmissionController::class, 'bulkRestore'])->name('contact-form-submissions.bulk-restore');

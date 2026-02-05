@@ -20,6 +20,7 @@ class ContactFormSubmissionIndexResource extends JsonResource
                 'name' => data_get($this->form_data, 'name'),
                 'email' => data_get($this->form_data, 'email'),
                 'phone' => data_get($this->form_data, 'phone'),
+                'brand_name' => data_get($this->form_data, 'brand_name'),
             ],
             'followed_up_at' => $this->followed_up_at?->toISOString(),
             'created_at' => $this->created_at->toISOString(),
@@ -31,6 +32,9 @@ class ContactFormSubmissionIndexResource extends JsonResource
                 'ulid' => $this->project->ulid,
                 'name' => $this->project->name,
                 'username' => $this->project->username,
+                'profile_image' => $this->project->hasMedia('profile_image')
+                    ? $this->project->getMediaUrls('profile_image')
+                    : null,
             ]),
 
             // Followed up by user

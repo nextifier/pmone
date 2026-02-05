@@ -1,7 +1,7 @@
 @component('mail::message')
-# {{ $subject }}
+# {{ $subject }}@if($project && $project->name) - {{ $project->name }}@endif
 
-You have received a new form submission from your website.
+You have received a new form submission from **{{ $project->name ?? 'your website' }}**.
 
 @component('mail::panel')
 @foreach($formData as $field => $value)

@@ -3,8 +3,7 @@
     <ErrorState v-if="error" :error="error" />
     <div v-else class="flex min-h-screen items-center justify-center">
       <div class="flex items-center justify-center gap-x-1.5 font-medium tracking-tight">
-        <Spinner class="size-4" />
-        <span>Redirecting...</span>
+        <Spinner class="size-7" />
       </div>
     </div>
   </div>
@@ -58,8 +57,10 @@ const title = computed(() => {
 
 const description = computed(() => {
   if (error.value) {
-    return error.value.message ||
-      "The short link you are looking for does not exist or has been deactivated.";
+    return (
+      error.value.message ||
+      "The short link you are looking for does not exist or has been deactivated."
+    );
   }
 
   const linkData = data.value?.data;

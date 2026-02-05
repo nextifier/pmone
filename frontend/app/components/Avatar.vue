@@ -5,10 +5,10 @@
       '--hue': Math.min((model?.name?.length || 0) / 50, 1) * 360,
     }"
     :class="[
-      'outline-primary/5 @container relative flex aspect-square shrink-0 items-center justify-center text-center outline -outline-offset-1 [--bg-chroma:0.16] [--bg-lightness:0.9] [--text-chroma:0.16] [--text-lightness:0.32] dark:[--bg-chroma:0.14] dark:[--bg-lightness:0.28] dark:[--text-chroma:0.16] dark:[--text-lightness:0.8]',
+      'outline-primary/10 @container relative flex aspect-square shrink-0 items-center justify-center text-center outline -outline-offset-1 [--bg-chroma:0.16] [--bg-lightness:0.9] [--text-chroma:0.16] [--text-lightness:0.32] dark:[--bg-chroma:0.14] dark:[--bg-lightness:0.28] dark:[--text-chroma:0.16] dark:[--text-lightness:0.8]',
       rounded,
       !model?.profile_image &&
-        'bg-[linear-gradient(135deg,oklch(var(--bg-lightness)_var(--bg-chroma)_var(--hue)),oklch(calc(var(--bg-lightness)*1.1)_calc(var(--bg-chroma)*1.5)_calc(var(--hue)+20)))]',
+        'bg-[linear-gradient(135deg,oklch(var(--bg-lightness)_var(--bg-chroma)_var(--hue)),oklch(calc(var(--bg-lightness)*1)_calc(var(--bg-chroma)*1)_calc(var(--hue))))]',
     ]"
   >
     <img
@@ -23,7 +23,7 @@
     />
     <span
       v-else
-      class="initial text-[45cqw] font-semibold tracking-tight text-[oklch(var(--text-lightness)_var(--text-chroma)_var(--hue))]"
+      class="initial text-[45cqw] font-medium tracking-tight text-[oklch(var(--text-lightness)_var(--text-chroma)_var(--hue))]"
     >
       {{
         (() => {

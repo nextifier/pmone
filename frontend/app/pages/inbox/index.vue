@@ -7,6 +7,18 @@
       </div>
 
       <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+        <InboxImportDialog @imported="refresh">
+          <template #trigger="{ open }">
+            <button
+              @click="open()"
+              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+            >
+              <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
+              <span>Import</span>
+            </button>
+          </template>
+        </InboxImportDialog>
+
         <button
           @click="handleExport"
           :disabled="exportPending"
@@ -155,7 +167,9 @@
 </template>
 
 <script setup>
+import Avatar from "@/components/Avatar.vue";
 import DialogResponsive from "@/components/DialogResponsive.vue";
+import InboxImportDialog from "@/components/inbox/ImportDialog.vue";
 import InboxTableItem from "@/components/inbox/InboxTableItem.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -322,7 +336,7 @@ const columns = [
       h(InboxTableItem, {
         submission: row.original,
       }),
-    size: 350,
+    size: 300,
     enableHiding: false,
     filterFn: (row, columnId, filterValue) => {
       const searchValue = filterValue.toLowerCase();
@@ -362,9 +376,17 @@ const columns = [
       if (!project) {
         return h("div", { class: "text-sm text-muted-foreground tracking-tight" }, "-");
       }
-      return h("div", { class: "text-sm tracking-tight" }, project.name);
+      return h("div", { class: "flex items-center gap-2" }, [
+        h(Avatar, {
+          model: project,
+          size: "sm",
+          class: "size-6 rounded-full",
+          rounded: "rounded-full",
+        }),
+        h("span", { class: "text-sm tracking-tight truncate" }, project.name),
+      ]);
     },
-    size: 120,
+    size: 200,
     filterFn: (row, columnId, filterValue) => {
       if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
       const projectId = row.original.project?.id?.toString();

@@ -71,7 +71,7 @@
       </div>
 
       <div class="flex w-full items-center gap-x-1.5 sm:gap-x-2">
-        <Avatar :model="project" class="squircle size-12 overflow-hidden border" />
+        <Avatar :model="project" class="squircle size-12 overflow-hidden" />
 
         <div class="flex grow flex-col gap-y-1.5">
           <div class="flex items-center gap-x-2">
