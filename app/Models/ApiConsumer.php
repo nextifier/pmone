@@ -36,7 +36,6 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ApiConsumerRequest> $requests
  * @property-read int|null $requests_count
  * @property-read \App\Models\User|null $updater
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer byApiKey(string $apiKey)
  * @method static \Database\Factories\ApiConsumerFactory factory($count = null, $state = [])
@@ -63,7 +62,6 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereWebsiteUrl($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class ApiConsumer extends Model

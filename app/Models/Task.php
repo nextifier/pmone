@@ -14,6 +14,74 @@ use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
+/**
+ * @property int $id
+ * @property string $ulid
+ * @property string $title
+ * @property string|null $description
+ * @property string|null $status
+ * @property string|null $priority
+ * @property string|null $complexity
+ * @property string $visibility
+ * @property int|null $project_id
+ * @property int|null $assignee_id
+ * @property \Illuminate\Support\Carbon|null $estimated_start_at
+ * @property \Illuminate\Support\Carbon|null $estimated_completion_at
+ * @property \Illuminate\Support\Carbon|null $completed_at
+ * @property int $order_column
+ * @property int $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read \App\Models\User|null $assignee
+ * @property-read \App\Models\User $creator
+ * @property-read \App\Models\User|null $deleter
+ * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read int|null $media_count
+ * @property-read \App\Models\Project|null $project
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $sharedUsers
+ * @property-read int|null $shared_users_count
+ * @property-read \App\Models\User|null $updater
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task byComplexity(array|string $complexity)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task byPriority(array|string $priority)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task byStatus(array|string $status)
+ * @method static \Database\Factories\TaskFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task overdue()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task search(string $search)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task upcoming(int $days = 7)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task visibleTo(\App\Models\User $user)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereAssigneeId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereCompletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereComplexity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereDeletedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereEstimatedCompletionAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereEstimatedStartAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereOrderColumn($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task wherePriority($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereProjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereUlid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereUpdatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereVisibility($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Task withoutTrashed()
+ * @mixin \Eloquent
+ */
 class Task extends Model implements HasMedia
 {
     use HasFactory;

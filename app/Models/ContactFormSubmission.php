@@ -24,20 +24,25 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string|null $user_agent
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property int|null $deleted_by
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
  * @property-read int|null $activities_count
+ * @property-read \App\Models\User|null $deleter
  * @property-read \App\Models\User|null $followedUpByUser
  * @property-read \App\Models\Project $project
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission byStatus(string $status)
  * @method static \Database\Factories\ContactFormSubmissionFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission forProject(int $projectId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission new()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission unfollowedUp()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereDeletedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereFollowedUpAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereFollowedUpBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereFormData($value)
@@ -49,7 +54,8 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereUlid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereUserAgent($value)
- *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission withoutTrashed()
  * @mixin \Eloquent
  */
 class ContactFormSubmission extends Model

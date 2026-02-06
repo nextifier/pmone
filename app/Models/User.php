@@ -52,6 +52,12 @@ use Spatie\Permission\Traits\HasRoles;
  * @property \Illuminate\Support\Carbon|null $two_factor_confirmed_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
  * @property-read int|null $activities_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Task> $assignedTasks
+ * @property-read int|null $assigned_tasks_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Post> $createdPosts
+ * @property-read int|null $created_posts_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Task> $createdTasks
+ * @property-read int|null $created_tasks_count
  * @property-read User|null $creator
  * @property-read User|null $deleter
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Link> $links
@@ -74,6 +80,8 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read int|null $roles_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ShortLink> $shortLinks
  * @property-read int|null $short_links_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Task> $tasks
+ * @property-read int|null $tasks_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Sanctum\PersonalAccessToken> $tokens
  * @property-read int|null $tokens_count
  * @property-read User|null $updater
@@ -81,7 +89,6 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read int|null $visits_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visitsMade
  * @property-read int|null $visits_made_count
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User byStatus(string $status)
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
@@ -124,7 +131,6 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutPermission($permissions)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutRole($roles, $guard = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class User extends Authenticatable implements HasMedia, MustVerifyEmail

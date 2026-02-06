@@ -18,7 +18,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $origin
  * @property \Illuminate\Support\Carbon $created_at
  * @property-read \App\Models\ApiConsumer $apiConsumer
- *
  * @method static \Database\Factories\ApiConsumerRequestFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumerRequest forConsumer(int $consumerId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumerRequest inPeriod(int $days)
@@ -35,7 +34,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumerRequest whereResponseTimeMs($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumerRequest whereStatusCode($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumerRequest whereUserAgent($value)
- *
  * @mixin \Eloquent
  */
 class ApiConsumerRequest extends Model

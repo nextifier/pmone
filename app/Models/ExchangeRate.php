@@ -8,11 +8,23 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * @property int $id
  * @property string $base_currency
- * @property array<string, float> $rates
+ * @property array<array-key, mixed> $rates
  * @property \Illuminate\Support\Carbon|null $api_updated_at
  * @property \Illuminate\Support\Carbon $fetched_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @method static Builder<static>|ExchangeRate forCurrency(string $currency)
+ * @method static Builder<static>|ExchangeRate newModelQuery()
+ * @method static Builder<static>|ExchangeRate newQuery()
+ * @method static Builder<static>|ExchangeRate query()
+ * @method static Builder<static>|ExchangeRate whereApiUpdatedAt($value)
+ * @method static Builder<static>|ExchangeRate whereBaseCurrency($value)
+ * @method static Builder<static>|ExchangeRate whereCreatedAt($value)
+ * @method static Builder<static>|ExchangeRate whereFetchedAt($value)
+ * @method static Builder<static>|ExchangeRate whereId($value)
+ * @method static Builder<static>|ExchangeRate whereRates($value)
+ * @method static Builder<static>|ExchangeRate whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
 class ExchangeRate extends Model
 {
