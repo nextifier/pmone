@@ -173,6 +173,13 @@ class ExchangeRateController extends Controller
     ];
 
     /**
+     * Currencies to exclude from results
+     *
+     * @var array<string>
+     */
+    private const EXCLUDED_CURRENCIES = ['ANG', 'XCG', 'XDR'];
+
+    /**
      * Popular currencies for frontend display
      *
      * @var array<string>
@@ -469,6 +476,10 @@ class ExchangeRateController extends Controller
         $result = [];
 
         foreach ($rates as $code => $rate) {
+            if (in_array($code, self::EXCLUDED_CURRENCIES)) {
+                continue;
+            }
+
             $meta = self::CURRENCY_META[$code] ?? [
                 'name' => $code,
                 'country' => strtolower(substr($code, 0, 2)),

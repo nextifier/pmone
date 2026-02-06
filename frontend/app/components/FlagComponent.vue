@@ -1,5 +1,7 @@
 <template>
-  <span class="flex aspect-3/2 h-4 overflow-hidden rounded-sm">
+  <span
+    class="outline-primary/10 flex aspect-3/2 h-4 shrink-0 overflow-hidden rounded-xs outline -outline-offset-1"
+  >
     <img
       v-if="country"
       :src="flagUrl"

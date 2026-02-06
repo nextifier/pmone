@@ -125,6 +125,12 @@ const navMainGroups = computed(() => {
     iconName: "hugeicons:qr-code",
   });
 
+  platformItems.push({
+    label: "Exchange Rate",
+    path: "/exchange-rate",
+    iconName: "hugeicons:money-exchange-02",
+  });
+
   // Web Analytics - requires analytics.view permission
   if (hasPermission("analytics.view")) {
     platformItems.push({
