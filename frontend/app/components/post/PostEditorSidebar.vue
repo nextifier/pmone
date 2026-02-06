@@ -2,7 +2,7 @@
   <Sidebar v-bind="props">
     <SidebarContent class="relative p-0">
       <ScrollArea class="h-screen">
-        <div class="space-y-6 px-4 py-14">
+        <div class="min-h-screen space-y-6 px-4 pt-14 pb-7">
           <!-- Post URL Section -->
           <div class="space-y-2">
             <!-- Slug Input -->
@@ -212,8 +212,6 @@
             </div>
           </template>
 
-          <Separator />
-
           <!-- SEO Section -->
           <!-- <div class="space-y-4">
             <SidebarGroupLabel
@@ -262,8 +260,6 @@
 
           <!-- Delete Section (Edit mode only) -->
           <template v-if="editor.mode.value === 'edit'">
-            <Separator />
-
             <div>
               <SidebarGroupLabel class="text-destructive px-0 text-xs font-medium tracking-tight">
                 Danger Zone
