@@ -203,6 +203,15 @@ class Post extends Model implements HasMedia
                 $model->reading_time = $model->calculateReadingTime($model->content);
             }
 
+            // Auto-generate meta fields if empty
+            if (empty($model->meta_title) && ! empty($model->title)) {
+                $model->meta_title = $model->title;
+            }
+
+            if (empty($model->meta_description) && ! empty($model->excerpt)) {
+                $model->meta_description = Str::limit($model->excerpt, 160);
+            }
+
             // Auto-set published_at when status changes to published
             if ($model->isDirty('status') && $model->status === 'published' && empty($model->published_at)) {
                 $model->published_at = now();

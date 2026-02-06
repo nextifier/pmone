@@ -25,6 +25,7 @@
           :class="{
             'text-success-foreground': post.status.toLowerCase() === 'published',
             'text-warning-foreground': post.status.toLowerCase() === 'draft',
+            'text-muted-foreground': post.status.toLowerCase() === 'scheduled',
           }"
           >{{ post.status }}</span
         >

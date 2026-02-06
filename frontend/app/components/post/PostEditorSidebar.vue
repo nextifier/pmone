@@ -215,7 +215,7 @@
           <Separator />
 
           <!-- SEO Section -->
-          <div class="space-y-4">
+          <!-- <div class="space-y-4">
             <SidebarGroupLabel
               class="text-muted-foreground px-0 text-xs font-medium tracking-tight"
             >
@@ -223,7 +223,6 @@
             </SidebarGroupLabel>
 
             <div class="space-y-6">
-              <!-- Meta Title -->
               <div class="space-y-2">
                 <Label for="meta_title" class="text-xs">Meta Title</Label>
                 <Input
@@ -235,7 +234,6 @@
                 />
               </div>
 
-              <!-- Meta Description -->
               <div class="space-y-2">
                 <Label for="meta_description" class="text-xs">Meta Description</Label>
                 <Textarea
@@ -246,7 +244,6 @@
                 />
               </div>
 
-              <!-- OG Image -->
               <div class="space-y-2">
                 <Label class="text-xs">OG Image</Label>
                 <InputFileImage
@@ -261,7 +258,7 @@
                 </p>
               </div>
             </div>
-          </div>
+          </div> -->
 
           <!-- Delete Section (Edit mode only) -->
           <template v-if="editor.mode.value === 'edit'">
