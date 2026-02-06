@@ -4,10 +4,9 @@
       <NuxtPwaManifest />
       <NuxtLoadingIndicator />
       <NuxtLayout>
-        <!-- Jika clientOnly di halaman {model}/index.vue bernilai false, artinya fungsi search, filter, sort, dan pagination dilakukan di backend, maka jangan tambahkan halaman tersebut ke keepalive, karena terdapat bug, jika user kembali ke halaman tersebut untuk ke-2 kali atau seterusnya, maka fungsi search, filter, sort, dan pagination menjadi tidak bekerja. -->
         <NuxtPage
           :keepalive="{
-            include: ['dashboard', 'inbox', 'projects', 'links', 'users', 'api-consumers'],
+            include: ['dashboard', 'inbox', 'projects', 'links', 'posts', 'users', 'api-consumers'],
           }"
         />
       </NuxtLayout>

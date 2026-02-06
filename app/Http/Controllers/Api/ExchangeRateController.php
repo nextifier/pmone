@@ -201,8 +201,22 @@ class ExchangeRateController extends Controller
             ], 503);
         }
 
+        // Determine base currency (default: USD from DB)
+        $requestedBase = strtoupper($request->input('base', $exchangeRate->base_currency));
+        $rates = $exchangeRate->rates;
+
+        // Re-base rates if a different base currency is requested
+        if ($requestedBase !== $exchangeRate->base_currency && isset($rates[$requestedBase])) {
+            $baseRate = $rates[$requestedBase];
+            $rebasedRates = [];
+            foreach ($rates as $code => $rate) {
+                $rebasedRates[$code] = $rate / $baseRate;
+            }
+            $rates = $rebasedRates;
+        }
+
         // Build rates with metadata
-        $ratesWithMeta = $this->buildRatesWithMetadata($exchangeRate->rates);
+        $ratesWithMeta = $this->buildRatesWithMetadata($rates);
 
         // Filter by search term if provided
         $search = $request->input('search');
@@ -237,7 +251,7 @@ class ExchangeRateController extends Controller
 
         return response()->json([
             'data' => [
-                'base_currency' => $exchangeRate->base_currency,
+                'base_currency' => $requestedBase,
                 'rates' => $ratesWithMeta,
                 'rates_count' => count($ratesWithMeta),
             ],

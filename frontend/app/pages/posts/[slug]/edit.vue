@@ -31,7 +31,7 @@
 definePageMeta({
   middleware: ["sanctum:auth", "permission"],
   permissions: ["posts.update"],
-  layout: "post-editor",
+  layout: "app",
 });
 
 const route = useRoute();

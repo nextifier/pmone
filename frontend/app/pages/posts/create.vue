@@ -8,7 +8,7 @@
 definePageMeta({
   middleware: ["sanctum:auth", "permission"],
   permissions: ["posts.create"],
-  layout: "post-editor",
+  layout: "app",
 });
 
 useHead({
