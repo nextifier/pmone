@@ -18,7 +18,7 @@ class GhostTagImporter
         protected GhostImporter $importer
     ) {}
 
-    public function import(): array
+    public function import(bool $dryRun = false): array
     {
         $tags = $this->importer->getData('tags');
         $postsTags = $this->importer->getData('posts_tags');
@@ -33,7 +33,7 @@ class GhostTagImporter
             }
 
             try {
-                $this->importTag($ghostTag);
+                $this->importTag($ghostTag, $dryRun);
             } catch (\Exception $e) {
                 $this->errors[] = [
                     'tag' => $ghostTag['name'],
@@ -53,7 +53,7 @@ class GhostTagImporter
         ];
     }
 
-    protected function importTag(array $ghostTag): void
+    protected function importTag(array $ghostTag, bool $dryRun = false): void
     {
         // Check if tag already exists by slug
         $existingTag = Tag::query()
@@ -62,14 +62,24 @@ class GhostTagImporter
 
         if ($existingTag) {
             // Update type to 'post' if it's NULL
-            if ($existingTag->type === null) {
+            if ($existingTag->type === null && ! $dryRun) {
                 $existingTag->update(['type' => 'post']);
                 Log::info('Updated existing tag type to post', ['name' => $ghostTag['name']]);
             }
 
             $this->skipped++;
-            $this->importer->setMapping('tags', $ghostTag['id'], $existingTag->id);
+            if (! $dryRun) {
+                $this->importer->setMapping('tags', $ghostTag['id'], $existingTag->id);
+            }
             Log::info('Tag already exists, skipping', ['name' => $ghostTag['name']]);
+
+            return;
+        }
+
+        if ($dryRun) {
+            // In dry run mode, just count as would-be-created
+            $this->created++;
+            Log::info('[DRY RUN] Would create tag', ['name' => $ghostTag['name']]);
 
             return;
         }

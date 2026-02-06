@@ -8,19 +8,26 @@ use Illuminate\Console\Command;
 
 class ImportTagsCommand extends Command
 {
-    protected $signature = 'ghost:import-tags';
+    protected $signature = 'ghost:import-tags
+                            {--dry-run : Run without saving to database}';
 
     protected $description = 'Import tags from Ghost export JSON';
 
     public function handle(): int
     {
+        $dryRun = $this->option('dry-run');
+
+        if ($dryRun) {
+            $this->warn('DRY RUN MODE - No changes will be saved');
+        }
+
         $this->info('Starting Ghost tags import...');
 
         try {
             $importer = new GhostImporter;
             $tagImporter = new GhostTagImporter($importer);
 
-            $result = $tagImporter->import();
+            $result = $tagImporter->import($dryRun);
 
             $this->info('Tags imported: '.$result['created']);
             $this->info('Tags skipped: '.$result['skipped']);

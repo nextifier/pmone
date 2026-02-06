@@ -19,13 +19,13 @@ class GhostUserImporter
         protected GhostImporter $importer
     ) {}
 
-    public function import(): array
+    public function import(bool $dryRun = false): array
     {
         $users = $this->importer->getData('users');
 
         foreach ($users as $ghostUser) {
             try {
-                $this->importUser($ghostUser);
+                $this->importUser($ghostUser, $dryRun);
             } catch (\Exception $e) {
                 $this->errors[] = [
                     'email' => $ghostUser['email'],
@@ -45,14 +45,16 @@ class GhostUserImporter
         ];
     }
 
-    protected function importUser(array $ghostUser): void
+    protected function importUser(array $ghostUser, bool $dryRun = false): void
     {
         // Check if user already exists
         $existingUser = User::query()->where('email', $ghostUser['email'])->first();
 
         if ($existingUser) {
             $this->skipped++;
-            $this->importer->setMapping('users', $ghostUser['id'], $existingUser->id);
+            if (! $dryRun) {
+                $this->importer->setMapping('users', $ghostUser['id'], $existingUser->id);
+            }
             Log::info('User already exists, skipping', ['email' => $ghostUser['email']]);
 
             return;
@@ -60,6 +62,17 @@ class GhostUserImporter
 
         // Generate username from slug or email
         $username = $this->generateUniqueUsername($ghostUser['slug']);
+
+        if ($dryRun) {
+            // In dry run mode, just count as would-be-created
+            $this->created++;
+            Log::info('[DRY RUN] Would create user', [
+                'email' => $ghostUser['email'],
+                'username' => $username,
+            ]);
+
+            return;
+        }
 
         // Create user
         $user = User::create([

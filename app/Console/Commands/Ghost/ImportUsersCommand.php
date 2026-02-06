@@ -8,12 +8,19 @@ use Illuminate\Console\Command;
 
 class ImportUsersCommand extends Command
 {
-    protected $signature = 'ghost:import-users';
+    protected $signature = 'ghost:import-users
+                            {--dry-run : Run without saving to database}';
 
     protected $description = 'Import users from Ghost export JSON';
 
     public function handle(): int
     {
+        $dryRun = $this->option('dry-run');
+
+        if ($dryRun) {
+            $this->warn('DRY RUN MODE - No changes will be saved');
+        }
+
         $this->info('Starting Ghost users import...');
 
         try {
@@ -45,7 +52,7 @@ class ImportUsersCommand extends Command
             }
 
             // Import users
-            $result = $userImporter->import();
+            $result = $userImporter->import($dryRun);
 
             // Show results
             $this->newLine();
