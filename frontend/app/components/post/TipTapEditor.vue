@@ -236,6 +236,14 @@ const props = defineProps({
     type: Number,
     default: null,
   },
+  modelType: {
+    type: String,
+    default: "App\\Models\\Post",
+  },
+  collection: {
+    type: String,
+    default: "content_images",
+  },
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -414,8 +422,8 @@ const handleImageUpload = async (event) => {
     // This ensures consistent behavior and proper cleanup
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("model_type", "App\\Models\\Post");
-    formData.append("collection", "content_images");
+    formData.append("model_type", props.modelType);
+    formData.append("collection", props.collection);
     // Always send model_id: 0 to use temporary storage
     formData.append("model_id", "0");
 

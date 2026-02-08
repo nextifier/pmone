@@ -1,7 +1,7 @@
 <template>
   <div
     :data-id="task.id"
-    class="group flex items-start gap-x-2 rounded-lg px-1 py-1.5"
+    class="group flex items-start gap-x-1 rounded-lg px-1 py-1.5"
     :class="task.status === 'completed' ? 'opacity-60' : ''"
   >
     <!-- Drag Handle -->
@@ -57,32 +57,32 @@
       </div>
     </div>
 
-    <!-- Pin (toggle in_progress) -->
-    <button
-      v-if="task.status !== 'completed'"
-      type="button"
-      @click="togglePin"
-      class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md opacity-0 transition-opacity group-hover:opacity-100"
-      :class="
-        task.status === 'in_progress'
-          ? 'text-primary opacity-100'
-          : 'text-muted-foreground hover:text-foreground'
-      "
-    >
-      <Icon
-        :name="task.status === 'in_progress' ? 'hugeicons:pin' : 'hugeicons:pin'"
-        class="size-4"
-      />
-    </button>
-
-    <!-- Delete -->
-    <button
-      type="button"
-      @click="$emit('delete', task)"
-      class="text-muted-foreground hover:text-foreground flex h-7 w-7 shrink-0 items-center justify-center rounded-md opacity-0 transition-opacity group-hover:opacity-100"
-    >
-      <Icon name="hugeicons:cancel-01" class="size-4" />
-    </button>
+    <!-- Actions Dropdown -->
+    <DropdownMenu>
+      <DropdownMenuTrigger as-child>
+        <button
+          type="button"
+          class="text-muted-foreground hover:text-foreground hover:bg-muted flex size-7 shrink-0 items-center justify-center rounded-full"
+        >
+          <Icon name="hugeicons:more-vertical" class="size-4.5" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" class="w-44">
+        <DropdownMenuItem @click="$emit('edit', task)">
+          <Icon name="hugeicons:pencil-edit-01" class="size-4" />
+          <span>Edit</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem v-if="task.status !== 'completed'" @click="togglePin">
+          <Icon name="hugeicons:pin" class="size-4" />
+          <span>{{ task.status === "in_progress" ? "Move to To Do" : "Start Working" }}</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem class="text-destructive" @click="$emit('delete', task)">
+          <Icon name="hugeicons:delete-02" class="size-4" />
+          <span>Delete</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   </div>
 </template>
 
@@ -90,6 +90,13 @@
 import Avatar from "@/components/Avatar.vue";
 import PriorityBars from "@/components/task/PriorityBars.vue";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const props = defineProps({
   task: {

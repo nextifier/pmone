@@ -1,11 +1,9 @@
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-6">
-    <div class="border-border bg-card space-y-6 rounded-lg border p-6">
+    <div class="space-y-6">
       <!-- Title -->
       <div class="space-y-2">
-        <Label for="title">
-          Task Title <span class="text-destructive">*</span>
-        </Label>
+        <Label for="title"> Task Title <span class="text-destructive">*</span> </Label>
         <Input
           id="title"
           v-model="form.title"
@@ -21,18 +19,14 @@
       <!-- Description -->
       <div class="space-y-2">
         <Label for="description">Description</Label>
-        <!-- TODO: Integrate TipTap Editor here -->
-        <Textarea
-          id="description"
+        <TipTapEditor
           v-model="form.description"
-          rows="6"
+          model-type="App\\Models\\Task"
+          collection="description_images"
           placeholder="Describe the task in detail..."
-          :class="{ 'border-destructive': errors.description }"
-          class="min-h-32"
         />
-        <p v-if="errors.description" class="text-destructive text-xs">{{ errors.description[0] }}</p>
-        <p class="text-muted-foreground text-xs">
-          Rich text editor with image support will be integrated (TipTap)
+        <p v-if="errors.description" class="text-destructive text-xs">
+          {{ errors.description[0] }}
         </p>
       </div>
 
@@ -86,7 +80,9 @@
               <SelectItem value="high">High</SelectItem>
             </SelectContent>
           </Select>
-          <p v-if="errors.complexity" class="text-destructive text-xs">{{ errors.complexity[0] }}</p>
+          <p v-if="errors.complexity" class="text-destructive text-xs">
+            {{ errors.complexity[0] }}
+          </p>
         </div>
       </div>
 
@@ -95,15 +91,27 @@
         <!-- Estimated Start -->
         <div class="space-y-2">
           <Label for="estimated_start_at">Estimated Start Time</Label>
-          <DateTimePicker v-model="form.estimated_start_at" placeholder="Select start time" :default-hour="9" />
-          <p v-if="errors.estimated_start_at" class="text-destructive text-xs">{{ errors.estimated_start_at[0] }}</p>
+          <DateTimePicker
+            v-model="form.estimated_start_at"
+            placeholder="Select start time"
+            :default-hour="9"
+          />
+          <p v-if="errors.estimated_start_at" class="text-destructive text-xs">
+            {{ errors.estimated_start_at[0] }}
+          </p>
         </div>
 
         <!-- Estimated Completion -->
         <div class="space-y-2">
           <Label for="estimated_completion_at">Estimated Completion Time</Label>
-          <DateTimePicker v-model="form.estimated_completion_at" placeholder="Select completion time" :default-hour="17" />
-          <p v-if="errors.estimated_completion_at" class="text-destructive text-xs">{{ errors.estimated_completion_at[0] }}</p>
+          <DateTimePicker
+            v-model="form.estimated_completion_at"
+            placeholder="Select completion time"
+            :default-hour="17"
+          />
+          <p v-if="errors.estimated_completion_at" class="text-destructive text-xs">
+            {{ errors.estimated_completion_at[0] }}
+          </p>
         </div>
       </div>
 
@@ -125,10 +133,10 @@
           placeholder="User ID"
           :class="{ 'border-destructive': errors.assignee_id }"
         />
-        <p v-if="errors.assignee_id" class="text-destructive text-xs">{{ errors.assignee_id[0] }}</p>
-        <p class="text-muted-foreground text-xs">
-          Optional: Assign this task to a user
+        <p v-if="errors.assignee_id" class="text-destructive text-xs">
+          {{ errors.assignee_id[0] }}
         </p>
+        <p class="text-muted-foreground text-xs">Optional: Assign this task to a user</p>
       </div>
 
       <!-- Project -->
@@ -166,9 +174,7 @@
 
       <!-- Visibility -->
       <div class="space-y-3">
-        <Label>
-          Who can view this task? <span class="text-destructive">*</span>
-        </Label>
+        <Label> Who can view this task? <span class="text-destructive">*</span> </Label>
         <RadioGroup v-model="form.visibility" class="space-y-2">
           <div
             v-for="option in visibilityOptions"
@@ -176,9 +182,13 @@
             :class="{
               'border-primary bg-primary/5': form.visibility === option.value,
             }"
-            class="border-border flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors hover:bg-muted"
+            class="border-border hover:bg-muted flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors"
           >
-            <RadioGroupItem :value="option.value" :id="`visibility-${option.value}`" class="mt-0.5" />
+            <RadioGroupItem
+              :value="option.value"
+              :id="`visibility-${option.value}`"
+              class="mt-0.5"
+            />
             <Label :for="`visibility-${option.value}`" class="flex-1 cursor-pointer">
               <div class="text-foreground font-medium">{{ option.label }}</div>
               <div class="text-muted-foreground text-sm font-normal">{{ option.description }}</div>
@@ -190,9 +200,7 @@
 
       <!-- Shared Users (only if visibility is 'shared') -->
       <div v-if="form.visibility === 'shared'" class="space-y-2">
-        <Label>
-          Share with Users <span class="text-destructive">*</span>
-        </Label>
+        <Label> Share with Users <span class="text-destructive">*</span> </Label>
         <UserMultiSelect
           v-if="eligibleUsers.length > 0"
           :users="eligibleUsers"
@@ -210,37 +218,33 @@
             Example: 1,2,3 (will default to viewer role)
           </p>
         </div>
-        <p v-if="errors.shared_user_ids" class="text-destructive text-xs">{{ errors.shared_user_ids[0] }}</p>
+        <p v-if="errors.shared_user_ids" class="text-destructive text-xs">
+          {{ errors.shared_user_ids[0] }}
+        </p>
       </div>
     </div>
 
     <!-- Form Actions -->
     <div class="flex items-center justify-end gap-3">
-      <Button
-        type="button"
-        variant="outline"
-        @click="$emit('cancel')"
-        :disabled="loading"
-      >
+      <Button type="button" variant="outline" @click="$emit('cancel')" :disabled="loading">
         Cancel
       </Button>
-      <Button
-        type="submit"
-        :disabled="loading || !isFormValid"
-      >
+      <Button type="submit" :disabled="loading || !isFormValid">
         <Spinner v-if="loading" class="mr-2 size-4" />
-        <span>{{ task ? 'Update Task' : 'Create Task' }}</span>
+        <span>{{ task ? "Update Task" : "Create Task" }}</span>
       </Button>
     </div>
   </form>
 </template>
 
 <script setup>
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import Avatar from "@/components/Avatar.vue";
+import DateTimePicker from "@/components/DateTimePicker.vue";
+import TipTapEditor from "@/components/post/TipTapEditor.vue";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -248,13 +252,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@/components/ui/radio-group";
+import { Spinner } from "@/components/ui/spinner";
 import UserMultiSelect from "@/components/user/MultiSelect.vue";
-import DateTimePicker from "@/components/DateTimePicker.vue";
-import Avatar from "@/components/Avatar.vue";
 
 const props = defineProps({
   task: {
@@ -267,20 +266,20 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['submit', 'cancel']);
+const emit = defineEmits(["submit", "cancel"]);
 
 const { user: currentUser } = useSanctumAuth();
 
 // Form data
 const form = reactive({
-  title: props.task?.title || '',
-  description: props.task?.description || '',
-  status: props.task?.status || 'todo',
+  title: props.task?.title || "",
+  description: props.task?.description || "",
+  status: props.task?.status || "todo",
   priority: props.task?.priority || null,
   complexity: props.task?.complexity || null,
-  visibility: props.task?.visibility || 'public',
+  visibility: props.task?.visibility || "public",
   assignee_id: props.task?.assignee_id ?? currentUser.value?.id ?? null,
-  project_id: props.task?.project_id || null,
+  project_id: props.task?.project_id || props.task?.project?.id || null,
   estimated_start_at: props.task?.estimated_start_at
     ? new Date(props.task.estimated_start_at)
     : null,
@@ -288,26 +287,21 @@ const form = reactive({
     ? new Date(props.task.estimated_completion_at)
     : null,
   shared_user_ids: props.task?.shared_users?.map((u) => u.id) || [],
-  shared_roles: props.task?.shared_users?.reduce((acc, u) => {
-    acc[u.id] = u.role;
-    return acc;
-  }, {}) || {},
+  shared_roles:
+    props.task?.shared_users?.reduce((acc, u) => {
+      acc[u.id] = u.role;
+      return acc;
+    }, {}) || {},
 });
 
 const errors = ref({});
 
 // Temporary input for shared user IDs (comma-separated) - fallback when UserMultiSelect not available
-const sharedUserIdsInput = ref(
-  props.task?.shared_users?.map((u) => u.id).join(',') || ''
-);
+const sharedUserIdsInput = ref(props.task?.shared_users?.map((u) => u.id).join(",") || "");
 
 // Selected users for UserMultiSelect
 const selectedAssignee = ref(
-  props.task?.assignee
-    ? [props.task.assignee]
-    : currentUser.value
-      ? [currentUser.value]
-      : []
+  props.task?.assignee ? [props.task.assignee] : currentUser.value ? [currentUser.value] : []
 );
 const selectedSharedUsers = ref(props.task?.shared_users || []);
 
@@ -319,18 +313,18 @@ const eligibleProjects = ref([]);
 onMounted(async () => {
   try {
     // Fetch eligible users for assignment
-    const usersResponse = await sanctumClient('/api/users?per_page=100');
+    const usersResponse = await sanctumClient("/api/users?per_page=100");
     eligibleUsers.value = usersResponse.data || [];
   } catch (err) {
-    console.error('Failed to fetch eligible users:', err);
+    console.error("Failed to fetch eligible users:", err);
   }
 
   try {
     // Fetch projects for linking
-    const projectsResponse = await sanctumClient('/api/projects?per_page=100');
+    const projectsResponse = await sanctumClient("/api/projects?per_page=100");
     eligibleProjects.value = projectsResponse.data || [];
   } catch (err) {
-    console.error('Failed to fetch projects:', err);
+    console.error("Failed to fetch projects:", err);
   }
 });
 
@@ -341,10 +335,10 @@ watch(selectedAssignee, (users) => {
 
 // Watch selected shared users
 watch(selectedSharedUsers, (users) => {
-  form.shared_user_ids = users.map(u => u.id);
+  form.shared_user_ids = users.map((u) => u.id);
   const roles = {};
   users.forEach((u) => {
-    roles[u.id] = form.shared_roles[u.id] || 'viewer';
+    roles[u.id] = form.shared_roles[u.id] || "viewer";
   });
   form.shared_roles = roles;
 });
@@ -352,31 +346,31 @@ watch(selectedSharedUsers, (users) => {
 // Selected project computed
 const selectedProject = computed(() => {
   if (!form.project_id) return null;
-  return eligibleProjects.value.find(p => p.id === form.project_id);
+  return eligibleProjects.value.find((p) => p.id === form.project_id);
 });
 
 const visibilityOptions = [
   {
-    value: 'public',
-    label: 'Public',
-    description: 'Anyone can view this task',
+    value: "public",
+    label: "Public",
+    description: "Anyone can view this task",
   },
   {
-    value: 'private',
-    label: 'Private',
-    description: 'Only you can view this task',
+    value: "private",
+    label: "Private",
+    description: "Only you can view this task",
   },
   {
-    value: 'shared',
-    label: 'Shared',
-    description: 'Selected users can view/edit',
+    value: "shared",
+    label: "Shared",
+    description: "Selected users can view/edit",
   },
 ];
 
 const isFormValid = computed(() => {
   if (!form.title.trim()) return false;
   if (!form.visibility) return false;
-  if (form.visibility === 'shared' && form.shared_user_ids.length === 0) {
+  if (form.visibility === "shared" && form.shared_user_ids.length === 0) {
     return false;
   }
   return true;
@@ -387,11 +381,11 @@ const isFormValid = computed(() => {
 const formatDateTimeForBackend = (date) => {
   if (!date) return null;
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = '00';
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = "00";
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
@@ -399,7 +393,7 @@ const formatDateTimeForBackend = (date) => {
 watch(sharedUserIdsInput, (value) => {
   if (value && eligibleUsers.value.length === 0) {
     const ids = value
-      .split(',')
+      .split(",")
       .map((id) => parseInt(id.trim()))
       .filter((id) => !isNaN(id));
     form.shared_user_ids = ids;
@@ -407,7 +401,7 @@ watch(sharedUserIdsInput, (value) => {
     // Set default role to viewer for all
     const roles = {};
     ids.forEach((id) => {
-      roles[id] = 'viewer';
+      roles[id] = "viewer";
     });
     form.shared_roles = roles;
   }
@@ -432,17 +426,19 @@ const handleSubmit = () => {
   };
 
   // Add shared users if visibility is shared
-  if (form.visibility === 'shared' && form.shared_user_ids.length > 0) {
+  if (form.visibility === "shared" && form.shared_user_ids.length > 0) {
     payload.shared_user_ids = form.shared_user_ids;
     payload.shared_roles = form.shared_roles;
   }
 
-  emit('submit', payload);
+  emit("submit", payload);
 };
 
 // Expose for parent component
 defineExpose({
   handleSubmit,
-  setErrors: (newErrors) => { errors.value = newErrors; },
+  setErrors: (newErrors) => {
+    errors.value = newErrors;
+  },
 });
 </script>

@@ -162,6 +162,7 @@
                 placeholder="Add task..."
                 class="text-foreground placeholder:text-muted-foreground/60 w-full bg-transparent text-sm tracking-tight outline-none"
                 @keydown.enter="handleQuickAdd"
+                @blur="handleQuickAdd"
                 :disabled="quickAddLoading"
               />
               <Spinner v-if="quickAddLoading" class="size-4 shrink-0" />
@@ -223,9 +224,7 @@
       :overflow-content="true"
     >
       <template #sticky-header>
-        <div
-          class="border-border bg-background/95 sticky top-0 z-10 border-b px-4 py-4 backdrop-blur md:px-6"
-        >
+        <div class="border-border sticky top-0 z-10 border-b px-4 pb-4 md:px-6">
           <div class="text-lg font-semibold tracking-tight">Create New Task</div>
           <p class="text-muted-foreground text-sm">Add a new task to your list</p>
         </div>
@@ -243,11 +242,13 @@
     </DialogResponsive>
 
     <!-- Edit Task Dialog -->
-    <DialogResponsive v-model:open="editDialogOpen" dialog-max-width="600px">
+    <DialogResponsive
+      v-model:open="editDialogOpen"
+      dialog-max-width="600px"
+      :overflow-content="true"
+    >
       <template #sticky-header>
-        <div
-          class="border-border bg-background/95 sticky top-0 z-10 border-b px-4 py-4 backdrop-blur md:px-6"
-        >
+        <div class="border-border sticky top-0 z-10 border-b px-4 pb-4 md:px-6">
           <div class="text-lg font-semibold tracking-tight">Edit Task</div>
           <p class="text-muted-foreground text-sm">Update task details</p>
         </div>
@@ -267,7 +268,11 @@
     </DialogResponsive>
 
     <!-- Detail Task Dialog -->
-    <DialogResponsive v-model:open="detailDialogOpen" dialog-max-width="550px">
+    <DialogResponsive
+      v-model:open="detailDialogOpen"
+      dialog-max-width="600px"
+      :overflow-content="true"
+    >
       <template #default>
         <TaskDetailDialog
           v-if="taskToView"
@@ -611,7 +616,7 @@ const handleQuickAdd = async () => {
 
   quickAddLoading.value = true;
   try {
-    await client("/api/tasks", {
+    const response = await client("/api/tasks", {
       method: "POST",
       body: {
         title,
@@ -622,8 +627,13 @@ const handleQuickAdd = async () => {
     });
 
     quickAddTitle.value = "";
-    await refresh();
-    nextTick(() => quickAddInputEl.value?.focus());
+
+    // Add new task directly to the todo list (no refresh needed)
+    todoTasksList.value.push(response.data);
+    nextTick(() => {
+      initializeSortable();
+      quickAddInputEl.value?.focus();
+    });
   } catch (err) {
     console.error("Failed to create task:", err);
     toast.error(err.response?._data?.message || "Failed to create task");

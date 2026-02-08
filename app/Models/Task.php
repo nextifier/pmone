@@ -46,6 +46,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $sharedUsers
  * @property-read int|null $shared_users_count
  * @property-read \App\Models\User|null $updater
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task byComplexity(array|string $complexity)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task byPriority(array|string $priority)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task byStatus(array|string $status)
@@ -80,6 +81,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereVisibility($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Task extends Model implements HasMedia
@@ -213,6 +215,11 @@ class Task extends Model implements HasMedia
             // Only set created_by if not already set and user is authenticated
             if (empty($model->created_by) && auth()->check()) {
                 $model->created_by = auth()->id();
+            }
+
+            // Auto-set order_column to max + 1 so new tasks appear at the bottom
+            if (empty($model->order_column)) {
+                $model->order_column = (int) static::max('order_column') + 1;
             }
         });
 

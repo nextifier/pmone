@@ -11,7 +11,6 @@ use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class TaskController extends Controller
 {
@@ -26,7 +25,7 @@ class TaskController extends Controller
         // /tasks - Show only tasks assigned to current user
         $query = Task::query()
             ->where('assignee_id', $user->id)
-            ->with(['assignee', 'project.media', 'creator']);
+            ->with(['assignee.media', 'project.media', 'creator']);
 
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
@@ -92,7 +91,7 @@ class TaskController extends Controller
 
         $query = Task::query()
             ->where('assignee_id', $targetUser->id)
-            ->with(['assignee', 'project.media', 'creator']);
+            ->with(['assignee.media', 'project.media', 'creator']);
 
         // Master sees all tasks for this user
         if (! $viewer->hasRole('master')) {
@@ -136,7 +135,7 @@ class TaskController extends Controller
     {
         $this->authorize('viewAny', Task::class);
 
-        $query = Task::onlyTrashed()->with(['assignee', 'project', 'creator']);
+        $query = Task::onlyTrashed()->with(['assignee.media', 'project.media', 'creator']);
 
         // Non-admin users see only their accessible tasks
         $user = $request->user();
@@ -174,10 +173,8 @@ class TaskController extends Controller
             $this->syncSharedUsers($task, $request->input('shared_user_ids'), $request->input('shared_roles', []));
         }
 
-        // Handle TipTap description images (convert temporary uploads to permanent)
-        if ($request->has('description_images')) {
-            $this->attachDescriptionImages($task, $request->input('description_images'));
-        }
+        // Process content images (move from temp to permanent storage)
+        $this->processContentImages($task);
 
         return response()->json([
             'message' => 'Task created successfully',
@@ -188,7 +185,7 @@ class TaskController extends Controller
     public function show(string $ulid): JsonResponse
     {
         $task = Task::where('ulid', $ulid)
-            ->with(['assignee', 'sharedUsers', 'project', 'creator', 'updater', 'media'])
+            ->with(['assignee.media', 'sharedUsers', 'project.media', 'creator', 'updater', 'media'])
             ->firstOrFail();
 
         $this->authorize('view', $task);
@@ -203,6 +200,9 @@ class TaskController extends Controller
         $task = Task::where('ulid', $ulid)->firstOrFail();
 
         $this->authorize('update', $task);
+
+        // Store old description before update for cleanup comparison
+        $oldDescription = $task->description;
 
         $task->update([
             ...$request->safe()->except(['shared_user_ids', 'shared_roles', 'description_images']),
@@ -219,10 +219,11 @@ class TaskController extends Controller
             }
         }
 
-        // Handle description images
-        if ($request->has('description_images')) {
-            $this->attachDescriptionImages($task, $request->input('description_images'));
-        }
+        // Process content images (move from temp to permanent storage)
+        $this->processContentImages($task);
+
+        // Cleanup removed content images
+        $this->cleanupRemovedContentImages($task, $oldDescription);
 
         return response()->json([
             'message' => 'Task updated successfully',
@@ -441,16 +442,182 @@ class TaskController extends Controller
         $task->sharedUsers()->sync($sharedUsers);
     }
 
-    private function attachDescriptionImages(Task $task, array $temporaryUploadUuids): void
+    /**
+     * Process content images - move temporary images to permanent storage
+     */
+    private function processContentImages(Task $task): void
     {
-        foreach ($temporaryUploadUuids as $uuid) {
-            // Find temporary media and move to task's collection
-            $tempMedia = Media::where('uuid', $uuid)->first();
+        if (! $task->description) {
+            return;
+        }
 
-            if ($tempMedia) {
-                $tempMedia->move($task, 'description_images');
+        $content = $task->description;
+        // Match both relative URLs (/api/tmp-media/...) and absolute URLs (http://host/api/tmp-media/...)
+        $pattern = '/<img[^>]+src="(?:https?:\/\/[^\/]+)?\/api\/tmp-media\/(tmp-media-[a-zA-Z0-9._-]+)"[^>]*>/';
+
+        if (! preg_match_all($pattern, $content, $matches, PREG_SET_ORDER)) {
+            return;
+        }
+
+        foreach ($matches as $match) {
+            $fullImgTag = $match[0];
+            $folder = $match[1];
+
+            try {
+                $metadataPath = "tmp/uploads/{$folder}/metadata.json";
+
+                if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+                    continue;
+                }
+
+                $metadata = json_decode(\Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath), true);
+                $filename = $metadata['original_name'];
+                $tempFilePath = "tmp/uploads/{$folder}/{$filename}";
+
+                if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($tempFilePath)) {
+                    continue;
+                }
+
+                // Extract caption from data-caption attribute if exists
+                $caption = null;
+                if (preg_match('/data-caption="([^"]*)"/', $fullImgTag, $captionMatch)) {
+                    $caption = html_entity_decode($captionMatch[1]);
+                }
+
+                // Move file from temp storage to permanent storage
+                $mediaAdder = $task->addMediaFromDisk($tempFilePath, 'local')
+                    ->usingName(pathinfo($filename, PATHINFO_FILENAME));
+
+                if ($caption) {
+                    $mediaAdder->withCustomProperties(['caption' => $caption]);
+                }
+
+                $media = $mediaAdder->toMediaCollection('description_images');
+
+                // Build responsive image HTML with srcset
+                $responsiveImg = $this->buildResponsiveImageHtml($media, $caption);
+
+                // Replace entire img tag with responsive version
+                $content = str_replace($fullImgTag, $responsiveImg, $content);
+
+                // Clean up temporary storage
+                \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$folder}");
+            } catch (\Exception $e) {
+                logger()->warning('Failed to process content image', [
+                    'folder' => $folder,
+                    'error' => $e->getMessage(),
+                    'task_id' => $task->id,
+                ]);
             }
         }
+
+        if ($content !== $task->description) {
+            $task->update(['description' => $content]);
+        }
+    }
+
+    /**
+     * Build responsive image HTML with srcset for content images
+     */
+    private function buildResponsiveImageHtml($media, ?string $caption = null): string
+    {
+        $alt = $caption ?? $media->getCustomProperty('caption') ?? $media->name;
+
+        $srcset = [
+            $media->getUrl('sm').' 600w',
+            $media->getUrl('md').' 900w',
+            $media->getUrl('lg').' 1200w',
+            $media->getUrl('xl').' 1600w',
+        ];
+
+        $srcsetString = implode(', ', $srcset);
+        $sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px';
+
+        $html = sprintf(
+            '<img src="%s" srcset="%s" sizes="%s" alt="%s" loading="lazy" class="w-full h-auto rounded-lg">',
+            $media->getUrl('lg'),
+            $srcsetString,
+            $sizes,
+            htmlspecialchars($alt, ENT_QUOTES, 'UTF-8')
+        );
+
+        if ($caption) {
+            $html = sprintf(
+                '<figure>%s<figcaption>%s</figcaption></figure>',
+                $html,
+                htmlspecialchars($caption, ENT_QUOTES, 'UTF-8')
+            );
+        }
+
+        return $html;
+    }
+
+    /**
+     * Cleanup content images that were removed from task description
+     */
+    private function cleanupRemovedContentImages(Task $task, ?string $oldDescription): void
+    {
+        $contentImages = $task->getMedia('description_images');
+
+        if ($contentImages->isEmpty()) {
+            return;
+        }
+
+        $currentContent = $task->description ?? '';
+
+        foreach ($contentImages as $media) {
+            if (! $this->isMediaUsedInContent($media, $currentContent)) {
+                try {
+                    $media->delete();
+
+                    logger()->info('Deleted orphaned description image', [
+                        'task_id' => $task->id,
+                        'media_id' => $media->id,
+                        'file_name' => $media->file_name,
+                    ]);
+                } catch (\Exception $e) {
+                    logger()->warning('Failed to cleanup removed description image', [
+                        'task_id' => $task->id,
+                        'media_id' => $media->id,
+                        'file_name' => $media->file_name,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Check if a media file is used in content
+     */
+    private function isMediaUsedInContent($media, string $content): bool
+    {
+        if (empty($content)) {
+            return false;
+        }
+
+        $filename = $media->file_name;
+
+        if (str_contains($content, $filename)) {
+            return true;
+        }
+
+        $encodedFilename = rawurlencode($filename);
+        if (str_contains($content, $encodedFilename)) {
+            return true;
+        }
+
+        $baseName = pathinfo($filename, PATHINFO_FILENAME);
+        if (str_contains($content, $baseName)) {
+            return true;
+        }
+
+        $encodedBaseName = rawurlencode($baseName);
+        if (str_contains($content, $encodedBaseName)) {
+            return true;
+        }
+
+        return false;
     }
 
     private function applyFilters($query, Request $request): void
