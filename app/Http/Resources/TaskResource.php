@@ -14,8 +14,8 @@ class TaskResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // For list view (index, trash) - minimal data
-        if ($request->routeIs('tasks.index') || $request->routeIs('tasks.trash')) {
+        // For list view (index, all, user, trash) - minimal data
+        if ($request->routeIs('tasks.index', 'tasks.all', 'tasks.user', 'tasks.trash')) {
             return [
                 'id' => $this->id,
                 'ulid' => $this->ulid,
@@ -71,14 +71,13 @@ class TaskResource extends JsonResource
             'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
             'updater' => $this->whenLoaded('updater', fn () => new UserMinimalResource($this->updater)),
             'deleter' => $this->whenLoaded('deleter', fn () => new UserMinimalResource($this->deleter)),
-            'shared_users' => $this->whenLoaded('sharedUsers', fn () =>
-                $this->sharedUsers->map(fn ($user) => [
-                    'id' => $user->id,
-                    'ulid' => $user->ulid,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->pivot->role,
-                ])
+            'shared_users' => $this->whenLoaded('sharedUsers', fn () => $this->sharedUsers->map(fn ($user) => [
+                'id' => $user->id,
+                'ulid' => $user->ulid,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->pivot->role,
+            ])
             ),
 
             // Media (description images)

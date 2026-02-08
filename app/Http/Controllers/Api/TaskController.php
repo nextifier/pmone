@@ -7,6 +7,7 @@ use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,13 +21,12 @@ class TaskController extends Controller
     {
         $this->authorize('viewAny', Task::class);
 
-        $query = Task::query()->with(['assignee', 'project', 'creator']);
-
-        // Non-admin users see only their accessible tasks
         $user = $request->user();
-        if (! $user->hasRole(['master', 'admin'])) {
-            $query->visibleTo($user);
-        }
+
+        // /tasks - Show only tasks assigned to current user
+        $query = Task::query()
+            ->where('assignee_id', $user->id)
+            ->with(['assignee', 'project.media', 'creator']);
 
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
@@ -40,6 +40,94 @@ class TaskController extends Controller
                 'last_page' => $tasks->lastPage(),
                 'per_page' => $tasks->perPage(),
                 'total' => $tasks->total(),
+            ],
+        ]);
+    }
+
+    public function all(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', Task::class);
+
+        $user = $request->user();
+
+        $query = Task::query()->with(['assignee.media', 'project.media', 'creator']);
+
+        // Master sees everything, others see filtered by visibility
+        if (! $user->hasRole('master')) {
+            $query->visibleTo($user);
+        }
+
+        $this->applyFilters($query, $request);
+        $this->applySorting($query, $request);
+
+        $tasks = $query->get();
+
+        // Group by assignee_id
+        $grouped = $tasks->groupBy('assignee_id')->map(function ($tasks, $assigneeId) {
+            $assignee = $tasks->first()->assignee;
+
+            return [
+                'assignee' => $assignee ? [
+                    'id' => $assignee->id,
+                    'name' => $assignee->name,
+                    'username' => $assignee->username,
+                    'profile_image' => $assignee->relationLoaded('media') && $assignee->hasMedia('profile_image')
+                        ? $assignee->getMediaUrls('profile_image')
+                        : null,
+                ] : null,
+                'tasks' => TaskResource::collection($tasks),
+                'count' => $tasks->count(),
+            ];
+        })->values();
+
+        return response()->json([
+            'data' => $grouped,
+        ]);
+    }
+
+    public function userTasks(Request $request, string $username): JsonResponse
+    {
+        $targetUser = User::where('username', $username)->firstOrFail();
+        $viewer = $request->user();
+
+        $query = Task::query()
+            ->where('assignee_id', $targetUser->id)
+            ->with(['assignee', 'project.media', 'creator']);
+
+        // Master sees all tasks for this user
+        if (! $viewer->hasRole('master')) {
+            $query->where(function ($q) use ($viewer) {
+                $q->where('visibility', Task::VISIBILITY_PUBLIC)
+                    ->orWhere(function ($q2) use ($viewer) {
+                        $q2->where('visibility', Task::VISIBILITY_SHARED)
+                            ->whereHas('sharedUsers', fn ($s) => $s->where('user_id', $viewer->id));
+                    })
+                    ->orWhere('created_by', $viewer->id)
+                    ->orWhere('assignee_id', $viewer->id);
+            });
+        }
+
+        $this->applyFilters($query, $request);
+        $this->applySorting($query, $request);
+
+        $tasks = $query->paginate($request->input('per_page', 50));
+
+        return response()->json([
+            'data' => TaskResource::collection($tasks->items()),
+            'meta' => [
+                'current_page' => $tasks->currentPage(),
+                'last_page' => $tasks->lastPage(),
+                'per_page' => $tasks->perPage(),
+                'total' => $tasks->total(),
+            ],
+            'user' => [
+                'id' => $targetUser->id,
+                'name' => $targetUser->name,
+                'username' => $targetUser->username,
+                'title' => $targetUser->title,
+                'profile_image' => $targetUser->hasMedia('profile_image')
+                    ? $targetUser->getMediaUrls('profile_image')
+                    : null,
             ],
         ]);
     }
@@ -301,6 +389,40 @@ class TaskController extends Controller
             'message' => "{$deletedCount} task(s) permanently deleted",
             'deleted_count' => $deletedCount,
             'errors' => $errors,
+        ]);
+    }
+
+    public function updateOrder(Request $request): JsonResponse
+    {
+        $this->authorize('updateOrder', Task::class);
+
+        $validated = $request->validate([
+            'orders' => ['required', 'array'],
+            'orders.*.id' => ['required', 'integer', 'exists:tasks,id'],
+            'orders.*.order' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $cases = [];
+        $ids = [];
+        $params = [];
+
+        foreach ($validated['orders'] as $orderData) {
+            $cases[] = 'WHEN id = ? THEN ?::integer';
+            $params[] = $orderData['id'];
+            $params[] = $orderData['order'];
+            $ids[] = $orderData['id'];
+        }
+
+        $idsString = implode(',', $ids);
+        $casesString = implode(' ', $cases);
+
+        \DB::statement(
+            "UPDATE tasks SET order_column = CASE {$casesString} END WHERE id IN ({$idsString})",
+            $params
+        );
+
+        return response()->json([
+            'message' => 'Task order updated successfully',
         ]);
     }
 

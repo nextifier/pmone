@@ -269,6 +269,8 @@ const props = defineProps({
 
 const emit = defineEmits(['submit', 'cancel']);
 
+const { user: currentUser } = useSanctumAuth();
+
 // Form data
 const form = reactive({
   title: props.task?.title || '',
@@ -276,8 +278,8 @@ const form = reactive({
   status: props.task?.status || 'todo',
   priority: props.task?.priority || null,
   complexity: props.task?.complexity || null,
-  visibility: props.task?.visibility || 'private',
-  assignee_id: props.task?.assignee_id || null,
+  visibility: props.task?.visibility || 'public',
+  assignee_id: props.task?.assignee_id ?? currentUser.value?.id ?? null,
   project_id: props.task?.project_id || null,
   estimated_start_at: props.task?.estimated_start_at
     ? new Date(props.task.estimated_start_at)
@@ -300,7 +302,13 @@ const sharedUserIdsInput = ref(
 );
 
 // Selected users for UserMultiSelect
-const selectedAssignee = ref(props.task?.assignee ? [props.task.assignee] : []);
+const selectedAssignee = ref(
+  props.task?.assignee
+    ? [props.task.assignee]
+    : currentUser.value
+      ? [currentUser.value]
+      : []
+);
 const selectedSharedUsers = ref(props.task?.shared_users || []);
 
 // Fetch eligible users and projects

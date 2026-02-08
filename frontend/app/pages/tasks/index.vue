@@ -1,7 +1,17 @@
 <template>
   <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
     <!-- Header -->
-    <TasksHeader title="Task Management" icon="hugeicons:task-01" />
+    <TasksHeader title="My Tasks" icon="hugeicons:task-01">
+      <template #actions>
+        <NuxtLink
+          to="/tasks/all"
+          class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
+        >
+          <Icon name="hugeicons:user-group" class="size-4 shrink-0" />
+          <span>All Tasks</span>
+        </NuxtLink>
+      </template>
+    </TasksHeader>
 
     <!-- Filters -->
     <TasksFilters
@@ -63,148 +73,136 @@
       </button>
     </div>
 
-    <!-- Projects with Tasks (Full Width) -->
-    <div v-else class="space-y-6">
-      <div
-        v-for="projectGroup in groupedTasksByProject"
-        :key="projectGroup.project?.id || 'no-project'"
-        class="border-border bg-card rounded-xl border"
-      >
-        <!-- Project Header -->
-        <div class="border-border flex items-center gap-3 border-b p-4">
-          <!-- Project Avatar -->
-          <NuxtLink
-            v-if="projectGroup.project"
-            :to="`/tasks/${projectGroup.project.username}`"
-            class="bg-muted border-border relative size-12 shrink-0 overflow-hidden rounded-2xl border"
-          >
-            <NuxtImg
-              v-if="projectGroup.project.profile_image?.sm"
-              :src="projectGroup.project.profile_image.sm"
-              :alt="projectGroup.project.name"
-              class="size-full object-contain"
+    <!-- Tasks Content -->
+    <template v-else>
+      <!-- Show Details Toggle -->
+      <div class="flex items-center gap-x-2">
+        <Switch
+          id="show-details"
+          :model-value="showDetails"
+          @update:model-value="toggleShowDetails"
+        />
+        <Label for="show-details" class="cursor-pointer text-sm tracking-tight">Show Details</Label>
+      </div>
+
+      <!-- 2-Column Layout: Active (left) | Completed (right) -->
+      <div class="grid grid-cols-1 gap-x-3 gap-y-5 lg:grid-cols-2">
+        <!-- Left Column: In Progress + To Do -->
+        <div class="border-border bg-card rounded-xl border">
+          <!-- <div class="border-border flex items-center gap-x-2 border-b px-4 py-3">
+            <Icon name="hugeicons:task-01" class="text-muted-foreground size-4.5 shrink-0" />
+            <span class="text-sm font-medium tracking-tight">Active</span>
+            <Badge variant="outline" class="text-xs">
+              {{ pendingTasks.length }}
+            </Badge>
+          </div> -->
+
+          <div class="p-3">
+            <!-- In Progress Section -->
+            <div v-if="inProgressTasks.length > 0" class="mb-3">
+              <div class="flex items-center gap-x-1.5 px-1 pb-2">
+                <span
+                  class="bg-linear-to-r from-indigo-400 via-sky-500 to-emerald-500 bg-clip-text text-sm font-medium tracking-tight text-transparent"
+                >
+                  In Progress
+                </span>
+                <Badge variant="secondary" class="h-4 px-1.5 text-[10px]">
+                  {{ inProgressTasks.length }}
+                </Badge>
+              </div>
+              <div ref="inProgressListEl">
+                <TaskCard
+                  v-for="task in inProgressTasks"
+                  :key="task.id"
+                  :task="task"
+                  :show-details="showDetails"
+                  @update-status="handleUpdateStatus"
+                  @delete="openDeleteDialog"
+                  @view="openDetailDialog"
+                  @edit="openEditDialog"
+                />
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div
+              v-if="inProgressTasks.length > 0 && todoTasks.length > 0"
+              class="border-border mb-3 border-t"
             />
-            <div v-else class="flex size-full items-center justify-center">
-              <Icon name="hugeicons:folder-02" class="text-muted-foreground size-5" />
+
+            <!-- To Do Section -->
+            <div v-if="todoTasks.length > 0">
+              <div class="flex items-center gap-x-1.5 px-1 pb-2">
+                <span class="text-muted-foreground text-sm font-medium tracking-tight">To Do</span>
+                <Badge variant="secondary" class="h-4 px-1.5 text-[10px]">
+                  {{ todoTasks.length }}
+                </Badge>
+              </div>
+              <div ref="todoListEl">
+                <TaskCard
+                  v-for="task in todoTasks"
+                  :key="task.id"
+                  :task="task"
+                  :show-details="showDetails"
+                  @update-status="handleUpdateStatus"
+                  @delete="openDeleteDialog"
+                  @view="openDetailDialog"
+                  @edit="openEditDialog"
+                />
+              </div>
             </div>
-          </NuxtLink>
-          <div
-            v-else
-            class="bg-muted border-border flex size-12 shrink-0 items-center justify-center rounded-2xl border"
-          >
-            <Icon name="hugeicons:inbox" class="text-muted-foreground size-5" />
-          </div>
 
-          <!-- Project Info -->
-          <div class="flex flex-1 flex-col gap-y-1">
-            <NuxtLink
-              v-if="projectGroup.project"
-              :to="`/tasks/${projectGroup.project.username}`"
-              class="text-primary text-sm font-semibold hover:underline"
-            >
-              {{ projectGroup.project.name }}
-            </NuxtLink>
-            <span v-else class="text-muted-foreground text-sm font-semibold"> No Project </span>
-
-            <!-- Social Links -->
-            <div v-if="projectGroup.project" class="flex items-center gap-x-3">
-              <NuxtLink
-                v-if="projectGroup.project.more_details?.instagram"
-                :to="`https://www.instagram.com/${projectGroup.project.more_details.instagram}`"
-                target="_blank"
-                class="text-muted-foreground hover:text-primary transition"
-              >
-                <Icon name="hugeicons:instagram" class="size-4" />
-              </NuxtLink>
-              <NuxtLink
-                v-if="projectGroup.project.more_details?.website"
-                :to="projectGroup.project.more_details.website"
-                target="_blank"
-                class="text-muted-foreground hover:text-primary transition"
-              >
-                <Icon name="hugeicons:globe-02" class="size-4" />
-              </NuxtLink>
+            <!-- Quick Add -->
+            <div class="flex items-center gap-x-3.5 p-2.5">
+              <Icon name="hugeicons:plus-sign" class="text-muted-foreground size-4 shrink-0" />
+              <input
+                ref="quickAddInputEl"
+                v-model="quickAddTitle"
+                type="text"
+                placeholder="Add task..."
+                class="text-foreground placeholder:text-muted-foreground/60 w-full bg-transparent text-sm tracking-tight outline-none"
+                @keydown.enter="handleQuickAdd"
+                :disabled="quickAddLoading"
+              />
+              <Spinner v-if="quickAddLoading" class="size-4 shrink-0" />
             </div>
-          </div>
 
-          <!-- Task Count & View All -->
-          <div class="flex items-center gap-3">
-            <Badge variant="secondary"> {{ projectGroup.allTasks.length }} tasks </Badge>
-            <NuxtLink
-              v-if="projectGroup.project"
-              :to="`/tasks/${projectGroup.project.username}`"
-              class="text-primary/80 hover:text-primary flex items-center gap-x-1 text-sm font-medium tracking-tight transition hover:underline"
+            <!-- Empty pending -->
+            <div
+              v-if="pendingTasks.length === 0 && !quickAddTitle"
+              class="flex flex-col items-center justify-center py-8 text-center"
             >
-              <span>View all</span>
-              <Icon name="hugeicons:arrow-right-01" class="size-4 shrink-0" />
-            </NuxtLink>
+              <Icon name="hugeicons:inbox" class="text-muted-foreground/50 mb-2 size-8" />
+              <span class="text-muted-foreground text-xs">No active tasks</span>
+            </div>
           </div>
         </div>
 
-        <!-- Tasks by Status (2 columns: To Do & Completed) -->
-        <div
-          class="divide-border grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] divide-x divide-y"
-        >
-          <!-- To Do Column (includes In Progress at top) -->
-          <div class="p-4">
-            <div class="mb-3 flex items-center gap-x-1.5">
-              <Icon
-                name="hugeicons:dashed-line-circle"
-                class="text-muted-foreground size-4.5 shrink-0"
-              />
-              <span class="text-sm font-semibold tracking-tight">To Do</span>
-              <Badge variant="outline" class="text-xs">
-                {{ projectGroup.pendingTasks.length }}
-              </Badge>
-            </div>
-            <div v-if="projectGroup.pendingTasks.length > 0" v-auto-animate class="space-y-2">
-              <TaskCard
-                v-for="task in projectGroup.pendingTasks"
-                :key="task.id"
-                :task="task"
-                @update-status="handleUpdateStatus"
-                @delete="openDeleteDialog"
-                @view="openDetailDialog"
-                @edit="openEditDialog"
-              />
-            </div>
-            <div v-else class="flex flex-col items-center justify-center py-8 text-center">
-              <Icon name="hugeicons:inbox" class="text-muted-foreground/50 mb-2 size-8" />
-              <span class="text-muted-foreground text-xs">No pending tasks</span>
-            </div>
+        <!-- Right Column: Completed -->
+        <div class="border-border bg-card rounded-xl border">
+          <div class="border-border flex items-center gap-x-2 border-b px-4 py-3">
+            <Icon
+              name="hugeicons:checkmark-circle-02"
+              class="size-4.5 text-green-600 dark:text-green-500"
+            />
+            <span class="text-sm font-medium tracking-tight">Completed</span>
+            <Badge variant="outline" class="text-xs">
+              {{ completedTasks.length }}
+            </Badge>
           </div>
 
-          <!-- Completed Column -->
-          <div class="p-4">
-            <div class="mb-3 flex items-center gap-x-1.5">
-              <Icon name="hugeicons:checkmark-circle-02" class="text-success size-5" />
-              <span class="text-sm font-semibold tracking-tight">Completed</span>
-              <Badge variant="outline" class="text-xs">
-                {{
-                  projectGroup.completedTasks.length > 5
-                    ? `5 of ${projectGroup.completedTasks.length}`
-                    : projectGroup.completedTasks.length
-                }}
-              </Badge>
-            </div>
-            <div v-if="projectGroup.completedTasks.length > 0" v-auto-animate class="space-y-2">
+          <div class="p-3">
+            <div v-if="completedTasks.length > 0" ref="completedListEl">
               <TaskCard
-                v-for="task in projectGroup.completedTasks.slice(0, 5)"
+                v-for="task in completedTasks"
                 :key="task.id"
                 :task="task"
+                :show-details="showDetails"
                 @update-status="handleUpdateStatus"
                 @delete="openDeleteDialog"
                 @view="openDetailDialog"
                 @edit="openEditDialog"
               />
-              <NuxtLink
-                v-if="projectGroup.project && projectGroup.completedTasks.length > 5"
-                :to="`/tasks/${projectGroup.project.username}`"
-                class="text-muted-foreground hover:text-primary mt-3 flex items-center gap-x-1 text-xs font-medium tracking-tight transition"
-              >
-                <span>View {{ projectGroup.completedTasks.length - 5 }} more completed tasks</span>
-                <Icon name="hugeicons:arrow-right-01" class="size-3 shrink-0" />
-              </NuxtLink>
             </div>
             <div v-else class="flex flex-col items-center justify-center py-8 text-center">
               <Icon
@@ -216,7 +214,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </template>
 
     <!-- Create Task Dialog -->
     <DialogResponsive
@@ -311,6 +309,9 @@ import TasksFilters from "@/components/task/TasksFilters.vue";
 import TasksHeader from "@/components/task/TasksHeader.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { useSortable } from "@vueuse/integrations/useSortable";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -319,137 +320,260 @@ definePageMeta({
 });
 
 const client = useSanctumClient();
+const { user: currentUser } = useSanctumAuth();
+
+// Show details toggle (persisted in localStorage)
+const showDetails = ref(false);
+
+onMounted(() => {
+  showDetails.value = localStorage.getItem("tasks-show-details") === "true";
+});
+
+const toggleShowDetails = (checked) => {
+  showDetails.value = checked;
+  localStorage.setItem("tasks-show-details", String(checked));
+};
 
 // Filter state
 const searchQuery = ref("");
 const selectedStatuses = ref([]);
 const selectedPriorities = ref([]);
 
-// Fetch tasks
+// Fetch tasks sorted by order_column
 const {
   data: tasksResponse,
   pending,
   error,
   refresh: fetchRefresh,
-} = await useLazySanctumFetch("/api/tasks?per_page=100", {
+} = await useLazySanctumFetch("/api/tasks?per_page=100&sort_by=order_column&sort_order=asc", {
   key: "tasks-list",
 });
 
-// Local reactive copy of tasks for optimistic updates
-const localTasks = ref([]);
+// Writable refs for sortable (source of truth per status)
+const inProgressTasksList = ref([]);
+const todoTasksList = ref([]);
+const completedTasksList = ref([]);
 
-// Sync API data to local state
+// Populate status lists from API data
+const populateLists = (tasks) => {
+  inProgressTasksList.value = tasks
+    .filter((t) => t.status === "in_progress")
+    .sort((a, b) => (a.order_column || 0) - (b.order_column || 0));
+  todoTasksList.value = tasks
+    .filter((t) => t.status === "todo")
+    .sort((a, b) => (a.order_column || 0) - (b.order_column || 0));
+  completedTasksList.value = tasks
+    .filter((t) => t.status === "completed")
+    .sort((a, b) => {
+      const dateA = a.completed_at ? new Date(a.completed_at) : new Date(0);
+      const dateB = b.completed_at ? new Date(b.completed_at) : new Date(0);
+      return dateB - dateA;
+    });
+};
+
+// Sync API data to writable refs
 watch(
   () => tasksResponse.value?.data,
   (newData) => {
     if (newData) {
-      localTasks.value = JSON.parse(JSON.stringify(newData));
+      populateLists(JSON.parse(JSON.stringify(newData)));
+      nextTick(() => initializeSortable());
     }
   },
   { immediate: true }
 );
 
-// Refresh function that updates local state
+// Refresh function
 const refresh = async () => {
   await fetchRefresh();
 };
 
-const allTasks = computed(() => localTasks.value);
+// Check if filters are active
+const hasActiveFilters = computed(() => {
+  return (
+    searchQuery.value !== "" ||
+    selectedStatuses.value.length > 0 ||
+    selectedPriorities.value.length > 0
+  );
+});
 
-// Filter tasks
-const filteredTasks = computed(() => {
-  let filtered = allTasks.value;
-
-  // Search filter
+// Apply client-side filters
+const applyClientFilters = (tasks) => {
+  let filtered = tasks;
   if (searchQuery.value) {
     const search = searchQuery.value.toLowerCase();
     filtered = filtered.filter(
-      (task) =>
-        task.title.toLowerCase().includes(search) ||
-        task.description?.toLowerCase().includes(search) ||
-        task.project?.name?.toLowerCase().includes(search)
+      (t) =>
+        t.title.toLowerCase().includes(search) ||
+        t.description?.toLowerCase().includes(search) ||
+        t.project?.name?.toLowerCase().includes(search)
     );
   }
-
-  // Status filter
   if (selectedStatuses.value.length > 0) {
-    filtered = filtered.filter((task) => selectedStatuses.value.includes(task.status));
+    filtered = filtered.filter((t) => selectedStatuses.value.includes(t.status));
   }
-
-  // Priority filter
   if (selectedPriorities.value.length > 0) {
-    filtered = filtered.filter((task) => selectedPriorities.value.includes(task.priority));
+    filtered = filtered.filter((t) => selectedPriorities.value.includes(t.priority));
   }
-
   return filtered;
+};
+
+// Display computed: returns writable ref value when no filters, filtered otherwise
+const inProgressTasks = computed(() => {
+  if (!hasActiveFilters.value) return inProgressTasksList.value;
+  return applyClientFilters(inProgressTasksList.value);
 });
 
-// Group tasks by project
-const groupedTasksByProject = computed(() => {
-  const grouped = {};
+const todoTasks = computed(() => {
+  if (!hasActiveFilters.value) return todoTasksList.value;
+  return applyClientFilters(todoTasksList.value);
+});
 
-  filteredTasks.value.forEach((task) => {
-    const projectId = task.project?.id || "no-project";
+const completedTasks = computed(() => {
+  if (!hasActiveFilters.value) return completedTasksList.value;
+  return applyClientFilters(completedTasksList.value);
+});
 
-    if (!grouped[projectId]) {
-      grouped[projectId] = {
-        project: task.project,
-        allTasks: [],
-        inProgressTasks: [],
-        todoTasks: [],
-        completedTasks: [],
-      };
-    }
+const pendingTasks = computed(() => [...inProgressTasks.value, ...todoTasks.value]);
+const filteredTasks = computed(() => [
+  ...inProgressTasks.value,
+  ...todoTasks.value,
+  ...completedTasks.value,
+]);
 
-    grouped[projectId].allTasks.push(task);
+// Drag and drop
+const todoListEl = ref(null);
+const inProgressListEl = ref(null);
+const completedListEl = ref(null);
+const isSyncing = ref(false);
 
-    if (task.status === "in_progress") {
-      grouped[projectId].inProgressTasks.push(task);
-    } else if (task.status === "todo") {
-      grouped[projectId].todoTasks.push(task);
-    } else if (task.status === "completed") {
-      grouped[projectId].completedTasks.push(task);
-    }
-  });
+const updateTaskOrder = async (tasksList) => {
+  if (isSyncing.value) return;
 
-  // Sort and combine tasks
-  Object.values(grouped).forEach((group) => {
-    // Sort completed tasks by completed_at (newest first)
-    group.completedTasks.sort((a, b) => {
-      const dateA = a.completed_at ? new Date(a.completed_at) : new Date(0);
-      const dateB = b.completed_at ? new Date(b.completed_at) : new Date(0);
-      return dateB - dateA;
+  try {
+    isSyncing.value = true;
+
+    const orders = tasksList.value.map((task, index) => ({
+      id: task.id,
+      order: index + 1,
+    }));
+
+    await client("/api/tasks/update-order", {
+      method: "POST",
+      body: { orders },
     });
 
-    // Combine in_progress + todo tasks (in_progress first)
-    group.pendingTasks = [...group.inProgressTasks, ...group.todoTasks];
+    tasksList.value.forEach((task, index) => {
+      task.order_column = index + 1;
+    });
+  } catch (err) {
+    console.error("Failed to update task order:", err);
+    toast.error("Failed to update task order");
+    await refresh();
+  } finally {
+    isSyncing.value = false;
+  }
+};
+
+let todoSortable = null;
+let inProgressSortable = null;
+let completedSortable = null;
+
+const initializeSortable = () => {
+  if (todoSortable?.stop) {
+    todoSortable.stop();
+    todoSortable = null;
+  }
+  if (inProgressSortable?.stop) {
+    inProgressSortable.stop();
+    inProgressSortable = null;
+  }
+  if (completedSortable?.stop) {
+    completedSortable.stop();
+    completedSortable = null;
+  }
+
+  if (hasActiveFilters.value) return;
+
+  const sortableOptions = (tasksList) => ({
+    animation: 200,
+    handle: ".drag-handle",
+    ghostClass: "sortable-ghost",
+    chosenClass: "sortable-chosen",
+    dragClass: "sortable-drag",
+    onEnd: async () => {
+      await nextTick();
+      await updateTaskOrder(tasksList);
+    },
   });
 
-  // Convert to array and sort alphabetically, with "No Project" at the end
-  return Object.values(grouped).sort((a, b) => {
-    // "No Project" always last
-    if (!a.project) return 1;
-    if (!b.project) return -1;
-    // Sort alphabetically by project name
-    return a.project.name.localeCompare(b.project.name);
+  nextTick(() => {
+    if (todoListEl.value && todoTasksList.value.length > 0) {
+      todoSortable = useSortable(todoListEl.value, todoTasksList, sortableOptions(todoTasksList));
+    }
+
+    if (inProgressListEl.value && inProgressTasksList.value.length > 0) {
+      inProgressSortable = useSortable(
+        inProgressListEl.value,
+        inProgressTasksList,
+        sortableOptions(inProgressTasksList)
+      );
+    }
+
+    if (completedListEl.value && completedTasksList.value.length > 0) {
+      completedSortable = useSortable(
+        completedListEl.value,
+        completedTasksList,
+        sortableOptions(completedTasksList)
+      );
+    }
   });
+};
+
+onMounted(() => {
+  initializeSortable();
+});
+
+watch(hasActiveFilters, () => {
+  initializeSortable();
 });
 
 // Update task status with optimistic update
 const handleUpdateStatus = async (task, newStatus) => {
-  // Find task index in local state
-  const taskIndex = localTasks.value.findIndex((t) => t.id === task.id);
-  if (taskIndex === -1) return;
+  const listMap = {
+    in_progress: inProgressTasksList,
+    todo: todoTasksList,
+    completed: completedTasksList,
+  };
 
-  const oldStatus = localTasks.value[taskIndex].status;
-  const oldCompletedAt = localTasks.value[taskIndex].completed_at;
+  // Find task in current list
+  let sourceList = null;
+  let sourceIndex = -1;
 
-  // Optimistic update - update local data immediately
-  localTasks.value[taskIndex] = {
-    ...localTasks.value[taskIndex],
+  for (const list of Object.values(listMap)) {
+    const idx = list.value.findIndex((t) => t.id === task.id);
+    if (idx !== -1) {
+      sourceList = list;
+      sourceIndex = idx;
+      break;
+    }
+  }
+
+  if (!sourceList || sourceIndex === -1) return;
+
+  const targetList = listMap[newStatus];
+  const oldTask = { ...sourceList.value[sourceIndex] };
+
+  // Optimistic update: move task between lists
+  sourceList.value.splice(sourceIndex, 1);
+  const updatedTask = {
+    ...oldTask,
     status: newStatus,
     completed_at: newStatus === "completed" ? new Date().toISOString() : null,
   };
+  targetList.value.push(updatedTask);
+
+  nextTick(() => initializeSortable());
 
   const statusLabels = {
     completed: "completed",
@@ -465,14 +589,46 @@ const handleUpdateStatus = async (task, newStatus) => {
 
     toast.success(`Task ${statusLabels[newStatus] || newStatus}`);
   } catch (err) {
-    // Rollback on error
-    localTasks.value[taskIndex] = {
-      ...localTasks.value[taskIndex],
-      status: oldStatus,
-      completed_at: oldCompletedAt,
-    };
+    // Rollback
+    const rIdx = targetList.value.findIndex((t) => t.id === task.id);
+    if (rIdx !== -1) targetList.value.splice(rIdx, 1);
+    sourceList.value.splice(sourceIndex, 0, oldTask);
+    nextTick(() => initializeSortable());
+
     console.error("Failed to update task status:", err);
     toast.error("Failed to update task status");
+  }
+};
+
+// ============ Quick Add Task ============
+const quickAddInputEl = ref(null);
+const quickAddTitle = ref("");
+const quickAddLoading = ref(false);
+
+const handleQuickAdd = async () => {
+  const title = quickAddTitle.value.trim();
+  if (!title || quickAddLoading.value) return;
+
+  quickAddLoading.value = true;
+  try {
+    await client("/api/tasks", {
+      method: "POST",
+      body: {
+        title,
+        status: "todo",
+        visibility: "public",
+        assignee_id: currentUser.value?.id,
+      },
+    });
+
+    quickAddTitle.value = "";
+    await refresh();
+    nextTick(() => quickAddInputEl.value?.focus());
+  } catch (err) {
+    console.error("Failed to create task:", err);
+    toast.error(err.response?._data?.message || "Failed to create task");
+  } finally {
+    quickAddLoading.value = false;
   }
 };
 

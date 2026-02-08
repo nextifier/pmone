@@ -130,6 +130,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Task management endpoints
     Route::prefix('tasks')->group(function () {
         Route::get('/', [TaskController::class, 'index'])->name('tasks.index');
+        Route::get('/all', [TaskController::class, 'all'])->name('tasks.all');
+        Route::post('/update-order', [TaskController::class, 'updateOrder'])->name('tasks.update-order');
         Route::post('/', [TaskController::class, 'store'])->name('tasks.store');
         Route::delete('/bulk', [TaskController::class, 'bulkDestroy'])->name('tasks.bulk-destroy');
         Route::get('/trash', [TaskController::class, 'trash'])->name('tasks.trash');
@@ -141,6 +143,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::put('/{task:ulid}', [TaskController::class, 'update'])->name('tasks.update');
         Route::delete('/{task:ulid}', [TaskController::class, 'destroy'])->name('tasks.destroy');
     });
+
+    // User tasks endpoint (view tasks by username)
+    Route::get('/users/{username}/tasks', [TaskController::class, 'userTasks'])->name('tasks.user');
 
     // Log management endpoints (master and admin only)
     Route::prefix('logs')->group(function () {

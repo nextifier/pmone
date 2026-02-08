@@ -280,10 +280,10 @@ test('task status auto-sets completed_at when marked as completed', function () 
 });
 
 test('task filters work correctly', function () {
-    // Create various tasks
-    Task::factory()->create(['created_by' => $this->user->id, 'status' => 'todo', 'priority' => 'high']);
-    Task::factory()->create(['created_by' => $this->user->id, 'status' => 'in_progress', 'priority' => 'low']);
-    Task::factory()->create(['created_by' => $this->user->id, 'status' => 'completed']);
+    // Create various tasks assigned to current user
+    Task::factory()->create(['created_by' => $this->user->id, 'assignee_id' => $this->user->id, 'status' => 'todo', 'priority' => 'high']);
+    Task::factory()->create(['created_by' => $this->user->id, 'assignee_id' => $this->user->id, 'status' => 'in_progress', 'priority' => 'low']);
+    Task::factory()->create(['created_by' => $this->user->id, 'assignee_id' => $this->user->id, 'status' => 'completed']);
 
     // Filter by status
     $response = $this->getJson('/api/tasks?filter_status=todo');
