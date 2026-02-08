@@ -128,7 +128,7 @@
     <!-- Actions -->
     <div class="flex items-center justify-end gap-2 pt-2">
       <Button variant="outline" size="sm" @click="$emit('close')">Close</Button>
-      <Button size="sm" @click="$emit('edit', task)">
+      <Button v-if="canEdit" size="sm" @click="$emit('edit', task)">
         <Icon name="hugeicons:pencil-edit-01" class="size-4" />
         <span>Edit</span>
       </Button>
@@ -137,15 +137,19 @@
 </template>
 
 <script setup>
+import Avatar from "@/components/Avatar.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import Avatar from "@/components/Avatar.vue";
 
 defineProps({
   task: {
     type: Object,
     required: true,
+  },
+  canEdit: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -187,12 +191,12 @@ const statusBadgeClass = (status) => {
 
 const statusIcon = (status) => {
   const icons = {
-    todo: "hugeicons:task-01",
+    todo: "hugeicons:task-daily-01",
     in_progress: "hugeicons:loading-03",
     completed: "hugeicons:checkmark-circle-02",
     archived: "hugeicons:archive-02",
   };
-  return icons[status] || "hugeicons:task-01";
+  return icons[status] || "hugeicons:task-daily-01";
 };
 
 const visibilityIcon = (visibility) => {

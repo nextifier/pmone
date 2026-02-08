@@ -1,7 +1,7 @@
 <template>
   <div class="tiptap-editor">
     <!-- Toolbar -->
-    <div v-if="editor" class="editor-toolbar">
+    <div v-if="editor" :class="['editor-toolbar', sticky ? 'editor-toolbar-sticky' : '']">
       <div class="toolbar-group">
         <button
           type="button"
@@ -243,6 +243,10 @@ const props = defineProps({
   collection: {
     type: String,
     default: "content_images",
+  },
+  sticky: {
+    type: Boolean,
+    default: true,
   },
 });
 
@@ -512,7 +516,11 @@ const saveCaptionAndClose = () => {
 }
 
 .editor-toolbar {
-  @apply border-border bg-background sticky top-(--navbar-height-mobile) z-10 flex flex-wrap items-center gap-1 rounded-t-lg border-b p-2 lg:top-(--navbar-height-desktop);
+  @apply border-border bg-background z-10 flex flex-wrap items-center gap-1 rounded-t-lg border-b p-2;
+}
+
+.editor-toolbar-sticky {
+  @apply sticky top-(--navbar-height-mobile) lg:top-(--navbar-height-desktop);
 }
 
 .toolbar-group {

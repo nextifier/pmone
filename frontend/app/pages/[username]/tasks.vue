@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
     <!-- Header -->
-    <TasksHeader :title="pageTitle" icon="hugeicons:task-01">
+    <TasksHeader :title="pageTitle" icon="hugeicons:task-daily-01">
       <template #actions>
         <NuxtLink
           to="/tasks"
@@ -26,7 +26,7 @@
         </div>
         <div class="ml-auto">
           <Badge variant="secondary">
-            {{ meta?.total || 0 }} {{ (meta?.total || 0) === 1 ? 'task' : 'tasks' }}
+            {{ meta?.total || 0 }} {{ (meta?.total || 0) === 1 ? "task" : "tasks" }}
           </Badge>
         </div>
       </div>
@@ -52,7 +52,7 @@
       v-else-if="tasks.length === 0"
       class="flex flex-col items-center justify-center pt-10 text-center"
     >
-      <Icon name="hugeicons:task-01" class="text-muted-foreground mx-auto mb-3 size-12" />
+      <Icon name="hugeicons:task-daily-01" class="text-muted-foreground mx-auto mb-3 size-12" />
       <span class="text-base font-semibold tracking-tight">No public tasks</span>
       <span class="text-muted-foreground mt-1 text-sm">
         This user doesn't have any visible tasks.
@@ -84,7 +84,7 @@
       <!-- To Do Tasks -->
       <div v-if="todoTasks.length > 0" class="space-y-3">
         <div class="flex items-center gap-2">
-          <Icon name="hugeicons:task-01" class="text-muted-foreground size-4" />
+          <Icon name="hugeicons:task-daily-01" class="text-muted-foreground size-4" />
           <h2 class="text-sm font-semibold tracking-tight">To Do</h2>
           <Badge variant="secondary" class="text-xs">{{ todoTasks.length }}</Badge>
         </div>

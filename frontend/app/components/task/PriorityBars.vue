@@ -6,10 +6,7 @@
         v-for="(_, index) in 3"
         :key="index"
         class="w-1.5 rounded-xs"
-        :class="[
-          barHeightClass(index),
-          getBarClass(index)
-        ]"
+        :class="[barHeightClass(index), getBarClass(index)]"
       ></span>
     </div>
   </div>
@@ -20,37 +17,38 @@ const props = defineProps({
   level: {
     type: String,
     default: null,
-    validator: (value) => ['low', 'medium', 'high'].includes(value?.toLowerCase()) || value === null
+    validator: (value) =>
+      ["low", "medium", "high"].includes(value?.toLowerCase()) || value === null,
   },
   label: {
     type: String,
-    default: 'Priority'
-  }
+    default: "Priority",
+  },
 });
 
 const barHeightClass = (index) => {
-  if (index === 0) return 'h-1.5';
-  if (index === 1) return 'h-2';
-  return 'h-2.5';
+  if (index === 0) return "h-1.5";
+  if (index === 1) return "h-2";
+  return "h-2.5";
 };
 
 const getBarClass = (index) => {
-  if (!props.level) return 'bg-primary/20';
+  if (!props.level) return "bg-border";
 
   const level = props.level.toLowerCase();
 
-  if (level === 'low') {
-    return index === 0 ? 'bg-green-500' : 'bg-primary/20';
+  if (level === "low") {
+    return index === 0 ? "bg-green-500" : "bg-border";
   }
 
-  if (level === 'medium') {
-    return index <= 1 ? 'bg-yellow-500' : 'bg-primary/20';
+  if (level === "medium") {
+    return index <= 1 ? "bg-yellow-500" : "bg-border";
   }
 
-  if (level === 'high') {
-    return 'bg-red-500';
+  if (level === "high") {
+    return "bg-red-500";
   }
 
-  return 'bg-primary/20';
+  return "bg-border";
 };
 </script>

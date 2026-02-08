@@ -19,7 +19,7 @@ defineProps({
   },
   icon: {
     type: String,
-    default: "hugeicons:task-01",
+    default: "hugeicons:task-daily-01",
   },
 });
 </script>

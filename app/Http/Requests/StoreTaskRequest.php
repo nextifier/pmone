@@ -23,7 +23,7 @@ class StoreTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255'],
+            'title' => ['required', 'string', 'max:1000'],
             'description' => ['nullable', 'string', 'max:50000'],
             'status' => ['sometimes', 'string', 'in:'.implode(',', Task::allowedStatuses())],
             'priority' => ['nullable', 'string', 'in:'.implode(',', Task::allowedPriorities())],
@@ -70,7 +70,7 @@ class StoreTaskRequest extends FormRequest
     {
         return [
             'title.required' => 'Task title is required.',
-            'title.max' => 'Task title cannot exceed 255 characters.',
+            'title.max' => 'Task title cannot exceed 1000 characters.',
 
             'description.max' => 'Description is too long.',
 

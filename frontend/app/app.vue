@@ -10,7 +10,7 @@
           }"
         />
       </NuxtLayout>
-      <ScrollToTop />
+      <ScrollToTop v-if="!isTasksPage" />
       <Toaster class="pointer-events-auto" />
     </Body>
   </Html>
@@ -18,6 +18,9 @@
 
 <script setup>
 import "vue-sonner/style.css";
+
+const route = useRoute();
+const isTasksPage = computed(() => route.path === "/tasks");
 
 onMounted(() => {
   const { updateMetaThemeColor } = useThemeSync();

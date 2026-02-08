@@ -96,7 +96,7 @@ const navMainGroups = computed(() => {
   platformItems.push({
     label: "Tasks",
     path: "/tasks",
-    iconName: "hugeicons:task-01",
+    iconName: "hugeicons:task-daily-01",
   });
 
   // Posts - requires posts.read permission

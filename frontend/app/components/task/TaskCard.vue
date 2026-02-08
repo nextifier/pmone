@@ -1,27 +1,42 @@
 <template>
   <div
     :data-id="task.id"
-    class="group flex items-start gap-x-1 rounded-lg px-1 py-1.5"
+    class="group flex items-start gap-x-1 rounded-lg py-1.5"
     :class="task.status === 'completed' ? 'opacity-60' : ''"
   >
-    <!-- Drag Handle -->
+    <!-- Drag Handle (only if canEdit) -->
     <div
+      v-if="canEdit"
       class="drag-handle text-muted-foreground hover:text-foreground flex h-7 w-7 shrink-0 cursor-grab items-center justify-center rounded-md active:cursor-grabbing"
     >
       <Icon name="lucide:grip-vertical" class="size-4" />
     </div>
 
-    <!-- Checkbox -->
-    <div class="flex h-7 shrink-0 items-center">
+    <!-- Checkbox (only if canEdit) -->
+    <div v-if="canEdit" class="flex h-7 shrink-0 items-center">
       <Checkbox :model-value="task.status === 'completed'" @update:model-value="toggleCompleted" />
     </div>
 
     <!-- Title + Details -->
     <div class="min-w-0 flex-1">
+      <!-- Inline edit mode -->
+      <textarea
+        v-if="isEditing"
+        ref="editInputEl"
+        v-model="editTitle"
+        class="text-foreground border-primary bg-background w-full rounded-md border px-2 py-1 text-base tracking-tight outline-none"
+        rows="1"
+        @blur="saveTitle"
+        @keydown.enter.prevent="saveTitle"
+        @keydown.escape="cancelEdit"
+        @input="autoResize"
+      />
+      <!-- View mode -->
       <button
+        v-else
         type="button"
-        @click="$emit('view', task)"
-        class="w-full cursor-pointer text-left text-sm tracking-tight hover:underline"
+        @click="handleTitleClick"
+        class="w-full cursor-pointer text-left text-base tracking-tight"
         :class="
           task.status === 'completed' ? 'text-muted-foreground line-through' : 'text-foreground'
         "
@@ -57,8 +72,8 @@
       </div>
     </div>
 
-    <!-- Actions Dropdown -->
-    <DropdownMenu>
+    <!-- Actions Dropdown (only if canEdit) -->
+    <DropdownMenu v-if="canEdit">
       <DropdownMenuTrigger as-child>
         <button
           type="button"
@@ -107,9 +122,60 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  canEdit: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-const emit = defineEmits(["updateStatus", "delete", "view", "edit"]);
+const emit = defineEmits(["updateStatus", "updateTitle", "delete", "view", "edit"]);
+
+// Inline edit state
+const isEditing = ref(false);
+const editTitle = ref("");
+const editInputEl = ref(null);
+
+const handleTitleClick = () => {
+  if (props.canEdit) {
+    startEditing();
+  } else {
+    emit("view", props.task);
+  }
+};
+
+const startEditing = () => {
+  editTitle.value = props.task.title;
+  isEditing.value = true;
+  nextTick(() => {
+    if (editInputEl.value) {
+      editInputEl.value.focus();
+      editInputEl.value.style.height = "auto";
+      editInputEl.value.style.height = editInputEl.value.scrollHeight + "px";
+    }
+  });
+};
+
+const autoResize = () => {
+  if (editInputEl.value) {
+    editInputEl.value.style.height = "auto";
+    editInputEl.value.style.height = editInputEl.value.scrollHeight + "px";
+  }
+};
+
+const saveTitle = () => {
+  const newTitle = editTitle.value.trim();
+  if (!newTitle || newTitle === props.task.title) {
+    cancelEdit();
+    return;
+  }
+  emit("updateTitle", props.task, newTitle);
+  isEditing.value = false;
+};
+
+const cancelEdit = () => {
+  isEditing.value = false;
+  editTitle.value = "";
+};
 
 const formatDateShort = (date) => {
   if (!date) return "";

@@ -4,13 +4,13 @@
       <!-- Title -->
       <div class="space-y-2">
         <Label for="title"> Task Title <span class="text-destructive">*</span> </Label>
-        <Input
+        <Textarea
           id="title"
           v-model="form.title"
-          type="text"
           required
-          maxlength="255"
+          rows="1"
           placeholder="Enter task title..."
+          class="resize-none"
           :class="{ 'border-destructive': errors.title }"
         />
         <p v-if="errors.title" class="text-destructive text-xs">{{ errors.title[0] }}</p>
@@ -23,6 +23,7 @@
           v-model="form.description"
           model-type="App\\Models\\Task"
           collection="description_images"
+          :sticky="false"
           placeholder="Describe the task in detail..."
         />
         <p v-if="errors.description" class="text-destructive text-xs">
@@ -243,6 +244,7 @@ import DateTimePicker from "@/components/DateTimePicker.vue";
 import TipTapEditor from "@/components/post/TipTapEditor.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {

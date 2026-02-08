@@ -71,6 +71,12 @@ return [
             'model' => \App\Models\ContactFormSubmission::class,
             'actions' => ['read', 'update', 'delete'], // No create, submissions come from public
         ],
+        'tasks' => [
+            'label' => 'Tasks',
+            'description' => 'Manage tasks',
+            'model' => \App\Models\Task::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
         'api_consumers' => [
             'label' => 'API Consumers',
             'description' => 'Manage API consumers and keys',

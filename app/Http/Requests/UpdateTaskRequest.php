@@ -23,7 +23,7 @@ class UpdateTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['sometimes', 'string', 'max:255'],
+            'title' => ['sometimes', 'string', 'max:1000'],
             'description' => ['sometimes', 'nullable', 'string', 'max:50000'],
             'status' => ['sometimes', 'string', 'in:'.implode(',', Task::allowedStatuses())],
             'priority' => ['sometimes', 'nullable', 'string', 'in:'.implode(',', Task::allowedPriorities())],
@@ -70,7 +70,7 @@ class UpdateTaskRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'title.max' => 'Task title cannot exceed 255 characters.',
+            'title.max' => 'Task title cannot exceed 1000 characters.',
 
             'description.max' => 'Description is too long.',
 

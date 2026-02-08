@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
     <!-- Header -->
-    <TasksHeader title="My Tasks" icon="hugeicons:task-01">
+    <TasksHeader title="My Tasks" icon="hugeicons:task-daily-01">
       <template #actions>
         <NuxtLink
           to="/tasks/all"
@@ -53,7 +53,7 @@
       v-else-if="filteredTasks.length === 0"
       class="flex flex-col items-center justify-center pt-10 text-center"
     >
-      <Icon name="hugeicons:task-01" class="text-muted-foreground mx-auto mb-3 size-12" />
+      <Icon name="hugeicons:task-daily-01" class="text-muted-foreground mx-auto mb-3 size-12" />
       <span class="text-base font-semibold tracking-tight">No tasks found.</span>
       <span class="text-muted-foreground mt-1 text-sm">
         {{
@@ -86,26 +86,15 @@
       </div>
 
       <!-- 2-Column Layout: Active (left) | Completed (right) -->
-      <div class="grid grid-cols-1 gap-x-3 gap-y-5 lg:grid-cols-2">
+      <div class="grid grid-cols-1 items-start gap-x-3 gap-y-5 lg:grid-cols-2">
         <!-- Left Column: In Progress + To Do -->
         <div class="border-border bg-card rounded-xl border">
-          <!-- <div class="border-border flex items-center gap-x-2 border-b px-4 py-3">
-            <Icon name="hugeicons:task-01" class="text-muted-foreground size-4.5 shrink-0" />
-            <span class="text-sm font-medium tracking-tight">Active</span>
-            <Badge variant="outline" class="text-xs">
-              {{ pendingTasks.length }}
-            </Badge>
-          </div> -->
-
-          <div class="p-3">
+          <div class="flex flex-col divide-y">
             <!-- In Progress Section -->
-            <div v-if="inProgressTasks.length > 0" class="mb-3">
-              <div class="flex items-center gap-x-1.5 px-1 pb-2">
-                <span
-                  class="bg-linear-to-r from-indigo-400 via-sky-500 to-emerald-500 bg-clip-text text-sm font-medium tracking-tight text-transparent"
-                >
-                  In Progress
-                </span>
+            <div v-if="inProgressTasks.length > 0" class="flex flex-col gap-y-2 px-3 py-6">
+              <div class="flex items-center gap-x-2">
+                <Icon name="hugeicons:loading-03" class="text-info-foreground size-4.5" />
+                <span class="text-sm font-medium tracking-tight">In Progress</span>
                 <Badge variant="secondary" class="h-4 px-1.5 text-[10px]">
                   {{ inProgressTasks.length }}
                 </Badge>
@@ -116,7 +105,9 @@
                   :key="task.id"
                   :task="task"
                   :show-details="showDetails"
+                  :can-edit="task.can_edit !== false"
                   @update-status="handleUpdateStatus"
+                  @update-title="handleUpdateTitle"
                   @delete="openDeleteDialog"
                   @view="openDetailDialog"
                   @edit="openEditDialog"
@@ -124,16 +115,11 @@
               </div>
             </div>
 
-            <!-- Divider -->
-            <div
-              v-if="inProgressTasks.length > 0 && todoTasks.length > 0"
-              class="border-border mb-3 border-t"
-            />
-
             <!-- To Do Section -->
-            <div v-if="todoTasks.length > 0">
-              <div class="flex items-center gap-x-1.5 px-1 pb-2">
-                <span class="text-muted-foreground text-sm font-medium tracking-tight">To Do</span>
+            <div v-if="todoTasks.length > 0" class="flex flex-col gap-y-2 px-3 py-6">
+              <div class="flex items-center gap-x-2">
+                <Icon name="hugeicons:task-daily-01" class="text-muted-foreground size-4.5" />
+                <span class="text-sm font-medium tracking-tight">To Do</span>
                 <Badge variant="secondary" class="h-4 px-1.5 text-[10px]">
                   {{ todoTasks.length }}
                 </Badge>
@@ -144,28 +130,33 @@
                   :key="task.id"
                   :task="task"
                   :show-details="showDetails"
+                  :can-edit="task.can_edit !== false"
                   @update-status="handleUpdateStatus"
+                  @update-title="handleUpdateTitle"
                   @delete="openDeleteDialog"
                   @view="openDetailDialog"
                   @edit="openEditDialog"
                 />
               </div>
-            </div>
 
-            <!-- Quick Add -->
-            <div class="flex items-center gap-x-3.5 p-2.5">
-              <Icon name="hugeicons:plus-sign" class="text-muted-foreground size-4 shrink-0" />
-              <input
-                ref="quickAddInputEl"
-                v-model="quickAddTitle"
-                type="text"
-                placeholder="Add task..."
-                class="text-foreground placeholder:text-muted-foreground/60 w-full bg-transparent text-sm tracking-tight outline-none"
-                @keydown.enter="handleQuickAdd"
-                @blur="handleQuickAdd"
-                :disabled="quickAddLoading"
-              />
-              <Spinner v-if="quickAddLoading" class="size-4 shrink-0" />
+              <!-- Quick Add -->
+              <div class="flex items-start gap-x-3.5 px-2.5 py-1">
+                <Icon
+                  name="hugeicons:plus-sign"
+                  class="text-muted-foreground mt-1.5 size-4 shrink-0"
+                />
+                <textarea
+                  ref="quickAddInputEl"
+                  v-model="quickAddTitle"
+                  rows="1"
+                  placeholder="Add task..."
+                  class="text-foreground placeholder:text-muted-foreground/60 field-sizing-content w-full resize-none bg-transparent text-base tracking-tight outline-none"
+                  @keydown.enter.prevent="handleQuickAdd"
+                  @blur="handleQuickAdd"
+                  :disabled="quickAddLoading"
+                />
+                <Spinner v-if="quickAddLoading" class="mt-1.5 size-4 shrink-0" />
+              </div>
             </div>
 
             <!-- Empty pending -->
@@ -181,36 +172,48 @@
 
         <!-- Right Column: Completed -->
         <div class="border-border bg-card rounded-xl border">
-          <div class="border-border flex items-center gap-x-2 border-b px-4 py-3">
-            <Icon
-              name="hugeicons:checkmark-circle-02"
-              class="size-4.5 text-green-600 dark:text-green-500"
-            />
-            <span class="text-sm font-medium tracking-tight">Completed</span>
-            <Badge variant="outline" class="text-xs">
-              {{ completedTasks.length }}
-            </Badge>
-          </div>
-
-          <div class="p-3">
-            <div v-if="completedTasks.length > 0" ref="completedListEl">
-              <TaskCard
-                v-for="task in completedTasks"
-                :key="task.id"
-                :task="task"
-                :show-details="showDetails"
-                @update-status="handleUpdateStatus"
-                @delete="openDeleteDialog"
-                @view="openDetailDialog"
-                @edit="openEditDialog"
-              />
-            </div>
-            <div v-else class="flex flex-col items-center justify-center py-8 text-center">
-              <Icon
-                name="hugeicons:checkmark-circle-02"
-                class="text-muted-foreground/50 mb-2 size-8"
-              />
-              <span class="text-muted-foreground text-xs">No completed tasks</span>
+          <div class="flex flex-col divide-y">
+            <div class="flex flex-col gap-y-2 px-3 py-6">
+              <div class="flex items-center gap-x-2">
+                <Icon
+                  name="hugeicons:checkmark-circle-02"
+                  class="text-success-foreground size-4.5"
+                />
+                <span class="text-sm font-medium tracking-tight">Completed</span>
+                <Badge variant="secondary" class="h-4 px-1.5 text-[10px]">
+                  {{ completedTasks.length }}
+                </Badge>
+                <button
+                  v-if="completedTasks.length > 0"
+                  type="button"
+                  @click="handleClearCompleted"
+                  :disabled="clearCompletedLoading"
+                  class="text-muted-foreground hover:text-foreground ml-auto text-sm tracking-tight hover:underline"
+                >
+                  Clear all
+                </button>
+              </div>
+              <div v-if="completedTasks.length > 0" ref="completedListEl">
+                <TaskCard
+                  v-for="task in completedTasks"
+                  :key="task.id"
+                  :task="task"
+                  :show-details="showDetails"
+                  :can-edit="task.can_edit !== false"
+                  @update-status="handleUpdateStatus"
+                  @update-title="handleUpdateTitle"
+                  @delete="openDeleteDialog"
+                  @view="openDetailDialog"
+                  @edit="openEditDialog"
+                />
+              </div>
+              <div v-else class="flex flex-col items-center justify-center py-8 text-center">
+                <Icon
+                  name="hugeicons:checkmark-circle-02"
+                  class="text-muted-foreground/50 mb-2 size-8"
+                />
+                <span class="text-muted-foreground text-xs">No completed tasks</span>
+              </div>
             </div>
           </div>
         </div>
@@ -277,6 +280,7 @@
         <TaskDetailDialog
           v-if="taskToView"
           :task="taskToView"
+          :can-edit="taskToView.can_edit !== false"
           @close="detailDialogOpen = false"
           @edit="handleEditFromDetail"
         />
@@ -302,6 +306,15 @@
         </div>
       </template>
     </DialogResponsive>
+
+    <!-- Floating Add Task Button -->
+    <div
+      class="xs:right-[calc(var(--spacing)*4+var(--scrollbar-width,0px))] fixed right-[calc(var(--spacing)*3+var(--scrollbar-width,0px))] bottom-8 z-50 sm:right-[calc(var(--spacing)*6+var(--scrollbar-width,0px))] sm:bottom-5 lg:bottom-12 xl:right-[calc(var(--spacing)*12+var(--scrollbar-width,0px))]"
+    >
+      <GlassButton variant="default" size="icon-xl" @click="openCreateDialog">
+        <Icon name="hugeicons:plus-sign" class="size-5 shrink-0" />
+      </GlassButton>
+    </div>
   </div>
 </template>
 
@@ -314,6 +327,7 @@ import TasksFilters from "@/components/task/TasksFilters.vue";
 import TasksHeader from "@/components/task/TasksHeader.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { GlassButton } from "@/components/ui/glass-button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useSortable } from "@vueuse/integrations/useSortable";
@@ -630,6 +644,7 @@ const handleQuickAdd = async () => {
 
     // Add new task directly to the todo list (no refresh needed)
     todoTasksList.value.push(response.data);
+    toast.success("Task created");
     nextTick(() => {
       initializeSortable();
       quickAddInputEl.value?.focus();
@@ -725,6 +740,50 @@ const handleEditFromDetail = (task) => {
   });
 };
 
+// ============ Update Task Title (Inline Edit) ============
+const handleUpdateTitle = async (task, newTitle) => {
+  const oldTitle = task.title;
+  task.title = newTitle;
+
+  try {
+    await client(`/api/tasks/${task.ulid}`, {
+      method: "PUT",
+      body: { title: newTitle },
+    });
+    toast.success("Task updated");
+  } catch (err) {
+    task.title = oldTitle;
+    console.error("Failed to update title:", err);
+    toast.error("Failed to update title");
+  }
+};
+
+// ============ Clear All Completed ============
+const clearCompletedLoading = ref(false);
+
+const handleClearCompleted = async () => {
+  if (completedTasksList.value.length === 0 || clearCompletedLoading.value) return;
+
+  clearCompletedLoading.value = true;
+  const ids = completedTasksList.value.map((t) => t.id);
+
+  try {
+    await client("/api/tasks/bulk-destroy", {
+      method: "POST",
+      body: { ids },
+    });
+
+    completedTasksList.value = [];
+    toast.success("Completed tasks cleared");
+    nextTick(() => initializeSortable());
+  } catch (err) {
+    console.error("Failed to clear completed tasks:", err);
+    toast.error("Failed to clear completed tasks");
+  } finally {
+    clearCompletedLoading.value = false;
+  }
+};
+
 // ============ Delete Task Dialog ============
 const deleteDialogOpen = ref(false);
 const taskToDelete = ref(null);
@@ -739,15 +798,26 @@ const handleDeleteTask = async () => {
   if (!taskToDelete.value) return;
 
   deleteLoading.value = true;
+  const taskId = taskToDelete.value.id;
+
   try {
     await client(`/api/tasks/${taskToDelete.value.ulid}`, {
       method: "DELETE",
     });
 
-    await refresh();
+    // Optimistic: remove from local lists
+    for (const list of [inProgressTasksList, todoTasksList, completedTasksList]) {
+      const idx = list.value.findIndex((t) => t.id === taskId);
+      if (idx !== -1) {
+        list.value.splice(idx, 1);
+        break;
+      }
+    }
+
     deleteDialogOpen.value = false;
     taskToDelete.value = null;
-    toast.success("Task deleted successfully");
+    toast.success("Task deleted");
+    nextTick(() => initializeSortable());
   } catch (err) {
     console.error("Failed to delete task:", err);
     toast.error("Failed to delete task");

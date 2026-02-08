@@ -7,7 +7,7 @@
           to="/tasks"
           class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
         >
-          <Icon name="hugeicons:task-01" class="size-4 shrink-0" />
+          <Icon name="hugeicons:task-daily-01" class="size-4 shrink-0" />
           <span>My Tasks</span>
         </NuxtLink>
       </template>
@@ -35,9 +35,7 @@
     >
       <Icon name="hugeicons:user-group" class="text-muted-foreground mx-auto mb-3 size-12" />
       <span class="text-base font-semibold tracking-tight">No tasks found.</span>
-      <span class="text-muted-foreground mt-1 text-sm">
-        There are no tasks to display.
-      </span>
+      <span class="text-muted-foreground mt-1 text-sm"> There are no tasks to display. </span>
     </div>
 
     <!-- Accordion grouped by user -->
@@ -57,17 +55,14 @@
               class="size-9"
               rounded="rounded-full"
             />
-            <div
-              v-else
-              class="bg-muted flex size-9 items-center justify-center rounded-full"
-            >
+            <div v-else class="bg-muted flex size-9 items-center justify-center rounded-full">
               <Icon name="hugeicons:user" class="text-muted-foreground size-4" />
             </div>
 
             <!-- User Info -->
             <div class="flex flex-col items-start">
               <span class="text-sm font-semibold tracking-tight">
-                {{ group.assignee?.name || 'Unassigned' }}
+                {{ group.assignee?.name || "Unassigned" }}
               </span>
               <span v-if="group.assignee?.username" class="text-muted-foreground text-xs">
                 @{{ group.assignee.username }}
@@ -76,7 +71,7 @@
 
             <!-- Task Count -->
             <Badge variant="secondary" class="ml-2">
-              {{ group.count }} {{ group.count === 1 ? 'task' : 'tasks' }}
+              {{ group.count }} {{ group.count === 1 ? "task" : "tasks" }}
             </Badge>
           </div>
         </AccordionTrigger>
