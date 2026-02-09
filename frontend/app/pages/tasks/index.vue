@@ -23,6 +23,7 @@
     >
       <template #actions>
         <button
+          v-if="canCreate"
           type="button"
           @click="openCreateDialog"
           class="hover:bg-primary/80 text-primary-foreground bg-primary flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
@@ -63,7 +64,7 @@
         }}
       </span>
       <button
-        v-if="!searchQuery"
+        v-if="!searchQuery && canCreate"
         type="button"
         @click="openCreateDialog"
         class="bg-primary text-primary-foreground hover:bg-primary/80 mt-4 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
@@ -140,7 +141,7 @@
               </div>
 
               <!-- Quick Add -->
-              <div class="flex items-start gap-x-3.5 px-2.5 py-1">
+              <div v-if="canCreate" class="flex items-start gap-x-3.5 px-2.5 py-1">
                 <Icon
                   name="hugeicons:plus-sign"
                   class="text-muted-foreground mt-1.5 size-4 shrink-0"
@@ -184,10 +185,9 @@
                   {{ completedTasks.length }}
                 </Badge>
                 <button
-                  v-if="completedTasks.length > 0"
+                  v-if="completedTasks.length > 0 && canDelete"
                   type="button"
-                  @click="handleClearCompleted"
-                  :disabled="clearCompletedLoading"
+                  @click="openClearCompletedDialog"
                   class="text-muted-foreground hover:text-foreground ml-auto text-sm tracking-tight hover:underline"
                 >
                   Clear all
@@ -227,7 +227,7 @@
       :overflow-content="true"
     >
       <template #sticky-header>
-        <div class="border-border sticky top-0 z-10 border-b px-4 pb-4 md:px-6">
+        <div class="border-border sticky top-0 z-10 border-b px-4 pb-4 md:px-6 md:py-4">
           <div class="text-lg font-semibold tracking-tight">Create New Task</div>
           <p class="text-muted-foreground text-sm">Add a new task to your list</p>
         </div>
@@ -251,7 +251,7 @@
       :overflow-content="true"
     >
       <template #sticky-header>
-        <div class="border-border sticky top-0 z-10 border-b px-4 pb-4 md:px-6">
+        <div class="border-border sticky top-0 z-10 border-b px-4 pb-4 md:px-6 md:py-4">
           <div class="text-lg font-semibold tracking-tight">Edit Task</div>
           <p class="text-muted-foreground text-sm">Update task details</p>
         </div>
@@ -290,15 +290,31 @@
     <!-- Delete Dialog -->
     <DialogResponsive v-model:open="deleteDialogOpen">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-foreground text-lg font-semibold tracking-tight">Delete Task?</div>
-          <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
-            Are you sure you want to delete <strong>{{ taskToDelete?.title }}</strong
-            >? This action can be undone from trash.
-          </p>
+        <div class="px-4 pb-10 md:px-6 md:py-6">
+          <template v-if="deleteMode === 'clear-completed'">
+            <div class="text-foreground text-lg font-semibold tracking-tight">
+              Clear Completed Tasks?
+            </div>
+            <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
+              Are you sure you want to delete
+              <strong>{{ completedTasksList.length }} completed tasks</strong>? This action can be
+              undone from trash.
+            </p>
+          </template>
+          <template v-else>
+            <div class="text-foreground text-lg font-semibold tracking-tight">Delete Task?</div>
+            <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
+              Are you sure you want to delete <strong>{{ taskToDelete?.title }}</strong
+              >? This action can be undone from trash.
+            </p>
+          </template>
           <div class="mt-4 flex justify-end gap-2">
             <Button variant="outline" @click="deleteDialogOpen = false"> Cancel </Button>
-            <Button variant="destructive" @click="handleDeleteTask" :disabled="deleteLoading">
+            <Button
+              variant="destructive"
+              @click="deleteMode === 'clear-completed' ? handleClearCompleted() : handleDeleteTask()"
+              :disabled="deleteLoading"
+            >
               <Spinner v-if="deleteLoading" class="size-4" />
               <span v-else>Delete</span>
             </Button>
@@ -309,6 +325,7 @@
 
     <!-- Floating Add Task Button -->
     <div
+      v-if="canCreate"
       class="xs:right-[calc(var(--spacing)*4+var(--scrollbar-width,0px))] fixed right-[calc(var(--spacing)*3+var(--scrollbar-width,0px))] bottom-8 z-50 sm:right-[calc(var(--spacing)*6+var(--scrollbar-width,0px))] sm:bottom-5 lg:bottom-12 xl:right-[calc(var(--spacing)*12+var(--scrollbar-width,0px))]"
     >
       <GlassButton variant="default" size="icon-xl" @click="openCreateDialog">
@@ -340,6 +357,10 @@ definePageMeta({
 
 const client = useSanctumClient();
 const { user: currentUser } = useSanctumAuth();
+const { hasPermission } = usePermission();
+
+const canCreate = computed(() => hasPermission("tasks.create"));
+const canDelete = computed(() => hasPermission("tasks.delete"));
 
 // Show details toggle (persisted in localStorage)
 const showDetails = ref(false);
@@ -759,28 +780,27 @@ const handleUpdateTitle = async (task, newTitle) => {
 };
 
 // ============ Clear All Completed ============
-const clearCompletedLoading = ref(false);
-
 const handleClearCompleted = async () => {
-  if (completedTasksList.value.length === 0 || clearCompletedLoading.value) return;
+  if (completedTasksList.value.length === 0 || deleteLoading.value) return;
 
-  clearCompletedLoading.value = true;
+  deleteLoading.value = true;
   const ids = completedTasksList.value.map((t) => t.id);
 
   try {
-    await client("/api/tasks/bulk-destroy", {
-      method: "POST",
+    await client("/api/tasks/bulk", {
+      method: "DELETE",
       body: { ids },
     });
 
     completedTasksList.value = [];
+    deleteDialogOpen.value = false;
     toast.success("Completed tasks cleared");
     nextTick(() => initializeSortable());
   } catch (err) {
     console.error("Failed to clear completed tasks:", err);
     toast.error("Failed to clear completed tasks");
   } finally {
-    clearCompletedLoading.value = false;
+    deleteLoading.value = false;
   }
 };
 
@@ -788,9 +808,18 @@ const handleClearCompleted = async () => {
 const deleteDialogOpen = ref(false);
 const taskToDelete = ref(null);
 const deleteLoading = ref(false);
+const deleteMode = ref("single"); // "single" or "clear-completed"
 
 const openDeleteDialog = (task) => {
+  deleteMode.value = "single";
   taskToDelete.value = task;
+  deleteDialogOpen.value = true;
+};
+
+const openClearCompletedDialog = () => {
+  if (completedTasksList.value.length === 0) return;
+  deleteMode.value = "clear-completed";
+  taskToDelete.value = null;
   deleteDialogOpen.value = true;
 };
 

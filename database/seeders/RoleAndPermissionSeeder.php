@@ -59,6 +59,11 @@ class RoleAndPermissionSeeder extends Seeder
             'contact_forms.read',
             'contact_forms.update',
             'contact_forms.delete',
+            // Tasks
+            'tasks.create',
+            'tasks.read',
+            'tasks.update',
+            'tasks.delete',
             // API Consumers
             'api_consumers.create',
             'api_consumers.read',
@@ -80,6 +85,7 @@ class RoleAndPermissionSeeder extends Seeder
             'categories.read',
             'tags.read',
             'contact_forms.read',
+            'tasks.create',
         ],
         'writer' => [
             'users.read',
@@ -89,9 +95,11 @@ class RoleAndPermissionSeeder extends Seeder
             'posts.delete',
             'categories.read',
             'tags.read',
+            'tasks.create',
         ],
         'user' => [
             'users.read',
+            'tasks.create',
         ],
     ];
 

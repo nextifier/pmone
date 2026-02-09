@@ -8,7 +8,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    $this->artisan('db:seed', ['--class' => 'RoleAndPermissionSeeder']);
+
     $this->user = User::factory()->create();
+    $this->user->assignRole('user');
     $this->actingAs($this->user);
 });
 

@@ -137,6 +137,26 @@ export const usePermission = () => {
   };
 
   /**
+   * Check if user can edit a specific task
+   * Rules: User with tasks.update permission can edit any task, or user must be the creator
+   */
+  const canEditTask = (task: { created_by: number }): boolean => {
+    if (!user.value) return false;
+    if (hasPermission("tasks.update")) return true;
+    return task.created_by === user.value.id;
+  };
+
+  /**
+   * Check if user can delete a specific task
+   * Rules: User with tasks.delete permission can delete any task, or user must be the creator
+   */
+  const canDeleteTask = (task: { created_by: number }): boolean => {
+    if (!user.value) return false;
+    if (hasPermission("tasks.delete")) return true;
+    return task.created_by === user.value.id;
+  };
+
+  /**
    * Check if user can edit a specific user
    * Rules: User with users.update permission can edit any user, or user must be editing themselves
    */
@@ -199,6 +219,8 @@ export const usePermission = () => {
     canDeletePost,
     canEditProject,
     canDeleteProject,
+    canEditTask,
+    canDeleteTask,
     canEditUser,
     canDeleteUser,
     isOwner,

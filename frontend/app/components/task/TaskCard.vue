@@ -83,6 +83,10 @@
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" class="w-44">
+        <DropdownMenuItem @click="$emit('view', task)">
+          <Icon name="hugeicons:view" class="size-4" />
+          <span>View Details</span>
+        </DropdownMenuItem>
         <DropdownMenuItem @click="$emit('edit', task)">
           <Icon name="hugeicons:pencil-edit-01" class="size-4" />
           <span>Edit</span>

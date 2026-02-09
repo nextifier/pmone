@@ -38,6 +38,11 @@ class TaskPolicy
             return true;
         }
 
+        // Users with tasks.read permission can view any task
+        if ($user->hasPermissionTo('tasks.read')) {
+            return true;
+        }
+
         // Creator can view their own tasks
         if ($task->created_by === $user->id) {
             return true;
@@ -66,8 +71,7 @@ class TaskPolicy
      */
     public function create(User $user): bool
     {
-        // All authenticated users can create tasks
-        return true;
+        return $user->hasPermissionTo('tasks.create');
     }
 
     /**
@@ -77,6 +81,11 @@ class TaskPolicy
     {
         // Master and admin can update all tasks
         if ($user->hasRole(['master', 'admin'])) {
+            return true;
+        }
+
+        // Users with tasks.update permission can update any task
+        if ($user->hasPermissionTo('tasks.update')) {
             return true;
         }
 
@@ -114,6 +123,11 @@ class TaskPolicy
             return true;
         }
 
+        // Users with tasks.delete permission can delete any task
+        if ($user->hasPermissionTo('tasks.delete')) {
+            return true;
+        }
+
         // Only creator can delete their own tasks
         return $task->created_by === $user->id;
     }
@@ -125,6 +139,11 @@ class TaskPolicy
     {
         // Master and admin can restore all tasks
         if ($user->hasRole(['master', 'admin'])) {
+            return true;
+        }
+
+        // Users with tasks.delete permission can restore any task
+        if ($user->hasPermissionTo('tasks.delete')) {
             return true;
         }
 
@@ -165,7 +184,6 @@ class TaskPolicy
      */
     public function updateOrder(User $user): bool
     {
-        // All authenticated users can reorder their own tasks
-        return true;
+        return $user->hasPermissionTo('tasks.update');
     }
 }

@@ -21,7 +21,7 @@
         <Label for="description">Description</Label>
         <TipTapEditor
           v-model="form.description"
-          model-type="App\\Models\\Task"
+          model-type="App\Models\Task"
           collection="description_images"
           :sticky="false"
           placeholder="Describe the task in detail..."
