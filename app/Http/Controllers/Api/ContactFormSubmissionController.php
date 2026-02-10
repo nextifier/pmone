@@ -191,9 +191,16 @@ class ContactFormSubmissionController extends Controller
             $query->whereIn('status', $statusArray);
         }
 
-        // Project filter
-        if ($projectId = $request->input('filter_project')) {
-            $query->where('project_id', $projectId);
+        // Project filter - support single, multiple, or comma-separated values
+        if ($project = $request->input('filter_project')) {
+            $projectIds = is_array($project) ? $project : explode(',', $project);
+            $projectIds = array_filter($projectIds);
+
+            if (count($projectIds) > 1) {
+                $query->whereIn('project_id', $projectIds);
+            } elseif (count($projectIds) === 1) {
+                $query->where('project_id', $projectIds[0]);
+            }
         }
 
         // Followed up filter

@@ -2,13 +2,13 @@
   <div class="space-y-4">
     <!-- Error State -->
     <div v-if="error" class="flex flex-col items-start gap-y-3 rounded-lg">
-      <div class="text-destructive flex items-center gap-x-2">
+      <!-- <div class="text-destructive flex items-center gap-x-2">
         <Icon name="hugeicons:alert-circle" class="size-5" />
         <span class="font-medium tracking-tight">{{ errorTitle || "Error loading data" }}</span>
       </div>
       <p class="text-sm tracking-tight">
         {{ error?.message || "An error occurred while fetching data." }}
-      </p>
+      </p> -->
     </div>
 
     <!-- Main Content -->
@@ -66,7 +66,9 @@
                   <div class="text-muted-foreground text-xs font-medium">Toggle columns</div>
                   <div class="space-y-3">
                     <div
-                      v-for="column in table.getAllColumns().filter((column) => column.getCanHide())"
+                      v-for="column in table
+                        .getAllColumns()
+                        .filter((column) => column.getCanHide())"
                       :key="column.id"
                       class="flex items-center gap-2"
                     >
@@ -99,7 +101,15 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex h-9 w-full items-center justify-between gap-x-1 sm:gap-x-2">
+        <div
+          v-if="
+            hasActiveFilters ||
+            (showRefreshButton && !displayOnly) ||
+            (showAddButton && !displayOnly) ||
+            $slots.actions
+          "
+          class="flex h-9 w-full items-center justify-between gap-x-1 sm:gap-x-2"
+        >
           <!-- Actions Slot (for bulk actions like delete) -->
           <slot name="actions" :table="table" :selected-rows="table.getSelectedRowModel().rows" />
 
@@ -144,7 +154,7 @@
 
       <!-- Table -->
       <div class="frame">
-        <div class="frame-panel bg-background -m-px overflow-hidden !p-0">
+        <div class="frame-panel bg-background -m-px overflow-hidden p-0!">
           <Table class="[&_td]:scroll-fade-x table-fixed [&_td]:overflow-hidden">
             <TableHeader>
               <TableRow

@@ -312,7 +312,9 @@
             <Button variant="outline" @click="deleteDialogOpen = false"> Cancel </Button>
             <Button
               variant="destructive"
-              @click="deleteMode === 'clear-completed' ? handleClearCompleted() : handleDeleteTask()"
+              @click="
+                deleteMode === 'clear-completed' ? handleClearCompleted() : handleDeleteTask()
+              "
               :disabled="deleteLoading"
             >
               <Spinner v-if="deleteLoading" class="size-4" />
@@ -363,10 +365,13 @@ const canCreate = computed(() => hasPermission("tasks.create"));
 const canDelete = computed(() => hasPermission("tasks.delete"));
 
 // Show details toggle (persisted in localStorage)
-const showDetails = ref(false);
+const showDetails = ref(true);
 
 onMounted(() => {
-  showDetails.value = localStorage.getItem("tasks-show-details") === "true";
+  const stored = localStorage.getItem("tasks-show-details");
+  if (stored !== null) {
+    showDetails.value = stored === "true";
+  }
 });
 
 const toggleShowDetails = (checked) => {

@@ -457,6 +457,7 @@ class AnalyticsService
             'successful_fetches' => 0,
             'top_pages' => [],
             'traffic_sources' => [],
+            'traffic_sources_flat' => [],
             'devices' => [],
             'period' => [
                 'start_date' => $period->startDate->format('Y-m-d'),
@@ -586,6 +587,13 @@ class AnalyticsService
             $data2['traffic_sources'] ?? []
         );
 
+        // Merge flat traffic sources (simple concat, already per-property)
+        $mergedTrafficSourcesFlat = array_merge(
+            $data1['traffic_sources_flat'] ?? [],
+            $data2['traffic_sources_flat'] ?? []
+        );
+        usort($mergedTrafficSourcesFlat, fn ($a, $b) => $b['sessions'] <=> $a['sessions']);
+
         // Merge devices
         $mergedDevices = $this->mergeDevices(
             $data1['devices'] ?? [],
@@ -598,6 +606,7 @@ class AnalyticsService
             'successful_fetches' => ($data1['successful_fetches'] ?? 0) + ($data2['successful_fetches'] ?? 0),
             'top_pages' => $mergedTopPages,
             'traffic_sources' => $mergedTrafficSources,
+            'traffic_sources_flat' => $mergedTrafficSourcesFlat,
             'devices' => $mergedDevices,
             'period' => $data1['period'] ?? $data2['period'],
             'properties_count' => $totalProperties,
@@ -613,17 +622,31 @@ class AnalyticsService
         $merged = [];
 
         foreach (array_merge($sources1, $sources2) as $source) {
-            $key = $source['source'].'_'.$source['medium'];
+            $key = $source['source'].'_'.$source['medium'].'_'.($source['campaign'] ?? '(not set)').'_'.($source['landing_page'] ?? '(not set)');
 
             if (! isset($merged[$key])) {
                 $merged[$key] = $source;
+                $merged[$key]['_bounce_weighted'] = ($source['bounce_rate'] ?? 0) * $source['sessions'];
+                $merged[$key]['_duration_weighted'] = ($source['avg_duration'] ?? 0) * $source['sessions'];
             } else {
+                $prevSessions = $merged[$key]['sessions'];
                 $merged[$key]['sessions'] += $source['sessions'];
                 $merged[$key]['users'] += $source['users'];
+                $merged[$key]['_bounce_weighted'] += ($source['bounce_rate'] ?? 0) * $source['sessions'];
+                $merged[$key]['_duration_weighted'] += ($source['avg_duration'] ?? 0) * $source['sessions'];
             }
         }
 
-        $result = array_values($merged);
+        // Calculate final weighted averages and remove temp fields
+        $result = array_values(array_map(function ($item) {
+            $totalSessions = $item['sessions'];
+            $item['bounce_rate'] = $totalSessions > 0 ? round($item['_bounce_weighted'] / $totalSessions, 4) : 0;
+            $item['avg_duration'] = $totalSessions > 0 ? round($item['_duration_weighted'] / $totalSessions, 1) : 0;
+            unset($item['_bounce_weighted'], $item['_duration_weighted']);
+
+            return $item;
+        }, $merged));
+
         usort($result, fn ($a, $b) => $b['sessions'] <=> $a['sessions']);
 
         return $result;

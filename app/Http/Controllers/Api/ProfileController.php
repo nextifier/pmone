@@ -77,6 +77,50 @@ class ProfileController extends Controller
     }
 
     /**
+     * Resolve a slug to either a user profile or short link
+     */
+    public function resolveSlug(string $slug): JsonResponse
+    {
+        // Check user first
+        $user = User::where('username', $slug)->first();
+
+        if ($user) {
+            $user->load([
+                'links' => function ($query) {
+                    $query->active()->orderBy('order');
+                },
+                'roles',
+            ]);
+
+            return response()->json([
+                'type' => 'user',
+                'data' => new UserResource($user),
+            ]);
+        }
+
+        // Check short link
+        $shortLink = ShortLink::where('slug', $slug)
+            ->where('is_active', true)
+            ->first();
+
+        if ($shortLink) {
+            return response()->json([
+                'type' => 'shortlink',
+                'data' => [
+                    'slug' => $shortLink->slug,
+                    'destination_url' => $shortLink->destination_url,
+                    'og_title' => $shortLink->og_title,
+                    'og_description' => $shortLink->og_description,
+                    'og_image' => $shortLink->og_image,
+                    'og_type' => $shortLink->og_type,
+                ],
+            ]);
+        }
+
+        abort(404, 'Page not found');
+    }
+
+    /**
      * Resolve and redirect short link
      */
     public function resolveShortLink(Request $request, string $slug): JsonResponse

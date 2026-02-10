@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\ShortLink;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreUserRequest extends FormRequest
@@ -23,7 +24,11 @@ class StoreUserRequest extends FormRequest
     {
         return [
             'name' => ['nullable', 'string', 'max:255'],
-            'username' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._]+$/', 'unique:users,username'],
+            'username' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._]+$/', 'unique:users,username', function ($attribute, $value, $fail) {
+                if ($value && ShortLink::where('slug', $value)->exists()) {
+                    $fail('This username is already in use as a short link slug.');
+                }
+            }],
             'email' => ['required', 'email', 'unique:users,email'],
             'password' => ['nullable', 'string', 'min:8'],
             'phone' => ['nullable', 'string', 'max:20'],

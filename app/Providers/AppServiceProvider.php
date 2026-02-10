@@ -4,10 +4,8 @@ namespace App\Providers;
 
 use App\Models\Project;
 use App\Models\ShortLink;
-use App\Models\User;
 use App\Observers\ProjectObserver;
 use App\Observers\ShortLinkObserver;
-use App\Observers\UserObserver;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -34,7 +32,6 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // Register observers
-        User::observe(UserObserver::class);
         Project::observe(ProjectObserver::class);
         ShortLink::observe(ShortLinkObserver::class);
     }

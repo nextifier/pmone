@@ -144,6 +144,9 @@ class AnalyticsAggregator
         $allPages = [];
         $errors = [];
 
+        // Create indexed lookup for project data
+        $propertiesLookup = $properties->keyBy('property_id');
+
         // Execute all property fetches in parallel using daily aggregator
         $tasks = $properties->map(fn ($property) => fn () => (function () use ($property, $period, $limit) {
             try {
@@ -171,10 +174,18 @@ class AnalyticsAggregator
         // Process parallel results
         foreach ($results as $result) {
             if ($result['success']) {
+                $propertyWithProject = $propertiesLookup->get($result['property_id']);
+                $projectData = $propertyWithProject && $propertyWithProject->project ? [
+                    'id' => $propertyWithProject->project->id,
+                    'name' => $propertyWithProject->project->name,
+                    'profile_image' => $propertyWithProject->project->getMediaUrls('profile_image'),
+                ] : null;
+
                 foreach ($result['pages'] as $page) {
                     $allPages[] = array_merge($page, [
                         'property_id' => $result['property_id'],
                         'property_name' => $result['property_name'],
+                        'project' => $projectData,
                     ]);
                 }
             } else {
@@ -203,7 +214,11 @@ class AnalyticsAggregator
     public function aggregateTrafficSources(Collection $properties, Period $period): array
     {
         $sourcesByKey = [];
+        $flatSources = [];
         $errors = [];
+
+        // Create indexed lookup for project data
+        $propertiesLookup = $properties->keyBy('property_id');
 
         // Execute all property fetches in parallel using daily aggregator
         $tasks = $properties->map(fn ($property) => fn () => (function () use ($property, $period) {
@@ -232,24 +247,54 @@ class AnalyticsAggregator
         // Process parallel results
         foreach ($results as $result) {
             if ($result['success']) {
+                // Get property with project for flat sources
+                $propertyWithProject = $propertiesLookup->get($result['property_id']);
+                $projectData = $propertyWithProject && $propertyWithProject->project ? [
+                    'id' => $propertyWithProject->project->id,
+                    'name' => $propertyWithProject->project->name,
+                    'profile_image' => $propertyWithProject->project->getMediaUrls('profile_image'),
+                ] : null;
+
                 foreach ($result['sources'] as $source) {
-                    $key = $source['source'].'_'.$source['medium'];
+                    $key = $source['source'].'_'.$source['medium'].'_'.($source['campaign'] ?? '(not set)').'_'.($source['landing_page'] ?? '(not set)');
 
                     if (! isset($sourcesByKey[$key])) {
                         $sourcesByKey[$key] = [
                             'source' => $source['source'],
                             'medium' => $source['medium'],
+                            'campaign' => $source['campaign'] ?? '(not set)',
+                            'landing_page' => $source['landing_page'] ?? '(not set)',
                             'sessions' => 0,
                             'users' => 0,
+                            'bounce_rate_weighted' => 0,
+                            'avg_duration_weighted' => 0,
                             'properties' => [],
                         ];
                     }
 
-                    $sourcesByKey[$key]['sessions'] += $source['sessions'];
+                    $sessions = $source['sessions'];
+                    $sourcesByKey[$key]['sessions'] += $sessions;
                     $sourcesByKey[$key]['users'] += $source['users'];
+                    $sourcesByKey[$key]['bounce_rate_weighted'] += ($source['bounce_rate'] ?? 0) * $sessions;
+                    $sourcesByKey[$key]['avg_duration_weighted'] += ($source['avg_duration'] ?? 0) * $sessions;
                     $sourcesByKey[$key]['properties'][] = [
                         'property_id' => $result['property_id'],
                         'property_name' => $result['property_name'],
+                    ];
+
+                    // Collect flat per-property source rows
+                    $flatSources[] = [
+                        'source' => $source['source'],
+                        'medium' => $source['medium'],
+                        'campaign' => $source['campaign'] ?? '(not set)',
+                        'landing_page' => $source['landing_page'] ?? '(not set)',
+                        'sessions' => $source['sessions'],
+                        'users' => $source['users'],
+                        'bounce_rate' => $source['bounce_rate'] ?? 0,
+                        'avg_duration' => $source['avg_duration'] ?? 0,
+                        'property_id' => $result['property_id'],
+                        'property_name' => $result['property_name'],
+                        'project' => $projectData,
                     ];
                 }
             } else {
@@ -261,12 +306,25 @@ class AnalyticsAggregator
             }
         }
 
+        // Calculate final weighted averages
+        $sources = array_values(array_map(function ($item) {
+            $totalSessions = $item['sessions'];
+            $item['bounce_rate'] = $totalSessions > 0 ? round($item['bounce_rate_weighted'] / $totalSessions, 4) : 0;
+            $item['avg_duration'] = $totalSessions > 0 ? round($item['avg_duration_weighted'] / $totalSessions, 1) : 0;
+            unset($item['bounce_rate_weighted'], $item['avg_duration_weighted']);
+
+            return $item;
+        }, $sourcesByKey));
+
         // Sort by sessions
-        $sources = array_values($sourcesByKey);
         usort($sources, fn ($a, $b) => $b['sessions'] <=> $a['sessions']);
+
+        // Sort flat sources by sessions too
+        usort($flatSources, fn ($a, $b) => $b['sessions'] <=> $a['sessions']);
 
         return [
             'traffic_sources' => $sources,
+            'traffic_sources_flat' => $flatSources,
             'total_sources' => count($sources),
             'errors' => $errors,
         ];
@@ -362,6 +420,7 @@ class AnalyticsAggregator
             'top_pages' => $topPagesData['top_pages'],
             'total_pages' => $topPagesData['total_pages'],
             'traffic_sources' => $trafficSourcesData['traffic_sources'],
+            'traffic_sources_flat' => $trafficSourcesData['traffic_sources_flat'],
             'total_sources' => $trafficSourcesData['total_sources'],
             'devices' => $devicesData['devices'],
             'period' => [

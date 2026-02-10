@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\ShortLink;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateUserRequest extends FormRequest
@@ -25,7 +26,11 @@ class UpdateUserRequest extends FormRequest
 
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'username' => ['sometimes', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._]+$/', 'unique:users,username,'.$user->id],
+            'username' => ['sometimes', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._]+$/', 'unique:users,username,'.$user->id, function ($attribute, $value, $fail) {
+                if ($value && ShortLink::where('slug', $value)->exists()) {
+                    $fail('This username is already in use as a short link slug.');
+                }
+            }],
             'email' => ['sometimes', 'email', 'unique:users,email,'.$user->id],
             'password' => ['sometimes', 'string', 'min:8'],
             'phone' => ['nullable', 'string', 'max:20'],

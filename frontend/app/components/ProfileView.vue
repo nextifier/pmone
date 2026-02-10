@@ -11,11 +11,11 @@
 
     <div
       v-else-if="profile"
-      class="min-h-screen-offset mx-auto flex max-w-xl flex-col px-4 pt-4 pb-16"
+      class="min-h-screen-offset mx-auto flex max-w-xl flex-col px-4 pb-16 sm:pt-4"
     >
-      <div class="relative -mx-3">
+      <div class="relative -mx-4">
         <div
-          class="aspect-[3/1] overflow-hidden rounded-xl"
+          class="aspect-[3/1] overflow-hidden sm:rounded-xl"
           :style="{
             '--hue': Math.min((profile?.name?.length || 0) / 50, 1) * 360,
           }"
@@ -72,8 +72,9 @@
                 />
               </div>
 
-              <div v-if="canEdit" class="flex flex-wrap justify-end gap-2">
+              <div v-if="canEdit || canViewAnalytics || canViewTasks" class="flex flex-wrap justify-end gap-2">
                 <NuxtLink
+                  v-if="canEdit"
                   :to="editUrl"
                   class="bg-muted text-foreground hover:bg-border flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight backdrop-blur-sm transition active:scale-98"
                 >
@@ -82,11 +83,21 @@
                 </NuxtLink>
 
                 <NuxtLink
+                  v-if="canViewAnalytics"
                   :to="analyticsUrl"
                   class="bg-muted text-foreground hover:bg-border flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight backdrop-blur-sm transition active:scale-98"
                 >
                   <Icon name="hugeicons:analytics-01" class="size-4.5 shrink-0" />
                   <span>Analytics</span>
+                </NuxtLink>
+
+                <NuxtLink
+                  v-if="canViewTasks"
+                  :to="`/${profile.username}/tasks`"
+                  class="bg-muted text-foreground hover:bg-border flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight backdrop-blur-sm transition active:scale-98"
+                >
+                  <Icon name="hugeicons:task-daily-01" class="size-4.5 shrink-0" />
+                  <span>View Tasks</span>
                 </NuxtLink>
               </div>
             </div>
@@ -248,6 +259,25 @@ const props = defineProps({
 
 defineEmits(["track-click"]);
 
+const { user: authUser, hasPermission } = usePermission();
+
+const isSelf = computed(() => {
+  if (!authUser.value || !props.profile) return false;
+  return authUser.value.id === props.profile.id;
+});
+
+const canViewAnalytics = computed(() => {
+  if (!authUser.value) return false;
+  if (isSelf.value) return true;
+  return hasPermission("analytics.view");
+});
+
+const canViewTasks = computed(() => {
+  if (!authUser.value) return false;
+  if (isSelf.value) return true;
+  return hasPermission("tasks.read");
+});
+
 const SOCIAL_LABELS = ["website", "instagram", "facebook", "x", "tiktok", "linkedin", "youtube"];
 
 const SOCIAL_ICON_MAP = {
@@ -278,12 +308,12 @@ const hasContactMethods = computed(() => {
 });
 
 const editUrl = computed(() => {
-  const base = props.profileType === "user" ? "/users" : "/projects";
+  const base = props.profileType === "user" ? "" : "/projects";
   return `${base}/${props.profile?.username}/edit`;
 });
 
 const analyticsUrl = computed(() => {
-  const base = props.profileType === "user" ? "/users" : "/projects";
+  const base = props.profileType === "user" ? "" : "/projects";
   return `${base}/${props.profile?.username}/analytics`;
 });
 

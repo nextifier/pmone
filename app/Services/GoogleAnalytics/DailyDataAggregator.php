@@ -536,26 +536,49 @@ class DailyDataAggregator
             return $sourceDate >= $startDate && $sourceDate <= $endDate;
         });
 
-        // Aggregate by source and medium
+        // Aggregate by source, medium, campaign, and landing page
+        // Bounce rate and avg duration use weighted average based on sessions
         $sourcesByKey = [];
         foreach ($filteredSources as $source) {
-            $key = $source['source'].'_'.$source['medium'];
+            $key = $source['source'].'_'.$source['medium'].'_'.($source['campaign'] ?? '(not set)').'_'.($source['landing_page'] ?? '(not set)');
+            $sessions = $source['sessions'];
 
             if (! isset($sourcesByKey[$key])) {
                 $sourcesByKey[$key] = [
                     'source' => $source['source'],
                     'medium' => $source['medium'],
+                    'campaign' => $source['campaign'] ?? '(not set)',
+                    'landing_page' => $source['landing_page'] ?? '(not set)',
                     'sessions' => 0,
                     'users' => 0,
+                    'bounce_rate_weighted' => 0,
+                    'avg_duration_weighted' => 0,
                 ];
             }
 
-            $sourcesByKey[$key]['sessions'] += $source['sessions'];
+            $sourcesByKey[$key]['sessions'] += $sessions;
             $sourcesByKey[$key]['users'] += $source['users'];
+            $sourcesByKey[$key]['bounce_rate_weighted'] += ($source['bounce_rate'] ?? 0) * $sessions;
+            $sourcesByKey[$key]['avg_duration_weighted'] += ($source['avg_duration'] ?? 0) * $sessions;
         }
 
+        // Calculate final weighted averages
+        $aggregated = array_values(array_map(function ($item) {
+            $totalSessions = $item['sessions'];
+
+            return [
+                'source' => $item['source'],
+                'medium' => $item['medium'],
+                'campaign' => $item['campaign'],
+                'landing_page' => $item['landing_page'],
+                'sessions' => $item['sessions'],
+                'users' => $item['users'],
+                'bounce_rate' => $totalSessions > 0 ? round($item['bounce_rate_weighted'] / $totalSessions, 4) : 0,
+                'avg_duration' => $totalSessions > 0 ? round($item['avg_duration_weighted'] / $totalSessions, 1) : 0,
+            ];
+        }, $sourcesByKey));
+
         // Sort by sessions
-        $aggregated = array_values($sourcesByKey);
         usort($aggregated, fn ($a, $b) => $b['sessions'] <=> $a['sessions']);
 
         return $aggregated;

@@ -34,7 +34,7 @@ class AggregatedAnalyticsExport implements WithMultipleSheets
 /**
  * Summary sheet with overall metrics
  */
-class AggregatedAnalyticsSummarySheet implements FromArray, WithHeadings, ShouldAutoSize, WithStrictNullComparison, WithStyles, WithTitle
+class AggregatedAnalyticsSummarySheet implements FromArray, ShouldAutoSize, WithHeadings, WithStrictNullComparison, WithStyles, WithTitle
 {
     public function __construct(
         protected array $data,
@@ -99,7 +99,7 @@ class AggregatedAnalyticsSummarySheet implements FromArray, WithHeadings, Should
 /**
  * Daily data sheet with time series
  */
-class AggregatedAnalyticsDailySheet implements FromArray, WithHeadings, ShouldAutoSize, WithStrictNullComparison, WithStyles, WithTitle
+class AggregatedAnalyticsDailySheet implements FromArray, ShouldAutoSize, WithHeadings, WithStrictNullComparison, WithStyles, WithTitle
 {
     public function __construct(
         protected array $data,
@@ -187,7 +187,7 @@ class AggregatedAnalyticsDailySheet implements FromArray, WithHeadings, ShouldAu
 /**
  * Property breakdown sheet
  */
-class AggregatedAnalyticsPropertiesSheet implements FromArray, WithHeadings, ShouldAutoSize, WithStrictNullComparison, WithStyles, WithTitle
+class AggregatedAnalyticsPropertiesSheet implements FromArray, ShouldAutoSize, WithHeadings, WithStrictNullComparison, WithStyles, WithTitle
 {
     public function __construct(
         protected array $data,
@@ -252,7 +252,7 @@ class AggregatedAnalyticsPropertiesSheet implements FromArray, WithHeadings, Sho
 /**
  * Top pages sheet
  */
-class AggregatedAnalyticsTopPagesSheet implements FromArray, WithHeadings, ShouldAutoSize, WithStrictNullComparison, WithStyles, WithTitle
+class AggregatedAnalyticsTopPagesSheet implements FromArray, ShouldAutoSize, WithHeadings, WithStrictNullComparison, WithStyles, WithTitle
 {
     public function __construct(
         protected array $data,
@@ -303,7 +303,7 @@ class AggregatedAnalyticsTopPagesSheet implements FromArray, WithHeadings, Shoul
 /**
  * Traffic sources sheet
  */
-class AggregatedAnalyticsTrafficSourcesSheet implements FromArray, WithHeadings, ShouldAutoSize, WithStrictNullComparison, WithStyles, WithTitle
+class AggregatedAnalyticsTrafficSourcesSheet implements FromArray, ShouldAutoSize, WithHeadings, WithStrictNullComparison, WithStyles, WithTitle
 {
     public function __construct(
         protected array $data,
@@ -320,8 +320,13 @@ class AggregatedAnalyticsTrafficSourcesSheet implements FromArray, WithHeadings,
     {
         return [
             'Source',
+            'Medium',
+            'Campaign',
+            'Landing Page',
             'Sessions',
             'Active Users',
+            'Bounce Rate',
+            'Avg. Duration (s)',
         ];
     }
 
@@ -331,10 +336,17 @@ class AggregatedAnalyticsTrafficSourcesSheet implements FromArray, WithHeadings,
 
         $rows = [];
         foreach ($trafficSources as $source) {
+            $bounceRate = $source['bounce_rate'] ?? 0;
+
             $rows[] = [
-                $source['sessionSource'] ?? '(direct)',
+                $source['source'] ?? $source['sessionSource'] ?? '(direct)',
+                $source['medium'] ?? $source['sessionMedium'] ?? '(none)',
+                $source['campaign'] ?? '(not set)',
+                $source['landing_page'] ?? '(not set)',
                 $source['sessions'] ?? 0,
-                $source['activeUsers'] ?? 0,
+                $source['users'] ?? $source['activeUsers'] ?? 0,
+                round($bounceRate * 100, 1).'%',
+                round($source['avg_duration'] ?? 0, 1),
             ];
         }
 

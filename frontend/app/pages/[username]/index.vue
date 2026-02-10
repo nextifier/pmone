@@ -1,5 +1,15 @@
 <template>
+  <div v-if="resolvedType === 'shortlink'">
+    <ErrorState v-if="error" :error="error" />
+    <div v-else class="flex min-h-screen items-center justify-center">
+      <div class="flex items-center justify-center gap-x-1.5 font-medium tracking-tight">
+        <SpinnerAlt size="2rem" border-width="4px" />
+      </div>
+    </div>
+  </div>
+
   <ProfileView
+    v-else
     :profile="user"
     profile-type="user"
     :loading="status === 'pending'"
@@ -11,8 +21,12 @@
 </template>
 
 <script setup>
+definePageMeta({
+  layout: "empty",
+});
+
 const route = useRoute();
-const username = computed(() => route.params.username);
+const slug = computed(() => route.params.username);
 
 const { user: authUser } = useSanctumAuth();
 
@@ -20,12 +34,16 @@ const {
   data,
   status,
   error: fetchError,
-} = await useLazyFetch(() => `/api/users/${username.value}`, {
+} = await useLazyFetch(() => `/api/resolve/${slug.value}`, {
   baseURL: useRuntimeConfig().public.apiUrl,
-  key: `user-profile-public-${username.value}`,
+  key: `resolve-slug-${slug.value}`,
 });
 
-const user = computed(() => data.value?.data || null);
+const resolvedType = computed(() => data.value?.type || null);
+const user = computed(() => (resolvedType.value === "user" ? data.value?.data : null));
+const shortLinkData = computed(() =>
+  resolvedType.value === "shortlink" ? data.value?.data : null
+);
 
 const error = computed(() => {
   if (!fetchError.value && user.value && user.value.status !== "active") {
@@ -43,19 +61,70 @@ const error = computed(() => {
   return {
     statusCode: err.statusCode || 500,
     statusMessage: err.data?.message || err.statusMessage || "Error",
-    message: err.data?.message || err.message || "Failed to load profile",
+    message: err.data?.message || err.message || "Page not found",
     stack: err.stack,
   };
 });
 
-const title = user.value ? `${user.value.name} (@${user.value.username})` : "Profile";
-const description = user.value?.bio || "View profile";
-
-usePageMeta("", {
-  title: title,
-  description: description,
+// SEO for user profiles
+const title = computed(() => {
+  if (resolvedType.value === "shortlink") {
+    const link = shortLinkData.value;
+    return link?.og_title || link?.slug || "Redirecting...";
+  }
+  return user.value ? `${user.value.name} (@${user.value.username})` : "Profile";
 });
 
+const description = computed(() => {
+  if (resolvedType.value === "shortlink") {
+    const link = shortLinkData.value;
+    return link?.og_description || "Click to visit this link";
+  }
+  return user.value?.bio || "View profile";
+});
+
+// Handle short link OG meta (with custom titleTemplate)
+if (resolvedType.value === "shortlink") {
+  const ogImage = computed(() => shortLinkData.value?.og_image || null);
+  const ogType = computed(() => shortLinkData.value?.og_type || "website");
+
+  watchEffect(() => {
+    useSeoMeta({
+      titleTemplate: "%s",
+      title: title.value,
+      ogTitle: title.value,
+      description: description.value,
+      ogDescription: description.value,
+      ogImage: ogImage.value,
+      ogType: ogType.value,
+      ogUrl: useAppConfig().app.url + route.fullPath,
+      twitterCard: "summary_large_image",
+    });
+  });
+} else {
+  usePageMeta("", {
+    title: title,
+    description: description,
+  });
+}
+
+// Short link redirect (client-side only)
+if (import.meta.client && shortLinkData.value) {
+  const destinationUrl = shortLinkData.value.destination_url;
+  if (destinationUrl) {
+    try {
+      await navigateTo(destinationUrl, {
+        external: true,
+        replace: true,
+      });
+    } catch (err) {
+      console.error("Navigation failed, using fallback:", err);
+      window.location.replace(destinationUrl);
+    }
+  }
+}
+
+// User profile logic
 const canEdit = computed(() => {
   if (!authUser.value || !user.value) return false;
   if (authUser.value.id === user.value.id) return true;

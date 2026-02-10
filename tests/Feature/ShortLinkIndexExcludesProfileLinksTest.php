@@ -137,25 +137,21 @@ test('trash endpoint excludes project profile short links', function () {
     expect($slugs)->not->toContain('megaproject');
 });
 
-test('profile short links still function when accessed directly', function () {
-    // Create a user - this will automatically create a profile short link
+test('user profile is accessible via resolve endpoint without short link', function () {
     $user = User::factory()->create([
         'username' => 'testuser',
+        'status' => 'active',
     ]);
 
+    // No auto-created short link
     $shortLink = ShortLink::where('slug', 'testuser')->first();
+    expect($shortLink)->toBeNull();
 
-    // Profile short link should exist and be accessible
-    expect($shortLink)->not->toBeNull();
-    expect($shortLink->destination_url)->toContain('/users/testuser');
-
-    // Access the short link via API
-    $response = $this->getJson("/api/s/{$shortLink->slug}");
+    // But user profile is accessible via resolve endpoint
+    $response = $this->getJson('/api/resolve/testuser');
 
     $response->assertOk()
         ->assertJson([
-            'data' => [
-                'destination_url' => $shortLink->destination_url,
-            ],
+            'type' => 'user',
         ]);
 });

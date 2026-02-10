@@ -273,10 +273,10 @@
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import TableData from "@/components/TableData.vue";
+import TableSwitch from "@/components/TableSwitch.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import TableSwitch from "@/components/TableSwitch.vue";
 import ImportDialog from "@/components/user/ImportDialog.vue";
 import UserProfile from "@/components/user/Profile.vue";
 import { PopoverClose } from "reka-ui";
@@ -468,7 +468,7 @@ const columns = [
       h(
         resolveComponent("NuxtLink"),
         {
-          to: `/users/${row.original.username}`,
+          to: `/${row.original.username}`,
           class: "block hover:opacity-80 transition-opacity",
         },
         {
@@ -511,7 +511,7 @@ const columns = [
       return h(
         resolveComponent("NuxtLink"),
         {
-          to: `/users/${username}/posts`,
+          to: `/${username}/posts`,
           class: "text-sm tracking-tight hover:underline inline-flex items-center gap-x-1",
         },
         {
@@ -579,7 +579,11 @@ const columns = [
       if (isOnline) {
         return h("div", { class: "flex items-center gap-x-1.5" }, [
           h("span", { class: "size-2 rounded-full bg-green-500" }),
-          h("span", { class: "text-sm tracking-tight text-green-600 dark:text-green-500" }, "Online"),
+          h(
+            "span",
+            { class: "text-sm tracking-tight text-green-600 dark:text-green-500" },
+            "Online"
+          ),
         ]);
       }
 
@@ -588,7 +592,11 @@ const columns = [
       }
 
       return withDirectives(
-        h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $dayjs(lastSeen).fromNow()),
+        h(
+          "div",
+          { class: "text-sm text-muted-foreground tracking-tight" },
+          $dayjs(lastSeen).fromNow()
+        ),
         [[resolveDirective("tippy"), $dayjs(lastSeen).format("MMMM D, YYYY [at] h:mm A")]]
       );
     },
@@ -1009,7 +1017,7 @@ const RowActions = defineComponent({
                             h(
                               resolveComponent("NuxtLink"),
                               {
-                                to: `/users/${props.username}/edit`,
+                                to: `/${props.username}/edit`,
                                 class:
                                   "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
                               },
@@ -1034,7 +1042,7 @@ const RowActions = defineComponent({
                             h(
                               resolveComponent("NuxtLink"),
                               {
-                                to: `/users/${props.username}/analytics`,
+                                to: `/${props.username}/analytics`,
                                 class:
                                   "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
                               },
@@ -1062,7 +1070,7 @@ const RowActions = defineComponent({
                               {
                                 class: isVerified.value
                                   ? "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5"
-                                  : "hover:bg-info/10 text-info rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                  : "rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
                                 onClick: () =>
                                   isVerified.value
                                     ? (unverifyDialogOpen.value = true)
@@ -1073,7 +1081,7 @@ const RowActions = defineComponent({
                                   name: "material-symbols:verified",
                                   class: isVerified.value
                                     ? "size-4 shrink-0 text-muted-foreground"
-                                    : "size-4 shrink-0",
+                                    : "size-4 shrink-0 text-info",
                                 }),
                                 h("span", {}, isVerified.value ? "Unverify" : "Verify"),
                               ]

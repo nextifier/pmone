@@ -5,7 +5,10 @@
       <span class="text-foreground inline-flex items-center gap-x-[3px] align-middle font-medium">
         <span class="line-clamp-1">{{ model?.name ?? model?.property_name }}</span>
       </span>
-      <span v-if="model?.property_id" class="text-muted-foreground truncate text-xs"
+      <span v-if="model?.landing_page" class="text-muted-foreground truncate text-xs" :title="model.landing_page">
+        {{ model.landing_page }}
+      </span>
+      <span v-else-if="model?.property_id" class="text-muted-foreground truncate text-xs"
         >ID: {{ model.property_id }}</span
       >
     </div>

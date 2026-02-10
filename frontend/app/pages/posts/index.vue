@@ -748,31 +748,35 @@ const RowActions = defineComponent({
                 {
                   default: () =>
                     h("div", { class: "flex flex-col" }, [
-                      // View button (always visible)
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
+                      // View button (only for published posts)
+                      ...(props.post.status === "published"
+                        ? [
                             h(
-                              resolveComponent("NuxtLink"),
+                              PopoverClose,
+                              { asChild: true },
                               {
-                                to: `/posts/${props.post.slug}`,
-                                class:
-                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                              },
-                              {
-                                default: () => [
-                                  h(resolveComponent("Icon"), {
-                                    name: "lucide:eye",
-                                    class: "size-4 shrink-0",
-                                  }),
-                                  h("span", {}, "View"),
-                                ],
+                                default: () =>
+                                  h(
+                                    resolveComponent("NuxtLink"),
+                                    {
+                                      to: `/news/${props.post.slug}`,
+                                      class:
+                                        "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                    },
+                                    {
+                                      default: () => [
+                                        h(resolveComponent("Icon"), {
+                                          name: "lucide:eye",
+                                          class: "size-4 shrink-0",
+                                        }),
+                                        h("span", {}, "View"),
+                                      ],
+                                    }
+                                  ),
                               }
                             ),
-                        }
-                      ),
+                          ]
+                        : []),
                       // Edit button (only if user has permission)
                       ...(canEdit.value
                         ? [

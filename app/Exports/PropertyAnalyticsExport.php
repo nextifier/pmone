@@ -33,7 +33,7 @@ class PropertyAnalyticsExport implements WithMultipleSheets
 /**
  * Summary sheet with property metrics
  */
-class PropertyAnalyticsSummarySheet implements FromArray, WithHeadings, ShouldAutoSize, WithStrictNullComparison, WithStyles, WithTitle
+class PropertyAnalyticsSummarySheet implements FromArray, ShouldAutoSize, WithHeadings, WithStrictNullComparison, WithStyles, WithTitle
 {
     public function __construct(
         protected array $data,
@@ -100,7 +100,7 @@ class PropertyAnalyticsSummarySheet implements FromArray, WithHeadings, ShouldAu
 /**
  * Daily data sheet with time series
  */
-class PropertyAnalyticsDailySheet implements FromArray, WithHeadings, ShouldAutoSize, WithStrictNullComparison, WithStyles, WithTitle
+class PropertyAnalyticsDailySheet implements FromArray, ShouldAutoSize, WithHeadings, WithStrictNullComparison, WithStyles, WithTitle
 {
     public function __construct(
         protected array $data,
@@ -155,7 +155,7 @@ class PropertyAnalyticsDailySheet implements FromArray, WithHeadings, ShouldAuto
 /**
  * Top pages sheet
  */
-class PropertyAnalyticsTopPagesSheet implements FromArray, WithHeadings, ShouldAutoSize, WithStrictNullComparison, WithStyles, WithTitle
+class PropertyAnalyticsTopPagesSheet implements FromArray, ShouldAutoSize, WithHeadings, WithStrictNullComparison, WithStyles, WithTitle
 {
     public function __construct(
         protected array $data,
@@ -206,7 +206,7 @@ class PropertyAnalyticsTopPagesSheet implements FromArray, WithHeadings, ShouldA
 /**
  * Traffic sources sheet
  */
-class PropertyAnalyticsTrafficSourcesSheet implements FromArray, WithHeadings, ShouldAutoSize, WithStrictNullComparison, WithStyles, WithTitle
+class PropertyAnalyticsTrafficSourcesSheet implements FromArray, ShouldAutoSize, WithHeadings, WithStrictNullComparison, WithStyles, WithTitle
 {
     public function __construct(
         protected array $data,
@@ -223,8 +223,13 @@ class PropertyAnalyticsTrafficSourcesSheet implements FromArray, WithHeadings, S
     {
         return [
             'Source',
+            'Medium',
+            'Campaign',
+            'Landing Page',
             'Sessions',
             'Active Users',
+            'Bounce Rate',
+            'Avg. Duration (s)',
         ];
     }
 
@@ -234,10 +239,17 @@ class PropertyAnalyticsTrafficSourcesSheet implements FromArray, WithHeadings, S
 
         $rows = [];
         foreach ($trafficSources as $source) {
+            $bounceRate = $source['bounce_rate'] ?? 0;
+
             $rows[] = [
-                $source['sessionSource'] ?? '(direct)',
+                $source['source'] ?? $source['sessionSource'] ?? '(direct)',
+                $source['medium'] ?? $source['sessionMedium'] ?? '(none)',
+                $source['campaign'] ?? '(not set)',
+                $source['landing_page'] ?? '(not set)',
                 $source['sessions'] ?? 0,
-                $source['activeUsers'] ?? 0,
+                $source['users'] ?? $source['activeUsers'] ?? 0,
+                round($bounceRate * 100, 1).'%',
+                round($source['avg_duration'] ?? 0, 1),
             ];
         }
 

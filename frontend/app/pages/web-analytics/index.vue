@@ -161,34 +161,129 @@
       </div>
 
       <div v-if="propertyBreakdown.length > 0">
-        <h2 class="text-foreground text-lg font-semibold tracking-tighter">
-          Analytics by Property
-        </h2>
-        <p class="text-muted-foreground mt-1 text-sm tracking-tight">
-          {{ propertyBreakdown.length }} active
-          {{ propertyBreakdown.length === 1 ? "property" : "properties" }}.
-        </p>
+        <div class="flex flex-col gap-y-3">
+          <div class="flex flex-col gap-y-1">
+            <h2 class="text-foreground text-lg font-semibold tracking-tighter">
+              Analytics by Property
+            </h2>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              {{ filteredPropertyBreakdown.length }} of {{ propertyBreakdown.length }} active
+              {{ propertyBreakdown.length === 1 ? "property" : "properties" }}.
+            </p>
+          </div>
+
+          <div class="bg-muted relative flex h-9 w-full max-w-sm items-center">
+            <Icon
+              name="lucide:search"
+              class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+            />
+            <input
+              v-model="propertySearch"
+              type="text"
+              placeholder="Search property.."
+              class="peer placeholder:text-muted-foreground h-full w-full rounded-md border bg-transparent px-9 py-1.5 text-sm tracking-tight focus:outline-hidden"
+            />
+            <button
+              v-if="propertySearch"
+              @click="propertySearch = ''"
+              class="bg-muted hover:bg-border absolute top-1/2 right-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full"
+              aria-label="Clear search"
+            >
+              <Icon name="lucide:x" class="size-3 shrink-0" />
+            </button>
+          </div>
+        </div>
 
         <div class="mt-4 grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-x-2.5 gap-y-4">
           <AnalyticsPropertyCard
-            v-for="property in propertyBreakdown"
+            v-for="property in filteredPropertyBreakdown"
             :key="property.property_id"
             :property="property"
           />
         </div>
       </div>
 
-      <AnalyticsTopPagesList
-        v-if="aggregateData.top_pages?.length > 0"
-        :pages="aggregateData.top_pages"
-        :limit="10"
-      />
+      <div v-if="aggregateData.top_pages?.length > 0" class="flex flex-col gap-y-4">
+        <div class="flex flex-col gap-y-1">
+          <h2 class="text-foreground text-lg font-semibold tracking-tighter">Top Pages</h2>
+          <p class="text-muted-foreground text-sm tracking-tight">
+            Most visited pages across all properties
+          </p>
+        </div>
 
-      <AnalyticsTrafficSourcesList
-        v-if="aggregateData.traffic_sources?.length > 0"
-        :sources="aggregateData.traffic_sources"
-        :limit="12"
-      />
+        <ClientOnly>
+          <TableData
+            :clientOnly="true"
+            :data="topPagesData"
+            :columns="topPagesColumns"
+            :meta="{
+              current_page: 1,
+              last_page: 1,
+              per_page: 100,
+              total: topPagesData.length,
+            }"
+            :pending="false"
+            :error="null"
+            model="top-pages"
+            search-column="top_pages_property"
+            search-placeholder="Search property, page title, or path.."
+            :column-toggle="true"
+            :show-add-button="false"
+            :show-refresh-button="false"
+            :display-only="false"
+            :initial-sorting="[{ id: 'pageviews', desc: true }]"
+            :initial-pagination="{ pageIndex: 0, pageSize: 20 }"
+            :page-sizes="[10, 20, 50, 100]"
+          />
+          <template #fallback>
+            <div
+              class="border-border bg-muted/30 flex items-center justify-center rounded-xl border p-8"
+            >
+              <Spinner class="size-5" />
+            </div>
+          </template>
+        </ClientOnly>
+      </div>
+
+      <div class="flex flex-col gap-y-4">
+        <div class="flex flex-col gap-y-1">
+          <h2 class="text-foreground text-lg font-semibold tracking-tighter">Traffic Sources</h2>
+          <p class="text-muted-foreground text-sm tracking-tight">Where your visitors come from</p>
+        </div>
+
+        <ClientOnly>
+          <TableData
+            :clientOnly="true"
+            :data="trafficSourcesData"
+            :columns="trafficSourcesColumns"
+            :meta="{
+              current_page: 1,
+              last_page: 1,
+              per_page: 100,
+              total: trafficSourcesData.length,
+            }"
+            :pending="false"
+            :error="null"
+            model="traffic-sources"
+            search-column="property_name"
+            search-placeholder="Search property, source, medium, campaign, or landing page.."
+            :column-toggle="true"
+            :show-add-button="false"
+            :show-refresh-button="false"
+            :display-only="false"
+            :initial-sorting="[{ id: 'sessions', desc: true }]"
+            :initial-pagination="{ pageIndex: 0, pageSize: 20 }"
+            :page-sizes="[10, 20, 50, 100]"
+          />
+          <template #fallback>
+            <div
+              class="border-border bg-muted/30 flex items-center justify-center rounded-xl border p-8"
+            >
+              <Spinner class="size-5" />
+            </div>
+          </template>
+        </ClientOnly>
+      </div>
 
       <AnalyticsDevicesList
         v-if="aggregateData.devices?.length > 0"
@@ -282,8 +377,8 @@
 <script setup>
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
 import AnalyticsDevicesList from "@/components/analytics/DevicesList.vue";
-import AnalyticsTopPagesList from "@/components/analytics/TopPagesList.vue";
-import AnalyticsTrafficSourcesList from "@/components/analytics/TrafficSourcesList.vue";
+import GaPropertyProfile from "@/components/ga-property/Profile.vue";
+import TableData from "@/components/TableData.vue";
 import {
   Select,
   SelectContent,
@@ -543,6 +638,20 @@ const propertyBreakdown = computed(() => {
   });
 });
 
+// Property search
+const propertySearch = ref("");
+
+const filteredPropertyBreakdown = computed(() => {
+  const search = propertySearch.value.toLowerCase().trim();
+  if (!search) return propertyBreakdown.value;
+
+  return propertyBreakdown.value.filter((property) => {
+    const name = (property.property_name || "").toLowerCase();
+    const projectName = (property.project?.name || "").toLowerCase();
+    return name.includes(search) || projectName.includes(search);
+  });
+});
+
 // Aggregate daily chart data from all properties
 const aggregatedChartData = computed(() => {
   if (!propertyBreakdown.value || propertyBreakdown.value.length === 0) {
@@ -618,6 +727,205 @@ const aggregatedChartConfig = computed(() => {
     },
   };
 });
+
+// Top Pages Table
+const topPagesData = computed(() => aggregateData.value?.top_pages || []);
+
+const topPagesColumns = [
+  {
+    header: "Property",
+    accessorKey: "property_name",
+    id: "top_pages_property",
+    cell: ({ row }) => {
+      const data = row.original;
+      return h(GaPropertyProfile, {
+        model: {
+          name: data.property_name,
+          project: data.project,
+        },
+      });
+    },
+    size: 220,
+    enableHiding: false,
+    filterFn: (row, columnId, filterValue) => {
+      const search = filterValue.toLowerCase();
+      const propertyName = (row.original.property_name || "").toLowerCase();
+      const title = (row.original.title || "").toLowerCase();
+      const path = (row.original.path || "").toLowerCase();
+      return propertyName.includes(search) || title.includes(search) || path.includes(search);
+    },
+  },
+  {
+    header: "Page",
+    accessorKey: "title",
+    cell: ({ row }) => {
+      const data = row.original;
+      const title = data.title || data.pageTitle || "Untitled Page";
+      const path = data.path || data.pagePath || "/";
+      return h("div", { class: "flex flex-col gap-y-0.5 min-w-0" }, [
+        h("span", { class: "text-sm tracking-tight truncate", title: title }, title),
+        h("span", { class: "text-muted-foreground text-xs truncate", title: path }, path),
+      ]);
+    },
+    size: 300,
+  },
+  {
+    header: () => h("div", { class: "text-right w-full" }, "Views"),
+    accessorKey: "pageviews",
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "text-right text-sm font-medium tabular-nums tracking-tight" },
+        formatNumber(row.original.pageviews || row.original.screenPageViews || 0)
+      ),
+    size: 100,
+  },
+];
+
+// Traffic Sources Table (flat per-property, not merged)
+const trafficSourcesData = computed(() => aggregateData.value?.traffic_sources_flat || []);
+
+const formatSourceName = (source) => {
+  if (!source) return "Direct";
+  if (source === "(direct)") return "Direct";
+  if (source === "(not set)") return "Not Set";
+  return source;
+};
+
+const formatCampaignName = (campaign) => {
+  if (!campaign || campaign === "(not set)" || campaign === "(organic)")
+    return campaign || "(not set)";
+  return campaign;
+};
+
+const formatDurationShort = (seconds) => {
+  if (!seconds) return "0s";
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  if (mins === 0) return `${secs}s`;
+  return `${mins}m ${secs}s`;
+};
+
+const trafficSourcesColumns = [
+  {
+    header: "Property",
+    accessorKey: "property_name",
+    cell: ({ row }) => {
+      const data = row.original;
+      return h(GaPropertyProfile, {
+        model: {
+          name: data.property_name,
+          property_id: data.property_id,
+          project: data.project,
+          landing_page: data.landing_page,
+        },
+      });
+    },
+    size: 220,
+    enableHiding: false,
+    filterFn: (row, columnId, filterValue) => {
+      const search = filterValue.toLowerCase();
+      const propertyName = (row.original.property_name || "").toLowerCase();
+      const source = (row.original.source || "").toLowerCase();
+      const medium = (row.original.medium || "").toLowerCase();
+      const campaign = (row.original.campaign || "").toLowerCase();
+      const landingPage = (row.original.landing_page || "").toLowerCase();
+      return (
+        propertyName.includes(search) ||
+        source.includes(search) ||
+        medium.includes(search) ||
+        campaign.includes(search) ||
+        landingPage.includes(search)
+      );
+    },
+  },
+  {
+    header: "Source",
+    accessorKey: "source",
+    cell: ({ row }) => {
+      const source = row.original.source;
+      return h("div", { class: "text-sm tracking-tight truncate" }, formatSourceName(source));
+    },
+    size: 140,
+  },
+  {
+    header: "Medium",
+    accessorKey: "medium",
+    cell: ({ row }) => {
+      const medium = row.original.medium || "(none)";
+      return h("span", { class: "text-sm tracking-tight" }, medium);
+    },
+    size: 110,
+  },
+  {
+    header: "Campaign",
+    accessorKey: "campaign",
+    cell: ({ row }) => {
+      const campaign = row.original.campaign;
+      const display = formatCampaignName(campaign);
+      const isNotSet = !campaign || campaign === "(not set)" || campaign === "(organic)";
+      return h(
+        "span",
+        {
+          class: isNotSet
+            ? "text-muted-foreground text-sm tracking-tight"
+            : "text-sm tracking-tight",
+        },
+        display
+      );
+    },
+    size: 160,
+  },
+  {
+    header: () => h("div", { class: "text-right w-full" }, "Sessions"),
+    accessorKey: "sessions",
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "text-right text-sm font-medium tabular-nums tracking-tight" },
+        formatNumber(row.original.sessions)
+      ),
+    size: 100,
+  },
+  {
+    header: () => h("div", { class: "text-right w-full" }, "Users"),
+    accessorKey: "users",
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "text-right text-sm font-medium tabular-nums tracking-tight" },
+        formatNumber(row.original.users || row.original.activeUsers || 0)
+      ),
+    size: 90,
+  },
+  {
+    header: () => h("div", { class: "text-right w-full" }, "Bounce"),
+    accessorKey: "bounce_rate",
+    cell: ({ row }) => {
+      const rate = row.original.bounce_rate || 0;
+      const pct = (rate * 100).toFixed(1) + "%";
+      return h(
+        "div",
+        { class: "text-right text-sm tabular-nums tracking-tight text-muted-foreground" },
+        pct
+      );
+    },
+    size: 85,
+  },
+  {
+    header: () => h("div", { class: "text-right w-full" }, "Avg. Duration"),
+    accessorKey: "avg_duration",
+    cell: ({ row }) => {
+      const duration = row.original.avg_duration || 0;
+      return h(
+        "div",
+        { class: "text-right text-sm tabular-nums tracking-tight text-muted-foreground" },
+        formatDurationShort(duration)
+      );
+    },
+    size: 110,
+  },
+];
 
 const refreshData = () => {
   fetchAnalytics(true);

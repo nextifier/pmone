@@ -60,8 +60,8 @@ export function useRealtimeAnalytics() {
 
       return data;
     } catch (err: any) {
-      // Ignore abort errors - this is expected when navigating away
-      if (err.name === 'AbortError') {
+      // Ignore abort errors - this is expected when navigating away or when a new request replaces the old one
+      if (err.name === 'AbortError' || err.cause?.name === 'AbortError' || String(err.message).includes('aborted')) {
         return null;
       }
 

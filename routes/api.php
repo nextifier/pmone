@@ -205,7 +205,11 @@ Route::prefix('projects')->group(function () {
         ->middleware('throttle:api');
 });
 
-// Short link resolution (public)
+// Unified slug resolution (user profile or short link)
+Route::get('/resolve/{slug}', [ProfileController::class, 'resolveSlug'])
+    ->middleware('throttle:api');
+
+// Short link resolution (public - backward compatibility)
 Route::get('/s/{slug}', [ProfileController::class, 'resolveShortLink'])
     ->middleware('throttle:api');
 

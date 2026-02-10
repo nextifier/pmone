@@ -132,7 +132,7 @@
 
 <script setup>
 definePageMeta({
-  layout: "default",
+  middleware: ["sanctum:guest"],
 });
 
 usePageMeta("home");

@@ -372,10 +372,14 @@ class AnalyticsDataFetcher
                 ->setDimensions([
                     new Dimension(['name' => 'sessionSource']),
                     new Dimension(['name' => 'sessionMedium']),
+                    new Dimension(['name' => 'sessionCampaignName']),
+                    new Dimension(['name' => 'landingPage']),
                 ])
                 ->setMetrics([
                     new Metric(['name' => 'sessions']),
                     new Metric(['name' => 'activeUsers']),
+                    new Metric(['name' => 'bounceRate']),
+                    new Metric(['name' => 'averageSessionDuration']),
                 ]);
 
             $response = $client->runReport($request);
@@ -385,8 +389,12 @@ class AnalyticsDataFetcher
                 $sources[] = [
                     'source' => $row->getDimensionValues()[0]->getValue(),
                     'medium' => $row->getDimensionValues()[1]->getValue(),
+                    'campaign' => $row->getDimensionValues()[2]->getValue(),
+                    'landing_page' => $row->getDimensionValues()[3]->getValue(),
                     'sessions' => (int) $row->getMetricValues()[0]->getValue(),
                     'users' => (int) $row->getMetricValues()[1]->getValue(),
+                    'bounce_rate' => (float) $row->getMetricValues()[2]->getValue(),
+                    'avg_duration' => (float) $row->getMetricValues()[3]->getValue(),
                 ];
             }
 
@@ -539,10 +547,14 @@ class AnalyticsDataFetcher
                     new Dimension(['name' => 'date']),
                     new Dimension(['name' => 'sessionSource']),
                     new Dimension(['name' => 'sessionMedium']),
+                    new Dimension(['name' => 'sessionCampaignName']),
+                    new Dimension(['name' => 'landingPage']),
                 ])
                 ->setMetrics([
                     new Metric(['name' => 'sessions']),
                     new Metric(['name' => 'activeUsers']),
+                    new Metric(['name' => 'bounceRate']),
+                    new Metric(['name' => 'averageSessionDuration']),
                 ]);
 
             $response = $client->runReport($request);
@@ -556,8 +568,12 @@ class AnalyticsDataFetcher
                     'date' => $formattedDate,
                     'source' => $row->getDimensionValues()[1]->getValue(),
                     'medium' => $row->getDimensionValues()[2]->getValue(),
+                    'campaign' => $row->getDimensionValues()[3]->getValue(),
+                    'landing_page' => $row->getDimensionValues()[4]->getValue(),
                     'sessions' => (int) $row->getMetricValues()[0]->getValue(),
                     'users' => (int) $row->getMetricValues()[1]->getValue(),
+                    'bounce_rate' => (float) $row->getMetricValues()[2]->getValue(),
+                    'avg_duration' => (float) $row->getMetricValues()[3]->getValue(),
                 ];
             }
 
