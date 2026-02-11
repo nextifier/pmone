@@ -108,9 +108,26 @@ if (resolvedType.value === "shortlink") {
   });
 }
 
-// Short link redirect (client-side only)
+// Short link: track click then redirect (client-side only)
 if (import.meta.client && shortLinkData.value) {
-  const destinationUrl = shortLinkData.value.destination_url;
+  const { id, destination_url: destinationUrl } = shortLinkData.value;
+
+  // Track click with credentials (same pattern as trackProfileVisit/trackClick)
+  if (id) {
+    await $fetch("/api/track/click", {
+      method: "POST",
+      baseURL: useRuntimeConfig().public.apiUrl,
+      credentials: "include",
+      body: {
+        clickable_type: "App\\Models\\ShortLink",
+        clickable_id: id,
+        link_label: shortLinkData.value.slug,
+      },
+    }).catch((err) => {
+      console.error("Failed to track short link click:", err);
+    });
+  }
+
   if (destinationUrl) {
     try {
       await navigateTo(destinationUrl, {
