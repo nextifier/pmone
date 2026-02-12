@@ -93,11 +93,14 @@ const navMainGroups = computed(() => {
     });
   }
 
-  platformItems.push({
-    label: "Tasks",
-    path: "/tasks",
-    iconName: "hugeicons:task-daily-01",
-  });
+  // Tasks - requires tasks.read permission
+  if (hasPermission("tasks.read")) {
+    platformItems.push({
+      label: "Tasks",
+      path: "/tasks",
+      iconName: "hugeicons:task-daily-01",
+    });
+  }
 
   // Posts - requires posts.read permission
   if (hasPermission("posts.read")) {

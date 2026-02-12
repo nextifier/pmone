@@ -138,21 +138,23 @@ export const usePermission = () => {
 
   /**
    * Check if user can edit a specific task
-   * Rules: User with tasks.update permission can edit any task, or user must be the creator
+   * Uses can_edit from API response if available, otherwise falls back to ownership check
    */
-  const canEditTask = (task: { created_by: number }): boolean => {
+  const canEditTask = (task: { can_edit?: boolean; created_by: number }): boolean => {
     if (!user.value) return false;
-    if (hasPermission("tasks.update")) return true;
+    if (hasAnyRole(["master", "admin"])) return true;
+    if (task.can_edit !== undefined) return task.can_edit;
     return task.created_by === user.value.id;
   };
 
   /**
    * Check if user can delete a specific task
-   * Rules: User with tasks.delete permission can delete any task, or user must be the creator
+   * Uses can_delete from API response if available, otherwise falls back to ownership check
    */
-  const canDeleteTask = (task: { created_by: number }): boolean => {
+  const canDeleteTask = (task: { can_delete?: boolean; created_by: number }): boolean => {
     if (!user.value) return false;
-    if (hasPermission("tasks.delete")) return true;
+    if (hasAnyRole(["master", "admin"])) return true;
+    if (task.can_delete !== undefined) return task.can_delete;
     return task.created_by === user.value.id;
   };
 

@@ -10,6 +10,8 @@
         <DialogContent
           class="bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100%-4rem)] w-full -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border shadow-lg outline-hidden duration-200"
           :style="{ maxWidth: dialogMaxWidth }"
+          @interact-outside="onInteractOutside"
+          @escape-key-down="onEscapeKeyDown"
         >
           <DialogTitle class="hidden" />
           <DialogDescription class="hidden" />
@@ -18,8 +20,17 @@
             <slot :data="dialogData" />
           </ScrollArea>
           <slot name="sticky-footer" />
+          <button
+            v-if="preventClose"
+            @click="onCloseButtonClick"
+            class="data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
+          >
+            <IconClose class="size-4" />
+            <span class="sr-only">Close</span>
+          </button>
           <DialogClose
-            class="data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-3 right-3 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
+            v-else
+            class="data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
           >
             <IconClose class="size-4" />
             <span class="sr-only">Close</span>
@@ -28,7 +39,7 @@
       </DialogPortal>
     </DialogRoot>
 
-    <DrawerRoot v-else v-model:open="isOpen">
+    <DrawerRoot v-else v-model:open="isOpen" :dismissible="!preventClose">
       <DrawerPortal>
         <DrawerOverlay class="fixed inset-0 z-50 bg-black/80" />
         <DrawerContent
@@ -50,9 +61,17 @@
             <slot :data="dialogData" />
           </div>
           <slot name="sticky-footer" />
+          <button
+            v-if="preventClose"
+            @click="onCloseButtonClick"
+            class="group data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-1.5 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
+          >
+            <IconClose class="size-4 opacity-60 transition group-hover:opacity-100" />
+            <span class="sr-only">Close</span>
+          </button>
           <DrawerClose
-            v-if="drawerCloseButton || isDesktop"
-            class="group data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-1.5 right-3 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
+            v-else-if="drawerCloseButton || isDesktop"
+            class="group data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-1.5 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
           >
             <IconClose class="size-4 opacity-60 transition group-hover:opacity-100" />
             <span class="sr-only">Close</span>
@@ -106,9 +125,13 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  preventClose: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-const emit = defineEmits(["update:open"]);
+const emit = defineEmits(["update:open", "close-prevented"]);
 
 const isDesktop = useMediaQuery("(min-width: 768px)");
 
@@ -129,6 +152,25 @@ provide("dialogControls", {
   open,
   close,
 });
+
+// Prevent close handlers
+const onInteractOutside = (event) => {
+  if (props.preventClose) {
+    event.preventDefault();
+    emit("close-prevented");
+  }
+};
+
+const onEscapeKeyDown = (event) => {
+  if (props.preventClose) {
+    event.preventDefault();
+    emit("close-prevented");
+  }
+};
+
+const onCloseButtonClick = () => {
+  emit("close-prevented");
+};
 
 // Focus management for drawer to fix aria-hidden warning
 watch(isOpen, (newValue) => {

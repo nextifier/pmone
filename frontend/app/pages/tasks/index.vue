@@ -185,7 +185,7 @@
                   {{ completedTasks.length }}
                 </Badge>
                 <button
-                  v-if="completedTasks.length > 0 && canDelete"
+                  v-if="deletableCompletedTasks.length > 0"
                   type="button"
                   @click="openClearCompletedDialog"
                   class="text-muted-foreground hover:text-foreground ml-auto text-sm tracking-tight hover:underline"
@@ -225,6 +225,8 @@
       v-model:open="createDialogOpen"
       dialog-max-width="600px"
       :overflow-content="true"
+      :prevent-close="createFormRef?.isDirty ?? false"
+      @close-prevented="unsavedContext = 'create'; unsavedDialogOpen = true"
     >
       <template #sticky-header>
         <div class="border-border sticky top-0 z-10 border-b px-4 pb-4 md:px-6 md:py-4">
@@ -249,6 +251,8 @@
       v-model:open="editDialogOpen"
       dialog-max-width="600px"
       :overflow-content="true"
+      :prevent-close="editFormRef?.isDirty ?? false"
+      @close-prevented="unsavedContext = 'edit'; unsavedDialogOpen = true"
     >
       <template #sticky-header>
         <div class="border-border sticky top-0 z-10 border-b px-4 pb-4 md:px-6 md:py-4">
@@ -266,6 +270,22 @@
             @submit="handleEditTask"
             @cancel="editDialogOpen = false"
           />
+        </div>
+      </template>
+    </DialogResponsive>
+
+    <!-- Unsaved Changes Dialog -->
+    <DialogResponsive v-model:open="unsavedDialogOpen">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-6">
+          <div class="text-foreground text-lg font-semibold tracking-tight">Unsaved Changes</div>
+          <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
+            You have unsaved changes. Would you like to save them before closing?
+          </p>
+          <div class="mt-4 flex justify-end gap-2">
+            <Button variant="outline" @click="handleUnsavedDiscard">Discard</Button>
+            <Button @click="handleUnsavedSave">Save</Button>
+          </div>
         </div>
       </template>
     </DialogResponsive>
@@ -297,7 +317,7 @@
             </div>
             <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
               Are you sure you want to delete
-              <strong>{{ completedTasksList.length }} completed tasks</strong>? This action can be
+              <strong>{{ deletableCompletedTasks.length }} completed tasks</strong>? This action can be
               undone from trash.
             </p>
           </template>
@@ -353,7 +373,8 @@ import { useSortable } from "@vueuse/integrations/useSortable";
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth"],
+  middleware: ["sanctum:auth", "permission"],
+  permissions: ["tasks.read"],
   layout: "app",
 });
 
@@ -362,7 +383,6 @@ const { user: currentUser } = useSanctumAuth();
 const { hasPermission } = usePermission();
 
 const canCreate = computed(() => hasPermission("tasks.create"));
-const canDelete = computed(() => hasPermission("tasks.delete"));
 
 // Show details toggle (persisted in localStorage)
 const showDetails = ref(true);
@@ -478,6 +498,10 @@ const completedTasks = computed(() => {
   if (!hasActiveFilters.value) return completedTasksList.value;
   return applyClientFilters(completedTasksList.value);
 });
+
+const deletableCompletedTasks = computed(() =>
+  completedTasksList.value.filter((t) => t.can_delete !== false)
+);
 
 const pendingTasks = computed(() => [...inProgressTasks.value, ...todoTasks.value]);
 const filteredTasks = computed(() => [
@@ -690,6 +714,9 @@ const createLoading = ref(false);
 
 const openCreateDialog = () => {
   createDialogOpen.value = true;
+  nextTick(() => {
+    createFormRef.value?.focusTitle();
+  });
 };
 
 const handleCreateTask = async (payload) => {
@@ -766,6 +793,29 @@ const handleEditFromDetail = (task) => {
   });
 };
 
+// ============ Unsaved Changes Dialog ============
+const unsavedDialogOpen = ref(false);
+const unsavedContext = ref(null); // 'create' or 'edit'
+
+const handleUnsavedSave = () => {
+  unsavedDialogOpen.value = false;
+  if (unsavedContext.value === "create") {
+    createFormRef.value?.handleSubmit();
+  } else {
+    editFormRef.value?.handleSubmit();
+  }
+};
+
+const handleUnsavedDiscard = () => {
+  unsavedDialogOpen.value = false;
+  if (unsavedContext.value === "create") {
+    createDialogOpen.value = false;
+  } else {
+    editDialogOpen.value = false;
+    taskToEdit.value = null;
+  }
+};
+
 // ============ Update Task Title (Inline Edit) ============
 const handleUpdateTitle = async (task, newTitle) => {
   const oldTitle = task.title;
@@ -786,10 +836,10 @@ const handleUpdateTitle = async (task, newTitle) => {
 
 // ============ Clear All Completed ============
 const handleClearCompleted = async () => {
-  if (completedTasksList.value.length === 0 || deleteLoading.value) return;
+  if (deletableCompletedTasks.value.length === 0 || deleteLoading.value) return;
 
   deleteLoading.value = true;
-  const ids = completedTasksList.value.map((t) => t.id);
+  const ids = deletableCompletedTasks.value.map((t) => t.id);
 
   try {
     await client("/api/tasks/bulk", {
@@ -797,7 +847,9 @@ const handleClearCompleted = async () => {
       body: { ids },
     });
 
-    completedTasksList.value = [];
+    completedTasksList.value = completedTasksList.value.filter(
+      (t) => !ids.includes(t.id)
+    );
     deleteDialogOpen.value = false;
     toast.success("Completed tasks cleared");
     nextTick(() => initializeSortable());
@@ -859,6 +911,18 @@ const handleDeleteTask = async () => {
     deleteLoading.value = false;
   }
 };
+
+const route = useRoute();
+defineShortcuts({
+  n: {
+    handler: () => {
+      if (canCreate.value) {
+        openCreateDialog();
+      }
+    },
+    whenever: [computed(() => route.path === "/tasks")],
+  },
+});
 
 // Set page meta
 useHead({

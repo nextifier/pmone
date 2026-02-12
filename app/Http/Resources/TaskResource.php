@@ -89,6 +89,10 @@ class TaskResource extends JsonResource
                 $this->getMediaUrls('description_images')
             ),
 
+            // Permissions
+            'can_edit' => auth()->check() ? auth()->user()->can('update', $this->resource) : false,
+            'can_delete' => auth()->check() ? auth()->user()->can('delete', $this->resource) : false,
+
             // Timestamps
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

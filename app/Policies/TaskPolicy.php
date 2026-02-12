@@ -38,12 +38,7 @@ class TaskPolicy
             return true;
         }
 
-        // Users with tasks.read permission can view any task
-        if ($user->hasPermissionTo('tasks.read')) {
-            return true;
-        }
-
-        // Creator can view their own tasks
+        // Creator can view their own tasks (any visibility)
         if ($task->created_by === $user->id) {
             return true;
         }
@@ -84,13 +79,13 @@ class TaskPolicy
             return true;
         }
 
-        // Users with tasks.update permission can update any task
-        if ($user->hasPermissionTo('tasks.update')) {
+        // Creator can update their own tasks
+        if ($task->created_by === $user->id) {
             return true;
         }
 
-        // Creator can update their own tasks
-        if ($task->created_by === $user->id) {
+        // Assignee can update their assigned tasks
+        if ($task->assignee_id === $user->id) {
             return true;
         }
 
@@ -123,11 +118,6 @@ class TaskPolicy
             return true;
         }
 
-        // Users with tasks.delete permission can delete any task
-        if ($user->hasPermissionTo('tasks.delete')) {
-            return true;
-        }
-
         // Only creator can delete their own tasks
         return $task->created_by === $user->id;
     }
@@ -142,12 +132,7 @@ class TaskPolicy
             return true;
         }
 
-        // Users with tasks.delete permission can restore any task
-        if ($user->hasPermissionTo('tasks.delete')) {
-            return true;
-        }
-
-        // Creator can restore their own tasks
+        // Only creator can restore their own tasks
         return $task->created_by === $user->id;
     }
 

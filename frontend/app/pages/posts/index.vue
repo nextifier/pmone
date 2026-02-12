@@ -960,4 +960,19 @@ const FilterSection = defineComponent({
       ]);
   },
 });
+
+const isPageActive = ref(true);
+onActivated(() => { isPageActive.value = true; });
+onDeactivated(() => { isPageActive.value = false; });
+
+defineShortcuts({
+  n: {
+    handler: () => {
+      if (canCreate.value) {
+        navigateTo("/posts/create");
+      }
+    },
+    whenever: [isPageActive],
+  },
+});
 </script>

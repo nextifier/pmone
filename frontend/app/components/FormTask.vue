@@ -5,6 +5,7 @@
       <div class="space-y-2">
         <Label for="title"> Task Title <span class="text-destructive">*</span> </Label>
         <Textarea
+          ref="titleInputRef"
           id="title"
           v-model="form.title"
           required
@@ -296,6 +297,7 @@ const form = reactive({
     }, {}) || {},
 });
 
+const titleInputRef = ref(null);
 const errors = ref({});
 
 // Temporary input for shared user IDs (comma-separated) - fallback when UserMultiSelect not available
@@ -369,6 +371,24 @@ const visibilityOptions = [
   },
 ];
 
+const isDirty = computed(() => {
+  if (!props.task) {
+    // Create mode: dirty if title has content
+    return form.title.trim().length > 0;
+  }
+  // Edit mode: dirty if any field changed from original
+  return (
+    form.title !== (props.task.title || "") ||
+    form.description !== (props.task.description || "") ||
+    form.status !== (props.task.status || "todo") ||
+    form.priority !== (props.task.priority || null) ||
+    form.complexity !== (props.task.complexity || null) ||
+    form.visibility !== (props.task.visibility || "public") ||
+    form.assignee_id !== (props.task.assignee_id ?? currentUser.value?.id ?? null) ||
+    form.project_id !== (props.task.project_id || props.task.project?.id || null)
+  );
+});
+
 const isFormValid = computed(() => {
   if (!form.title.trim()) return false;
   if (!form.visibility) return false;
@@ -439,8 +459,23 @@ const handleSubmit = () => {
 // Expose for parent component
 defineExpose({
   handleSubmit,
+  isDirty,
+  focusTitle: () => {
+    nextTick(() => {
+      titleInputRef.value?.$el?.focus();
+    });
+  },
   setErrors: (newErrors) => {
     errors.value = newErrors;
+  },
+});
+
+defineShortcuts({
+  meta_s: {
+    usingInput: true,
+    handler: () => {
+      handleSubmit();
+    },
   },
 });
 </script>

@@ -215,6 +215,8 @@
       v-model:open="editDialogOpen"
       dialog-max-width="600px"
       :overflow-content="true"
+      :prevent-close="editFormRef?.isDirty ?? false"
+      @close-prevented="unsavedDialogOpen = true"
     >
       <template #sticky-header>
         <div class="border-border sticky top-0 z-10 border-b px-4 pb-4 md:px-6 md:py-4">
@@ -232,6 +234,22 @@
             @submit="handleEditTask"
             @cancel="editDialogOpen = false"
           />
+        </div>
+      </template>
+    </DialogResponsive>
+
+    <!-- Unsaved Changes Dialog -->
+    <DialogResponsive v-model:open="unsavedDialogOpen">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-6">
+          <div class="text-foreground text-lg font-semibold tracking-tight">Unsaved Changes</div>
+          <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
+            You have unsaved changes. Would you like to save them before closing?
+          </p>
+          <div class="mt-4 flex justify-end gap-2">
+            <Button variant="outline" @click="handleUnsavedDiscard">Discard</Button>
+            <Button @click="handleUnsavedSave">Save</Button>
+          </div>
         </div>
       </template>
     </DialogResponsive>
@@ -296,7 +314,8 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth"],
+  middleware: ["sanctum:auth", "permission"],
+  permissions: ["tasks.read"],
   layout: "app",
 });
 
@@ -476,6 +495,20 @@ const handleEditFromDetail = (task) => {
   nextTick(() => {
     openEditDialog(task);
   });
+};
+
+// ============ Unsaved Changes Dialog ============
+const unsavedDialogOpen = ref(false);
+
+const handleUnsavedSave = () => {
+  unsavedDialogOpen.value = false;
+  editFormRef.value?.handleSubmit();
+};
+
+const handleUnsavedDiscard = () => {
+  unsavedDialogOpen.value = false;
+  editDialogOpen.value = false;
+  taskToEdit.value = null;
 };
 
 // ============ Delete Task Dialog ============

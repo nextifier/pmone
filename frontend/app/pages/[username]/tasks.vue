@@ -73,6 +73,7 @@
             v-for="task in inProgressTasks"
             :key="task.id"
             :task="task"
+            :can-edit="task.can_edit === true"
             @update-status="handleUpdateStatus"
             @delete="openDeleteDialog"
             @view="openDetailDialog"
@@ -93,6 +94,7 @@
             v-for="task in todoTasks"
             :key="task.id"
             :task="task"
+            :can-edit="task.can_edit === true"
             @update-status="handleUpdateStatus"
             @delete="openDeleteDialog"
             @view="openDetailDialog"
@@ -113,6 +115,7 @@
             v-for="task in completedTasks"
             :key="task.id"
             :task="task"
+            :can-edit="task.can_edit === true"
             @update-status="handleUpdateStatus"
             @delete="openDeleteDialog"
             @view="openDetailDialog"
@@ -133,6 +136,7 @@
             v-for="task in archivedTasks"
             :key="task.id"
             :task="task"
+            :can-edit="task.can_edit === true"
             @update-status="handleUpdateStatus"
             @delete="openDeleteDialog"
             @view="openDetailDialog"
@@ -143,7 +147,12 @@
     </div>
 
     <!-- Edit Task Dialog -->
-    <DialogResponsive v-model:open="editDialogOpen" dialog-max-width="600px">
+    <DialogResponsive
+      v-model:open="editDialogOpen"
+      dialog-max-width="600px"
+      :prevent-close="editFormRef?.isDirty ?? false"
+      @close-prevented="unsavedDialogOpen = true"
+    >
       <template #sticky-header>
         <div
           class="border-border bg-background/95 sticky top-0 z-10 border-b px-4 py-4 backdrop-blur md:px-6"
@@ -166,12 +175,29 @@
       </template>
     </DialogResponsive>
 
+    <!-- Unsaved Changes Dialog -->
+    <DialogResponsive v-model:open="unsavedDialogOpen">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-6">
+          <div class="text-foreground text-lg font-semibold tracking-tight">Unsaved Changes</div>
+          <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
+            You have unsaved changes. Would you like to save them before closing?
+          </p>
+          <div class="mt-4 flex justify-end gap-2">
+            <Button variant="outline" @click="handleUnsavedDiscard">Discard</Button>
+            <Button @click="handleUnsavedSave">Save</Button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
+
     <!-- Detail Task Dialog -->
     <DialogResponsive v-model:open="detailDialogOpen" dialog-max-width="550px">
       <template #default>
         <TaskDetailDialog
           v-if="taskToView"
           :task="taskToView"
+          :can-edit="taskToView.can_edit === true"
           @close="detailDialogOpen = false"
           @edit="handleEditFromDetail"
         />
@@ -212,7 +238,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth"],
+  middleware: ["sanctum:auth", "permission"],
+  permissions: ["tasks.read"],
   layout: "app",
 });
 
@@ -311,6 +338,20 @@ const handleEditFromDetail = (task) => {
   nextTick(() => {
     openEditDialog(task);
   });
+};
+
+// ============ Unsaved Changes Dialog ============
+const unsavedDialogOpen = ref(false);
+
+const handleUnsavedSave = () => {
+  unsavedDialogOpen.value = false;
+  editFormRef.value?.handleSubmit();
+};
+
+const handleUnsavedDiscard = () => {
+  unsavedDialogOpen.value = false;
+  editDialogOpen.value = false;
+  taskToEdit.value = null;
 };
 
 // ============ Delete Task Dialog ============
