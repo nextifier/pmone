@@ -2,13 +2,14 @@
   <div
     v-if="model"
     :style="{
-      '--hue': Math.min((model?.name?.length || 0) / 50, 1) * 360,
+      '--hue': hue,
+      '--hue-end': (hue + 20) % 360,
     }"
     :class="[
       'outline-primary/10 @container relative flex aspect-square shrink-0 items-center justify-center text-center outline -outline-offset-1 [--bg-chroma:0.16] [--bg-lightness:0.9] [--text-chroma:0.16] [--text-lightness:0.32] dark:[--bg-chroma:0.14] dark:[--bg-lightness:0.28] dark:[--text-chroma:0.16] dark:[--text-lightness:0.8]',
       rounded,
       !model?.profile_image &&
-        'bg-[linear-gradient(135deg,oklch(var(--bg-lightness)_var(--bg-chroma)_var(--hue)),oklch(calc(var(--bg-lightness)*1)_calc(var(--bg-chroma)*1)_calc(var(--hue))))]',
+        'bg-[linear-gradient(135deg,oklch(var(--bg-lightness)_var(--bg-chroma)_var(--hue)),oklch(calc(var(--bg-lightness)*0.97)_calc(var(--bg-chroma)*0.9)_var(--hue-end)))]',
     ]"
   >
     <img
@@ -54,11 +55,20 @@ const props = defineProps({
   },
   size: {
     type: String,
-    default: "sm", // Available: 'sm', 'md', 'lg', 'xl', 'original'
+    default: "sm",
   },
   rounded: {
     type: String,
-    default: "rounded-lg", // Can be overridden with rounded-full, rounded-xl, etc.
+    default: "rounded-lg",
   },
+});
+
+const hue = computed(() => {
+  const name = props.model?.name || "";
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash) % 360;
 });
 </script>
