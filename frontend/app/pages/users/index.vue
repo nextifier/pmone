@@ -308,7 +308,7 @@ const canDelete = computed(() => hasPermission("users.delete"));
 // Table state
 const columnFilters = ref([]);
 const pagination = ref({ pageIndex: 0, pageSize: 20 });
-const sorting = ref([{ id: "created_at", desc: true }]);
+const sorting = ref([{ id: "last_seen", desc: true }]);
 
 // Data state
 // Client-only mode flag (true = client-side pagination, false = server-side)

@@ -41,7 +41,7 @@ class UserController extends Controller
 
         // Paginate only if not client-only mode
         if ($clientOnly) {
-            $users = $query->get();
+            $users = $query->orderByRaw('last_seen IS NULL')->orderByDesc('last_seen')->get();
 
             return response()->json([
                 'data' => UserIndexResource::collection($users),
@@ -146,7 +146,7 @@ class UserController extends Controller
 
     private function applySorting($query, Request $request): void
     {
-        $sortField = $request->input('sort', '-created_at');
+        $sortField = $request->input('sort', '-last_seen');
         $direction = str_starts_with($sortField, '-') ? 'desc' : 'asc';
         $field = ltrim($sortField, '-');
 
@@ -156,10 +156,14 @@ class UserController extends Controller
                 ->select('users.*')
                 ->groupBy('users.id')
                 ->orderByRaw("MIN(roles.name) {$direction}");
+        } elseif ($field === 'last_seen') {
+            $query->orderByRaw("last_seen IS NULL")
+                ->orderBy('last_seen', $direction);
         } elseif (in_array($field, ['name', 'email', 'username', 'status', 'email_verified_at', 'created_at', 'updated_at'])) {
             $query->orderBy($field, $direction);
         } else {
-            $query->orderBy('created_at', 'desc');
+            $query->orderByRaw("last_seen IS NULL")
+                ->orderBy('last_seen', 'desc');
         }
     }
 
