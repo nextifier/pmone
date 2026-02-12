@@ -73,7 +73,7 @@
                 <span class="text-sm font-semibold tracking-tight">
                   {{ group.assignee?.name || "Unassigned" }}
                 </span>
-                <span v-if="group.assignee?.username" class="text-muted-foreground text-xs">
+                <span v-if="group.assignee?.username" class="text-muted-foreground text-sm">
                   @{{ group.assignee.username }}
                 </span>
               </div>
@@ -96,7 +96,7 @@
                     <div class="flex items-center gap-x-2">
                       <Icon name="hugeicons:loading-03" class="text-info-foreground size-4.5" />
                       <span class="text-sm font-medium tracking-tight">In Progress</span>
-                      <Badge variant="secondary" class="h-4 px-1.5 text-[10px]">
+                      <Badge variant="secondary" class="h-4 px-1.5 text-sm">
                         {{ group.inProgress.length }}
                       </Badge>
                     </div>
@@ -121,7 +121,7 @@
                     <div class="flex items-center gap-x-2">
                       <Icon name="hugeicons:task-daily-01" class="text-muted-foreground size-4.5" />
                       <span class="text-sm font-medium tracking-tight">To Do</span>
-                      <Badge variant="secondary" class="h-4 px-1.5 text-[10px]">
+                      <Badge variant="secondary" class="h-4 px-1.5 text-sm">
                         {{ group.todo.length }}
                       </Badge>
                     </div>
@@ -185,10 +185,7 @@
                         @edit="dialogs.openEditDialog"
                       />
                     </div>
-                    <div
-                      v-else
-                      class="flex flex-col items-center justify-center py-8 text-center"
-                    >
+                    <div v-else class="flex flex-col items-center justify-center py-8 text-center">
                       <Icon
                         name="hugeicons:checkmark-circle-02"
                         class="text-muted-foreground/50 mb-2 size-8"
