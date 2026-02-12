@@ -25,7 +25,7 @@
         <button
           v-if="canCreate"
           type="button"
-          @click="openCreateDialog"
+          @click="dialogs.openCreateDialog"
           class="hover:bg-primary/80 text-primary-foreground bg-primary flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
         >
           <Icon name="hugeicons:plus-sign" class="-ml-1 size-4 shrink-0" />
@@ -66,7 +66,7 @@
       <button
         v-if="!searchQuery && canCreate"
         type="button"
-        @click="openCreateDialog"
+        @click="dialogs.openCreateDialog"
         class="bg-primary text-primary-foreground hover:bg-primary/80 mt-4 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
       >
         <Icon name="hugeicons:plus-sign" class="size-4 shrink-0" />
@@ -109,9 +109,9 @@
                   :can-edit="task.can_edit !== false"
                   @update-status="handleUpdateStatus"
                   @update-title="handleUpdateTitle"
-                  @delete="openDeleteDialog"
-                  @view="openDetailDialog"
-                  @edit="openEditDialog"
+                  @delete="dialogs.openDeleteDialog"
+                  @view="dialogs.openDetailDialog"
+                  @edit="dialogs.openEditDialog"
                 />
               </div>
             </div>
@@ -134,9 +134,9 @@
                   :can-edit="task.can_edit !== false"
                   @update-status="handleUpdateStatus"
                   @update-title="handleUpdateTitle"
-                  @delete="openDeleteDialog"
-                  @view="openDetailDialog"
-                  @edit="openEditDialog"
+                  @delete="dialogs.openDeleteDialog"
+                  @view="dialogs.openDetailDialog"
+                  @edit="dialogs.openEditDialog"
                 />
               </div>
 
@@ -202,9 +202,9 @@
                   :can-edit="task.can_edit !== false"
                   @update-status="handleUpdateStatus"
                   @update-title="handleUpdateTitle"
-                  @delete="openDeleteDialog"
-                  @view="openDetailDialog"
-                  @edit="openEditDialog"
+                  @delete="dialogs.openDeleteDialog"
+                  @view="dialogs.openDetailDialog"
+                  @edit="dialogs.openEditDialog"
                 />
               </div>
               <div v-else class="flex flex-col items-center justify-center py-8 text-center">
@@ -220,137 +220,21 @@
       </div>
     </template>
 
-    <!-- Create Task Dialog -->
-    <DialogResponsive
-      v-model:open="createDialogOpen"
-      dialog-max-width="600px"
-      :overflow-content="true"
-      :prevent-close="createFormRef?.isDirty ?? false"
-      @close-prevented="handleCreateClosePrevented"
-    >
-      <template #sticky-header>
-        <div class="border-border sticky top-0 z-10 border-b px-4 pb-4 md:px-6 md:py-4">
-          <div class="text-lg font-semibold tracking-tight">Create New Task</div>
-          <p class="text-muted-foreground text-sm">Add a new task to your list</p>
-        </div>
-      </template>
-      <template #default>
-        <div class="px-4 py-4 md:px-6">
-          <FormTask
-            ref="createFormRef"
-            :loading="createLoading"
-            @submit="handleCreateTask"
-            @cancel="createDialogOpen = false"
-          />
-        </div>
-      </template>
-    </DialogResponsive>
-
-    <!-- Edit Task Dialog -->
-    <DialogResponsive
-      v-model:open="editDialogOpen"
-      dialog-max-width="600px"
-      :overflow-content="true"
-      :prevent-close="editFormRef?.isDirty ?? false"
-      @close-prevented="handleEditClosePrevented"
-    >
-      <template #sticky-header>
-        <div class="border-border sticky top-0 z-10 border-b px-4 pb-4 md:px-6 md:py-4">
-          <div class="text-lg font-semibold tracking-tight">Edit Task</div>
-          <p class="text-muted-foreground text-sm">Update task details</p>
-        </div>
-      </template>
-      <template #default>
-        <div class="px-4 py-4 md:px-6">
-          <FormTask
-            v-if="taskToEdit"
-            ref="editFormRef"
-            :task="taskToEdit"
-            :loading="editLoading"
-            @submit="handleEditTask"
-            @cancel="editDialogOpen = false"
-          />
-        </div>
-      </template>
-    </DialogResponsive>
-
-    <!-- Unsaved Changes Dialog -->
-    <DialogResponsive v-model:open="unsavedDialogOpen" :hide-overlay="true">
-      <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-6">
-          <div class="text-foreground text-lg font-semibold tracking-tight">Unsaved Changes</div>
-          <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
-            You have unsaved changes. Would you like to save them before closing?
-          </p>
-          <div class="mt-4 flex justify-end gap-2">
-            <Button variant="outline" @click="handleUnsavedDiscard">Discard</Button>
-            <Button @click="handleUnsavedSave">Save</Button>
-          </div>
-        </div>
-      </template>
-    </DialogResponsive>
-
-    <!-- Detail Task Dialog -->
-    <DialogResponsive
-      v-model:open="detailDialogOpen"
-      dialog-max-width="600px"
-      :overflow-content="true"
-    >
-      <template #default>
-        <TaskDetailDialog
-          v-if="taskToView"
-          :task="taskToView"
-          :can-edit="taskToView.can_edit !== false"
-          @close="detailDialogOpen = false"
-          @edit="handleEditFromDetail"
-        />
-      </template>
-    </DialogResponsive>
-
-    <!-- Delete Dialog -->
-    <DialogResponsive v-model:open="deleteDialogOpen">
-      <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-6">
-          <template v-if="deleteMode === 'clear-completed'">
-            <div class="text-foreground text-lg font-semibold tracking-tight">
-              Clear Completed Tasks?
-            </div>
-            <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
-              Are you sure you want to delete
-              <strong>{{ deletableCompletedTasks.length }} completed tasks</strong>? This action can be
-              undone from trash.
-            </p>
-          </template>
-          <template v-else>
-            <div class="text-foreground text-lg font-semibold tracking-tight">Delete Task?</div>
-            <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
-              Are you sure you want to delete <strong>{{ taskToDelete?.title }}</strong
-              >? This action can be undone from trash.
-            </p>
-          </template>
-          <div class="mt-4 flex justify-end gap-2">
-            <Button variant="outline" @click="deleteDialogOpen = false"> Cancel </Button>
-            <Button
-              variant="destructive"
-              @click="
-                deleteMode === 'clear-completed' ? handleClearCompleted() : handleDeleteTask()
-              "
-              :disabled="deleteLoading"
-            >
-              <Spinner v-if="deleteLoading" class="size-4" />
-              <span v-else>Delete</span>
-            </Button>
-          </div>
-        </div>
-      </template>
-    </DialogResponsive>
+    <!-- Task Dialogs -->
+    <TaskDialogs
+      :dialogs="dialogs"
+      :with-create="true"
+      :delete-mode="deleteMode"
+      :deletable-completed-count="deletableCompletedTasks.length"
+      @clear-completed="handleClearCompleted"
+    />
 
     <!-- Floating Add Task Button -->
     <div
       v-if="canCreate"
       class="xs:right-[calc(var(--spacing)*4+var(--scrollbar-width,0px))] fixed right-[calc(var(--spacing)*3+var(--scrollbar-width,0px))] bottom-8 z-50 sm:right-[calc(var(--spacing)*6+var(--scrollbar-width,0px))] sm:bottom-5 lg:bottom-12 xl:right-[calc(var(--spacing)*12+var(--scrollbar-width,0px))]"
     >
-      <GlassButton variant="default" size="icon-xl" @click="openCreateDialog">
+      <GlassButton variant="default" size="icon-xl" @click="dialogs.openCreateDialog">
         <Icon name="hugeicons:plus-sign" class="size-5 shrink-0" />
       </GlassButton>
     </div>
@@ -358,10 +242,8 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
-import FormTask from "@/components/FormTask.vue";
 import TaskCard from "@/components/task/TaskCard.vue";
-import TaskDetailDialog from "@/components/task/TaskDetailDialog.vue";
+import TaskDialogs from "@/components/task/TaskDialogs.vue";
 import TasksFilters from "@/components/task/TasksFilters.vue";
 import TasksHeader from "@/components/task/TasksHeader.vue";
 import { Badge } from "@/components/ui/badge";
@@ -707,135 +589,6 @@ const handleQuickAdd = async () => {
   }
 };
 
-// ============ Create Task Dialog ============
-const createDialogOpen = ref(false);
-const createFormRef = ref(null);
-const createLoading = ref(false);
-
-const openCreateDialog = () => {
-  createFormRef.value?.resetForm();
-  createDialogOpen.value = true;
-  nextTick(() => {
-    createFormRef.value?.focusTitle();
-  });
-};
-
-const handleCreateTask = async (payload) => {
-  createLoading.value = true;
-  try {
-    await client("/api/tasks", {
-      method: "POST",
-      body: payload,
-    });
-
-    await refresh();
-    createDialogOpen.value = false;
-    toast.success("Task created successfully");
-  } catch (err) {
-    console.error("Failed to create task:", err);
-    if (err.response?._data?.errors) {
-      createFormRef.value?.setErrors(err.response._data.errors);
-    }
-    toast.error(err.response?._data?.message || "Failed to create task");
-  } finally {
-    createLoading.value = false;
-  }
-};
-
-// ============ Edit Task Dialog ============
-const editDialogOpen = ref(false);
-const editFormRef = ref(null);
-const editLoading = ref(false);
-const taskToEdit = ref(null);
-
-const openEditDialog = (task) => {
-  taskToEdit.value = task;
-  editDialogOpen.value = true;
-};
-
-const handleEditTask = async (payload) => {
-  if (!taskToEdit.value) return;
-
-  editLoading.value = true;
-  try {
-    await client(`/api/tasks/${taskToEdit.value.ulid}`, {
-      method: "PUT",
-      body: payload,
-    });
-
-    await refresh();
-    editDialogOpen.value = false;
-    taskToEdit.value = null;
-    toast.success("Task updated successfully");
-  } catch (err) {
-    console.error("Failed to update task:", err);
-    if (err.response?._data?.errors) {
-      editFormRef.value?.setErrors(err.response._data.errors);
-    }
-    toast.error(err.response?._data?.message || "Failed to update task");
-  } finally {
-    editLoading.value = false;
-  }
-};
-
-// ============ Detail Task Dialog ============
-const detailDialogOpen = ref(false);
-const taskToView = ref(null);
-
-const openDetailDialog = (task) => {
-  taskToView.value = task;
-  detailDialogOpen.value = true;
-};
-
-const handleEditFromDetail = (task) => {
-  detailDialogOpen.value = false;
-  nextTick(() => {
-    openEditDialog(task);
-  });
-};
-
-// ============ Unsaved Changes Dialog ============
-const unsavedDialogOpen = ref(false);
-const unsavedContext = ref(null); // 'create' or 'edit'
-const unsavedPayload = ref(null);
-
-// Capture payload while form ref is still alive (before drawer unmounts content)
-const handleCreateClosePrevented = () => {
-  unsavedPayload.value = createFormRef.value?.getPayload?.() || null;
-  unsavedContext.value = "create";
-  unsavedDialogOpen.value = true;
-};
-
-const handleEditClosePrevented = () => {
-  unsavedPayload.value = editFormRef.value?.getPayload?.() || null;
-  unsavedContext.value = "edit";
-  unsavedDialogOpen.value = true;
-};
-
-const handleUnsavedSave = () => {
-  unsavedDialogOpen.value = false;
-  if (unsavedPayload.value) {
-    if (unsavedContext.value === "create") {
-      handleCreateTask(unsavedPayload.value);
-    } else {
-      handleEditTask(unsavedPayload.value);
-    }
-  }
-  unsavedPayload.value = null;
-};
-
-const handleUnsavedDiscard = () => {
-  unsavedDialogOpen.value = false;
-  unsavedPayload.value = null;
-  if (unsavedContext.value === "create") {
-    createDialogOpen.value = false;
-    createFormRef.value?.resetForm();
-  } else {
-    editDialogOpen.value = false;
-    taskToEdit.value = null;
-  }
-};
-
 // ============ Update Task Title (Inline Edit) ============
 const handleUpdateTitle = async (task, newTitle) => {
   const oldTitle = task.title;
@@ -855,10 +608,19 @@ const handleUpdateTitle = async (task, newTitle) => {
 };
 
 // ============ Clear All Completed ============
-const handleClearCompleted = async () => {
-  if (deletableCompletedTasks.value.length === 0 || deleteLoading.value) return;
+const deleteMode = ref("single");
 
-  deleteLoading.value = true;
+const openClearCompletedDialog = () => {
+  if (completedTasksList.value.length === 0) return;
+  deleteMode.value = "clear-completed";
+  dialogs.taskToDelete.value = null;
+  dialogs.deleteDialogOpen.value = true;
+};
+
+const handleClearCompleted = async () => {
+  if (deletableCompletedTasks.value.length === 0 || dialogs.deleteLoading.value) return;
+
+  dialogs.deleteLoading.value = true;
   const ids = deletableCompletedTasks.value.map((t) => t.id);
 
   try {
@@ -870,74 +632,48 @@ const handleClearCompleted = async () => {
     completedTasksList.value = completedTasksList.value.filter(
       (t) => !ids.includes(t.id)
     );
-    deleteDialogOpen.value = false;
+    dialogs.deleteDialogOpen.value = false;
     toast.success("Completed tasks cleared");
     nextTick(() => initializeSortable());
   } catch (err) {
     console.error("Failed to clear completed tasks:", err);
     toast.error("Failed to clear completed tasks");
   } finally {
-    deleteLoading.value = false;
+    dialogs.deleteLoading.value = false;
   }
 };
 
-// ============ Delete Task Dialog ============
-const deleteDialogOpen = ref(false);
-const taskToDelete = ref(null);
-const deleteLoading = ref(false);
-const deleteMode = ref("single"); // "single" or "clear-completed"
-
-const openDeleteDialog = (task) => {
-  deleteMode.value = "single";
-  taskToDelete.value = task;
-  deleteDialogOpen.value = true;
-};
-
-const openClearCompletedDialog = () => {
-  if (completedTasksList.value.length === 0) return;
-  deleteMode.value = "clear-completed";
-  taskToDelete.value = null;
-  deleteDialogOpen.value = true;
-};
-
-const handleDeleteTask = async () => {
-  if (!taskToDelete.value) return;
-
-  deleteLoading.value = true;
-  const taskId = taskToDelete.value.id;
-
-  try {
-    await client(`/api/tasks/${taskToDelete.value.ulid}`, {
-      method: "DELETE",
-    });
-
-    // Optimistic: remove from local lists
-    for (const list of [inProgressTasksList, todoTasksList, completedTasksList]) {
-      const idx = list.value.findIndex((t) => t.id === taskId);
-      if (idx !== -1) {
-        list.value.splice(idx, 1);
-        break;
-      }
+// Task dialogs with optimistic delete
+const onAfterDelete = (deletedTask) => {
+  for (const list of [inProgressTasksList, todoTasksList, completedTasksList]) {
+    const idx = list.value.findIndex((t) => t.id === deletedTask.id);
+    if (idx !== -1) {
+      list.value.splice(idx, 1);
+      break;
     }
-
-    deleteDialogOpen.value = false;
-    taskToDelete.value = null;
-    toast.success("Task deleted");
-    nextTick(() => initializeSortable());
-  } catch (err) {
-    console.error("Failed to delete task:", err);
-    toast.error("Failed to delete task");
-  } finally {
-    deleteLoading.value = false;
   }
+  nextTick(() => initializeSortable());
 };
+
+const dialogs = useTaskDialogs({
+  refresh,
+  withCreate: true,
+  onAfterDelete,
+});
+
+// Reset deleteMode when opening single delete via composable
+watch(dialogs.deleteDialogOpen, (open) => {
+  if (open && dialogs.taskToDelete.value) {
+    deleteMode.value = "single";
+  }
+});
 
 const route = useRoute();
 defineShortcuts({
   n: {
     handler: () => {
       if (canCreate.value) {
-        openCreateDialog();
+        dialogs.openCreateDialog();
       }
     },
     whenever: [computed(() => route.path === "/tasks")],

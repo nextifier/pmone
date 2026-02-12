@@ -75,9 +75,9 @@
             :task="task"
             :can-edit="task.can_edit === true"
             @update-status="handleUpdateStatus"
-            @delete="openDeleteDialog"
-            @view="openDetailDialog"
-            @edit="openEditDialog"
+            @delete="dialogs.openDeleteDialog"
+            @view="dialogs.openDetailDialog"
+            @edit="dialogs.openEditDialog"
           />
         </div>
       </div>
@@ -96,9 +96,9 @@
             :task="task"
             :can-edit="task.can_edit === true"
             @update-status="handleUpdateStatus"
-            @delete="openDeleteDialog"
-            @view="openDetailDialog"
-            @edit="openEditDialog"
+            @delete="dialogs.openDeleteDialog"
+            @view="dialogs.openDetailDialog"
+            @edit="dialogs.openEditDialog"
           />
         </div>
       </div>
@@ -117,9 +117,9 @@
             :task="task"
             :can-edit="task.can_edit === true"
             @update-status="handleUpdateStatus"
-            @delete="openDeleteDialog"
-            @view="openDetailDialog"
-            @edit="openEditDialog"
+            @delete="dialogs.openDeleteDialog"
+            @view="dialogs.openDetailDialog"
+            @edit="dialogs.openEditDialog"
           />
         </div>
       </div>
@@ -138,100 +138,23 @@
             :task="task"
             :can-edit="task.can_edit === true"
             @update-status="handleUpdateStatus"
-            @delete="openDeleteDialog"
-            @view="openDetailDialog"
-            @edit="openEditDialog"
+            @delete="dialogs.openDeleteDialog"
+            @view="dialogs.openDetailDialog"
+            @edit="dialogs.openEditDialog"
           />
         </div>
       </div>
     </div>
 
-    <!-- Edit Task Dialog -->
-    <DialogResponsive
-      v-model:open="editDialogOpen"
-      dialog-max-width="600px"
-      :prevent-close="editFormRef?.isDirty ?? false"
-      @close-prevented="handleEditClosePrevented"
-    >
-      <template #sticky-header>
-        <div
-          class="border-border bg-background/95 sticky top-0 z-10 border-b px-4 py-4 backdrop-blur md:px-6"
-        >
-          <div class="text-lg font-semibold tracking-tight">Edit Task</div>
-          <p class="text-muted-foreground text-sm">Update task details</p>
-        </div>
-      </template>
-      <template #default>
-        <div class="px-4 py-4 md:px-6">
-          <FormTask
-            v-if="taskToEdit"
-            ref="editFormRef"
-            :task="taskToEdit"
-            :loading="editLoading"
-            @submit="handleEditTask"
-            @cancel="editDialogOpen = false"
-          />
-        </div>
-      </template>
-    </DialogResponsive>
-
-    <!-- Unsaved Changes Dialog -->
-    <DialogResponsive v-model:open="unsavedDialogOpen" :hide-overlay="true">
-      <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-6">
-          <div class="text-foreground text-lg font-semibold tracking-tight">Unsaved Changes</div>
-          <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
-            You have unsaved changes. Would you like to save them before closing?
-          </p>
-          <div class="mt-4 flex justify-end gap-2">
-            <Button variant="outline" @click="handleUnsavedDiscard">Discard</Button>
-            <Button @click="handleUnsavedSave">Save</Button>
-          </div>
-        </div>
-      </template>
-    </DialogResponsive>
-
-    <!-- Detail Task Dialog -->
-    <DialogResponsive v-model:open="detailDialogOpen" dialog-max-width="550px">
-      <template #default>
-        <TaskDetailDialog
-          v-if="taskToView"
-          :task="taskToView"
-          :can-edit="taskToView.can_edit === true"
-          @close="detailDialogOpen = false"
-          @edit="handleEditFromDetail"
-        />
-      </template>
-    </DialogResponsive>
-
-    <!-- Delete Dialog -->
-    <DialogResponsive v-model:open="deleteDialogOpen">
-      <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-foreground text-lg font-semibold tracking-tight">Delete Task?</div>
-          <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
-            Are you sure you want to delete <strong>{{ taskToDelete?.title }}</strong
-            >? This action can be undone from trash.
-          </p>
-          <div class="mt-4 flex justify-end gap-2">
-            <Button variant="outline" @click="deleteDialogOpen = false"> Cancel </Button>
-            <Button variant="destructive" @click="handleDeleteTask" :disabled="deleteLoading">
-              <Spinner v-if="deleteLoading" class="size-4" />
-              <span v-else>Delete</span>
-            </Button>
-          </div>
-        </div>
-      </template>
-    </DialogResponsive>
+    <!-- Task Dialogs -->
+    <TaskDialogs :dialogs="dialogs" />
   </div>
 </template>
 
 <script setup>
 import Avatar from "@/components/Avatar.vue";
-import DialogResponsive from "@/components/DialogResponsive.vue";
-import FormTask from "@/components/FormTask.vue";
 import TaskCard from "@/components/task/TaskCard.vue";
-import TaskDetailDialog from "@/components/task/TaskDetailDialog.vue";
+import TaskDialogs from "@/components/task/TaskDialogs.vue";
 import TasksHeader from "@/components/task/TasksHeader.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -288,112 +211,8 @@ const handleUpdateStatus = async (task, newStatus) => {
   }
 };
 
-// ============ Edit Task Dialog ============
-const editDialogOpen = ref(false);
-const editFormRef = ref(null);
-const editLoading = ref(false);
-const taskToEdit = ref(null);
-
-const openEditDialog = (task) => {
-  taskToEdit.value = task;
-  editDialogOpen.value = true;
-};
-
-const handleEditTask = async (payload) => {
-  if (!taskToEdit.value) return;
-
-  editLoading.value = true;
-  try {
-    await client(`/api/tasks/${taskToEdit.value.ulid}`, {
-      method: "PUT",
-      body: payload,
-    });
-
-    await refresh();
-    editDialogOpen.value = false;
-    taskToEdit.value = null;
-    toast.success("Task updated successfully");
-  } catch (err) {
-    console.error("Failed to update task:", err);
-    if (err.response?._data?.errors) {
-      editFormRef.value?.setErrors(err.response._data.errors);
-    }
-    toast.error(err.response?._data?.message || "Failed to update task");
-  } finally {
-    editLoading.value = false;
-  }
-};
-
-// ============ Detail Task Dialog ============
-const detailDialogOpen = ref(false);
-const taskToView = ref(null);
-
-const openDetailDialog = (task) => {
-  taskToView.value = task;
-  detailDialogOpen.value = true;
-};
-
-const handleEditFromDetail = (task) => {
-  detailDialogOpen.value = false;
-  nextTick(() => {
-    openEditDialog(task);
-  });
-};
-
-// ============ Unsaved Changes Dialog ============
-const unsavedDialogOpen = ref(false);
-const unsavedPayload = ref(null);
-
-const handleEditClosePrevented = () => {
-  unsavedPayload.value = editFormRef.value?.getPayload?.() || null;
-  unsavedDialogOpen.value = true;
-};
-
-const handleUnsavedSave = () => {
-  unsavedDialogOpen.value = false;
-  if (unsavedPayload.value) {
-    handleEditTask(unsavedPayload.value);
-  }
-  unsavedPayload.value = null;
-};
-
-const handleUnsavedDiscard = () => {
-  unsavedDialogOpen.value = false;
-  unsavedPayload.value = null;
-  editDialogOpen.value = false;
-  taskToEdit.value = null;
-};
-
-// ============ Delete Task Dialog ============
-const deleteDialogOpen = ref(false);
-const taskToDelete = ref(null);
-const deleteLoading = ref(false);
-
-const openDeleteDialog = (task) => {
-  taskToDelete.value = task;
-  deleteDialogOpen.value = true;
-};
-
-const handleDeleteTask = async () => {
-  if (!taskToDelete.value) return;
-
-  deleteLoading.value = true;
-  try {
-    await client(`/api/tasks/${taskToDelete.value.ulid}`, {
-      method: "DELETE",
-    });
-
-    await refresh();
-    deleteDialogOpen.value = false;
-    taskToDelete.value = null;
-    toast.success("Task deleted successfully");
-  } catch (err) {
-    console.error("Failed to delete task:", err);
-    toast.error("Failed to delete task");
-  } finally {
-    deleteLoading.value = false;
-  }
-};
+// Task dialogs
+const dialogs = useTaskDialogs({ refresh });
 
 useHead({
   title: pageTitle,
