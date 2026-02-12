@@ -23,7 +23,7 @@
     />
 
     <!-- Loading State -->
-    <div v-if="pending" class="flex justify-center py-12">
+    <div v-if="pending && !response?.data" class="flex justify-center py-12">
       <Spinner class="size-8" />
     </div>
 
@@ -216,7 +216,7 @@
       dialog-max-width="600px"
       :overflow-content="true"
       :prevent-close="editFormRef?.isDirty ?? false"
-      @close-prevented="unsavedDialogOpen = true"
+      @close-prevented="handleEditClosePrevented"
     >
       <template #sticky-header>
         <div class="border-border sticky top-0 z-10 border-b px-4 pb-4 md:px-6 md:py-4">
@@ -239,7 +239,7 @@
     </DialogResponsive>
 
     <!-- Unsaved Changes Dialog -->
-    <DialogResponsive v-model:open="unsavedDialogOpen">
+    <DialogResponsive v-model:open="unsavedDialogOpen" :hide-overlay="true">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-6">
           <div class="text-foreground text-lg font-semibold tracking-tight">Unsaved Changes</div>
@@ -499,14 +499,24 @@ const handleEditFromDetail = (task) => {
 
 // ============ Unsaved Changes Dialog ============
 const unsavedDialogOpen = ref(false);
+const unsavedPayload = ref(null);
+
+const handleEditClosePrevented = () => {
+  unsavedPayload.value = editFormRef.value?.getPayload?.() || null;
+  unsavedDialogOpen.value = true;
+};
 
 const handleUnsavedSave = () => {
   unsavedDialogOpen.value = false;
-  editFormRef.value?.handleSubmit();
+  if (unsavedPayload.value) {
+    handleEditTask(unsavedPayload.value);
+  }
+  unsavedPayload.value = null;
 };
 
 const handleUnsavedDiscard = () => {
   unsavedDialogOpen.value = false;
+  unsavedPayload.value = null;
   editDialogOpen.value = false;
   taskToEdit.value = null;
 };

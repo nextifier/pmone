@@ -429,10 +429,8 @@ watch(sharedUserIdsInput, (value) => {
   }
 });
 
-const handleSubmit = () => {
-  if (!isFormValid.value) return;
-
-  errors.value = {};
+const getPayload = () => {
+  if (!isFormValid.value) return null;
 
   const payload = {
     title: form.title.trim(),
@@ -447,19 +445,59 @@ const handleSubmit = () => {
     estimated_completion_at: formatDateTimeForBackend(form.estimated_completion_at),
   };
 
-  // Add shared users if visibility is shared
   if (form.visibility === "shared" && form.shared_user_ids.length > 0) {
     payload.shared_user_ids = form.shared_user_ids;
     payload.shared_roles = form.shared_roles;
   }
 
+  return payload;
+};
+
+const handleSubmit = () => {
+  const payload = getPayload();
+  if (!payload) return;
+
+  errors.value = {};
   emit("submit", payload);
 };
 
 // Expose for parent component
+const resetForm = () => {
+  form.title = props.task?.title || "";
+  form.description = props.task?.description || "";
+  form.status = props.task?.status || "todo";
+  form.priority = props.task?.priority || null;
+  form.complexity = props.task?.complexity || null;
+  form.visibility = props.task?.visibility || "public";
+  form.assignee_id = props.task?.assignee_id ?? currentUser.value?.id ?? null;
+  form.project_id = props.task?.project_id || props.task?.project?.id || null;
+  form.estimated_start_at = props.task?.estimated_start_at
+    ? new Date(props.task.estimated_start_at)
+    : null;
+  form.estimated_completion_at = props.task?.estimated_completion_at
+    ? new Date(props.task.estimated_completion_at)
+    : null;
+  form.shared_user_ids = props.task?.shared_users?.map((u) => u.id) || [];
+  form.shared_roles =
+    props.task?.shared_users?.reduce((acc, u) => {
+      acc[u.id] = u.role;
+      return acc;
+    }, {}) || {};
+  selectedAssignee.value = props.task?.assignee
+    ? [props.task.assignee]
+    : currentUser.value
+      ? [currentUser.value]
+      : [];
+  selectedSharedUsers.value = props.task?.shared_users || [];
+  sharedUserIdsInput.value = props.task?.shared_users?.map((u) => u.id).join(",") || "";
+  errors.value = {};
+};
+
 defineExpose({
   handleSubmit,
+  getPayload,
   isDirty,
+  resetForm,
   focusTitle: () => {
     nextTick(() => {
       titleInputRef.value?.$el?.focus();

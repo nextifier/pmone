@@ -5,6 +5,7 @@
     <DialogRoot v-if="isDesktop && isOpen && isResponsive" v-model:open="isOpen">
       <DialogPortal>
         <DialogOverlay
+          v-if="!hideOverlay"
           class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
         />
         <DialogContent
@@ -39,9 +40,9 @@
       </DialogPortal>
     </DialogRoot>
 
-    <DrawerRoot v-else v-model:open="isOpen" :dismissible="!preventClose">
+    <DrawerRoot v-else v-model:open="isOpen">
       <DrawerPortal>
-        <DrawerOverlay class="fixed inset-0 z-50 bg-black/80" />
+        <DrawerOverlay v-if="!hideOverlay" class="fixed inset-0 z-50 bg-black/80" />
         <DrawerContent
           class="border-border bg-background fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto max-h-[85vh] flex-col rounded-t-2xl border-t outline-hidden lg:max-h-[calc(100lvh-var(--navbar-height-desktop))]"
         >
@@ -129,6 +130,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  hideOverlay: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(["update:open", "close-prevented"]);
@@ -172,15 +177,21 @@ const onCloseButtonClick = () => {
   emit("close-prevented");
 };
 
-// Focus management for drawer to fix aria-hidden warning
-watch(isOpen, (newValue) => {
-  if (newValue && !isDesktop.value) {
-    // When drawer opens on mobile, blur the active element
-    nextTick(() => {
+// Drawer: detect close while form is dirty and emit close-prevented
+// We let the drawer close (no re-open) to avoid double-drawer stacking.
+// FormTask stays in DOM inside the closed DrawerPortal, so save still works.
+watch(isOpen, (newValue, oldValue) => {
+  if (!isDesktop.value) {
+    if (newValue) {
+      // Blur active element before drawer renders to prevent aria-hidden warning
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
       }
-    });
+    }
+
+    if (oldValue && !newValue && props.preventClose) {
+      emit("close-prevented");
+    }
   }
 });
 

@@ -35,7 +35,7 @@
     </TasksFilters>
 
     <!-- Loading State -->
-    <div v-if="pending" class="flex justify-center py-12">
+    <div v-if="pending && !tasksResponse?.data" class="flex justify-center py-12">
       <Spinner class="size-8" />
     </div>
 
@@ -226,7 +226,7 @@
       dialog-max-width="600px"
       :overflow-content="true"
       :prevent-close="createFormRef?.isDirty ?? false"
-      @close-prevented="unsavedContext = 'create'; unsavedDialogOpen = true"
+      @close-prevented="handleCreateClosePrevented"
     >
       <template #sticky-header>
         <div class="border-border sticky top-0 z-10 border-b px-4 pb-4 md:px-6 md:py-4">
@@ -252,7 +252,7 @@
       dialog-max-width="600px"
       :overflow-content="true"
       :prevent-close="editFormRef?.isDirty ?? false"
-      @close-prevented="unsavedContext = 'edit'; unsavedDialogOpen = true"
+      @close-prevented="handleEditClosePrevented"
     >
       <template #sticky-header>
         <div class="border-border sticky top-0 z-10 border-b px-4 pb-4 md:px-6 md:py-4">
@@ -275,7 +275,7 @@
     </DialogResponsive>
 
     <!-- Unsaved Changes Dialog -->
-    <DialogResponsive v-model:open="unsavedDialogOpen">
+    <DialogResponsive v-model:open="unsavedDialogOpen" :hide-overlay="true">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-6">
           <div class="text-foreground text-lg font-semibold tracking-tight">Unsaved Changes</div>
@@ -713,6 +713,7 @@ const createFormRef = ref(null);
 const createLoading = ref(false);
 
 const openCreateDialog = () => {
+  createFormRef.value?.resetForm();
   createDialogOpen.value = true;
   nextTick(() => {
     createFormRef.value?.focusTitle();
@@ -796,20 +797,39 @@ const handleEditFromDetail = (task) => {
 // ============ Unsaved Changes Dialog ============
 const unsavedDialogOpen = ref(false);
 const unsavedContext = ref(null); // 'create' or 'edit'
+const unsavedPayload = ref(null);
+
+// Capture payload while form ref is still alive (before drawer unmounts content)
+const handleCreateClosePrevented = () => {
+  unsavedPayload.value = createFormRef.value?.getPayload?.() || null;
+  unsavedContext.value = "create";
+  unsavedDialogOpen.value = true;
+};
+
+const handleEditClosePrevented = () => {
+  unsavedPayload.value = editFormRef.value?.getPayload?.() || null;
+  unsavedContext.value = "edit";
+  unsavedDialogOpen.value = true;
+};
 
 const handleUnsavedSave = () => {
   unsavedDialogOpen.value = false;
-  if (unsavedContext.value === "create") {
-    createFormRef.value?.handleSubmit();
-  } else {
-    editFormRef.value?.handleSubmit();
+  if (unsavedPayload.value) {
+    if (unsavedContext.value === "create") {
+      handleCreateTask(unsavedPayload.value);
+    } else {
+      handleEditTask(unsavedPayload.value);
+    }
   }
+  unsavedPayload.value = null;
 };
 
 const handleUnsavedDiscard = () => {
   unsavedDialogOpen.value = false;
+  unsavedPayload.value = null;
   if (unsavedContext.value === "create") {
     createDialogOpen.value = false;
+    createFormRef.value?.resetForm();
   } else {
     editDialogOpen.value = false;
     taskToEdit.value = null;
