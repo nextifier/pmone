@@ -50,11 +50,11 @@ const post = computed(() => postResponse.value?.data || null);
 // Set page title dynamically
 watchEffect(() => {
   if (post.value?.title) {
-    useHead({
+    usePageMeta(null, {
       title: `Edit: ${post.value.title}`,
     });
   } else {
-    useHead({
+    usePageMeta(null, {
       title: "Edit Post",
     });
   }

@@ -59,92 +59,116 @@
       </span>
     </div>
 
-    <!-- Tasks by Status -->
-    <div v-else class="space-y-8">
-      <!-- In Progress Tasks -->
-      <div v-if="inProgressTasks.length > 0" class="space-y-3">
-        <div class="flex items-center gap-2">
-          <TaskLoaderBars />
-          <h2 class="text-sm font-semibold tracking-tight">In Progress</h2>
-          <Badge variant="secondary" class="text-xs">{{ inProgressTasks.length }}</Badge>
-        </div>
-        <div class="space-y-2">
-          <TaskCard
-            v-for="task in inProgressTasks"
-            :key="task.id"
-            :task="task"
-            :can-edit="task.can_edit === true"
-            @update-status="handleUpdateStatus"
-            @delete="dialogs.openDeleteDialog"
-            @view="dialogs.openDetailDialog"
-            @edit="dialogs.openEditDialog"
-          />
-        </div>
-      </div>
+    <!-- Tasks Content -->
+    <template v-else>
+      <!-- 2-Column Layout: Active (left) | Completed (right) -->
+      <div class="grid grid-cols-1 items-start gap-x-3 gap-y-5 lg:grid-cols-2">
+        <!-- Left Column: In Progress + To Do -->
+        <div class="border-border bg-card rounded-xl border">
+          <div class="flex flex-col divide-y">
+            <!-- In Progress Section -->
+            <div v-if="inProgressTasks.length > 0" class="flex flex-col gap-y-4 px-3 py-5">
+              <div class="flex items-center gap-x-2">
+                <Icon name="hugeicons:loading-03" class="text-info-foreground size-4.5" />
+                <span class="text-sm font-medium tracking-tight">In Progress</span>
+                <Badge variant="secondary" class="h-4 px-1.5 text-[10px]">
+                  {{ inProgressTasks.length }}
+                </Badge>
+              </div>
+              <div class="space-y-4">
+                <TaskCard
+                  v-for="task in inProgressTasks"
+                  :key="task.id"
+                  :task="task"
+                  :show-details="true"
+                  :can-edit="task.can_edit === true"
+                  @update-status="handleUpdateStatus"
+                  @update-title="handleUpdateTitle"
+                  @delete="dialogs.openDeleteDialog"
+                  @view="dialogs.openDetailDialog"
+                  @edit="dialogs.openEditDialog"
+                />
+              </div>
+            </div>
 
-      <!-- To Do Tasks -->
-      <div v-if="todoTasks.length > 0" class="space-y-3">
-        <div class="flex items-center gap-2">
-          <Icon name="hugeicons:task-daily-01" class="text-muted-foreground size-4" />
-          <h2 class="text-sm font-semibold tracking-tight">To Do</h2>
-          <Badge variant="secondary" class="text-xs">{{ todoTasks.length }}</Badge>
-        </div>
-        <div class="space-y-2">
-          <TaskCard
-            v-for="task in todoTasks"
-            :key="task.id"
-            :task="task"
-            :can-edit="task.can_edit === true"
-            @update-status="handleUpdateStatus"
-            @delete="dialogs.openDeleteDialog"
-            @view="dialogs.openDetailDialog"
-            @edit="dialogs.openEditDialog"
-          />
-        </div>
-      </div>
+            <!-- To Do Section -->
+            <div v-if="todoTasks.length > 0" class="flex flex-col gap-y-4 px-3 py-5">
+              <div class="flex items-center gap-x-2">
+                <Icon name="hugeicons:task-daily-01" class="text-muted-foreground size-4.5" />
+                <span class="text-sm font-medium tracking-tight">To Do</span>
+                <Badge variant="secondary" class="h-4 px-1.5 text-[10px]">
+                  {{ todoTasks.length }}
+                </Badge>
+              </div>
+              <div class="space-y-4">
+                <TaskCard
+                  v-for="task in todoTasks"
+                  :key="task.id"
+                  :task="task"
+                  :show-details="true"
+                  :can-edit="task.can_edit === true"
+                  @update-status="handleUpdateStatus"
+                  @update-title="handleUpdateTitle"
+                  @delete="dialogs.openDeleteDialog"
+                  @view="dialogs.openDetailDialog"
+                  @edit="dialogs.openEditDialog"
+                />
+              </div>
+            </div>
 
-      <!-- Completed Tasks -->
-      <div v-if="completedTasks.length > 0" class="space-y-3">
-        <div class="flex items-center gap-2">
-          <Icon name="hugeicons:tick-02" class="size-4 text-green-600 dark:text-green-500" />
-          <h2 class="text-sm font-semibold tracking-tight">Completed</h2>
-          <Badge variant="secondary" class="text-xs">{{ completedTasks.length }}</Badge>
+            <!-- Empty pending -->
+            <div
+              v-if="inProgressTasks.length === 0 && todoTasks.length === 0"
+              class="flex flex-col items-center justify-center py-8 text-center"
+            >
+              <Icon name="hugeicons:task-daily-01" class="text-muted-foreground/50 mb-2 size-8" />
+              <span class="text-muted-foreground text-sm tracking-tight">No active tasks</span>
+            </div>
+          </div>
         </div>
-        <div class="space-y-2">
-          <TaskCard
-            v-for="task in completedTasks"
-            :key="task.id"
-            :task="task"
-            :can-edit="task.can_edit === true"
-            @update-status="handleUpdateStatus"
-            @delete="dialogs.openDeleteDialog"
-            @view="dialogs.openDetailDialog"
-            @edit="dialogs.openEditDialog"
-          />
-        </div>
-      </div>
 
-      <!-- Archived Tasks -->
-      <div v-if="archivedTasks.length > 0" class="space-y-3">
-        <div class="flex items-center gap-2">
-          <Icon name="hugeicons:archive-02" class="text-muted-foreground size-4" />
-          <h2 class="text-sm font-semibold tracking-tight">Archived</h2>
-          <Badge variant="secondary" class="text-xs">{{ archivedTasks.length }}</Badge>
-        </div>
-        <div class="space-y-2">
-          <TaskCard
-            v-for="task in archivedTasks"
-            :key="task.id"
-            :task="task"
-            :can-edit="task.can_edit === true"
-            @update-status="handleUpdateStatus"
-            @delete="dialogs.openDeleteDialog"
-            @view="dialogs.openDetailDialog"
-            @edit="dialogs.openEditDialog"
-          />
+        <!-- Right Column: Completed -->
+        <div class="border-border bg-card rounded-xl border">
+          <div class="flex flex-col divide-y">
+            <div class="flex flex-col gap-y-4 px-3 py-5">
+              <div class="flex items-center gap-x-2">
+                <Icon
+                  name="hugeicons:checkmark-circle-02"
+                  class="text-success-foreground size-4.5"
+                />
+                <span class="text-sm font-medium tracking-tight">Completed</span>
+                <Badge variant="secondary" class="h-4 px-1.5 text-[10px]">
+                  {{ completedTasks.length }}
+                </Badge>
+              </div>
+              <div v-if="completedTasks.length > 0" class="space-y-4">
+                <TaskCard
+                  v-for="task in completedTasks"
+                  :key="task.id"
+                  :task="task"
+                  :show-details="true"
+                  :can-edit="task.can_edit === true"
+                  @update-status="handleUpdateStatus"
+                  @update-title="handleUpdateTitle"
+                  @delete="dialogs.openDeleteDialog"
+                  @view="dialogs.openDetailDialog"
+                  @edit="dialogs.openEditDialog"
+                />
+              </div>
+              <div v-else class="flex flex-col items-center justify-center py-8 text-center">
+                <Icon
+                  name="hugeicons:checkmark-circle-02"
+                  class="text-muted-foreground/50 mb-2 size-8"
+                />
+                <span class="text-muted-foreground text-sm tracking-tight"
+                  >No completed tasks</span
+                >
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </template>
 
     <!-- Task Dialogs -->
     <TaskDialogs :dialogs="dialogs" />
@@ -193,7 +217,6 @@ const pageTitle = computed(() => {
 const inProgressTasks = computed(() => tasks.value.filter((t) => t.status === "in_progress"));
 const todoTasks = computed(() => tasks.value.filter((t) => t.status === "todo"));
 const completedTasks = computed(() => tasks.value.filter((t) => t.status === "completed"));
-const archivedTasks = computed(() => tasks.value.filter((t) => t.status === "archived"));
 
 // Update task status
 const handleUpdateStatus = async (task, newStatus) => {
@@ -211,10 +234,28 @@ const handleUpdateStatus = async (task, newStatus) => {
   }
 };
 
+// Update task title (inline edit)
+const handleUpdateTitle = async (task, newTitle) => {
+  const oldTitle = task.title;
+  task.title = newTitle;
+
+  try {
+    await client(`/api/tasks/${task.ulid}`, {
+      method: "PUT",
+      body: { title: newTitle },
+    });
+    toast.success("Task updated");
+  } catch (err) {
+    task.title = oldTitle;
+    console.error("Failed to update title:", err);
+    toast.error("Failed to update title");
+  }
+};
+
 // Task dialogs
 const dialogs = useTaskDialogs({ refresh });
 
-useHead({
+usePageMeta(null, {
   title: pageTitle,
 });
 </script>

@@ -1,11 +1,11 @@
 <template>
-  <div class="flex items-center gap-x-2 select-none">
-    <span class="text-muted-foreground text-xs tracking-tight">{{ label }}</span>
+  <div class="flex items-center gap-x-1.5 select-none">
+    <span class="text-muted-foreground text-sm tracking-tight">{{ label }}</span>
     <div class="flex items-end gap-px">
       <span
         v-for="(_, index) in 3"
         :key="index"
-        class="w-1.5 rounded-xs"
+        class="w-1 rounded-xs"
         :class="[barHeightClass(index), getBarClass(index)]"
       ></span>
     </div>

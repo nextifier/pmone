@@ -1,13 +1,13 @@
 <template>
   <div
     :data-id="task.id"
-    class="group flex items-start gap-x-1 rounded-lg py-1.5"
-    :class="task.status === 'completed' ? 'opacity-60' : ''"
+    class="group flex items-start gap-x-2"
+    :class="task.status === 'completed' ? '' : ''"
   >
     <!-- Drag Handle (only if canEdit) -->
     <div
       v-if="canEdit"
-      class="drag-handle text-muted-foreground hover:text-foreground flex h-7 w-7 shrink-0 cursor-grab items-center justify-center rounded-md active:cursor-grabbing"
+      class="drag-handle text-muted-foreground hover:text-foreground flex h-7 w-4.5 shrink-0 cursor-grab items-center justify-center rounded-md active:cursor-grabbing"
     >
       <Icon name="lucide:grip-vertical" class="size-4" />
     </div>
@@ -18,56 +18,54 @@
     </div>
 
     <!-- Title + Details -->
-    <div class="min-w-0 flex-1">
-      <!-- Inline edit mode -->
+    <div class="mx-1.5 mt-px min-w-0 grow">
       <textarea
-        v-if="isEditing"
         ref="editInputEl"
-        v-model="editTitle"
-        class="text-foreground border-primary bg-background w-full rounded-md border px-2 py-1 text-base tracking-tight outline-none"
-        rows="1"
-        @blur="saveTitle"
-        @keydown.enter.prevent="saveTitle"
-        @keydown.escape="cancelEdit"
-        @input="autoResize"
-      />
-      <!-- View mode -->
-      <button
-        v-else
-        type="button"
-        @click="handleTitleClick"
-        class="w-full cursor-pointer text-left text-base tracking-tight"
+        :value="isEditing ? editTitle : task.title"
+        :readonly="!isEditing"
+        class="decoration-muted-foreground/75 mt-px field-sizing-content min-h-0 w-full resize-none rounded-xs text-base tracking-tight outline-none"
         :class="
-          task.status === 'completed' ? 'text-muted-foreground line-through' : 'text-foreground'
+          isEditing
+            ? 'ring-offset-card ring-1 ring-offset-5'
+            : [
+                'cursor-pointer bg-transparent',
+                task.status === 'completed'
+                  ? 'text-muted-foreground line-through'
+                  : 'text-foreground',
+              ]
         "
-      >
-        {{ task.title }}
-      </button>
+        rows="1"
+        @click="handleTitleClick"
+        @input="editTitle = $event.target.value"
+        @blur="isEditing && saveTitle()"
+        @keydown.enter.prevent="isEditing && saveTitle()"
+        @keydown.escape="isEditing && cancelEdit()"
+      />
 
       <!-- Details row -->
       <div
         v-if="showDetails"
-        class="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px]"
+        class="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-2 text-sm"
       >
-        <span v-if="task.priority || task.complexity" class="flex items-center gap-x-1.5">
-          <PriorityBars v-if="task.priority" :level="task.priority" label="Priority" />
-          <span v-if="task.priority && task.complexity" class="bg-primary/20 h-3 w-px"></span>
-          <PriorityBars v-if="task.complexity" :level="task.complexity" label="Complexity" />
-        </span>
+        <PriorityBars v-if="task.priority" :level="task.priority" label="Priority" />
+
+        <PriorityBars v-if="task.complexity" :level="task.complexity" label="Complexity" />
+
         <span
           v-if="task.estimated_start_at || task.estimated_completion_at"
-          class="flex items-center gap-x-1"
+          class="flex items-center gap-x-1 text-sm tracking-tight"
         >
-          <Icon name="hugeicons:calendar-01" class="size-3" />
+          <Icon name="hugeicons:calendar-03" class="size-4.5 shrink-0" />
           <span v-if="task.estimated_start_at">{{ formatDateShort(task.estimated_start_at) }}</span>
           <span v-if="task.estimated_start_at && task.estimated_completion_at">-</span>
           <span v-if="task.estimated_completion_at">{{
             formatDateShort(task.estimated_completion_at)
           }}</span>
         </span>
+
         <span v-if="task.project" class="flex items-center gap-x-1">
-          <Avatar :model="task.project" size="sm" class="size-5" rounded="rounded" />
-          <span class="truncate">{{ task.project.name }}</span>
+          <Avatar :model="task.project" size="sm" class="size-6" rounded="rounded-md" />
+          <span class="truncate tracking-tight">{{ task.project.name }}</span>
         </span>
       </div>
     </div>
@@ -150,20 +148,7 @@ const handleTitleClick = () => {
 const startEditing = () => {
   editTitle.value = props.task.title;
   isEditing.value = true;
-  nextTick(() => {
-    if (editInputEl.value) {
-      editInputEl.value.focus();
-      editInputEl.value.style.height = "auto";
-      editInputEl.value.style.height = editInputEl.value.scrollHeight + "px";
-    }
-  });
-};
-
-const autoResize = () => {
-  if (editInputEl.value) {
-    editInputEl.value.style.height = "auto";
-    editInputEl.value.style.height = editInputEl.value.scrollHeight + "px";
-  }
+  nextTick(() => editInputEl.value?.focus());
 };
 
 const saveTitle = () => {

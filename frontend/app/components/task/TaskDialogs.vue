@@ -9,9 +9,10 @@
     @close-prevented="handleCreateClosePrevented"
   >
     <template #sticky-header>
-      <div class="border-border sticky top-0 z-10 border-b px-4 pb-4 md:px-6 md:py-4">
-        <div class="text-lg font-semibold tracking-tight">Create New Task</div>
-        <p class="text-muted-foreground text-sm">Add a new task to your list</p>
+      <div
+        class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left"
+      >
+        <div class="text-lg font-semibold tracking-tighter">Create New Task</div>
       </div>
     </template>
     <template #default>
@@ -35,9 +36,10 @@
     @close-prevented="handleEditClosePrevented"
   >
     <template #sticky-header>
-      <div class="border-border sticky top-0 z-10 border-b px-4 pb-4 md:px-6 md:py-4">
-        <div class="text-lg font-semibold tracking-tight">Edit Task</div>
-        <p class="text-muted-foreground text-sm">Update task details</p>
+      <div
+        class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left"
+      >
+        <div class="text-lg font-semibold tracking-tighter">Edit Task</div>
       </div>
     </template>
     <template #default>

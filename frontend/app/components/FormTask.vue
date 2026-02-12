@@ -1,9 +1,9 @@
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-6">
-    <div class="space-y-6">
+    <div class="space-y-5">
       <!-- Title -->
       <div class="space-y-2">
-        <Label for="title"> Task Title <span class="text-destructive">*</span> </Label>
+        <Label for="title">Task Title <span class="text-destructive">*</span></Label>
         <Textarea
           ref="titleInputRef"
           id="title"
@@ -11,7 +11,7 @@
           required
           rows="1"
           placeholder="Enter task title..."
-          class="resize-none"
+          class="min-h-0 resize-none text-base"
           :class="{ 'border-destructive': errors.title }"
         />
         <p v-if="errors.title" class="text-destructive text-xs">{{ errors.title[0] }}</p>
@@ -25,6 +25,7 @@
           model-type="App\Models\Task"
           collection="description_images"
           :sticky="false"
+          min-height="150px"
           placeholder="Describe the task in detail..."
         />
         <p v-if="errors.description" class="text-destructive text-xs">
@@ -33,7 +34,7 @@
       </div>
 
       <!-- Row: Status, Priority, Complexity -->
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div class="grid grid-cols-3 gap-2">
         <!-- Status -->
         <div class="space-y-2">
           <Label for="status">Status</Label>
@@ -89,10 +90,10 @@
       </div>
 
       <!-- Row: Estimated Times -->
-      <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div class="grid grid-cols-2 gap-2">
         <!-- Estimated Start -->
         <div class="space-y-2">
-          <Label for="estimated_start_at">Estimated Start Time</Label>
+          <Label for="estimated_start_at">Start Time</Label>
           <DateTimePicker
             v-model="form.estimated_start_at"
             placeholder="Select start time"
@@ -105,7 +106,7 @@
 
         <!-- Estimated Completion -->
         <div class="space-y-2">
-          <Label for="estimated_completion_at">Estimated Completion Time</Label>
+          <Label for="estimated_completion_at">Completion Time</Label>
           <DateTimePicker
             v-model="form.estimated_completion_at"
             placeholder="Select completion time"
@@ -138,12 +139,12 @@
         <p v-if="errors.assignee_id" class="text-destructive text-xs">
           {{ errors.assignee_id[0] }}
         </p>
-        <p class="text-muted-foreground text-xs">Optional: Assign this task to a user</p>
+        <!-- <p class="text-muted-foreground text-xs">Optional: Assign this task to a user</p> -->
       </div>
 
       <!-- Project -->
       <div class="space-y-2">
-        <Label for="project_id">Link to Project (Optional)</Label>
+        <Label for="project_id">Link to Project</Label>
         <Select v-model="form.project_id">
           <SelectTrigger class="w-full">
             <template #default>
@@ -175,16 +176,16 @@
       </div>
 
       <!-- Visibility -->
-      <div class="space-y-3">
+      <div class="space-y-2.5">
         <Label> Who can view this task? <span class="text-destructive">*</span> </Label>
-        <RadioGroup v-model="form.visibility" class="space-y-2">
+        <RadioGroup v-model="form.visibility" class="space-y-0">
           <div
             v-for="option in visibilityOptions"
             :key="option.value"
             :class="{
               'border-primary bg-primary/5': form.visibility === option.value,
             }"
-            class="border-border hover:bg-muted flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors"
+            class="border-border hover:bg-muted flex cursor-pointer items-start gap-x-2 rounded-lg border p-4 transition-colors"
           >
             <RadioGroupItem
               :value="option.value"
@@ -245,7 +246,6 @@ import DateTimePicker from "@/components/DateTimePicker.vue";
 import TipTapEditor from "@/components/post/TipTapEditor.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
@@ -256,6 +256,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import UserMultiSelect from "@/components/user/MultiSelect.vue";
 
 const props = defineProps({

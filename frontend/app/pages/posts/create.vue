@@ -11,7 +11,7 @@ definePageMeta({
   layout: "app",
 });
 
-useHead({
+usePageMeta(null, {
   title: "Create New Post",
 });
 

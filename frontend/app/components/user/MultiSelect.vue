@@ -95,7 +95,7 @@ const removeTag = (index: number) => {
               @click="() => removeTag(index)"
               class="text-muted-foreground/80 hover:text-foreground focus-visible:border-ring focus-visible:ring-ring absolute -inset-y-px -end-px flex size-9 items-center justify-center rounded-e-md border border-transparent p-0 outline-hidden transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
             >
-              <LucideX class="size-4" aria-hidden="true" />
+              <LucideX class="size-3.5" aria-hidden="true" />
             </TagsInputItemDelete>
           </TagsInputItem>
 
@@ -113,7 +113,7 @@ const removeTag = (index: number) => {
         <button
           v-if="!hideClearAllButton && modelValue.length"
           type="button"
-          class="text-muted-foreground/80 hover:text-foreground focus-visible:border-ring focus-visible:ring-ring absolute end-0 top-0 flex size-9 items-center justify-center rounded-md border border-transparent transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
+          class="text-muted-foreground/80 hover:text-foreground focus-visible:border-ring focus-visible:ring-ring absolute end-0 top-1 flex size-9 items-center justify-center rounded-md border border-transparent transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
           aria-label="Clear all"
           @click="() => (modelValue = [])"
         >

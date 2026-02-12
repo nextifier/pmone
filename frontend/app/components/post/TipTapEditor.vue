@@ -1,5 +1,5 @@
 <template>
-  <div class="tiptap-editor">
+  <div class="tiptap-editor" :style="{ '--editor-min-h': minHeight }">
     <!-- Toolbar -->
     <div v-if="editor" :class="['editor-toolbar', sticky ? 'editor-toolbar-sticky' : '']">
       <div class="toolbar-group">
@@ -247,6 +247,10 @@ const props = defineProps({
   sticky: {
     type: Boolean,
     default: true,
+  },
+  minHeight: {
+    type: String,
+    default: "350px",
   },
 });
 
@@ -540,12 +544,14 @@ const saveCaptionAndClose = () => {
 }
 
 .editor-content-wrapper {
-  @apply min-h-[400px] p-4;
+  min-height: var(--editor-min-h);
+  @apply p-4;
 }
 
 /* TipTap prose styling */
 :deep(.ProseMirror) {
-  @apply text-foreground min-h-[350px] outline-none;
+  min-height: var(--editor-min-h);
+  @apply text-foreground outline-none;
 }
 
 :deep(.ProseMirror p.is-editor-empty:first-child::before) {

@@ -35,9 +35,11 @@
     </TasksFilters>
 
     <!-- Loading State -->
-    <div v-if="pending && !tasksResponse?.data" class="flex justify-center py-12">
-      <Spinner class="size-8" />
-    </div>
+    <LoadingState
+      v-if="pending && !tasksResponse?.data"
+      label="Loading data.."
+      class="my-6 border-0"
+    />
 
     <!-- Error State -->
     <div v-else-if="error" class="border-border bg-card rounded-lg border p-12 text-center">
@@ -76,23 +78,13 @@
 
     <!-- Tasks Content -->
     <template v-else>
-      <!-- Show Details Toggle -->
-      <div class="flex items-center gap-x-2">
-        <Switch
-          id="show-details"
-          :model-value="showDetails"
-          @update:model-value="toggleShowDetails"
-        />
-        <Label for="show-details" class="cursor-pointer text-sm tracking-tight">Show Details</Label>
-      </div>
-
       <!-- 2-Column Layout: Active (left) | Completed (right) -->
       <div class="grid grid-cols-1 items-start gap-x-3 gap-y-5 lg:grid-cols-2">
         <!-- Left Column: In Progress + To Do -->
         <div class="border-border bg-card rounded-xl border">
           <div class="flex flex-col divide-y">
             <!-- In Progress Section -->
-            <div v-if="inProgressTasks.length > 0" class="flex flex-col gap-y-2 px-3 py-6">
+            <div v-if="inProgressTasks.length > 0" class="flex flex-col gap-y-4 px-3 py-5">
               <div class="flex items-center gap-x-2">
                 <Icon name="hugeicons:loading-03" class="text-info-foreground size-4.5" />
                 <span class="text-sm font-medium tracking-tight">In Progress</span>
@@ -100,7 +92,7 @@
                   {{ inProgressTasks.length }}
                 </Badge>
               </div>
-              <div ref="inProgressListEl">
+              <div ref="inProgressListEl" class="space-y-4">
                 <TaskCard
                   v-for="task in inProgressTasks"
                   :key="task.id"
@@ -117,7 +109,7 @@
             </div>
 
             <!-- To Do Section -->
-            <div v-if="todoTasks.length > 0" class="flex flex-col gap-y-2 px-3 py-6">
+            <div v-if="todoTasks.length > 0" class="flex flex-col gap-y-4 px-3 py-5">
               <div class="flex items-center gap-x-2">
                 <Icon name="hugeicons:task-daily-01" class="text-muted-foreground size-4.5" />
                 <span class="text-sm font-medium tracking-tight">To Do</span>
@@ -125,7 +117,7 @@
                   {{ todoTasks.length }}
                 </Badge>
               </div>
-              <div ref="todoListEl">
+              <div ref="todoListEl" class="space-y-4">
                 <TaskCard
                   v-for="task in todoTasks"
                   :key="task.id"
@@ -141,17 +133,17 @@
               </div>
 
               <!-- Quick Add -->
-              <div v-if="canCreate" class="flex items-start gap-x-3.5 px-2.5 py-1">
+              <div v-if="canCreate" class="flex items-start gap-x-3.25 pl-6.25">
                 <Icon
                   name="hugeicons:plus-sign"
-                  class="text-muted-foreground mt-1.5 size-4 shrink-0"
+                  class="text-muted-foreground mt-1 size-4.5 shrink-0"
                 />
                 <textarea
                   ref="quickAddInputEl"
                   v-model="quickAddTitle"
                   rows="1"
                   placeholder="Add task..."
-                  class="text-foreground placeholder:text-muted-foreground/60 field-sizing-content w-full resize-none bg-transparent text-base tracking-tight outline-none"
+                  class="text-foreground placeholder:text-muted-foreground/60 mt-px field-sizing-content min-h-0 w-full resize-none rounded-xs bg-transparent text-base tracking-tight outline-none"
                   @keydown.enter.prevent="handleQuickAdd"
                   @blur="handleQuickAdd"
                   :disabled="quickAddLoading"
@@ -165,8 +157,8 @@
               v-if="pendingTasks.length === 0 && !quickAddTitle"
               class="flex flex-col items-center justify-center py-8 text-center"
             >
-              <Icon name="hugeicons:inbox" class="text-muted-foreground/50 mb-2 size-8" />
-              <span class="text-muted-foreground text-xs">No active tasks</span>
+              <Icon name="hugeicons:task-daily-01" class="text-muted-foreground/50 mb-2 size-8" />
+              <span class="text-muted-foreground text-sm tracking-tight">No active tasks</span>
             </div>
           </div>
         </div>
@@ -174,7 +166,7 @@
         <!-- Right Column: Completed -->
         <div class="border-border bg-card rounded-xl border">
           <div class="flex flex-col divide-y">
-            <div class="flex flex-col gap-y-2 px-3 py-6">
+            <div class="flex flex-col gap-y-4 px-3 py-5">
               <div class="flex items-center gap-x-2">
                 <Icon
                   name="hugeicons:checkmark-circle-02"
@@ -188,12 +180,12 @@
                   v-if="deletableCompletedTasks.length > 0"
                   type="button"
                   @click="openClearCompletedDialog"
-                  class="text-muted-foreground hover:text-foreground ml-auto text-sm tracking-tight hover:underline"
+                  class="hover:bg-muted ml-auto rounded-full px-2 py-1 text-sm tracking-tight"
                 >
                   Clear all
                 </button>
               </div>
-              <div v-if="completedTasks.length > 0" ref="completedListEl">
+              <div v-if="completedTasks.length > 0" ref="completedListEl" class="space-y-4">
                 <TaskCard
                   v-for="task in completedTasks"
                   :key="task.id"
@@ -212,7 +204,7 @@
                   name="hugeicons:checkmark-circle-02"
                   class="text-muted-foreground/50 mb-2 size-8"
                 />
-                <span class="text-muted-foreground text-xs">No completed tasks</span>
+                <span class="text-muted-foreground text-sm tracking-tight">No completed tasks</span>
               </div>
             </div>
           </div>
@@ -249,8 +241,6 @@ import TasksHeader from "@/components/task/TasksHeader.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GlassButton } from "@/components/ui/glass-button";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { useSortable } from "@vueuse/integrations/useSortable";
 import { toast } from "vue-sonner";
 
@@ -629,9 +619,7 @@ const handleClearCompleted = async () => {
       body: { ids },
     });
 
-    completedTasksList.value = completedTasksList.value.filter(
-      (t) => !ids.includes(t.id)
-    );
+    completedTasksList.value = completedTasksList.value.filter((t) => !ids.includes(t.id));
     dialogs.deleteDialogOpen.value = false;
     toast.success("Completed tasks cleared");
     nextTick(() => initializeSortable());
@@ -681,7 +669,7 @@ defineShortcuts({
 });
 
 // Set page meta
-useHead({
+usePageMeta(null, {
   title: "Tasks",
 });
 </script>

@@ -34,7 +34,7 @@
           <button
             class="hover:bg-muted relative flex h-9 shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-3 text-sm tracking-tight active:scale-98"
           >
-            <Icon name="hugeicons:filter" class="size-4 shrink-0" />
+            <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
             <span>Filter</span>
             <span
               v-if="activeFilterCount > 0"
@@ -114,7 +114,7 @@
         class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
       >
         <Icon
-          name="hugeicons:refresh"
+          name="hugeicons:reload"
           class="size-4 shrink-0"
           :class="pending ? 'animate-spin' : ''"
         />
@@ -154,7 +154,12 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update:searchQuery", "update:selectedStatuses", "update:selectedPriorities", "refresh"]);
+const emit = defineEmits([
+  "update:searchQuery",
+  "update:selectedStatuses",
+  "update:selectedPriorities",
+  "refresh",
+]);
 
 const statusOptions = [
   { value: "in_progress", label: "In Progress" },
@@ -185,7 +190,11 @@ const localSelectedPriorities = computed({
 });
 
 const hasActiveFilters = computed(() => {
-  return localSearchQuery.value !== "" || localSelectedStatuses.value.length > 0 || localSelectedPriorities.value.length > 0;
+  return (
+    localSearchQuery.value !== "" ||
+    localSelectedStatuses.value.length > 0 ||
+    localSelectedPriorities.value.length > 0
+  );
 });
 
 const activeFilterCount = computed(() => {

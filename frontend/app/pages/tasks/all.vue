@@ -23,9 +23,7 @@
     />
 
     <!-- Loading State -->
-    <div v-if="pending && !response?.data" class="flex justify-center py-12">
-      <Spinner class="size-8" />
-    </div>
+    <LoadingState v-if="pending && !response?.data" label="Loading data.." class="my-6 border-0" />
 
     <!-- Error State -->
     <div v-else-if="error" class="border-border bg-card rounded-lg border p-12 text-center">
@@ -51,18 +49,6 @@
 
     <!-- Tasks Content -->
     <template v-else>
-      <!-- Show Details Toggle -->
-      <div class="flex items-center gap-x-2">
-        <Switch
-          id="show-details-all"
-          :model-value="showDetails"
-          @update:model-value="toggleShowDetails"
-        />
-        <Label for="show-details-all" class="cursor-pointer text-sm tracking-tight"
-          >Show Details</Label
-        >
-      </div>
-
       <!-- User Groups -->
       <Accordion type="multiple" :default-value="defaultOpenItems">
         <AccordionItem
@@ -106,7 +92,7 @@
               <div class="border-border bg-card rounded-xl border">
                 <div class="flex flex-col divide-y">
                   <!-- In Progress Section -->
-                  <div v-if="group.inProgress.length > 0" class="flex flex-col gap-y-2 px-3 py-6">
+                  <div v-if="group.inProgress.length > 0" class="flex flex-col gap-y-4 px-3 py-5">
                     <div class="flex items-center gap-x-2">
                       <Icon name="hugeicons:loading-03" class="text-info-foreground size-4.5" />
                       <span class="text-sm font-medium tracking-tight">In Progress</span>
@@ -114,7 +100,7 @@
                         {{ group.inProgress.length }}
                       </Badge>
                     </div>
-                    <div>
+                    <div class="space-y-4">
                       <TaskCard
                         v-for="task in group.inProgress"
                         :key="task.id"
@@ -131,7 +117,7 @@
                   </div>
 
                   <!-- To Do Section -->
-                  <div v-if="group.todo.length > 0" class="flex flex-col gap-y-2 px-3 py-6">
+                  <div v-if="group.todo.length > 0" class="flex flex-col gap-y-4 px-3 py-5">
                     <div class="flex items-center gap-x-2">
                       <Icon name="hugeicons:task-daily-01" class="text-muted-foreground size-4.5" />
                       <span class="text-sm font-medium tracking-tight">To Do</span>
@@ -139,7 +125,7 @@
                         {{ group.todo.length }}
                       </Badge>
                     </div>
-                    <div>
+                    <div class="space-y-4">
                       <TaskCard
                         v-for="task in group.todo"
                         :key="task.id"
@@ -160,8 +146,13 @@
                     v-if="group.inProgress.length === 0 && group.todo.length === 0"
                     class="flex flex-col items-center justify-center py-8 text-center"
                   >
-                    <Icon name="hugeicons:inbox" class="text-muted-foreground/50 mb-2 size-8" />
-                    <span class="text-muted-foreground text-xs">No active tasks</span>
+                    <Icon
+                      name="hugeicons:task-daily-01"
+                      class="text-muted-foreground/50 mb-2 size-8"
+                    />
+                    <span class="text-muted-foreground text-sm tracking-tight"
+                      >No active tasks</span
+                    >
                   </div>
                 </div>
               </div>
@@ -169,7 +160,7 @@
               <!-- Right Column: Completed -->
               <div class="border-border bg-card rounded-xl border">
                 <div class="flex flex-col divide-y">
-                  <div class="flex flex-col gap-y-2 px-3 py-6">
+                  <div class="flex flex-col gap-y-4 px-3 py-5">
                     <div class="flex items-center gap-x-2">
                       <Icon
                         name="hugeicons:checkmark-circle-02"
@@ -180,7 +171,7 @@
                         {{ group.completed.length }}
                       </Badge>
                     </div>
-                    <div v-if="group.completed.length > 0">
+                    <div v-if="group.completed.length > 0" class="space-y-4">
                       <TaskCard
                         v-for="task in group.completed"
                         :key="task.id"
@@ -194,12 +185,17 @@
                         @edit="dialogs.openEditDialog"
                       />
                     </div>
-                    <div v-else class="flex flex-col items-center justify-center py-8 text-center">
+                    <div
+                      v-else
+                      class="flex flex-col items-center justify-center py-8 text-center"
+                    >
                       <Icon
                         name="hugeicons:checkmark-circle-02"
                         class="text-muted-foreground/50 mb-2 size-8"
                       />
-                      <span class="text-muted-foreground text-xs">No completed tasks</span>
+                      <span class="text-muted-foreground text-sm tracking-tight"
+                        >No completed tasks</span
+                      >
                     </div>
                   </div>
                 </div>
@@ -229,8 +225,6 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -368,7 +362,7 @@ const handleUpdateTitle = async (task, newTitle) => {
 // Task dialogs
 const dialogs = useTaskDialogs({ refresh });
 
-useHead({
+usePageMeta(null, {
   title: "All Tasks",
 });
 </script>

@@ -114,7 +114,7 @@ definePageMeta({
   layout: "default",
 });
 
-useHead({
+usePageMeta(null, {
   title: "Gradient Collection - PM One",
 });
 

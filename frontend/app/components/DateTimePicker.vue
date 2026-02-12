@@ -13,7 +13,7 @@
             )
           "
         >
-          <Icon name="hugeicons:calendar-04" class="mr-2 size-4 shrink-0" />
+          <Icon name="hugeicons:calendar-04" class="size-4 shrink-0" />
           <span class="truncate">
             {{ modelValue ? formatDateTime(modelValue) : placeholder }}
           </span>
