@@ -551,7 +551,7 @@ const saveCaptionAndClose = () => {
 /* TipTap prose styling */
 :deep(.ProseMirror) {
   min-height: var(--editor-min-h);
-  @apply text-foreground outline-none;
+  @apply text-foreground leading-relaxed outline-none;
 }
 
 :deep(.ProseMirror p.is-editor-empty:first-child::before) {
@@ -560,6 +560,10 @@ const saveCaptionAndClose = () => {
   float: left;
   pointer-events: none;
   height: 0;
+}
+
+:deep(.ProseMirror p) {
+  @apply my-3;
 }
 
 /* Dark mode text colors for all content */

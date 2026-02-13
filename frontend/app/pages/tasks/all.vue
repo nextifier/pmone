@@ -70,18 +70,14 @@
               </div>
 
               <div class="flex flex-col items-start">
-                <span class="text-sm font-semibold tracking-tight">
+                <span class="text-base font-medium tracking-tight">
                   {{ group.assignee?.name || "Unassigned" }}
                 </span>
-                <span v-if="group.assignee?.username" class="text-muted-foreground text-sm">
-                  @{{ group.assignee.username }}
+                <span class="text-muted-foreground text-sm font-normal">
+                  {{ group.filteredCount }}
+                  {{ group.filteredCount === 1 ? "task" : "tasks" }}
                 </span>
               </div>
-
-              <Badge variant="secondary" class="ml-2">
-                {{ group.filteredCount }}
-                {{ group.filteredCount === 1 ? "task" : "tasks" }}
-              </Badge>
             </div>
           </AccordionTrigger>
 

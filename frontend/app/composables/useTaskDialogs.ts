@@ -29,6 +29,7 @@ export function useTaskDialogs(options: {
       });
 
       await options.refresh();
+      editFormRef.value?.resetForm();
       editDialogOpen.value = false;
       taskToEdit.value = null;
       toast.success("Task updated successfully");
@@ -65,6 +66,7 @@ export function useTaskDialogs(options: {
       });
 
       await options.refresh();
+      createFormRef.value?.resetForm();
       createDialogOpen.value = false;
       toast.success("Task created successfully");
     } catch (err: any) {

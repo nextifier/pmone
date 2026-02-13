@@ -1,46 +1,60 @@
 <template>
   <div class="px-4 pb-10 md:px-6 md:py-5">
-    <!-- Status + Title -->
-    <div class="space-y-3">
-      <div class="flex items-center gap-x-2">
-        <Icon :name="statusIcon(task.status)" class="size-4.5" :class="statusIconClass(task.status)" />
-        <span class="text-sm font-medium capitalize tracking-tight" :class="statusIconClass(task.status)">
+    <!-- Status Badge + Overdue -->
+    <div class="flex items-center gap-x-2">
+      <div
+        class="flex items-center gap-x-1.5 rounded-full px-2.5 py-1"
+        :class="statusBadgeClass(task.status)"
+      >
+        <Icon :name="statusIcon(task.status)" class="size-3.5" />
+        <span class="text-xs font-medium tracking-tight capitalize sm:text-sm">
           {{ formatStatus(task.status) }}
         </span>
-        <Badge v-if="task.is_overdue" variant="destructive" class="text-[10px]">Overdue</Badge>
       </div>
+      <Badge v-if="task.is_overdue" variant="destructive" class="text-xs sm:text-sm">
+        Overdue
+      </Badge>
+    </div>
 
-      <h2 class="text-lg leading-snug font-semibold tracking-tight">{{ task.title }}</h2>
+    <!-- Title -->
+    <h2
+      class="mt-3 text-lg leading-snug font-semibold tracking-tight"
+      :class="task.status === 'completed' ? 'text-muted-foreground line-through' : ''"
+    >
+      {{ task.title }}
+    </h2>
 
-      <!-- Priority / Complexity / Visibility -->
-      <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-        <PriorityBars v-if="task.priority" :level="task.priority" label="Priority" />
-        <PriorityBars v-if="task.complexity" :level="task.complexity" label="Complexity" />
-        <span v-if="task.visibility" class="text-muted-foreground flex items-center gap-x-1 text-xs tracking-tight">
-          <Icon :name="visibilityIcon(task.visibility)" class="size-3" />
-          <span class="capitalize">{{ task.visibility }}</span>
-        </span>
-      </div>
+    <!-- Priority / Complexity / Visibility -->
+    <div
+      v-if="task.priority || task.complexity || task.visibility"
+      class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2"
+    >
+      <PriorityBars v-if="task.priority" :level="task.priority" label="Priority" />
+      <PriorityBars v-if="task.complexity" :level="task.complexity" label="Complexity" />
+      <span
+        v-if="task.visibility"
+        class="text-muted-foreground flex items-center gap-x-1 text-xs tracking-tight sm:text-sm"
+      >
+        <Icon :name="visibilityIcon(task.visibility)" class="size-3.5" />
+        <span class="capitalize">{{ task.visibility }}</span>
+      </span>
     </div>
 
     <!-- Description -->
-    <div v-if="task.description" class="mt-5">
-      <div
-        class="prose dark:prose-invert text-muted-foreground max-w-none text-sm"
-        v-html="task.description"
-      ></div>
+    <div v-if="task.description" class="border-border mt-5 border-t pt-2">
+      <div class="task-description format-html" v-html="task.description"></div>
     </div>
 
     <!-- Info Grid -->
     <div class="border-border mt-5 grid grid-cols-1 gap-3 border-t pt-5 sm:grid-cols-2">
       <!-- Assignee -->
       <div v-if="task.assignee" class="flex items-center gap-x-3">
-        <div class="bg-muted flex size-8 shrink-0 items-center justify-center rounded-full">
-          <Avatar :model="task.assignee" size="sm" class="size-8" />
-        </div>
+        <Avatar :model="task.assignee" size="sm" class="size-8 shrink-0" />
         <div class="min-w-0">
-          <div class="text-muted-foreground text-[11px] tracking-tight">Assigned To</div>
-          <div class="truncate text-sm font-medium tracking-tight">{{ task.assignee.name }}</div>
+          <div class="text-muted-foreground text-xs tracking-tight sm:text-sm">Assigned To</div>
+          <div class="truncate text-xs font-medium tracking-tight sm:text-sm">
+            {{ task.assignee.name }}
+          </div>
         </div>
       </div>
 
@@ -48,19 +62,21 @@
       <div v-if="task.project" class="flex items-center gap-x-3">
         <Avatar :model="task.project" size="sm" class="size-8 shrink-0" rounded="rounded-md" />
         <div class="min-w-0">
-          <div class="text-muted-foreground text-[11px] tracking-tight">Project</div>
-          <div class="truncate text-sm font-medium tracking-tight">{{ task.project.name }}</div>
+          <div class="text-muted-foreground text-xs tracking-tight sm:text-sm">Project</div>
+          <div class="truncate text-xs font-medium tracking-tight sm:text-sm">
+            {{ task.project.name }}
+          </div>
         </div>
       </div>
 
       <!-- Estimated Start -->
       <div v-if="task.estimated_start_at" class="flex items-center gap-x-3">
         <div class="bg-muted flex size-8 shrink-0 items-center justify-center rounded-full">
-          <Icon name="hugeicons:calendar-01" class="text-muted-foreground size-4" />
+          <Icon name="hugeicons:calendar-03" class="text-muted-foreground size-4" />
         </div>
         <div class="min-w-0">
-          <div class="text-muted-foreground text-[11px] tracking-tight">Start Date</div>
-          <div class="text-sm font-medium tracking-tight">
+          <div class="text-muted-foreground text-xs tracking-tight sm:text-sm">Start Date</div>
+          <div class="text-xs font-medium tracking-tight sm:text-sm">
             {{ formatDateTime(task.estimated_start_at) }}
           </div>
         </div>
@@ -79,9 +95,9 @@
           />
         </div>
         <div class="min-w-0">
-          <div class="text-muted-foreground text-[11px] tracking-tight">Due Date</div>
+          <div class="text-muted-foreground text-xs tracking-tight sm:text-sm">Due Date</div>
           <div
-            class="text-sm font-medium tracking-tight"
+            class="text-xs font-medium tracking-tight sm:text-sm"
             :class="task.is_overdue ? 'text-destructive' : ''"
           >
             {{ formatDateTime(task.estimated_completion_at) }}
@@ -91,12 +107,14 @@
 
       <!-- Completed At -->
       <div v-if="task.completed_at" class="flex items-center gap-x-3">
-        <div class="flex size-8 shrink-0 items-center justify-center rounded-full bg-green-50 dark:bg-green-900/20">
-          <Icon name="hugeicons:checkmark-circle-02" class="size-4 text-green-600 dark:text-green-400" />
+        <div
+          class="bg-success-foreground/10 flex size-8 shrink-0 items-center justify-center rounded-full"
+        >
+          <Icon name="hugeicons:checkmark-circle-02" class="text-success-foreground size-4" />
         </div>
         <div class="min-w-0">
-          <div class="text-muted-foreground text-[11px] tracking-tight">Completed</div>
-          <div class="text-sm font-medium tracking-tight">
+          <div class="text-muted-foreground text-xs tracking-tight sm:text-sm">Completed</div>
+          <div class="text-xs font-medium tracking-tight sm:text-sm">
             {{ formatDateTime(task.completed_at) }}
           </div>
         </div>
@@ -104,8 +122,11 @@
     </div>
 
     <!-- Shared Users -->
-    <div v-if="task.shared_users && task.shared_users.length > 0" class="border-border mt-5 border-t pt-5">
-      <div class="text-muted-foreground mb-2 text-[11px] tracking-tight">Shared With</div>
+    <div
+      v-if="task.shared_users && task.shared_users.length > 0"
+      class="border-border mt-5 border-t pt-5"
+    >
+      <div class="text-muted-foreground mb-2 text-xs tracking-tight sm:text-sm">Shared With</div>
       <div class="flex flex-wrap gap-2">
         <div
           v-for="sharedUser in task.shared_users"
@@ -113,7 +134,7 @@
           class="border-border bg-muted/50 flex items-center gap-x-2 rounded-full border px-2.5 py-1"
         >
           <Avatar :model="sharedUser" size="sm" class="size-5" />
-          <span class="text-xs font-medium tracking-tight">{{ sharedUser.name }}</span>
+          <span class="text-xs font-medium tracking-tight sm:text-sm">{{ sharedUser.name }}</span>
           <Badge variant="secondary" class="h-4 px-1.5 text-[10px]">{{ sharedUser.role }}</Badge>
         </div>
       </div>
@@ -121,17 +142,22 @@
 
     <!-- Metadata Footer -->
     <div class="border-border mt-5 border-t pt-4">
-      <div class="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] tracking-tight">
+      <div
+        class="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-3 text-xs tracking-tight sm:text-sm"
+      >
         <span v-if="task.creator" class="flex items-center gap-x-1">
-          <Icon name="hugeicons:user" class="size-3" />
+          <Icon name="hugeicons:user" class="size-3.5" />
           {{ task.creator.name }}
         </span>
         <span v-if="task.created_at" class="flex items-center gap-x-1">
-          <Icon name="hugeicons:calendar-add-01" class="size-3" />
+          <Icon name="hugeicons:calendar-add-01" class="size-3.5" />
           {{ formatDateTime(task.created_at) }}
         </span>
-        <span v-if="task.updated_at && task.updated_at !== task.created_at" class="flex items-center gap-x-1">
-          <Icon name="hugeicons:clock-01" class="size-3" />
+        <span
+          v-if="task.updated_at && task.updated_at !== task.created_at"
+          class="flex items-center gap-x-1"
+        >
+          <Icon name="hugeicons:clock-01" class="size-3.5" />
           Updated {{ formatDateTime(task.updated_at) }}
         </span>
       </div>
@@ -188,14 +214,14 @@ const statusIcon = (status) => {
   return icons[status] || "hugeicons:task-daily-01";
 };
 
-const statusIconClass = (status) => {
+const statusBadgeClass = (status) => {
   const classes = {
-    todo: "text-muted-foreground",
-    in_progress: "text-info-foreground",
-    completed: "text-success-foreground",
-    archived: "text-muted-foreground",
+    todo: "bg-muted text-muted-foreground",
+    in_progress: "bg-info-foreground/10 text-info-foreground",
+    completed: "bg-success-foreground/10 text-success-foreground",
+    archived: "bg-muted text-muted-foreground",
   };
-  return classes[status] || "text-muted-foreground";
+  return classes[status] || "bg-muted text-muted-foreground";
 };
 
 const formatStatus = (status) => {
@@ -211,3 +237,20 @@ const visibilityIcon = (visibility) => {
   return icons[visibility] || "hugeicons:view";
 };
 </script>
+
+<style scoped>
+@reference "../../assets/css/main.css";
+
+:deep(.task-description p) {
+  @apply my-2;
+}
+
+:deep(.task-description ul),
+:deep(.task-description ol) {
+  @apply my-2;
+}
+
+:deep(.task-description li) {
+  @apply my-0.5;
+}
+</style>
