@@ -228,7 +228,8 @@ class Event extends Model implements HasMedia, Sortable
             ->width(400)
             ->height(400)
             ->quality(90)
-            ->performOnCollections('poster_image');
+            ->performOnCollections('poster_image')
+            ->nonQueued();
 
         $this->addMediaConversion('lg')
             ->width(800)
