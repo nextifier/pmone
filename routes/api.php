@@ -186,28 +186,28 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Brand management endpoints (nested under project events)
     Route::prefix('projects/{username}/events/{eventSlug}/brands')->group(function () {
-        Route::get('/', [BrandEventController::class, 'index'])->name('brands.index');
-        Route::post('/', [BrandEventController::class, 'store'])->name('brands.store');
-        Route::get('/export', [BrandEventController::class, 'export'])->name('brands.export');
-        Route::get('/import/template', [BrandEventController::class, 'downloadTemplate'])->name('brands.import.template');
-        Route::post('/import', [BrandEventController::class, 'import'])->name('brands.import');
-        Route::post('/update-order', [BrandEventController::class, 'updateOrder'])->name('brands.update-order');
-        Route::get('/{brandSlug}', [BrandEventController::class, 'show'])->name('brands.show');
-        Route::put('/{brandSlug}', [BrandEventController::class, 'update'])->name('brands.update');
-        Route::put('/{brandSlug}/profile', [BrandEventController::class, 'updateProfile'])->name('brands.update-profile');
-        Route::delete('/{brandSlug}', [BrandEventController::class, 'destroy'])->name('brands.destroy');
+        Route::get('/', [BrandEventController::class, 'index'])->name('brand-events.index');
+        Route::post('/', [BrandEventController::class, 'store'])->name('brand-events.store');
+        Route::get('/export', [BrandEventController::class, 'export'])->name('brand-events.export');
+        Route::get('/import/template', [BrandEventController::class, 'downloadTemplate'])->name('brand-events.import.template');
+        Route::post('/import', [BrandEventController::class, 'import'])->name('brand-events.import');
+        Route::post('/update-order', [BrandEventController::class, 'updateOrder'])->name('brand-events.update-order');
+        Route::get('/{brandSlug}', [BrandEventController::class, 'show'])->name('brand-events.show');
+        Route::put('/{brandSlug}', [BrandEventController::class, 'update'])->name('brand-events.update');
+        Route::put('/{brandSlug}/profile', [BrandEventController::class, 'updateProfile'])->name('brand-events.update-profile');
+        Route::delete('/{brandSlug}', [BrandEventController::class, 'destroy'])->name('brand-events.destroy');
         // Members
-        Route::get('/{brandSlug}/members', [BrandEventController::class, 'members'])->name('brands.members.index');
-        Route::post('/{brandSlug}/members', [BrandEventController::class, 'addMember'])->name('brands.members.store');
-        Route::delete('/{brandSlug}/members/{userId}', [BrandEventController::class, 'removeMember'])->name('brands.members.destroy');
-        Route::post('/{brandSlug}/members/{userId}/send-invite', [BrandEventController::class, 'sendInvite'])->name('brands.members.send-invite');
+        Route::get('/{brandSlug}/members', [BrandEventController::class, 'members'])->name('brand-events.members.index');
+        Route::post('/{brandSlug}/members', [BrandEventController::class, 'addMember'])->name('brand-events.members.store');
+        Route::delete('/{brandSlug}/members/{userId}', [BrandEventController::class, 'removeMember'])->name('brand-events.members.destroy');
+        Route::post('/{brandSlug}/members/{userId}/send-invite', [BrandEventController::class, 'sendInvite'])->name('brand-events.members.send-invite');
         // Promotion posts
-        Route::get('/{brandSlug}/promotion-posts', [BrandEventController::class, 'promotionPosts'])->name('brands.promotion-posts.index');
-        Route::post('/{brandSlug}/promotion-posts', [BrandEventController::class, 'storePromotionPost'])->name('brands.promotion-posts.store');
-        Route::post('/{brandSlug}/promotion-posts/update-order', [BrandEventController::class, 'updatePromotionPostOrder'])->name('brands.promotion-posts.update-order');
-        Route::put('/{brandSlug}/promotion-posts/{postId}', [BrandEventController::class, 'updatePromotionPost'])->name('brands.promotion-posts.update');
-        Route::delete('/{brandSlug}/promotion-posts/{postId}', [BrandEventController::class, 'destroyPromotionPost'])->name('brands.promotion-posts.destroy');
-        Route::post('/{brandSlug}/promotion-posts/{postId}/reorder-media', [BrandEventController::class, 'reorderPromotionPostMedia'])->name('brands.promotion-posts.reorder-media');
+        Route::get('/{brandSlug}/promotion-posts', [BrandEventController::class, 'promotionPosts'])->name('brand-events.promotion-posts.index');
+        Route::post('/{brandSlug}/promotion-posts', [BrandEventController::class, 'storePromotionPost'])->name('brand-events.promotion-posts.store');
+        Route::post('/{brandSlug}/promotion-posts/update-order', [BrandEventController::class, 'updatePromotionPostOrder'])->name('brand-events.promotion-posts.update-order');
+        Route::put('/{brandSlug}/promotion-posts/{postId}', [BrandEventController::class, 'updatePromotionPost'])->name('brand-events.promotion-posts.update');
+        Route::delete('/{brandSlug}/promotion-posts/{postId}', [BrandEventController::class, 'destroyPromotionPost'])->name('brand-events.promotion-posts.destroy');
+        Route::post('/{brandSlug}/promotion-posts/{postId}/reorder-media', [BrandEventController::class, 'reorderPromotionPostMedia'])->name('brand-events.promotion-posts.reorder-media');
     });
 
     // Global orders route (staff+ see all, exhibitors see their own)
