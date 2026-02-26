@@ -216,18 +216,18 @@ it('includes human readable descriptions in response', function () {
             'data' => [
                 '*' => [
                     'human_description',
-                    'subject_info',
+                    'subject_name',
                     'time_ago',
                 ],
             ],
         ]);
 
-    // Check that human_description and subject_info are present
+    // Check that human_description and subject_name are present
     $logs = $response->json('data');
     if (count($logs) > 0) {
         expect($logs[0]['human_description'])->toBeString();
         expect($logs[0]['time_ago'])->toBeString();
-        // subject_info can be null or string
-        expect($logs[0])->toHaveKey('subject_info');
+        // subject_name can be null or string
+        expect($logs[0])->toHaveKey('subject_name');
     }
 });

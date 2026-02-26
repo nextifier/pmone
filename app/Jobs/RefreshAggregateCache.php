@@ -53,7 +53,9 @@ class RefreshAggregateCache implements ShouldBeUnique, ShouldQueue
         public string $cacheKey,
         public int $days,
         public string $refreshingKey
-    ) {}
+    ) {
+        $this->onQueue('analytics');
+    }
 
     /**
      * Get the unique ID for the job.

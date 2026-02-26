@@ -9,6 +9,10 @@ interface Props {
   iconColor?: string;
   href?: string;
   loading?: boolean;
+  format?: Record<string, unknown>;
+  ctaLabel?: string;
+  ctaIcon?: string;
+  ctaLink?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -34,33 +38,24 @@ const trendIcon = computed(() => {
   return null;
 });
 
-// Get background color class based on icon color
 const iconBgClass = computed(() => {
-  if (props.iconColor?.includes("primary")) {
-    return "bg-primary/10 group-hover:bg-primary/20";
-  }
-  if (props.iconColor?.includes("emerald")) {
-    return "bg-emerald-500/10 group-hover:bg-emerald-500/20";
-  }
-  if (props.iconColor?.includes("violet")) {
-    return "bg-violet-500/10 group-hover:bg-violet-500/20";
-  }
-  if (props.iconColor?.includes("rose")) {
-    return "bg-rose-500/10 group-hover:bg-rose-500/20";
-  }
-  if (props.iconColor?.includes("sky")) {
-    return "bg-sky-500/10 group-hover:bg-sky-500/20";
-  }
-  return "bg-primary/10 group-hover:bg-primary/20";
+  if (props.iconColor?.includes("primary")) return "bg-primary/10";
+  if (props.iconColor?.includes("emerald")) return "bg-emerald-500/10";
+  if (props.iconColor?.includes("violet")) return "bg-violet-500/10";
+  if (props.iconColor?.includes("rose")) return "bg-rose-500/10";
+  if (props.iconColor?.includes("sky")) return "bg-sky-500/10";
+  if (props.iconColor?.includes("amber")) return "bg-amber-500/10";
+  if (props.iconColor?.includes("blue")) return "bg-blue-500/10";
+  return "bg-primary/10";
 });
 
-// Dynamic component and classes
 const componentIs = computed(() => (props.href ? resolveComponent("NuxtLink") : "div"));
 
 const containerClass = computed(() => {
-  const base = "bg-card group relative flex flex-col gap-3 rounded-xl border p-5 transition-all";
+  const base =
+    "bg-card group relative flex flex-col items-start gap-y-2 rounded-lg border px-3.5 py-3";
   if (props.href) {
-    return `${base}  cursor-pointer hover:shadow-sm active:scale-98`;
+    return `${base} cursor-pointer hover:bg-muted/50`;
   }
   return base;
 });
@@ -68,55 +63,56 @@ const containerClass = computed(() => {
 
 <template>
   <component :is="componentIs" :to="href" :class="containerClass">
-    <!-- Loading State -->
+    <!-- Loading -->
     <template v-if="loading">
-      <div class="flex items-center justify-between">
-        <Skeleton class="h-4 w-20" />
-        <Skeleton class="size-10 rounded-lg" />
+      <Skeleton class="size-8 shrink-0 rounded-lg" />
+      <div class="space-y-1">
+        <Skeleton class="h-3 w-16" />
+        <Skeleton class="h-2.5 w-24" />
       </div>
-      <Skeleton class="h-8 w-24" />
-      <Skeleton class="h-3 w-16" />
+      <Skeleton class="h-7 w-12" />
     </template>
 
     <!-- Content -->
     <template v-else>
-      <div class="flex items-center justify-between">
-        <div class="flex flex-col gap-y-1">
-          <span class="text-sm font-medium tracking-tight">{{ title }}</span>
-          <span v-if="description" class="text-muted-foreground text-xs tracking-tight">
-            {{ description }}
-          </span>
-        </div>
-        <div
-          class="flex size-10 items-center justify-center rounded-lg transition-colors"
-          :class="iconBgClass"
-        >
-          <Icon :name="icon" class="size-5" :class="iconColor" />
-        </div>
+      <div class="flex size-8 shrink-0 items-center justify-center rounded-lg" :class="iconBgClass">
+        <Icon :name="icon" class="size-4" :class="iconColor" />
       </div>
 
-      <div class="flex items-baseline gap-2">
-        <span class="text-foreground text-3xl font-medium tracking-tighter">{{ value }}</span>
-        <div
-          v-if="change !== undefined && trendIcon"
-          class="flex items-center gap-0.5"
-          :class="trendColor"
-        >
-          <Icon :name="trendIcon" class="size-4" />
-          <span class="text-xs font-medium">{{ formattedChange }}</span>
-        </div>
+      <div class="min-w-0">
+        <span class="text-foreground text-sm font-medium tracking-tight">{{ title }}</span>
+        <p v-if="description" class="text-muted-foreground text-xs tracking-tight">
+          {{ description }}
+        </p>
       </div>
 
-      <span v-if="change !== undefined" class="text-muted-foreground text-xs tracking-tight">
-        vs last 7 days
-      </span>
+      <div class="flex w-full items-center justify-between gap-2">
+        <div class="flex items-baseline gap-1.5">
+          <NumberFlow
+            class="text-foreground text-2xl leading-tight font-medium tracking-tighter"
+            :value="Number(value) || 0"
+            :format="format ?? { notation: 'compact' }"
+          />
+          <div
+            v-if="change !== undefined && trendIcon"
+            class="flex items-center gap-0.5"
+            :class="trendColor"
+          >
+            <Icon :name="trendIcon" class="size-3" />
+            <span class="text-[10px] font-medium">{{ formattedChange }}</span>
+          </div>
+        </div>
+        <NuxtLink
+          v-if="ctaLink"
+          :to="ctaLink"
+          class="bg-primary text-primary-foreground hover:bg-primary/80 flex translate-x-1 items-center gap-1 rounded-md py-1 pr-2 pl-1.5 text-sm font-medium tracking-tight"
+          @click.stop
+        >
+          <Icon v-if="ctaIcon" :name="ctaIcon" class="size-4 shrink-0" />
+          <span v-if="ctaLabel">{{ ctaLabel }}</span>
+        </NuxtLink>
+        <slot />
+      </div>
     </template>
-
-    <!-- Hover arrow indicator for links -->
-    <Icon
-      v-if="href && !loading"
-      name="hugeicons:arrow-right-02"
-      class="text-muted-foreground group-hover:text-primary absolute top-1/2 right-4 size-4 -translate-y-1/2 opacity-0 transition-all group-hover:opacity-100"
-    />
   </component>
 </template>

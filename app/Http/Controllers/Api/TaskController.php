@@ -8,6 +8,8 @@ use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
 use App\Models\User;
+use App\Notifications\TaskAssignedNotification;
+use App\Notifications\TaskStatusChangedNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -176,6 +178,11 @@ class TaskController extends Controller
         // Process content images (move from temp to permanent storage)
         $this->processContentImages($task);
 
+        // Notify assignee (if not self-assign)
+        if ($task->assignee_id && $task->assignee_id !== $request->user()->id) {
+            $task->assignee->notify(new TaskAssignedNotification($task, $request->user()));
+        }
+
         return response()->json([
             'message' => 'Task created successfully',
             'data' => new TaskResource($task->load(['assignee', 'sharedUsers', 'project', 'creator'])),
@@ -201,8 +208,10 @@ class TaskController extends Controller
 
         $this->authorize('update', $task);
 
-        // Store old description before update for cleanup comparison
+        // Store old values before update for comparison
         $oldDescription = $task->description;
+        $oldAssigneeId = $task->assignee_id;
+        $oldStatus = $task->status;
 
         $task->update([
             ...$request->safe()->except(['shared_user_ids', 'shared_roles', 'description_images']),
@@ -224,6 +233,16 @@ class TaskController extends Controller
 
         // Cleanup removed content images
         $this->cleanupRemovedContentImages($task, $oldDescription);
+
+        // Notify new assignee (if changed and not self-assign)
+        if ($task->assignee_id && $task->assignee_id !== $oldAssigneeId && $task->assignee_id !== $request->user()->id) {
+            $task->assignee->notify(new TaskAssignedNotification($task, $request->user()));
+        }
+
+        // Notify assignee when status changed (if not self)
+        if ($request->has('status') && $task->status !== $oldStatus && $task->assignee_id && $task->assignee_id !== $request->user()->id) {
+            $task->assignee->notify(new TaskStatusChangedNotification($task, $task->status, $request->user()));
+        }
 
         return response()->json([
             'message' => 'Task updated successfully',
@@ -533,21 +552,18 @@ class TaskController extends Controller
         $srcsetString = implode(', ', $srcset);
         $sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px';
 
+        $captionAttr = $caption
+            ? sprintf(' data-caption="%s"', htmlspecialchars($caption, ENT_QUOTES, 'UTF-8'))
+            : '';
+
         $html = sprintf(
-            '<img src="%s" srcset="%s" sizes="%s" alt="%s" loading="lazy" class="w-full h-auto rounded-lg">',
+            '<img src="%s" srcset="%s" sizes="%s" alt="%s"%s loading="lazy" class="w-full h-auto rounded-lg">',
             $media->getUrl('lg'),
             $srcsetString,
             $sizes,
-            htmlspecialchars($alt, ENT_QUOTES, 'UTF-8')
+            htmlspecialchars($alt, ENT_QUOTES, 'UTF-8'),
+            $captionAttr
         );
-
-        if ($caption) {
-            $html = sprintf(
-                '<figure>%s<figcaption>%s</figcaption></figure>',
-                $html,
-                htmlspecialchars($caption, ENT_QUOTES, 'UTF-8')
-            );
-        }
 
         return $html;
     }

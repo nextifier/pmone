@@ -66,11 +66,39 @@ export function useFormatters() {
     }).format(amount);
   }
 
+  function formatPrice(amount) {
+    if (amount == null) return "-";
+    return `Rp${Number(amount).toLocaleString("id-ID")}`;
+  }
+
+  function formatDateId(dateStr) {
+    if (!dateStr) return "-";
+    return new Date(dateStr).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  }
+
+  function orderStatusClass(status) {
+    const map = {
+      submitted: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+      confirmed: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+      processing: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+      completed: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+      cancelled: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+    };
+    return map[status] || "bg-muted text-muted-foreground";
+  }
+
   return {
     formatDate,
     formatDateTime,
     formatRelativeTime,
     formatNumber,
     formatCurrency,
+    formatPrice,
+    formatDateId,
+    orderStatusClass,
   };
 }

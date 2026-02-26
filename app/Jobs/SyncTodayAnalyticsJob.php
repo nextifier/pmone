@@ -48,6 +48,11 @@ class SyncTodayAnalyticsJob implements ShouldBeUnique, ShouldQueue
      */
     public int $uniqueFor = 900; // 15 minutes
 
+    public function __construct()
+    {
+        $this->onQueue('analytics');
+    }
+
     /**
      * Get the unique ID for the job.
      */

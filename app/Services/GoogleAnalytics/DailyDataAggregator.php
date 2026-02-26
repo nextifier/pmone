@@ -349,31 +349,30 @@ class DailyDataAggregator
             ];
         }
 
-        // No cache - fetch synchronously
-        try {
-            $freshData = $this->fetchDailyDataFromGA($property);
+        // No cache - dispatch background job and return empty
+        // NEVER fetch synchronously to avoid blocking PHP-FPM workers
+        if (! Cache::has($refreshingKey)) {
+            Cache::put($refreshingKey, true, now()->addMinutes(30));
 
-            Cache::put($cacheKey, $freshData, now()->addMinutes(self::DAILY_CACHE_TTL));
-            Cache::put($timestampKey, now(), now()->addMinutes(self::DAILY_CACHE_TTL));
-
-            return [
-                ...$freshData,
-                'is_fresh' => true,
-                'cached_at' => now()->toIso8601String(),
-            ];
-        } catch (\Exception $e) {
-            \Log::error('Failed to fetch daily data from GA', [
+            \Log::info('No daily cache, dispatching RefreshDailyCache job', [
                 'property_id' => $property->property_id,
-                'error' => $e->getMessage(),
             ]);
 
-            // Return empty if fetch fails
-            return [
-                'totals' => [],
-                'rows' => [],
-                'is_fresh' => false,
-            ];
+            dispatch(new \App\Jobs\RefreshDailyCache(
+                propertyId: $property->id,
+                cacheKey: $cacheKey,
+                timestampKey: $timestampKey,
+                refreshingKey: $refreshingKey,
+                ttl: self::DAILY_CACHE_TTL
+            ));
         }
+
+        return [
+            'totals' => [],
+            'rows' => [],
+            'is_fresh' => false,
+            'is_loading' => true,
+        ];
     }
 
     /**

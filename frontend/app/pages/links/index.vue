@@ -183,7 +183,7 @@ defineOptions({
 const title = "Short Links";
 const description = "Shorten your long URLs.";
 
-usePageMeta("", {
+usePageMeta(null, {
   title: title,
   description: description,
 });

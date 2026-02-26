@@ -289,7 +289,7 @@ defineOptions({
 const title = "API Consumers";
 const description = "Manage API consumers for your application";
 
-usePageMeta("", {
+usePageMeta(null, {
   title: title,
   description: description,
 });

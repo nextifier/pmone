@@ -33,7 +33,7 @@ definePageMeta({
   layout: "app",
 });
 
-usePageMeta("", {
+usePageMeta(null, {
   title: "Edit Permission",
   description: "Edit an existing permission",
 });

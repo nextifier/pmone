@@ -22,7 +22,7 @@ const getProgressWidth = (clicks: number) => {
   return (clicks / maxClicks.value) * 100;
 };
 
-const truncateUrl = (url: string, maxLength = 40) => {
+const truncateUrl = (url: string, maxLength = 35) => {
   try {
     const urlObj = new URL(url);
     const display = urlObj.hostname + urlObj.pathname;
@@ -40,86 +40,70 @@ const truncateUrl = (url: string, maxLength = 40) => {
 </script>
 
 <template>
-  <Card>
-    <CardHeader class="pb-3">
-      <div class="flex items-center justify-between">
-        <div class="flex flex-col gap-1">
-          <CardTitle class="text-base font-semibold tracking-tight">Top Links</CardTitle>
-          <CardDescription class="text-xs">Most clicked this week</CardDescription>
+  <div class="space-y-4">
+    <div class="flex items-center justify-between">
+      <h3 class="page-title text-lg!">Top Links</h3>
+      <NuxtLink
+        to="/links"
+        class="text-muted-foreground hover:text-foreground flex items-center gap-x-1 text-sm tracking-tight"
+      >
+        <span>View all</span>
+        <Icon name="hugeicons:arrow-right-02" class="size-4 shrink-0" />
+      </NuxtLink>
+    </div>
+
+    <!-- Loading -->
+    <template v-if="loading">
+      <div class="space-y-3">
+        <div v-for="i in 3" :key="i" class="space-y-1.5">
+          <div class="flex items-center justify-between">
+            <Skeleton class="h-3.5 w-28" />
+            <Skeleton class="h-3 w-10" />
+          </div>
+          <Skeleton class="h-1 w-full rounded-full" />
         </div>
-        <NuxtLink
-          to="/links"
-          class="text-primary hover:text-primary/80 flex items-center gap-1 text-xs font-medium transition-colors"
-        >
-          View all
-          <Icon name="hugeicons:arrow-right-02" class="size-3.5" />
-        </NuxtLink>
       </div>
-    </CardHeader>
-    <CardContent class="px-4 pb-4 pt-0">
-      <!-- Loading State -->
-      <template v-if="loading">
-        <div class="flex flex-col gap-4">
-          <div v-for="i in 5" :key="i" class="flex flex-col gap-2">
-            <div class="flex items-center justify-between">
-              <Skeleton class="h-4 w-32" />
-              <Skeleton class="h-4 w-12" />
-            </div>
-            <Skeleton class="h-2 w-full rounded-full" />
-          </div>
-        </div>
-      </template>
+    </template>
 
-      <!-- Empty State -->
-      <template v-else-if="!links || links.length === 0">
-        <div class="flex flex-col items-center justify-center gap-3 py-8">
-          <div class="bg-muted flex size-12 items-center justify-center rounded-full">
-            <Icon name="hugeicons:link-02" class="text-muted-foreground size-6" />
-          </div>
-          <div class="flex flex-col items-center gap-1">
-            <p class="text-muted-foreground text-sm">No links yet</p>
-            <NuxtLink to="/links/create" class="text-primary text-xs font-medium hover:underline">
-              Create your first link
-            </NuxtLink>
-          </div>
-        </div>
-      </template>
-
-      <!-- Links List -->
-      <template v-else>
-        <div class="flex flex-col gap-4">
-          <NuxtLink
-            v-for="link in links"
-            :key="link.id"
-            :to="`/links/${link.slug}`"
-            class="group flex flex-col gap-2"
-          >
-            <div class="flex items-center justify-between gap-2">
-              <div class="flex min-w-0 flex-1 items-center gap-2">
-                <div
-                  class="flex size-6 shrink-0 items-center justify-center rounded-md bg-violet-500/10 transition-colors group-hover:bg-violet-500/20"
-                >
-                  <Icon name="hugeicons:link-02" class="size-3.5 text-violet-600 dark:text-violet-400" />
-                </div>
-                <span class="text-foreground group-hover:text-primary truncate text-sm font-medium transition-colors">
-                  {{ link.og_title || link.slug || truncateUrl(link.destination_url) }}
-                </span>
-              </div>
-              <span class="text-muted-foreground shrink-0 text-xs font-medium tabular-nums">
-                {{ link.clicks_count }} {{ link.clicks_count === 1 ? "click" : "clicks" }}
-              </span>
-            </div>
-
-            <!-- Progress bar -->
-            <div class="bg-muted h-1.5 w-full overflow-hidden rounded-full">
-              <div
-                class="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500 transition-all duration-500"
-                :style="{ width: `${getProgressWidth(link.clicks_count)}%` }"
-              />
-            </div>
+    <!-- Empty -->
+    <template v-else-if="!links || links.length === 0">
+      <div class="flex items-center gap-2 py-4">
+        <Icon name="hugeicons:link-02" class="text-muted-foreground size-4" />
+        <div class="flex items-center gap-1.5">
+          <p class="text-muted-foreground text-sm tracking-tight">No links yet</p>
+          <NuxtLink to="/links/create" class="text-primary text-xs font-medium tracking-tight hover:underline">
+            Create one
           </NuxtLink>
         </div>
-      </template>
-    </CardContent>
-  </Card>
+      </div>
+    </template>
+
+    <!-- Links List -->
+    <div v-else class="space-y-3">
+      <NuxtLink
+        v-for="link in links"
+        :key="link.id"
+        :to="`/links/${link.slug}`"
+        class="flex flex-col gap-1.5 transition-opacity hover:opacity-80"
+      >
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex min-w-0 flex-1 items-center gap-1.5">
+            <Icon name="hugeicons:link-02" class="size-3 shrink-0 text-violet-600 dark:text-violet-400" />
+            <span class="truncate text-sm tracking-tight">
+              {{ link.og_title || link.slug || truncateUrl(link.destination_url) }}
+            </span>
+          </div>
+          <span class="text-muted-foreground shrink-0 text-xs tabular-nums tracking-tight">
+            {{ link.clicks_count }}
+          </span>
+        </div>
+        <div class="bg-muted h-1 w-full overflow-hidden rounded-full">
+          <div
+            class="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500 transition-[width] duration-500"
+            :style="{ width: `${getProgressWidth(link.clicks_count)}%` }"
+          />
+        </div>
+      </NuxtLink>
+    </div>
+  </div>
 </template>

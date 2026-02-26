@@ -29,7 +29,7 @@ definePageMeta({
   layout: "app",
 });
 
-usePageMeta("api-consumers", {
+usePageMeta(null, {
   title: "Create API Consumer",
 });
 

@@ -1,36 +1,44 @@
 <template>
-  <nav v-show="headings.length > 0" class="space-y-2">
+  <nav v-show="headings.length > 0" class="flex flex-col gap-1 py-2">
     <h3
       v-if="showLabel"
-      class="text-primary text-sm font-semibold tracking-tighter"
+      class="text-foreground flex h-7 items-center text-xs font-medium"
     >
-      On this page
+      On This Page
     </h3>
-    <ul ref="listRef" class="relative -ml-4 tracking-tight">
+    <div ref="listRef" class="relative ml-3.5 flex flex-col gap-0.5">
+      <!-- Vertical border line -->
+      <div class="border-border absolute inset-y-0 -left-[13px] w-px border-l"></div>
+
+      <!-- Sliding active indicator -->
       <div
         ref="indicatorRef"
-        class="bg-primary absolute top-[var(--indicator-top,0px)] left-0 h-[var(--indicator-height,0px)] w-px rounded-full opacity-[var(--indicator-opacity)] transition-all duration-300 ease-out"
+        class="bg-primary absolute -left-[13px] w-0.5 rounded-full"
+        :style="{
+          top: indicatorTop + 'px',
+          height: indicatorHeight + 'px',
+          opacity: indicatorOpacity,
+          transition: 'top 0.26s cubic-bezier(0.215, 0.610, 0.355, 1), height 0.26s cubic-bezier(0.215, 0.610, 0.355, 1), opacity 0.2s ease',
+        }"
       ></div>
 
-      <li v-for="heading in headings" :key="heading.id">
-        <a
-          :ref="(el) => (linkRefs[heading.id] = el)"
-          :href="`#${heading.id}`"
-          @click.prevent="scrollToHeading(heading.id)"
-          class="block py-1 pl-4 text-sm !leading-normal font-medium transition-all"
-          :class="[
-            {
-              'text-primary': activeHeadingId === heading.id,
-              'text-muted-foreground hover:text-primary':
-                activeHeadingId !== heading.id,
-              'pl-7': ['H3', 'H4', 'H5', 'H6'].includes(heading.tag),
-            },
-          ]"
-        >
-          {{ heading.text }}
-        </a>
-      </li>
-    </ul>
+      <a
+        v-for="heading in headings"
+        :key="heading.id"
+        :ref="(el) => { if (el) linkRefs[heading.id] = el }"
+        :href="`#${heading.id}`"
+        @click.prevent="scrollToHeading(heading.id)"
+        class="relative py-1 text-[13px] leading-[1.125rem] tracking-tight no-underline transition-colors duration-200"
+        :class="[
+          activeHeadingId === heading.id
+            ? 'text-foreground'
+            : 'text-muted-foreground hover:text-foreground',
+          ['H3', 'H4', 'H5', 'H6'].includes(heading.tag) ? 'pl-3.5' : '',
+        ]"
+      >
+        {{ heading.text }}
+      </a>
+    </div>
   </nav>
 </template>
 
@@ -54,6 +62,10 @@ const listRef = ref(null);
 const indicatorRef = ref(null);
 const linkRefs = ref({});
 
+const indicatorTop = ref(0);
+const indicatorHeight = ref(0);
+const indicatorOpacity = ref(0);
+
 import { useSidebar } from "@/components/ui/sidebar/utils";
 const { setOpenMobile } = useSidebar();
 
@@ -70,35 +82,22 @@ const scrollToHeading = (id) => {
 
 const emit = defineEmits(["headings-found"]);
 
-watch(activeHeadingId, (newActiveId) => {
-  const indicatorEl = indicatorRef.value;
-  if (newActiveId && indicatorEl) {
-    const activeLinkEl = linkRefs.value[newActiveId];
-    if (activeLinkEl) {
-      indicatorEl.style.setProperty(
-        "--indicator-top",
-        `${activeLinkEl.offsetTop}px`,
-      );
-      indicatorEl.style.setProperty(
-        "--indicator-height",
-        `${activeLinkEl.offsetHeight}px`,
-      );
-      indicatorEl.style.setProperty("--indicator-opacity", "1");
-    }
-  } else if (indicatorEl && !newActiveId && headings.value.length > 0) {
-    const firstLinkEl = linkRefs.value[headings.value[0].id];
-    if (firstLinkEl) {
-      indicatorEl.style.setProperty(
-        "--indicator-top",
-        `${firstLinkEl.offsetTop}px`,
-      );
-      indicatorEl.style.setProperty(
-        "--indicator-height",
-        `${firstLinkEl.offsetHeight}px`,
-      );
-    }
-    indicatorEl.style.setProperty("--indicator-opacity", "0");
+const updateIndicator = (headingId) => {
+  if (!headingId || !linkRefs.value[headingId]) {
+    indicatorOpacity.value = 0;
+    return;
   }
+
+  const linkEl = linkRefs.value[headingId];
+  if (linkEl) {
+    indicatorTop.value = linkEl.offsetTop + 1;
+    indicatorHeight.value = linkEl.offsetHeight - 2;
+    indicatorOpacity.value = 1;
+  }
+};
+
+watch(activeHeadingId, (newId) => {
+  updateIndicator(newId);
 });
 
 const createUniqueId = (text, index) => {
@@ -135,6 +134,10 @@ onMounted(async () => {
   emit("headings-found", headings.value);
 
   if (headings.value.length === 0) return;
+
+  // Default to first heading after DOM is ready
+  await nextTick();
+  activeHeadingId.value = headings.value[0].id;
 
   const observerCallback = (entries) => {
     entries.forEach((entry) => {

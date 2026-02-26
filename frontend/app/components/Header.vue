@@ -10,16 +10,37 @@
   >
     <nav
       class="flex h-full items-center transition-all duration-300"
-      :class="['news'].includes(route.name) ? 'container-wider' : 'container'"
+      :class="['news', 'docs', 'docs-slug'].includes(route.name) ? 'container-wider' : 'container'"
     >
-      <nuxt-link to="/" aria-label="Home" @click="$scrollToTopIfCurrentPageIs('/')" v-ripple>
-        <Logo class="text-primary h-6" />
+      <!-- Docs mobile: Menu button replacing logo -->
+      <button
+        v-if="isDocsPage"
+        class="text-primary flex items-center gap-x-1.5 rounded-lg text-sm font-medium tracking-tight lg:hidden"
+        @click="openDocsMobile"
+      >
+        <Icon name="lucide:menu" class="size-4" />
+        <span>Menu</span>
+      </button>
+
+      <nuxt-link
+        to="/"
+        aria-label="Home"
+        @click="$scrollToTopIfCurrentPageIs('/')"
+        v-ripple
+        class="flex items-center gap-x-2"
+        :class="{ 'hidden lg:flex': isDocsPage }"
+      >
+        <div
+          class="bg-primary text-primary-foreground squircle flex aspect-square size-8 items-center justify-center rounded-lg"
+        >
+          <LogoMark class="size-4" />
+        </div>
+
+        <span class="text-primary text-lg font-semibold tracking-tighter">PM One</span>
       </nuxt-link>
 
       <div class="ml-auto flex h-full items-center gap-x-6">
-        <!-- <HeaderNav
-          class="hidden xl:absolute xl:left-1/2 xl:flex xl:-translate-x-1/2"
-        /> -->
+        <!-- <HeaderNav class="hidden xl:absolute xl:left-1/2 xl:flex xl:-translate-x-1/2" /> -->
 
         <div class="flex h-full shrink-0 items-center gap-x-2">
           <Tippy>
@@ -39,7 +60,12 @@
               class="text-primary hover:bg-muted flex size-8 items-center justify-center rounded-lg"
               @click="toggleSidebar"
             >
-              <Icon name="hugeicons:sidebar-right-01" class="text-primary size-5" />
+              <Icon
+                v-if="open && !isMobile"
+                name="hugeicons:sidebar-right-01"
+                class="text-primary size-5"
+              />
+              <Icon v-else name="hugeicons:sidebar-right" class="text-primary size-5" />
             </button>
             <template #content>
               <span class="inline-flex items-center gap-x-1.5 tracking-tight">
@@ -91,5 +117,12 @@ const isMenuOpen = ref(false);
 const { isAuthenticated } = useSanctumAuth();
 
 import { useSidebar } from "@/components/ui/sidebar/utils";
-const { toggleSidebar } = useSidebar();
+const { toggleSidebar, open, isMobile } = useSidebar();
+
+const isDocsPage = computed(() => route.name?.toString().startsWith("docs"));
+const docsMobileOpen = useState("docs-mobile-open", () => false);
+
+function openDocsMobile() {
+  docsMobileOpen.value = true;
+}
 </script>

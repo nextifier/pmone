@@ -6,6 +6,8 @@ use App\Enums\ContactFormStatus;
 use App\Jobs\ProcessContactFormSubmission;
 use App\Models\ContactFormSubmission;
 use App\Models\Project;
+use App\Models\User;
+use App\Notifications\NewInboxMessageNotification;
 use Illuminate\Support\Facades\DB;
 
 class SubmitContactFormAction
@@ -45,6 +47,16 @@ class SubmitContactFormAction
 
         // Dispatch job to send email asynchronously
         ProcessContactFormSubmission::dispatch($submission);
+
+        // Notify users with contact_forms.read permission
+        try {
+            $recipients = User::permission('contact_forms.read')->get();
+            foreach ($recipients as $recipient) {
+                $recipient->notify(new NewInboxMessageNotification($submission));
+            }
+        } catch (\Spatie\Permission\Exceptions\PermissionDoesNotExist $e) {
+            // Permission not synced yet, skip notifications
+        }
 
         return $submission;
     }

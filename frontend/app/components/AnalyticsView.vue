@@ -1,9 +1,6 @@
 <template>
-  <div class="min-h-screen-offset mx-auto max-w-4xl pt-4 pb-16">
-    <div
-      v-if="loading"
-      class="min-h-screen-offset flex items-center justify-center"
-    >
+  <div class="min-h-screen-offset pt-4 pb-16">
+    <div v-if="loading" class="min-h-screen-offset flex items-center justify-center">
       <div class="flex items-center gap-x-2">
         <Spinner class="size-4 shrink-0" />
         <span class="text-base tracking-tight">Loading analytics</span>

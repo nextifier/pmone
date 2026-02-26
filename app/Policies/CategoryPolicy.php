@@ -72,20 +72,44 @@ class CategoryPolicy
     }
 
     /**
+     * Determine whether the user can delete any models (for bulk operations).
+     */
+    public function deleteAny(User $user): bool
+    {
+        return $user->hasRole(['master', 'admin']);
+    }
+
+    /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Category $category): bool
+    public function restore(User $user, ?Category $category = null): bool
     {
         // Only master and admin can restore categories
         return $user->hasRole(['master', 'admin']);
     }
 
     /**
+     * Determine whether the user can restore any models (for bulk operations).
+     */
+    public function restoreAny(User $user): bool
+    {
+        return $user->hasRole(['master', 'admin']);
+    }
+
+    /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Category $category): bool
+    public function forceDelete(User $user, ?Category $category = null): bool
     {
         // Only master and admin can force delete categories
+        return $user->hasRole(['master', 'admin']);
+    }
+
+    /**
+     * Determine whether the user can permanently delete any models (for bulk operations).
+     */
+    public function forceDeleteAny(User $user): bool
+    {
         return $user->hasRole(['master', 'admin']);
     }
 }

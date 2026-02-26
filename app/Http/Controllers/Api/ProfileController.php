@@ -39,15 +39,18 @@ class ProfileController extends Controller
      */
     public function getProjectProfile(Request $request, string $username): JsonResponse
     {
+        $membersEagerLoad = auth()->check()
+            ? ['members.media']
+            : ['members' => function ($query) {
+                $query->select('users.id', 'users.name', 'users.username');
+            }];
+
         $project = Project::where('username', $username)
-            ->with([
+            ->with(array_merge([
                 'links' => function ($query) {
                     $query->active()->orderBy('order');
                 },
-                'members' => function ($query) {
-                    $query->select('users.id', 'users.name', 'users.username');
-                },
-            ])
+            ], $membersEagerLoad))
             ->first();
 
         if (! $project) {

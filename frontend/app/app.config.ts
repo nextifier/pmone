@@ -29,9 +29,35 @@ const contact = {
   whatsapp: "6281110529527",
 };
 
+const routes = {
+  docs: {
+    label: "Docs",
+    path: "/docs",
+  },
+};
+
 export default defineAppConfig({
   app: app,
   settings: settings,
   contact: contact,
   buildDate: new Date().toISOString(),
+
+  routes: {
+    header: [routes.docs],
+
+    // dialog: [
+    //   {
+    //     label: "Menu",
+    //     links: [routes.docs],
+    //   },
+    //   {
+    //     label: "Get in touch",
+    //     links: Object.values(contactLinks),
+    //   },
+    //   {
+    //     label: "Social",
+    //     links: Object.values(socialLinks),
+    //   },
+    // ],
+  },
 });

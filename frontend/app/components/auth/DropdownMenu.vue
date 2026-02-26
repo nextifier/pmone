@@ -8,7 +8,7 @@
     <PopoverContent class="flex w-56 flex-col gap-y-1 rounded-lg px-0 py-1" align="end">
       <PopoverClose asChild>
         <NuxtLink :to="`/${user.username}`" class="px-1.5 py-1">
-          <UserProfile :user="user" :showVerifyIcon="true" :showRoleIcon="true" />
+          <UserProfile :user="user" :showVerifyIcon="true" :showRoleIcon="false" />
         </NuxtLink>
       </PopoverClose>
 
@@ -43,21 +43,27 @@
 import { PopoverClose } from "reka-ui";
 const { user, logout } = useSanctumAuth();
 
-const items = [
-  {
-    label: "Go to home page",
-    path: "/",
-    iconName: "hugeicons:home-01",
-  },
-  {
-    label: "Dashboard",
-    path: "/dashboard",
-    iconName: "hugeicons:dashboard-circle",
-  },
-  {
-    label: "Account",
-    path: "/settings/profile",
-    iconName: "hugeicons:user",
-  },
-];
+const route = useRoute();
+
+const items = computed(() =>
+  [
+    {
+      label: "Go to home page",
+      path: "/",
+      iconName: "hugeicons:home-01",
+      hidden: route.name === "index",
+    },
+    {
+      label: "Dashboard",
+      path: "/dashboard",
+      iconName: "hugeicons:dashboard-circle",
+      hidden: route.name === "dashboard",
+    },
+    {
+      label: "Account",
+      path: "/settings/profile",
+      iconName: "hugeicons:user",
+    },
+  ].filter((item) => !item.hidden)
+);
 </script>

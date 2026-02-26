@@ -62,9 +62,119 @@
 import { useSidebar } from "@/components/ui/sidebar/utils";
 import { ChevronRight } from "lucide-vue-next";
 const { setOpenMobile } = useSidebar();
-const { hasPermission, hasRole } = usePermission();
+const { hasPermission, hasRole, isStaffOrAbove } = usePermission();
+const { t } = useI18n();
+
+const isExhibitor = computed(() => hasRole("exhibitor") && !isStaffOrAbove.value);
+
+const isWriter = computed(() => hasRole("writer") && !isStaffOrAbove.value);
+
+const isDefaultUser = computed(
+  () => hasRole("user") && !isStaffOrAbove.value && !hasRole("exhibitor") && !hasRole("writer")
+);
 
 const navMainGroups = computed(() => {
+  // Writer - focused sidebar
+  if (isWriter.value) {
+    return [
+      {
+        label: "Writer",
+        items: [
+          {
+            label: t("nav.dashboard"),
+            path: "/dashboard",
+            iconName: "hugeicons:dashboard-circle",
+          },
+          {
+            label: "Posts",
+            path: "/posts",
+            iconName: "hugeicons:task-edit-01",
+          },
+          {
+            label: "Web Analytics",
+            path: "/web-analytics",
+            iconName: "hugeicons:analysis-text-link",
+          },
+          {
+            label: t("nav.settings"),
+            path: "/settings",
+            iconName: "hugeicons:settings-01",
+            isActive: false,
+            items: [
+              { label: t("nav.profile"), path: "/settings/profile" },
+              { label: t("nav.password"), path: "/settings/password" },
+              { label: t("nav.appearance"), path: "/settings/appearance" },
+            ],
+          },
+        ],
+      },
+    ];
+  }
+
+  // Default user - minimal sidebar
+  if (isDefaultUser.value) {
+    return [
+      {
+        label: t("nav.exhibitor"),
+        items: [
+          {
+            label: t("nav.dashboard"),
+            path: "/dashboard",
+            iconName: "hugeicons:dashboard-circle",
+          },
+          {
+            label: t("nav.settings"),
+            path: "/settings",
+            iconName: "hugeicons:settings-01",
+            isActive: false,
+            items: [
+              { label: t("nav.profile"), path: "/settings/profile" },
+              { label: t("nav.password"), path: "/settings/password" },
+              { label: t("nav.appearance"), path: "/settings/appearance" },
+            ],
+          },
+        ],
+      },
+    ];
+  }
+
+  // Exhibitor-only sidebar
+  if (isExhibitor.value) {
+    return [
+      {
+        label: t("nav.exhibitor"),
+        items: [
+          {
+            label: t("nav.dashboard"),
+            path: "/dashboard",
+            iconName: "hugeicons:dashboard-circle",
+          },
+          {
+            label: t("nav.brands"),
+            path: "/brands",
+            iconName: "hugeicons:blockchain-01",
+          },
+          {
+            label: t("nav.orders"),
+            path: "/orders",
+            iconName: "hugeicons:shopping-bag-01",
+          },
+          {
+            label: t("nav.settings"),
+            path: "/settings",
+            iconName: "hugeicons:settings-01",
+            isActive: false,
+            items: [
+              { label: t("nav.profile"), path: "/settings/profile" },
+              { label: t("nav.password"), path: "/settings/password" },
+              { label: t("nav.appearance"), path: "/settings/appearance" },
+            ],
+          },
+        ],
+      },
+    ];
+  }
+
   // Platform section - filter based on user permissions
   const platformItems = [];
 
@@ -84,6 +194,15 @@ const navMainGroups = computed(() => {
     });
   }
 
+  // Orders - requires orders.read permission
+  if (hasPermission("orders.read")) {
+    platformItems.push({
+      label: "Orders",
+      path: "/orders",
+      iconName: "hugeicons:shopping-bag-01",
+    });
+  }
+
   // Projects - requires projects.read permission
   if (hasPermission("projects.read")) {
     platformItems.push({
@@ -93,21 +212,21 @@ const navMainGroups = computed(() => {
     });
   }
 
+  // Brands - requires brands.read permission
+  if (hasPermission("brands.read")) {
+    platformItems.push({
+      label: "Brands",
+      path: "/brands",
+      iconName: "hugeicons:blockchain-01",
+    });
+  }
+
   // Tasks - requires tasks.read permission
   if (hasPermission("tasks.read")) {
     platformItems.push({
       label: "Tasks",
       path: "/tasks",
       iconName: "hugeicons:task-daily-01",
-    });
-  }
-
-  // Posts - requires posts.read permission
-  if (hasPermission("posts.read")) {
-    platformItems.push({
-      label: "Posts",
-      path: "/posts",
-      iconName: "hugeicons:task-edit-01",
     });
   }
 
@@ -127,11 +246,14 @@ const navMainGroups = computed(() => {
     iconName: "hugeicons:qr-code",
   });
 
-  platformItems.push({
-    label: "Exchange Rate",
-    path: "/exchange-rate",
-    iconName: "hugeicons:money-exchange-02",
-  });
+  // Posts - requires posts.read permission
+  if (hasPermission("posts.read")) {
+    platformItems.push({
+      label: "Posts",
+      path: "/posts",
+      iconName: "hugeicons:task-edit-01",
+    });
+  }
 
   // Web Analytics - requires analytics.view permission
   if (hasPermission("analytics.view")) {
@@ -139,15 +261,6 @@ const navMainGroups = computed(() => {
       label: "Web Analytics",
       path: "/web-analytics",
       iconName: "hugeicons:analysis-text-link",
-    });
-  }
-
-  // API Consumers - requires api_consumers.read permission
-  if (hasPermission("api_consumers.read")) {
-    platformItems.push({
-      label: "API Consumers",
-      path: "/api-consumers",
-      iconName: "hugeicons:api",
     });
   }
 
@@ -168,6 +281,12 @@ const navMainGroups = computed(() => {
       path: "/users",
       iconName: "hugeicons:user-group",
     });
+
+    adminItems.push({
+      label: "Exhibitor PICs",
+      path: "/exhibitors",
+      iconName: "hugeicons:location-user-04",
+    });
   }
 
   // Roles - requires roles.read permission
@@ -185,6 +304,15 @@ const navMainGroups = computed(() => {
       label: "Permissions",
       path: "/permissions",
       iconName: "hugeicons:shield-key",
+    });
+  }
+
+  // API Consumers - requires api_consumers.read permission
+  if (hasPermission("api_consumers.read")) {
+    adminItems.push({
+      label: "API Consumers",
+      path: "/api-consumers",
+      iconName: "hugeicons:api",
     });
   }
 
@@ -234,6 +362,35 @@ const navMainGroups = computed(() => {
       items: adminItems,
     });
   }
+
+  // Others section
+  const otherItems = [
+    {
+      label: "Docs",
+      path: "/docs",
+      iconName: "hugeicons:book-open-01",
+    },
+    {
+      label: "Colors",
+      path: "/colors",
+      iconName: "hugeicons:paint-board",
+    },
+    {
+      label: "Exchange Rate",
+      path: "/exchange-rate",
+      iconName: "hugeicons:money-exchange-02",
+    },
+    {
+      label: "Database Diagram",
+      path: "/database-diagram",
+      iconName: "hugeicons:structure-03",
+    },
+  ];
+
+  groups.push({
+    label: "Others",
+    items: otherItems,
+  });
 
   return groups;
 });

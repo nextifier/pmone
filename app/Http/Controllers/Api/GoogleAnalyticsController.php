@@ -212,10 +212,6 @@ class GoogleAnalyticsController extends Controller
         // Rate limiting for analytics endpoints
         $this->applyAnalyticsRateLimit($request);
 
-        // Increase execution time for API requests
-        set_time_limit(config('analytics.timeout', 120));
-        ini_set('memory_limit', '512M');
-
         // Find property by property_id (Google Analytics Property ID), not database id
         $property = GaProperty::where('property_id', $id)->firstOrFail();
 
@@ -241,10 +237,6 @@ class GoogleAnalyticsController extends Controller
 
         // Rate limiting for analytics endpoints
         $this->applyAnalyticsRateLimit($request);
-
-        // Increase execution time and memory for API requests
-        set_time_limit(config('analytics.timeout', 120));
-        ini_set('memory_limit', '512M');
 
         $period = $this->createPeriodFromRequest($request);
         $propertyIds = $request->input('property_ids');
@@ -319,9 +311,8 @@ class GoogleAnalyticsController extends Controller
     }
 
     /**
-     * Trigger manual aggregate sync now for testing/debugging.
-     * This forces cache refresh and creates sync log entries immediately.
-     * Runs SYNCHRONOUSLY to ensure sync logs are created for testing.
+     * Trigger manual aggregate sync now.
+     * Dispatches a background job and returns immediately.
      */
     public function triggerAggregateSyncNow(TriggerSyncRequest $request): JsonResponse
     {
@@ -342,88 +333,31 @@ class GoogleAnalyticsController extends Controller
         \Illuminate\Support\Facades\RateLimiter::hit($key, 3600); // 1 hour
 
         $days = $request->validated()['days'];
+        $period = $this->analyticsService->createPeriodFromDays($days);
 
-        try {
-            // Create period
-            $period = $this->analyticsService->createPeriodFromDays($days);
+        // Clear cache to force refresh
+        $cacheKey = CacheKey::forAggregate(null, $period->startDate, $period->endDate);
 
-            // Create sync log entry
-            $syncLog = \App\Models\AnalyticsSyncLog::startSync(
-                syncType: 'aggregate',
-                gaPropertyId: null,
-                days: $days
-            );
-
-            // Get all active properties with project relationship
-            $properties = \App\Models\GaProperty::active()->with('project')->get();
-
-            if ($properties->isEmpty()) {
-                $syncLog->markFailed('No active properties found');
-
-                return response()->json([
-                    'message' => 'No active properties found',
-                    'sync_log_id' => $syncLog->id,
-                ], 400);
-            }
-
-            // Clear cache to force refresh using cache key generator
-            $cacheKey = CacheKey::forAggregate(null, $period->startDate, $period->endDate);
-
-            // Clear all related cache keys
-            foreach (CacheKey::getAllKeys($cacheKey) as $key) {
-                \Illuminate\Support\Facades\Cache::forget($key);
-            }
-
-            // Fetch data DIRECTLY without triggering background job
-            \Log::info('Manual sync: Fetching dashboard data', [
-                'sync_log_id' => $syncLog->id,
-                'properties_count' => $properties->count(),
-            ]);
-
-            $data = $this->aggregator->getDashboardData($properties, $period);
-
-            // Store in cache using proper cache keys
-            \Illuminate\Support\Facades\Cache::put($cacheKey, $data, now()->addMinutes(30));
-            \Illuminate\Support\Facades\Cache::put(CacheKey::timestamp($cacheKey), now(), now()->addMinutes(30));
-            \Illuminate\Support\Facades\Cache::put(CacheKey::lastSuccess($cacheKey), $data, now()->addYears(10));
-
-            // Mark sync as successful
-            $syncLog->markSuccess([
-                'properties_count' => $properties->count(),
-                'has_data' => ! empty($data['totals'] ?? []),
-                'cache_key' => $cacheKey,
-            ]);
-
-            \Log::info('Manual sync completed', [
-                'sync_log_id' => $syncLog->id,
-                'properties_count' => $properties->count(),
-                'has_totals' => ! empty($data['totals'] ?? []),
-            ]);
-
-            return response()->json([
-                'message' => 'Aggregate sync completed successfully',
-                'days' => $days,
-                'properties_count' => $properties->count(),
-                'sync_log_id' => $syncLog->id,
-                'has_data' => ! empty($data['totals'] ?? []),
-            ]);
-        } catch (\Exception $e) {
-            if (isset($syncLog)) {
-                $syncLog->markFailed($e->getMessage());
-            }
-
-            \Log::error('Manual sync failed', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'sync_log_id' => $syncLog->id ?? null,
-            ]);
-
-            return response()->json([
-                'message' => 'Sync failed: '.$e->getMessage(),
-                'error' => $e->getMessage(),
-                'sync_log_id' => $syncLog->id ?? null,
-            ], 500);
+        foreach (CacheKey::getAllKeys($cacheKey) as $cacheItemKey) {
+            \Illuminate\Support\Facades\Cache::forget($cacheItemKey);
         }
+
+        // Dispatch background job
+        $refreshingKey = CacheKey::refreshing($cacheKey);
+        \Illuminate\Support\Facades\Cache::put($refreshingKey, true, now()->addMinutes(5));
+
+        dispatch(new \App\Jobs\RefreshAggregateCache(
+            period: $period,
+            propertyIds: null,
+            cacheKey: $cacheKey,
+            days: $days,
+            refreshingKey: $refreshingKey
+        ));
+
+        return response()->json([
+            'message' => 'Aggregate sync job dispatched. Data will be available shortly.',
+            'days' => $days,
+        ]);
     }
 
     /**
@@ -537,10 +471,6 @@ class GoogleAnalyticsController extends Controller
         // Rate limiting for analytics endpoints
         $this->applyAnalyticsRateLimit($request);
 
-        // Increase execution time for API requests
-        set_time_limit(config('analytics.timeout', 120));
-        ini_set('memory_limit', '512M');
-
         $period = $this->createPeriodFromRequest($request);
         $propertyIds = $request->input('property_ids');
 
@@ -561,10 +491,6 @@ class GoogleAnalyticsController extends Controller
 
         // Rate limiting for analytics endpoints
         $this->applyAnalyticsRateLimit($request);
-
-        // Increase execution time for API requests
-        set_time_limit(config('analytics.timeout', 120));
-        ini_set('memory_limit', '512M');
 
         // Find property by property_id (Google Analytics Property ID), not database id
         $property = GaProperty::where('property_id', $id)->firstOrFail();
@@ -651,10 +577,6 @@ class GoogleAnalyticsController extends Controller
         // Rate limiting for analytics endpoints
         $this->applyAnalyticsRateLimit($request);
 
-        // Increase execution time for API requests
-        set_time_limit(config('analytics.timeout', 120));
-        ini_set('memory_limit', '512M');
-
         $period = $this->createPeriodFromRequest($request);
         $propertyIds = $request->input('property_ids');
 
@@ -683,10 +605,6 @@ class GoogleAnalyticsController extends Controller
 
         // Rate limiting for analytics endpoints
         $this->applyAnalyticsRateLimit($request);
-
-        // Increase execution time for API requests
-        set_time_limit(config('analytics.timeout', 120));
-        ini_set('memory_limit', '512M');
 
         // Find property by property_id (Google Analytics Property ID), not database id
         $property = GaProperty::where('property_id', $id)->firstOrFail();

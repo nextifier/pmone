@@ -20,8 +20,8 @@ it('processes content images with relative URL format', function () {
     // Create a temporary media file
     $folder = 'tmp-media-'.uniqid('', true);
     $filename = 'test-image.jpg';
-    $tempFilePath = "tmp/media/{$folder}/{$filename}";
-    $metadataPath = "tmp/media/{$folder}/metadata.json";
+    $tempFilePath = "tmp/uploads/{$folder}/{$filename}";
+    $metadataPath = "tmp/uploads/{$folder}/metadata.json";
 
     // Create fake image file
     $image = UploadedFile::fake()->image($filename);
@@ -57,8 +57,8 @@ it('processes content images with absolute URL format', function () {
     // Create a temporary media file
     $folder = 'tmp-media-'.uniqid('', true);
     $filename = 'test-image.jpg';
-    $tempFilePath = "tmp/media/{$folder}/{$filename}";
-    $metadataPath = "tmp/media/{$folder}/metadata.json";
+    $tempFilePath = "tmp/uploads/{$folder}/{$filename}";
+    $metadataPath = "tmp/uploads/{$folder}/metadata.json";
 
     // Create fake image file
     $image = UploadedFile::fake()->image($filename);
@@ -95,8 +95,8 @@ it('processes content images with https absolute URL format', function () {
     // Create a temporary media file
     $folder = 'tmp-media-'.uniqid('', true);
     $filename = 'test-image.jpg';
-    $tempFilePath = "tmp/media/{$folder}/{$filename}";
-    $metadataPath = "tmp/media/{$folder}/metadata.json";
+    $tempFilePath = "tmp/uploads/{$folder}/{$filename}";
+    $metadataPath = "tmp/uploads/{$folder}/metadata.json";
 
     // Create fake image file
     $image = UploadedFile::fake()->image($filename);
@@ -135,8 +135,8 @@ it('handles content with multiple images in different URL formats', function () 
     for ($i = 1; $i <= 3; $i++) {
         $folder = 'tmp-media-'.uniqid('', true);
         $filename = "test-image-{$i}.jpg";
-        $tempFilePath = "tmp/media/{$folder}/{$filename}";
-        $metadataPath = "tmp/media/{$folder}/metadata.json";
+        $tempFilePath = "tmp/uploads/{$folder}/{$filename}";
+        $metadataPath = "tmp/uploads/{$folder}/metadata.json";
 
         $image = UploadedFile::fake()->image($filename);
         Storage::disk('local')->put($tempFilePath, file_get_contents($image->getPathname()));

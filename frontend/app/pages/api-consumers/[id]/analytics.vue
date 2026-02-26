@@ -421,7 +421,7 @@ watch(selectedPeriod, () => {
   loadAnalytics();
 });
 
-usePageMeta("api-consumers", {
+usePageMeta(null, {
   title: consumer.value?.name ? `Analytics - ${consumer.value.name}` : "API Consumer Analytics",
   description: "Usage analytics for API consumer",
 });

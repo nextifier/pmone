@@ -243,7 +243,7 @@
 <script setup>
 import Avatar from "@/components/Avatar.vue";
 import DateTimePicker from "@/components/DateTimePicker.vue";
-import TipTapEditor from "@/components/post/TipTapEditor.vue";
+import TipTapEditor from "@/components/TipTapEditor.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

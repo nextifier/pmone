@@ -88,7 +88,7 @@
               </span>
             </button>
           </PopoverTrigger>
-          <PopoverContent class="w-auto min-w-48 p-3" align="start">
+          <PopoverContent class="w-auto min-w-48 p-3" align="end">
             <div class="space-y-4">
               <FilterSection
                 title="Status"
@@ -188,7 +188,7 @@ defineOptions({
   name: "inbox",
 });
 
-usePageMeta("inbox");
+usePageMeta(null, { title: "Inbox" });
 
 const { $dayjs } = useNuxtApp();
 

@@ -1,5 +1,5 @@
 <template>
-  <form @submit.prevent="handleSubmit" class="grid gap-y-8">
+  <form @submit.prevent="handleSubmit" class="grid gap-y-8" autocomplete="off">
     <div class="frame">
       <div class="frame-header">
         <div class="frame-title">Personal Information</div>
@@ -8,7 +8,7 @@
         <div class="grid grid-cols-1 gap-y-6">
           <div class="space-y-2">
             <Label for="name">Full Name</Label>
-            <Input id="name" v-model="form.name" type="text" />
+            <Input id="name" v-model="form.name" type="text" autocomplete="one-time-code" />
             <p class="text-muted-foreground line-clamp-1 text-xs tracking-tight">
               {{ isCreate ? "Will be auto-generated from email if left empty." : "" }}
             </p>
@@ -17,7 +17,7 @@
 
           <div class="space-y-2">
             <Label for="username">Username</Label>
-            <Input id="username" v-model="form.username" type="text" :required="!isCreate" />
+            <Input id="username" v-model="form.username" type="text" :required="!isCreate" autocomplete="one-time-code" />
             <p class="text-muted-foreground line-clamp-1 text-xs tracking-tight">
               {{ isCreate ? "Will be auto-generated if left empty." : "" }}
             </p>
@@ -26,7 +26,7 @@
 
           <div class="space-y-2">
             <Label for="email">Email Address</Label>
-            <Input id="email" v-model="form.email" type="email" required />
+            <Input id="email" v-model="form.email" type="email" required autocomplete="one-time-code" />
             <InputErrorMessage :errors="errors.email" />
           </div>
 
@@ -38,7 +38,7 @@
 
           <div class="space-y-2">
             <Label for="title">Job Title</Label>
-            <Input id="title" v-model="form.title" type="text" />
+            <Input id="title" v-model="form.title" type="text" autocomplete="one-time-code" />
             <InputErrorMessage :errors="errors.title" />
           </div>
 
@@ -209,7 +209,7 @@
         <div class="grid grid-cols-1 gap-y-6">
           <div v-if="showPassword" class="space-y-2">
             <Label for="password">Password</Label>
-            <Input id="password" v-model="form.password" type="password" minlength="8" />
+            <Input id="password" v-model="form.password" type="password" minlength="8" autocomplete="new-password" />
             <p class="text-muted-foreground text-xs tracking-tight">
               {{
                 isCreate

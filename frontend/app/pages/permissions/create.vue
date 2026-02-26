@@ -16,7 +16,7 @@ definePageMeta({
   layout: "app",
 });
 
-usePageMeta("", {
+usePageMeta(null, {
   title: "Create Permission",
   description: "Create a new permission",
 });

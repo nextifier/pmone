@@ -45,7 +45,9 @@ class RefreshRealtimeAnalytics implements ShouldBeUnique, ShouldQueue
      */
     public function __construct(
         public ?array $propertyIds = null,
-    ) {}
+    ) {
+        $this->onQueue('analytics');
+    }
 
     /**
      * Get the unique ID for the job.

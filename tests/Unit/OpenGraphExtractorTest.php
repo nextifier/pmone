@@ -1,5 +1,7 @@
 <?php
 
+uses(Tests\TestCase::class);
+
 use App\Services\OpenGraph\OpenGraphExtractor;
 use Illuminate\Support\Facades\Http;
 

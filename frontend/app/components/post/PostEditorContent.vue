@@ -64,7 +64,7 @@
         <!-- Content Body -->
         <div class="space-y-2">
           <Label class="sr-only">Content</Label>
-          <PostTipTapEditor
+          <TipTapEditor
             v-model="editor.form.content"
             :post-id="editor.postId.value"
             placeholder="Start writing your post content..."
@@ -215,7 +215,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { usePostEditor } from "@/composables/usePostEditor";
 
 const editor = usePostEditor();
-const { sanitizeHtml } = useSanitize();
+const { sanitizeHtml, wrapCaptionedImages } = useSanitize();
 const client = useSanctumClient();
 const { $dayjs } = useNuxtApp();
 
@@ -236,7 +236,8 @@ const showCaptionInput = computed(() => {
 });
 
 const sanitizedContent = computed(() => {
-  return sanitizeHtml(editor.previewData.value.content) || "";
+  const html = sanitizeHtml(editor.previewData.value.content) || "";
+  return wrapCaptionedImages(html);
 });
 
 // Preview computed properties

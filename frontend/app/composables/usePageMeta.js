@@ -9,7 +9,7 @@ export const usePageMeta = (pageKey, overrides = {}) => {
   const description = computed(() => toValue(overrides.description) || meta?.description || "");
 
   useSeoMeta({
-    titleTemplate: meta?.withoutTitleTemplate ? "%s" : "%s · %siteName",
+    titleTemplate: meta?.withoutTitleTemplate || overrides.withoutTitleTemplate ? "%s" : "%s · %siteName",
     title: title,
     ogTitle: title,
     description: description,

@@ -69,6 +69,19 @@ class RoleAndPermissionSeeder extends Seeder
             'api_consumers.read',
             'api_consumers.update',
             'api_consumers.delete',
+            // Events
+            'events.create',
+            'events.read',
+            'events.update',
+            'events.delete',
+            // Event Products
+            'event_products.create',
+            'event_products.read',
+            'event_products.update',
+            'event_products.delete',
+            // Orders
+            'orders.read',
+            'orders.update',
             // Admin permissions
             'admin.view',
             'admin.settings',
@@ -86,6 +99,20 @@ class RoleAndPermissionSeeder extends Seeder
             'tags.read',
             'contact_forms.read',
             'tasks.create',
+            // Brands
+            'brands.create',
+            'brands.read',
+            'brands.update',
+            'brands.delete',
+            // Events & Orders
+            'events.read',
+            'event_products.read',
+            'orders.read',
+            'orders.update',
+        ],
+        'exhibitor' => [
+            'brands.read',
+            'brands.update',
         ],
         'writer' => [
             'users.read',
@@ -96,6 +123,7 @@ class RoleAndPermissionSeeder extends Seeder
             'categories.read',
             'tags.read',
             'tasks.create',
+            'analytics.view',
         ],
         'user' => [
             'users.read',

@@ -34,7 +34,7 @@ definePageMeta({
 const title = "Create New User";
 const description = "";
 
-usePageMeta("", {
+usePageMeta(null, {
   title: title,
   description: description,
 });

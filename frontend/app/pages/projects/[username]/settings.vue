@@ -1,21 +1,17 @@
 <template>
-  <div class="min-h-screen-offset mx-auto flex max-w-xl flex-col gap-y-5 pt-4 pb-16">
+  <div class="flex flex-col gap-y-5">
     <template v-if="project">
-      <div class="flex flex-col gap-y-5">
-        <div class="flex w-full items-center justify-between">
-          <BackButton destination="/projects" />
+      <div class="flex w-full items-center justify-between">
+        <h2 class="text-lg font-semibold tracking-tight">Settings</h2>
 
-          <button
-            @click="formProjectRef?.handleSubmit()"
-            :disabled="loading"
-            class="text-primary-foreground hover:bg-primary/80 bg-primary flex items-center justify-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
-          >
-            <Spinner v-if="loading" />
-            <span>Save</span>
-          </button>
-        </div>
-
-        <h1 class="page-title">Edit Project</h1>
+        <button
+          @click="formProjectRef?.handleSubmit()"
+          :disabled="loading"
+          class="text-primary-foreground hover:bg-primary/80 bg-primary flex items-center justify-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
+        >
+          <Spinner v-if="loading" />
+          <span>Save</span>
+        </button>
       </div>
 
       <FormProject
@@ -27,11 +23,12 @@
         :is-create="false"
         submit-text="Update Project"
         submit-loading-text="Updating.."
-        @submit="updateproject"
+        @submit="updateProject"
       />
 
+      <ProjectCustomFieldsManager :project-username="route.params.username" />
+
       <div
-        v-if="project"
         class="*:bg-muted text-muted-foreground mt-20 flex flex-wrap gap-x-2 gap-y-2.5 text-sm tracking-tight *:rounded-md *:px-2 *:py-1"
       >
         <span
@@ -47,45 +44,14 @@
           }}</span></span
         >
       </div>
-
-      <!-- <div
-        v-if="project"
-        class="border-border text-foreground w-full overflow-x-scroll rounded-xl border p-4"
-      >
-        <pre class="text-foreground/80 text-sm !leading-[1.5]">{{ project }}</pre>
-      </div> -->
     </template>
 
     <template v-else>
       <LoadingState v-if="initialLoading" />
-      <div v-else class="min-h-screen-offset flex w-full items-center justify-center">
-        <div v-if="error" class="frame w-full">
-          <div class="frame-panel">
-            <div class="flex w-full flex-col items-center justify-center gap-y-4 text-center">
-              <div
-                class="*:bg-background/80 *:squircle text-muted-foreground flex items-center -space-x-2 *:rounded-lg *:border *:p-3 *:backdrop-blur-sm [&_svg]:size-5"
-              >
-                <div class="translate-y-1.5 -rotate-6">
-                  <Icon name="hugeicons:file-empty-01" />
-                </div>
-                <div>
-                  <Icon name="hugeicons:search-remove" />
-                </div>
-                <div class="translate-y-1.5 rotate-6">
-                  <Icon name="hugeicons:user" />
-                </div>
-              </div>
-              <div class="space-y-1">
-                <h3 class="text-lg font-semibold tracking-tighter">{{ error }}</h3>
-              </div>
-              <NuxtLink
-                to="/projects/"
-                class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-              >
-                <Icon name="lucide:arrow-left" class="size-4 shrink-0" />
-                <span>Back to Projects</span>
-              </NuxtLink>
-            </div>
+      <div v-else-if="error" class="flex w-full items-center justify-center py-20">
+        <div class="flex flex-col items-center justify-center gap-y-4 text-center">
+          <div class="space-y-1">
+            <h3 class="text-lg font-semibold tracking-tighter">{{ error }}</h3>
           </div>
         </div>
       </div>
@@ -97,52 +63,42 @@
 import { toast } from "vue-sonner";
 
 definePageMeta({
-  middleware: ["sanctum:auth", "permission"],
+  middleware: ["permission"],
   permissions: ["projects.update"],
-  layout: "app",
 });
 
 const route = useRoute();
 const { user: currentUser } = useSanctumAuth();
 const sanctumFetch = useSanctumClient();
 const { $dayjs } = useNuxtApp();
-const { metaSymbol } = useShortcuts();
 const { signalRefresh } = useDataRefresh();
 
-// Refs
 const formProjectRef = ref(null);
 
-// State
 const loading = ref(false);
 const deleting = ref(false);
 const success = ref(null);
 const errors = ref({});
 
-const title = "Edit project";
-const description = "";
-
-usePageMeta("", {
-  title: title,
-  description: description,
-});
-
-// Permission checking using composable
 const {
   isAdminOrMaster: canEditprojects,
   isAdminOrMaster: canDeleteprojects,
   isMaster,
 } = usePermission();
 
-// Fetch project data with lazy loading
 const {
   data: projectResponse,
   pending: initialLoading,
   error: projectError,
 } = await useLazySanctumFetch(() => `/api/projects/${route.params.username}`, {
-  key: `project-edit-${route.params.username}`,
+  key: `project-settings-${route.params.username}`,
 });
 
 const project = computed(() => projectResponse.value?.data || null);
+
+usePageMeta(null, {
+  title: computed(() => `Settings · ${project.value?.name || ""}`),
+});
 
 const error = computed(() => {
   if (!projectError.value) return null;
@@ -156,7 +112,6 @@ const error = computed(() => {
   return err.message || "Failed to load project";
 });
 
-// Fetch eligible members with lazy loading
 const { data: eligibleMembersResponse } = await useLazySanctumFetch(
   "/api/projects/eligible-members",
   {
@@ -166,25 +121,13 @@ const { data: eligibleMembersResponse } = await useLazySanctumFetch(
 
 const eligibleMembers = computed(() => eligibleMembersResponse.value?.data || []);
 
-const canDeleteThisproject = computed(() => {
-  if (!canDeleteprojects.value) return false;
-  if (!project.value) return false;
-  // Admin cannot delete master projects
-  if (project.value.roles?.includes("master") && !isMaster.value) return false;
-  // Cannot delete yourself
-  if (project.value.username === currentUser.value?.username) return false;
-  return true;
-});
-
-// Update project
-async function updateproject(payload) {
+async function updateProject(payload) {
   loading.value = true;
   error.value = null;
   success.value = null;
   errors.value = {};
 
   try {
-    // If not admin/master, only allow certain fields
     if (!canEditprojects.value) {
       const allowedFields = [
         "name",
@@ -212,12 +155,8 @@ async function updateproject(payload) {
 
     if (response.data) {
       toast.success("Project updated successfully!");
-
-      // Signal that projects list needs refresh
       signalRefresh("projects-list");
-
-      // Navigate to projects list
-      navigateTo("/projects");
+      navigateTo(`/projects/${response.data.username}`);
     }
   } catch (err) {
     if (err.response?.status === 422 && err.response?._data?.errors) {
@@ -236,8 +175,7 @@ async function updateproject(payload) {
   }
 }
 
-// Confirm delete project
-async function confirmDeleteproject() {
+async function confirmDeleteProject() {
   if (
     !confirm(`Are you sure you want to delete ${project.value.name}? This action cannot be undone.`)
   ) {
@@ -252,10 +190,7 @@ async function confirmDeleteproject() {
       method: "DELETE",
     });
 
-    // Signal that projects list needs refresh
     signalRefresh("projects-list");
-
-    // Navigate back to projects list
     navigateTo("/projects");
   } catch (err) {
     error.value = err.message || "Failed to delete project";

@@ -61,11 +61,10 @@ it('auto-fills published_at when creating post with published status via API', f
         ->and($post->published_at)->toBeInstanceOf(\Illuminate\Support\Carbon::class);
 });
 
-it('ignores slug from request and generates its own', function () {
-    // Try to create post with custom slug
+it('uses custom slug from request when provided', function () {
     $response = $this->postJson('/api/posts', [
         'title' => 'My Great Article',
-        'slug' => 'custom-slug-that-should-be-ignored',
+        'slug' => 'custom-slug',
         'content' => 'This is test content',
         'status' => 'draft',
         'content_format' => 'html',
@@ -76,9 +75,24 @@ it('ignores slug from request and generates its own', function () {
 
     $post = Post::where('title', 'My Great Article')->first();
 
-    // Should use auto-generated slug from title, not the custom one
-    expect($post->slug)->toBe('my-great-article')
-        ->and($post->slug)->not->toBe('custom-slug-that-should-be-ignored');
+    expect($post->slug)->toBe('custom-slug');
+});
+
+it('auto-generates slug when slug is empty', function () {
+    $response = $this->postJson('/api/posts', [
+        'title' => 'My Great Article',
+        'slug' => '',
+        'content' => 'This is test content',
+        'status' => 'draft',
+        'content_format' => 'html',
+        'visibility' => 'public',
+    ]);
+
+    $response->assertCreated();
+
+    $post = Post::where('title', 'My Great Article')->first();
+
+    expect($post->slug)->toBe('my-great-article');
 });
 
 it('updates post without changing slug when title remains same', function () {

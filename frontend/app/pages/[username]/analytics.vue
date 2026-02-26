@@ -133,7 +133,7 @@ const analyticsLoading = computed(() => {
   return visitsStatus.value === "pending" || clicksStatus.value === "pending";
 });
 
-usePageMeta("", {
+usePageMeta(null, {
   title: `Analytics - @${username.value}`,
   description: `View analytics for @${username.value}`,
 });

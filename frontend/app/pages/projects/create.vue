@@ -30,7 +30,7 @@ definePageMeta({
 const title = "Create New Project";
 const description = "";
 
-usePageMeta("", {
+usePageMeta(null, {
   title: title,
   description: description,
 });

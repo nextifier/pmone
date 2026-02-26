@@ -115,7 +115,7 @@ definePageMeta({
   middleware: ["sanctum:guest"],
 });
 
-usePageMeta("resetPassword");
+usePageMeta(null, { title: "Reset Password" });
 
 const loading = ref(false);
 const showPassword = ref(false);

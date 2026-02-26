@@ -115,7 +115,7 @@ defineOptions({
 const title = "Roles";
 const description = "Manage user roles.";
 
-usePageMeta("", {
+usePageMeta(null, {
   title: title,
   description: description,
 });

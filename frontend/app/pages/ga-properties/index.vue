@@ -175,7 +175,7 @@ defineOptions({
 const title = "Google Analytics Properties";
 const description = "Manage your Google Analytics 4 properties";
 
-usePageMeta("", {
+usePageMeta(null, {
   title: title,
   description: description,
 });

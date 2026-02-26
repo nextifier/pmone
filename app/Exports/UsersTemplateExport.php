@@ -4,15 +4,20 @@ namespace App\Exports;
 
 class UsersTemplateExport extends BaseTemplateExport
 {
+    public function __construct(protected ?string $defaultRole = null) {}
+
     public function array(): array
     {
+        $role1 = $this->defaultRole ? ucfirst($this->defaultRole) : 'User';
+        $role2 = $this->defaultRole ? ucfirst($this->defaultRole) : 'Admin, Staff';
+
         return [
             [
                 'john.doe@example.com',
                 '',
                 'John Doe',
                 'johndoe',
-                'User',
+                $role1,
                 '+6281234567890',
                 '1990-01-15',
                 'Male',
@@ -28,7 +33,7 @@ class UsersTemplateExport extends BaseTemplateExport
                 '',
                 'Jane Smith',
                 'janesmith',
-                'Admin, Staff',
+                $role2,
                 '+6287654321098',
                 '1995-05-20',
                 'Female',

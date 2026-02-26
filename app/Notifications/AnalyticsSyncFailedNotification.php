@@ -54,13 +54,14 @@ class AnalyticsSyncFailedNotification extends Notification implements ShouldQueu
      */
     public function toArray(object $notifiable): array
     {
+        $failCount = $this->failureDetails['fail_count'] ?? 0;
+        $successRate = $this->failureDetails['success_rate'] ?? '0%';
+
         return [
-            'type' => 'analytics_sync_failed',
-            'fail_count' => $this->failureDetails['fail_count'] ?? 0,
-            'success_count' => $this->failureDetails['success_count'] ?? 0,
-            'total_properties' => $this->failureDetails['total_properties'] ?? 0,
-            'success_rate' => $this->failureDetails['success_rate'] ?? '0%',
-            'timestamp' => now()->toIso8601String(),
+            'title' => 'Analytics sync failed',
+            'body' => "Analytics sync completed with {$failCount} failure(s) - {$successRate} success rate",
+            'icon' => 'hugeicons:chart-breakout-square',
+            'url' => '/web-analytics/sync-history',
         ];
     }
 }

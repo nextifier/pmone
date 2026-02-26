@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * @property int $id
@@ -30,6 +32,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property-read \App\Models\User|null $deleter
  * @property-read \App\Models\User|null $updater
  * @property-read \App\Models\User $user
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink excludeProfileLinks()
  * @method static \Database\Factories\ShortLinkFactory factory($count = null, $state = [])
@@ -54,11 +57,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class ShortLink extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -105,6 +109,14 @@ class ShortLink extends Model
                 $shortLink->saveQuietly();
             }
         });
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['slug', 'destination_url', 'is_active'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 
     public function user(): BelongsTo

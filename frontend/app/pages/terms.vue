@@ -248,7 +248,7 @@
 </template>
 
 <script setup>
-usePageMeta('terms')
+usePageMeta(null, { title: "Terms of Service" })
 
 const name = useAppConfig().app.name
 const website = useAppConfig().app.url

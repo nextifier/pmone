@@ -89,6 +89,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read int|null $visits_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visitsMade
  * @property-read int|null $visits_made_count
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User byStatus(string $status)
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
@@ -131,6 +132,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutPermission($permissions)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutRole($roles, $guard = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class User extends Authenticatable implements HasMedia, MustVerifyEmail
@@ -168,6 +170,9 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         'visibility',
         'last_seen',
         'email_verified_at',
+        'company_name',
+        'encrypted_password',
+        'custom_fields',
     ];
 
     /**
@@ -177,6 +182,7 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
      */
     protected $hidden = [
         'password',
+        'encrypted_password',
         'remember_token',
         'two_factor_recovery_codes',
         'two_factor_secret',
@@ -195,6 +201,7 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         'last_seen' => 'datetime',
         'two_factor_confirmed_at' => 'datetime',
         'password' => 'hashed',
+        'custom_fields' => 'array',
     ];
 
     /**
@@ -330,8 +337,9 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'email', 'status'])
-            ->logOnlyDirty();
+            ->logOnly(['name', 'username', 'email', 'phone', 'title', 'status', 'visibility', 'company_name'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 
     public function oauthProviders()
@@ -484,6 +492,13 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         $this->update(['user_settings' => $settings]);
     }
 
+    public function brands(): BelongsToMany
+    {
+        return $this->belongsToMany(Brand::class, 'brand_user')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
     public function projects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class)
@@ -514,7 +529,7 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     public function posts(): BelongsToMany
     {
         return $this->belongsToMany(Post::class, 'post_authors')
-            ->withPivot(['role', 'order'])
+            ->withPivot(['order'])
             ->withTimestamps()
             ->orderBy('post_authors.order');
     }

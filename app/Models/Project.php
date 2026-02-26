@@ -56,6 +56,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property-read \App\Models\User|null $updater
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
  * @property-read int|null $visits_count
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project byStatus(string $status)
  * @method static \Database\Factories\ProjectFactory factory($count = null, $state = [])
@@ -85,6 +86,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereVisibility($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Project extends Model implements HasMedia, Sortable
@@ -222,7 +224,8 @@ class Project extends Model implements HasMedia, Sortable
     {
         return LogOptions::defaults()
             ->logOnly(['name', 'username', 'status', 'visibility'])
-            ->logOnlyDirty();
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 
     public function registerMediaCollections(): void
@@ -306,6 +309,16 @@ class Project extends Model implements HasMedia, Sortable
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
             ],
         ];
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(Event::class)->ordered();
+    }
+
+    public function customFields(): HasMany
+    {
+        return $this->hasMany(ProjectCustomField::class)->ordered();
     }
 
     public function members(): BelongsToMany

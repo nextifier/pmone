@@ -117,7 +117,7 @@
                 <div
                   class="prose prose-lg dark:prose-invert max-w-none"
                   v-html="
-                    sanitizeHtml(previewData.content) ||
+                    sanitizedContent ||
                     '<p class=\'text-muted-foreground\'>No content yet...</p>'
                   "
                 ></div>
@@ -247,7 +247,12 @@ import {
 } from "reka-ui";
 import { useVModel } from "@vueuse/core";
 
-const { sanitizeHtml } = useSanitize();
+const { sanitizeHtml, wrapCaptionedImages } = useSanitize();
+
+const sanitizedContent = computed(() => {
+  const html = sanitizeHtml(props.previewData.content) || "";
+  return wrapCaptionedImages(html);
+});
 
 const props = defineProps({
   open: {

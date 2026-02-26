@@ -8,9 +8,9 @@
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <div class="space-y-6">
           <div>
-            <h2 class="text-primary text-lg font-semibold tracking-tight">Import Users</h2>
+            <h2 class="text-primary text-lg font-semibold tracking-tight">{{ title }}</h2>
             <p class="text-muted-foreground mt-1 text-sm tracking-tight">
-              Upload an Excel file to import multiple users at once
+              {{ description }}
             </p>
           </div>
 
@@ -25,7 +25,7 @@
                   <li>Name will be auto-generated from email if left empty</li>
                   <li>Password is optional - users will have no password if left empty</li>
                   <li>Supported formats: CSV, XLS, XLSX (max 5MB)</li>
-                  <li>Default role: "user" if roles not specified</li>
+                  <li>Default role: "{{ defaultRole }}" if roles not specified</li>
                   <li>Multiple roles separated by commas (e.g., "admin,staff")</li>
                   <li>Date format: YYYY-MM-DD (e.g., 1990-01-15)</li>
                   <li>Website & Instagram will be added as social links</li>
@@ -74,7 +74,7 @@
               class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Spinner v-if="importPending" class="mr-2 inline size-4" />
-              <span>Import Users</span>
+              <span>{{ title }}</span>
             </button>
           </div>
         </div>
@@ -87,6 +87,17 @@
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import InputFile from "@/components/InputFile.vue";
 import { toast } from "vue-sonner";
+
+const props = defineProps({
+  title: { type: String, default: "Import Users" },
+  description: { type: String, default: "Upload an Excel file to import multiple users at once" },
+  templateEndpoint: { type: String, default: "/api/users/import/template" },
+  importEndpoint: { type: String, default: "/api/users/import" },
+  templateFilename: { type: String, default: "users_import_template.xlsx" },
+  entityLabel: { type: String, default: "Users" },
+  defaultRole: { type: String, default: "user" },
+  extraBody: { type: Object, default: () => ({}) },
+});
 
 const emit = defineEmits(["imported"]);
 
@@ -101,7 +112,7 @@ const handleDownloadTemplate = async () => {
   try {
     downloadPending.value = true;
 
-    const response = await sanctumFetch("/api/users/import/template", {
+    const response = await sanctumFetch(props.templateEndpoint, {
       responseType: "blob",
     });
 
@@ -111,7 +122,7 @@ const handleDownloadTemplate = async () => {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "users_import_template.xlsx";
+    link.download = props.templateFilename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -137,16 +148,18 @@ const handleImport = async () => {
   try {
     importPending.value = true;
 
-    const response = await sanctumFetch("/api/users/import", {
+    const response = await sanctumFetch(props.importEndpoint, {
       method: "POST",
       body: {
         file: uploadedFiles.value[0],
+        ...props.extraBody,
       },
     });
 
-    toast.success(response.message || "Users imported successfully", {
+    const label = props.entityLabel.toLowerCase();
+    toast.success(response.message || `${props.entityLabel} imported successfully`, {
       description: response.imported_count
-        ? `${response.imported_count} user(s) imported`
+        ? `${response.imported_count} ${label} imported`
         : undefined,
     });
 
@@ -154,7 +167,7 @@ const handleImport = async () => {
     uploadedFiles.value = [];
     emit("imported");
   } catch (error) {
-    console.error("Failed to import users:", error);
+    console.error(`Failed to import ${props.entityLabel.toLowerCase()}:`, error);
 
     if (error?.data?.errors && Array.isArray(error.data.errors)) {
       const errorCount = error.data.errors.length;
@@ -163,7 +176,7 @@ const handleImport = async () => {
       });
       console.table(error.data.errors);
     } else {
-      toast.error("Failed to import users", {
+      toast.error(`Failed to import ${props.entityLabel.toLowerCase()}`, {
         description: error?.data?.message || error?.message || "An error occurred",
       });
     }

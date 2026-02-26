@@ -1,11 +1,9 @@
 <template>
   <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
-    <div
-      class="flex flex-col gap-x-2.5 gap-y-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
-    >
+    <div class="flex flex-row flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:user-group" class="size-5 sm:size-6" />
-        <h1 class="page-title">User Management</h1>
+        <h1 class="page-title">Users</h1>
       </div>
 
       <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
@@ -68,6 +66,12 @@
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
+      :initial-column-visibility="{
+        roles: false,
+        posts_count: false,
+        email_verified_at: false,
+        status: false,
+      }"
       :show-add-button="canCreate"
       @update:pagination="onPaginationUpdate"
       @update:sorting="onSortingUpdate"
@@ -75,7 +79,6 @@
       @refresh="refresh"
     >
       <template #filters="{ table }">
-        <!-- Filter Popover -->
         <Popover>
           <PopoverTrigger asChild>
             <button
@@ -91,7 +94,7 @@
               </span>
             </button>
           </PopoverTrigger>
-          <PopoverContent class="w-auto min-w-48 p-3" align="start">
+          <PopoverContent class="w-auto min-w-48 p-3" align="end">
             <div class="space-y-4">
               <FilterSection
                 title="Status"
@@ -275,13 +278,13 @@ import DialogResponsive from "@/components/DialogResponsive.vue";
 import TableData from "@/components/TableData.vue";
 import TableSwitch from "@/components/TableSwitch.vue";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import FilterSection from "@/components/user/FilterSection.vue";
 import ImportDialog from "@/components/user/ImportDialog.vue";
-import UserProfile from "@/components/user/Profile.vue";
-import { PopoverClose } from "reka-ui";
+import RowActions from "@/components/user/RowActions.vue";
+import UserTableItem from "@/components/user/TableItem.vue";
+import { useUserTable } from "@/composables/useUserTable";
 import { resolveDirective, withDirectives } from "vue";
-import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: ["sanctum:auth", "permission"],
@@ -293,151 +296,56 @@ defineOptions({
   name: "users",
 });
 
-usePageMeta("users");
+usePageMeta(null, { title: "Users" });
 
-const { user } = useSanctumAuth();
-const { hasPermission, canDeleteUser } = usePermission();
-const { getRefreshSignal, clearRefreshSignal } = useDataRefresh();
+const { hasPermission } = usePermission();
 
-const { $dayjs } = useNuxtApp();
-
-// Permission checks
 const canCreate = computed(() => hasPermission("users.create"));
 const canDelete = computed(() => hasPermission("users.delete"));
 
-// Table state
-const columnFilters = ref([]);
-const pagination = ref({ pageIndex: 0, pageSize: 20 });
-const sorting = ref([{ id: "last_seen", desc: true }]);
-
-// Data state
-// Client-only mode flag (true = client-side pagination, false = server-side)
-const clientOnly = ref(true);
-
-// Build query params
-const buildQueryParams = () => {
-  const params = new URLSearchParams();
-
-  if (clientOnly.value) {
-    params.append("client_only", "true");
-  } else {
-    // Server-side mode: add pagination, filters, and sorting
-    params.append("page", pagination.value.pageIndex + 1);
-    params.append("per_page", pagination.value.pageSize);
-
-    // Filters
-    const filters = {
-      name: "filter.search",
-      status: "filter.status",
-      roles: "filter.role",
-      email_verified_at: "filter.verified",
-    };
-
-    Object.entries(filters).forEach(([columnId, paramKey]) => {
-      const filter = columnFilters.value.find((f) => f.id === columnId);
-      if (filter?.value) {
-        const value = Array.isArray(filter.value) ? filter.value.join(",") : filter.value;
-        params.append(paramKey, value);
-      }
-    });
-
-    // Sorting
-    const sortField = sorting.value[0]?.id || "created_at";
-    const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
-    params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
-  }
-
-  return params.toString();
-};
-
-// Fetch users with lazy loading
 const {
-  data: usersResponse,
+  columnFilters,
+  pagination,
+  sorting,
+  tableRef,
+  clientOnly,
+  data,
+  meta,
   pending,
   error,
-  refresh: fetchUsers,
-} = await useLazySanctumFetch(() => `/api/users?${buildQueryParams()}`, {
-  key: "users-list",
-  watch: false,
+  refresh,
+  onPaginationUpdate,
+  onSortingUpdate,
+  onColumnFiltersUpdate,
+  handleToggleStatus,
+  hasSelectedRows,
+  clearSelection,
+  getFilterValue,
+  handleFilterChange,
+  exportPending,
+  handleExport,
+  verifyDialogOpen,
+  verifyPending,
+  handleVerifyRows,
+  unverifyDialogOpen,
+  unverifyPending,
+  handleUnverifyRows,
+  deleteDialogOpen,
+  deletePending,
+  handleDeleteRows,
+  $dayjs,
+} = await useUserTable({
+  fetchKey: "users-list",
+  extraParams: { exclude_role: "exhibitor" },
 });
 
-const data = computed(() => usersResponse.value?.data || []);
-const meta = computed(
-  () => usersResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 10, total: 0 }
+// Filter computed values
+const selectedStatuses = computed(() => getFilterValue("status"));
+const selectedRoles = computed(() => getFilterValue("roles"));
+const selectedVerified = computed(() => getFilterValue("email_verified_at"));
+const totalActiveFilters = computed(
+  () => selectedStatuses.value.length + selectedRoles.value.length + selectedVerified.value.length
 );
-
-// Watch for changes and refetch (only in server-side mode)
-watch(
-  [columnFilters, sorting, pagination],
-  () => {
-    if (!clientOnly.value) {
-      fetchUsers();
-    }
-  },
-  { deep: true }
-);
-
-// Update handlers
-const onPaginationUpdate = (newValue) => {
-  pagination.value.pageIndex = newValue.pageIndex;
-  pagination.value.pageSize = newValue.pageSize;
-};
-
-const onSortingUpdate = (newValue) => {
-  sorting.value = newValue;
-};
-
-const onColumnFiltersUpdate = (newValue) => {
-  columnFilters.value = newValue;
-};
-
-// Handle keepalive reactivation - check if data needs refresh
-onActivated(async () => {
-  const refreshSignal = getRefreshSignal("users-list");
-  if (refreshSignal > 0) {
-    await fetchUsers();
-    clearRefreshSignal("users-list");
-  }
-});
-
-const refresh = fetchUsers;
-
-// Toggle status handler
-const handleToggleStatus = async (user) => {
-  const newStatus = user.status === "active" ? "inactive" : "active";
-  const originalStatus = user.status;
-
-  // Optimistic update
-  user.status = newStatus;
-
-  try {
-    const client = useSanctumClient();
-    const response = await client(`/api/users/${user.username}`, {
-      method: "PUT",
-      body: {
-        status: newStatus,
-      },
-    });
-
-    // Update with server response to ensure consistency
-    if (response.data) {
-      const updatedUser = data.value.find((u) => u.id === user.id);
-      if (updatedUser) {
-        updatedUser.status = response.data.status;
-      }
-    }
-
-    toast.success(`User ${newStatus === "active" ? "activated" : "deactivated"} successfully`);
-  } catch (error) {
-    // Revert on error
-    user.status = originalStatus;
-
-    console.error("Failed to update user status:", error);
-    toast.error("Failed to update status", {
-      description: error?.data?.message || error?.message || "An error occurred",
-    });
-  }
-};
 
 // Table columns
 const columns = [
@@ -464,17 +372,7 @@ const columns = [
   {
     header: "Name",
     accessorKey: "name",
-    cell: ({ row }) =>
-      h(
-        resolveComponent("NuxtLink"),
-        {
-          to: `/${row.original.username}`,
-          class: "block hover:opacity-80 transition-opacity",
-        },
-        {
-          default: () => h(UserProfile, { user: row.original }),
-        }
-      ),
+    cell: ({ row }) => h(UserTableItem, { user: row.original }),
     size: 280,
     enableHiding: false,
     filterFn: (row, columnId, filterValue) => {
@@ -617,711 +515,16 @@ const columns = [
   {
     id: "actions",
     header: () => h("span", { class: "sr-only" }, "Actions"),
-    cell: ({ row }) => h(RowActions, { username: row.original.username }),
-    size: 60,
+    cell: ({ row }) =>
+      h(RowActions, {
+        username: row.original.username,
+        isVerified: !!row.original.email_verified_at,
+        phone: row.original.phone,
+        email: row.original.email,
+        onRefresh: () => refresh(),
+      }),
+    size: 120,
     enableHiding: false,
   },
 ];
-
-// Table ref
-const tableRef = ref();
-
-// Check if there are any selected rows
-const hasSelectedRows = computed(() => {
-  return tableRef.value?.table?.getSelectedRowModel()?.rows?.length > 0;
-});
-
-// Clear selection
-const clearSelection = () => {
-  if (tableRef.value) {
-    tableRef.value.resetRowSelection();
-  }
-};
-
-// Filter helpers - handle both client and server mode
-const getFilterValue = (columnId) => {
-  if (clientOnly.value && tableRef.value?.table) {
-    return tableRef.value.table.getColumn(columnId)?.getFilterValue() ?? [];
-  }
-  return columnFilters.value.find((f) => f.id === columnId)?.value ?? [];
-};
-
-const selectedStatuses = computed(() => getFilterValue("status"));
-const selectedRoles = computed(() => getFilterValue("roles"));
-const selectedVerified = computed(() => getFilterValue("email_verified_at"));
-const totalActiveFilters = computed(
-  () => selectedStatuses.value.length + selectedRoles.value.length + selectedVerified.value.length
-);
-
-const handleFilterChange = (columnId, { checked, value }) => {
-  if (clientOnly.value && tableRef.value?.table) {
-    // Client-side mode: use table instance
-    const column = tableRef.value.table.getColumn(columnId);
-    if (!column) return;
-
-    const current = column.getFilterValue() ?? [];
-    const updated = checked ? [...current, value] : current.filter((item) => item !== value);
-
-    column.setFilterValue(updated.length > 0 ? updated : undefined);
-    // Reset to first page when filter changes
-    tableRef.value.table.setPageIndex(0);
-  } else {
-    // Server-side mode: update columnFilters ref
-    const current = getFilterValue(columnId);
-    const updated = checked ? [...current, value] : current.filter((item) => item !== value);
-
-    const existingIndex = columnFilters.value.findIndex((f) => f.id === columnId);
-    if (updated.length) {
-      if (existingIndex >= 0) {
-        columnFilters.value[existingIndex].value = updated;
-      } else {
-        columnFilters.value.push({ id: columnId, value: updated });
-      }
-    } else {
-      if (existingIndex >= 0) {
-        columnFilters.value.splice(existingIndex, 1);
-      }
-    }
-    // Reset to first page when filter changes (server-side)
-    pagination.value.pageIndex = 0;
-  }
-};
-
-// Export handler
-const exportPending = ref(false);
-const handleExport = async () => {
-  try {
-    exportPending.value = true;
-
-    // Build query params
-    const params = new URLSearchParams();
-
-    // Get current filters and sorting from table instance (for client-only mode) or refs (for server mode)
-    let currentFilters = {};
-    let currentSorting = [];
-
-    if (clientOnly.value && tableRef.value?.table) {
-      // Client-only mode: get filters from table instance
-      const nameFilter = tableRef.value.table.getColumn("name")?.getFilterValue();
-      const statusFilter = tableRef.value.table.getColumn("status")?.getFilterValue();
-      const rolesFilter = tableRef.value.table.getColumn("roles")?.getFilterValue();
-      const verifiedFilter = tableRef.value.table.getColumn("email_verified_at")?.getFilterValue();
-
-      if (nameFilter) currentFilters.name = nameFilter;
-      if (statusFilter) currentFilters.status = statusFilter;
-      if (rolesFilter) currentFilters.roles = rolesFilter;
-      if (verifiedFilter) currentFilters.email_verified_at = verifiedFilter;
-
-      // Get sorting from table state
-      currentSorting = tableRef.value.table.getState().sorting;
-    } else {
-      // Server mode: use refs
-      columnFilters.value.forEach((filter) => {
-        currentFilters[filter.id] = filter.value;
-      });
-      currentSorting = sorting.value;
-    }
-
-    // Add filters to params
-    const filterMapping = {
-      name: "filter.search",
-      status: "filter.status",
-      roles: "filter.role",
-      email_verified_at: "filter.verified",
-    };
-
-    Object.entries(currentFilters).forEach(([columnId, value]) => {
-      const paramKey = filterMapping[columnId];
-      if (paramKey && value) {
-        const paramValue = Array.isArray(value) ? value.join(",") : value;
-        params.append(paramKey, paramValue);
-      }
-    });
-
-    // Add sorting
-    const sortField = currentSorting[0]?.id || "created_at";
-    const sortDirection = currentSorting[0]?.desc ? "desc" : "asc";
-    params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
-
-    const client = useSanctumClient();
-
-    // Fetch the file as blob
-    const response = await client(`/api/users/export?${params.toString()}`, {
-      responseType: "blob",
-    });
-
-    // Create a download link and trigger download
-    const blob = new Blob([response], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `users_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.xlsx`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-
-    toast.success("Users exported successfully");
-  } catch (error) {
-    console.error("Failed to export users:", error);
-    toast.error("Failed to export users", {
-      description: error?.data?.message || error?.message || "An error occurred",
-    });
-  } finally {
-    exportPending.value = false;
-  }
-};
-
-// Verify handlers
-const verifyDialogOpen = ref(false);
-const verifyPending = ref(false);
-const handleVerifyRows = async (selectedRows) => {
-  const userIds = selectedRows.map((row) => row.original.id);
-  try {
-    verifyPending.value = true;
-    const client = useSanctumClient();
-    const response = await client("/api/users/verify/bulk", {
-      method: "POST",
-      body: { ids: userIds },
-    });
-    await refresh();
-    verifyDialogOpen.value = false;
-    if (tableRef.value?.table) {
-      tableRef.value.table.resetRowSelection();
-    }
-
-    toast.success(response.message || "Users verified successfully", {
-      description: `${response.verified_count} user(s) verified`,
-    });
-  } catch (error) {
-    console.error("Failed to verify users:", error);
-    toast.error("Failed to verify users", {
-      description: error?.data?.message || error?.message || "An error occurred",
-    });
-  } finally {
-    verifyPending.value = false;
-  }
-};
-
-const handleVerifySingleRow = async (username) => {
-  try {
-    verifyPending.value = true;
-    const client = useSanctumClient();
-    const response = await client(`/api/users/${username}/verify`, { method: "POST" });
-    await refresh();
-
-    if (tableRef.value) {
-      tableRef.value.resetRowSelection();
-    }
-
-    toast.success(response.message || "User verified successfully");
-  } catch (error) {
-    console.error("Failed to verify user:", error);
-    toast.error("Failed to verify user", {
-      description: error?.data?.message || error?.message || "An error occurred",
-    });
-  } finally {
-    verifyPending.value = false;
-  }
-};
-
-// Unverify handlers
-const unverifyDialogOpen = ref(false);
-const unverifyPending = ref(false);
-const handleUnverifyRows = async (selectedRows) => {
-  const userIds = selectedRows.map((row) => row.original.id);
-  try {
-    unverifyPending.value = true;
-    const client = useSanctumClient();
-    const response = await client("/api/users/unverify/bulk", {
-      method: "POST",
-      body: { ids: userIds },
-    });
-    await refresh();
-    unverifyDialogOpen.value = false;
-    if (tableRef.value?.table) {
-      tableRef.value.table.resetRowSelection();
-    }
-
-    toast.success(response.message || "Users unverified successfully", {
-      description: `${response.unverified_count} user(s) unverified`,
-    });
-  } catch (error) {
-    console.error("Failed to unverify users:", error);
-    toast.error("Failed to unverify users", {
-      description: error?.data?.message || error?.message || "An error occurred",
-    });
-  } finally {
-    unverifyPending.value = false;
-  }
-};
-
-const handleUnverifySingleRow = async (username) => {
-  try {
-    unverifyPending.value = true;
-    const client = useSanctumClient();
-    const response = await client(`/api/users/${username}/unverify`, { method: "POST" });
-    await refresh();
-
-    if (tableRef.value) {
-      tableRef.value.resetRowSelection();
-    }
-
-    toast.success(response.message || "User unverified successfully");
-  } catch (error) {
-    console.error("Failed to unverify user:", error);
-    toast.error("Failed to unverify user", {
-      description: error?.data?.message || error?.message || "An error occurred",
-    });
-  } finally {
-    unverifyPending.value = false;
-  }
-};
-
-// Delete handlers
-const deleteDialogOpen = ref(false);
-const deletePending = ref(false);
-const handleDeleteRows = async (selectedRows) => {
-  const userIds = selectedRows.map((row) => row.original.id);
-  try {
-    deletePending.value = true;
-    const client = useSanctumClient();
-    const response = await client("/api/users/bulk", {
-      method: "DELETE",
-      body: { ids: userIds },
-    });
-    await refresh();
-    deleteDialogOpen.value = false;
-    if (tableRef.value?.table) {
-      tableRef.value.table.resetRowSelection();
-    }
-
-    // Show success toast
-    toast.success(response.message || "Users deleted successfully", {
-      description:
-        response.errors?.length > 0
-          ? `${response.deleted_count} deleted, ${response.errors.length} failed`
-          : `${response.deleted_count} user(s) deleted`,
-    });
-  } catch (error) {
-    console.error("Failed to delete users:", error);
-    toast.error("Failed to delete users", {
-      description: error?.data?.message || error?.message || "An error occurred",
-    });
-  } finally {
-    deletePending.value = false;
-  }
-};
-
-const handleDeleteSingleRow = async (username) => {
-  try {
-    deletePending.value = true;
-    const client = useSanctumClient();
-    const response = await client(`/api/users/${username}`, { method: "DELETE" });
-    await refresh();
-
-    // Reset row selection after delete
-    if (tableRef.value) {
-      tableRef.value.resetRowSelection();
-    }
-
-    // Show success toast
-    toast.success(response.message || "User deleted successfully");
-  } catch (error) {
-    console.error("Failed to delete user:", error);
-    toast.error("Failed to delete user", {
-      description: error?.data?.message || error?.message || "An error occurred",
-    });
-  } finally {
-    deletePending.value = false;
-  }
-};
-
-// Row Actions Component
-const RowActions = defineComponent({
-  props: {
-    username: { type: String, required: true },
-  },
-  setup(props) {
-    const dialogOpen = ref(false);
-    const verifyDialogOpen = ref(false);
-    const unverifyDialogOpen = ref(false);
-    const singleDeletePending = ref(false);
-    const singleVerifyPending = ref(false);
-    const singleUnverifyPending = ref(false);
-
-    // Get the user data from the data array
-    const user = computed(() => data.value.find((u) => u.username === props.username));
-    const isVerified = computed(() => !!user.value?.email_verified_at);
-
-    return () =>
-      h("div", { class: "flex justify-end" }, [
-        h(
-          Popover,
-          {},
-          {
-            default: () => [
-              h(
-                PopoverTrigger,
-                { asChild: true },
-                {
-                  default: () =>
-                    h(
-                      "button",
-                      {
-                        class:
-                          "hover:bg-muted data-[state=open]:bg-muted inline-flex size-8 items-center justify-center rounded-md",
-                      },
-                      [h(resolveComponent("Icon"), { name: "lucide:ellipsis", class: "size-4" })]
-                    ),
-                }
-              ),
-              h(
-                PopoverContent,
-                { align: "end", class: "w-40 p-1" },
-                {
-                  default: () =>
-                    h("div", { class: "flex flex-col" }, [
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
-                            h(
-                              resolveComponent("NuxtLink"),
-                              {
-                                to: `/${props.username}`,
-                                class:
-                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                              },
-                              {
-                                default: () => [
-                                  h(resolveComponent("Icon"), {
-                                    name: "lucide:user-round-search",
-                                    class: "size-4 shrink-0",
-                                  }),
-                                  h("span", {}, "Profile"),
-                                ],
-                              }
-                            ),
-                        }
-                      ),
-
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
-                            h(
-                              resolveComponent("NuxtLink"),
-                              {
-                                to: `/${props.username}/edit`,
-                                class:
-                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                              },
-                              {
-                                default: () => [
-                                  h(resolveComponent("Icon"), {
-                                    name: "lucide:pencil-line",
-                                    class: "size-4 shrink-0",
-                                  }),
-                                  h("span", {}, "Edit"),
-                                ],
-                              }
-                            ),
-                        }
-                      ),
-
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
-                            h(
-                              resolveComponent("NuxtLink"),
-                              {
-                                to: `/${props.username}/analytics`,
-                                class:
-                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                              },
-                              {
-                                default: () => [
-                                  h(resolveComponent("Icon"), {
-                                    name: "lucide:chart-no-axes-combined",
-                                    class: "size-4 shrink-0",
-                                  }),
-                                  h("span", {}, "Analytics"),
-                                ],
-                              }
-                            ),
-                        }
-                      ),
-
-                      // Verify/Unverify button
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
-                            h(
-                              "button",
-                              {
-                                class: isVerified.value
-                                  ? "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5"
-                                  : "rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                onClick: () =>
-                                  isVerified.value
-                                    ? (unverifyDialogOpen.value = true)
-                                    : (verifyDialogOpen.value = true),
-                              },
-                              [
-                                h(resolveComponent("Icon"), {
-                                  name: "material-symbols:verified",
-                                  class: isVerified.value
-                                    ? "size-4 shrink-0 text-muted-foreground"
-                                    : "size-4 shrink-0 text-info",
-                                }),
-                                h("span", {}, isVerified.value ? "Unverify" : "Verify"),
-                              ]
-                            ),
-                        }
-                      ),
-
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
-                            h(
-                              "button",
-                              {
-                                class:
-                                  "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                onClick: () => (dialogOpen.value = true),
-                              },
-                              [
-                                h(resolveComponent("Icon"), {
-                                  name: "lucide:trash",
-                                  class: "size-4 shrink-0",
-                                }),
-                                h("span", {}, "Delete"),
-                              ]
-                            ),
-                        }
-                      ),
-                    ]),
-                }
-              ),
-            ],
-          }
-        ),
-        // Verify Dialog
-        h(
-          DialogResponsive,
-          {
-            open: verifyDialogOpen.value,
-            "onUpdate:open": (value) => (verifyDialogOpen.value = value),
-          },
-          {
-            default: () =>
-              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
-                h(
-                  "div",
-                  { class: "text-primary text-lg font-semibold tracking-tight" },
-                  "Verify user?"
-                ),
-                h(
-                  "p",
-                  { class: "text-body mt-1.5 text-sm tracking-tight" },
-                  "This will verify this user."
-                ),
-                h("div", { class: "mt-3 flex justify-end gap-2" }, [
-                  h(
-                    "button",
-                    {
-                      class:
-                        "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
-                      onClick: () => (verifyDialogOpen.value = false),
-                      disabled: singleVerifyPending.value,
-                    },
-                    "Cancel"
-                  ),
-                  h(
-                    "button",
-                    {
-                      class:
-                        "bg-info text-white hover:bg-info/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50",
-                      disabled: singleVerifyPending.value,
-                      onClick: async () => {
-                        singleVerifyPending.value = true;
-                        try {
-                          await handleVerifySingleRow(props.username);
-                          verifyDialogOpen.value = false;
-                        } finally {
-                          singleVerifyPending.value = false;
-                        }
-                      },
-                    },
-                    singleVerifyPending.value
-                      ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
-                      : "Verify"
-                  ),
-                ]),
-              ]),
-          }
-        ),
-        // Unverify Dialog
-        h(
-          DialogResponsive,
-          {
-            open: unverifyDialogOpen.value,
-            "onUpdate:open": (value) => (unverifyDialogOpen.value = value),
-          },
-          {
-            default: () =>
-              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
-                h(
-                  "div",
-                  { class: "text-primary text-lg font-semibold tracking-tight" },
-                  "Unverify user?"
-                ),
-                h(
-                  "p",
-                  { class: "text-body mt-1.5 text-sm tracking-tight" },
-                  "This will unverify this user."
-                ),
-                h("div", { class: "mt-3 flex justify-end gap-2" }, [
-                  h(
-                    "button",
-                    {
-                      class:
-                        "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
-                      onClick: () => (unverifyDialogOpen.value = false),
-                      disabled: singleUnverifyPending.value,
-                    },
-                    "Cancel"
-                  ),
-                  h(
-                    "button",
-                    {
-                      class:
-                        "bg-muted-foreground text-white hover:bg-muted-foreground/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50",
-                      disabled: singleUnverifyPending.value,
-                      onClick: async () => {
-                        singleUnverifyPending.value = true;
-                        try {
-                          await handleUnverifySingleRow(props.username);
-                          unverifyDialogOpen.value = false;
-                        } finally {
-                          singleUnverifyPending.value = false;
-                        }
-                      },
-                    },
-                    singleUnverifyPending.value
-                      ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
-                      : "Unverify"
-                  ),
-                ]),
-              ]),
-          }
-        ),
-        // Delete Dialog
-        h(
-          DialogResponsive,
-          {
-            open: dialogOpen.value,
-            "onUpdate:open": (value) => (dialogOpen.value = value),
-          },
-          {
-            default: () =>
-              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
-                h(
-                  "div",
-                  { class: "text-primary text-lg font-semibold tracking-tight" },
-                  "Are you sure?"
-                ),
-                h(
-                  "p",
-                  { class: "text-body mt-1.5 text-sm tracking-tight" },
-                  "This action can't be undone. This will permanently delete this user."
-                ),
-                h("div", { class: "mt-3 flex justify-end gap-2" }, [
-                  h(
-                    "button",
-                    {
-                      class:
-                        "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
-                      onClick: () => (dialogOpen.value = false),
-                      disabled: singleDeletePending.value,
-                    },
-                    "Cancel"
-                  ),
-                  h(
-                    "button",
-                    {
-                      class:
-                        "bg-destructive text-white hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50",
-                      disabled: singleDeletePending.value,
-                      onClick: async () => {
-                        singleDeletePending.value = true;
-                        try {
-                          await handleDeleteSingleRow(props.username);
-                          dialogOpen.value = false;
-                        } finally {
-                          singleDeletePending.value = false;
-                        }
-                      },
-                    },
-                    singleDeletePending.value
-                      ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
-                      : "Delete"
-                  ),
-                ]),
-              ]),
-          }
-        ),
-      ]);
-  },
-});
-
-// Filter Section Component
-const FilterSection = defineComponent({
-  props: {
-    title: String,
-    options: Array,
-    selected: Array,
-  },
-  emits: ["change"],
-  setup(props, { emit }) {
-    return () =>
-      h("div", { class: "space-y-2" }, [
-        h("div", { class: "text-muted-foreground text-xs font-medium" }, props.title),
-        h(
-          "div",
-          { class: "space-y-2" },
-          props.options.map((option, i) => {
-            const value = typeof option === "string" ? option : option.value;
-            const label = typeof option === "string" ? option : option.label;
-            return h("div", { key: value, class: "flex items-center gap-2" }, [
-              h(Checkbox, {
-                id: `${props.title}-${i}`,
-                modelValue: props.selected.includes(value),
-                "onUpdate:modelValue": (checked) => emit("change", { checked: !!checked, value }),
-              }),
-              h(
-                Label,
-                {
-                  for: `${props.title}-${i}`,
-                  class: "grow cursor-pointer font-normal tracking-tight capitalize",
-                },
-                { default: () => label }
-              ),
-            ]);
-          })
-        ),
-      ]);
-  },
-});
 </script>

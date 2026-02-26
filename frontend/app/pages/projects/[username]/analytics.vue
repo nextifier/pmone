@@ -14,8 +14,6 @@
 
 <script setup>
 definePageMeta({
-  middleware: ["sanctum:auth"],
-  layout: "app",
   ssr: false,
 });
 
@@ -133,8 +131,7 @@ const analyticsLoading = computed(() => {
   return visitsStatus.value === "pending" || clicksStatus.value === "pending";
 });
 
-usePageMeta("", {
-  title: `Analytics - @${username.value}`,
-  description: `View analytics for @${username.value}`,
+usePageMeta(null, {
+  title: computed(() => `Analytics · ${project.value?.name || ""}`),
 });
 </script>

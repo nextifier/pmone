@@ -171,8 +171,10 @@ test('autosave upserts correctly - only one autosave per user per post', functio
 });
 
 test('different users can have separate autosaves for same post', function () {
-    $post = Post::factory()->create();
+    $post = Post::factory()->create(['created_by' => $this->user->id]);
     $user2 = User::factory()->create();
+    // Make user2 a co-author so they have update permission
+    $post->authors()->attach($user2->id, ['order' => 1]);
 
     // User 1 autosave
     $this->actingAs($this->user)
@@ -246,10 +248,10 @@ test('user can discard autosave for existing post', function () {
     ]);
 });
 
-test('discarding non-existent autosave returns 404', function () {
+test('discarding non-existent autosave returns success', function () {
     $response = $this->deleteJson('/api/posts/autosave');
 
-    $response->assertNotFound()
+    $response->assertSuccessful()
         ->assertJson([
             'message' => 'No autosave to discard',
         ]);

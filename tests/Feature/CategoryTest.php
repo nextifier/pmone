@@ -3,11 +3,15 @@
 use App\Models\Category;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
+    Role::firstOrCreate(['name' => 'master', 'guard_name' => 'web']);
+
+    $this->user = User::factory()->create(['email_verified_at' => now()]);
+    $this->user->assignRole('master');
     $this->actingAs($this->user);
 });
 

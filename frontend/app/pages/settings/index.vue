@@ -8,5 +8,5 @@ definePageMeta({
   layout: "app",
 });
 
-usePageMeta("settings");
+usePageMeta(null, { title: "Settings" });
 </script>

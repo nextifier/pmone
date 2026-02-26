@@ -58,7 +58,7 @@ definePageMeta({
   layout: "app",
 });
 
-usePageMeta("verifyEmail");
+usePageMeta(null, { title: "Verify Email" });
 
 const verificationEmailSent = ref(false);
 const successMessage = ref("");

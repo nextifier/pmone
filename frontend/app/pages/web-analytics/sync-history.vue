@@ -199,7 +199,7 @@ definePageMeta({
   layout: "app",
 });
 
-usePageMeta("", {
+usePageMeta(null, {
   title: "Sync History - Web Analytics",
   description: "View synchronization history and manage data sync",
 });

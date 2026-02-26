@@ -273,58 +273,15 @@ class AnalyticsService
             ]);
         }
 
-        // PRIORITY 3: NO CACHE AT ALL - Fetch synchronously from daily cache
-        // With daily aggregation system, we don't need background job for initial load
-        // Data should be available instantly from 365-day daily cache
-        \Log::info('No aggregate cache found, fetching from daily cache');
+        // PRIORITY 3: NO CACHE AT ALL - Dispatch background job, return empty immediately
+        // NEVER fetch synchronously to avoid blocking PHP-FPM workers
+        \Log::info('No aggregate cache found, dispatching background refresh');
 
-        try {
-            // Build query for properties
-            $query = GaProperty::active()->with('project');
-            if ($propertyIds) {
-                $query->whereIn('property_id', $propertyIds);
-            }
-
-            $properties = $query->get();
-
-            if ($properties->isEmpty()) {
-                \Log::warning('No active properties found');
-
-                return $this->getEmptyDataStructure($period, false, 'No active properties found');
-            }
-
-            // Fetch data from daily cache (should be instant!)
-            $data = $this->aggregator->getDashboardData($properties, $period);
-
-            // Store with dynamic TTL based on period
-            Cache::put($cacheKey, $data, now()->addMinutes($cacheTTL));
-            Cache::put(CacheKey::timestamp($cacheKey), now(), now()->addMinutes($cacheTTL));
-
-            // Store as "last known good data" for fallback
-            Cache::put(CacheKey::lastSuccess($cacheKey), $data, now()->addYears(10));
-
-            \Log::info('Cached aggregate data', [
-                'cache_ttl_minutes' => $cacheTTL,
-                'properties_count' => $properties->count(),
-            ]);
-
-            return array_merge($data, [
-                'cache_info' => [
-                    'last_updated' => now()->toIso8601String(),
-                    'cache_age_minutes' => 0,
-                    'next_update_in_minutes' => $cacheTTL,
-                    'cache_ttl_minutes' => $cacheTTL,
-                    'is_fresh' => true,
-                    'is_updating' => false,
-                ],
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Failed to fetch aggregate data from daily cache', [
-                'error' => $e->getMessage(),
-            ]);
-
-            return $this->getEmptyDataStructure($period, false, $e->getMessage());
+        if (! Cache::has(CacheKey::refreshing($cacheKey))) {
+            $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
         }
+
+        return $this->getEmptyDataStructure($period, true);
     }
 
     /**
@@ -969,54 +926,9 @@ class AnalyticsService
                 return $cachedData;
             }
 
-            // Cache is stale but exists - return it while refreshing in background
+            // Cache is stale but exists - dispatch background job to refresh
             if (! Cache::has($refreshingKey)) {
-                Cache::put($refreshingKey, true, now()->addSeconds(30));
-
-                // Dispatch background refresh
-                dispatch(function () use ($propertyIds, $cacheKey, $lastSuccessKey, $refreshingKey) {
-                    try {
-                        $query = GaProperty::active();
-
-                        if ($propertyIds) {
-                            $query->whereIn('property_id', $propertyIds);
-                        }
-
-                        $properties = $query->get();
-                        $totalActiveUsers = 0;
-                        $propertyBreakdown = [];
-
-                        foreach ($properties as $property) {
-                            $activeUsers = app(\App\Services\GoogleAnalytics\AnalyticsDataFetcher::class)
-                                ->fetchRealtimeUsers($property);
-
-                            $totalActiveUsers += $activeUsers;
-
-                            if ($activeUsers > 0) {
-                                $propertyBreakdown[] = [
-                                    'property_id' => $property->property_id,
-                                    'property_name' => $property->name,
-                                    'active_users' => $activeUsers,
-                                ];
-                            }
-                        }
-
-                        usort($propertyBreakdown, fn ($a, $b) => $b['active_users'] <=> $a['active_users']);
-
-                        $result = [
-                            'total_active_users' => $totalActiveUsers,
-                            'property_breakdown' => $propertyBreakdown,
-                            'properties_count' => $properties->count(),
-                            'timestamp' => now()->toIso8601String(),
-                        ];
-
-                        Cache::put($cacheKey, $result, now()->addSeconds(30));
-                        Cache::put($cacheKey.':timestamp', now(), now()->addSeconds(30));
-                        Cache::put($lastSuccessKey, $result, now()->addYears(10));
-                    } finally {
-                        Cache::forget($refreshingKey);
-                    }
-                })->afterResponse();
+                dispatch(new \App\Jobs\RefreshRealtimeAnalytics($propertyIds));
             }
 
             return $cachedData;
@@ -1033,48 +945,18 @@ class AnalyticsService
             return $lastSuccess;
         }
 
-        // PRIORITY 3: No cache at all - fetch synchronously
-        $query = GaProperty::active();
-
-        if ($propertyIds) {
-            $query->whereIn('property_id', $propertyIds);
+        // PRIORITY 3: No cache at all - dispatch background job, return empty immediately
+        // NEVER fetch synchronously to avoid blocking PHP-FPM workers
+        if (! Cache::has($refreshingKey)) {
+            dispatch(new \App\Jobs\RefreshRealtimeAnalytics($propertyIds));
         }
 
-        $properties = $query->get();
-
-        $totalActiveUsers = 0;
-        $propertyBreakdown = [];
-
-        foreach ($properties as $property) {
-            $activeUsers = $this->dataFetcher->fetchRealtimeUsers($property);
-
-            $totalActiveUsers += $activeUsers;
-
-            if ($activeUsers > 0) {
-                $propertyBreakdown[] = [
-                    'property_id' => $property->property_id,
-                    'property_name' => $property->name,
-                    'active_users' => $activeUsers,
-                ];
-            }
-        }
-
-        // Sort by active users descending
-        usort($propertyBreakdown, fn ($a, $b) => $b['active_users'] <=> $a['active_users']);
-
-        $result = [
-            'total_active_users' => $totalActiveUsers,
-            'property_breakdown' => $propertyBreakdown,
-            'properties_count' => $properties->count(),
+        return [
+            'total_active_users' => 0,
+            'property_breakdown' => [],
+            'properties_count' => 0,
             'timestamp' => now()->toIso8601String(),
+            'is_loading' => true,
         ];
-
-        // Cache the result for 30 seconds
-        Cache::put($cacheKey, $result, now()->addSeconds(30));
-        Cache::put($cacheKey.':timestamp', now(), now()->addSeconds(30));
-        // Store as "last known good data" that never expires
-        Cache::put($lastSuccessKey, $result, now()->addYears(10));
-
-        return $result;
     }
 }

@@ -31,6 +31,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property-read \App\Models\User|null $deleter
  * @property-read \App\Models\User|null $followedUpByUser
  * @property-read \App\Models\Project $project
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission byStatus(string $status)
  * @method static \Database\Factories\ContactFormSubmissionFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission forProject(int $projectId)
@@ -56,6 +57,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereUserAgent($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class ContactFormSubmission extends Model
@@ -100,7 +102,13 @@ class ContactFormSubmission extends Model
     {
         return LogOptions::defaults()
             ->logOnly(['status', 'followed_up_at', 'followed_up_by'])
-            ->logOnlyDirty();
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
+
+    public function tapActivity(\Spatie\Activitylog\Models\Activity $activity, string $eventName): void
+    {
+        $activity->properties = $activity->properties->put('project_id', $this->project_id);
     }
 
     public function getRouteKeyName(): string

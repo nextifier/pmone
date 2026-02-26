@@ -264,6 +264,7 @@
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
   --animate-ping-slow: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  --animate-skeleton: skeleton 2s -1s infinite linear;
   --ease-out-swift: cubic-bezier(0.32, 0.72, 0, 1);
 
   --h-navbar: var(--navbar-height-mobile);
@@ -284,6 +285,11 @@
   --vis-secondary-color: 160 81% 40%;
   --vis-text-color: var(--muted-foreground);
 
+  @keyframes skeleton {
+    to {
+      background-position: -200% 0;
+    }
+  }
   @keyframes accordion-down {
     from {
       height: 0;
@@ -327,7 +333,7 @@
 }
 
 @utility skeleton {
-  @apply bg-border animate-pulse rounded-xl;
+  @apply animate-skeleton rounded-xl [--skeleton-highlight:--alpha(var(--color-white)/64%)] [background:linear-gradient(120deg,transparent_40%,var(--skeleton-highlight),transparent_60%)_var(--color-muted)_0_0/200%_100%_fixed] dark:[--skeleton-highlight:--alpha(var(--color-white)/4%)];
 }
 
 @utility h-screen-offset {
@@ -475,6 +481,10 @@
     @apply scroll-mt-navbar;
   }
 
+  [aria-describedby^="tippy-"] {
+    @apply select-none!;
+  }
+
   a,
   button,
   .focusable {
@@ -509,6 +519,14 @@
 
   /* Only target non-touch devices */
   @media (hover: hover) and (pointer: fine) {
+    html {
+      scrollbar-gutter: stable;
+
+      &:has(body[style*="overflow: hidden"]) {
+        scrollbar-gutter: auto;
+      }
+    }
+
     ::-webkit-scrollbar {
       width: 5px;
     }
@@ -736,7 +754,7 @@ img.pswp__img {
 }
 
 @utility page-title {
-  @apply text-primary text-xl !leading-[1.2] font-medium tracking-tighter text-balance sm:text-2xl;
+  @apply text-primary text-xl !leading-[1.2] font-medium tracking-tighter text-balance sm:text-xl;
 }
 
 @utility page-description {
@@ -753,6 +771,19 @@ img.pswp__img {
 
 @utility text-gradient-accent {
   @apply bg-linear-to-r from-orange-400 via-orange-600 to-red-600 bg-clip-text text-transparent;
+}
+
+@utility gradient-rainbow {
+  background: linear-gradient(
+    90deg,
+    oklch(0.595 0.196 254.96) 0%,
+    oklch(0.659 0.187 252.32) 7%,
+    oklch(0.775 0.121 247.99) 25%,
+    oklch(0.953 0.083 144.45) 49%,
+    oklch(0.875 0.175 92.22) 75%,
+    oklch(0.7 0.202 44.18) 95%,
+    oklch(0.676 0.217 38.8) 100%
+  );
 }
 
 @utility gradient-gold {

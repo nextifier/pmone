@@ -62,7 +62,7 @@ return [
         'tags' => [
             'label' => 'Tags',
             'description' => 'Manage blog tags',
-            'model' => \App\Models\Tag::class,
+            'model' => \Spatie\Tags\Tag::class,
             'actions' => ['create', 'read', 'update', 'delete'],
         ],
         'contact_forms' => [
@@ -70,6 +70,18 @@ return [
             'description' => 'Manage contact form submissions (inbox)',
             'model' => \App\Models\ContactFormSubmission::class,
             'actions' => ['read', 'update', 'delete'], // No create, submissions come from public
+        ],
+        'events' => [
+            'label' => 'Events',
+            'description' => 'Manage project events',
+            'model' => \App\Models\Event::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'brands' => [
+            'label' => 'Brands',
+            'description' => 'Manage brands and exhibitors',
+            'model' => \App\Models\Brand::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
         ],
         'tasks' => [
             'label' => 'Tasks',
@@ -82,6 +94,18 @@ return [
             'description' => 'Manage API consumers and keys',
             'model' => \App\Models\ApiConsumer::class,
             'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'event_products' => [
+            'label' => 'Event Products',
+            'description' => 'Manage event product catalog',
+            'model' => \App\Models\EventProduct::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'orders' => [
+            'label' => 'Orders',
+            'description' => 'Manage exhibitor orders',
+            'model' => \App\Models\Order::class,
+            'actions' => ['read', 'update'],
         ],
     ],
 

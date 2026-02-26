@@ -109,6 +109,11 @@ class UsersExport extends BaseExport
             $query->whereHas('roles', fn ($q) => $q->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(name)'), $roles));
         }
 
+        // Exclude role filter
+        if (isset($this->filters['exclude_role'])) {
+            $query->whereDoesntHave('roles', fn ($q) => $q->where('name', $this->filters['exclude_role']));
+        }
+
         // Verified filter
         if (isset($this->filters['verified'])) {
             $query->where(function ($q) {

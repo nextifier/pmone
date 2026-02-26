@@ -44,11 +44,9 @@ class ExtractShortLinksMetadata extends Command
 
         // Filter links without metadata unless force is set
         if (! $this->option('force')) {
-            $query->where(function ($q) {
-                $q->whereNull('og_title')
-                    ->orWhereNull('og_description')
-                    ->orWhereNull('og_image');
-            });
+            $query->whereNull('og_title')
+                ->whereNull('og_description')
+                ->whereNull('og_image');
             $this->info('Filtering: Short links without OG metadata only');
         } else {
             $this->warn('Force mode: Re-extracting metadata for ALL short links');

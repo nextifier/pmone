@@ -75,7 +75,19 @@ export function useSanitize() {
     return DOMPurify.sanitize(html, defaultOptions);
   }
 
+  /**
+   * Transform img tags with data-caption into figure/figcaption for display
+   */
+  function wrapCaptionedImages(html: string): string {
+    if (!html) return "";
+    return html.replace(
+      /<img([^>]*?)data-caption="([^"]+)"([^>]*?)>/g,
+      '<figure><img$1data-caption="$2"$3><figcaption>$2</figcaption></figure>'
+    );
+  }
+
   return {
     sanitizeHtml,
+    wrapCaptionedImages,
   };
 }

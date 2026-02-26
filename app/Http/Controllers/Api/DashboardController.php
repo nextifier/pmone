@@ -3,259 +3,274 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Click;
-use App\Models\ContactFormSubmission;
-use App\Models\ShortLink;
-use App\Models\User;
+use App\Models\Event;
+use App\Models\Order;
+use App\Models\Post;
 use App\Models\Visit;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     /**
-     * Get dashboard statistics for the authenticated user.
+     * Get operational dashboard statistics for the authenticated user.
      */
     public function stats(): JsonResponse
     {
         $user = auth()->user();
-
-        // Get user's project IDs for filtering
-        $projectIds = $user->projects()->pluck('projects.id')->toArray();
-
-        // Date ranges
         $now = now();
-        $currentStart = $now->copy()->subDays(6)->startOfDay();
-        $currentEnd = $now->copy()->endOfDay();
-        $previousStart = $now->copy()->subDays(13)->startOfDay();
-        $previousEnd = $now->copy()->subDays(7)->endOfDay();
+        $today = $now->copy()->startOfDay();
+        $todayEnd = $now->copy()->endOfDay();
 
-        // Visits statistics (user profile visits)
-        $visitsCurrent = $user->visits()
-            ->whereBetween('visited_at', [$currentStart, $currentEnd])
-            ->count();
+        // --- All Events - with time_status, sorted by proximity to today ---
+        $allEvents = Event::active()
+            ->with(['project:id,username', 'media'])
+            ->withCount('brandEvents')
+            ->withSum([
+                'brandEvents as booked_area' => fn ($q) => $q->whereNotNull('booth_size'),
+            ], 'booth_size')
+            ->get();
 
-        $visitsPrevious = $user->visits()
-            ->whereBetween('visited_at', [$previousStart, $previousEnd])
-            ->count();
+        // Batch: order stats per event (eliminates N+1)
+        $eventIds = $allEvents->pluck('id');
+        $orderStats = Order::query()
+            ->join('brand_event', 'orders.brand_event_id', '=', 'brand_event.id')
+            ->whereIn('brand_event.event_id', $eventIds)
+            ->whereIn('orders.status', ['submitted', 'confirmed'])
+            ->groupBy('brand_event.event_id', 'orders.status')
+            ->select(
+                'brand_event.event_id',
+                'orders.status',
+                DB::raw('COUNT(*) as count'),
+                DB::raw('SUM(orders.total) as total_sum')
+            )
+            ->get();
 
-        // Clicks statistics (on user's links)
-        $clicksCurrent = Click::query()
-            ->where(function ($query) use ($user, $projectIds) {
-                $query->where(function ($q) use ($user) {
-                    $q->where('clickable_type', User::class)
-                        ->where('clickable_id', $user->id);
-                });
-                if (! empty($projectIds)) {
-                    $query->orWhere(function ($q) use ($projectIds) {
-                        $q->where('clickable_type', 'App\\Models\\Project')
-                            ->whereIn('clickable_id', $projectIds);
-                    });
-                }
-            })
-            ->whereBetween('clicked_at', [$currentStart, $currentEnd])
-            ->count();
-
-        $clicksPrevious = Click::query()
-            ->where(function ($query) use ($user, $projectIds) {
-                $query->where(function ($q) use ($user) {
-                    $q->where('clickable_type', User::class)
-                        ->where('clickable_id', $user->id);
-                });
-                if (! empty($projectIds)) {
-                    $query->orWhere(function ($q) use ($projectIds) {
-                        $q->where('clickable_type', 'App\\Models\\Project')
-                            ->whereIn('clickable_id', $projectIds);
-                    });
-                }
-            })
-            ->whereBetween('clicked_at', [$previousStart, $previousEnd])
-            ->count();
-
-        // Unread inbox count (contact form submissions with "new" status)
-        $unreadInboxCount = 0;
-        if (! empty($projectIds) && $user->hasPermissionTo('contact_forms.read')) {
-            $unreadInboxCount = ContactFormSubmission::query()
-                ->whereIn('project_id', $projectIds)
-                ->new()
-                ->count();
+        $orderStatsMap = [];
+        foreach ($orderStats as $stat) {
+            $orderStatsMap[$stat->event_id][$stat->status] = [
+                'count' => (int) $stat->count,
+                'total_sum' => (float) $stat->total_sum,
+            ];
         }
 
-        // Total active short links
-        $totalLinks = ShortLink::query()
-            ->where('user_id', $user->id)
-            ->active()
-            ->count();
+        $allEvents = $allEvents
+            ->map(function (Event $event) use ($today, $todayEnd, $orderStatsMap) {
+                $timeStatus = 'no_date';
 
-        // Visits chart data (last 14 days)
-        $visitsChartData = $this->getVisitsChartData($user, 14);
+                if ($event->start_date) {
+                    $endDate = $event->end_date ?? $event->start_date;
 
-        // Recent visits (last 5)
-        $recentVisits = $user->visits()
-            ->with(['visitor' => function ($query) {
-                $query->select('id', 'name', 'username')
-                    ->with('media');
-            }])
-            ->orderByDesc('visited_at')
-            ->limit(5)
-            ->get()
-            ->map(function ($visit) {
-                $visitor = $visit->visitor;
-
-                return [
-                    'id' => $visit->id,
-                    'visitor' => $visitor ? [
-                        'id' => $visitor->id,
-                        'name' => $visitor->name,
-                        'username' => $visitor->username,
-                        'profile_image' => $visitor->hasMedia('profile_image')
-                            ? $visitor->getMediaUrls('profile_image')
-                            : null,
-                    ] : null,
-                    'is_anonymous' => $visitor === null,
-                    'visited_at' => $visit->visited_at->toISOString(),
-                    'visited_at_human' => $visit->visited_at->diffForHumans(),
-                ];
-            });
-
-        // Recent clicks (last 5)
-        $recentClicks = Click::query()
-            ->where(function ($query) use ($user, $projectIds) {
-                $query->where(function ($q) use ($user) {
-                    $q->where('clickable_type', User::class)
-                        ->where('clickable_id', $user->id);
-                });
-                if (! empty($projectIds)) {
-                    $query->orWhere(function ($q) use ($projectIds) {
-                        $q->where('clickable_type', 'App\\Models\\Project')
-                            ->whereIn('clickable_id', $projectIds);
-                    });
+                    if ($endDate->lt($today)) {
+                        $timeStatus = 'completed';
+                    } elseif ($event->start_date->gt($todayEnd)) {
+                        $timeStatus = 'upcoming';
+                    } else {
+                        $timeStatus = 'ongoing';
+                    }
                 }
+
+                $eventOrderStats = $orderStatsMap[$event->id] ?? [];
+
+                return [
+                    'id' => $event->id,
+                    'title' => $event->title,
+                    'slug' => $event->slug,
+                    'date_label' => $event->date_label,
+                    'start_date' => $event->start_date?->toISOString(),
+                    'end_date' => $event->end_date?->toISOString(),
+                    'location' => $event->location,
+                    'status' => $event->status,
+                    'time_status' => $timeStatus,
+                    'project_username' => $event->project?->username,
+                    'poster_image' => $event->poster_image,
+                    'brand_events_count' => $event->brand_events_count,
+                    'orders_submitted' => $eventOrderStats['submitted']['count'] ?? 0,
+                    'orders_confirmed' => $eventOrderStats['confirmed']['count'] ?? 0,
+                    'gross_area' => (float) ($event->gross_area ?? 0),
+                    'booked_area' => (float) ($event->booked_area ?? 0),
+                    'total_revenue' => (float) ($eventOrderStats['confirmed']['total_sum'] ?? 0),
+                ];
             })
-            ->with(['clicker' => function ($query) {
-                $query->select('id', 'name', 'username')
-                    ->with('media');
-            }])
-            ->orderByDesc('clicked_at')
-            ->limit(5)
-            ->get()
-            ->map(function ($click) {
-                $clicker = $click->clicker;
+            ->sortBy(function ($event) use ($now) {
+                $priority = match ($event['time_status']) {
+                    'ongoing' => 0,
+                    'upcoming' => 1,
+                    'completed' => 2,
+                    default => 3,
+                };
 
-                return [
-                    'id' => $click->id,
-                    'link_label' => $click->link_label,
-                    'clicker' => $clicker ? [
-                        'id' => $clicker->id,
-                        'name' => $clicker->name,
-                        'username' => $clicker->username,
-                        'profile_image' => $clicker->hasMedia('profile_image')
-                            ? $clicker->getMediaUrls('profile_image')
-                            : null,
-                    ] : null,
-                    'is_anonymous' => $clicker === null,
-                    'clicked_at' => $click->clicked_at->toISOString(),
-                    'clicked_at_human' => $click->clicked_at->diffForHumans(),
-                ];
-            });
+                $refDate = $event['time_status'] === 'completed'
+                    ? ($event['end_date'] ?? $event['start_date'])
+                    : $event['start_date'];
 
-        // Top performing short links (last 7 days)
-        $topLinks = ShortLink::query()
-            ->where('user_id', $user->id)
+                $proximity = $refDate
+                    ? abs(Carbon::parse($refDate)->floatDiffInDays($now))
+                    : 9999;
+
+                return $priority * 100000 + $proximity;
+            })
+            ->values();
+
+        // --- My Projects - all projects where user is member ---
+        $myProjects = $user->projects()
             ->active()
-            ->withCount(['clicks' => function ($query) use ($currentStart, $currentEnd) {
-                $query->whereBetween('clicked_at', [$currentStart, $currentEnd]);
-            }])
+            ->orderBy('order_column')
+            ->with(['media', 'members.media'])
+            ->withCount('members')
             ->get()
-            ->sortByDesc('clicks_count')
-            ->take(5)
-            ->values()
-            ->map(function ($link) {
-                return [
-                    'id' => $link->id,
-                    'slug' => $link->slug,
-                    'destination_url' => $link->destination_url,
-                    'og_title' => $link->og_title,
-                    'clicks_count' => $link->clicks_count,
-                ];
-            });
+            ->map(function ($project) {
+                $recentEvents = $project->events()
+                    ->with('media')
+                    ->orderByDesc('start_date')
+                    ->limit(3)
+                    ->get()
+                    ->map(fn (Event $event) => [
+                        'id' => $event->id,
+                        'title' => $event->title,
+                        'slug' => $event->slug,
+                        'poster_image' => $event->poster_image,
+                    ]);
 
-        // Calculate percentage changes
-        $visitsChange = $this->calculatePercentageChange($visitsPrevious, $visitsCurrent);
-        $clicksChange = $this->calculatePercentageChange($clicksPrevious, $clicksCurrent);
+                return [
+                    'id' => $project->id,
+                    'name' => $project->name,
+                    'username' => $project->username,
+                    'profile_image' => $project->profile_image,
+                    'members_count' => $project->members_count,
+                    'members' => $project->members->take(4)->map(fn ($member) => [
+                        'id' => $member->id,
+                        'name' => $member->name,
+                        'profile_image' => $member->relationLoaded('media') && $member->media->firstWhere('collection_name', 'profile_image')
+                            ? $member->getMediaUrls('profile_image')
+                            : null,
+                    ]),
+                    'recent_events' => $recentEvents,
+                ];
+            })
+            ->values();
 
         return response()->json([
             'data' => [
-                'stats' => [
-                    'visits' => [
-                        'current' => $visitsCurrent,
-                        'previous' => $visitsPrevious,
-                        'change' => $visitsChange,
-                        'trend' => $visitsChange >= 0 ? 'up' : 'down',
-                    ],
-                    'clicks' => [
-                        'current' => $clicksCurrent,
-                        'previous' => $clicksPrevious,
-                        'change' => $clicksChange,
-                        'trend' => $clicksChange >= 0 ? 'up' : 'down',
-                    ],
-                    'inbox' => [
-                        'unread' => $unreadInboxCount,
-                    ],
-                    'links' => [
-                        'total' => $totalLinks,
-                    ],
+                'tips' => [
+                    'has_password' => ! empty($user->password),
+                    'has_profile_photo' => $user->getFirstMediaUrl('profile_image') !== '',
+                    'has_phone' => ! empty($user->phone),
                 ],
-                'visits_chart' => $visitsChartData,
-                'recent_visits' => $recentVisits,
-                'recent_clicks' => $recentClicks,
-                'top_links' => $topLinks,
+                'all_events' => $allEvents,
+                'my_projects' => $myProjects,
             ],
         ]);
     }
 
     /**
-     * Get visits chart data for a specified number of days.
+     * Get writer-focused dashboard statistics.
      */
-    private function getVisitsChartData(User $user, int $days): array
+    public function writerStats(): JsonResponse
     {
-        $startDate = now()->subDays($days - 1)->startOfDay();
-        $endDate = now()->endOfDay();
+        $user = auth()->user();
+        $now = now();
+        $thirtyDaysAgo = $now->copy()->subDays(30)->startOfDay();
 
-        // Get actual visit data grouped by date
-        $visitsData = $user->visits()
-            ->whereBetween('visited_at', [$startDate, $endDate])
-            ->selectRaw('DATE(visited_at) as date, COUNT(*) as count')
+        // Post counts by status
+        $postsQuery = Post::where('created_by', $user->id);
+        $totalPosts = (clone $postsQuery)->count();
+        $publishedPosts = (clone $postsQuery)->where('status', 'published')->count();
+        $draftPosts = (clone $postsQuery)->where('status', 'draft')->count();
+
+        // Total views across all writer's posts (last 30 days)
+        $totalViews = Post::where('created_by', $user->id)
+            ->withCount(['visits' => function ($query) use ($thirtyDaysAgo) {
+                $query->where('visited_at', '>=', $thirtyDaysAgo);
+            }])
+            ->get()
+            ->sum('visits_count');
+
+        // Recent posts - last 5
+        $recentPosts = Post::where('created_by', $user->id)
+            ->with([
+                'tags:id,name,slug,type',
+                'media' => fn ($q) => $q->where('collection_name', 'featured_image'),
+            ])
+            ->withCount('visits')
+            ->orderByDesc('published_at')
+            ->limit(5)
+            ->get()
+            ->map(fn (Post $post) => [
+                'id' => $post->id,
+                'title' => $post->title,
+                'slug' => $post->slug,
+                'status' => $post->status,
+                'visits_count' => $post->visits_count,
+                'featured_image' => $post->getMediaUrls('featured_image'),
+                'published_at' => $post->published_at?->toISOString(),
+                'created_at' => $post->created_at?->toISOString(),
+            ]);
+
+        // Visits per day (last 30 days) - for chart
+        $postIds = Post::where('created_by', $user->id)->pluck('id');
+        $visitsData = Visit::where('visitable_type', 'App\\Models\\Post')
+            ->whereIn('visitable_id', $postIds)
+            ->whereBetween('visited_at', [$thirtyDaysAgo, $now->copy()->endOfDay()])
+            ->select(DB::raw('DATE(visited_at) as date'), DB::raw('COUNT(*) as count'))
             ->groupBy('date')
             ->orderBy('date')
             ->get()
             ->keyBy('date');
 
-        // Fill in all dates with zero counts for missing days
-        $chartData = [];
-        $currentDate = $startDate->copy();
-
-        while ($currentDate->lte($endDate)) {
-            $dateString = $currentDate->toDateString();
-            $chartData[] = [
-                'date' => $dateString,
-                'label' => $currentDate->format('M d'),
-                'count' => $visitsData->has($dateString) ? (int) $visitsData[$dateString]->count : 0,
+        $visitsPerDay = [];
+        $cursor = $thirtyDaysAgo->copy();
+        while ($cursor->lte($now)) {
+            $dateKey = $cursor->toDateString();
+            $visitsPerDay[] = [
+                'date' => $dateKey,
+                'count' => (int) ($visitsData[$dateKey]->count ?? 0),
             ];
-            $currentDate->addDay();
+            $cursor->addDay();
         }
 
-        return $chartData;
-    }
+        // Top performing posts - top 5 by views
+        $topPosts = Post::where('created_by', $user->id)
+            ->where('status', 'published')
+            ->with([
+                'media' => fn ($q) => $q->where('collection_name', 'featured_image'),
+            ])
+            ->withCount(['visits', 'visits as recent_visits_count' => function ($query) use ($thirtyDaysAgo) {
+                $query->where('visited_at', '>=', $thirtyDaysAgo);
+            }])
+            ->get()
+            ->filter(fn ($post) => $post->visits_count > 0)
+            ->sortByDesc('visits_count')
+            ->take(5)
+            ->values()
+            ->map(fn (Post $post) => [
+                'id' => $post->id,
+                'title' => $post->title,
+                'slug' => $post->slug,
+                'visits_count' => $post->visits_count,
+                'recent_visits_count' => $post->recent_visits_count,
+                'featured_image' => $post->getMediaUrls('featured_image'),
+                'published_at' => $post->published_at?->toISOString(),
+            ]);
 
-    /**
-     * Calculate percentage change between two values.
-     */
-    private function calculatePercentageChange(int $previous, int $current): float
-    {
-        if ($previous === 0) {
-            return $current > 0 ? 100.0 : 0.0;
-        }
-
-        return round((($current - $previous) / $previous) * 100, 1);
+        return response()->json([
+            'data' => [
+                'tips' => [
+                    'has_password' => ! empty($user->password),
+                    'has_profile_photo' => $user->getFirstMediaUrl('profile_image') !== '',
+                    'has_phone' => ! empty($user->phone),
+                ],
+                'stats' => [
+                    'total_posts' => $totalPosts,
+                    'published_posts' => $publishedPosts,
+                    'draft_posts' => $draftPosts,
+                    'total_views_30d' => $totalViews,
+                ],
+                'visits_per_day' => $visitsPerDay,
+                'recent_posts' => $recentPosts,
+                'top_posts' => $topPosts,
+            ],
+        ]);
     }
 }

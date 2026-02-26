@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl lg:max-w-6xl">
+  <div class="container space-y-6 pt-4 pb-16">
     <div class="flex items-center gap-x-2.5">
       <Icon name="hugeicons:money-exchange-02" class="size-5 sm:size-6" />
       <h1 class="page-title">Exchange Rates</h1>
@@ -470,15 +470,14 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 definePageMeta({
-  middleware: ["sanctum:auth"],
-  layout: "app",
+  layout: "default",
 });
 
 defineOptions({
   name: "exchange-rate",
 });
 
-usePageMeta("exchange-rate");
+usePageMeta(null, { title: "Exchange Rates" });
 
 const config = useRuntimeConfig();
 

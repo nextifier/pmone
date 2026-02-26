@@ -425,7 +425,7 @@ const chartConfig = computed(() => {
   };
 });
 
-usePageMeta("", {
+usePageMeta(null, {
   title: `Analytics - ${slug.value}`,
   description: `Analytics for short link ${slug.value}`,
 });

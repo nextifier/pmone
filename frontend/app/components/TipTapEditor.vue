@@ -144,8 +144,17 @@
     </div>
 
     <!-- Editor Content -->
-    <div class="editor-content-wrapper">
+    <div class="editor-content-wrapper relative">
       <EditorContent :editor="editor" class="editor-content" />
+      <div
+        v-if="isUploading"
+        class="bg-background/80 absolute inset-0 flex items-center justify-center backdrop-blur-xs"
+      >
+        <div class="flex items-center gap-x-2 text-sm tracking-tight">
+          <LoadingSpinner class="border-primary size-4" />
+          <span>Uploading image...</span>
+        </div>
+      </div>
     </div>
 
     <!-- Hidden file input for image upload -->
@@ -157,70 +166,17 @@
       @change="handleImageUpload"
     />
 
-    <!-- Caption Modal -->
-    <Dialog v-model:open="captionModal.show">
-      <DialogContent class="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Add Image Caption</DialogTitle>
-          <DialogDescription>
-            Add an optional caption for this image (max 500 characters)
-          </DialogDescription>
-        </DialogHeader>
-
-        <div class="space-y-4 py-4">
-          <div class="space-y-2">
-            <Label for="image-caption">Caption (Optional)</Label>
-            <Textarea
-              id="image-caption"
-              v-model="captionModal.caption"
-              maxlength="500"
-              placeholder="Enter image caption..."
-              rows="3"
-            />
-            <p class="text-muted-foreground text-xs">
-              {{ captionModal.caption.length }}/500 characters
-            </p>
-          </div>
-        </div>
-
-        <DialogFooter>
-          <button
-            type="button"
-            @click="skipCaption"
-            class="border-input hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium"
-          >
-            Skip
-          </button>
-          <button
-            type="button"
-            @click="saveCaptionAndClose"
-            class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium"
-          >
-            Save Caption
-          </button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   </div>
 </template>
 
 <script setup>
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import ImageNodeView from "@/components/tiptap/ImageNodeView.vue";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
 import StarterKit from "@tiptap/starter-kit";
-import { EditorContent, useEditor } from "@tiptap/vue-3";
+import { EditorContent, useEditor, VueNodeViewRenderer } from "@tiptap/vue-3";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
@@ -262,15 +218,7 @@ const client = useSanctumClient();
 // Track previous images to detect deletions
 const previousImages = ref(new Set());
 
-// Caption modal state
-const captionModal = ref({
-  show: false,
-  caption: "",
-  imageUrl: "",
-  imagePos: null,
-});
-
-// Custom Image extension with data-caption support
+// Custom Image extension with data-caption support and inline caption editing
 const CustomImage = Image.extend({
   addAttributes() {
     return {
@@ -288,6 +236,9 @@ const CustomImage = Image.extend({
         },
       },
     };
+  },
+  addNodeView() {
+    return VueNodeViewRenderer(ImageNodeView);
   },
 });
 
@@ -318,6 +269,32 @@ const editor = useEditor({
   editorProps: {
     attributes: {
       class: "prose prose-base focus:outline-none",
+    },
+    handlePaste: (view, event) => {
+      const items = event.clipboardData?.items;
+      if (!items) return false;
+
+      for (const item of items) {
+        if (item.type.startsWith("image/")) {
+          event.preventDefault();
+          const file = item.getAsFile();
+          if (file) uploadImageFile(file);
+          return true;
+        }
+      }
+      return false;
+    },
+    handleDrop: (view, event) => {
+      const files = event.dataTransfer?.files;
+      if (!files?.length) return false;
+
+      const imageFile = Array.from(files).find((f) => f.type.startsWith("image/"));
+      if (imageFile) {
+        event.preventDefault();
+        uploadImageFile(imageFile);
+        return true;
+      }
+      return false;
     },
   },
   onUpdate: ({ editor }) => {
@@ -406,6 +383,39 @@ const setLink = () => {
 };
 
 // Image upload handling
+const isUploading = ref(false);
+
+const uploadImageFile = async (file) => {
+  const maxSize = 10 * 1024 * 1024;
+  if (file.size > maxSize) {
+    toast.error("Image size must be less than 10MB");
+    return;
+  }
+
+  isUploading.value = true;
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("model_type", props.modelType);
+    formData.append("collection", props.collection);
+    formData.append("model_id", "0");
+
+    const response = await client("/api/media/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (response.media?.url) {
+      editor.value?.chain().focus().setImage({ src: response.media.url }).run();
+    }
+  } catch (error) {
+    console.error("Image upload failed:", error);
+    toast.error("Failed to upload image. Please try again.");
+  } finally {
+    isUploading.value = false;
+  }
+};
+
 const triggerImageUpload = () => {
   imageInput.value?.click();
 };
@@ -414,106 +424,17 @@ const handleImageUpload = async (event) => {
   const file = event.target.files?.[0];
   if (!file) return;
 
-  // Validate file size (max 10MB)
-  const maxSize = 10 * 1024 * 1024;
-  if (file.size > maxSize) {
-    toast.error("Image size must be less than 10MB");
-    if (imageInput.value) {
-      imageInput.value.value = "";
-    }
-    return;
-  }
+  await uploadImageFile(file);
 
-  try {
-    // Create FormData for upload - ALWAYS use temporary storage
-    // Even for existing posts, we upload to temp first, then process on save
-    // This ensures consistent behavior and proper cleanup
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("model_type", props.modelType);
-    formData.append("collection", props.collection);
-    // Always send model_id: 0 to use temporary storage
-    formData.append("model_id", "0");
-
-    // Upload image using API
-    const response = await client("/api/media/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    // Insert image into editor first
-    if (response.media?.url) {
-      editor.value?.chain().focus().setImage({ src: response.media.url }).run();
-
-      // Show caption modal
-      showCaptionModal(response.media.url);
-    }
-
-    // Clear input
-    if (imageInput.value) {
-      imageInput.value.value = "";
-    }
-  } catch (error) {
-    console.error("Image upload failed:", error);
-    toast.error("Failed to upload image. Please try again.");
+  if (imageInput.value) {
+    imageInput.value.value = "";
   }
 };
 
-// Show caption modal
-const showCaptionModal = (imageUrl) => {
-  captionModal.value = {
-    show: true,
-    caption: "",
-    imageUrl: imageUrl,
-    imagePos: null,
-  };
-};
-
-// Skip caption (close modal without saving)
-const skipCaption = () => {
-  captionModal.value = {
-    show: false,
-    caption: "",
-    imageUrl: "",
-    imagePos: null,
-  };
-};
-
-// Save caption and close modal
-const saveCaptionAndClose = () => {
-  if (!editor.value || !captionModal.value.imageUrl) return;
-
-  // Find the image node and update with data-caption attribute
-  const { state } = editor.value;
-  const { doc } = state;
-
-  doc.descendants((node, pos) => {
-    if (node.type.name === "image" && node.attrs.src === captionModal.value.imageUrl) {
-      // Update the image node with caption
-      editor.value
-        .chain()
-        .setNodeSelection(pos)
-        .updateAttributes("image", {
-          "data-caption": captionModal.value.caption || null,
-        })
-        .run();
-
-      return false; // Stop searching
-    }
-  });
-
-  // Close modal
-  captionModal.value = {
-    show: false,
-    caption: "",
-    imageUrl: "",
-    imagePos: null,
-  };
-};
 </script>
 
 <style scoped>
-@reference "../../assets/css/main.css";
+@reference "../assets/css/main.css";
 
 .tiptap-editor {
   @apply border-border rounded-lg border;
@@ -576,9 +497,6 @@ const saveCaptionAndClose = () => {
   @apply prose-blockquote:text-muted-foreground;
 }
 
-:deep(.post-content-image) {
-  @apply my-4 h-auto max-w-full rounded-lg;
-}
 
 :deep(.post-content-link) {
   @apply text-foreground cursor-pointer font-semibold tracking-tight underline;

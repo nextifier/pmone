@@ -101,6 +101,16 @@ class PostPolicy
     }
 
     /**
+     * Determine whether the user can delete any posts (for bulk operations).
+     */
+    public function deleteAny(User $user): bool
+    {
+        // All authenticated users can attempt bulk delete
+        // Individual authorization will be checked per post in the controller
+        return true;
+    }
+
+    /**
      * Determine whether the user can restore the model.
      */
     public function restore(User $user, Post $post): bool

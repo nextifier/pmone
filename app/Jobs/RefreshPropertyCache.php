@@ -49,7 +49,9 @@ class RefreshPropertyCache implements ShouldBeUnique, ShouldQueue
         public string $cacheKey,
         public string $refreshingKey,
         public int $cacheDuration
-    ) {}
+    ) {
+        $this->onQueue('analytics');
+    }
 
     /**
      * Get the unique ID for the job.

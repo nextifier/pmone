@@ -261,7 +261,7 @@ const error = computed(
 );
 
 // Page meta
-usePageMeta("inbox");
+usePageMeta(null, { title: "Inbox" });
 
 // Phone country helper
 const { getCountryFromPhone } = usePhoneCountry();

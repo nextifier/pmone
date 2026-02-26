@@ -6,34 +6,34 @@
 
         <div class="grid gap-6">
           <div class="grid text-center">
-            <h1 class="page-title">Create an account</h1>
+            <h1 class="page-title">{{ $t('auth.createAccount') }}</h1>
 
-            <p class="page-description mt-1.5">Sign up with your Google account</p>
+            <p class="page-description mt-1.5">{{ $t('auth.signUpWithGoogle') }}</p>
 
             <AuthLoginAlternatives class="mt-4" />
           </div>
 
           <div class="flex items-center text-center">
             <span class="bg-border h-px flex-grow"></span>
-            <span class="page-description">or enter your email and password below</span>
+            <span class="page-description">{{ $t('auth.orEnterCredentials') }}</span>
             <span class="bg-border h-px flex-grow"></span>
           </div>
 
           <form @submit.prevent="submit" class="grid gap-6">
             <div class="input-group">
-              <Label for="name">Name</Label>
+              <Label for="name">{{ $t('auth.name') }}</Label>
               <Input v-model="form.name" type="text" name="name" id="name" required autofocus />
               <InputErrorMessage v-if="errors?.name" :errors="errors.name" />
             </div>
 
             <div class="input-group">
-              <Label for="email">Email</Label>
+              <Label for="email">{{ $t('auth.email') }}</Label>
               <Input v-model="form.email" type="email" name="email" id="email" required />
               <InputErrorMessage v-if="errors?.email" :errors="errors.email" />
             </div>
 
             <div class="input-group">
-              <Label for="password">Password</Label>
+              <Label for="password">{{ $t('auth.password') }}</Label>
 
               <div class="relative">
                 <Input
@@ -56,13 +56,13 @@
                       v-if="!showPassword"
                       name="lucide:eye"
                       class="size-4 shrink-0"
-                      v-tippy="'Show password'"
+                      v-tippy="$t('auth.showPassword')"
                     />
                     <Icon
                       v-else
                       name="lucide:eye-off"
                       class="size-4 shrink-0"
-                      v-tippy="'Hide password'"
+                      v-tippy="$t('auth.hidePassword')"
                     />
                   </button>
                 </div>
@@ -71,7 +71,7 @@
             </div>
 
             <div v-if="enablePasswordConfirmation" class="input-group">
-              <Label for="password_confirmation">Confirm Password</Label>
+              <Label for="password_confirmation">{{ $t('auth.confirmPassword') }}</Label>
 
               <div class="relative">
                 <Input
@@ -94,13 +94,13 @@
                       v-if="!showPasswordConfirmation"
                       name="lucide:eye"
                       class="size-4 shrink-0"
-                      v-tippy="'Show password'"
+                      v-tippy="$t('auth.showPassword')"
                     />
                     <Icon
                       v-else
                       name="lucide:eye-off"
                       class="size-4 shrink-0"
-                      v-tippy="'Hide password'"
+                      v-tippy="$t('auth.hidePassword')"
                     />
                   </button>
                 </div>
@@ -112,24 +112,24 @@
               :disabled="loading"
               class="bg-primary text-primary-foreground hover:bg-primary/80 flex h-10 items-center justify-center gap-x-2 rounded-lg px-8 py-2 text-sm font-semibold tracking-tight ring-2 ring-offset-2 transition active:scale-95"
             >
-              <span>Sign up</span>
+              <span>{{ $t('auth.signUp') }}</span>
               <LoadingSpinner v-if="loading" class="border-primary-foreground h-4" />
             </button>
           </form>
 
           <div class="grid text-center">
             <p class="text-sm tracking-tight">
-              Already have an account?
-              <nuxt-link to="/login" class="underline underline-offset-4">Log in</nuxt-link>
+              {{ $t('auth.alreadyHaveAccount') }}
+              <nuxt-link to="/login" class="underline underline-offset-4">{{ $t('auth.login') }}</nuxt-link>
             </p>
           </div>
         </div>
 
         <p class="page-description text-center text-xs">
-          By continuing, you agree to our
-          <NuxtLink to="/terms" class="underline">Terms</NuxtLink>
-          and
-          <NuxtLink to="/privacy" class="underline">Privacy Policy</NuxtLink>.
+          {{ $t('auth.byContinuing') }}
+          <NuxtLink to="/terms" class="underline">{{ $t('auth.terms') }}</NuxtLink>
+          {{ $t('auth.and') }}
+          <NuxtLink to="/privacy" class="underline">{{ $t('auth.privacyPolicy') }}</NuxtLink>.
         </p>
       </div>
     </div>
@@ -143,7 +143,7 @@ definePageMeta({
   middleware: ["sanctum:guest"],
 });
 
-usePageMeta("signup");
+usePageMeta(null, { title: "Sign up" });
 
 const loading = ref(false);
 const showPassword = ref(false);

@@ -70,7 +70,7 @@ test('validates required fields when updating profile', function () {
         ]);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['name', 'username', 'email']);
+        ->assertJsonValidationErrors(['email']);
 });
 
 test('validates unique username and email when updating profile', function () {

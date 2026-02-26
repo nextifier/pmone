@@ -115,7 +115,7 @@ defineOptions({
 const title = "Permissions";
 const description = "Manage system permissions.";
 
-usePageMeta("", {
+usePageMeta(null, {
   title: title,
   description: description,
 });

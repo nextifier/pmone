@@ -393,7 +393,7 @@
 </template>
 
 <script setup>
-usePageMeta('privacy')
+usePageMeta(null, { title: "Privacy Policy" })
 
 const name = useAppConfig().app.name
 const website = useAppConfig().app.url

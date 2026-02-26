@@ -4,6 +4,7 @@ import {
   ComboboxGroup,
   ComboboxItem,
   ComboboxItemIndicator,
+  ComboboxViewport,
 } from "@/components/ui/combobox";
 import { LucideCheck, LucideX } from "lucide-vue-next";
 import {
@@ -123,17 +124,19 @@ const removeTag = (index: number) => {
     </ComboboxAnchor>
 
     <ComboboxList class="w-(--reka-combobox-trigger-width)">
-      <ComboboxEmpty class="px-2 py-4">No results found.</ComboboxEmpty>
+      <ComboboxViewport>
+        <ComboboxEmpty class="px-2 py-4">No results found.</ComboboxEmpty>
 
-      <ComboboxGroup v-if="filteredUsers.length">
-        <ComboboxItem v-for="user in filteredUsers" :key="user.id" :value="user">
-          <UserProfile :user="user" />
+        <ComboboxGroup v-if="filteredUsers.length">
+          <ComboboxItem v-for="user in filteredUsers" :key="user.id" :value="user">
+            <UserProfile :user="user" />
 
-          <ComboboxItemIndicator>
-            <LucideCheck class="ml-auto size-4" />
-          </ComboboxItemIndicator>
-        </ComboboxItem>
-      </ComboboxGroup>
+            <ComboboxItemIndicator>
+              <LucideCheck class="ml-auto size-4" />
+            </ComboboxItemIndicator>
+          </ComboboxItem>
+        </ComboboxGroup>
+      </ComboboxViewport>
     </ComboboxList>
   </ComboboxRoot>
 </template>

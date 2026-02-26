@@ -16,7 +16,7 @@ definePageMeta({
   layout: "app",
 });
 
-usePageMeta("", {
+usePageMeta(null, {
   title: "Create Short Link",
   description: "Create a new short link",
 });

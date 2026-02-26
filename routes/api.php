@@ -2,18 +2,28 @@
 
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\ApiConsumerController;
+use App\Http\Controllers\Api\BrandController;
+use App\Http\Controllers\Api\BrandEventController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ContactFormController;
 use App\Http\Controllers\Api\ContactFormSubmissionController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\EventProductController;
 use App\Http\Controllers\Api\ExchangeRateController;
+use App\Http\Controllers\Api\ExhibitorDashboardController;
 use App\Http\Controllers\Api\LogController;
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\PostAutosaveController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\ProjectActivityController;
 use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\ProjectCustomFieldController;
 use App\Http\Controllers\Api\PublicBlogController;
+use App\Http\Controllers\Api\PublicProjectController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ShortLinkController;
 use App\Http\Controllers\Api\TagController;
@@ -30,6 +40,7 @@ Route::middleware(['auth:sanctum'])->get('/user', [UserController::class, 'profi
 // Dashboard routes (authenticated + verified)
 Route::middleware(['auth:sanctum', 'verified'])->prefix('dashboard')->group(function () {
     Route::get('/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
+    Route::get('/writer-stats', [DashboardController::class, 'writerStats'])->name('dashboard.writer-stats');
 });
 
 // Protected API routes (authenticated + verified)
@@ -122,9 +133,124 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::post('/trash/{id}/restore', [ProjectController::class, 'restore'])->name('projects.restore');
         Route::delete('/trash/bulk', [ProjectController::class, 'bulkForceDestroy'])->name('projects.bulk-force-destroy');
         Route::delete('/trash/{id}', [ProjectController::class, 'forceDestroy'])->name('projects.force-destroy');
+        Route::post('/{username}/members/toggle', [ProjectController::class, 'toggleMember'])->name('projects.toggle-member');
         Route::get('/{username}', [ProjectController::class, 'show'])->name('projects.show');
         Route::put('/{username}', [ProjectController::class, 'update'])->name('projects.update');
         Route::delete('/{username}', [ProjectController::class, 'destroy'])->name('projects.destroy');
+    });
+
+    // Project activity endpoint
+    Route::get('/projects/{username}/activity', [ProjectActivityController::class, 'index'])->name('projects.activity');
+
+    // Project custom fields endpoints
+    Route::prefix('projects/{username}/custom-fields')->group(function () {
+        Route::get('/', [ProjectCustomFieldController::class, 'index'])->name('projects.custom-fields.index');
+        Route::post('/', [ProjectCustomFieldController::class, 'store'])->name('projects.custom-fields.store');
+        Route::put('/reorder', [ProjectCustomFieldController::class, 'reorder'])->name('projects.custom-fields.reorder');
+        Route::put('/{id}', [ProjectCustomFieldController::class, 'update'])->name('projects.custom-fields.update');
+        Route::delete('/{id}', [ProjectCustomFieldController::class, 'destroy'])->name('projects.custom-fields.destroy');
+    });
+
+    // Event management endpoints (nested under projects)
+    Route::prefix('projects/{username}/events')->group(function () {
+        Route::get('/', [EventController::class, 'index'])->name('events.index');
+        Route::post('/', [EventController::class, 'store'])->name('events.store');
+        Route::post('/update-order', [EventController::class, 'updateOrder'])->name('events.update-order');
+        Route::get('/trash', [EventController::class, 'trash'])->name('events.trash');
+        Route::post('/trash/{id}/restore', [EventController::class, 'restore'])->name('events.restore');
+        Route::delete('/trash/{id}', [EventController::class, 'forceDestroy'])->name('events.force-destroy');
+        Route::get('/{eventSlug}', [EventController::class, 'show'])->name('events.show');
+        Route::put('/{eventSlug}', [EventController::class, 'update'])->name('events.update');
+        Route::post('/{eventSlug}/set-active', [EventController::class, 'setActive'])->name('events.set-active');
+        Route::delete('/{eventSlug}', [EventController::class, 'destroy'])->name('events.destroy');
+    });
+
+    // Event product management endpoints (nested under events)
+    Route::prefix('projects/{username}/events/{eventSlug}/products')->group(function () {
+        Route::get('/', [EventProductController::class, 'index'])->name('event-products.index');
+        Route::post('/', [EventProductController::class, 'store'])->name('event-products.store');
+        Route::post('/reorder', [EventProductController::class, 'reorder'])->name('event-products.reorder');
+        Route::get('/categories', [EventProductController::class, 'categories'])->name('event-products.categories');
+        Route::get('/{id}', [EventProductController::class, 'show'])->name('event-products.show');
+        Route::put('/{id}', [EventProductController::class, 'update'])->name('event-products.update');
+        Route::delete('/{id}', [EventProductController::class, 'destroy'])->name('event-products.destroy');
+    });
+
+    // Order management endpoints (nested under events)
+    Route::prefix('projects/{username}/events/{eventSlug}/orders')->group(function () {
+        Route::get('/', [OrderController::class, 'index'])->name('orders.index');
+        Route::get('/{ulid}', [OrderController::class, 'show'])->name('orders.show');
+        Route::patch('/{ulid}/status', [OrderController::class, 'updateStatus'])->name('orders.update-status');
+        Route::patch('/{ulid}/discount', [OrderController::class, 'applyDiscount'])->name('orders.apply-discount');
+    });
+
+    // Brand management endpoints (nested under project events)
+    Route::prefix('projects/{username}/events/{eventSlug}/brands')->group(function () {
+        Route::get('/', [BrandEventController::class, 'index'])->name('brands.index');
+        Route::post('/', [BrandEventController::class, 'store'])->name('brands.store');
+        Route::get('/export', [BrandEventController::class, 'export'])->name('brands.export');
+        Route::get('/import/template', [BrandEventController::class, 'downloadTemplate'])->name('brands.import.template');
+        Route::post('/import', [BrandEventController::class, 'import'])->name('brands.import');
+        Route::post('/update-order', [BrandEventController::class, 'updateOrder'])->name('brands.update-order');
+        Route::get('/{brandSlug}', [BrandEventController::class, 'show'])->name('brands.show');
+        Route::put('/{brandSlug}', [BrandEventController::class, 'update'])->name('brands.update');
+        Route::put('/{brandSlug}/profile', [BrandEventController::class, 'updateProfile'])->name('brands.update-profile');
+        Route::delete('/{brandSlug}', [BrandEventController::class, 'destroy'])->name('brands.destroy');
+        // Members
+        Route::get('/{brandSlug}/members', [BrandEventController::class, 'members'])->name('brands.members.index');
+        Route::post('/{brandSlug}/members', [BrandEventController::class, 'addMember'])->name('brands.members.store');
+        Route::delete('/{brandSlug}/members/{userId}', [BrandEventController::class, 'removeMember'])->name('brands.members.destroy');
+        Route::post('/{brandSlug}/members/{userId}/send-invite', [BrandEventController::class, 'sendInvite'])->name('brands.members.send-invite');
+        // Promotion posts
+        Route::get('/{brandSlug}/promotion-posts', [BrandEventController::class, 'promotionPosts'])->name('brands.promotion-posts.index');
+        Route::post('/{brandSlug}/promotion-posts', [BrandEventController::class, 'storePromotionPost'])->name('brands.promotion-posts.store');
+        Route::post('/{brandSlug}/promotion-posts/update-order', [BrandEventController::class, 'updatePromotionPostOrder'])->name('brands.promotion-posts.update-order');
+        Route::put('/{brandSlug}/promotion-posts/{postId}', [BrandEventController::class, 'updatePromotionPost'])->name('brands.promotion-posts.update');
+        Route::delete('/{brandSlug}/promotion-posts/{postId}', [BrandEventController::class, 'destroyPromotionPost'])->name('brands.promotion-posts.destroy');
+        Route::post('/{brandSlug}/promotion-posts/{postId}/reorder-media', [BrandEventController::class, 'reorderPromotionPostMedia'])->name('brands.promotion-posts.reorder-media');
+    });
+
+    // Global orders route (staff+ see all, exhibitors see their own)
+    Route::get('/orders', [OrderController::class, 'all'])->name('orders.all');
+
+    // Global brand routes (staff+)
+    Route::get('/brands', [BrandController::class, 'index'])->middleware('can:brands.read')->name('brands.list');
+    Route::get('/brands/export', [BrandController::class, 'export'])->middleware('can:brands.read')->name('brands.export');
+    Route::get('/brands/import/template', [BrandController::class, 'downloadTemplate'])->middleware('can:brands.create')->name('brands.import.template');
+    Route::post('/brands/import', [BrandController::class, 'import'])->middleware('can:brands.create')->name('brands.import');
+    Route::get('/brands/search', [BrandController::class, 'search'])->name('brands.search');
+    Route::get('/brands/{brand}', [BrandController::class, 'show'])->middleware('can:brands.read')->name('brands.show');
+    Route::put('/brands/{brand}', [BrandController::class, 'update'])->middleware('can:brands.update')->name('brands.update');
+    Route::delete('/brands/{brand}', [BrandController::class, 'destroy'])->middleware('can:brands.delete')->name('brands.delete');
+
+    // Notification endpoints
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+        Route::post('/{id}/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+    });
+
+    // Exhibitor dashboard endpoints
+    Route::prefix('exhibitor')->group(function () {
+        Route::get('/dashboard', [ExhibitorDashboardController::class, 'dashboard'])->name('exhibitor.dashboard');
+        Route::get('/brands', [ExhibitorDashboardController::class, 'brands'])->name('exhibitor.brands');
+        Route::get('/brands/{brandSlug}', [ExhibitorDashboardController::class, 'brandShow'])->name('exhibitor.brands.show');
+        Route::put('/brands/{brandSlug}', [ExhibitorDashboardController::class, 'brandUpdate'])->name('exhibitor.brands.update');
+        Route::get('/brands/{brandSlug}/events', [ExhibitorDashboardController::class, 'brandEvents'])->name('exhibitor.brands.events');
+
+        // Order form endpoints
+        Route::get('/brands/{brandSlug}/events/{brandEventId}/products', [ExhibitorDashboardController::class, 'orderFormProducts'])->name('exhibitor.order-form.products');
+        Route::get('/brands/{brandSlug}/events/{brandEventId}/order-form-info', [ExhibitorDashboardController::class, 'orderFormInfo'])->name('exhibitor.order-form.info');
+        Route::post('/brands/{brandSlug}/events/{brandEventId}/orders', [ExhibitorDashboardController::class, 'submitOrder'])->name('exhibitor.orders.store');
+        Route::get('/brands/{brandSlug}/events/{brandEventId}/orders', [ExhibitorDashboardController::class, 'myOrders'])->name('exhibitor.orders.index');
+        Route::get('/brands/{brandSlug}/events/{brandEventId}/orders/{ulid}', [ExhibitorDashboardController::class, 'myOrderShow'])->name('exhibitor.orders.show');
+
+        Route::get('/brands/{brandSlug}/events/{brandEventId}/promotion-posts', [ExhibitorDashboardController::class, 'promotionPosts'])->name('exhibitor.promotion-posts.index');
+        Route::post('/brands/{brandSlug}/events/{brandEventId}/promotion-posts', [ExhibitorDashboardController::class, 'storePromotionPost'])->name('exhibitor.promotion-posts.store');
+        Route::put('/brands/{brandSlug}/events/{brandEventId}/promotion-posts/{postId}', [ExhibitorDashboardController::class, 'updatePromotionPost'])->name('exhibitor.promotion-posts.update');
+        Route::delete('/brands/{brandSlug}/events/{brandEventId}/promotion-posts/{postId}', [ExhibitorDashboardController::class, 'destroyPromotionPost'])->name('exhibitor.promotion-posts.destroy');
+        Route::post('/brands/{brandSlug}/events/{brandEventId}/promotion-posts/{postId}/reorder-media', [ExhibitorDashboardController::class, 'reorderPromotionPostMedia'])->name('exhibitor.promotion-posts.reorder-media');
     });
 
     // Task management endpoints
@@ -358,6 +484,17 @@ Route::middleware(['api.key'])->prefix('public/blog')->group(function () {
 
     // Authors endpoints
     Route::get('/authors/{username}/posts', [PublicBlogController::class, 'postsByAuthor']);
+});
+
+// Public Project & Event API endpoints (API key authentication)
+Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
+    Route::get('/{username}', [PublicProjectController::class, 'show']);
+    Route::get('/{username}/events', [PublicProjectController::class, 'events']);
+    Route::get('/{username}/events/active', [PublicProjectController::class, 'activeEvent']);
+    Route::get('/{username}/events/{eventSlug}', [PublicProjectController::class, 'event']);
+    Route::get('/{username}/events/{eventSlug}/brands', [PublicProjectController::class, 'brands']);
+    Route::get('/{username}/events/{eventSlug}/brands/{brandSlug}', [PublicProjectController::class, 'brand']);
+    Route::get('/{username}/events/{eventSlug}/brands/{brandSlug}/promotion-posts', [PublicProjectController::class, 'promotionPosts']);
 });
 
 // Public Exchange Rate API endpoints (no authentication required, public proxy)

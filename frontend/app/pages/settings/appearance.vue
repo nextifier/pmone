@@ -2,16 +2,16 @@
   <div class="mx-auto max-w-sm space-y-6 pt-4 pb-16">
     <div class="flex items-center gap-x-2.5">
       <Icon name="hugeicons:colors" class="size-5 sm:size-6" />
-      <h1 class="page-title">Appearance</h1>
+      <h1 class="page-title">{{ $t('settings.appearance') }}</h1>
     </div>
 
     <div class="mt-8 space-y-6">
       <!-- Theme Selection -->
       <div class="space-y-4">
         <div>
-          <h3 class="font-semibold tracking-tight">Theme</h3>
+          <h3 class="font-semibold tracking-tight">{{ $t('settings.theme') }}</h3>
           <p class="text-muted-foreground mt-1 text-sm tracking-tight">
-            Choose your preferred theme for the interface.
+            {{ $t('settings.chooseTheme') }}
           </p>
         </div>
 
@@ -42,7 +42,7 @@
                 'text-muted-foreground/80': selectedTheme !== 'light',
               }"
             >
-              Light
+              {{ $t('settings.light') }}
             </div>
           </label>
 
@@ -72,7 +72,7 @@
                 'text-muted-foreground/80': selectedTheme !== 'dark',
               }"
             >
-              Dark
+              {{ $t('settings.dark') }}
             </div>
           </label>
 
@@ -102,7 +102,7 @@
                 'text-muted-foreground/80': selectedTheme !== 'system',
               }"
             >
-              System
+              {{ $t('settings.system') }}
             </div>
           </label>
         </div>
@@ -138,7 +138,9 @@ definePageMeta({
   layout: "app",
 });
 
-usePageMeta("settingsAppearance");
+usePageMeta(null, { title: "Appearance" });
+
+const { t } = useI18n();
 
 const { colorMode, setTheme, isSyncing, lastSyncedAt, syncError } = useThemeSync();
 

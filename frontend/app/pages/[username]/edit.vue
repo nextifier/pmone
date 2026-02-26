@@ -124,7 +124,7 @@ const errors = ref({});
 const title = "Edit User";
 const description = "";
 
-usePageMeta("", {
+usePageMeta(null, {
   title: title,
   description: description,
 });

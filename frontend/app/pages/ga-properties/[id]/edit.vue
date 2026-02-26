@@ -27,7 +27,7 @@ definePageMeta({
 const route = useRoute();
 const id = computed(() => route.params.id);
 
-usePageMeta("", {
+usePageMeta(null, {
   title: `Edit GA4 Property`,
   description: "Edit Google Analytics 4 property",
 });

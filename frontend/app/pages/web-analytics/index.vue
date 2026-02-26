@@ -401,7 +401,7 @@ defineOptions({
   name: "web-analytics",
 });
 
-usePageMeta("", {
+usePageMeta(null, {
   title: "Web Analytics Dashboard",
   description: "View aggregated analytics data from all Google Analytics 4 properties",
 });

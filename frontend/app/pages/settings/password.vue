@@ -2,13 +2,13 @@
   <div class="mx-auto max-w-sm space-y-6 pt-4 pb-16">
     <div class="flex items-center gap-x-2.5">
       <Icon name="hugeicons:reset-password" class="size-5 sm:size-6" />
-      <h1 class="page-title">Change Password</h1>
+      <h1 class="page-title">{{ userHasPassword ? $t('settings.changePassword') : $t('settings.createPassword') }}</h1>
     </div>
 
     <form @submit.prevent="handleSubmit" class="mt-8 grid gap-6">
       <!-- Current Password (only if user has existing password) -->
       <div v-if="userHasPassword" class="input-group">
-        <label for="current_password">Current Password</label>
+        <label for="current_password">{{ $t('settings.currentPassword') }}</label>
         <input
           id="current_password"
           v-model="form.current_password"
@@ -21,7 +21,7 @@
 
       <!-- New Password -->
       <div class="input-group">
-        <label for="password">New Password</label>
+        <label for="password">{{ $t('settings.newPassword') }}</label>
         <input
           id="password"
           v-model="form.password"
@@ -34,7 +34,7 @@
 
       <!-- Confirm New Password -->
       <div class="input-group">
-        <label for="password_confirmation">Confirm New Password</label>
+        <label for="password_confirmation">{{ $t('settings.confirmNewPassword') }}</label>
         <input
           id="password_confirmation"
           v-model="form.password_confirmation"
@@ -55,7 +55,7 @@
           :disabled="isSubmitting"
           class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center justify-center gap-x-1.5 rounded-lg px-4 py-3 text-sm font-semibold tracking-tight transition active:scale-98"
         >
-          <span>{{ isSubmitting ? "Updating.." : "Update Password" }}</span>
+          <span>{{ isSubmitting ? $t('settings.updatingPassword') : $t('settings.updatePassword') }}</span>
 
           <LoadingSpinner v-if="isSubmitting" class="border-primary-foreground size-4" />
         </button>
@@ -80,7 +80,7 @@ definePageMeta({
   layout: "app",
 });
 
-usePageMeta("settingsPassword");
+const { t } = useI18n();
 
 const sanctumFetch = useSanctumClient();
 
@@ -95,6 +95,9 @@ const message = ref();
 const errors = ref();
 const isSubmitting = ref(false);
 const userHasPassword = ref(true);
+
+const pageTitle = computed(() => userHasPassword.value ? t('settings.changePassword') : t('settings.createPassword'));
+usePageMeta(null, { title: pageTitle });
 
 // Check password status with lazy loading
 const { data: passwordStatusResponse } = await useLazySanctumFetch("/api/user/password-status", {
@@ -157,7 +160,7 @@ const handleSubmit = async () => {
       }
       errors.value = validationErrors;
     } else {
-      toast.error("Failed to update password. Please try again.");
+      toast.error(t('settings.failedToUpdatePassword'));
     }
   } finally {
     isSubmitting.value = false;

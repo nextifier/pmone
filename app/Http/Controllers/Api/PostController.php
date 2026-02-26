@@ -354,6 +354,11 @@ class PostController extends Controller
                 $post->syncPostTags($data['tags']);
             }
 
+            // Sync categories via category_post pivot
+            if (isset($data['category_ids']) && is_array($data['category_ids'])) {
+                $post->postCategories()->sync($data['category_ids']);
+            }
+
             // Attach authors - default to authenticated user if none specified
             if (isset($data['authors']) && is_array($data['authors']) && count($data['authors']) > 0) {
                 $this->syncAuthors($post, $data['authors']);
@@ -411,6 +416,11 @@ class PostController extends Controller
             // Update tags if provided with 'post' type
             if (isset($data['tags']) && is_array($data['tags'])) {
                 $post->syncPostTags($data['tags']);
+            }
+
+            // Sync categories via category_post pivot
+            if (isset($data['category_ids']) && is_array($data['category_ids'])) {
+                $post->postCategories()->sync($data['category_ids']);
             }
 
             // Update authors with roles and order
@@ -691,7 +701,7 @@ class PostController extends Controller
      */
     public function bulkDestroy(Request $request): JsonResponse
     {
-        $this->authorize('delete', Post::class);
+        $this->authorize('deleteAny', Post::class);
 
         $request->validate([
             'ids' => 'required|array',
@@ -766,8 +776,6 @@ class PostController extends Controller
      */
     public function bulkUpdateStatus(Request $request): JsonResponse
     {
-        $this->authorize('update', Post::class);
-
         $request->validate([
             'ids' => 'required|array',
             'ids.*' => 'exists:posts,id',
@@ -780,7 +788,9 @@ class PostController extends Controller
             $this->authorize('update', $post);
         }
 
-        Post::whereIn('id', $request->ids)->update(['status' => $request->status]);
+        foreach ($posts as $post) {
+            $post->update(['status' => $request->status]);
+        }
 
         return response()->json([
             'message' => count($request->ids).' posts updated successfully',
@@ -1041,22 +1051,18 @@ class PostController extends Controller
         // Default sizes attribute (responsive)
         $sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px';
 
+        $captionAttr = $caption
+            ? sprintf(' data-caption="%s"', htmlspecialchars($caption, ENT_QUOTES, 'UTF-8'))
+            : '';
+
         $html = sprintf(
-            '<img src="%s" srcset="%s" sizes="%s" alt="%s" loading="lazy" class="w-full h-auto rounded-lg">',
+            '<img src="%s" srcset="%s" sizes="%s" alt="%s"%s loading="lazy" class="w-full h-auto rounded-lg">',
             $media->getUrl('lg'), // default fallback
             $srcsetString,
             $sizes,
-            htmlspecialchars($alt, ENT_QUOTES, 'UTF-8')
+            htmlspecialchars($alt, ENT_QUOTES, 'UTF-8'),
+            $captionAttr
         );
-
-        // Wrap with figure if caption exists
-        if ($caption) {
-            $html = sprintf(
-                '<figure>%s<figcaption>%s</figcaption></figure>',
-                $html,
-                htmlspecialchars($caption, ENT_QUOTES, 'UTF-8')
-            );
-        }
 
         return $html;
     }

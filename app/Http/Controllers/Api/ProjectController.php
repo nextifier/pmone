@@ -10,6 +10,8 @@ use App\Http\Resources\UserMinimalResource;
 use App\Imports\ProjectsImport;
 use App\Models\Project;
 use App\Models\User;
+use App\Notifications\ProjectMemberAddedNotification;
+use App\Notifications\ProjectMemberRemovedNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -68,7 +70,7 @@ class ProjectController extends Controller
     {
         $this->authorize('viewAny', Project::class);
 
-        $query = Project::onlyTrashed()->with(['members']);
+        $query = Project::onlyTrashed()->with(['members.media']);
         $clientOnly = $request->boolean('client_only', false);
 
         if (! $clientOnly) {
@@ -175,14 +177,14 @@ class ProjectController extends Controller
 
         return response()->json([
             'message' => 'Project created successfully',
-            'data' => new ProjectResource($project->load(['members', 'links', 'creator', 'updater'])),
+            'data' => new ProjectResource($project->load(['members.media', 'links', 'creator', 'updater'])),
         ], 201);
     }
 
     public function show(string $username): JsonResponse
     {
         $project = Project::where('username', $username)
-            ->with(['members', 'links', 'creator', 'updater'])
+            ->with(['members.media', 'links', 'creator', 'updater'])
             ->firstOrFail();
 
         $this->authorize('view', $project);
@@ -276,7 +278,7 @@ class ProjectController extends Controller
 
         return response()->json([
             'message' => 'Project updated successfully',
-            'data' => new ProjectResource($project->load(['members', 'links', 'creator', 'updater'])),
+            'data' => new ProjectResource($project->load(['members.media', 'links', 'creator', 'updater'])),
         ]);
     }
 
@@ -343,7 +345,7 @@ class ProjectController extends Controller
 
         return response()->json([
             'message' => 'Project restored successfully',
-            'data' => new ProjectResource($project->load(['members', 'links', 'creator', 'updater'])),
+            'data' => new ProjectResource($project->load(['members.media', 'links', 'creator', 'updater'])),
         ]);
     }
 
@@ -477,9 +479,61 @@ class ProjectController extends Controller
         ]);
     }
 
+    public function toggleMember(Request $request, string $username): JsonResponse
+    {
+        $project = Project::where('username', $username)->firstOrFail();
+
+        $this->authorize('update', $project);
+
+        $validated = $request->validate([
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        $userId = $validated['user_id'];
+        $user = User::findOrFail($userId);
+
+        if ($project->members()->where('user_id', $userId)->exists()) {
+            $project->members()->detach($userId);
+            $action = 'removed';
+        } else {
+            $project->members()->attach($userId);
+            $action = 'added';
+        }
+
+        activity()
+            ->performedOn($project)
+            ->causedBy($request->user())
+            ->withProperties([
+                'project_id' => $project->id,
+                'member_name' => $user->name,
+                'member_id' => $userId,
+                'action' => $action,
+            ])
+            ->event($action === 'added' ? 'member_added' : 'member_removed')
+            ->log($action === 'added' ? "Added member {$user->name}" : "Removed member {$user->name}");
+
+        // Notify the member (if not self)
+        if ($userId !== $request->user()->id) {
+            if ($action === 'added') {
+                $user->notify(new ProjectMemberAddedNotification($project, $request->user()));
+            } else {
+                $user->notify(new ProjectMemberRemovedNotification($project, $request->user()));
+            }
+        }
+
+        return response()->json([
+            'message' => $action === 'added'
+                ? "{$user->name} added to {$project->name}"
+                : "{$user->name} removed from {$project->name}",
+            'action' => $action,
+            'user_id' => $userId,
+        ]);
+    }
+
     public function getEligibleMembers(): JsonResponse
     {
         $users = User::role(['master', 'admin', 'staff'])
+            ->with('media')
             ->orderBy('name')
             ->get();
 

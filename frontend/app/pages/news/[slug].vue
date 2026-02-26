@@ -4,7 +4,7 @@
       v-if="['news-slug'].includes(route.name)"
       side="right"
       variant="sidebar"
-      class="border-border top-(--navbar-height-desktop)"
+      class="top-(--navbar-height-desktop) border-transparent"
     >
       <SidebarContent class="scroll-fade-y relative pb-10">
         <button
@@ -16,7 +16,7 @@
         </button>
 
         <div
-          class="divide-border grid grid-cols-1 divide-y px-4 pb-8 *:py-4"
+          class="grid grid-cols-1 px-4 pb-8 *:py-4"
           :class="{
             'pt-2': isMobile,
           }"
@@ -27,12 +27,12 @@
             @headings-found="onHeadingsFound"
           />
 
-          <ClientOnly>
+          <!-- <ClientOnly>
             <LazyBlogPostRelated variant="sidebar" title="Editor's Picks" />
-          </ClientOnly>
+          </ClientOnly> -->
         </div>
       </SidebarContent>
-      <SidebarRail />
+      <!-- <SidebarRail /> -->
     </Sidebar>
 
     <div v-if="pending" class="min-h-screen-offset grid place-items-center">
@@ -257,7 +257,7 @@ const description = computed(
     ""
 );
 
-usePageMeta("", {
+usePageMeta(null, {
   title: title,
   description: description,
 });

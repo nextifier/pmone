@@ -102,7 +102,7 @@ if (resolvedType.value === "shortlink") {
     });
   });
 } else {
-  usePageMeta("", {
+  usePageMeta(null, {
     title: title,
     description: description,
   });

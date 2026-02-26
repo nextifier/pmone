@@ -235,7 +235,7 @@ class CategoryController extends Controller
      */
     public function bulkDestroy(Request $request): JsonResponse
     {
-        $this->authorize('delete', Category::class);
+        $this->authorize('deleteAny', Category::class);
 
         $request->validate([
             'ids' => 'required|array',
@@ -260,7 +260,7 @@ class CategoryController extends Controller
      */
     public function bulkRestore(Request $request): JsonResponse
     {
-        $this->authorize('restore', Category::class);
+        $this->authorize('restoreAny', Category::class);
 
         $request->validate([
             'ids' => 'required|array',
@@ -279,7 +279,7 @@ class CategoryController extends Controller
      */
     public function bulkForceDestroy(Request $request): JsonResponse
     {
-        $this->authorize('forceDelete', Category::class);
+        $this->authorize('forceDeleteAny', Category::class);
 
         $request->validate([
             'ids' => 'required|array',

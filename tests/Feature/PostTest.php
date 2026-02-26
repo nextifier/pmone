@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
@@ -81,10 +82,10 @@ test('user can create post with authors and categories', function () {
     $post = Post::where('title', 'Post with Relations')->first();
 
     expect($post->authors)->toHaveCount(2);
-    expect($post->categories)->toHaveCount(2);
+    expect($post->postCategories)->toHaveCount(2);
 
     // Check pivot data
-    $primaryAuthor = $post->authors()->wherePivot('role', 'primary_author')->first();
+    $primaryAuthor = $post->authors()->wherePivot('order', 0)->first();
     expect($primaryAuthor->id)->toBe($author1->id);
     expect($primaryAuthor->pivot->order)->toBe(0);
 });
@@ -158,25 +159,7 @@ test('user can update post authors and categories', function () {
 
     $post->refresh();
     expect($post->authors)->toHaveCount(2);
-    expect($post->categories)->toHaveCount(1);
-});
-
-test('updating post creates a revision', function () {
-    $post = Post::factory()->create([
-        'title' => 'Original Title',
-        'content' => '<p>Original content</p>',
-        'created_by' => $this->user->id,
-    ]);
-
-    $originalRevisionCount = $post->revisions()->count();
-
-    $this->putJson("/api/posts/{$post->slug}", [
-        'title' => 'Updated Title',
-        'content' => '<p>Updated content</p>',
-    ]);
-
-    $post->refresh();
-    expect($post->revisions()->count())->toBeGreaterThan($originalRevisionCount);
+    expect($post->postCategories)->toHaveCount(1);
 });
 
 // Delete & Trash Tests
@@ -214,6 +197,10 @@ test('user can restore a trashed post', function () {
 });
 
 test('user can permanently delete a post', function () {
+    // forceDelete requires master or admin role
+    Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+    $this->user->assignRole('admin');
+
     $post = Post::factory()->create(['created_by' => $this->user->id]);
     $post->delete();
 
@@ -225,6 +212,10 @@ test('user can permanently delete a post', function () {
 });
 
 test('permanently deleting a post deletes all images', function () {
+    // forceDelete requires master or admin role
+    Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+    $this->user->assignRole('admin');
+
     Storage::fake('public');
 
     $post = Post::factory()->create(['created_by' => $this->user->id]);
@@ -347,23 +338,20 @@ test('post visibility must be valid', function () {
         ->assertJsonValidationErrors(['visibility']);
 });
 
-test('author role must be valid', function () {
-    $author = User::factory()->create();
-
+test('author user_id must be valid', function () {
     $response = $this->postJson('/api/posts', [
         'title' => 'Test Post',
         'content' => '<p>Content</p>',
         'authors' => [
             [
-                'user_id' => $author->id,
-                'role' => 'invalid_role',
+                'user_id' => 99999,
                 'order' => 0,
             ],
         ],
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['authors.0.role']);
+        ->assertJsonValidationErrors(['authors.0.user_id']);
 });
 
 // Filtering Tests

@@ -84,7 +84,7 @@
         </NuxtLink>
 
         <NuxtLink
-          :to="`/projects/${project.username}/edit`"
+          :to="`/projects/${project.username}/settings`"
           class="hover:bg-muted hover:text-foreground flex w-full items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
         >
           <Icon name="lucide:pencil-line" class="size-4 shrink-0" />
@@ -160,7 +160,7 @@ defineOptions({
   name: "projects",
 });
 
-usePageMeta("projects");
+usePageMeta(null, { title: "Projects" });
 
 const { user } = useSanctumAuth();
 const { getRefreshSignal, clearRefreshSignal } = useDataRefresh();

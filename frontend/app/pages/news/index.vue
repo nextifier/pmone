@@ -131,7 +131,7 @@
 </template>
 
 <script setup>
-usePageMeta("news");
+usePageMeta(null, { title: "News" });
 defineOptions({
   name: "news",
 });

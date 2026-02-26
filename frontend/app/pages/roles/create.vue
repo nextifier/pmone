@@ -16,7 +16,7 @@ definePageMeta({
   layout: "app",
 });
 
-usePageMeta("", {
+usePageMeta(null, {
   title: "Create Role",
   description: "Create a new role",
 });

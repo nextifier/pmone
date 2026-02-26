@@ -6,34 +6,34 @@
 
         <div class="grid gap-6">
           <div class="grid text-center">
-            <h1 class="page-title">Welcome back</h1>
+            <h1 class="page-title">{{ $t('auth.welcomeBack') }}</h1>
 
-            <p class="page-description mt-1.5">Log in with your Google account</p>
+            <p class="page-description mt-1.5">{{ $t('auth.loginWithGoogle') }}</p>
 
             <AuthLoginAlternatives class="mt-4" />
           </div>
 
           <div class="flex items-center text-center">
             <span class="bg-border h-px flex-grow"></span>
-            <span class="page-description">or enter your email and password below</span>
+            <span class="page-description">{{ $t('auth.orEnterCredentials') }}</span>
             <span class="bg-border h-px flex-grow"></span>
           </div>
 
           <form @submit.prevent="submit" class="grid gap-6">
             <div class="input-group">
-              <Label for="email">Email</Label>
+              <Label for="email">{{ $t('auth.email') }}</Label>
               <Input v-model="form.email" type="email" name="email" id="email" required autofocus />
               <InputErrorMessage v-if="errors?.email" :errors="errors.email" />
             </div>
             <div class="input-group">
               <div class="flex items-center justify-between gap-3">
-                <Label for="password">Password</Label>
+                <Label for="password">{{ $t('auth.password') }}</Label>
 
                 <NuxtLink
                   to="/forgot-password"
                   class="text-sm tracking-tight hover:underline"
                   tabindex="-1"
-                  >Forgot your password?</NuxtLink
+                  >{{ $t('auth.forgotPassword') }}</NuxtLink
                 >
               </div>
 
@@ -58,13 +58,13 @@
                       v-if="!showPassword"
                       name="lucide:eye"
                       class="size-4 shrink-0"
-                      v-tippy="'Show password'"
+                      v-tippy="$t('auth.showPassword')"
                     />
                     <Icon
                       v-else
                       name="lucide:eye-off"
                       class="size-4 shrink-0"
-                      v-tippy="'Hide password'"
+                      v-tippy="$t('auth.hidePassword')"
                     />
                   </button>
                 </div>
@@ -77,24 +77,24 @@
               :disabled="loading"
               class="bg-primary text-primary-foreground hover:bg-primary/80 flex h-10 items-center justify-center gap-x-2 rounded-lg px-8 py-2 text-sm font-semibold tracking-tight ring-2 ring-offset-2 transition active:scale-95"
             >
-              <span>Log in</span>
+              <span>{{ $t('auth.login') }}</span>
               <LoadingSpinner v-if="loading" class="border-primary-foreground h-4" />
             </button>
           </form>
 
           <div class="grid text-center">
             <p class="text-sm tracking-tight">
-              Don't have an account?
-              <nuxt-link to="/signup" class="underline underline-offset-4">Sign up</nuxt-link>
+              {{ $t('auth.dontHaveAccount') }}
+              <nuxt-link to="/signup" class="underline underline-offset-4">{{ $t('auth.signUp') }}</nuxt-link>
             </p>
           </div>
         </div>
 
         <p class="page-description text-center text-xs">
-          By continuing, you agree to our
-          <NuxtLink to="/terms" class="underline">Terms</NuxtLink>
-          and
-          <NuxtLink to="/privacy" class="underline">Privacy Policy</NuxtLink>.
+          {{ $t('auth.byContinuing') }}
+          <NuxtLink to="/terms" class="underline">{{ $t('auth.terms') }}</NuxtLink>
+          {{ $t('auth.and') }}
+          <NuxtLink to="/privacy" class="underline">{{ $t('auth.privacyPolicy') }}</NuxtLink>.
         </p>
       </div>
     </div>
@@ -108,7 +108,7 @@ definePageMeta({
   middleware: ["sanctum:guest"],
 });
 
-usePageMeta("login");
+usePageMeta(null, { title: "Log in" });
 
 const loading = ref(false);
 const showPassword = ref(false);

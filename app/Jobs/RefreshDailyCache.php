@@ -50,7 +50,9 @@ class RefreshDailyCache implements ShouldBeUnique, ShouldQueue
         public string $timestampKey,
         public string $refreshingKey,
         public int $ttl
-    ) {}
+    ) {
+        $this->onQueue('analytics');
+    }
 
     /**
      * Get the unique ID for the job.

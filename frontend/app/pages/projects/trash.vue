@@ -172,7 +172,7 @@ defineOptions({
   name: "projects-trash",
 });
 
-usePageMeta("projectTrash");
+usePageMeta(null, { title: "Project Trash" });
 
 const { user } = useSanctumAuth();
 const { isAdminOrMaster } = usePermission();

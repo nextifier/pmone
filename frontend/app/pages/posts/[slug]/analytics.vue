@@ -268,7 +268,7 @@ watch(selectedPeriod, () => {
   loadAnalytics();
 });
 
-usePageMeta("", {
+usePageMeta(null, {
   title: `Analytics - ${slug.value}`,
   description: `Analytics for post ${slug.value}`,
 });

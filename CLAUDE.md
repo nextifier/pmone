@@ -1,3 +1,13 @@
+# PM One
+
+PM One is the API backend serving:
+1. **Admin Frontend** - Nuxt 4 app in `/frontend` (pmone.id)
+2. **11 Event Websites** - Nuxt 4 monorepo at `~/Frontend/pmone-events/` (each event has its own domain)
+
+Event websites consume PM One API for: blog posts, brands/exhibitors, tickets, rundown, gallery, partners, contact form, short links, sitemap URLs.
+
+See `~/Frontend/pmone-events/CLAUDE.md` for the event websites monorepo documentation.
+
 <laravel-boost-guidelines>
 === foundation rules ===
 

@@ -8,6 +8,7 @@ use App\Http\Resources\PostAutosaveResource;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
 use App\Models\PostAutosave;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -60,6 +61,8 @@ class PostAutosaveController extends Controller
                 'message' => 'Autosave successful',
                 'data' => new PostAutosaveResource($autosave),
             ]);
+        } catch (AuthorizationException $e) {
+            throw $e;
         } catch (\Exception $e) {
             logger()->error('Autosave failed', [
                 'error' => $e->getMessage(),

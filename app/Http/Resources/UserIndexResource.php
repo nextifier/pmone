@@ -14,6 +14,7 @@ class UserIndexResource extends JsonResource
             'name' => $this->name,
             'username' => $this->username,
             'email' => $this->email,
+            'phone' => $this->phone,
             'title' => $this->title,
             'status' => $this->status,
             'email_verified_at' => $this->email_verified_at?->toISOString(),
@@ -32,6 +33,7 @@ class UserIndexResource extends JsonResource
 
             // Counts
             'posts_count' => $this->when(isset($this->posts_count), $this->posts_count ?? 0),
+            'brands_count' => $this->when(isset($this->brands_count), $this->brands_count ?? 0),
 
             // Tracking fields
             'created_by' => $this->created_by,

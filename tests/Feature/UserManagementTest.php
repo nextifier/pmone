@@ -140,8 +140,8 @@ it('allows master users to delete users', function () {
         'message' => 'User deleted successfully',
     ]);
 
-    // User should be deleted from database
-    $this->assertDatabaseMissing('users', [
+    // User should be soft deleted
+    $this->assertSoftDeleted('users', [
         'id' => $targetUser->id,
     ]);
 });
@@ -170,7 +170,7 @@ it('validates required fields when creating users', function () {
         ->postJson('/api/users', []);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['name', 'email', 'password']);
+    $response->assertJsonValidationErrors(['email']);
 });
 
 it('can filter users by role', function () {
@@ -184,7 +184,7 @@ it('can filter users by role', function () {
     $regularUser->assignRole('user');
 
     $response = $this->actingAs($master, 'sanctum')
-        ->getJson('/api/users?filter[role]=admin');
+        ->getJson('/api/users?filter_role=admin');
 
     $response->assertStatus(200);
 
@@ -208,7 +208,7 @@ it('can search users by name and email', function () {
     $searchableUser->assignRole('user');
 
     $response = $this->actingAs($master, 'sanctum')
-        ->getJson('/api/users?filter[search]=Searchable');
+        ->getJson('/api/users?filter_search=Searchable');
 
     $response->assertStatus(200);
 

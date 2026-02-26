@@ -37,7 +37,7 @@ definePageMeta({
 const route = useRoute();
 const slug = computed(() => route.params.slug);
 
-usePageMeta("", {
+usePageMeta(null, {
   title: `Edit Short Link - ${slug.value}`,
   description: "Edit short link",
 });

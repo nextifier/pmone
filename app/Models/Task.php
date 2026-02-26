@@ -258,7 +258,15 @@ class Task extends Model implements HasMedia
     {
         return LogOptions::defaults()
             ->logOnly(['title', 'status', 'priority', 'complexity', 'visibility', 'assignee_id', 'estimated_start_at', 'estimated_completion_at'])
-            ->logOnlyDirty();
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
+
+    public function tapActivity(\Spatie\Activitylog\Models\Activity $activity, string $eventName): void
+    {
+        if ($this->project_id) {
+            $activity->properties = $activity->properties->put('project_id', $this->project_id);
+        }
     }
 
     public function registerMediaCollections(): void

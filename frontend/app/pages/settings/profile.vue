@@ -5,7 +5,7 @@
         <div class="flex w-full items-center justify-between">
           <div class="flex items-center gap-x-2.5">
             <Icon name="hugeicons:edit-user-02" class="size-5 sm:size-6" />
-            <h1 class="page-title">Edit Profile</h1>
+            <h1 class="page-title">{{ $t('settings.editProfile') }}</h1>
           </div>
 
           <button
@@ -14,7 +14,7 @@
             class="text-primary-foreground hover:bg-primary/80 bg-primary flex items-center justify-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
           >
             <Spinner v-if="isSubmitting" />
-            <span>Save</span>
+            <span>{{ $t('common.save') }}</span>
           </button>
         </div>
       </div>
@@ -29,8 +29,8 @@
         :show-account-settings="false"
         :show-roles="false"
         :show-images="true"
-        submit-text="Update Profile"
-        submit-loading-text="Updating.."
+        :submit-text="$t('settings.updateProfile')"
+        :submit-loading-text="$t('common.updating')"
         @submit="handleSubmit"
       />
     </template>
@@ -49,7 +49,9 @@ definePageMeta({
   layout: "app",
 });
 
-usePageMeta("settingsProfile");
+const { t } = useI18n();
+
+usePageMeta(null, { title: t('settings.editProfile') });
 
 const sanctumFetch = useSanctumClient();
 const { user } = useSanctumAuth();
@@ -80,7 +82,7 @@ const handleSubmit = async (payload) => {
     });
 
     // Show success message
-    toast.success(response?.message || "Profile updated successfully!");
+    toast.success(response?.message || t('settings.profileUpdatedSuccess'));
 
     // Update local user data with response
     if (response.data) {

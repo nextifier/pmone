@@ -57,6 +57,7 @@ use Spatie\Tags\Tag;
  * @property-read \App\Models\User|null $updater
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
  * @property-read int|null $visits_count
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byAuthor(int $authorId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byCreator(int $userId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byStatus(string $status)
@@ -105,6 +106,7 @@ use Spatie\Tags\Tag;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Post extends Model implements HasMedia
@@ -276,7 +278,8 @@ class Post extends Model implements HasMedia
     {
         return LogOptions::defaults()
             ->logOnly(['title', 'slug', 'status', 'visibility', 'published_at'])
-            ->logOnlyDirty();
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 
     public function registerMediaCollections(): void
@@ -428,6 +431,14 @@ class Post extends Model implements HasMedia
     }
 
     /**
+     * Get categories via the category_post pivot table
+     */
+    public function postCategories(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Category::class, 'category_post');
+    }
+
+    /**
      * Scope: Published posts
      */
     public function scopePublished($query)
@@ -516,10 +527,12 @@ class Post extends Model implements HasMedia
      */
     public function scopeSearch($query, string $search)
     {
-        return $query->where(function ($q) use ($search) {
-            $q->where('title', 'ilike', "%{$search}%")
-                ->orWhere('excerpt', 'ilike', "%{$search}%")
-                ->orWhere('content', 'ilike', "%{$search}%");
+        $likeOperator = config('database.default') === 'pgsql' ? 'ilike' : 'like';
+
+        return $query->where(function ($q) use ($search, $likeOperator) {
+            $q->where('title', $likeOperator, "%{$search}%")
+                ->orWhere('excerpt', $likeOperator, "%{$search}%")
+                ->orWhere('content', $likeOperator, "%{$search}%");
         });
     }
 

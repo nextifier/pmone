@@ -30,7 +30,7 @@ definePageMeta({
 const route = useRoute();
 const slug = computed(() => route.params.slug);
 
-usePageMeta("", {
+usePageMeta(null, {
   title: `Edit Role - ${slug.value}`,
   description: "Edit role",
 });

@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-6xl space-y-6 pt-4 pb-16">
+  <div class="mx-auto max-w-4xl space-y-6 pt-4 pb-16">
     <!-- Page Header -->
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-x-2.5">
@@ -10,42 +10,30 @@
       <button
         v-if="user?.roles?.includes('master')"
         @click="confirmClearLogs"
-        :disabled="clearing || pending"
-        class="border-destructive bg-destructive/10 text-destructive hover:bg-destructive/20 flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm font-medium tracking-tight transition active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+        :disabled="clearing || loading"
+        class="border-destructive/16 bg-destructive/8 text-destructive-foreground hover:bg-destructive/16 flex items-center gap-x-1.5 rounded-lg border px-2.5 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Icon name="hugeicons:delete-02" class="size-4 shrink-0" />
         <span>Clear All Logs</span>
       </button>
     </div>
 
-    <!-- Main Table -->
-    <TableData
-      ref="tableRef"
-      :clientOnly="false"
-      :data="data"
-      :columns="columns"
+    <!-- Activity Feed -->
+    <ActivityFeed
+      :activities="activities"
       :meta="meta"
-      :pending="pending"
-      :error="error"
-      model="logs"
-      search-column="search"
-      search-placeholder="Search in description, user, or event"
-      error-title="Error loading activity logs"
-      :show-add-button="false"
-      :show-refresh-button="true"
-      :initial-pagination="pagination"
-      :initial-sorting="sorting"
-      :initial-column-filters="columnFilters"
-      @update:pagination="onPaginationUpdate"
-      @update:sorting="onSortingUpdate"
-      @update:column-filters="onColumnFiltersUpdate"
-      @refresh="refresh"
+      :loading="loading"
+      :per-page="perPage"
+      search-placeholder="Search in description, user, or event..."
+      @search="onSearch"
+      @page="onPage"
+      @per-page-change="onPerPageChange"
     >
-      <template #filters="{ table }">
+      <template #filters>
         <Popover>
           <PopoverTrigger asChild>
             <button
-              class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+              class="hover:bg-muted relative flex h-9 shrink-0 items-center gap-x-1.5 rounded-lg border px-2.5 text-sm tracking-tight active:scale-98"
             >
               <Icon name="lucide:list-filter" class="size-4 shrink-0" />
               <span class="hidden sm:flex">Filter</span>
@@ -59,35 +47,69 @@
           </PopoverTrigger>
           <PopoverContent class="w-auto min-w-52 p-3" align="start">
             <div class="space-y-4">
-              <FilterSection
-                v-if="logNames.length > 0"
-                title="Log Name"
-                :options="logNames"
-                :selected="selectedLogNames"
-                @change="handleFilterChange('log_name', $event)"
-              />
-              <div v-if="logNames.length > 0 && events.length > 0" class="border-t" />
-              <FilterSection
-                v-if="events.length > 0"
-                title="Event"
-                :options="events"
-                :selected="selectedEvents"
-                @change="handleFilterChange('event', $event)"
-              />
+              <div v-if="logNameOptions.length > 0" class="space-y-2.5">
+                <div class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+                  Log Name
+                </div>
+                <div class="space-y-2">
+                  <div
+                    v-for="(option, i) in logNameOptions"
+                    :key="option"
+                    class="flex items-center gap-2"
+                  >
+                    <Checkbox
+                      :id="`logname-${i}`"
+                      :modelValue="selectedLogNames.includes(option)"
+                      @update:modelValue="(checked) => toggleFilter('log_name', option, !!checked)"
+                    />
+                    <Label
+                      :for="`logname-${i}`"
+                      class="grow cursor-pointer font-normal tracking-tight capitalize"
+                    >
+                      {{ option }}
+                    </Label>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="logNameOptions.length > 0 && eventOptions.length > 0" class="border-t" />
+
+              <div v-if="eventOptions.length > 0" class="space-y-2.5">
+                <div class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+                  Event
+                </div>
+                <div class="space-y-2">
+                  <div
+                    v-for="(option, i) in eventOptions"
+                    :key="option"
+                    class="flex items-center gap-2"
+                  >
+                    <Checkbox
+                      :id="`event-${i}`"
+                      :modelValue="selectedEvents.includes(option)"
+                      @update:modelValue="(checked) => toggleFilter('event', option, !!checked)"
+                    />
+                    <Label
+                      :for="`event-${i}`"
+                      class="grow cursor-pointer font-normal tracking-tight capitalize"
+                    >
+                      {{ option }}
+                    </Label>
+                  </div>
+                </div>
+              </div>
             </div>
           </PopoverContent>
         </Popover>
       </template>
-    </TableData>
+    </ActivityFeed>
   </div>
 </template>
 
 <script setup>
-import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -100,116 +122,91 @@ defineOptions({
   name: "ActivityLogs",
 });
 
-usePageMeta("logs");
+usePageMeta(null, { title: "Activity Logs" });
 
 const { user } = useSanctumAuth();
-const { $dayjs } = useNuxtApp();
+const client = useSanctumClient();
 
-// Table state
-const columnFilters = ref([]);
-const pagination = ref({ pageIndex: 0, pageSize: 50 });
-const sorting = ref([{ id: "created_at", desc: true }]);
-
-// Filter options
-const logNames = ref([]);
-const events = ref([]);
+const activities = ref([]);
+const meta = ref(null);
+const loading = ref(true);
 const clearing = ref(false);
 
-// Build query params for API
-const buildQueryParams = () => {
-  const params = new URLSearchParams();
+// Filters
+const search = ref("");
+const page = ref(1);
+const perPage = ref(50);
+const selectedLogNames = ref([]);
+const selectedEvents = ref([]);
+const logNameOptions = ref([]);
+const eventOptions = ref([]);
 
-  // Pagination
-  params.append("page", pagination.value.pageIndex + 1);
-  params.append("per_page", pagination.value.pageSize);
-
-  // Search filter
-  const searchFilter = columnFilters.value.find((f) => f.id === "search");
-  if (searchFilter?.value) {
-    params.append("search", searchFilter.value);
-  }
-
-  // Log name filter
-  const logNameFilter = columnFilters.value.find((f) => f.id === "log_name");
-  if (logNameFilter?.value && Array.isArray(logNameFilter.value)) {
-    params.append("log_name", logNameFilter.value.join(","));
-  }
-
-  // Event filter
-  const eventFilter = columnFilters.value.find((f) => f.id === "event");
-  if (eventFilter?.value && Array.isArray(eventFilter.value)) {
-    params.append("event", eventFilter.value.join(","));
-  }
-
-  // Sorting
-  const sortField = sorting.value[0]?.id || "created_at";
-  const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
-  params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
-
-  return params.toString();
-};
-
-// Fetch logs using lazy loading
-const {
-  data: logsResponse,
-  pending,
-  error,
-  refresh: fetchLogs,
-} = await useLazySanctumFetch(() => `/api/logs?${buildQueryParams()}`, {
-  key: "logs-data",
-  watch: false,
-});
-
-const data = computed(() => logsResponse.value?.data || []);
-const meta = computed(() => logsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 50, total: 0 });
-
-// Watch for changes and refetch
-watch(
-  [columnFilters, sorting, pagination],
-  () => {
-    fetchLogs();
-  },
-  { deep: true }
+const totalActiveFilters = computed(
+  () => selectedLogNames.value.length + selectedEvents.value.length
 );
 
-// Update handlers
-const onPaginationUpdate = (newValue) => {
-  pagination.value.pageIndex = newValue.pageIndex;
-  pagination.value.pageSize = newValue.pageSize;
-};
-
-const onSortingUpdate = (newValue) => {
-  sorting.value = newValue;
-};
-
-const onColumnFiltersUpdate = (newValue) => {
-  columnFilters.value = newValue;
-};
-
-const refresh = fetchLogs;
-
-// Load filter options
-const loadLogNames = async () => {
+async function fetchActivities() {
+  loading.value = true;
   try {
-    const client = useSanctumClient();
-    const response = await client("/api/logs/log-names");
-    logNames.value = response.data || [];
-  } catch (err) {
-    console.error("Error loading log names:", err);
-  }
-};
+    const params = new URLSearchParams();
+    params.append("page", page.value);
+    params.append("per_page", perPage.value);
+    if (search.value) params.append("search", search.value);
+    if (selectedLogNames.value.length) params.append("log_name", selectedLogNames.value.join(","));
+    if (selectedEvents.value.length) params.append("event", selectedEvents.value.join(","));
 
-const loadEvents = async () => {
+    const res = await client(`/api/logs?${params.toString()}`);
+    activities.value = res.data || [];
+    meta.value = res.meta || null;
+  } catch (err) {
+    console.error("Error loading activity logs:", err);
+    activities.value = [];
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function loadFilterOptions() {
   try {
-    const client = useSanctumClient();
-    const response = await client("/api/logs/events");
-    events.value = response.data || [];
+    const [logNamesRes, eventsRes] = await Promise.all([
+      client("/api/logs/log-names"),
+      client("/api/logs/events"),
+    ]);
+    logNameOptions.value = logNamesRes.data || [];
+    eventOptions.value = eventsRes.data || [];
   } catch (err) {
-    console.error("Error loading events:", err);
+    console.error("Error loading filter options:", err);
   }
-};
+}
 
-// Clear all logs (master only)
+function onSearch(query) {
+  search.value = query;
+  page.value = 1;
+  fetchActivities();
+}
+
+function onPage(newPage) {
+  page.value = newPage;
+  fetchActivities();
+}
+
+function onPerPageChange(newPerPage) {
+  perPage.value = newPerPage;
+  page.value = 1;
+  fetchActivities();
+}
+
+function toggleFilter(type, value, checked) {
+  const target = type === "log_name" ? selectedLogNames : selectedEvents;
+  if (checked) {
+    target.value = [...target.value, value];
+  } else {
+    target.value = target.value.filter((v) => v !== value);
+  }
+  page.value = 1;
+  fetchActivities();
+}
+
 const confirmClearLogs = () => {
   if (
     confirm(
@@ -222,20 +219,13 @@ const confirmClearLogs = () => {
 
 const clearLogs = async () => {
   clearing.value = true;
-
   try {
-    const client = useSanctumClient();
-    const response = await client("/api/logs/clear", {
-      method: "DELETE",
-    });
-
+    const response = await client("/api/logs/clear", { method: "DELETE" });
     toast.success("Activity logs cleared successfully", {
       description: `${response.deleted_count || 0} log entries deleted`,
     });
-
-    await refresh();
+    await fetchActivities();
   } catch (err) {
-    console.error("Error clearing logs:", err);
     toast.error("Failed to clear logs", {
       description: err?.data?.message || err?.message || "An error occurred",
     });
@@ -244,192 +234,8 @@ const clearLogs = async () => {
   }
 };
 
-// Table columns definition
-const columns = [
-  {
-    header: "Activity",
-    accessorKey: "human_description",
-    cell: ({ row }) => {
-      const log = row.original;
-      return h("div", { class: "space-y-1" }, [
-        h(
-          "div",
-          { class: "text-foreground text-sm font-medium tracking-tight" },
-          log.human_description || log.description
-        ),
-        log.event
-          ? h("div", { class: "text-muted-foreground flex items-center gap-x-1 text-xs" }, [
-              h("span", { class: "capitalize" }, log.event),
-              log.log_name
-                ? h("span", {}, [
-                    h("span", { class: "text-muted-foreground/50" }, " • "),
-                    h("span", { class: "capitalize" }, log.log_name),
-                  ])
-                : null,
-            ])
-          : null,
-      ]);
-    },
-    size: 300,
-    enableSorting: false,
-  },
-  {
-    header: "User",
-    accessorKey: "causer_name",
-    cell: ({ row }) => {
-      const log = row.original;
-      return h("div", { class: "space-y-0.5" }, [
-        h("div", { class: "text-foreground text-sm tracking-tight" }, log.causer_name || "System"),
-        log.causer_id
-          ? h("div", { class: "text-muted-foreground text-xs" }, `ID: ${log.causer_id}`)
-          : null,
-      ]);
-    },
-    size: 160,
-    enableSorting: false,
-  },
-  {
-    header: "Subject",
-    accessorKey: "subject_info",
-    cell: ({ row }) => {
-      const log = row.original;
-      return log.subject_info
-        ? h("div", { class: "text-foreground text-sm tracking-tight" }, log.subject_info)
-        : h("div", { class: "text-muted-foreground text-sm" }, "—");
-    },
-    size: 240,
-    enableSorting: false,
-  },
-  {
-    header: "Time",
-    accessorKey: "created_at",
-    cell: ({ row }) => {
-      const date = row.getValue("created_at");
-      return withDirectives(
-        h("div", { class: "text-muted-foreground text-sm tracking-tight" }, $dayjs(date).fromNow()),
-        [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
-      );
-    },
-    size: 140,
-    enableSorting: true,
-  },
-  {
-    header: "Details",
-    accessorKey: "properties",
-    cell: ({ row }) => {
-      const log = row.original;
-      const hasProperties = log.properties && Object.keys(log.properties).length > 0;
-
-      if (!hasProperties) {
-        return h("div", { class: "text-muted-foreground text-xs" }, "—");
-      }
-
-      return h("details", { class: "cursor-pointer" }, [
-        h(
-          "summary",
-          {
-            class:
-              "text-primary hover:text-primary/80 text-xs font-medium tracking-tight select-none",
-          },
-          "View Details"
-        ),
-        h("div", { class: "mt-2 max-w-md" }, [
-          h(
-            "pre",
-            {
-              class:
-                "bg-muted/50 text-foreground max-h-48 overflow-auto rounded-lg border p-3 text-xs whitespace-pre-wrap",
-            },
-            JSON.stringify(log.properties, null, 2)
-          ),
-        ]),
-      ]);
-    },
-    size: 120,
-    enableSorting: false,
-  },
-];
-
-// Table ref
-const tableRef = ref();
-
-// Filter helpers
-const getFilterValue = (columnId) => {
-  return columnFilters.value.find((f) => f.id === columnId)?.value ?? [];
-};
-
-const selectedLogNames = computed(() => getFilterValue("log_name"));
-const selectedEvents = computed(() => getFilterValue("event"));
-const totalActiveFilters = computed(
-  () => selectedLogNames.value.length + selectedEvents.value.length
-);
-
-const handleFilterChange = (columnId, { checked, value }) => {
-  const current = getFilterValue(columnId);
-  const updated = checked ? [...current, value] : current.filter((item) => item !== value);
-
-  const existingIndex = columnFilters.value.findIndex((f) => f.id === columnId);
-  if (updated.length) {
-    if (existingIndex >= 0) {
-      columnFilters.value[existingIndex].value = updated;
-    } else {
-      columnFilters.value.push({ id: columnId, value: updated });
-    }
-  } else {
-    if (existingIndex >= 0) {
-      columnFilters.value.splice(existingIndex, 1);
-    }
-  }
-
-  // Reset to first page when filter changes
-  pagination.value.pageIndex = 0;
-};
-
-// Filter Section Component
-const FilterSection = defineComponent({
-  props: {
-    title: String,
-    options: Array,
-    selected: Array,
-  },
-  emits: ["change"],
-  setup(props, { emit }) {
-    return () =>
-      h("div", { class: "space-y-2.5" }, [
-        h(
-          "div",
-          { class: "text-muted-foreground text-xs font-semibold uppercase tracking-wider" },
-          props.title
-        ),
-        h(
-          "div",
-          { class: "space-y-2" },
-          props.options.map((option, i) => {
-            const value = typeof option === "string" ? option : option.value;
-            const label = typeof option === "string" ? option : option.label;
-            return h("div", { key: value, class: "flex items-center gap-2" }, [
-              h(Checkbox, {
-                id: `${props.title}-${i}`,
-                modelValue: props.selected.includes(value),
-                "onUpdate:modelValue": (checked) => emit("change", { checked: !!checked, value }),
-              }),
-              h(
-                Label,
-                {
-                  for: `${props.title}-${i}`,
-                  class: "grow cursor-pointer font-normal tracking-tight capitalize",
-                },
-                { default: () => label }
-              ),
-            ]);
-          })
-        ),
-      ]);
-  },
-});
-
-// Load filter options on mount
-onMounted(async () => {
-  await Promise.all([loadLogNames(), loadEvents()]);
+onMounted(() => {
+  fetchActivities();
+  loadFilterOptions();
 });
 </script>

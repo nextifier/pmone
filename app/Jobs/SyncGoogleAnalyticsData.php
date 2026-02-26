@@ -42,7 +42,9 @@ class SyncGoogleAnalyticsData implements ShouldBeUnique, ShouldQueue
     public function __construct(
         public int $propertyId,
         public int $days = 30,
-    ) {}
+    ) {
+        $this->onQueue('analytics');
+    }
 
     /**
      * Get the unique ID for the job.

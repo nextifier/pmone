@@ -60,7 +60,7 @@ definePageMeta({
   middleware: ["sanctum:guest"],
 });
 
-usePageMeta("magicLink");
+usePageMeta(null, { title: "Log in without Password" });
 
 const loading = ref(false);
 

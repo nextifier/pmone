@@ -42,7 +42,7 @@ definePageMeta({
 const route = useRoute();
 const consumerId = computed(() => route.params.id);
 
-usePageMeta("api-consumers", {
+usePageMeta(null, {
   title: "Edit API Consumer",
 });
 

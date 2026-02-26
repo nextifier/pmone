@@ -16,7 +16,7 @@ definePageMeta({
   layout: "app",
 });
 
-usePageMeta("", {
+usePageMeta(null, {
   title: "Create Google Analytics Property",
   description: "Add a new Google Analytics 4 property",
 });

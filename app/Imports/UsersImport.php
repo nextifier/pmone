@@ -21,6 +21,8 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
 
     protected int $importedCount = 0;
 
+    public function __construct(protected ?string $defaultRole = null) {}
+
     public function prepareForValidation($data, $index)
     {
         // Normalize phone to string
@@ -79,12 +81,12 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
         // Create user
         $user = User::create($userData);
 
-        // Assign roles if provided, otherwise assign 'user' role
+        // Assign roles if provided, otherwise use default role or 'user'
         if (! empty($row['roles'])) {
             $roles = array_map('trim', explode(',', $row['roles']));
             $user->assignRole($roles);
         } else {
-            $user->assignRole('user');
+            $user->assignRole($this->defaultRole ?? 'user');
         }
 
         // Create links from website and instagram columns

@@ -193,7 +193,7 @@ watch(selectedPeriod, () => {
   loadAnalytics();
 });
 
-usePageMeta("", {
+usePageMeta(null, {
   title: "Posts Analytics",
   description: "Analytics for all published posts",
 });

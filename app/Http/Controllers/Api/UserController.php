@@ -13,9 +13,11 @@ use App\Http\Resources\UserIndexResource;
 use App\Http\Resources\UserResource;
 use App\Imports\UsersImport;
 use App\Models\User;
+use App\Notifications\UserRoleChangedNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
@@ -31,12 +33,27 @@ class UserController extends Controller
         $this->authorize('users.read');
 
         $query = User::query()->with(['roles', 'creator', 'updater'])->withCount('posts');
+
+        if ($request->boolean('with_brands_count')) {
+            $query->withCount('brands');
+        }
+
         $clientOnly = $request->boolean('client_only', false);
 
         // Apply filters and sorting only if not client-only mode
         if (! $clientOnly) {
             $this->applyFilters($query, $request);
             $this->applySorting($query, $request);
+        }
+
+        // Apply exclude_role filter for both modes
+        if ($excludeRole = $request->input('exclude_role')) {
+            $query->whereDoesntHave('roles', fn ($q) => $q->where('name', $excludeRole));
+        }
+
+        // Apply role filter for both modes
+        if ($filterRole = $request->input('role')) {
+            $query->whereHas('roles', fn ($q) => $q->where('name', $filterRole));
         }
 
         // Paginate only if not client-only mode
@@ -73,6 +90,15 @@ class UserController extends Controller
 
         $query = User::onlyTrashed()->with(['roles', 'deleter']);
         $clientOnly = $request->boolean('client_only', false);
+
+        // Apply role filters for both modes
+        if ($excludeRole = $request->input('exclude_role')) {
+            $query->whereDoesntHave('roles', fn ($q) => $q->where('name', $excludeRole));
+        }
+
+        if ($filterRole = $request->input('role')) {
+            $query->whereHas('roles', fn ($q) => $q->where('name', $filterRole));
+        }
 
         // Apply filters and sorting only if not client-only mode
         if (! $clientOnly) {
@@ -157,12 +183,12 @@ class UserController extends Controller
                 ->groupBy('users.id')
                 ->orderByRaw("MIN(roles.name) {$direction}");
         } elseif ($field === 'last_seen') {
-            $query->orderByRaw("last_seen IS NULL")
+            $query->orderByRaw('last_seen IS NULL')
                 ->orderBy('last_seen', $direction);
         } elseif (in_array($field, ['name', 'email', 'username', 'status', 'email_verified_at', 'created_at', 'updated_at'])) {
             $query->orderBy($field, $direction);
         } else {
-            $query->orderByRaw("last_seen IS NULL")
+            $query->orderByRaw('last_seen IS NULL')
                 ->orderBy('last_seen', 'desc');
         }
     }
@@ -203,6 +229,7 @@ class UserController extends Controller
 
                 $userData['status'] = $userData['status'] ?? 'active';
                 $userData['visibility'] = $userData['visibility'] ?? 'public';
+                $userData['email_verified_at'] = $userData['email_verified_at'] ?? now();
 
                 $user = User::create($userData);
 
@@ -312,7 +339,14 @@ class UserController extends Controller
 
             // Update roles if provided
             if ($request->has('roles')) {
+                $oldRoles = $user->getRoleNames()->toArray();
                 $user->syncRoles($request->input('roles'));
+                $newRoles = $request->input('roles');
+
+                // Notify user if roles changed (and not self)
+                if ($oldRoles !== $newRoles && $user->id !== $request->user()->id) {
+                    $user->notify(new UserRoleChangedNotification($newRoles, $request->user()));
+                }
             }
 
             // Handle links update if provided
@@ -594,7 +628,7 @@ class UserController extends Controller
         $user = $request->user();
 
         return response()->json([
-            'has_password' => ! is_null($user->password),
+            'has_password' => ! empty($user->password),
         ]);
     }
 
@@ -608,6 +642,7 @@ class UserController extends Controller
             'email' => ['sometimes', 'email', 'unique:users,email,'.$user->id],
             'phone' => ['nullable', 'string', 'max:20'],
             'title' => ['nullable', 'string', 'max:255'],
+            'company_name' => ['nullable', 'string', 'max:255'],
             'birth_date' => ['nullable', 'date', 'before:today'],
             'gender' => ['nullable', 'in:male,female,other'],
             'bio' => ['nullable', 'string', 'max:1000'],
@@ -699,7 +734,7 @@ class UserController extends Controller
     public function updatePassword(Request $request): JsonResponse
     {
         $user = $request->user();
-        $hasPassword = ! is_null($user->password);
+        $hasPassword = ! empty($user->password);
 
         // Define validation rules based on whether user has existing password
         $rules = [
@@ -782,24 +817,35 @@ class UserController extends Controller
             $filters['verified'] = $verified;
         }
 
+        // Direct role/exclude_role params (from extraParams, e.g. exhibitors page)
+        if (! isset($filters['role']) && ($directRole = $request->input('role'))) {
+            $filters['role'] = $directRole;
+        }
+        if ($excludeRole = $request->input('exclude_role')) {
+            $filters['exclude_role'] = $excludeRole;
+        }
+
         $sort = $request->input('sort', '-created_at');
 
         // Create the export with filters and sorting
         $export = new UsersExport($filters, $sort);
 
         // Generate filename with timestamp
-        $filename = 'users_'.now()->format('Y-m-d_His').'.xlsx';
+        $filenamePrefix = $request->input('filename_prefix', 'users');
+        $filename = $filenamePrefix.'_'.now()->format('Y-m-d_His').'.xlsx';
 
         return Excel::download($export, $filename);
     }
 
-    public function downloadTemplate(): BinaryFileResponse
+    public function downloadTemplate(Request $request): BinaryFileResponse
     {
         $this->authorize('users.create');
 
-        $filename = 'users_import_template.xlsx';
+        $defaultRole = $request->input('default_role');
+        $filenamePrefix = $request->input('filename_prefix', 'users');
+        $filename = $filenamePrefix.'_import_template.xlsx';
 
-        return Excel::download(new UsersTemplateExport, $filename);
+        return Excel::download(new UsersTemplateExport($defaultRole), $filename);
     }
 
     public function import(Request $request): JsonResponse
@@ -845,7 +891,8 @@ class UserController extends Controller
             }
 
             // Import users
-            $import = new UsersImport;
+            $defaultRole = $request->input('default_role');
+            $import = new UsersImport($defaultRole);
             Excel::import($import, \Illuminate\Support\Facades\Storage::disk('local')->path($filePath));
 
             // Get import results
@@ -1058,6 +1105,7 @@ class UserController extends Controller
                 ], 403);
             }
 
+            $this->detachUserRelations($user);
             $user->forceDelete();
 
             return response()->json([
@@ -1112,6 +1160,7 @@ class UserController extends Controller
                     continue;
                 }
 
+                $this->detachUserRelations($user);
                 $user->forceDelete();
                 $deletedCount++;
             }
@@ -1329,6 +1378,40 @@ class UserController extends Controller
                 'message' => 'Failed to unverify users',
                 'error' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+    private function detachUserRelations(User $user): void
+    {
+        $userId = $user->id;
+
+        // Detach pivot tables
+        DB::table('post_authors')->where('user_id', $userId)->delete();
+        DB::table('project_user')->where('user_id', $userId)->delete();
+        DB::table('task_user')->where('user_id', $userId)->delete();
+        DB::table('brand_user')->where('user_id', $userId)->delete();
+
+        // Nullify foreign keys on audit columns
+        $nullifyTables = [
+            'posts' => ['created_by', 'updated_by', 'deleted_by'],
+            'projects' => ['created_by', 'updated_by', 'deleted_by'],
+            'tasks' => ['created_by', 'updated_by', 'deleted_by', 'assignee_id'],
+            'short_links' => ['user_id', 'created_by', 'updated_by', 'deleted_by'],
+            'contact_form_submissions' => ['followed_up_by', 'deleted_by'],
+            'api_consumers' => ['created_by', 'updated_by', 'deleted_by'],
+            'ga_properties' => ['created_by', 'updated_by', 'deleted_by'],
+            'events' => ['created_by', 'updated_by', 'deleted_by'],
+            'event_products' => ['created_by', 'updated_by'],
+            'orders' => ['created_by', 'updated_by'],
+            'brands' => ['created_by', 'updated_by', 'deleted_by'],
+            'brand_event' => ['sales_id'],
+            'users' => ['created_by', 'updated_by', 'deleted_by'],
+        ];
+
+        foreach ($nullifyTables as $table => $columns) {
+            foreach ($columns as $column) {
+                DB::table($table)->where($column, $userId)->update([$column => null]);
+            }
         }
     }
 }

@@ -14,96 +14,66 @@ class LogController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        if (! $request->user()->hasPermissionTo('admin.logs')) {
+        if (! $request->user()->hasRole(['master', 'admin'])) {
             return response()->json([
-                'message' => 'Unauthorized. You do not have permission to access logs.',
+                'message' => 'Unauthorized. Only master and admin roles can access logs.',
             ], 403);
         }
 
-        $perPage = min($request->input('per_page', 50), 100); // Max 100 entries per page
-        $search = $request->input('search'); // Search in log messages
-        $logName = $request->input('log_name'); // Filter by log name
-        $event = $request->input('event'); // Filter by event type
+        $perPage = min($request->input('per_page', 50), 100);
+        $search = $request->input('search');
+        $logName = $request->input('log_name');
+        $event = $request->input('event');
 
-        try {
-            $query = Activity::with(['causer:id,name', 'subject'])
-                ->orderBy('created_at', 'desc');
+        $query = Activity::with(['causer:id,name', 'subject'])
+            ->orderBy('created_at', 'desc');
 
-            // Apply search filter
-            if ($search) {
-                $likeOperator = config('database.default') === 'pgsql' ? 'ilike' : 'like';
+        if ($search) {
+            $likeOperator = config('database.default') === 'pgsql' ? 'ilike' : 'like';
 
-                $query->where(function ($q) use ($search, $likeOperator) {
-                    $q->where('description', $likeOperator, "%{$search}%")
-                        ->orWhere('log_name', $likeOperator, "%{$search}%")
-                        ->orWhere('event', $likeOperator, "%{$search}%");
+            $query->where(function ($q) use ($search, $likeOperator) {
+                $q->where('description', $likeOperator, "%{$search}%")
+                    ->orWhere('log_name', $likeOperator, "%{$search}%")
+                    ->orWhere('event', $likeOperator, "%{$search}%");
 
-                    // Only search in causer if it exists to avoid N+1 issues
-                    if (trim($search)) {
-                        $q->orWhereHas('causer', function ($subQuery) use ($search, $likeOperator) {
-                            $subQuery->where('name', $likeOperator, "%{$search}%");
-                        });
-                    }
-                });
-            }
-
-            // Apply log name filter
-            if ($logName) {
-                $query->where('log_name', $logName);
-            }
-
-            // Apply event filter
-            if ($event) {
-                $query->where('event', $event);
-            }
-
-            $activities = $query->paginate($perPage);
-
-            $data = $activities->map(function ($activity) {
-                return [
-                    'id' => $activity->id,
-                    'log_name' => $activity->log_name,
-                    'description' => $activity->description,
-                    'human_description' => $this->generateHumanDescription($activity),
-                    'event' => $activity->event,
-                    'subject_type' => $activity->subject_type,
-                    'subject_id' => $activity->subject_id,
-                    'subject_info' => $this->getSubjectInfo($activity),
-                    'causer_type' => $activity->causer_type,
-                    'causer_id' => $activity->causer_id,
-                    'causer_name' => $activity->causer?->name,
-                    'properties' => $activity->properties,
-                    'batch_uuid' => $activity->batch_uuid,
-                    'created_at' => $activity->created_at->toISOString(),
-                    'formatted_time' => $activity->created_at->format('Y-m-d H:i:s'),
-                    'time_ago' => $activity->created_at->diffForHumans(),
-                ];
+                if (trim($search)) {
+                    $q->orWhereHas('causer', function ($subQuery) use ($search, $likeOperator) {
+                        $subQuery->where('name', $likeOperator, "%{$search}%");
+                    });
+                }
             });
-
-            return response()->json([
-                'data' => $data,
-                'meta' => [
-                    'current_page' => $activities->currentPage(),
-                    'per_page' => $activities->perPage(),
-                    'total' => $activities->total(),
-                    'last_page' => $activities->lastPage(),
-                ],
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to fetch logs',
-                'error' => $e->getMessage(),
-            ], 500);
         }
+
+        if ($logName) {
+            $query->where('log_name', $logName);
+        }
+
+        if ($event) {
+            $query->where('event', $event);
+        }
+
+        $activities = $query->paginate($perPage);
+
+        $data = $activities->map(fn ($activity) => self::formatActivity($activity));
+
+        return response()->json([
+            'data' => $data,
+            'meta' => [
+                'current_page' => $activities->currentPage(),
+                'from' => $activities->firstItem(),
+                'to' => $activities->lastItem(),
+                'per_page' => $activities->perPage(),
+                'total' => $activities->total(),
+                'last_page' => $activities->lastPage(),
+            ],
+        ]);
     }
 
-    public function logNames(): JsonResponse
+    public function logNames(Request $request): JsonResponse
     {
-        $user = auth()->user();
-
-        if (! $user->hasPermissionTo('admin.logs')) {
+        if (! $request->user()->hasRole(['master', 'admin'])) {
             return response()->json([
-                'message' => 'Unauthorized. You do not have permission to access logs.',
+                'message' => 'Unauthorized. Only master and admin roles can access logs.',
             ], 403);
         }
 
@@ -114,13 +84,11 @@ class LogController extends Controller
         ]);
     }
 
-    public function events(): JsonResponse
+    public function events(Request $request): JsonResponse
     {
-        $user = auth()->user();
-
-        if (! $user->hasPermissionTo('admin.logs')) {
+        if (! $request->user()->hasRole(['master', 'admin'])) {
             return response()->json([
-                'message' => 'Unauthorized. You do not have permission to access logs.',
+                'message' => 'Unauthorized. Only master and admin roles can access logs.',
             ], 403);
         }
 
@@ -133,125 +101,298 @@ class LogController extends Controller
 
     public function clear(Request $request): JsonResponse
     {
-        if (! $request->user()->hasPermissionTo('admin.logs')) {
+        if (! $request->user()->hasRole('master')) {
             return response()->json([
-                'message' => 'Unauthorized. You do not have permission to clear logs.',
+                'message' => 'Unauthorized. Only master role can clear logs.',
             ], 403);
         }
 
-        try {
-            $deletedCount = Activity::count();
-            Activity::truncate();
+        $deletedCount = Activity::count();
+        Activity::truncate();
 
-            activity()
-                ->causedBy($request->user())
-                ->withProperties(['deleted_count' => $deletedCount])
-                ->log('Activity logs cleared');
+        activity()
+            ->causedBy($request->user())
+            ->withProperties(['deleted_count' => $deletedCount])
+            ->log('Activity logs cleared');
 
-            return response()->json([
-                'message' => 'Logs cleared successfully',
-                'deleted_count' => $deletedCount,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to clear logs',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return response()->json([
+            'message' => 'Logs cleared successfully',
+            'deleted_count' => $deletedCount,
+        ]);
     }
 
-    private function generateHumanDescription($activity): string
+    /**
+     * Format a single activity entry for API response.
+     * Shared between LogController and ProjectActivityController.
+     */
+    public static function formatActivity(Activity $activity): array
+    {
+        return [
+            'id' => $activity->id,
+            'log_name' => $activity->log_name,
+            'description' => $activity->description,
+            'human_description' => self::generateHumanDescription($activity),
+            'event' => $activity->event,
+            'icon' => self::getEventIcon($activity->event),
+            'color' => self::getEventColor($activity->event),
+            'subject_type' => $activity->subject_type ? class_basename($activity->subject_type) : null,
+            'subject_id' => $activity->subject_id,
+            'subject_name' => self::getSubjectName($activity),
+            'causer_id' => $activity->causer_id,
+            'causer_name' => $activity->causer?->name ?? 'System',
+            'changes' => self::formatChanges($activity),
+            'created_at' => $activity->created_at->toISOString(),
+            'time_ago' => $activity->created_at->diffForHumans(),
+        ];
+    }
+
+    private static function getSubjectName(Activity $activity): ?string
+    {
+        if (! $activity->subject_type) {
+            return null;
+        }
+
+        $subjectType = class_basename($activity->subject_type);
+        $subject = $activity->subject;
+
+        if (! $subject) {
+            // Try to get name from properties (for deleted subjects)
+            $attrs = $activity->properties['attributes'] ?? $activity->properties['old'] ?? [];
+
+            return $attrs['name'] ?? $attrs['title'] ?? null;
+        }
+
+        // User model: always use name (title = job title, not identifier)
+        if ($subjectType === 'User') {
+            return $subject->name;
+        }
+
+        // Other models: prefer title, then name, then slug
+        return $subject->title ?? $subject->name ?? $subject->slug ?? null;
+    }
+
+    private static function generateHumanDescription(Activity $activity): string
     {
         $userName = $activity->causer?->name ?? 'System';
         $subjectType = $activity->subject_type ? class_basename($activity->subject_type) : null;
+        $subjectName = self::getSubjectName($activity);
         $event = $activity->event;
         $description = $activity->description;
+        $isSelf = $activity->causer_id && $activity->subject_id && $activity->causer_id === $activity->subject_id && $subjectType === 'User';
 
-        // Handle specific cases for better readability
         switch ($event) {
             case 'created':
-                return "{$userName} created a new {$subjectType}";
-
-            case 'updated':
-                if ($activity->properties && isset($activity->properties['attributes'])) {
-                    $attributes = array_keys($activity->properties['attributes']);
-                    if (count($attributes) > 0) {
-                        $fields = implode(', ', $attributes);
-
-                        return "{$userName} updated {$subjectType} ({$fields})";
-                    }
+                $modelLabel = $subjectType ? self::humanizeModelName($subjectType) : 'record';
+                if ($subjectName) {
+                    return "{$userName} created {$modelLabel} \"{$subjectName}\"";
                 }
 
-                return "{$userName} updated {$subjectType}";
+                return "{$userName} created a new {$modelLabel}";
+
+            case 'updated':
+                $fields = self::getChangedFieldLabels($activity);
+
+                if ($isSelf) {
+                    return $fields
+                        ? "{$userName} updated their {$fields}"
+                        : "{$userName} updated their profile";
+                }
+
+                $modelLabel = $subjectType ? self::humanizeModelName($subjectType) : 'record';
+                if ($fields && $subjectName) {
+                    return "{$userName} updated {$fields} on {$modelLabel} \"{$subjectName}\"";
+                }
+                if ($subjectName) {
+                    return "{$userName} updated {$modelLabel} \"{$subjectName}\"";
+                }
+
+                return "{$userName} updated a {$modelLabel}";
 
             case 'deleted':
-                return "{$userName} deleted {$subjectType}";
+                $modelLabel = $subjectType ? self::humanizeModelName($subjectType) : 'record';
+
+                return $subjectName
+                    ? "{$userName} deleted {$modelLabel} \"{$subjectName}\""
+                    : "{$userName} deleted a {$modelLabel}";
 
             case 'restored':
-                return "{$userName} restored {$subjectType}";
+                $modelLabel = $subjectType ? self::humanizeModelName($subjectType) : 'record';
+
+                return $subjectName
+                    ? "{$userName} restored {$modelLabel} \"{$subjectName}\""
+                    : "{$userName} restored a {$modelLabel}";
+
+            case 'member_added':
+                $memberName = $activity->properties['member_name'] ?? 'a member';
+
+                return "{$userName} added {$memberName} as a member";
+
+            case 'member_removed':
+                $memberName = $activity->properties['member_name'] ?? 'a member';
+
+                return "{$userName} removed {$memberName} from members";
+
+            case 'imported':
+                return $description ?: "{$userName} imported data";
 
             default:
-                // Handle custom descriptions
                 if ($description === 'User logged in') {
-                    return "{$userName} logged into the system";
+                    return "{$userName} logged in";
                 }
 
                 if ($description === 'Activity logs cleared') {
                     return "{$userName} cleared all activity logs";
                 }
 
-                // For other cases, use the original description with user name
-                if ($subjectType && $event) {
-                    return "{$userName} performed '{$event}' on {$subjectType}";
+                if ($description) {
+                    return $description;
                 }
 
-                return "{$userName}: {$description}";
+                return "{$userName} performed an action";
         }
     }
 
-    private function getSubjectInfo($activity): ?string
+    /**
+     * Get human-readable field labels from changed attributes.
+     */
+    private static function getChangedFieldLabels(Activity $activity): ?string
     {
-        if (! $activity->subject_type || ! $activity->subject_id) {
+        $attributes = $activity->properties['attributes'] ?? [];
+        $fields = array_keys($attributes);
+
+        $fields = array_filter($fields, fn ($f) => ! in_array($f, ['updated_at', 'updated_by', 'created_at', 'created_by']));
+
+        if (empty($fields)) {
             return null;
         }
 
-        $subjectType = class_basename($activity->subject_type);
+        $labels = array_map(fn ($f) => self::humanizeFieldName($f), $fields);
 
-        try {
-            // Try to get the actual subject model
-            $subject = $activity->subject;
-
-            if (! $subject) {
-                return "{$subjectType} #{$activity->subject_id} (deleted)";
-            }
-
-            // Handle different model types
-            switch ($subjectType) {
-                case 'User':
-                    return "{$subject->name} ({$subject->email})";
-
-                case 'Role':
-                    return "Role: {$subject->name}";
-
-                case 'Permission':
-                    return "Permission: {$subject->name}";
-
-                default:
-                    // For other models, try to get a name or title field
-                    if (isset($subject->name)) {
-                        return "{$subjectType}: {$subject->name}";
-                    }
-
-                    if (isset($subject->title)) {
-                        return "{$subjectType}: {$subject->title}";
-                    }
-
-                    // Fallback to model with ID
-                    return "{$subjectType} #{$activity->subject_id}";
-            }
-        } catch (\Exception) {
-            // If we can't load the subject, show the basic info
-            return "{$subjectType} #{$activity->subject_id}";
+        if (count($labels) === 1) {
+            return $labels[0];
         }
+
+        $last = array_pop($labels);
+
+        return implode(', ', $labels).' and '.$last;
+    }
+
+    private static function humanizeFieldName(string $field): string
+    {
+        $map = [
+            'assignee_id' => 'assignee',
+            'project_id' => 'project',
+            'estimated_start_at' => 'start date',
+            'estimated_completion_at' => 'due date',
+            'completed_at' => 'completion date',
+            'destination_url' => 'destination URL',
+            'is_active' => 'active status',
+            'booth_number' => 'booth number',
+            'booth_size' => 'booth size',
+            'booth_type' => 'booth type',
+            'company_name' => 'company name',
+            'birth_date' => 'birth date',
+            'followed_up_at' => 'follow-up date',
+            'followed_up_by' => 'follow-up person',
+            'og_title' => 'OG title',
+            'og_description' => 'OG description',
+            'is_required' => 'required status',
+            'published_at' => 'publish date',
+            'start_date' => 'start date',
+            'end_date' => 'end date',
+            'confirmed_at' => 'confirmation date',
+            'submitted_at' => 'submission date',
+            'website_url' => 'website URL',
+            'rate_limit' => 'rate limit',
+            'brand_event_id' => 'brand event',
+            'event_id' => 'event',
+        ];
+
+        return $map[$field] ?? str_replace('_', ' ', $field);
+    }
+
+    private static function humanizeModelName(string $className): string
+    {
+        $map = [
+            'ContactFormSubmission' => 'inquiry',
+            'BrandEvent' => 'brand',
+            'ShortLink' => 'short link',
+            'PromotionPost' => 'promotion post',
+            'EventProduct' => 'event product',
+            'ProjectCustomField' => 'custom field',
+        ];
+
+        return $map[$className] ?? strtolower(preg_replace('/(?<!^)[A-Z]/', ' $0', $className));
+    }
+
+    private static function getEventIcon(?string $event = null): string
+    {
+        return match ($event) {
+            'created' => 'hugeicons:add-circle',
+            'updated' => 'hugeicons:edit-02',
+            'deleted' => 'hugeicons:delete-02',
+            'restored' => 'hugeicons:refresh',
+            'member_added' => 'hugeicons:user-add-01',
+            'member_removed' => 'hugeicons:user-remove-01',
+            'imported' => 'hugeicons:file-import',
+            default => 'hugeicons:activity-01',
+        };
+    }
+
+    private static function getEventColor(?string $event = null): string
+    {
+        return match ($event) {
+            'created' => 'green',
+            'updated' => 'blue',
+            'deleted' => 'red',
+            'restored' => 'amber',
+            'member_added' => 'green',
+            'member_removed' => 'red',
+            'imported' => 'purple',
+            default => 'zinc',
+        };
+    }
+
+    /**
+     * Format properties into readable changes array.
+     *
+     * @return array<int, array{field: string, old: mixed, new: mixed}>
+     */
+    private static function formatChanges(Activity $activity): array
+    {
+        $properties = $activity->properties;
+        $changes = [];
+
+        $attributes = $properties['attributes'] ?? [];
+        $old = $properties['old'] ?? [];
+
+        foreach ($attributes as $field => $newValue) {
+            if (in_array($field, ['updated_at', 'updated_by', 'created_at', 'created_by'])) {
+                continue;
+            }
+
+            $changes[] = [
+                'field' => str_replace('_', ' ', $field),
+                'old' => $old[$field] ?? null,
+                'new' => $newValue,
+            ];
+        }
+
+        // For custom events without attributes/old structure, show relevant properties
+        if (empty($changes) && ! isset($properties['attributes'])) {
+            $skip = ['project_id'];
+            foreach ($properties->toArray() as $key => $value) {
+                if (in_array($key, $skip)) {
+                    continue;
+                }
+                $changes[] = [
+                    'field' => str_replace('_', ' ', $key),
+                    'old' => null,
+                    'new' => $value,
+                ];
+            }
+        }
+
+        return $changes;
     }
 }

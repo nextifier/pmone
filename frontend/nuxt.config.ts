@@ -8,7 +8,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     // Private keys that are only available server-side
-    pmOneApiKey: process.env.NUXT_PM_ONE_API_KEY || "pk_JOtzJkN8cYc6DjxAVDsGX1VCmBcU1lRZrk8LnXiK",
+    pmOneApiKey: process.env.NUXT_PM_ONE_API_KEY || "pk_apm8WoYS1OuWX2MBzz982DreFm47X05VyZuUc05k",
 
     // Public keys that are exposed to the client
     public: {
@@ -27,7 +27,6 @@ export default defineNuxtConfig({
     head: {
       title: "PM One",
       meta: [
-        { name: "google", content: "notranslate" },
         {
           name: "viewport",
           content: "width=device-width, initial-scale=1, interactive-widget=resizes-content",
@@ -35,7 +34,6 @@ export default defineNuxtConfig({
       ],
       htmlAttrs: {
         lang: "en",
-        translate: "no",
       },
       link: [
         {
@@ -68,6 +66,7 @@ export default defineNuxtConfig({
     "@nuxt/icon",
     "@nuxt/image",
     "@nuxtjs/color-mode",
+    "@nuxtjs/i18n",
     "shadcn-nuxt",
     "@vueuse/nuxt",
     "@pinia/nuxt",
@@ -114,6 +113,26 @@ export default defineNuxtConfig({
     appendPlugin: false,
   },
 
+  i18n: {
+    locales: [
+      { code: "en", language: "en-US", name: "English", file: "en.json" },
+      { code: "id", language: "id-ID", name: "Bahasa Indonesia", file: "id.json" },
+      { code: "zh", language: "zh-CN", name: "中文", file: "zh.json" },
+    ],
+    lazy: true,
+    langDir: "../i18n/locales",
+    defaultLocale: "en",
+    strategy: "no_prefix",
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: "i18n_locale",
+      redirectOn: "root",
+      alwaysRedirect: false,
+      fallbackLocale: "en",
+    },
+    vueI18n: "./i18n.config.ts",
+  },
+
   fonts: {
     provider: "local",
     families: [
@@ -146,8 +165,8 @@ export default defineNuxtConfig({
   },
 
   colorMode: {
-    preference: "dark", //system, light, dark
-    fallback: "dark",
+    preference: "system", //system, light, dark
+    fallback: "light",
     classSuffix: "",
     globalName: "__COLOR_MODE__",
     storageKey: "color-mode",

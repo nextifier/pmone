@@ -17,13 +17,14 @@
         <div
           class="aspect-[3/1] overflow-hidden sm:rounded-xl"
           :style="{
-            '--hue': Math.min((profile?.name?.length || 0) / 50, 1) * 360,
+            '--hue': coverHue,
+            '--hue-end': (coverHue + 20) % 360,
           }"
           :class="[
             'outline-primary/5 @container relative flex items-center justify-center outline -outline-offset-1 [--bg-chroma:0.16] [--bg-lightness:0.9] [--text-chroma:0.16] [--text-lightness:0.32] dark:[--bg-chroma:0.14] dark:[--bg-lightness:0.28] dark:[--text-chroma:0.16] dark:[--text-lightness:0.8]',
             !profile?.cover_image &&
               !profile?.profile_image &&
-              'bg-[linear-gradient(135deg,oklch(var(--bg-lightness)_var(--bg-chroma)_var(--hue)),oklch(calc(var(--bg-lightness)*1.1)_calc(var(--bg-chroma)*1.5)_calc(var(--hue)+20)))]',
+              'bg-[linear-gradient(135deg,oklch(var(--bg-lightness)_var(--bg-chroma)_var(--hue)),oklch(calc(var(--bg-lightness)*0.97)_calc(var(--bg-chroma)*0.9)_var(--hue-end)))]',
           ]"
         >
           <img
@@ -93,7 +94,7 @@
 
                 <NuxtLink
                   v-if="canViewTasks"
-                  :to="`/${profile.username}/tasks`"
+                  :to="profileType === 'project' ? `/projects/${profile.username}/tasks` : `/${profile.username}/tasks`"
                   class="bg-muted text-foreground hover:bg-border flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight backdrop-blur-sm transition active:scale-98"
                 >
                   <Icon name="hugeicons:task-daily-01" class="size-4.5 shrink-0" />
@@ -259,6 +260,15 @@ const props = defineProps({
 
 defineEmits(["track-click"]);
 
+const coverHue = computed(() => {
+  const name = props.profile?.name || "";
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash) % 360;
+});
+
 const { user: authUser, hasPermission } = usePermission();
 
 const isSelf = computed(() => {
@@ -308,8 +318,10 @@ const hasContactMethods = computed(() => {
 });
 
 const editUrl = computed(() => {
-  const base = props.profileType === "user" ? "" : "/projects";
-  return `${base}/${props.profile?.username}/edit`;
+  if (props.profileType === "project") {
+    return `/projects/${props.profile?.username}/settings`;
+  }
+  return `/${props.profile?.username}/edit`;
 });
 
 const analyticsUrl = computed(() => {
