@@ -125,6 +125,7 @@ class PromotionPost extends Model implements HasMedia, Sortable
         return $this->getMedia('post_image')->map(function ($media) {
             return [
                 'id' => $media->id,
+                'file_name' => $media->file_name,
                 'url' => $media->getUrl(),
                 'original' => $media->getUrl(),
                 'lqip' => $media->getUrl('lqip'),

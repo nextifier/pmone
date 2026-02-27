@@ -132,32 +132,23 @@ async function refresh() {
 
 onMounted(() => refresh());
 
-async function downloadImage(url, filename) {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  const blobUrl = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = blobUrl;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(blobUrl);
-}
-
 async function downloadPostImages(post) {
   const images = post.post_images?.length ? post.post_images : post.post_image ? [post.post_image] : [];
   if (!images.length) return;
 
   try {
-    for (let i = 0; i < images.length; i++) {
-      const img = images[i];
-      const url = img.original || img.xl || img.lg || img.url;
-      const ext = url.split(".").pop()?.split("?")[0] || "jpg";
-      const filename = `promo-${post.id}-${i + 1}.${ext}`;
-      await downloadImage(url, filename);
+    for (const img of images) {
+      const blob = await client(`/api/media/${img.id}/download`, { responseType: "blob" });
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = img.file_name || `promo-${post.id}-${img.id}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
     }
-    toast.success("Download started");
+    toast.success("Download complete");
   } catch (e) {
     toast.error("Failed to download");
   }

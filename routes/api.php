@@ -58,6 +58,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::post('/upload', [MediaController::class, 'upload']);
         Route::post('/bulk-upload', [MediaController::class, 'bulkUpload']);
         Route::delete('/bulk-delete', [MediaController::class, 'bulkDelete']);
+        Route::get('/{media}/download', [MediaController::class, 'download']);
         Route::delete('/{media}', [MediaController::class, 'delete']);
     });
 

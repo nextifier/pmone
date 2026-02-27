@@ -447,6 +447,13 @@ class MediaController extends Controller
         }
     }
 
+    public function download(int $mediaId): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    {
+        $media = Media::findOrFail($mediaId);
+
+        return response()->download($media->getPath(), $media->file_name);
+    }
+
     public function delete(int $mediaId): JsonResponse
     {
         try {
