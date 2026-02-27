@@ -3,16 +3,16 @@
     <!-- Category -->
     <div class="space-y-2">
       <Label for="category">Category <span class="text-destructive">*</span></Label>
-      <Input
-        id="category"
-        v-model="form.category"
-        list="category-suggestions"
-        placeholder="e.g. Booth Construction"
-        required
-      />
-      <datalist id="category-suggestions">
-        <option v-for="cat in categorySuggestions" :key="cat" :value="cat" />
-      </datalist>
+      <Select v-model="form.category" required>
+        <SelectTrigger id="category" class="w-full">
+          <SelectValue placeholder="Select category" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem v-for="cat in PRODUCT_CATEGORIES" :key="cat" :value="cat">
+            {{ cat }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
       <p v-if="errors.category" class="text-destructive mt-1 text-xs">
         {{ Array.isArray(errors.category) ? errors.category[0] : errors.category }}
       </p>
@@ -152,11 +152,21 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "vue-sonner";
 
+const PRODUCT_CATEGORIES = [
+  "Booth",
+  "Electricity",
+  "Audio Visual",
+  "Lighting & Furniture",
+  "Decoration",
+  "Internet & Telecommunication",
+  "Accommodation",
+  "Marketing",
+];
+
 const props = defineProps({
   product: { type: Object, default: null },
   eventId: { type: Number, default: null },
   apiBase: { type: String, required: true },
-  categorySuggestions: { type: Array, default: () => [] },
 });
 const emit = defineEmits(["success"]);
 

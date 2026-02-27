@@ -9,10 +9,36 @@
         </p>
       </div>
 
-      <Button @click="openCreate" size="sm" class="ml-auto shrink-0">
-        <Icon name="hugeicons:add-01" class="size-4" />
-        Add Product
-      </Button>
+      <div class="ml-auto flex shrink-0 gap-2">
+        <!-- Export -->
+        <button
+          @click="handleExport"
+          :disabled="exportPending"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Spinner v-if="exportPending" class="size-4 shrink-0" />
+          <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
+          <span>Export {{ (search || selectedCategory !== "all") ? "selected" : "all" }}</span>
+        </button>
+
+        <EventProductImportDialog
+          :username="route.params.username"
+          :event-slug="route.params.eventSlug"
+          @imported="onImported"
+        >
+          <template #trigger="{ open }">
+            <Button @click="open" size="sm" variant="outline">
+              <Icon name="hugeicons:upload-03" class="size-4" />
+              Import
+            </Button>
+          </template>
+        </EventProductImportDialog>
+
+        <Button @click="openCreate" size="sm">
+          <Icon name="hugeicons:add-01" class="size-4" />
+          Add Product
+        </Button>
+      </div>
     </div>
 
     <!-- Filters -->
@@ -199,7 +225,6 @@
         <EventFormEventProduct
           :product="editingProduct"
           :api-base="apiBase"
-          :category-suggestions="categories"
           @success="onFormSuccess"
         />
       </DialogContent>
@@ -260,6 +285,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import EventProductImportDialog from "@/components/event/EventProductImportDialog.vue";
 import { toast } from "vue-sonner";
 
 const props = defineProps({ event: Object, project: Object });
@@ -406,8 +432,57 @@ function openEdit(product) {
   showFormDialog.value = true;
 }
 
+// Export
+const exportPending = ref(false);
+
+const handleExport = async () => {
+  try {
+    exportPending.value = true;
+
+    const params = new URLSearchParams();
+
+    if (search.value) {
+      params.append("filter_search", search.value);
+    }
+    if (selectedCategory.value && selectedCategory.value !== "all") {
+      params.append("filter_category", selectedCategory.value);
+    }
+
+    const response = await client(
+      `${apiBase.value}/export?${params.toString()}`,
+      { responseType: "blob" }
+    );
+
+    const blob = new Blob([response], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `products_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    toast.success("Products exported successfully");
+  } catch (err) {
+    console.error("Failed to export products:", err);
+    toast.error("Failed to export products", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+  } finally {
+    exportPending.value = false;
+  }
+};
+
 async function onFormSuccess() {
   showFormDialog.value = false;
+  await fetchProducts();
+  await fetchCategories();
+}
+
+async function onImported() {
   await fetchProducts();
   await fetchCategories();
 }

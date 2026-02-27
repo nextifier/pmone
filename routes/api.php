@@ -171,6 +171,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::post('/', [EventProductController::class, 'store'])->name('event-products.store');
         Route::post('/reorder', [EventProductController::class, 'reorder'])->name('event-products.reorder');
         Route::get('/categories', [EventProductController::class, 'categories'])->name('event-products.categories');
+        Route::get('/export', [EventProductController::class, 'export'])->name('event-products.export');
+        Route::get('/import/template', [EventProductController::class, 'downloadTemplate'])->name('event-products.import.template');
+        Route::post('/import', [EventProductController::class, 'import'])->name('event-products.import');
         Route::get('/{id}', [EventProductController::class, 'show'])->name('event-products.show');
         Route::put('/{id}', [EventProductController::class, 'update'])->name('event-products.update');
         Route::delete('/{id}', [EventProductController::class, 'destroy'])->name('event-products.destroy');

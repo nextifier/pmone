@@ -2,17 +2,23 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exports\EventProductsExport;
+use App\Exports\EventProductsTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEventProductRequest;
 use App\Http\Requests\UpdateEventProductRequest;
 use App\Http\Resources\EventProductResource;
+use App\Imports\EventProductsImport;
 use App\Models\Event;
 use App\Models\Project;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class EventProductController extends Controller
 {
@@ -170,6 +176,128 @@ class EventProductController extends Controller
         return response()->json([
             'data' => $categories,
         ]);
+    }
+
+    public function export(Request $request, string $username, string $eventSlug): BinaryFileResponse
+    {
+        $project = $this->resolveProject($username);
+        $event = $this->resolveEvent($project, $eventSlug);
+
+        $filters = [];
+        if ($search = $request->input('filter_search')) {
+            $filters['search'] = $search;
+        }
+        if ($category = $request->input('filter_category')) {
+            $filters['category'] = $category;
+        }
+
+        $sort = $request->input('sort', 'order_column');
+
+        $export = new EventProductsExport($event->id, $filters, $sort);
+        $filename = 'products_'.now()->format('Y-m-d_His').'.xlsx';
+
+        return Excel::download($export, $filename);
+    }
+
+    public function downloadTemplate(): BinaryFileResponse
+    {
+        return Excel::download(new EventProductsTemplateExport, 'event_products_import_template.xlsx');
+    }
+
+    public function import(Request $request, string $username, string $eventSlug): JsonResponse
+    {
+        $project = $this->resolveProject($username);
+        $event = $this->resolveEvent($project, $eventSlug);
+
+        $validator = Validator::make($request->all(), [
+            'file' => ['required', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $tempFolder = null;
+
+        try {
+            $tempFolder = $request->input('file');
+
+            $metadataPath = "tmp/uploads/{$tempFolder}/metadata.json";
+
+            if (! Storage::disk('local')->exists($metadataPath)) {
+                return response()->json([
+                    'message' => 'File not found',
+                ], 404);
+            }
+
+            $metadata = json_decode(
+                Storage::disk('local')->get($metadataPath),
+                true
+            );
+
+            $filePath = "tmp/uploads/{$tempFolder}/{$metadata['original_name']}";
+
+            if (! Storage::disk('local')->exists($filePath)) {
+                return response()->json([
+                    'message' => 'File not found',
+                ], 404);
+            }
+
+            $import = new EventProductsImport($event->id);
+            Excel::import($import, Storage::disk('local')->path($filePath));
+
+            $failures = $import->getFailures();
+            $importedCount = $import->getImportedCount();
+            $errorMessages = [];
+
+            foreach ($failures as $failure) {
+                $errorMessages[] = [
+                    'row' => $failure->row(),
+                    'attribute' => $failure->attribute(),
+                    'errors' => $failure->errors(),
+                    'values' => $failure->values(),
+                ];
+            }
+
+            if (count($errorMessages) > 0) {
+                return response()->json([
+                    'message' => 'Import completed with errors',
+                    'errors' => $errorMessages,
+                    'imported_count' => $importedCount,
+                ], 422);
+            }
+
+            activity()
+                ->performedOn($event)
+                ->causedBy($request->user())
+                ->withProperties([
+                    'project_id' => $project->id,
+                    'imported_count' => $importedCount,
+                ])
+                ->event('imported')
+                ->log("Imported {$importedCount} products to event {$event->title}");
+
+            return response()->json([
+                'message' => "Products imported successfully ({$importedCount} imported)",
+                'imported_count' => $importedCount,
+            ]);
+        } catch (\Exception $e) {
+            logger()->error('Event product import failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to import products',
+                'error' => $e->getMessage(),
+            ], 500);
+        } finally {
+            if ($tempFolder) {
+                Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
+            }
+        }
     }
 
     private function handleTemporaryUpload(Request $request, $model, string $fieldName, string $collection): void

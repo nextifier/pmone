@@ -19,7 +19,12 @@
               height="60"
               patternUnits="userSpaceOnUse"
             >
-              <path d="M 60 0 L 0 0 0 60" fill="transparent" stroke="currentColor" stroke-width="1" />
+              <path
+                d="M 60 0 L 0 0 0 60"
+                fill="transparent"
+                stroke="currentColor"
+                stroke-width="1"
+              />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#grid-pattern)" />
@@ -42,7 +47,9 @@
             to="/news"
             class="group bg-muted/50 ring-border hover:bg-muted mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm ring-1 transition"
           >
-            <span class="text-muted-foreground tracking-tight">Event management, project tools, and analytics</span>
+            <span class="text-muted-foreground tracking-tight"
+              >Event management, project tools, and analytics</span
+            >
             <span
               class="text-primary inline-flex items-center gap-1 font-medium transition group-hover:translate-x-0.5"
             >
@@ -58,8 +65,11 @@
           </h1>
 
           <!-- Subtitle -->
-          <p class="text-body mt-5 max-w-2xl text-base leading-relaxed tracking-tight text-center text-pretty sm:text-lg">
-            Projects, exhibitors, orders, links, analytics, content. All under one roof. Built for event organizers who need less tabs and more clarity.
+          <p
+            class="text-body mt-5 max-w-2xl text-center text-base leading-relaxed tracking-tight text-pretty sm:text-lg"
+          >
+            Projects, exhibitors, orders, links, analytics, content. All under one roof. Built for
+            event organizers who need less tabs and more clarity.
           </p>
 
           <!-- CTA -->
@@ -69,7 +79,7 @@
               class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-5 py-2.5 text-sm font-medium tracking-tight transition active:scale-95"
               v-ripple
             >
-              Start for free
+              Get started
             </NuxtLink>
           </div>
 
@@ -80,10 +90,7 @@
               :key="pill.label"
               class="ring-border bg-background inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium tracking-tight ring-1"
             >
-              <span
-                class="flex size-5 items-center justify-center rounded-md"
-                :class="pill.bg"
-              >
+              <span class="flex size-5 items-center justify-center rounded-md" :class="pill.bg">
                 <Icon :name="pill.icon" class="size-3 text-white" />
               </span>
               {{ pill.label }}
@@ -98,9 +105,7 @@
       <div class="container">
         <div class="mb-12 max-w-xl lg:mb-16">
           <p class="section-subtitle text-sm">Core platform</p>
-          <h2 class="section-title mt-3">
-            The stuff you'll use every day.
-          </h2>
+          <h2 class="section-title mt-3">The stuff you'll use every day.</h2>
           <p class="section-description mt-4">
             Everything you need in one place. Each tool designed to talk to the others.
           </p>
@@ -136,7 +141,9 @@
                 {{ tag }}
               </span>
             </div>
-            <div class="text-muted-foreground mt-4 flex items-center gap-1 text-sm tracking-tight transition group-hover:translate-x-0.5">
+            <div
+              class="text-muted-foreground mt-4 flex items-center gap-1 text-sm tracking-tight transition group-hover:translate-x-0.5"
+            >
               <span>Explore</span>
               <Icon name="lucide:arrow-right" class="size-3.5" />
             </div>
@@ -156,19 +163,22 @@
               Events have enough chaos already. Your tools shouldn't add more.
             </h2>
             <p class="section-description mt-4">
-              Create events under any project. Manage brands, booth assignments, product catalogs, and orders. Your exhibitors get their own portal. You keep the overview.
+              Create events under any project. Manage brands, booth assignments, product catalogs,
+              and orders. Your exhibitors get their own portal. You keep the overview.
             </p>
 
             <div class="mt-8 space-y-4">
               <div v-for="item in eventHighlights" :key="item.title" class="flex gap-3">
-                <div
-                  class="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg"
-                >
+                <div class="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
                   <Icon :name="item.icon" class="text-muted-foreground size-4" />
                 </div>
                 <div>
-                  <p class="text-foreground text-sm font-medium tracking-tighter">{{ item.title }}</p>
-                  <p class="text-muted-foreground text-sm leading-relaxed tracking-tight">{{ item.description }}</p>
+                  <p class="text-foreground text-sm font-medium tracking-tighter">
+                    {{ item.title }}
+                  </p>
+                  <p class="text-muted-foreground text-sm leading-relaxed tracking-tight">
+                    {{ item.description }}
+                  </p>
                 </div>
               </div>
             </div>
@@ -176,7 +186,9 @@
 
           <!-- Right: Coming Soon Features Grid -->
           <div class="flex-1">
-            <p class="text-muted-foreground mb-4 text-sm font-medium tracking-tight">Event features</p>
+            <p class="text-muted-foreground mb-4 text-sm font-medium tracking-tight">
+              Event features
+            </p>
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <div
                 v-for="item in eventFeatures"
@@ -191,7 +203,9 @@
                     class="text-muted-foreground size-4 transition group-hover:text-orange-500"
                   />
                 </div>
-                <span class="text-foreground text-xs font-medium tracking-tight sm:text-sm">{{ item.label }}</span>
+                <span class="text-foreground text-xs font-medium tracking-tight sm:text-sm">{{
+                  item.label
+                }}</span>
                 <span
                   v-if="item.soon"
                   class="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-[10px] tracking-tight sm:text-xs"
@@ -212,19 +226,22 @@
           <!-- Right: Copy -->
           <div class="max-w-xl shrink-0 lg:w-1/2">
             <p class="section-subtitle text-sm">Links & Analytics</p>
-            <h2 class="section-title mt-3">
-              Short links with memory.
-            </h2>
+            <h2 class="section-title mt-3">Short links with memory.</h2>
             <p class="section-description mt-4">
-              Create branded short links, auto-generate QR codes, and know exactly where your clicks come from. Device, location, referrer. The full picture.
+              Create branded short links, auto-generate QR codes, and know exactly where your clicks
+              come from. Device, location, referrer. The full picture.
             </p>
 
             <div class="mt-8 grid gap-4 sm:grid-cols-2">
               <div v-for="item in linkHighlights" :key="item.title" class="flex gap-3">
                 <Icon :name="item.icon" class="text-muted-foreground mt-0.5 size-4 shrink-0" />
                 <div>
-                  <p class="text-foreground text-sm font-medium tracking-tighter">{{ item.title }}</p>
-                  <p class="text-muted-foreground text-sm leading-relaxed tracking-tight">{{ item.description }}</p>
+                  <p class="text-foreground text-sm font-medium tracking-tighter">
+                    {{ item.title }}
+                  </p>
+                  <p class="text-muted-foreground text-sm leading-relaxed tracking-tight">
+                    {{ item.description }}
+                  </p>
                 </div>
               </div>
             </div>
@@ -276,7 +293,9 @@
               </div>
               <div class="bg-card ring-border rounded-xl p-5 ring-1">
                 <div class="flex items-center gap-2">
-                  <div class="bg-destructive/10 flex size-8 items-center justify-center rounded-full">
+                  <div
+                    class="bg-destructive/10 flex size-8 items-center justify-center rounded-full"
+                  >
                     <Icon name="lucide:globe" class="text-destructive-foreground size-4" />
                   </div>
                   <span class="text-muted-foreground text-sm tracking-tight">Countries</span>
@@ -296,15 +315,18 @@
         <div class="flex flex-col gap-12 lg:flex-row lg:items-start lg:gap-16">
           <div class="max-w-xl shrink-0 lg:w-1/2">
             <p class="section-subtitle text-sm">Content publishing</p>
-            <h2 class="section-title mt-3">
-              Write it. Schedule it. Done.
-            </h2>
+            <h2 class="section-title mt-3">Write it. Schedule it. Done.</h2>
             <p class="section-description mt-4">
-              A clean rich-text editor with image uploads, categories, tags, and scheduled publishing. No plugin hell. No theme conflicts. Just writing.
+              A clean rich-text editor with image uploads, categories, tags, and scheduled
+              publishing. No plugin hell. No theme conflicts. Just writing.
             </p>
 
             <div class="mt-8 space-y-3">
-              <div v-for="item in contentHighlights" :key="item.label" class="flex items-center gap-3">
+              <div
+                v-for="item in contentHighlights"
+                :key="item.label"
+                class="flex items-center gap-3"
+              >
                 <Icon name="lucide:check" class="text-success-foreground size-4 shrink-0" />
                 <span class="text-body text-sm tracking-tight">{{ item.label }}</span>
               </div>
@@ -356,9 +378,7 @@
       <div class="container">
         <div class="mb-12 max-w-xl lg:mb-16">
           <p class="section-subtitle text-sm">Integrations</p>
-          <h2 class="section-title mt-3">
-            Connects to the tools you already use.
-          </h2>
+          <h2 class="section-title mt-3">Connects to the tools you already use.</h2>
           <p class="section-description mt-4">
             Google Analytics, custom webhooks, REST API. Build what you need on top of PM One.
           </p>
@@ -377,7 +397,9 @@
               />
             </div>
             <h3 class="text-foreground text-sm font-medium tracking-tighter">{{ item.title }}</h3>
-            <p class="text-muted-foreground mt-1.5 text-sm leading-relaxed tracking-tight">{{ item.description }}</p>
+            <p class="text-muted-foreground mt-1.5 text-sm leading-relaxed tracking-tight">
+              {{ item.description }}
+            </p>
           </div>
         </div>
       </div>
@@ -412,7 +434,9 @@
                 {{ feature.title }}
               </h3>
             </div>
-            <p class="text-muted-foreground text-sm leading-relaxed tracking-tight">{{ feature.description }}</p>
+            <p class="text-muted-foreground text-sm leading-relaxed tracking-tight">
+              {{ feature.description }}
+            </p>
           </div>
         </div>
       </div>
@@ -437,9 +461,7 @@
       <div class="container">
         <div class="mb-12 text-center lg:mb-16">
           <p class="section-subtitle text-sm">Built for</p>
-          <h2 class="section-title mt-3">
-            Different roles. Same platform.
-          </h2>
+          <h2 class="section-title mt-3">Different roles. Same platform.</h2>
           <p class="section-description mx-auto mt-4">
             Whether you're running the show or exhibiting at one, PM One fits your workflow.
           </p>
@@ -464,12 +486,11 @@
               {{ persona.description }}
             </p>
             <ul class="mt-4 space-y-2">
-              <li
-                v-for="point in persona.points"
-                :key="point"
-                class="flex items-start gap-2"
-              >
-                <Icon name="lucide:check" class="text-success-foreground mt-0.5 size-3.5 shrink-0" />
+              <li v-for="point in persona.points" :key="point" class="flex items-start gap-2">
+                <Icon
+                  name="lucide:check"
+                  class="text-success-foreground mt-0.5 size-3.5 shrink-0"
+                />
                 <span class="text-body text-sm tracking-tight">{{ point }}</span>
               </li>
             </ul>
@@ -551,7 +572,8 @@
               <Logo class="text-primary h-6" />
             </NuxtLink>
             <p class="text-muted-foreground mt-4 max-w-xs text-sm leading-relaxed tracking-tight">
-              Event management and project collaboration platform. Built for teams who run events, manage exhibitors, and track everything in between.
+              Event management and project collaboration platform. Built for teams who run events,
+              manage exhibitors, and track everything in between.
             </p>
             <div class="mt-6 flex items-center gap-3">
               <a
@@ -630,7 +652,9 @@
         >
           <div class="flex items-center gap-2">
             <span class="bg-success size-2 rounded-full" />
-            <span class="text-muted-foreground text-sm tracking-tight">All systems operational</span>
+            <span class="text-muted-foreground text-sm tracking-tight"
+              >All systems operational</span
+            >
           </div>
           <p class="text-muted-foreground text-sm tracking-tight">
             &copy; {{ new Date().getFullYear() }} PM One. All rights reserved.
