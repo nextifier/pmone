@@ -2,7 +2,7 @@
   <Html>
     <Body class="bg-background text-foreground font-sans text-sm antialiased sm:text-base">
       <NuxtPwaManifest />
-      <NuxtLoadingIndicator />
+      <NuxtLoadingIndicator color="repeating-linear-gradient(90deg, oklch(0.595 0.196 254.96) 0%, oklch(0.659 0.187 252.32) 7%, oklch(0.775 0.121 247.99) 25%, oklch(0.595 0.196 254.96) 50%)" />
       <NuxtLayout>
         <NuxtPage
           :keepalive="{
