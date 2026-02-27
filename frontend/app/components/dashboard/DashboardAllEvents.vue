@@ -135,9 +135,7 @@
         </NuxtLink>
 
         <div class="grid grow-0 grid-cols-2 gap-2">
-          <div
-            class="bg-card group relative flex flex-col items-center justify-center gap-y-2 rounded-lg"
-          >
+          <div class="group relative flex flex-col items-center justify-center gap-y-2">
             <ChartSemiCircle
               :value="event.booked_area"
               :max="event.gross_area"
