@@ -29,11 +29,14 @@ class OrderSubmittedNotification extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
+        $this->order->loadMissing('brandEvent.event.project');
+        $event = $this->order->brandEvent->event;
+
         return [
             'title' => 'New order received',
             'body' => "{$this->brandName} submitted order {$this->order->ulid}",
             'icon' => 'hugeicons:shopping-bag-01',
-            'url' => "/orders/{$this->order->ulid}",
+            'url' => "/projects/{$event->project->username}/events/{$event->slug}/orders/{$this->order->ulid}",
         ];
     }
 }

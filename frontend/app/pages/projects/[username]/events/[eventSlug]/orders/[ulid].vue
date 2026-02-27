@@ -154,6 +154,16 @@
                   <span class="tracking-tight">{{ formatPrice(order.subtotal) }}</span>
                 </div>
                 <div
+                  v-if="order.discount_amount && parseFloat(order.discount_amount) > 0"
+                  class="flex items-center justify-between gap-x-8 text-sm"
+                >
+                  <span class="text-muted-foreground tracking-tight">
+                    Discount
+                    <span v-if="order.discount_type === 'percentage'">({{ order.discount_value }}%)</span>
+                  </span>
+                  <span class="tracking-tight text-green-600 dark:text-green-400">-{{ formatPrice(order.discount_amount) }}</span>
+                </div>
+                <div
                   v-if="order.tax_amount != null"
                   class="flex items-center justify-between gap-x-8 text-sm"
                 >
@@ -181,6 +191,44 @@
 
         <!-- Sidebar -->
         <div class="flex flex-col gap-y-4">
+          <!-- Discount Controls -->
+          <div class="border-border rounded-lg border p-4">
+            <h4 class="mb-3 font-medium tracking-tight">Apply Discount</h4>
+            <div class="space-y-2">
+              <Select v-model="discountForm.type">
+                <SelectTrigger class="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Discount</SelectItem>
+                  <SelectItem value="percentage">Percentage</SelectItem>
+                  <SelectItem value="fixed">Fixed Amount</SelectItem>
+                </SelectContent>
+              </Select>
+              <div v-if="discountForm.type !== 'none'" class="flex items-center gap-x-2">
+                <Input
+                  v-model.number="discountForm.value"
+                  type="number"
+                  min="0"
+                  :max="discountForm.type === 'percentage' ? 100 : undefined"
+                  step="any"
+                  :placeholder="discountForm.type === 'percentage' ? 'e.g. 10' : 'e.g. 500000'"
+                  class="flex-1"
+                />
+                <span v-if="discountForm.type === 'percentage'" class="text-muted-foreground text-sm">%</span>
+              </div>
+              <Button
+                size="sm"
+                class="w-full"
+                :disabled="applyingDiscount"
+                @click="applyDiscount"
+              >
+                <Spinner v-if="applyingDiscount" class="mr-1 size-3.5" />
+                {{ discountForm.type === 'none' ? 'Remove Discount' : 'Apply' }}
+              </Button>
+            </div>
+          </div>
+
           <!-- Brand Info -->
           <div class="border-border rounded-lg border p-4">
             <h4 class="mb-3 font-medium tracking-tight">Brand</h4>
@@ -247,6 +295,8 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -265,6 +315,10 @@ const order = ref(null);
 const loading = ref(true);
 const statusLoading = ref(false);
 
+// Discount form
+const discountForm = reactive({ type: "none", value: 0 });
+const applyingDiscount = ref(false);
+
 usePageMeta(null, {
   title: computed(() => `Order ${order.value?.order_number || ""} · ${props.event?.title || "Event"}`),
 });
@@ -276,6 +330,8 @@ async function fetchOrder() {
       `/api/projects/${route.params.username}/events/${route.params.eventSlug}/orders/${route.params.ulid}`
     );
     order.value = res.data;
+    discountForm.type = res.data.discount_type || "none";
+    discountForm.value = res.data.discount_value ? parseFloat(res.data.discount_value) : 0;
   } catch (err) {
     toast.error("Failed to load order", {
       description: err?.data?.message || err?.message || "An error occurred",
@@ -301,6 +357,29 @@ async function handleStatusUpdate(newStatus) {
     toast.error(err?.data?.message || "Failed to update status");
   } finally {
     statusLoading.value = false;
+  }
+}
+
+async function applyDiscount() {
+  applyingDiscount.value = true;
+  try {
+    const body =
+      discountForm.type === "none"
+        ? { discount_type: null, discount_value: null }
+        : { discount_type: discountForm.type, discount_value: discountForm.value };
+
+    const res = await client(
+      `/api/projects/${route.params.username}/events/${route.params.eventSlug}/orders/${route.params.ulid}/discount`,
+      { method: "PATCH", body },
+    );
+    order.value = res.data;
+    discountForm.type = res.data.discount_type || "none";
+    discountForm.value = res.data.discount_value ? parseFloat(res.data.discount_value) : 0;
+    toast.success(discountForm.type === "none" ? "Discount removed" : "Discount applied");
+  } catch (e) {
+    toast.error(e?.data?.message || "Failed to apply discount");
+  } finally {
+    applyingDiscount.value = false;
   }
 }
 

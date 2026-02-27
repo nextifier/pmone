@@ -31,6 +31,9 @@ class OrderStatusChangedNotification extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
+        $this->order->loadMissing('brandEvent.event.project');
+        $event = $this->order->brandEvent->event;
+
         $statusLabels = [
             'confirmed' => 'confirmed',
             'processing' => 'being processed',
@@ -45,7 +48,7 @@ class OrderStatusChangedNotification extends Notification implements ShouldQueue
             'title' => 'Order status updated',
             'body' => "Your order {$this->order->order_number} has been {$label}",
             'icon' => 'hugeicons:shopping-bag-01',
-            'url' => "/orders/{$this->order->ulid}",
+            'url' => "/projects/{$event->project->username}/events/{$event->slug}/orders/{$this->order->ulid}",
         ];
     }
 }
