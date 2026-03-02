@@ -85,7 +85,7 @@
                   v-for="member in project.members.slice(0, 4)"
                   :model="member"
                   :key="member.id"
-                  class="!bg-border ring-background [&_.initial]:text-muted-foreground size-6 shrink-0 overflow-hidden !rounded-full ring-1 [&_.initial]:text-[10px] [&_.initial]:font-medium"
+                  class="ring-background size-6 shrink-0 overflow-hidden rounded-full! ring-1"
                   v-tippy="member.name"
                 />
                 <span
