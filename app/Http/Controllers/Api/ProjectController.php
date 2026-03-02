@@ -28,7 +28,7 @@ class ProjectController extends Controller
     {
         $this->authorize('viewAny', Project::class);
 
-        $query = Project::query()->with(['members.media']);
+        $query = Project::query()->with(['members.media', 'media']);
         $clientOnly = $request->boolean('client_only', false);
 
         if (! $clientOnly) {
@@ -70,7 +70,7 @@ class ProjectController extends Controller
     {
         $this->authorize('viewAny', Project::class);
 
-        $query = Project::onlyTrashed()->with(['members.media']);
+        $query = Project::onlyTrashed()->with(['members.media', 'media']);
         $clientOnly = $request->boolean('client_only', false);
 
         if (! $clientOnly) {

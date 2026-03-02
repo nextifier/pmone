@@ -28,7 +28,7 @@ class ShortLinkController extends Controller
     {
         $this->authorize('viewAny', ShortLink::class);
 
-        $query = ShortLink::query()->with(['user'])->excludeProfileLinks();
+        $query = ShortLink::query()->with(['user'])->withCount('clicks')->excludeProfileLinks();
         $clientOnly = $request->boolean('client_only', false);
 
         // Role-based filtering: Non-admin users can only see their own short links
@@ -119,6 +119,7 @@ class ShortLinkController extends Controller
     {
         $this->authorize('view', $shortLink);
 
+        $shortLink->loadCount('clicks');
         $shortLink->load(['user', 'clicks' => function ($query) {
             $query->latest('clicked_at')->limit(10);
         }]);
@@ -137,6 +138,7 @@ class ShortLinkController extends Controller
 
             $shortLink = ShortLink::create($data);
             $shortLink->load(['user']);
+            $shortLink->loadCount('clicks');
 
             return response()->json([
                 'message' => 'Short link created successfully',
@@ -161,6 +163,7 @@ class ShortLinkController extends Controller
             $data = $request->validated();
             $shortLink->update($data);
             $shortLink->load(['user']);
+            $shortLink->loadCount('clicks');
 
             return response()->json([
                 'message' => 'Short link updated successfully',
@@ -217,18 +220,13 @@ class ShortLinkController extends Controller
         }
 
         try {
-            $shortLinkIds = $request->input('ids');
             $currentUser = $request->user();
             $deletedCount = 0;
             $errors = [];
 
-            foreach ($shortLinkIds as $shortLinkId) {
-                $shortLink = ShortLink::find($shortLinkId);
+            $shortLinks = ShortLink::whereIn('id', $request->input('ids'))->get();
 
-                if (! $shortLink) {
-                    continue;
-                }
-
+            foreach ($shortLinks as $shortLink) {
                 // Authorization check
                 if (! $currentUser->can('delete', $shortLink)) {
                     $errors[] = "Cannot delete short link: {$shortLink->slug}";
@@ -410,7 +408,7 @@ class ShortLinkController extends Controller
     {
         $this->authorize('viewAny', ShortLink::class);
 
-        $query = ShortLink::onlyTrashed()->with(['user', 'deleter'])->excludeProfileLinks();
+        $query = ShortLink::onlyTrashed()->with(['user', 'deleter'])->withCount('clicks')->excludeProfileLinks();
         $clientOnly = $request->boolean('client_only', false);
 
         // Role-based filtering: Non-admin users can only see their own short links

@@ -32,7 +32,7 @@ class UserController extends Controller
     {
         $this->authorize('users.read');
 
-        $query = User::query()->with(['roles', 'creator', 'updater'])->withCount('posts');
+        $query = User::query()->with(['roles', 'creator', 'updater', 'media'])->withCount('posts');
 
         if ($request->boolean('with_brands_count')) {
             $query->withCount('brands');
@@ -88,7 +88,7 @@ class UserController extends Controller
     {
         $this->authorize('users.read');
 
-        $query = User::onlyTrashed()->with(['roles', 'deleter']);
+        $query = User::onlyTrashed()->with(['roles', 'deleter', 'media']);
         $clientOnly = $request->boolean('client_only', false);
 
         // Apply role filters for both modes

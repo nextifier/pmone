@@ -32,7 +32,9 @@ class ExhibitorDashboardController extends Controller
     public function dashboard(Request $request): JsonResponse
     {
         $user = $request->user();
-        $brands = $user->brands()->with(['media', 'brandEvents.event.media', 'brandEvents.promotionPosts'])->get();
+        $brands = $user->brands()->with(['media', 'brandEvents' => function ($q) {
+            $q->with('event.media')->withCount('promotionPosts');
+        }])->get();
 
         $profileComplete = ! empty($user->name) && ! empty($user->phone) && ! empty($user->title) && ! empty($user->company_name);
 
@@ -79,7 +81,7 @@ class ExhibitorDashboardController extends Controller
                         'order_form_deadline' => $be->event->order_form_deadline?->toIso8601String(),
                         'promotion_post_deadline' => $be->event->promotion_post_deadline?->toIso8601String(),
                     ],
-                    'promotion_posts_count' => $be->promotionPosts->count(),
+                    'promotion_posts_count' => $be->promotion_posts_count,
                     'promotion_post_limit' => $be->promotion_post_limit,
                 ]);
         })->values();
@@ -216,7 +218,8 @@ class ExhibitorDashboardController extends Controller
         $brand = $request->user()->brands()->where('brands.slug', $brandSlug)->firstOrFail();
 
         $brandEvents = BrandEvent::query()
-            ->with(['event.media', 'promotionPosts.media'])
+            ->with(['event.media'])
+            ->withCount('promotionPosts')
             ->where('brand_id', $brand->id)
             ->get()
             ->map(fn (BrandEvent $be) => [
@@ -233,7 +236,7 @@ class ExhibitorDashboardController extends Controller
                 'booth_type' => $be->booth_type?->value,
                 'booth_type_label' => $be->booth_type?->label(),
                 'status' => $be->status,
-                'promotion_posts_count' => $be->promotionPosts->count(),
+                'promotion_posts_count' => $be->promotion_posts_count,
                 'promotion_post_limit' => $be->promotion_post_limit,
             ]);
 

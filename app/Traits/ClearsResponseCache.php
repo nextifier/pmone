@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\ResponseCache\Facades\ResponseCache;
 
 trait ClearsResponseCache
@@ -10,6 +11,10 @@ trait ClearsResponseCache
     {
         static::saved(fn () => ResponseCache::clear(static::responseCacheTags()));
         static::deleted(fn () => ResponseCache::clear(static::responseCacheTags()));
+
+        if (in_array(SoftDeletes::class, class_uses_recursive(static::class))) {
+            static::restored(fn () => ResponseCache::clear(static::responseCacheTags()));
+        }
     }
 
     /**

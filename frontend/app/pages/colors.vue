@@ -1,8 +1,8 @@
 <template>
   <div class="container pt-6 pb-24">
-    <div class="mb-6 flex flex-col items-center gap-y-2.5 text-center">
-      <h1 class="text-center text-3xl font-medium tracking-tighter sm:text-5xl">Colors</h1>
-      <p class="text-muted-foreground max-w-3xl text-sm tracking-tight text-pretty sm:text-lg">
+    <div class="mb-6 flex flex-col gap-y-2.5 lg:items-center lg:text-center">
+      <h1 class="text-4xl font-medium tracking-tighter sm:text-5xl">Colors</h1>
+      <p class="text-muted-foreground max-w-3xl text-base tracking-tight text-pretty sm:text-lg">
         Most designers suck at picking colors. Stop manually choosing lame, boring palettes. Just
         copy these colors crafted by top global designers who have far better taste than you.
       </p>

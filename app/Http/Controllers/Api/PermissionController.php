@@ -289,16 +289,14 @@ class PermissionController extends Controller
             ], 422);
         }
 
-        $permissions = Permission::whereIn('id', $request->ids)->get();
+        $permissions = Permission::whereIn('id', $request->ids)->withCount('roles')->get();
         $deletedCount = 0;
         $errors = [];
 
         foreach ($permissions as $permission) {
             // Check if permission is assigned to any roles
-            $rolesCount = $permission->roles()->count();
-
-            if ($rolesCount > 0) {
-                $errors[] = "Cannot delete {$permission->name}. It is assigned to {$rolesCount} role(s).";
+            if ($permission->roles_count > 0) {
+                $errors[] = "Cannot delete {$permission->name}. It is assigned to {$permission->roles_count} role(s).";
 
                 continue;
             }

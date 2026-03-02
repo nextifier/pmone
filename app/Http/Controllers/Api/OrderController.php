@@ -32,11 +32,11 @@ class OrderController extends Controller
 
         // Exhibitors only see orders for their brands
         if (! $user->hasRole(['master', 'admin', 'staff'])) {
-            $brandIds = $user->brands()->pluck('brands.id');
-            $brandEventIds = BrandEvent::query()
-                ->whereIn('brand_id', $brandIds)
-                ->pluck('id');
-            $query->whereIn('brand_event_id', $brandEventIds);
+            $query->whereIn('brand_event_id',
+                BrandEvent::query()
+                    ->whereIn('brand_id', $user->brands()->select('brands.id'))
+                    ->select('id')
+            );
         }
 
         if ($search = $request->input('search')) {
@@ -92,10 +92,8 @@ class OrderController extends Controller
         $project = $this->resolveProject($username);
         $event = $this->resolveEvent($project, $eventSlug);
 
-        $brandEventIds = $event->brandEvents()->pluck('id');
-
         $query = Order::query()
-            ->whereIn('brand_event_id', $brandEventIds)
+            ->whereIn('brand_event_id', $event->brandEvents()->select('id'))
             ->with(['brandEvent.brand', 'creator']);
 
         if ($request->has('filter.search')) {
@@ -137,10 +135,8 @@ class OrderController extends Controller
         $project = $this->resolveProject($username);
         $event = $this->resolveEvent($project, $eventSlug);
 
-        $brandEventIds = $event->brandEvents()->pluck('id');
-
         $order = Order::query()
-            ->whereIn('brand_event_id', $brandEventIds)
+            ->whereIn('brand_event_id', $event->brandEvents()->select('id'))
             ->where('ulid', $ulid)
             ->with(['items', 'brandEvent.brand', 'creator'])
             ->firstOrFail();
@@ -155,10 +151,8 @@ class OrderController extends Controller
         $project = $this->resolveProject($username);
         $event = $this->resolveEvent($project, $eventSlug);
 
-        $brandEventIds = $event->brandEvents()->pluck('id');
-
         $order = Order::query()
-            ->whereIn('brand_event_id', $brandEventIds)
+            ->whereIn('brand_event_id', $event->brandEvents()->select('id'))
             ->where('ulid', $ulid)
             ->firstOrFail();
 
@@ -189,10 +183,8 @@ class OrderController extends Controller
         $project = $this->resolveProject($username);
         $event = $this->resolveEvent($project, $eventSlug);
 
-        $brandEventIds = $event->brandEvents()->pluck('id');
-
         $order = Order::query()
-            ->whereIn('brand_event_id', $brandEventIds)
+            ->whereIn('brand_event_id', $event->brandEvents()->select('id'))
             ->where('ulid', $ulid)
             ->firstOrFail();
 

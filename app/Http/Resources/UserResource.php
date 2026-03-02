@@ -38,11 +38,11 @@ class UserResource extends JsonResource
             'updated_at' => $this->updated_at->toISOString(),
             'profile_image' => $this->when(
                 $this->hasMedia('profile_image'),
-                $this->getMediaUrls('profile_image')
+                fn () => $this->getMediaUrls('profile_image')
             ),
             'cover_image' => $this->when(
                 $this->hasMedia('cover_image'),
-                $this->getMediaUrls('cover_image')
+                fn () => $this->getMediaUrls('cover_image')
             ),
             'roles' => $this->whenLoaded('roles', fn () => $this->roles->pluck('name')),
             'permissions' => $this->when(

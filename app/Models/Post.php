@@ -247,29 +247,6 @@ class Post extends Model implements HasMedia
             }
         });
 
-        // Clear public blog cache when posts are modified
-        static::saved(function () {
-            static::clearPublicBlogCache();
-        });
-
-        static::deleted(function () {
-            static::clearPublicBlogCache();
-        });
-    }
-
-    /**
-     * Clear the public blog API cache
-     */
-    public static function clearPublicBlogCache(): void
-    {
-        if (app()->bound('cache')) {
-            try {
-                \Illuminate\Support\Facades\Cache::tags(['public-blog', 'posts'])->flush();
-            } catch (\Exception $e) {
-                // Cache driver may not support tags (e.g., file driver)
-                // Silently fail as this is not critical
-            }
-        }
     }
 
     /**

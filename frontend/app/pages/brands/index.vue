@@ -5,7 +5,7 @@
     >
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:blockchain-01" class="size-5 sm:size-6" />
-        <h1 class="page-title">{{ $t('brands.title') }}</h1>
+        <h1 class="page-title">{{ $t("brands.title") }}</h1>
       </div>
 
       <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
@@ -16,7 +16,7 @@
               class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
             >
               <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
-              <span>{{ $t('common.import') }}</span>
+              <span>{{ $t("common.import") }}</span>
             </button>
           </template>
         </BrandImportDialog>
@@ -28,7 +28,9 @@
         >
           <Spinner v-if="exportPending" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
-          <span>{{ totalActiveFilters > 0 ? $t('brands.exportSelected') : $t('brands.exportAll') }}</span>
+          <span>{{
+            totalActiveFilters > 0 ? $t("brands.exportSelected") : $t("brands.exportAll")
+          }}</span>
         </button>
       </div>
 
@@ -38,14 +40,14 @@
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
           <Icon name="lucide:x" class="size-4 shrink-0" />
-          <span>{{ $t('common.clearSelection') }}</span>
+          <span>{{ $t("common.clearSelection") }}</span>
         </button>
       </div>
     </div>
 
     <TableData
       ref="tableRef"
-      :client-only="true"
+      :client-only="false"
       :data="data"
       :columns="columns"
       :meta="meta"
@@ -56,13 +58,17 @@
       search-column="brand_name"
       :search-placeholder="$t('brands.searchBrands')"
       :error-title="$t('brands.errorLoading')"
-      :initial-pagination="{ pageIndex: 0, pageSize: 15 }"
-      :initial-sorting="[{ id: 'brand_name', desc: false }]"
+      :initial-pagination="pagination"
+      :initial-sorting="sorting"
+      :initial-column-filters="columnFilters"
       :initial-column-visibility="{
         company_email: false,
         company_phone: false,
       }"
       :show-add-button="false"
+      @update:pagination="onPaginationUpdate"
+      @update:sorting="onSortingUpdate"
+      @update:column-filters="onColumnFiltersUpdate"
       @refresh="refresh"
     >
       <template #filters="{ table }">
@@ -72,7 +78,7 @@
               class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
             >
               <Icon name="lucide:list-filter" class="size-4 shrink-0" />
-              <span class="hidden sm:flex">{{ $t('common.filter') }}</span>
+              <span class="hidden sm:flex">{{ $t("common.filter") }}</span>
               <span
                 v-if="totalActiveFilters > 0"
                 class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
@@ -109,7 +115,7 @@
               @click="open()"
             >
               <Icon name="lucide:trash" class="size-4 shrink-0" />
-              <span class="text-sm tracking-tight">{{ $t('common.delete') }}</span>
+              <span class="text-sm tracking-tight">{{ $t("common.delete") }}</span>
               <span
                 class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
               >
@@ -119,9 +125,16 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">{{ $t('common.areYouSure') }}</div>
+              <div class="text-primary text-lg font-semibold tracking-tight">
+                {{ $t("common.areYouSure") }}
+              </div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
-                {{ $t('brands.deleteConfirm', { count: selectedRows.length, noun: $t('common.brand', selectedRows.length) }) }}
+                {{
+                  $t("brands.deleteConfirm", {
+                    count: selectedRows.length,
+                    noun: $t("common.brand", selectedRows.length),
+                  })
+                }}
               </p>
               <div class="mt-3 flex justify-end gap-2">
                 <button
@@ -129,7 +142,7 @@
                   @click="deleteDialogOpen = false"
                   :disabled="deletePending"
                 >
-                  {{ $t('common.cancel') }}
+                  {{ $t("common.cancel") }}
                 </button>
                 <button
                   @click="handleDeleteRows(selectedRows)"
@@ -137,7 +150,7 @@
                   class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Spinner v-if="deletePending" class="size-4 text-white" />
-                  <span v-else>{{ $t('common.delete') }}</span>
+                  <span v-else>{{ $t("common.delete") }}</span>
                 </button>
               </div>
             </div>
@@ -169,7 +182,7 @@ definePageMeta({
 const { t } = useI18n();
 
 usePageMeta(null, {
-  title: t('brands.title'),
+  title: t("brands.title"),
 });
 
 const { $dayjs } = useNuxtApp();
@@ -179,28 +192,80 @@ const canCreate = computed(() => hasPermission("brands.create"));
 const canDelete = computed(() => hasPermission("brands.delete"));
 const baseUrl = "/brands";
 
-// Data state
-const brandsResponse = ref(null);
-const pending = ref(false);
-const error = ref(null);
+// Table state
+const columnFilters = ref([]);
+const pagination = ref({ pageIndex: 0, pageSize: 15 });
+const sorting = ref([{ id: "brand_name", desc: false }]);
+
+// Build query params for server-side pagination
+const buildQueryParams = () => {
+  const params = new URLSearchParams();
+
+  params.append("page", pagination.value.pageIndex + 1);
+  params.append("per_page", pagination.value.pageSize);
+
+  // Filters
+  const filters = {
+    brand_name: "filter_search",
+    status: "filter_status",
+  };
+
+  Object.entries(filters).forEach(([columnId, paramKey]) => {
+    const filter = columnFilters.value.find((f) => f.id === columnId);
+    if (filter?.value) {
+      const value = Array.isArray(filter.value) ? filter.value.join(",") : filter.value;
+      params.append(paramKey, value);
+    }
+  });
+
+  // Sorting
+  const sortField = sorting.value[0]?.id || "brand_name";
+  const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
+  params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
+
+  return params.toString();
+};
+
+// Fetch brands with lazy loading
+const {
+  data: brandsResponse,
+  pending,
+  error,
+  refresh: fetchBrands,
+} = await useLazySanctumFetch(() => `/api/brands?${buildQueryParams()}`, {
+  key: "brands-list",
+  watch: false,
+});
 
 const data = computed(() => brandsResponse.value?.data || []);
 const meta = computed(
   () => brandsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 }
 );
 
-async function refresh() {
-  pending.value = true;
-  error.value = null;
-  try {
-    brandsResponse.value = await client("/api/brands?client_only=true");
-  } catch (e) {
-    error.value = e;
-  }
-  pending.value = false;
-}
+// Watch for changes and refetch
+watch(
+  [columnFilters, sorting, pagination],
+  () => {
+    fetchBrands();
+  },
+  { deep: true }
+);
 
-onMounted(() => refresh());
+// Update handlers
+const onPaginationUpdate = (newValue) => {
+  pagination.value.pageIndex = newValue.pageIndex;
+  pagination.value.pageSize = newValue.pageSize;
+};
+
+const onSortingUpdate = (newValue) => {
+  sorting.value = newValue;
+};
+
+const onColumnFiltersUpdate = (newValue) => {
+  columnFilters.value = newValue;
+};
+
+const refresh = fetchBrands;
 
 // Table ref
 const tableRef = ref();
@@ -217,26 +282,29 @@ const clearSelection = () => {
 
 // Filter helpers
 const getFilterValue = (columnId) => {
-  if (tableRef.value?.table) {
-    return tableRef.value.table.getColumn(columnId)?.getFilterValue() ?? [];
-  }
-  return [];
+  return columnFilters.value.find((f) => f.id === columnId)?.value ?? [];
 };
 
 const selectedStatuses = computed(() => getFilterValue("status"));
 const totalActiveFilters = computed(() => selectedStatuses.value.length);
 
 const handleFilterChange = (columnId, { checked, value }) => {
-  if (tableRef.value?.table) {
-    const column = tableRef.value.table.getColumn(columnId);
-    if (!column) return;
+  const current = getFilterValue(columnId);
+  const updated = checked ? [...current, value] : current.filter((item) => item !== value);
 
-    const current = column.getFilterValue() ?? [];
-    const updated = checked ? [...current, value] : current.filter((item) => item !== value);
-
-    column.setFilterValue(updated.length > 0 ? updated : undefined);
-    tableRef.value.table.setPageIndex(0);
+  const existingIndex = columnFilters.value.findIndex((f) => f.id === columnId);
+  if (updated.length) {
+    if (existingIndex >= 0) {
+      columnFilters.value[existingIndex].value = updated;
+    } else {
+      columnFilters.value.push({ id: columnId, value: updated });
+    }
+  } else {
+    if (existingIndex >= 0) {
+      columnFilters.value.splice(existingIndex, 1);
+    }
   }
+  pagination.value.pageIndex = 0;
 };
 
 // Table columns
@@ -266,7 +334,7 @@ const columns = computed(() => [
       ]
     : []),
   {
-    header: t('brands.brand'),
+    header: t("brands.brand"),
     accessorKey: "brand_name",
     cell: ({ row }) =>
       h(BrandTableItem, {
@@ -276,15 +344,9 @@ const columns = computed(() => [
       }),
     size: 300,
     enableHiding: false,
-    filterFn: (row, columnId, filterValue) => {
-      const searchValue = filterValue.toLowerCase();
-      const name = row.original.brand_name?.toLowerCase() || "";
-      const company = row.original.company_name?.toLowerCase() || "";
-      return name.includes(searchValue) || company.includes(searchValue);
-    },
   },
   {
-    header: t('common.status'),
+    header: t("common.status"),
     accessorKey: "status",
     cell: ({ row }) => {
       const status = row.getValue("status");
@@ -301,13 +363,9 @@ const columns = computed(() => [
       );
     },
     size: 100,
-    filterFn: (row, columnId, filterValue) => {
-      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
-      return filterValue.includes(row.getValue(columnId));
-    },
   },
   {
-    header: t('brands.events'),
+    header: t("brands.events"),
     accessorKey: "events",
     cell: ({ row }) => {
       const events = row.getValue("events") || [];
@@ -341,7 +399,7 @@ const columns = computed(() => [
     enableSorting: false,
   },
   {
-    header: t('brands.members'),
+    header: t("brands.members"),
     accessorKey: "members_count",
     cell: ({ row }) => {
       const count = row.getValue("members_count") || 0;
@@ -350,7 +408,7 @@ const columns = computed(() => [
     size: 80,
   },
   {
-    header: t('brands.categories'),
+    header: t("brands.categories"),
     accessorKey: "business_categories",
     cell: ({ row }) => {
       const cats = row.getValue("business_categories") || [];
@@ -364,7 +422,7 @@ const columns = computed(() => [
     size: 150,
   },
   {
-    header: t('brands.email'),
+    header: t("brands.email"),
     accessorKey: "company_email",
     cell: ({ row }) => {
       const email = row.getValue("company_email");
@@ -374,7 +432,7 @@ const columns = computed(() => [
     size: 180,
   },
   {
-    header: t('brands.phone'),
+    header: t("brands.phone"),
     accessorKey: "company_phone",
     cell: ({ row }) => {
       const phone = row.getValue("company_phone");
@@ -384,7 +442,7 @@ const columns = computed(() => [
     size: 120,
   },
   {
-    header: t('brands.created'),
+    header: t("brands.created"),
     accessorKey: "created_at",
     cell: ({ row }) => {
       const date = row.getValue("created_at");
@@ -416,18 +474,18 @@ const handleExport = async () => {
     // Build query params from current filters
     const params = new URLSearchParams();
 
-    if (tableRef.value?.table) {
-      const searchFilter = tableRef.value.table.getColumn("brand_name")?.getFilterValue();
-      const statusFilter = tableRef.value.table.getColumn("status")?.getFilterValue();
+    columnFilters.value.forEach((filter) => {
+      const filterMapping = { brand_name: "filter_search", status: "filter_status" };
+      const paramKey = filterMapping[filter.id];
+      if (paramKey && filter.value) {
+        const paramValue = Array.isArray(filter.value) ? filter.value.join(",") : filter.value;
+        params.append(paramKey, paramValue);
+      }
+    });
 
-      if (searchFilter) params.append("filter_search", searchFilter);
-      if (statusFilter?.length) params.append("filter_status", statusFilter.join(","));
-
-      const currentSorting = tableRef.value.table.getState().sorting;
-      const sortField = currentSorting[0]?.id || "name";
-      const sortDirection = currentSorting[0]?.desc ? "desc" : "asc";
-      params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
-    }
+    const sortField = sorting.value[0]?.id || "brand_name";
+    const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
+    params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
 
     const response = await client(`/api/brands/export?${params.toString()}`, {
       responseType: "blob",
@@ -445,10 +503,10 @@ const handleExport = async () => {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
-    toast.success(t('brands.exportedSuccess'));
+    toast.success(t("brands.exportedSuccess"));
   } catch (err) {
     console.error("Failed to export brands:", err);
-    toast.error(t('brands.failedToExport'), {
+    toast.error(t("brands.failedToExport"), {
       description: err?.data?.message || err?.message || "An error occurred",
     });
   } finally {
@@ -470,9 +528,9 @@ const handleDeleteRows = async (selectedRows) => {
     if (tableRef.value) {
       tableRef.value.resetRowSelection();
     }
-    toast.success(t('brands.deletedSuccess', { count: slugs.length }));
+    toast.success(t("brands.deletedSuccess", { count: slugs.length }));
   } catch (err) {
-    toast.error(t('brands.failedToDelete'), {
+    toast.error(t("brands.failedToDelete"), {
       description: err?.data?.message || err?.message,
     });
   } finally {
@@ -488,9 +546,9 @@ const handleDeleteSingleRow = async (brandSlug) => {
     if (tableRef.value) {
       tableRef.value.resetRowSelection();
     }
-    toast.success(t('brands.deletedSingleSuccess'));
+    toast.success(t("brands.deletedSingleSuccess"));
   } catch (err) {
-    toast.error(t('brands.failedToDeleteSingle'), {
+    toast.error(t("brands.failedToDeleteSingle"), {
       description: err?.data?.message || err?.message,
     });
   } finally {
@@ -554,7 +612,7 @@ const RowActions = defineComponent({
                                     name: "lucide:pencil",
                                     class: "size-4 shrink-0",
                                   }),
-                                  h("span", {}, t('common.edit')),
+                                  h("span", {}, t("common.edit")),
                                 ],
                               }
                             ),
@@ -580,7 +638,7 @@ const RowActions = defineComponent({
                                         name: "lucide:trash",
                                         class: "size-4 shrink-0",
                                       }),
-                                      h("span", {}, t('common.delete')),
+                                      h("span", {}, t("common.delete")),
                                     ]
                                   ),
                               }
@@ -605,12 +663,12 @@ const RowActions = defineComponent({
                 h(
                   "div",
                   { class: "text-primary text-lg font-semibold tracking-tight" },
-                  t('common.areYouSure')
+                  t("common.areYouSure")
                 ),
                 h(
                   "p",
                   { class: "text-body mt-1.5 text-sm tracking-tight" },
-                  t('brands.deleteSingleConfirm')
+                  t("brands.deleteSingleConfirm")
                 ),
                 h("div", { class: "mt-3 flex justify-end gap-2" }, [
                   h(
@@ -621,7 +679,7 @@ const RowActions = defineComponent({
                       onClick: () => (dialogOpen.value = false),
                       disabled: singleDeletePending.value,
                     },
-                    t('common.cancel')
+                    t("common.cancel")
                   ),
                   h(
                     "button",
@@ -641,7 +699,7 @@ const RowActions = defineComponent({
                     },
                     singleDeletePending.value
                       ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
-                      : t('common.delete')
+                      : t("common.delete")
                   ),
                 ]),
               ]),

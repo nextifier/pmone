@@ -319,16 +319,18 @@ class AnalyticsController extends Controller
         $days = $request->get('days', 7);
 
         $totalVisits = $model->visits()->lastDays($days)->count();
-        $links = $model->links;
-        $totalClicks = $links->sum(function ($link) use ($days) {
-            return $link->clicks()->lastDays($days)->count();
-        });
+        $totalLinks = $model->links()->count();
+        $totalClicks = \App\Models\Click::query()
+            ->where('clickable_type', get_class($model))
+            ->where('clickable_id', $model->id)
+            ->lastDays($days)
+            ->count();
 
         return response()->json([
             'data' => [
                 'total_visits' => $totalVisits,
                 'total_clicks' => $totalClicks,
-                'total_links' => $links->count(),
+                'total_links' => $totalLinks,
                 'period_days' => $days,
             ],
         ]);

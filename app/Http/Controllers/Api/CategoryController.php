@@ -20,7 +20,8 @@ class CategoryController extends Controller
         $this->authorize('viewAny', Category::class);
 
         $query = Category::query()
-            ->with(['parent', 'children', 'posts']);
+            ->with(['parent', 'children'])
+            ->withCount('posts');
 
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
@@ -82,7 +83,8 @@ class CategoryController extends Controller
     {
         $this->authorize('view', $category);
 
-        $category->load(['parent', 'children', 'posts', 'creator', 'updater']);
+        $category->load(['parent', 'children', 'creator', 'updater']);
+        $category->loadCount('posts');
 
         return response()->json([
             'data' => new CategoryResource($category),

@@ -25,39 +25,48 @@ class BrandController extends Controller
         $user = $request->user();
 
         $query = Brand::query()
-            ->with(['media', 'brandEvents.event.media', 'users', 'tags'])
-            ->withCount('brandEvents');
+            ->with(['media', 'brandEvents.event.media', 'tags'])
+            ->withCount(['brandEvents', 'users']);
 
         // Exhibitors only see brands assigned to them
         if (! $user->hasRole(['master', 'admin', 'staff'])) {
             $query->whereHas('users', fn ($q) => $q->where('users.id', $user->id));
         }
 
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'ilike', "%{$search}%")
-                    ->orWhere('company_name', 'ilike', "%{$search}%");
-            });
-        }
-
-        if ($status = $request->input('status')) {
-            $query->where('status', $status);
-        }
+        $this->applyFilters($query, $request);
+        $this->applySorting($query, $request);
 
         // Client-only mode: return all data for client-side TableData
         if ($request->boolean('client_only')) {
-            $brands = $query->orderBy('name')->get();
+            $brands = $query->get();
 
             $data = $brands->map(fn (Brand $brand) => $this->transformBrandForTable($brand));
 
-            return response()->json(['data' => $data]);
+            return response()->json([
+                'data' => $data,
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => $brands->count(),
+                    'total' => $brands->count(),
+                ],
+            ]);
         }
 
-        $brands = $query->orderBy('name')->paginate($request->input('per_page', 20));
+        // Server-side pagination
+        $brands = $query->paginate($request->input('per_page', 15));
 
         $brands->getCollection()->transform(fn (Brand $brand) => $this->transformBrandForTable($brand));
 
-        return response()->json($brands);
+        return response()->json([
+            'data' => $brands->items(),
+            'meta' => [
+                'current_page' => $brands->currentPage(),
+                'last_page' => $brands->lastPage(),
+                'per_page' => $brands->perPage(),
+                'total' => $brands->total(),
+            ],
+        ]);
     }
 
     /**
@@ -67,7 +76,7 @@ class BrandController extends Controller
     {
         $this->authorizeExhibitorAccess($request->user(), $brand);
 
-        $brand->load(['media', 'tags', 'links', 'brandEvents.event.media', 'users']);
+        $brand->load(['media', 'tags']);
 
         return response()->json([
             'data' => [
@@ -167,6 +176,7 @@ class BrandController extends Controller
         }
 
         $brands = $query
+            ->limit(50)
             ->get()
             ->map(fn (Brand $brand) => [
                 'id' => $brand->id,
@@ -288,6 +298,51 @@ class BrandController extends Controller
         }
     }
 
+    private function applyFilters($query, Request $request): void
+    {
+        // Search filter
+        if ($searchTerm = $request->input('filter_search')) {
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'ilike', "%{$searchTerm}%")
+                    ->orWhere('company_name', 'ilike', "%{$searchTerm}%");
+            });
+        }
+
+        // Status filter - support single, multiple, or comma-separated values
+        if ($status = $request->input('filter_status')) {
+            $statuses = is_array($status) ? $status : explode(',', $status);
+            $statuses = array_filter($statuses);
+
+            if (count($statuses) > 1) {
+                $query->whereIn('status', $statuses);
+            } elseif (count($statuses) === 1) {
+                $query->where('status', $statuses[0]);
+            }
+        }
+    }
+
+    private function applySorting($query, Request $request): void
+    {
+        $sortField = $request->input('sort', 'brand_name');
+        $direction = str_starts_with($sortField, '-') ? 'desc' : 'asc';
+        $field = ltrim($sortField, '-');
+
+        // Map frontend column names to database column names
+        $fieldMap = [
+            'brand_name' => 'name',
+            'company_name' => 'company_name',
+            'status' => 'status',
+            'members_count' => 'users_count',
+            'created_at' => 'created_at',
+        ];
+
+        if (isset($fieldMap[$field])) {
+            $query->orderBy($fieldMap[$field], $direction);
+        } else {
+            $query->orderBy('name', 'asc');
+        }
+    }
+
     /**
      * Ensure non-staff users can only access their own brands.
      */
@@ -316,7 +371,7 @@ class BrandController extends Controller
             'status' => $brand->status,
             'brand_logo' => $brand->brand_logo,
             'brand_events_count' => $brand->brand_events_count,
-            'members_count' => $brand->users->count(),
+            'members_count' => $brand->users_count ?? 0,
             'business_categories' => $brand->business_categories_list,
             'events' => $brand->brandEvents->map(fn ($be) => [
                 'id' => $be->event->id,

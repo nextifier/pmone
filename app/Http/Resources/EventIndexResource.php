@@ -32,7 +32,7 @@ class EventIndexResource extends JsonResource
             'order_column' => $this->order_column,
             'poster_image' => $this->when(
                 $this->hasMedia('poster_image'),
-                $this->getMediaUrls('poster_image')
+                fn () => $this->getMediaUrls('poster_image')
             ),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

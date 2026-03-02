@@ -287,6 +287,13 @@ class RoleController extends Controller
         $deletedCount = 0;
         $errors = [];
 
+        // Batch load user counts for all roles
+        $userCounts = DB::table('model_has_roles')
+            ->whereIn('role_id', $request->ids)
+            ->groupBy('role_id')
+            ->select('role_id', DB::raw('COUNT(*) as users_count'))
+            ->pluck('users_count', 'role_id');
+
         foreach ($roles as $role) {
             // Prevent deleting master role
             if ($role->name === 'master') {
@@ -296,9 +303,7 @@ class RoleController extends Controller
             }
 
             // Check if role is assigned to any users
-            $usersCount = DB::table('model_has_roles')
-                ->where('role_id', $role->id)
-                ->count();
+            $usersCount = $userCounts[$role->id] ?? 0;
 
             if ($usersCount > 0) {
                 $errors[] = "Cannot delete {$role->name}. It is assigned to {$usersCount} user(s).";

@@ -24,7 +24,7 @@ class ContactFormSubmissionController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = ContactFormSubmission::query()->with(['project', 'followedUpByUser']);
+        $query = ContactFormSubmission::query()->with(['project.media', 'followedUpByUser']);
 
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
@@ -366,7 +366,7 @@ class ContactFormSubmissionController extends Controller
 
     public function trash(Request $request): JsonResponse
     {
-        $query = ContactFormSubmission::onlyTrashed()->with(['project', 'followedUpByUser', 'deleter']);
+        $query = ContactFormSubmission::onlyTrashed()->with(['project.media', 'followedUpByUser', 'deleter']);
 
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);

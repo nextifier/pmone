@@ -117,21 +117,18 @@ class DashboardController extends Controller
         $myProjects = $user->projects()
             ->active()
             ->orderBy('order_column')
-            ->with(['media', 'members.media'])
+            ->with(['media', 'members.media', 'events' => function ($q) {
+                $q->with('media')->orderByDesc('start_date')->limit(3);
+            }])
             ->withCount('members')
             ->get()
             ->map(function ($project) {
-                $recentEvents = $project->events()
-                    ->with('media')
-                    ->orderByDesc('start_date')
-                    ->limit(3)
-                    ->get()
-                    ->map(fn (Event $event) => [
-                        'id' => $event->id,
-                        'title' => $event->title,
-                        'slug' => $event->slug,
-                        'poster_image' => $event->poster_image,
-                    ]);
+                $recentEvents = $project->events->take(3)->map(fn (Event $event) => [
+                    'id' => $event->id,
+                    'title' => $event->title,
+                    'slug' => $event->slug,
+                    'poster_image' => $event->poster_image,
+                ]);
 
                 return [
                     'id' => $project->id,
@@ -173,19 +170,23 @@ class DashboardController extends Controller
         $now = now();
         $thirtyDaysAgo = $now->copy()->subDays(30)->startOfDay();
 
-        // Post counts by status
-        $postsQuery = Post::where('created_by', $user->id);
-        $totalPosts = (clone $postsQuery)->count();
-        $publishedPosts = (clone $postsQuery)->where('status', 'published')->count();
-        $draftPosts = (clone $postsQuery)->where('status', 'draft')->count();
+        // Post counts by status (single query with conditional aggregation)
+        $postCounts = Post::where('created_by', $user->id)
+            ->select(
+                DB::raw('COUNT(*) as total'),
+                DB::raw("COUNT(*) FILTER (WHERE status = 'published') as published"),
+                DB::raw("COUNT(*) FILTER (WHERE status = 'draft') as draft")
+            )
+            ->first();
+        $totalPosts = (int) $postCounts->total;
+        $publishedPosts = (int) $postCounts->published;
+        $draftPosts = (int) $postCounts->draft;
 
         // Total views across all writer's posts (last 30 days)
-        $totalViews = Post::where('created_by', $user->id)
-            ->withCount(['visits' => function ($query) use ($thirtyDaysAgo) {
-                $query->where('visited_at', '>=', $thirtyDaysAgo);
-            }])
-            ->get()
-            ->sum('visits_count');
+        $totalViews = Visit::where('visitable_type', 'App\\Models\\Post')
+            ->whereIn('visitable_id', Post::where('created_by', $user->id)->select('id'))
+            ->where('visited_at', '>=', $thirtyDaysAgo)
+            ->count();
 
         // Recent posts - last 5
         $recentPosts = Post::where('created_by', $user->id)
@@ -209,9 +210,8 @@ class DashboardController extends Controller
             ]);
 
         // Visits per day (last 30 days) - for chart
-        $postIds = Post::where('created_by', $user->id)->pluck('id');
         $visitsData = Visit::where('visitable_type', 'App\\Models\\Post')
-            ->whereIn('visitable_id', $postIds)
+            ->whereIn('visitable_id', Post::where('created_by', $user->id)->select('id'))
             ->whereBetween('visited_at', [$thirtyDaysAgo, $now->copy()->endOfDay()])
             ->select(DB::raw('DATE(visited_at) as date'), DB::raw('COUNT(*) as count'))
             ->groupBy('date')
@@ -233,17 +233,16 @@ class DashboardController extends Controller
         // Top performing posts - top 5 by views
         $topPosts = Post::where('created_by', $user->id)
             ->where('status', 'published')
+            ->whereHas('visits')
             ->with([
                 'media' => fn ($q) => $q->where('collection_name', 'featured_image'),
             ])
             ->withCount(['visits', 'visits as recent_visits_count' => function ($query) use ($thirtyDaysAgo) {
                 $query->where('visited_at', '>=', $thirtyDaysAgo);
             }])
+            ->orderByDesc('visits_count')
+            ->limit(5)
             ->get()
-            ->filter(fn ($post) => $post->visits_count > 0)
-            ->sortByDesc('visits_count')
-            ->take(5)
-            ->values()
             ->map(fn (Post $post) => [
                 'id' => $post->id,
                 'title' => $post->title,

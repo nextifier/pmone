@@ -27,7 +27,7 @@ class ProjectResource extends JsonResource
                 'order_column' => $this->order_column,
                 'profile_image' => $this->when(
                     $this->hasMedia('profile_image'),
-                    $this->getMediaUrls('profile_image')
+                    fn () => $this->getMediaUrls('profile_image')
                 ),
                 'members_count' => $this->whenLoaded('members', fn () => $this->members->count()),
                 'created_at' => $this->created_at,
@@ -53,11 +53,11 @@ class ProjectResource extends JsonResource
             'visibility' => $this->visibility,
             'profile_image' => $this->when(
                 $this->hasMedia('profile_image'),
-                $this->getMediaUrls('profile_image')
+                fn () => $this->getMediaUrls('profile_image')
             ),
             'cover_image' => $this->when(
                 $this->hasMedia('cover_image'),
-                $this->getMediaUrls('cover_image')
+                fn () => $this->getMediaUrls('cover_image')
             ),
             'members' => $this->whenLoaded('members', fn () => UserMinimalResource::collection($this->members)),
             'links' => LinkResource::collection($this->whenLoaded('links')),

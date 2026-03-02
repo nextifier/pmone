@@ -14,7 +14,7 @@ class ShortLinkIndexResource extends JsonResource
             'slug' => $this->slug,
             'destination_url' => $this->destination_url,
             'is_active' => $this->is_active,
-            'clicks_count' => $this->clicks()->count(),
+            'clicks_count' => $this->clicks_count ?? 0,
             'og_title' => $this->og_title,
             'og_description' => $this->og_description,
             'og_image' => $this->og_image,

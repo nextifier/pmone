@@ -133,7 +133,7 @@ class EventController extends Controller
 
         return response()->json([
             'message' => 'Event created successfully',
-            'data' => new EventResource($event->load(['creator', 'updater'])),
+            'data' => new EventResource($event->load(['creator', 'updater', 'media'])),
         ], 201);
     }
 
@@ -145,7 +145,7 @@ class EventController extends Controller
         $this->authorize('view', $event);
 
         return response()->json([
-            'data' => new EventResource($event->load(['creator', 'updater'])),
+            'data' => new EventResource($event->load(['creator', 'updater', 'media'])),
         ]);
     }
 
@@ -172,7 +172,7 @@ class EventController extends Controller
 
         return response()->json([
             'message' => 'Event updated successfully',
-            'data' => new EventResource($event->load(['creator', 'updater'])),
+            'data' => new EventResource($event->load(['creator', 'updater', 'media'])),
         ]);
     }
 
@@ -256,7 +256,7 @@ class EventController extends Controller
 
         return response()->json([
             'message' => 'Event restored successfully',
-            'data' => new EventResource($event->load(['creator', 'updater'])),
+            'data' => new EventResource($event->load(['creator', 'updater', 'media'])),
         ]);
     }
 
@@ -282,7 +282,7 @@ class EventController extends Controller
 
         return response()->json([
             'message' => 'Event set as active edition successfully',
-            'data' => new EventResource($event->load(['creator', 'updater'])),
+            'data' => new EventResource($event->load(['creator', 'updater', 'media'])),
         ]);
     }
 

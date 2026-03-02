@@ -43,7 +43,7 @@ class EventResource extends JsonResource
             'order_column' => $this->order_column,
             'poster_image' => $this->when(
                 $this->hasMedia('poster_image'),
-                $this->getMediaUrls('poster_image')
+                fn () => $this->getMediaUrls('poster_image')
             ),
             'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
             'updater' => $this->whenLoaded('updater', fn () => new UserMinimalResource($this->updater)),
