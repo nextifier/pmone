@@ -16,15 +16,9 @@
       <div class="relative -mx-4">
         <div
           class="aspect-[3/1] overflow-hidden sm:rounded-xl"
-          :style="{
-            '--hue': coverHue,
-            '--hue-end': (coverHue + 20) % 360,
-          }"
+          :style="!profile?.cover_image && !profile?.profile_image ? coverGradientStyle : undefined"
           :class="[
-            'outline-primary/5 @container relative flex items-center justify-center outline -outline-offset-1 [--bg-chroma:0.16] [--bg-lightness:0.9] [--text-chroma:0.16] [--text-lightness:0.32] dark:[--bg-chroma:0.14] dark:[--bg-lightness:0.28] dark:[--text-chroma:0.16] dark:[--text-lightness:0.8]',
-            !profile?.cover_image &&
-              !profile?.profile_image &&
-              'bg-[linear-gradient(135deg,oklch(var(--bg-lightness)_var(--bg-chroma)_var(--hue)),oklch(calc(var(--bg-lightness)*0.97)_calc(var(--bg-chroma)*0.9)_var(--hue-end)))]',
+            'outline-primary/5 @container relative flex items-center justify-center outline -outline-offset-1',
           ]"
         >
           <img
@@ -267,6 +261,18 @@ const coverHue = computed(() => {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
   return Math.abs(hash) % 360;
+});
+
+const coverGradientStyle = computed(() => {
+  const h = coverHue.value;
+  return {
+    background: [
+      `radial-gradient(at 15% 15%, oklch(0.78 0.26 ${h}) 0%, transparent 50%)`,
+      `radial-gradient(at 85% 80%, oklch(0.52 0.28 ${(h + 30) % 360}) 0%, transparent 50%)`,
+      `radial-gradient(at 60% 40%, oklch(0.65 0.3 ${(h + 12) % 360}) 0%, transparent 55%)`,
+      `oklch(0.45 0.2 ${(h + 18) % 360})`,
+    ].join(", "),
+  };
 });
 
 const { user: authUser, hasPermission } = usePermission();

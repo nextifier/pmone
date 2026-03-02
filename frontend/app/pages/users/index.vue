@@ -523,7 +523,7 @@ const columns = [
         email: row.original.email,
         onRefresh: () => refresh(),
       }),
-    size: 120,
+    size: 140,
     enableHiding: false,
   },
 ];

@@ -12,6 +12,7 @@ Schedule::command('telescope:prune --hours=48')->daily();
 
 Schedule::command('posts:publish-scheduled')->everyMinute();
 
+Schedule::command('activitylog:clean')->daily()->at('01:00')->environments(['production']);
 Schedule::command('backup:clean')->daily()->at('02:00')->environments(['production']);
 Schedule::command('backup:run --only-db')->daily()->at('03:00')->environments(['production']);
 Schedule::command('backup:monitor')->daily()->at('04:00')->environments(['production']);
