@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\ClearsResponseCache;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Illuminate\Support\Carbon $fetched_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ *
  * @method static Builder<static>|ExchangeRate forCurrency(string $currency)
  * @method static Builder<static>|ExchangeRate newModelQuery()
  * @method static Builder<static>|ExchangeRate newQuery()
@@ -24,10 +26,13 @@ use Illuminate\Database\Eloquent\Model;
  * @method static Builder<static>|ExchangeRate whereId($value)
  * @method static Builder<static>|ExchangeRate whereRates($value)
  * @method static Builder<static>|ExchangeRate whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 class ExchangeRate extends Model
 {
+    use ClearsResponseCache;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -52,6 +57,11 @@ class ExchangeRate extends Model
             'api_updated_at' => 'datetime',
             'fetched_at' => 'datetime',
         ];
+    }
+
+    protected static function responseCacheTags(): array
+    {
+        return ['exchange-rates'];
     }
 
     /**

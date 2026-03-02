@@ -14,6 +14,55 @@ use Spatie\EloquentSortable\SortableTrait;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
+/**
+ * @property int $id
+ * @property int $event_id
+ * @property string $category
+ * @property string $name
+ * @property string|null $description
+ * @property numeric $price
+ * @property string $unit
+ * @property array<array-key, mixed>|null $booth_types
+ * @property bool $is_active
+ * @property int|null $order_column
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\Event $event
+ * @property-read array|null $product_image
+ * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read int|null $media_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\OrderItem> $orderItems
+ * @property-read int|null $order_items_count
+ * @property-read \App\Models\User|null $updater
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct active()
+ * @method static \Database\Factories\EventProductFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct ordered(string $direction = 'asc')
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereBoothTypes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereCategory($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereEventId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereOrderColumn($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct wherePrice($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereUnit($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereUpdatedBy($value)
+ *
+ * @mixin \Eloquent
+ */
 class EventProduct extends Model implements HasMedia, Sortable
 {
     use HasFactory;

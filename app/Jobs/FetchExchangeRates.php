@@ -8,6 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Spatie\ResponseCache\Facades\ResponseCache;
 use Throwable;
 
 class FetchExchangeRates implements ShouldBeUnique, ShouldQueue
@@ -94,6 +95,9 @@ class FetchExchangeRates implements ShouldBeUnique, ShouldQueue
 
             // Clean up old records (keep only last 10)
             $this->cleanupOldRecords();
+
+            // Clear response cache for exchange rate endpoints
+            ResponseCache::clear(['exchange-rates']);
 
             Log::info('Exchange rates fetched successfully', [
                 'base_currency' => $data['base'] ?? $this->baseCurrency,

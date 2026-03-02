@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -43,7 +44,11 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ContactFormSubmission> $contactFormSubmissions
  * @property-read int|null $contact_form_submissions_count
  * @property-read \App\Models\User|null $creator
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProjectCustomField> $customFields
+ * @property-read int|null $custom_fields_count
  * @property-read \App\Models\User|null $deleter
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Event> $events
+ * @property-read int|null $events_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\GaProperty> $gaProperties
  * @property-read int|null $ga_properties_count
  * @property-read array|null $profile_image
@@ -91,6 +96,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  */
 class Project extends Model implements HasMedia, Sortable
 {
+    use ClearsResponseCache;
     use HasFactory;
     use HasMediaManager;
     use InteractsWithMedia;
@@ -122,6 +128,11 @@ class Project extends Model implements HasMedia, Sortable
             'more_details' => 'array',
             'phone' => 'array',
         ];
+    }
+
+    protected static function responseCacheTags(): array
+    {
+        return ['projects'];
     }
 
     public function getRouteKeyName(): string

@@ -26,6 +26,8 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read int|null $activities_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Click> $clicks
  * @property-read int $clicks_count
  * @property-read \App\Models\User|null $creator

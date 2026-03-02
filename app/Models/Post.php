@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -51,6 +52,8 @@ use Spatie\Tags\Tag;
  * @property-read \App\Models\User|null $deleter
  * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
  * @property-read int|null $media_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Category> $postCategories
+ * @property-read int|null $post_categories_count
  * @property-read \App\Models\User|null $primaryAuthor
  * @property \Illuminate\Database\Eloquent\Collection<int, Tag> $tags
  * @property-read int|null $tags_count
@@ -111,6 +114,7 @@ use Spatie\Tags\Tag;
  */
 class Post extends Model implements HasMedia
 {
+    use ClearsResponseCache;
     use HasFactory;
     use HasMediaManager;
     use HasTags;
@@ -147,6 +151,11 @@ class Post extends Model implements HasMedia
             'featured' => 'boolean',
             'reading_time' => 'integer',
         ];
+    }
+
+    protected static function responseCacheTags(): array
+    {
+        return ['blog-posts'];
     }
 
     public function sluggable(): array

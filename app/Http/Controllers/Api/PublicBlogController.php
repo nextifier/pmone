@@ -2,35 +2,20 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Helpers\StaleWhileRevalidateCache;
 use App\Helpers\TrackingHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\UserMinimalResource;
-use App\Jobs\RefreshPublicBlogCacheJob;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Spatie\Tags\Tag;
 
 class PublicBlogController extends Controller
 {
-    /**
-     * Stale TTL - after this time, data is considered stale and will trigger background refresh
-     */
-    private const STALE_TTL = 300; // 5 minutes
-
-    /**
-     * Max TTL - after this time, data expires completely and must be fetched synchronously
-     */
-    private const MAX_TTL = 3600; // 1 hour
-
-    private const CACHE_TTL_CATEGORIES = 1800; // 30 minutes (categories change less often)
-
     /**
      * Get list of published posts
      */
@@ -106,27 +91,23 @@ class PublicBlogController extends Controller
      */
     public function categories(Request $request): JsonResponse
     {
-        $cacheKey = $this->generateCacheKey('categories', $request);
+        $query = Category::query()
+            ->with(['parent', 'children'])
+            ->public();
 
-        return Cache::tags(['public-blog', 'categories'])->remember($cacheKey, self::CACHE_TTL_CATEGORIES, function () use ($request) {
-            $query = Category::query()
-                ->with(['parent', 'children'])
-                ->public();
+        $this->applyCategoryFilters($query, $request);
 
-            $this->applyCategoryFilters($query, $request);
+        $categories = $query->paginate($request->input('per_page', 50));
 
-            $categories = $query->paginate($request->input('per_page', 50));
-
-            return response()->json([
-                'data' => CategoryResource::collection($categories->items()),
-                'meta' => [
-                    'current_page' => $categories->currentPage(),
-                    'last_page' => $categories->lastPage(),
-                    'per_page' => $categories->perPage(),
-                    'total' => $categories->total(),
-                ],
-            ]);
-        });
+        return response()->json([
+            'data' => CategoryResource::collection($categories->items()),
+            'meta' => [
+                'current_page' => $categories->currentPage(),
+                'last_page' => $categories->lastPage(),
+                'per_page' => $categories->perPage(),
+                'total' => $categories->total(),
+            ],
+        ]);
     }
 
     /**
@@ -237,32 +218,6 @@ class PublicBlogController extends Controller
      * Get featured posts
      */
     public function featured(Request $request): JsonResponse
-    {
-        $cacheKey = $this->generateCacheKey('featured', $request);
-        $tags = ['public-blog', 'posts'];
-
-        // Use stale-while-revalidate: return cached data immediately, refresh in background if stale
-        return StaleWhileRevalidateCache::remember(
-            $cacheKey,
-            $tags,
-            self::STALE_TTL,
-            self::MAX_TTL,
-            function () use ($request) {
-                return $this->fetchFeaturedPosts($request);
-            },
-            RefreshPublicBlogCacheJob::class,
-            [
-                'type' => 'featured',
-                'per_page' => $request->input('per_page', 10),
-                'sort' => $request->input('sort', '-published_at'),
-            ]
-        );
-    }
-
-    /**
-     * Fetch featured posts from database
-     */
-    private function fetchFeaturedPosts(Request $request): JsonResponse
     {
         $query = Post::query()
             ->with(['primaryAuthor.media', 'authors.media', 'categories', 'tags', 'media'])
@@ -417,30 +372,5 @@ class PublicBlogController extends Controller
                 $query->where('parent_id', $parent->id);
             }
         }
-    }
-
-    /**
-     * Generate a unique cache key based on request parameters
-     */
-    private function generateCacheKey(string $prefix, Request $request): string
-    {
-        $params = $request->only([
-            'page',
-            'per_page',
-            'sort',
-            'search',
-            'category',
-            'tag',
-            'author',
-            'featured',
-            'q',
-            'root',
-            'parent',
-        ]);
-
-        // Sort params for consistent cache keys
-        ksort($params);
-
-        return $prefix.':'.md5(json_encode($params));
     }
 }

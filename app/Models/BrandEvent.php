@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BoothType;
+use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,8 +16,62 @@ use Spatie\EloquentSortable\SortableTrait;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
+/**
+ * @property int $id
+ * @property int $brand_id
+ * @property int $event_id
+ * @property string|null $booth_number
+ * @property numeric|null $booth_size
+ * @property BoothType|null $booth_type
+ * @property int|null $sales_id
+ * @property string $status
+ * @property string|null $notes
+ * @property array<array-key, mixed>|null $custom_fields
+ * @property int|null $order_column
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property numeric|null $booth_price
+ * @property int $promotion_post_limit
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read \App\Models\Brand $brand
+ * @property-read \App\Models\Event $event
+ * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read int|null $media_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order> $orders
+ * @property-read int|null $orders_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PromotionPost> $promotionPosts
+ * @property-read int|null $promotion_posts_count
+ * @property-read \App\Models\User|null $sales
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent active()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent byStatus(string $status)
+ * @method static \Database\Factories\BrandEventFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent ordered(string $direction = 'asc')
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereBoothNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereBoothPrice($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereBoothSize($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereBoothType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereBrandId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereCustomFields($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereEventId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereOrderColumn($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent wherePromotionPostLimit($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereSalesId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereUpdatedAt($value)
+ *
+ * @mixin \Eloquent
+ */
 class BrandEvent extends Model implements HasMedia, Sortable
 {
+    use ClearsResponseCache;
     use HasFactory;
     use HasMediaManager;
     use InteractsWithMedia;
@@ -52,6 +107,11 @@ class BrandEvent extends Model implements HasMedia, Sortable
             'booth_price' => 'decimal:2',
             'booth_type' => BoothType::class,
         ];
+    }
+
+    protected static function responseCacheTags(): array
+    {
+        return ['brands', 'promotion-posts'];
     }
 
     public function getActivitylogOptions(): LogOptions

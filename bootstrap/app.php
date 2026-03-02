@@ -35,6 +35,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Register middleware aliases
         $middleware->alias([
             'api.key' => \App\Http\Middleware\ValidateApiKey::class,
+            'cacheResponse' => \Spatie\ResponseCache\Middlewares\CacheResponse::class,
+            'doNotCacheResponse' => \Spatie\ResponseCache\Middlewares\DoNotCacheResponse::class,
         ]);
 
         // Exclude tracking endpoints from CSRF verification (for anonymous tracking)
