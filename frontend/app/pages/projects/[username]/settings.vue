@@ -26,8 +26,6 @@
         @submit="updateProject"
       />
 
-      <ProjectCustomFieldsManager :project-username="route.params.username" />
-
       <div
         class="*:bg-muted text-muted-foreground mt-20 flex flex-wrap gap-x-2 gap-y-2.5 text-sm tracking-tight *:rounded-md *:px-2 *:py-1"
       >

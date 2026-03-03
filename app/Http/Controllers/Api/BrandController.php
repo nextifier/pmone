@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\Tags\Tag;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class BrandController extends Controller
@@ -76,7 +77,23 @@ class BrandController extends Controller
     {
         $this->authorizeExhibitorAccess($request->user(), $brand);
 
-        $brand->load(['media', 'tags']);
+        $brand->load(['media', 'tags', 'brandEvents.event.project']);
+
+        // Collect business category options from all projects the brand participates in
+        $projectIds = $brand->brandEvents->pluck('event.project.id')->filter()->unique();
+        $businessCategoryOptions = [];
+
+        foreach ($projectIds as $projectId) {
+            $businessCategoryOptions = array_merge(
+                $businessCategoryOptions,
+                Tag::withType("business_category:{$projectId}")
+                    ->ordered()
+                    ->pluck('name')
+                    ->toArray()
+            );
+        }
+
+        $businessCategoryOptions = array_values(array_unique($businessCategoryOptions));
 
         return response()->json([
             'data' => [
@@ -95,6 +112,7 @@ class BrandController extends Controller
                 'brand_logo' => $brand->brand_logo,
                 'business_categories' => $brand->business_categories_list,
             ],
+            'business_category_options' => $businessCategoryOptions,
         ]);
     }
 

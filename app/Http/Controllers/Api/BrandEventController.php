@@ -254,10 +254,17 @@ class BrandEventController extends Controller
         // Load custom field definitions and values
         $customFieldDefinitions = $project->customFields()->ordered()->get();
 
+        // Load predefined business category options for this project
+        $businessCategoryOptions = \Spatie\Tags\Tag::withType("business_category:{$project->id}")
+            ->ordered()
+            ->pluck('name')
+            ->toArray();
+
         return response()->json([
             'data' => new BrandEventResource($brandEvent),
             'project_custom_field_definitions' => $customFieldDefinitions,
             'brand_custom_fields' => $brandEvent->brand->custom_fields ?? (object) [],
+            'business_category_options' => $businessCategoryOptions,
         ]);
     }
 
@@ -342,9 +349,9 @@ class BrandEventController extends Controller
         // Cleanup removed content images
         $this->cleanupRemovedContentImages($brand, $oldDescription);
 
-        // Sync business categories if provided
+        // Sync business categories if provided (scoped to this project)
         if (isset($validated['business_categories'])) {
-            $brand->syncBusinessCategories($validated['business_categories']);
+            $brand->syncBusinessCategories($validated['business_categories'], $project->id);
         }
 
         // Save project custom field values to brands.custom_fields
@@ -366,11 +373,18 @@ class BrandEventController extends Controller
         // Reload custom field data for response
         $customFieldDefinitions = $project->customFields()->ordered()->get();
 
+        // Load predefined business category options for response
+        $businessCategoryOptions = \Spatie\Tags\Tag::withType("business_category:{$project->id}")
+            ->ordered()
+            ->pluck('name')
+            ->toArray();
+
         return response()->json([
             'message' => 'Brand profile updated successfully.',
             'data' => new BrandEventResource($brandEvent),
             'project_custom_field_definitions' => $customFieldDefinitions,
             'brand_custom_fields' => $brand->fresh()->custom_fields ?? (object) [],
+            'business_category_options' => $businessCategoryOptions,
         ]);
     }
 

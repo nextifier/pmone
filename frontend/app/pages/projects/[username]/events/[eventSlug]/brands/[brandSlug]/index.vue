@@ -13,6 +13,7 @@
       :show-logo="true"
       :show-status="true"
       :show-categories="true"
+      :business-category-options="businessCategoryOptions"
       :custom-field-definitions="customFieldDefinitions"
       :custom-field-initial-values="customFieldValues"
       submit-label="Save Profile"
@@ -26,6 +27,7 @@ defineProps({
   brandEvent: Object,
   customFieldDefinitions: { type: Array, default: () => [] },
   customFieldValues: { type: Object, default: () => ({}) },
+  businessCategoryOptions: { type: Array, default: () => [] },
 });
 defineEmits(["refresh"]);
 </script>

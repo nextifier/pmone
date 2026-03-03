@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\PostAutosaveController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProjectActivityController;
+use App\Http\Controllers\Api\ProjectBusinessCategoryController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ProjectCustomFieldController;
 use App\Http\Controllers\Api\PublicBlogController;
@@ -151,6 +152,18 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::put('/reorder', [ProjectCustomFieldController::class, 'reorder'])->name('projects.custom-fields.reorder');
         Route::put('/{id}', [ProjectCustomFieldController::class, 'update'])->name('projects.custom-fields.update');
         Route::delete('/{id}', [ProjectCustomFieldController::class, 'destroy'])->name('projects.custom-fields.destroy');
+    });
+
+    // Project business categories endpoints
+    Route::prefix('projects/{username}/business-categories')->group(function () {
+        Route::get('/', [ProjectBusinessCategoryController::class, 'index'])->name('projects.business-categories.index');
+        Route::post('/', [ProjectBusinessCategoryController::class, 'store'])->name('projects.business-categories.store');
+        Route::get('/export', [ProjectBusinessCategoryController::class, 'export'])->name('projects.business-categories.export');
+        Route::get('/import/template', [ProjectBusinessCategoryController::class, 'downloadTemplate'])->name('projects.business-categories.import.template');
+        Route::post('/import', [ProjectBusinessCategoryController::class, 'import'])->name('projects.business-categories.import');
+        Route::put('/reorder', [ProjectBusinessCategoryController::class, 'reorder'])->name('projects.business-categories.reorder');
+        Route::put('/{id}', [ProjectBusinessCategoryController::class, 'update'])->name('projects.business-categories.update');
+        Route::delete('/{id}', [ProjectBusinessCategoryController::class, 'destroy'])->name('projects.business-categories.destroy');
     });
 
     // Event management endpoints (nested under projects)

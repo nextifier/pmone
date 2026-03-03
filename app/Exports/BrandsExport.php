@@ -46,7 +46,11 @@ class BrandsExport extends BaseExport
     {
         $brandLogo = $brand->getFirstMediaUrl('brand_logo', 'original') ?: '-';
 
-        $categories = $brand->tagsWithType('business_category')->pluck('name')->join(', ') ?: '-';
+        $categories = $brand->tags
+            ->filter(fn ($tag) => str_starts_with($tag->type, 'business_category'))
+            ->pluck('name')
+            ->unique()
+            ->join(', ') ?: '-';
 
         $events = $brand->brandEvents->map(fn ($be) => $be->event?->title)->filter()->join(', ') ?: '-';
 

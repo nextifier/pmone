@@ -24,7 +24,13 @@
 
           <div v-if="showCategories" class="space-y-2">
             <Label>{{ $t('brandsForm.businessCategories') }}</Label>
-            <TagsInput v-model="form.business_categories" class="text-sm">
+            <ComboboxMultiSelect
+              v-if="businessCategoryOptions.length"
+              v-model="selectedCategoryOptions"
+              :options="availableCategoryOptions"
+              :placeholder="$t('brandsForm.addCategory')"
+            />
+            <TagsInput v-else v-model="form.business_categories" class="text-sm">
               <TagsInputItem
                 v-for="cat in form.business_categories"
                 :key="cat"
@@ -35,7 +41,7 @@
               </TagsInputItem>
               <TagsInputInput :placeholder="$t('brandsForm.addCategory')" />
             </TagsInput>
-            <p class="text-muted-foreground text-xs">
+            <p v-if="!businessCategoryOptions.length" class="text-muted-foreground text-xs">
               {{ $t('brandsForm.pressEnterToAdd') }}
             </p>
           </div>
@@ -202,6 +208,7 @@ import {
   TagsInputItemDelete,
   TagsInputItemText,
 } from "@/components/ui/tags-input";
+import { ComboboxMultiSelect } from "@/components/ui/multi-select";
 import TipTapEditor from "@/components/TipTapEditor.vue";
 import { toast } from "vue-sonner";
 
@@ -213,6 +220,7 @@ const props = defineProps({
   showLogo: { type: Boolean, default: false },
   showStatus: { type: Boolean, default: false },
   showCategories: { type: Boolean, default: false },
+  businessCategoryOptions: { type: Array, default: () => [] },
   submitLabel: { type: String, default: "Save Brand" },
   customFieldDefinitions: { type: Array, default: () => [] },
   customFieldInitialValues: { type: Object, default: () => ({}) },
@@ -233,6 +241,21 @@ const form = reactive({
   description: props.brand?.description || "",
   status: props.brand?.status || "active",
   business_categories: props.brand?.business_categories || [],
+});
+
+// MultiSelect: convert string[] options to Option[] format
+const availableCategoryOptions = computed(() =>
+  props.businessCategoryOptions.map((name) => ({ value: name, label: name }))
+);
+
+// MultiSelect: two-way sync between form.business_categories (string[]) and Option[]
+const selectedCategoryOptions = computed({
+  get() {
+    return (form.business_categories || []).map((name) => ({ value: name, label: name }));
+  },
+  set(options) {
+    form.business_categories = options.map((opt) => opt.value);
+  },
 });
 
 // Custom field values (reactive object keyed by field key)

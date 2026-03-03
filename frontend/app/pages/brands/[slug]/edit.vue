@@ -23,6 +23,7 @@
       :show-logo="true"
       :show-status="true"
       :show-categories="true"
+      :business-category-options="businessCategoryOptions"
       @saved="fetchBrand"
     />
 
@@ -58,11 +59,13 @@ const slug = route.params.slug;
 
 const pending = ref(true);
 const brand = ref(null);
+const businessCategoryOptions = ref([]);
 
 const fetchBrand = async () => {
   try {
     const res = await client(`/api/brands/${slug}`);
     brand.value = res.data;
+    businessCategoryOptions.value = res.business_category_options || [];
   } catch (e) {
     console.error("Failed to fetch brand:", e);
   }

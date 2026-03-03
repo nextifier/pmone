@@ -95,6 +95,7 @@ const projectTabs = computed(() => [
   { label: "Members", to: `${projectBase.value}/members` },
   { label: "Analytics", to: `${projectBase.value}/analytics` },
   { label: "Activity", to: `${projectBase.value}/activity` },
+  { label: "Brand Field Settings", to: `${projectBase.value}/brand-field-settings` },
   { label: "Settings", to: `${projectBase.value}/settings` },
 ]);
 

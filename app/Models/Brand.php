@@ -300,21 +300,40 @@ class Brand extends Model implements HasMedia, Sortable
     }
 
     /**
-     * Sync business categories using spatie/laravel-tags.
+     * Sync business categories using spatie/laravel-tags, scoped to a project.
      *
      * @param  array<string>  $names
      */
-    public function syncBusinessCategories(array $names): void
+    public function syncBusinessCategories(array $names, ?int $projectId = null): void
     {
-        $this->syncTagsWithType($names, 'business_category');
+        if ($projectId) {
+            $this->syncTagsWithType($names, "business_category:{$projectId}");
+        } else {
+            $this->syncTagsWithType($names, 'business_category');
+        }
     }
 
     /**
-     * Get business categories.
+     * Get business categories for a specific project.
+     *
+     * @return array<string>
+     */
+    public function getBusinessCategoriesForProject(int $projectId): array
+    {
+        return $this->tagsWithType("business_category:{$projectId}")->pluck('name')->toArray();
+    }
+
+    /**
+     * Get all business categories (aggregated across all project-scoped types + legacy unscoped).
      */
     public function getBusinessCategoriesListAttribute(): array
     {
-        return $this->tagsWithType('business_category')->pluck('name')->toArray();
+        return $this->tags
+            ->filter(fn ($tag) => str_starts_with($tag->type, 'business_category'))
+            ->pluck('name')
+            ->unique()
+            ->values()
+            ->toArray();
     }
 
     // Relationships

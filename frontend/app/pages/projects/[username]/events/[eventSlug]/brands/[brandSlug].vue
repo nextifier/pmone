@@ -18,6 +18,7 @@
         :brand-event="brandEvent"
         :custom-field-definitions="customFieldDefinitions"
         :custom-field-values="customFieldValues"
+        :business-category-options="businessCategoryOptions"
         @refresh="refresh()"
       />
     </div>
@@ -40,6 +41,7 @@ const error = ref(null);
 const brandEvent = computed(() => data.value?.data);
 const customFieldDefinitions = computed(() => data.value?.project_custom_field_definitions || []);
 const customFieldValues = computed(() => data.value?.brand_custom_fields || {});
+const businessCategoryOptions = computed(() => data.value?.business_category_options || []);
 
 async function refresh() {
   pending.value = true;
