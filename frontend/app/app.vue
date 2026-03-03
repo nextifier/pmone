@@ -8,7 +8,7 @@
       <NuxtLayout>
         <NuxtPage
           :keepalive="{
-            include: ['dashboard', 'inbox', 'projects', 'links', 'posts', 'users', 'api-consumers'],
+            include: ['inbox', 'projects', 'links', 'posts', 'users', 'api-consumers'],
           }"
         />
       </NuxtLayout>

@@ -1,5 +1,5 @@
 <template>
-  <div class="container overflow-hidden pt-6 pb-24">
+  <div class="container overflow-hidden pt-4 pb-24">
     <div class="mb-6 flex flex-col gap-y-2.5 lg:items-center lg:text-center">
       <h1 class="text-4xl font-medium tracking-tighter sm:text-5xl">Colors</h1>
       <p class="text-muted-foreground max-w-3xl text-base tracking-tight text-pretty sm:text-lg">
@@ -14,30 +14,32 @@
         <Icon name="hugeicons:cursor-magic-selection-04" class="size-5 shrink-0" />
         <span>Click to copy</span>
       </div>
-      <Select v-model="selectedFormat">
-        <SelectTrigger
-          class="border-border h-7 w-auto gap-1.5 rounded-md border px-2.5 shadow-none"
-        >
-          <span class="text-muted-foreground text-sm">Format:</span>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent align="end">
-          <SelectItem v-for="fmt in formats" :key="fmt.key" :value="fmt.key">
-            {{ fmt.label }}
-          </SelectItem>
-        </SelectContent>
-      </Select>
+      <ClientOnly>
+        <Select v-model="selectedFormat">
+          <SelectTrigger
+            class="border-border h-7 w-auto gap-1.5 rounded-md border px-2.5 shadow-none"
+          >
+            <span class="text-muted-foreground text-sm">Format:</span>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent align="end">
+            <SelectItem v-for="fmt in formats" :key="fmt.key" :value="fmt.key">
+              {{ fmt.label }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </ClientOnly>
     </div>
 
     <!-- Color Palettes -->
-    <div class="flex flex-col gap-y-4">
+    <div class="flex flex-col gap-y-2.5 sm:gap-y-4">
       <div
         v-for="palette in palettes"
         :key="palette.name"
         :id="`color-${palette.name}`"
-        class="flex flex-col gap-y-2"
+        class="flex flex-col gap-y-1.5"
       >
-        <h2 class="text-foreground text-sm font-semibold tracking-tight capitalize">
+        <h2 class="text-foreground text-sm font-medium tracking-tight capitalize">
           {{ palette.name }}
         </h2>
 
@@ -73,6 +75,7 @@
 </template>
 
 <script setup lang="ts">
+import { h } from "vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -161,7 +164,7 @@ function toHsl(r: number, g: number, b: number): string {
     }
   }
 
-  return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+  return `hsl(${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%)`;
 }
 
 function getFormattedColor(name: string, shade: Shade, oklch: string, format: ColorFormat): string {
@@ -178,7 +181,7 @@ function getFormattedColor(name: string, shade: Shade, oklch: string, format: Co
     }
     case "rgb": {
       const [r, g, b] = getRgb(oklch);
-      return `${r} ${g} ${b}`;
+      return `rgb(${r} ${g} ${b})`;
     }
     case "hsl": {
       const [r, g, b] = getRgb(oklch);
@@ -190,7 +193,16 @@ function getFormattedColor(name: string, shade: Shade, oklch: string, format: Co
 function copyColor(name: string, shade: Shade, oklch: string) {
   const value = getFormattedColor(name, shade, oklch, selectedFormat.value);
   navigator.clipboard.writeText(value);
-  toast.success(`Copied: ${value}`);
+  toast.success(
+    h("span", { class: "inline-flex items-center gap-1.5" }, [
+      "Copied: ",
+      h("span", {
+        class: "inline-block size-5 shrink-0 squircle outline -outline-offset-1 outline-primary/10",
+        style: { backgroundColor: oklch },
+      }),
+      value,
+    ])
+  );
 }
 
 // --- Palette data ---

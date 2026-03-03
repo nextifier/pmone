@@ -1,8 +1,6 @@
 <template>
-  <SidebarGroup
-    v-if="projects?.length && isStaffOrAbove"
-  >
-    <Collapsible as-child :default-open="true" class="group/collapsible">
+  <SidebarGroup v-if="projects?.length && isStaffOrAbove">
+    <Collapsible as-child :default-open="false" class="group/collapsible">
       <CollapsibleTrigger as-child>
         <SidebarGroupLabel class="text-muted-foreground hover:bg-muted mb-1 tracking-tight">
           <span>Projects</span>

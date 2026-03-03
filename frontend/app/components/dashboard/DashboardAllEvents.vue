@@ -187,25 +187,6 @@
             </span>
           </DashboardStatsCard>
         </div>
-
-        <!-- Stats -->
-        <!-- <div class="hidden shrink-0 items-center gap-3 sm:flex">
-          <span class="text-muted-foreground text-xs tracking-tight tabular-nums">
-            {{ event.brand_events_count }} brands
-          </span>
-          <span
-            v-if="event.orders_submitted > 0"
-            class="text-xs tracking-tight text-amber-600 tabular-nums dark:text-amber-400"
-          >
-            {{ event.orders_submitted }} pending
-          </span>
-          <span
-            v-if="event.orders_confirmed > 0"
-            class="text-xs tracking-tight text-green-600 tabular-nums dark:text-green-400"
-          >
-            {{ event.orders_confirmed }} confirmed
-          </span>
-        </div> -->
       </div>
     </div>
   </div>

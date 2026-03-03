@@ -1,14 +1,12 @@
 <template>
   <div
-    class="mx-auto flex flex-col gap-y-8 pt-2 pt-4 pb-16 pb-20 lg:max-w-4xl lg:gap-y-10 lg:pt-4 xl:max-w-6xl"
+    class="mx-auto flex flex-col gap-y-8 pt-2 pb-16 lg:max-w-4xl lg:gap-y-10 lg:pt-4 xl:max-w-6xl"
   >
     <DashboardGreetingTips :tip-definitions="tipDefinitions" :tips="tips" :loading="loading" />
 
-    <!-- All Events -->
-    <DashboardAllEvents :events="allEvents" :loading="loading" />
-
-    <!-- My Projects -->
     <DashboardMyProjects :projects="myProjects" :loading="loading" />
+
+    <DashboardAllEvents :events="allEvents" :loading="loading" />
   </div>
 </template>
 

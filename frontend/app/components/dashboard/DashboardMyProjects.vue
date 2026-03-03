@@ -1,5 +1,5 @@
 <template>
-  <div v-if="loading || projects.length > 0" class="space-y-3">
+  <div v-if="loading || projects.length > 0" class="space-y-2">
     <div class="flex items-center justify-between">
       <h3 class="page-title text-lg!">My Projects</h3>
     </div>
@@ -7,11 +7,7 @@
     <!-- Loading -->
     <template v-if="loading">
       <div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-2">
-        <div
-          v-for="i in 8"
-          :key="i"
-          class="flex flex-col gap-y-2.5 rounded-xl border px-3 py-4"
-        >
+        <div v-for="i in 8" :key="i" class="flex flex-col gap-y-2.5 rounded-xl border px-3 py-4">
           <!-- Avatar + name + members -->
           <div class="flex items-start gap-x-2">
             <Skeleton class="squircle size-10 shrink-0" />
@@ -57,7 +53,7 @@
                   v-for="member in project.members.slice(0, 4)"
                   :model="member"
                   :key="member.id"
-                  class="bg-border! ring-background [&_.initial]:text-muted-foreground size-6 shrink-0 overflow-hidden rounded-full! ring-1 [&_.initial]:text-[10px] [&_.initial]:font-medium"
+                  class="ring-background size-6 shrink-0 overflow-hidden rounded-full! ring-1"
                   v-tippy="member.name"
                 />
                 <span
