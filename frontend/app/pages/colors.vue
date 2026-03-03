@@ -1,5 +1,5 @@
 <template>
-  <div class="container pt-6 pb-24">
+  <div class="container overflow-hidden pt-6 pb-24">
     <div class="mb-6 flex flex-col gap-y-2.5 lg:items-center lg:text-center">
       <h1 class="text-4xl font-medium tracking-tighter sm:text-5xl">Colors</h1>
       <p class="text-muted-foreground max-w-3xl text-base tracking-tight text-pretty sm:text-lg">
@@ -9,22 +9,24 @@
     </div>
 
     <!-- Format Selector -->
-    <div class="mb-6 flex h-7 justify-end">
-      <ClientOnly>
-        <Select v-model="selectedFormat">
-          <SelectTrigger
-            class="border-border h-7 w-auto gap-1.5 rounded-md border px-2.5 shadow-none"
-          >
-            <span class="text-muted-foreground text-sm">Format:</span>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="end">
-            <SelectItem v-for="fmt in formats" :key="fmt.key" :value="fmt.key">
-              {{ fmt.label }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </ClientOnly>
+    <div class="mb-6 flex h-7 items-center justify-between">
+      <div class="flex items-center gap-x-1.5 tracking-tight">
+        <Icon name="hugeicons:cursor-magic-selection-04" class="size-5 shrink-0" />
+        <span>Click to copy</span>
+      </div>
+      <Select v-model="selectedFormat">
+        <SelectTrigger
+          class="border-border h-7 w-auto gap-1.5 rounded-md border px-2.5 shadow-none"
+        >
+          <span class="text-muted-foreground text-sm">Format:</span>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent align="end">
+          <SelectItem v-for="fmt in formats" :key="fmt.key" :value="fmt.key">
+            {{ fmt.label }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
     </div>
 
     <!-- Color Palettes -->
@@ -55,12 +57,14 @@
             >
               {{ shade }}
             </div>
-            <!-- Hover tooltip -->
-            <div
-              class="bg-foreground text-background pointer-events-none absolute -top-9 left-1/2 z-10 -translate-x-1/2 rounded-md px-2 py-1 text-sm font-medium whitespace-nowrap opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
-            >
-              {{ getFormattedColor(palette.name, shade, palette.colors[shade], selectedFormat) }}
-            </div>
+            <!-- Hover tooltip (client-only to avoid hydration mismatch from canvas color conversion) -->
+            <ClientOnly>
+              <div
+                class="bg-foreground text-background pointer-events-none absolute -top-9 left-1/2 z-10 -translate-x-1/2 rounded-md px-2 py-1 text-sm font-medium whitespace-nowrap opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+              >
+                {{ getFormattedColor(palette.name, shade, palette.colors[shade], selectedFormat) }}
+              </div>
+            </ClientOnly>
           </div>
         </div>
       </div>
@@ -106,6 +110,8 @@ let ctx: CanvasRenderingContext2D | null = null;
 const rgbCache = new Map<string, [number, number, number]>();
 
 function getRgb(oklch: string): [number, number, number] {
+  if (import.meta.server) return [0, 0, 0];
+
   const cached = rgbCache.get(oklch);
   if (cached) return cached;
 
@@ -604,6 +610,22 @@ const palettes: Palette[] = [
       800: "oklch(0.268 0.011 36.5)",
       900: "oklch(0.214 0.009 43.1)",
       950: "oklch(0.147 0.004 49.3)",
+    },
+  },
+  {
+    name: "brown",
+    colors: {
+      50: "oklch(0.9681 0.0074 80.72)",
+      100: "oklch(0.9306 0.0202 84.59)",
+      200: "oklch(0.9056 0.0391 85.34)",
+      300: "oklch(0.7469 0.0603 78.65)",
+      400: "oklch(0.6654 0.0753 73.53)",
+      500: "oklch(0.6082 0.0746 67.05)",
+      600: "oklch(0.5327 0.0676 59.13)",
+      700: "oklch(0.4502 0.0562 49.34)",
+      800: "oklch(0.4057 0.0465 42.68)",
+      900: "oklch(0.2807 0.0384 38.49)",
+      950: "oklch(0.2104 0.0207 34.52)",
     },
   },
 ];
