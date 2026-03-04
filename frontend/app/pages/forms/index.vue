@@ -166,7 +166,7 @@ defineOptions({
   name: "forms",
 });
 
-const title = "Forms";
+const title = "Form Builder";
 const description = "Create and manage forms.";
 
 usePageMeta(null, {

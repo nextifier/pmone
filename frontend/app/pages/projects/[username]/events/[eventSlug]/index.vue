@@ -84,7 +84,7 @@
       <div class="space-y-4">
         <div v-if="event.poster_image" class="overflow-hidden rounded-xl">
           <img
-            :src="event.poster_image?.md || event.poster_image?.url"
+            :src="event.poster_image?.lg || event.poster_image?.url"
             :alt="event.title"
             class="w-full object-cover"
           />

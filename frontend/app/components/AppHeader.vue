@@ -39,9 +39,23 @@
                 />
                 <NuxtLink
                   :to="`/projects/${route.params.username}/events/${route.params.eventSlug}`"
-                  class="truncate overflow-visible text-sm font-semibold tracking-tight decoration-dotted decoration-2 underline-offset-4 hover:underline"
+                  class="group flex items-center gap-x-1.5 truncate overflow-visible"
                 >
-                  {{ headerEvent.title }}
+                  <div
+                    v-if="headerEvent.poster_image?.sm"
+                    class="bg-muted outline-inside hidden aspect-4/5 w-7 overflow-hidden rounded-sm sm:block"
+                  >
+                    <img
+                      :src="headerEvent.poster_image.sm"
+                      :alt="headerEvent.title"
+                      class="size-full object-cover"
+                    />
+                  </div>
+                  <h3
+                    class="text-sm font-semibold tracking-tight decoration-dotted decoration-2 underline-offset-4 group-hover:underline"
+                  >
+                    {{ headerEvent.title }}
+                  </h3>
                 </NuxtLink>
 
                 <template v-if="headerBrand">

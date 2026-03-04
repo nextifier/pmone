@@ -721,6 +721,10 @@
   @apply !rounded-full [corner-shape:squircle];
 }
 
+@utility outline-inside {
+  @apply outline-primary/10 outline -outline-offset-1;
+}
+
 .gallery-container .my-gallery {
   @apply 3xl:grid-cols-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3;
 
