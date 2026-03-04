@@ -37,6 +37,93 @@ class EventController extends Controller
         return $project->events()->where('slug', $eventSlug)->firstOrFail();
     }
 
+    /**
+     * List all events across all projects.
+     */
+    public function all(Request $request): JsonResponse
+    {
+        $query = Event::query()->withoutTrashed()
+            ->with('project:id,name,username')
+            ->withCount('brandEvents')
+            ->withSum([
+                'brandEvents as booked_area' => fn ($q) => $q->whereNotNull('booth_size'),
+            ], 'booth_size');
+
+        // Search
+        if ($request->has('filter_search')) {
+            $search = $request->input('filter_search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'ilike', "%{$search}%")
+                    ->orWhere('location', 'ilike', "%{$search}%");
+            });
+        }
+
+        // Filter by status
+        if ($request->has('filter_status')) {
+            $statuses = explode(',', $request->input('filter_status'));
+            $query->whereIn('status', $statuses);
+        }
+
+        // Filter by project
+        if ($request->has('filter_project')) {
+            $projectIds = explode(',', $request->input('filter_project'));
+            $query->whereIn('project_id', $projectIds);
+        }
+
+        // Sorting
+        $sort = $request->input('sort', '-start_date');
+        $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
+        $field = ltrim($sort, '-');
+        $allowedSorts = ['title', 'start_date', 'end_date', 'status', 'created_at', 'order_column'];
+        if (in_array($field, $allowedSorts)) {
+            $query->orderBy($field, $direction);
+        } else {
+            $query->orderBy('start_date', 'desc');
+        }
+
+        $events = $query->paginate($request->input('per_page', 15));
+
+        // Batch load order stats
+        $eventIds = collect($events->items())->pluck('id');
+        $orderStats = Order::query()
+            ->join('brand_event', 'orders.brand_event_id', '=', 'brand_event.id')
+            ->whereIn('brand_event.event_id', $eventIds)
+            ->whereIn('orders.status', ['submitted', 'confirmed'])
+            ->groupBy('brand_event.event_id', 'orders.status')
+            ->select(
+                'brand_event.event_id',
+                'orders.status',
+                DB::raw('COUNT(*) as count'),
+                DB::raw('SUM(orders.total) as total_sum')
+            )
+            ->get();
+
+        $orderStatsMap = [];
+        foreach ($orderStats as $stat) {
+            $orderStatsMap[$stat->event_id][$stat->status] = [
+                'count' => (int) $stat->count,
+                'total_sum' => (float) $stat->total_sum,
+            ];
+        }
+
+        foreach ($events->items() as $event) {
+            $eventStats = $orderStatsMap[$event->id] ?? [];
+            $event->orders_submitted = $eventStats['submitted']['count'] ?? 0;
+            $event->orders_confirmed = $eventStats['confirmed']['count'] ?? 0;
+            $event->total_revenue = (float) ($eventStats['confirmed']['total_sum'] ?? 0);
+        }
+
+        return response()->json([
+            'data' => EventIndexResource::collection($events->items()),
+            'meta' => [
+                'current_page' => $events->currentPage(),
+                'last_page' => $events->lastPage(),
+                'per_page' => $events->perPage(),
+                'total' => $events->total(),
+            ],
+        ]);
+    }
+
     public function index(Request $request, string $username): JsonResponse
     {
         $project = $this->resolveProject($username);

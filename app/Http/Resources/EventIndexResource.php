@@ -46,6 +46,9 @@ class EventIndexResource extends JsonResource
                 'project_username' => $this->resource->relationLoaded('project')
                     ? $this->project?->username
                     : null,
+                'project_name' => $this->resource->relationLoaded('project')
+                    ? $this->project?->name
+                    : null,
                 'brand_events_count' => (int) ($this->brand_events_count ?? 0),
                 'gross_area' => (float) ($this->gross_area ?? 0),
                 'booked_area' => (float) ($this->booked_area ?? 0),

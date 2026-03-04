@@ -170,6 +170,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/{id}', [ProjectBusinessCategoryController::class, 'destroy'])->name('projects.business-categories.destroy');
     });
 
+    // Events (cross-project listing)
+    Route::get('/events', [EventController::class, 'all'])->name('events.all');
+
     // Event management endpoints (nested under projects)
     Route::prefix('projects/{username}/events')->group(function () {
         Route::get('/', [EventController::class, 'index'])->name('events.index');

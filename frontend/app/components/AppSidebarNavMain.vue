@@ -181,11 +181,11 @@ const navMainGroups = computed(() => {
     ];
   }
 
-  // Platform section - filter based on user permissions
-  const platformItems = [];
+  // Core section - event management
+  const coreItems = [];
 
   // Dashboard - accessible by all users
-  platformItems.push({
+  coreItems.push({
     label: "Dashboard",
     path: "/dashboard",
     iconName: "hugeicons:dashboard-circle",
@@ -193,7 +193,7 @@ const navMainGroups = computed(() => {
 
   // Inbox - requires contact_forms.read permission
   if (hasPermission("contact_forms.read")) {
-    platformItems.push({
+    coreItems.push({
       label: "Inbox",
       path: "/inbox",
       iconName: "hugeicons:mail-open-love",
@@ -202,7 +202,7 @@ const navMainGroups = computed(() => {
 
   // Orders - requires orders.read permission
   if (hasPermission("orders.read")) {
-    platformItems.push({
+    coreItems.push({
       label: "Orders",
       path: "/orders",
       iconName: "hugeicons:shopping-bag-01",
@@ -211,25 +211,37 @@ const navMainGroups = computed(() => {
 
   // Projects - requires projects.read permission
   if (hasPermission("projects.read")) {
-    platformItems.push({
+    coreItems.push({
       label: "Projects",
       path: "/projects",
       iconName: "hugeicons:layers-01",
     });
   }
 
+  // Events - requires events.read permission
+  if (hasPermission("events.read")) {
+    coreItems.push({
+      label: "Events",
+      path: "/events",
+      iconName: "hugeicons:calendar-03",
+    });
+  }
+
   // Brands - requires brands.read permission
   if (hasPermission("brands.read")) {
-    platformItems.push({
+    coreItems.push({
       label: "Brands",
       path: "/brands",
       iconName: "hugeicons:blockchain-01",
     });
   }
 
+  // Tools section
+  const toolsItems = [];
+
   // Tasks - requires tasks.read permission
   if (hasPermission("tasks.read")) {
-    platformItems.push({
+    toolsItems.push({
       label: "Tasks",
       path: "/tasks",
       iconName: "hugeicons:task-daily-01",
@@ -238,7 +250,7 @@ const navMainGroups = computed(() => {
 
   // Short Links & Dynamic QR Code - requires short_links.read permission
   if (hasPermission("short_links.read")) {
-    platformItems.push({
+    toolsItems.push({
       label: "Short Links & Dynamic QR Code",
       path: "/links",
       iconName: "hugeicons:unlink-02",
@@ -246,7 +258,7 @@ const navMainGroups = computed(() => {
   }
 
   // Static QR Code Generator - accessible by all users
-  platformItems.push({
+  toolsItems.push({
     label: "Static QR Code Generator",
     path: "/qr",
     iconName: "hugeicons:qr-code",
@@ -254,7 +266,7 @@ const navMainGroups = computed(() => {
 
   // Forms - requires forms.read permission
   if (hasPermission("forms.read")) {
-    platformItems.push({
+    toolsItems.push({
       label: "Form Builder",
       path: "/forms",
       iconName: "hugeicons:resize-field-rectangle",
@@ -264,7 +276,7 @@ const navMainGroups = computed(() => {
 
   // Posts - requires posts.read permission
   if (hasPermission("posts.read")) {
-    platformItems.push({
+    toolsItems.push({
       label: "Posts",
       path: "/posts",
       iconName: "hugeicons:task-edit-01",
@@ -273,7 +285,7 @@ const navMainGroups = computed(() => {
 
   // Web Analytics - requires analytics.view permission
   if (hasPermission("analytics.view")) {
-    platformItems.push({
+    toolsItems.push({
       label: "Web Analytics",
       path: "/web-analytics",
       iconName: "hugeicons:analysis-text-link",
@@ -282,8 +294,12 @@ const navMainGroups = computed(() => {
 
   const groups = [
     {
-      label: "Platform",
-      items: platformItems,
+      label: "Core",
+      items: coreItems,
+    },
+    {
+      label: "Tools",
+      items: toolsItems,
     },
   ];
 

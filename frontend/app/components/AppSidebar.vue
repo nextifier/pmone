@@ -18,7 +18,7 @@
         </div>
       </NuxtLink>
     </SidebarHeader>
-    <SidebarContent class="">
+    <SidebarContent class="gap-y-1">
       <AppSidebarNavMain />
       <AppSidebarNavProjects v-if="!isExhibitor && !isWriter" />
     </SidebarContent>
