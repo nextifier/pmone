@@ -9,6 +9,7 @@
     "postinstall": "nuxt prepare"
   },
   "devDependencies": {
+    "@fingerprintjs/fingerprintjs": "^5.1.0",
     "@formkit/auto-animate": "^0.9.0",
     "@iconify-json/hugeicons": "^1.2.23",
     "@iconify-json/lucide": "^1.2.95",

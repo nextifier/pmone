@@ -27,9 +27,23 @@ const isProjectPage = computed(() => {
 });
 
 // Block default "user" role from accessing pages beyond dashboard & settings
-const { hasRole, hasAnyRole } = usePermission();
+const { hasRole, hasAnyRole, isStaffOrAbove } = usePermission();
 const isDefaultUser = computed(
   () => hasRole("user") && !hasAnyRole(["staff", "admin", "master", "exhibitor", "writer"]),
+);
+
+// Force English locale for non-exhibitor users (multi-language only for Exhibitor Dashboard)
+const { locale, setLocale } = useI18n();
+const isExhibitor = computed(() => hasRole("exhibitor") && !isStaffOrAbove.value);
+
+watch(
+  isExhibitor,
+  (exhibitor) => {
+    if (!exhibitor && locale.value !== "en") {
+      setLocale("en");
+    }
+  },
+  { immediate: true },
 );
 
 const allowedPrefixes = ["/dashboard", "/settings"];

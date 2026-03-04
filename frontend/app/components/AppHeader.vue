@@ -2,7 +2,7 @@
   <header
     class="border-border/50 bg-background/95 supports-backdrop-filter:bg-background/90 sticky inset-x-0 top-0 z-50 h-(--navbar-height-mobile) gap-x-1.5 border-b text-sm backdrop-blur-sm lg:h-(--navbar-height-desktop)"
   >
-    <div class="container flex h-full items-center justify-center">
+    <div class="flex h-full items-center justify-center px-4">
       <template v-if="hideSidebar">
         <div class="-ml-2 flex grow items-center gap-x-1 overflow-hidden">
           <BackButton :destination="backDestination" :force-destination="true">

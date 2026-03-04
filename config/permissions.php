@@ -107,6 +107,12 @@ return [
             'model' => \App\Models\Order::class,
             'actions' => ['read', 'update'],
         ],
+        'forms' => [
+            'label' => 'Forms',
+            'description' => 'Manage form builder and responses',
+            'model' => \App\Models\Form::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
     ],
 
     /*

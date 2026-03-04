@@ -3,12 +3,12 @@
     <!-- Brand Information -->
     <div class="frame">
       <div class="frame-header">
-        <div class="frame-title">{{ $t('brandsForm.brandInformation') }}</div>
+        <div class="frame-title">{{ $t("brandsForm.brandInformation") }}</div>
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
           <div v-if="showLogo" class="space-y-2">
-            <Label>{{ $t('brandsForm.brandLogo') }}</Label>
+            <Label>{{ $t("brandsForm.brandLogo") }}</Label>
             <InputFileImage
               v-model="logoFiles"
               v-model:deleteFlag="deleteLogo"
@@ -18,37 +18,30 @@
           </div>
 
           <div class="space-y-2">
-            <Label for="brand_name">{{ $t('brandsForm.brandName') }}</Label>
+            <Label for="brand_name">{{ $t("brandsForm.brandName") }}</Label>
             <Input id="brand_name" v-model="form.name" />
           </div>
 
           <div v-if="showCategories" class="space-y-2">
-            <Label>{{ $t('brandsForm.businessCategories') }}</Label>
+            <Label>{{ $t("brandsForm.businessCategories") }}</Label>
             <MultiSelect
               v-if="businessCategoryOptions.length"
               v-model="selectedCategoryOptions"
               :options="availableCategoryOptions"
               :placeholder="$t('brandsForm.addCategory')"
-              open-on-click
+              open-on-focus
             />
             <TagsInput v-else v-model="form.business_categories" class="text-sm">
-              <TagsInputItem
-                v-for="cat in form.business_categories"
-                :key="cat"
-                :value="cat"
-              >
+              <TagsInputItem v-for="cat in form.business_categories" :key="cat" :value="cat">
                 <TagsInputItemText />
                 <TagsInputItemDelete />
               </TagsInputItem>
               <TagsInputInput :placeholder="$t('brandsForm.addCategory')" />
             </TagsInput>
-            <p v-if="!businessCategoryOptions.length" class="text-muted-foreground text-xs">
-              {{ $t('brandsForm.pressEnterToAdd') }}
-            </p>
           </div>
 
           <div class="space-y-2">
-            <Label for="description">{{ $t('brandsForm.description') }}</Label>
+            <Label for="description">{{ $t("brandsForm.description") }}</Label>
             <TipTapEditor
               v-model="form.description"
               model-type="App\Models\Brand"
@@ -60,14 +53,14 @@
           </div>
 
           <div v-if="showStatus" class="space-y-2">
-            <Label for="status">{{ $t('brandsForm.status') }}</Label>
+            <Label for="status">{{ $t("brandsForm.status") }}</Label>
             <Select v-model="form.status">
               <SelectTrigger id="status" class="w-40">
                 <SelectValue :placeholder="$t('brandsForm.selectStatus')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="active">{{ $t('brandsForm.active') }}</SelectItem>
-                <SelectItem value="inactive">{{ $t('brandsForm.inactive') }}</SelectItem>
+                <SelectItem value="active">{{ $t("brandsForm.active") }}</SelectItem>
+                <SelectItem value="inactive">{{ $t("brandsForm.inactive") }}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -78,28 +71,28 @@
     <!-- Company Information -->
     <div class="frame">
       <div class="frame-header">
-        <div class="frame-title">{{ $t('brandsForm.companyInformation') }}</div>
+        <div class="frame-title">{{ $t("brandsForm.companyInformation") }}</div>
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
           <div class="space-y-2">
-            <Label for="company_name">{{ $t('brandsForm.companyName') }}</Label>
+            <Label for="company_name">{{ $t("brandsForm.companyName") }}</Label>
             <Input id="company_name" v-model="form.company_name" />
           </div>
 
           <div class="space-y-2">
-            <Label for="company_address">{{ $t('brandsForm.companyAddress') }}</Label>
+            <Label for="company_address">{{ $t("brandsForm.companyAddress") }}</Label>
             <Textarea id="company_address" v-model="form.company_address" rows="2" />
           </div>
 
           <div class="grid grid-cols-1 gap-x-4 gap-y-6 lg:grid-cols-2">
             <div class="space-y-2">
-              <Label for="company_email">{{ $t('brandsForm.companyEmail') }}</Label>
+              <Label for="company_email">{{ $t("brandsForm.companyEmail") }}</Label>
               <Input id="company_email" v-model="form.company_email" type="email" />
             </div>
 
             <div class="space-y-2">
-              <Label for="company_phone">{{ $t('brandsForm.companyPhone') }}</Label>
+              <Label for="company_phone">{{ $t("brandsForm.companyPhone") }}</Label>
               <InputPhone v-model="form.company_phone" id="company_phone" />
             </div>
           </div>
@@ -110,7 +103,7 @@
     <!-- Project-Specific Information (Custom Fields) -->
     <div v-if="customFieldDefinitions?.length" class="frame">
       <div class="frame-header">
-        <div class="frame-title">{{ $t('brandsForm.projectSpecificInfo') }}</div>
+        <div class="frame-title">{{ $t("brandsForm.projectSpecificInfo") }}</div>
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
@@ -144,38 +137,24 @@
             />
 
             <!-- Select -->
-            <Select
-              v-else-if="field.type === 'select'"
-              v-model="customFieldValues[field.key]"
-            >
+            <Select v-else-if="field.type === 'select'" v-model="customFieldValues[field.key]">
               <SelectTrigger :id="`cf_${field.key}`">
                 <SelectValue placeholder="Select..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem
-                  v-for="option in field.options"
-                  :key="option"
-                  :value="option"
-                >
+                <SelectItem v-for="option in field.options" :key="option" :value="option">
                   {{ option }}
                 </SelectItem>
               </SelectContent>
             </Select>
 
             <!-- Year Select -->
-            <Select
-              v-else-if="field.type === 'year_select'"
-              v-model="customFieldValues[field.key]"
-            >
+            <Select v-else-if="field.type === 'year_select'" v-model="customFieldValues[field.key]">
               <SelectTrigger :id="`cf_${field.key}`">
                 <SelectValue placeholder="Select year..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem
-                  v-for="year in yearOptions"
-                  :key="year"
-                  :value="String(year)"
-                >
+                <SelectItem v-for="year in yearOptions" :key="year" :value="String(year)">
                   {{ year }}
                 </SelectItem>
               </SelectContent>
@@ -195,6 +174,8 @@
 </template>
 
 <script setup>
+import TipTapEditor from "@/components/TipTapEditor.vue";
+import { MultiSelect } from "@/components/ui/multi-select";
 import {
   Select,
   SelectContent,
@@ -209,8 +190,6 @@ import {
   TagsInputItemDelete,
   TagsInputItemText,
 } from "@/components/ui/tags-input";
-import { MultiSelect } from "@/components/ui/multi-select";
-import TipTapEditor from "@/components/TipTapEditor.vue";
 import { toast } from "vue-sonner";
 
 const { t } = useI18n();

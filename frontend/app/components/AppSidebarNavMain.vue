@@ -51,6 +51,12 @@
           <SidebarMenuButton :tooltip="item.label">
             <Icon v-if="item.iconName" :name="item.iconName" class="!size-4.5 shrink-0" />
             <span>{{ item.label }}</span>
+
+            <span
+              v-if="item.badgeLabel"
+              class="bg-muted border-border rounded-full border px-1.5 py-0.5 text-xs tracking-tight"
+              >{{ item.badgeLabel }}</span
+            >
           </SidebarMenuButton>
         </NuxtLink>
       </div>
@@ -245,6 +251,16 @@ const navMainGroups = computed(() => {
     path: "/qr",
     iconName: "hugeicons:qr-code",
   });
+
+  // Forms - requires forms.read permission
+  if (hasPermission("forms.read")) {
+    platformItems.push({
+      label: "Form Builder",
+      path: "/forms",
+      iconName: "hugeicons:resize-field-rectangle",
+      badgeLabel: "Coming Soon",
+    });
+  }
 
   // Posts - requires posts.read permission
   if (hasPermission("posts.read")) {

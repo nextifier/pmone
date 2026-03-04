@@ -12,6 +12,9 @@ use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\EventProductController;
 use App\Http\Controllers\Api\ExchangeRateController;
 use App\Http\Controllers\Api\ExhibitorDashboardController;
+use App\Http\Controllers\Api\FormController;
+use App\Http\Controllers\Api\FormFieldController;
+use App\Http\Controllers\Api\FormResponseController;
 use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
@@ -24,6 +27,7 @@ use App\Http\Controllers\Api\ProjectBusinessCategoryController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ProjectCustomFieldController;
 use App\Http\Controllers\Api\PublicBlogController;
+use App\Http\Controllers\Api\PublicFormController;
 use App\Http\Controllers\Api\PublicProjectController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ShortLinkController;
@@ -291,6 +295,32 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // User tasks endpoint (view tasks by username)
     Route::get('/users/{username}/tasks', [TaskController::class, 'userTasks'])->name('tasks.user');
 
+    // Form builder endpoints
+    Route::prefix('forms')->group(function () {
+        Route::get('/', [FormController::class, 'index'])->name('forms.index');
+        Route::post('/', [FormController::class, 'store'])->name('forms.store');
+        Route::get('/trash', [FormController::class, 'trash'])->name('forms.trash');
+        Route::post('/trash/{id}/restore', [FormController::class, 'restore'])->name('forms.restore');
+        Route::delete('/trash/{id}', [FormController::class, 'forceDestroy'])->name('forms.force-destroy');
+        Route::get('/{form:slug}', [FormController::class, 'show'])->name('forms.show');
+        Route::put('/{form:slug}', [FormController::class, 'update'])->name('forms.update');
+        Route::delete('/{form:slug}', [FormController::class, 'destroy'])->name('forms.destroy');
+
+        // Fields (nested)
+        Route::get('/{form:slug}/fields', [FormFieldController::class, 'index'])->name('forms.fields.index');
+        Route::post('/{form:slug}/fields', [FormFieldController::class, 'store'])->name('forms.fields.store');
+        Route::put('/{form:slug}/fields/reorder', [FormFieldController::class, 'reorder'])->name('forms.fields.reorder');
+        Route::put('/{form:slug}/fields/{ulid}', [FormFieldController::class, 'update'])->name('forms.fields.update');
+        Route::delete('/{form:slug}/fields/{ulid}', [FormFieldController::class, 'destroy'])->name('forms.fields.destroy');
+
+        // Responses (nested)
+        Route::get('/{form:slug}/responses', [FormResponseController::class, 'index'])->name('forms.responses.index');
+        Route::get('/{form:slug}/responses/export', [FormResponseController::class, 'export'])->name('forms.responses.export');
+        Route::put('/{form:slug}/responses/bulk-status', [FormResponseController::class, 'bulkUpdateStatus'])->name('forms.responses.bulk-status');
+        Route::delete('/{form:slug}/responses/bulk', [FormResponseController::class, 'bulkDestroy'])->name('forms.responses.bulk-destroy');
+        Route::delete('/{form:slug}/responses/{ulid}', [FormResponseController::class, 'destroy'])->name('forms.responses.destroy');
+    });
+
     // Log management endpoints (master and admin only)
     Route::prefix('logs')->group(function () {
         Route::get('/', [LogController::class, 'index']);
@@ -360,6 +390,15 @@ Route::get('/s/{slug}', [ProfileController::class, 'resolveShortLink'])
 // Tracking routes (public - can track anonymous visitors)
 Route::post('/track/click', [TrackingController::class, 'trackLinkClick'])->middleware('throttle:api');
 Route::post('/track/visit', [TrackingController::class, 'trackProfileVisit'])->middleware('throttle:api');
+
+// Public form endpoints (no auth, rate limited)
+Route::prefix('public/forms')->middleware('throttle:api')->group(function () {
+    Route::get('/{slug}', [PublicFormController::class, 'show'])->name('public.forms.show');
+    Route::post('/{slug}/submit', [PublicFormController::class, 'submit'])->name('public.forms.submit');
+    Route::post('/{slug}/upload', [PublicFormController::class, 'upload'])->name('public.forms.upload');
+    Route::delete('/{slug}/upload', [PublicFormController::class, 'revert'])->name('public.forms.upload.revert');
+    Route::get('/{slug}/check', [PublicFormController::class, 'checkDuplicate'])->name('public.forms.check');
+});
 
 // Contact form submission (requires API key for CORS and rate limiting)
 Route::post('/contact-forms/submit', [ContactFormController::class, 'submit'])->middleware(['api.key']);

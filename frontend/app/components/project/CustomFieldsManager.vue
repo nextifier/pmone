@@ -92,7 +92,7 @@
           </div>
 
           <div class="flex items-center gap-x-2 sm:col-span-2">
-            <Switch :checked="fieldForm.is_required" @update:checked="fieldForm.is_required = $event" />
+            <Switch v-model="fieldForm.is_required" />
             <Label class="cursor-pointer" @click="fieldForm.is_required = !fieldForm.is_required">Required</Label>
           </div>
         </div>
