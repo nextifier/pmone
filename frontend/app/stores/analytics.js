@@ -41,12 +41,18 @@ export const useAnalyticsStore = defineStore("analytics", {
     /**
      * Check if aggregate data is fresh for specific period
      * Uses backend's cache_ttl_minutes if available, otherwise defaults to 5 minutes
+     *
+     * Data with is_updating=true is NEVER considered fresh,
+     * so auto-refresh polling continues until backend finishes updating.
      */
     isAggregateFresh: (state) => (period = "30") => {
       const cacheKey = `period_${period}`;
       const cached = state.aggregateCache[cacheKey];
 
       if (!cached || !cached.timestamp) return false;
+
+      // If backend is still updating, data is not fresh - keep polling
+      if (cached.data?.cache_info?.is_updating) return false;
 
       const age = (Date.now() - cached.timestamp) / 1000 / 60; // in minutes
       // Use backend's cacheTTL if available, otherwise default to 5 minutes

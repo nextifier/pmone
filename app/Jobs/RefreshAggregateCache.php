@@ -130,6 +130,21 @@ class RefreshAggregateCache implements ShouldBeUnique, ShouldQueue
                 $data = $aggregator->getDashboardData($properties, $this->period);
             }
 
+            // Check if aggregate produced empty results despite having active properties
+            // This happens when daily caches are not yet available (race condition)
+            $hasPropertyData = ! empty($data['property_breakdown'] ?? []);
+
+            if (! $hasPropertyData && $totalCount > 0) {
+                Log::warning('Aggregate produced empty results - daily caches not yet available, skipping cache store', [
+                    'cache_key' => $this->cacheKey,
+                    'active_properties' => $totalCount,
+                ]);
+
+                $syncLog->markFailed('Daily caches not yet available - will retry after daily data is fetched');
+
+                return;
+            }
+
             // Store with 30-minute expiry
             Cache::put($this->cacheKey, $data, now()->addMinutes(30));
             Cache::put(CacheKey::timestamp($this->cacheKey), now(), now()->addMinutes(30));
@@ -142,6 +157,7 @@ class RefreshAggregateCache implements ShouldBeUnique, ShouldQueue
             $syncLog->markSuccess([
                 'properties_count' => $totalCount,
                 'has_totals' => ! empty($data['totals'] ?? []),
+                'has_property_data' => $hasPropertyData,
                 'cache_key' => $this->cacheKey,
             ]);
 

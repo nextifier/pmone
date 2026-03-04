@@ -7,4 +7,3 @@ export interface Option {
 }
 
 export { default as MultiSelect } from "./MultiSelect.vue";
-export { default as ComboboxMultiSelect } from "./ComboboxMultiSelect.vue";

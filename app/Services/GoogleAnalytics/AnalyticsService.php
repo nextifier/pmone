@@ -200,6 +200,20 @@ class AnalyticsService
             $cacheAge = $cacheTimestamp ? abs(now()->diffInMinutes($cacheTimestamp, false)) : null;
             $isFresh = $cacheAge !== null && $cacheAge < $cacheTTL;
 
+            // Check if daily data has been updated since this aggregate was cached
+            // This solves the race condition where aggregate caches zeros before daily data is ready
+            $lastDailyRefresh = Cache::get('analytics:last_daily_refresh');
+            if ($isFresh && $lastDailyRefresh && $cacheTimestamp && $lastDailyRefresh->gt($cacheTimestamp)) {
+                $hasPropertyData = ! empty($cachedData['property_breakdown'] ?? []);
+                if (! $hasPropertyData) {
+                    \Log::info('Aggregate cache has empty data but daily caches were refreshed since - marking stale', [
+                        'aggregate_cached_at' => $cacheTimestamp->toIso8601String(),
+                        'daily_refreshed_at' => $lastDailyRefresh->toIso8601String(),
+                    ]);
+                    $isFresh = false;
+                }
+            }
+
             // Special handling for "today" period with stale cache
             $isToday = $period->startDate->format('Y-m-d') === now()->format('Y-m-d')
                        && $period->endDate->format('Y-m-d') === now()->format('Y-m-d');

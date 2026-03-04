@@ -24,11 +24,12 @@
 
           <div v-if="showCategories" class="space-y-2">
             <Label>{{ $t('brandsForm.businessCategories') }}</Label>
-            <ComboboxMultiSelect
+            <MultiSelect
               v-if="businessCategoryOptions.length"
               v-model="selectedCategoryOptions"
               :options="availableCategoryOptions"
               :placeholder="$t('brandsForm.addCategory')"
+              open-on-click
             />
             <TagsInput v-else v-model="form.business_categories" class="text-sm">
               <TagsInputItem
@@ -208,7 +209,7 @@ import {
   TagsInputItemDelete,
   TagsInputItemText,
 } from "@/components/ui/tags-input";
-import { ComboboxMultiSelect } from "@/components/ui/multi-select";
+import { MultiSelect } from "@/components/ui/multi-select";
 import TipTapEditor from "@/components/TipTapEditor.vue";
 import { toast } from "vue-sonner";
 
