@@ -117,35 +117,14 @@ class DashboardController extends Controller
         $myProjects = $user->projects()
             ->active()
             ->orderBy('order_column')
-            ->with(['media', 'members.media', 'events' => function ($q) {
-                $q->with('media')->orderByDesc('start_date')->limit(3);
-            }])
-            ->withCount('members')
+            ->with('media')
             ->get()
-            ->map(function ($project) {
-                $recentEvents = $project->events->take(3)->map(fn (Event $event) => [
-                    'id' => $event->id,
-                    'title' => $event->title,
-                    'slug' => $event->slug,
-                    'poster_image' => $event->poster_image,
-                ]);
-
-                return [
-                    'id' => $project->id,
-                    'name' => $project->name,
-                    'username' => $project->username,
-                    'profile_image' => $project->profile_image,
-                    'members_count' => $project->members_count,
-                    'members' => $project->members->take(4)->map(fn ($member) => [
-                        'id' => $member->id,
-                        'name' => $member->name,
-                        'profile_image' => $member->relationLoaded('media') && $member->media->firstWhere('collection_name', 'profile_image')
-                            ? $member->getMediaUrls('profile_image')
-                            : null,
-                    ]),
-                    'recent_events' => $recentEvents,
-                ];
-            })
+            ->map(fn ($project) => [
+                'id' => $project->id,
+                'name' => $project->name,
+                'username' => $project->username,
+                'profile_image' => $project->profile_image,
+            ])
             ->values();
 
         return response()->json([

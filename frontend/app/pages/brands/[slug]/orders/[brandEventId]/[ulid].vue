@@ -65,7 +65,12 @@
                           :alt="item.product_name"
                           class="size-10 shrink-0 rounded object-cover"
                         />
-                        <span class="font-medium">{{ item.product_name }}</span>
+                        <div>
+                          <span class="font-medium">{{ item.product_name }}</span>
+                          <p v-if="item.notes" class="text-muted-foreground mt-0.5 text-sm">
+                            {{ item.notes }}
+                          </p>
+                        </div>
                     </div>
                 </td>
                 <td class="text-muted-foreground px-4 py-3">{{ item.product_category ?? "-" }}</td>

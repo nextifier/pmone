@@ -120,6 +120,9 @@
                   >
                     <td class="px-4 py-3">
                       <span class="font-medium tracking-tight">{{ item.product_name }}</span>
+                      <p v-if="item.notes" class="text-muted-foreground mt-0.5 text-sm tracking-tight">
+                        {{ item.notes }}
+                      </p>
                     </td>
                     <td class="px-4 py-3">
                       <span class="text-muted-foreground tracking-tight">
