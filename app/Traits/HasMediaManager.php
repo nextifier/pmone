@@ -28,17 +28,20 @@ trait HasMediaManager
         }
 
         $media = $this->getFirstMedia($collection);
+        $originalUrl = $media->getUrl();
+
         $urls = [
-            'url' => $media->getUrl(),
-            'original' => $media->getUrl(),
-            'lqip' => $media->getUrl('lqip'),
-            'sm' => $media->getUrl('sm'),
-            'md' => $media->getUrl('md'),
-            'lg' => $media->getUrl('lg'),
-            'xl' => $media->getUrl('xl'),
+            'url' => $originalUrl,
+            'original' => $originalUrl,
             'caption' => $media->getCustomProperty('caption'),
             'alt' => $media->getCustomProperty('alt') ?? $media->name,
         ];
+
+        foreach (['lqip', 'sm', 'md', 'lg', 'xl'] as $conversion) {
+            $urls[$conversion] = $media->hasGeneratedConversion($conversion)
+                ? $media->getUrl($conversion)
+                : $originalUrl;
+        }
 
         return $urls;
     }
