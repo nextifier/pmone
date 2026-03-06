@@ -74,11 +74,6 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "vue-sonner";
 
-definePageMeta({
-  middleware: ["permission"],
-  permissions: ["projects.update"],
-});
-
 const props = defineProps({
   project: Object,
 });

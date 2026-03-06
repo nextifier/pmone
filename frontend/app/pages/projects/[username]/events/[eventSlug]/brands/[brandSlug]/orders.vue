@@ -35,9 +35,9 @@
           <p class="text-sm font-semibold">{{ formatPrice(order.total) }}</p>
           <span
             class="rounded-full px-2.5 py-0.5 text-xs font-medium"
-            :class="statusClass(order.status)"
+            :class="statusClass(order.operational_status)"
           >
-            {{ order.status }}
+            {{ order.operational_status_label || order.operational_status }}
           </span>
         </div>
       </NuxtLink>

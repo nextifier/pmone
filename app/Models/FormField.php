@@ -8,6 +8,40 @@ use Illuminate\Support\Str;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 
+/**
+ * @property int $id
+ * @property string $ulid
+ * @property int $form_id
+ * @property string $type
+ * @property string $label
+ * @property string|null $placeholder
+ * @property string|null $help_text
+ * @property array<array-key, mixed>|null $options
+ * @property array<array-key, mixed>|null $validation
+ * @property array<array-key, mixed>|null $settings
+ * @property int $order_column
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Form $form
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormField newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormField newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormField ordered(string $direction = 'asc')
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormField query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormField whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormField whereFormId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormField whereHelpText($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormField whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormField whereLabel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormField whereOptions($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormField whereOrderColumn($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormField wherePlaceholder($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormField whereSettings($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormField whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormField whereUlid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormField whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormField whereValidation($value)
+ * @mixin \Eloquent
+ */
 class FormField extends Model implements Sortable
 {
     use SortableTrait;

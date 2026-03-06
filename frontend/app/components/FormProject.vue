@@ -208,27 +208,6 @@
 
     <div class="frame">
       <div class="frame-header">
-        <div class="frame-title">Members</div>
-      </div>
-      <div class="frame-panel">
-        <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label class="sr-only">Members</Label>
-            <UserMultiSelect
-              :users="eligibleMembers"
-              v-model="selectedMembers"
-              v-model:query="memberQuery"
-              placeholder="Search members..."
-              :hide-clear-all-button="true"
-            />
-            <InputErrorMessage :errors="errors.member_ids" />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="frame">
-      <div class="frame-header">
         <div class="frame-title">Project Settings</div>
       </div>
       <div class="frame-panel">
@@ -268,7 +247,7 @@
       </div>
     </div>
 
-    <div class="frame">
+    <div v-if="!hideContactForm" class="frame">
       <div class="frame-header">
         <div class="frame-title">Contact Form Email Configuration</div>
         <p class="text-muted-foreground text-xs tracking-tight">
@@ -514,6 +493,10 @@ const props = defineProps({
     default: () => ({}),
   },
   isCreate: {
+    type: Boolean,
+    default: false,
+  },
+  hideContactForm: {
     type: Boolean,
     default: false,
   },

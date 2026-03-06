@@ -43,11 +43,11 @@
       </div>
     </div>
 
-    <!-- Gross Area -->
+    <!-- Saleable Area -->
     <div class="space-y-2">
-      <Label for="gross_area">Gross Exhibition Area (m²)</Label>
-      <Input id="gross_area" v-model.number="form.gross_area" type="number" min="0" step="0.01" placeholder="e.g. 5000" />
-      <InputErrorMessage :errors="errors.gross_area" />
+      <Label for="saleable_area">Saleable Area (m²)</Label>
+      <Input id="saleable_area" v-model.number="form.saleable_area" type="number" min="0" step="0.01" placeholder="e.g. 5000" />
+      <InputErrorMessage :errors="errors.saleable_area" />
     </div>
 
     <!-- Venue | Hall | Location Link -->
@@ -197,6 +197,102 @@
       </div>
     </div>
 
+    <!-- Order Periods -->
+    <div v-if="!isCreate" class="space-y-4">
+      <div class="space-y-1">
+        <Label class="text-base font-semibold">Order Periods</Label>
+        <p class="text-muted-foreground text-xs">
+          Configure normal and onsite order periods. Onsite orders can have a penalty rate applied.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-x-2 gap-y-6">
+        <div class="space-y-2">
+          <Label for="normal_order_opens_at">Normal Order Opens</Label>
+          <DateTimePicker
+            v-model="form.normal_order_opens_at"
+            placeholder="Not set"
+            :default-hour="0"
+            :default-minute="0"
+          />
+          <InputErrorMessage :errors="errors.normal_order_opens_at" />
+        </div>
+        <div class="space-y-2">
+          <Label for="normal_order_closes_at">Normal Order Closes</Label>
+          <DateTimePicker
+            v-model="form.normal_order_closes_at"
+            placeholder="Not set"
+            :default-hour="23"
+            :default-minute="59"
+          />
+          <InputErrorMessage :errors="errors.normal_order_closes_at" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-x-2 gap-y-6">
+        <div class="space-y-2">
+          <Label for="onsite_order_opens_at">Onsite Order Opens</Label>
+          <DateTimePicker
+            v-model="form.onsite_order_opens_at"
+            placeholder="Not set"
+            :default-hour="0"
+            :default-minute="0"
+          />
+          <InputErrorMessage :errors="errors.onsite_order_opens_at" />
+        </div>
+        <div class="space-y-2">
+          <Label for="onsite_order_closes_at">Onsite Order Closes</Label>
+          <DateTimePicker
+            v-model="form.onsite_order_closes_at"
+            placeholder="Not set"
+            :default-hour="23"
+            :default-minute="59"
+          />
+          <InputErrorMessage :errors="errors.onsite_order_closes_at" />
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <Label for="onsite_penalty_rate">Onsite Penalty Rate (%)</Label>
+        <Input
+          id="onsite_penalty_rate"
+          v-model.number="form.onsite_penalty_rate"
+          type="number"
+          min="0"
+          max="100"
+          step="0.01"
+          placeholder="50"
+        />
+        <p class="text-muted-foreground text-xs">
+          Percentage added to order total for onsite period orders. Default: 50%.
+        </p>
+        <InputErrorMessage :errors="errors.onsite_penalty_rate" />
+      </div>
+    </div>
+
+    <!-- Badge & VIP Info -->
+    <div v-if="!isCreate" class="space-y-4">
+      <div class="space-y-1">
+        <Label class="text-base font-semibold">Badge & VIP Information</Label>
+        <p class="text-muted-foreground text-xs">
+          Information about exhibitor badges, VIP passes, and related policies.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <Label for="badge_vip_info">Badge & VIP Info Content</Label>
+        <TipTapEditor
+          v-model="form.badge_vip_info"
+          model-type="App\Models\Event"
+          collection="description_images"
+          :sticky="false"
+          min-height="150px"
+          placeholder="Write badge and VIP information for exhibitors..."
+        />
+        <InputErrorMessage :errors="errors.badge_vip_info" />
+      </div>
+    </div>
+
     <!-- Status | Visibility -->
     <div class="grid grid-cols-2 gap-x-2 gap-y-6">
       <div class="space-y-2">
@@ -266,7 +362,7 @@ function createEmptyForm() {
     title: "",
     slug: "",
     edition_number: null,
-    gross_area: null,
+    saleable_area: null,
     description: "",
     start_date: null,
     end_date: null,
@@ -280,6 +376,12 @@ function createEmptyForm() {
     order_form_content: "",
     order_form_deadline: null,
     promotion_post_deadline: null,
+    normal_order_opens_at: null,
+    normal_order_closes_at: null,
+    onsite_order_opens_at: null,
+    onsite_order_closes_at: null,
+    onsite_penalty_rate: 50,
+    badge_vip_info: "",
   };
 }
 
@@ -371,7 +473,7 @@ function populateForm(data) {
   form.title = data.title || "";
   form.slug = data.slug || "";
   form.edition_number = data.edition_number || null;
-  form.gross_area = data.gross_area || null;
+  form.saleable_area = data.saleable_area || null;
   form.description = data.description || "";
   form.start_date = data.start_date ? new Date(data.start_date) : null;
   form.end_date = data.end_date ? new Date(data.end_date) : null;
@@ -385,6 +487,12 @@ function populateForm(data) {
   form.order_form_content = data.order_form_content || "";
   form.order_form_deadline = data.order_form_deadline ? new Date(data.order_form_deadline) : null;
   form.promotion_post_deadline = data.promotion_post_deadline ? new Date(data.promotion_post_deadline) : null;
+  form.normal_order_opens_at = data.normal_order_opens_at ? new Date(data.normal_order_opens_at) : null;
+  form.normal_order_closes_at = data.normal_order_closes_at ? new Date(data.normal_order_closes_at) : null;
+  form.onsite_order_opens_at = data.onsite_order_opens_at ? new Date(data.onsite_order_opens_at) : null;
+  form.onsite_order_closes_at = data.onsite_order_closes_at ? new Date(data.onsite_order_closes_at) : null;
+  form.onsite_penalty_rate = data.onsite_penalty_rate ?? 50;
+  form.badge_vip_info = data.badge_vip_info || "";
 
   notificationEmails.value = form.settings?.notification_emails || [];
 
@@ -421,7 +529,7 @@ function handleSubmit() {
     title: form.title,
     slug: form.slug || null,
     edition_number: form.edition_number || null,
-    gross_area: form.gross_area || null,
+    saleable_area: form.saleable_area || null,
     description: form.description || null,
     start_date: formatDateTimeForBackend(form.start_date),
     end_date: formatDateTimeForBackend(form.end_date),
@@ -433,6 +541,12 @@ function handleSubmit() {
     order_form_content: form.order_form_content || null,
     order_form_deadline: formatDateTimeForBackend(form.order_form_deadline),
     promotion_post_deadline: formatDateTimeForBackend(form.promotion_post_deadline),
+    normal_order_opens_at: formatDateTimeForBackend(form.normal_order_opens_at),
+    normal_order_closes_at: formatDateTimeForBackend(form.normal_order_closes_at),
+    onsite_order_opens_at: formatDateTimeForBackend(form.onsite_order_opens_at),
+    onsite_order_closes_at: formatDateTimeForBackend(form.onsite_order_closes_at),
+    onsite_penalty_rate: form.onsite_penalty_rate ?? 50,
+    badge_vip_info: form.badge_vip_info || null,
     settings: {
       ...form.settings,
       notification_emails: notificationEmails.value.filter((e) => e.trim()),

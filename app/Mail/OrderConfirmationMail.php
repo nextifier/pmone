@@ -36,7 +36,7 @@ class OrderConfirmationMail extends Mailable
                 'order' => $this->order,
                 'event' => $this->event,
                 'brand' => $this->brand,
-                'items' => $this->order->items,
+                'items' => $this->order->items->load('productCategory'),
             ],
         );
     }

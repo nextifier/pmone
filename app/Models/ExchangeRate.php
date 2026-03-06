@@ -14,7 +14,6 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Illuminate\Support\Carbon $fetched_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- *
  * @method static Builder<static>|ExchangeRate forCurrency(string $currency)
  * @method static Builder<static>|ExchangeRate newModelQuery()
  * @method static Builder<static>|ExchangeRate newQuery()
@@ -26,7 +25,6 @@ use Illuminate\Database\Eloquent\Model;
  * @method static Builder<static>|ExchangeRate whereId($value)
  * @method static Builder<static>|ExchangeRate whereRates($value)
  * @method static Builder<static>|ExchangeRate whereUpdatedAt($value)
- *
  * @mixin \Eloquent
  */
 class ExchangeRate extends Model

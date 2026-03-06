@@ -17,7 +17,6 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 /**
  * @property int $id
  * @property int $event_id
- * @property string $category
  * @property string $name
  * @property string|null $description
  * @property numeric $price
@@ -29,6 +28,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property int|null $updated_by
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property int|null $category_id
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
  * @property-read int|null $activities_count
  * @property-read \App\Models\User|null $creator
@@ -38,8 +38,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property-read int|null $media_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\OrderItem> $orderItems
  * @property-read int|null $order_items_count
+ * @property-read \App\Models\EventProductCategory|null $productCategory
  * @property-read \App\Models\User|null $updater
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct active()
  * @method static \Database\Factories\EventProductFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct newModelQuery()
@@ -47,7 +47,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct ordered(string $direction = 'asc')
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereBoothTypes($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereCategory($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereCategoryId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereCreatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereDescription($value)
@@ -60,7 +60,6 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereUnit($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereUpdatedBy($value)
- *
  * @mixin \Eloquent
  */
 class EventProduct extends Model implements HasMedia, Sortable
@@ -73,7 +72,7 @@ class EventProduct extends Model implements HasMedia, Sortable
 
     protected $fillable = [
         'event_id',
-        'category',
+        'category_id',
         'name',
         'description',
         'price',
@@ -116,7 +115,7 @@ class EventProduct extends Model implements HasMedia, Sortable
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'category', 'price', 'is_active'])
+            ->logOnly(['name', 'category_id', 'price', 'is_active'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
@@ -190,6 +189,11 @@ class EventProduct extends Model implements HasMedia, Sortable
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
+    }
+
+    public function productCategory(): BelongsTo
+    {
+        return $this->belongsTo(EventProductCategory::class, 'category_id');
     }
 
     public function creator(): BelongsTo

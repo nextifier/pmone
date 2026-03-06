@@ -8,10 +8,11 @@
       :ref="(el) => (tabRefs[index] = el?.$el || el)"
       :to="tab.to"
       :class="[
-        'relative flex shrink-0 items-center justify-center py-3 text-sm font-medium tracking-tight transition select-none',
+        'relative flex shrink-0 items-center justify-center gap-x-1.5 py-3 text-sm font-medium tracking-tight transition select-none',
         isActive(tab) ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
       ]"
     >
+      <Icon v-if="tab.icon" :name="tab.icon" class="size-4 shrink-0" />
       {{ tab.label }}
     </NuxtLink>
 
@@ -38,6 +39,9 @@ const indicatorStyle = ref(null);
 const isActive = (tab) => {
   if (tab.exact) {
     return route.path === tab.to || route.path === `${tab.to}/`;
+  }
+  if (tab.activeFor?.some((path) => route.path.startsWith(path))) {
+    return true;
   }
   return route.path.startsWith(tab.to);
 };

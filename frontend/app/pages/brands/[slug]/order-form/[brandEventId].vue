@@ -22,7 +22,7 @@
           <span class="text-muted-foreground/40">·</span>
           <span>{{ info.event?.title }}</span>
         </div>
-        <h1 class="text-2xl font-semibold tracking-tight">{{ $t('orderForm.title') }}</h1>
+        <h1 class="text-2xl font-medium tracking-tight">{{ $t('orderForm.title') }}</h1>
         <div
           v-if="info.brand_event?.booth_number || info.brand_event?.booth_type"
           class="text-muted-foreground flex flex-wrap items-center gap-x-3 text-sm"
@@ -41,11 +41,22 @@
         v-if="info.order_form_content"
         class="border-border bg-muted/30 mt-6 rounded-lg border p-5"
       >
-        <h2 class="mb-3 text-sm font-semibold tracking-tight">{{ $t('orderForm.termsAndConditions') }}</h2>
+        <h2 class="mb-3 text-sm font-medium tracking-tight">{{ $t('orderForm.termsAndConditions') }}</h2>
         <div
           class="prose prose-sm dark:prose-invert max-w-none text-sm"
           v-html="info.order_form_content"
         />
+      </div>
+
+      <!-- Order Period Banner -->
+      <div
+        v-if="info.current_period === 'onsite_order'"
+        class="mt-4 flex items-center gap-x-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+      >
+        <Icon name="hugeicons:alert-02" class="size-4 shrink-0" />
+        <span>
+          Onsite order period - a {{ info.penalty_rate }}% penalty will be applied to your order total.
+        </span>
       </div>
 
       <!-- Deadline Banner -->
@@ -79,7 +90,7 @@
                 @click="toggleCategory(category.category)"
                 class="flex w-full items-center justify-between py-1"
               >
-                <h3 class="text-sm font-semibold tracking-tight uppercase">
+                <h3 class="text-sm font-medium tracking-tight uppercase">
                   {{ category.category }}
                   <span class="text-muted-foreground ml-1 font-normal normal-case">
                     ({{ category.products.length }})
@@ -115,11 +126,11 @@
                       <p class="font-medium tracking-tight">{{ product.name }}</p>
                       <p
                         v-if="product.description"
-                        class="text-muted-foreground mt-0.5 text-xs"
+                        class="text-muted-foreground mt-0.5 text-xs tracking-tight sm:text-sm"
                       >
                         {{ product.description }}
                       </p>
-                      <p class="mt-1 text-sm font-semibold">
+                      <p class="mt-1 text-sm font-medium">
                         {{ formatPrice(product.price) }}
                         <span class="text-muted-foreground font-normal">/ {{ product.unit }}</span>
                       </p>
@@ -174,7 +185,7 @@
           <div class="sticky top-20 space-y-4">
             <div class="border-border rounded-lg border p-4">
               <div class="mb-3 flex items-center justify-between">
-                <h3 class="font-semibold tracking-tight">
+                <h3 class="font-medium tracking-tight">
                   {{ $t('orderForm.orderCart') }}
                   <span
                     v-if="itemCount > 0"
@@ -257,13 +268,17 @@
                     <span class="text-muted-foreground">{{ $t('orderForm.subtotal') }}</span>
                     <span>{{ formatPrice(subtotal) }}</span>
                   </div>
+                  <div v-if="penaltyRate > 0" class="flex justify-between text-amber-600">
+                    <span>Onsite Penalty ({{ penaltyRate }}%)</span>
+                    <span>{{ formatPrice(penaltyAmount) }}</span>
+                  </div>
                   <div class="flex justify-between">
                     <span class="text-muted-foreground">{{ $t('orderForm.tax', { rate: taxRate }) }}</span>
-                    <span>{{ formatPrice(taxAmount(taxRate)) }}</span>
+                    <span>{{ formatPrice(computedTaxAmount) }}</span>
                   </div>
                   <div class="border-border flex justify-between border-t pt-1.5 font-semibold">
                     <span>{{ $t('orderForm.total') }}</span>
-                    <span>{{ formatPrice(total(taxRate)) }}</span>
+                    <span>{{ formatPrice(computedTotal) }}</span>
                   </div>
                 </div>
 
@@ -309,75 +324,82 @@
     </Teleport>
 
     <!-- Confirmation Dialog -->
-    <Dialog v-model:open="showConfirmDialog">
-      <DialogContent class="max-w-md">
-        <DialogHeader>
-          <DialogTitle>{{ $t('orderForm.confirmOrder') }}</DialogTitle>
-          <DialogDescription>
+    <DialogResponsive v-model:open="showConfirmDialog" dialog-max-width="450px" :overflow-content="true">
+      <template #sticky-header>
+        <div class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left">
+          <div class="text-lg font-semibold tracking-tighter">{{ $t('orderForm.confirmOrder') }}</div>
+          <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">
             {{ $t('orderForm.reviewBeforeSubmitting') }}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div class="space-y-3 py-2">
-          <!-- Order summary -->
-          <div class="divide-border divide-y">
-            <div
-              v-for="item in cartItems"
-              :key="item.event_product_id"
-              class="flex items-start justify-between gap-x-3 py-2.5 first:pt-0"
-            >
-              <div class="min-w-0 flex-1">
-                <p class="text-sm font-medium">{{ item.name }}</p>
-                <p class="text-muted-foreground text-xs">
-                  {{ item.quantity }} × {{ formatPrice(item.price) }}
-                </p>
-                <p v-if="item.notes" class="text-muted-foreground mt-0.5 text-xs italic">
-                  "{{ item.notes }}"
-                </p>
+          </p>
+        </div>
+      </template>
+      <template #default>
+        <div class="px-4 py-4 md:px-6">
+          <div class="space-y-3">
+            <!-- Order summary -->
+            <div class="divide-border divide-y">
+              <div
+                v-for="item in cartItems"
+                :key="item.event_product_id"
+                class="flex items-start justify-between gap-x-3 py-2.5 first:pt-0"
+              >
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-medium">{{ item.name }}</p>
+                  <p class="text-muted-foreground text-xs">
+                    {{ item.quantity }} × {{ formatPrice(item.price) }}
+                  </p>
+                  <p v-if="item.notes" class="text-muted-foreground mt-0.5 text-xs italic">
+                    "{{ item.notes }}"
+                  </p>
+                </div>
+                <span class="shrink-0 text-sm font-medium">
+                  {{ formatPrice(item.price * item.quantity) }}
+                </span>
               </div>
-              <span class="shrink-0 text-sm font-medium">
-                {{ formatPrice(item.price * item.quantity) }}
-              </span>
+            </div>
+
+            <!-- Totals summary -->
+            <div class="border-border space-y-1.5 border-t pt-3 text-sm">
+              <div class="flex justify-between">
+                <span class="text-muted-foreground">{{ $t('orderForm.subtotal') }}</span>
+                <span>{{ formatPrice(subtotal) }}</span>
+              </div>
+              <div v-if="penaltyRate > 0" class="flex justify-between text-amber-600">
+                <span>Onsite Penalty ({{ penaltyRate }}%)</span>
+                <span>{{ formatPrice(penaltyAmount) }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-muted-foreground">{{ $t('orderForm.tax', { rate: taxRate }) }}</span>
+                <span>{{ formatPrice(computedTaxAmount) }}</span>
+              </div>
+              <div class="border-border flex justify-between border-t pt-1.5 font-semibold">
+                <span>{{ $t('orderForm.total') }}</span>
+                <span>{{ formatPrice(computedTotal) }}</span>
+              </div>
+            </div>
+
+            <!-- Order notes preview -->
+            <div v-if="orderNotes" class="bg-muted rounded-md p-3 text-xs">
+              <span class="font-medium">{{ $t('common.notes') }}:</span> {{ orderNotes }}
             </div>
           </div>
 
-          <!-- Totals summary -->
-          <div class="border-border space-y-1.5 border-t pt-3 text-sm">
-            <div class="flex justify-between">
-              <span class="text-muted-foreground">{{ $t('orderForm.subtotal') }}</span>
-              <span>{{ formatPrice(subtotal) }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-muted-foreground">{{ $t('orderForm.tax', { rate: taxRate }) }}</span>
-              <span>{{ formatPrice(taxAmount(taxRate)) }}</span>
-            </div>
-            <div class="border-border flex justify-between border-t pt-1.5 font-semibold">
-              <span>{{ $t('orderForm.total') }}</span>
-              <span>{{ formatPrice(total(taxRate)) }}</span>
-            </div>
-          </div>
-
-          <!-- Order notes preview -->
-          <div v-if="orderNotes" class="bg-muted rounded-md p-3 text-xs">
-            <span class="font-medium">{{ $t('common.notes') }}:</span> {{ orderNotes }}
+          <div class="mt-4 flex justify-end gap-2">
+            <button
+              @click="showConfirmDialog = false"
+              :disabled="submitting"
+              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+            >
+              {{ $t('common.back') }}
+            </button>
+            <Button @click="handleSubmitOrder" :disabled="submitting">
+              <Icon v-if="submitting" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
+              {{ submitting ? $t('common.submitting') : $t('orderForm.submitOrder') }}
+            </Button>
           </div>
         </div>
-
-        <DialogFooter>
-          <button
-            @click="showConfirmDialog = false"
-            :disabled="submitting"
-            class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-          >
-            {{ $t('common.back') }}
-          </button>
-          <Button @click="handleSubmitOrder" :disabled="submitting">
-            <Icon v-if="submitting" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
-            {{ submitting ? $t('common.submitting') : $t('orderForm.submitOrder') }}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </template>
+    </DialogResponsive>
   </div>
 </template>
 
@@ -385,14 +407,7 @@
 import { useOrderCart } from "@/composables/useOrderCart";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import DialogResponsive from "@/components/DialogResponsive.vue";
 import { toast } from "vue-sonner";
 
 const { t } = useI18n();
@@ -429,6 +444,14 @@ const {
 } = useOrderCart(route.params.brandEventId);
 
 const taxRate = computed(() => info.value?.tax_rate || 11);
+const penaltyRate = computed(() => info.value?.penalty_rate || 0);
+const penaltyAmount = computed(() => {
+  if (penaltyRate.value <= 0) return 0;
+  return Math.round(subtotal.value * penaltyRate.value / 100);
+});
+const subtotalWithPenalty = computed(() => subtotal.value + penaltyAmount.value);
+const computedTaxAmount = computed(() => Math.round(subtotalWithPenalty.value * taxRate.value / 100));
+const computedTotal = computed(() => subtotalWithPenalty.value + computedTaxAmount.value);
 
 const isDeadlinePassed = computed(() => {
   if (!info.value?.order_form_deadline) return false;

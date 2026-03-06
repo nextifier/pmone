@@ -16,6 +16,7 @@ class EventProductsExport extends BaseExport
     protected function getQuery(): Builder
     {
         return EventProduct::query()
+            ->with('productCategory')
             ->where('event_id', $this->eventId);
     }
 
@@ -45,7 +46,7 @@ class EventProductsExport extends BaseExport
 
         return [
             $product->id,
-            $product->category ?? '-',
+            $product->productCategory?->title ?? '-',
             $product->name ?? '-',
             $product->description ?? '-',
             $product->price,
@@ -62,12 +63,12 @@ class EventProductsExport extends BaseExport
             $searchTerm = strtolower($this->filters['search']);
             $query->where(function ($q) use ($searchTerm) {
                 $q->whereRaw('LOWER(name) LIKE ?', ["%{$searchTerm}%"])
-                    ->orWhereRaw('LOWER(category) LIKE ?', ["%{$searchTerm}%"]);
+                    ->orWhereHas('productCategory', fn ($cq) => $cq->whereRaw('LOWER(title) LIKE ?', ["%{$searchTerm}%"]));
             });
         }
 
-        if (isset($this->filters['category'])) {
-            $query->where('category', $this->filters['category']);
+        if (isset($this->filters['category_id'])) {
+            $query->where('category_id', $this->filters['category_id']);
         }
     }
 
@@ -75,7 +76,7 @@ class EventProductsExport extends BaseExport
     {
         [$field, $direction] = $this->parseSortField($this->sort ?? 'order_column');
 
-        if (in_array($field, ['order_column', 'category', 'name', 'price', 'created_at'])) {
+        if (in_array($field, ['order_column', 'name', 'price', 'created_at'])) {
             $query->orderBy($field, $direction);
         } else {
             $query->orderBy('order_column', 'asc');

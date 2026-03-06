@@ -136,9 +136,9 @@
               <td class="px-4 py-3">
                 <span
                   class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize"
-                  :class="statusBadgeClass(order.status)"
+                  :class="statusBadgeClass(order.operational_status)"
                 >
-                  {{ order.status }}
+                  {{ order.operational_status_label || order.operational_status }}
                 </span>
               </td>
               <td class="px-4 py-3">

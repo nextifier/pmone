@@ -53,7 +53,7 @@
         <button
           type="submit"
           :disabled="isSubmitting"
-          class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center justify-center gap-x-1.5 rounded-lg px-4 py-3 text-sm font-semibold tracking-tight transition active:scale-98"
+          class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center justify-center gap-x-1.5 rounded-lg px-4 py-3 text-sm font-medium tracking-tight transition active:scale-98"
         >
           <span>{{ isSubmitting ? $t('settings.updatingPassword') : $t('settings.updatePassword') }}</span>
 

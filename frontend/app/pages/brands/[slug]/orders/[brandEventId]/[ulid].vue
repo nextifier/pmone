@@ -21,7 +21,7 @@
           <p class="font-mono text-xl font-semibold tracking-tight">
             {{ order.order_number }}
           </p>
-          <div class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 text-xs">
+          <div class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 text-xs tracking-tight sm:text-sm">
             <span v-if="order.submitted_at">
               {{ $t('orders.submitted') }} {{ formatDate(order.submitted_at) }}
             </span>
@@ -30,8 +30,8 @@
             </span>
           </div>
         </div>
-        <Badge :class="statusClass(order.status)" class="shrink-0 capitalize">
-          {{ order.status }}
+        <Badge :class="statusClass(order.operational_status)" class="shrink-0 capitalize">
+          {{ order.operational_status_label || order.operational_status }}
         </Badge>
       </div>
 

@@ -24,7 +24,7 @@ class OrderFactory extends Factory
 
         return [
             'brand_event_id' => BrandEvent::factory(),
-            'status' => 'submitted',
+            'operational_status' => 'submitted',
             'notes' => fake()->optional(0.3)->sentence(),
             'subtotal' => $subtotal,
             'tax_rate' => $taxRate,
@@ -37,7 +37,7 @@ class OrderFactory extends Factory
     public function confirmed(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'confirmed',
+            'operational_status' => 'confirmed',
             'confirmed_at' => now(),
         ]);
     }
@@ -45,7 +45,8 @@ class OrderFactory extends Factory
     public function cancelled(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'cancelled',
+            'operational_status' => 'cancelled',
+            'cancellation_reason' => fake()->sentence(),
         ]);
     }
 

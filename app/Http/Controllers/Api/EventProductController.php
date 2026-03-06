@@ -39,18 +39,18 @@ class EventProductController extends Controller
         $project = $this->resolveProject($username);
         $event = $this->resolveEvent($project, $eventSlug);
 
-        $query = $event->eventProducts()->with('media');
+        $query = $event->eventProducts()->with(['media', 'productCategory']);
 
         if ($request->has('filter.search')) {
             $search = $request->input('filter.search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
-                    ->orWhere('category', 'ilike', "%{$search}%");
+                    ->orWhereHas('productCategory', fn ($cq) => $cq->where('title', 'ilike', "%{$search}%"));
             });
         }
 
-        if ($request->has('filter.category')) {
-            $query->where('category', $request->input('filter.category'));
+        if ($request->has('filter.category_id')) {
+            $query->where('category_id', $request->input('filter.category_id'));
         }
 
         if ($request->has('filter.is_active')) {
@@ -74,7 +74,7 @@ class EventProductController extends Controller
         $product = $event->eventProducts()->create($request->validated());
 
         $this->handleTemporaryUpload($request, $product, 'tmp_product_image', 'product_image');
-        $product->load('media');
+        $product->load(['media', 'productCategory']);
 
         return response()->json([
             'message' => 'Product created successfully',
@@ -86,7 +86,7 @@ class EventProductController extends Controller
     {
         $project = $this->resolveProject($username);
         $event = $this->resolveEvent($project, $eventSlug);
-        $product = $event->eventProducts()->with('media')->findOrFail($id);
+        $product = $event->eventProducts()->with(['media', 'productCategory'])->findOrFail($id);
 
         return response()->json([
             'data' => new EventProductResource($product),
@@ -102,7 +102,7 @@ class EventProductController extends Controller
         $product->update($request->validated());
 
         $this->handleTemporaryUpload($request, $product, 'tmp_product_image', 'product_image');
-        $product->load('media');
+        $product->load(['media', 'productCategory']);
 
         return response()->json([
             'message' => 'Product updated successfully',
@@ -159,19 +159,21 @@ class EventProductController extends Controller
     }
 
     /**
-     * Get distinct categories for the event products.
+     * Get categories for the event.
      */
     public function categories(string $username, string $eventSlug): JsonResponse
     {
         $project = $this->resolveProject($username);
         $event = $this->resolveEvent($project, $eventSlug);
 
-        $categories = $event->eventProducts()
-            ->reorder()
-            ->distinct()
-            ->pluck('category')
-            ->sort()
-            ->values();
+        $categories = $event->eventProductCategories()
+            ->ordered()
+            ->get()
+            ->map(fn ($cat) => [
+                'id' => $cat->id,
+                'title' => $cat->title,
+                'slug' => $cat->slug,
+            ]);
 
         return response()->json([
             'data' => $categories,
@@ -187,8 +189,8 @@ class EventProductController extends Controller
         if ($search = $request->input('filter_search')) {
             $filters['search'] = $search;
         }
-        if ($category = $request->input('filter_category')) {
-            $filters['category'] = $category;
+        if ($categoryId = $request->input('filter_category_id')) {
+            $filters['category_id'] = $categoryId;
         }
 
         $sort = $request->input('sort', 'order_column');

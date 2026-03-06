@@ -23,11 +23,11 @@
     </div>
 
     <template v-else>
-      <template v-if="!isBrandPage">
+      <template v-if="!isBrandPage && !isContentPage">
         <TabNav v-if="event" :tabs="eventTabs" />
       </template>
 
-      <div :class="isBrandPage ? '' : 'pt-6'">
+      <div :class="isBrandPage || isContentPage ? '' : 'pt-6'">
         <NuxtPage :event="event" :project="project" />
       </div>
     </template>
@@ -68,6 +68,10 @@ usePageMeta(null, {
 });
 
 const isBrandPage = computed(() => !!route.params.brandSlug);
+const isContentPage = computed(() => {
+  const contentPath = `/projects/${route.params.username}/events/${route.params.eventSlug}/content`;
+  return route.path === contentPath || route.path.startsWith(`${contentPath}/`);
+});
 
 // Share event data to AppHeader via useState
 const headerEvent = useState("header-event", () => null);
@@ -86,18 +90,12 @@ const eventBase = computed(
   () => `/projects/${route.params.username}/events/${route.params.eventSlug}`
 );
 const eventTabs = computed(() => [
-  { label: "Overview", to: eventBase.value, exact: true },
-  { label: "Details", to: `${eventBase.value}/details` },
-  { label: "Brands", to: `${eventBase.value}/brands` },
-  { label: "Products", to: `${eventBase.value}/products` },
-  { label: "Orders", to: `${eventBase.value}/orders` },
-  { label: "Rundown", to: `${eventBase.value}/rundown` },
-  { label: "Tickets", to: `${eventBase.value}/tickets` },
-  { label: "Programs", to: `${eventBase.value}/programs` },
-  { label: "FAQ", to: `${eventBase.value}/faq` },
-  { label: "Partners", to: `${eventBase.value}/partners` },
-  { label: "Gallery", to: `${eventBase.value}/gallery` },
-  { label: "Settings", to: `${eventBase.value}/settings` },
+  { label: "Overview", icon: "hugeicons:dashboard-circle", to: eventBase.value, exact: true },
+  { label: "Brands", icon: "hugeicons:store-02", to: `${eventBase.value}/brands` },
+  { label: "Products", icon: "hugeicons:package-01", to: `${eventBase.value}/products` },
+  { label: "Ops Documents", icon: "hugeicons:file-validation", to: `${eventBase.value}/documents` },
+  { label: "Orders", icon: "hugeicons:shopping-bag-01", to: `${eventBase.value}/orders` },
+  { label: "Content", icon: "hugeicons:note-01", to: `${eventBase.value}/content/rundown` },
 ]);
 
 provide("event", event);

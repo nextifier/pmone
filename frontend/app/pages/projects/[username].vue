@@ -27,11 +27,11 @@
     </template>
 
     <template v-else-if="project">
-      <template v-if="!isEventPage">
+      <template v-if="!isEventPage && !isSettingsPage">
         <TabNav :tabs="projectTabs" />
       </template>
 
-      <div :class="isEventPage ? '' : 'pt-6'">
+      <div :class="isEventPage || isSettingsPage ? '' : 'pt-6'">
         <NuxtPage :project="project" />
       </div>
     </template>
@@ -86,17 +86,18 @@ usePageMeta(null, {
 });
 
 const isEventPage = computed(() => !!route.params.eventSlug);
+const isSettingsPage = computed(() => {
+  const settingsPath = `/projects/${route.params.username}/settings`;
+  return route.path === settingsPath || route.path.startsWith(`${settingsPath}/`);
+});
 
 const projectBase = computed(() => `/projects/${route.params.username}`);
 const projectTabs = computed(() => [
-  { label: "Overview", to: projectBase.value, exact: true },
-  { label: "Events", to: `${projectBase.value}/events` },
-  { label: "Inquiries", to: `${projectBase.value}/inquiries` },
-  { label: "Members", to: `${projectBase.value}/members` },
-  { label: "Analytics", to: `${projectBase.value}/analytics` },
-  { label: "Activity", to: `${projectBase.value}/activity` },
-  { label: "Brand Field Settings", to: `${projectBase.value}/brand-field-settings` },
-  { label: "Settings", to: `${projectBase.value}/settings` },
+  { label: "Overview", icon: "hugeicons:dashboard-circle", to: projectBase.value, exact: true },
+  { label: "Inquiries", icon: "hugeicons:mail-open-love", to: `${projectBase.value}/inquiries` },
+  { label: "Analytics", icon: "hugeicons:analytics-01", to: `${projectBase.value}/analytics` },
+  { label: "Activity", icon: "hugeicons:activity-03", to: `${projectBase.value}/activity` },
+  { label: "Settings", icon: "hugeicons:settings-01", to: `${projectBase.value}/settings` },
 ]);
 
 provide("project", project);

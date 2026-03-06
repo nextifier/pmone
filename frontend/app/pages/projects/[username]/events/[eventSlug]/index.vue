@@ -1,17 +1,21 @@
 <template>
   <div class="flex flex-col gap-y-6">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold tracking-tight">Overview</h3>
-      <p class="text-muted-foreground text-sm tracking-tight">Event summary and quick access.</p>
-    </div>
-
     <div v-if="event" class="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div class="space-y-6 lg:col-span-2">
         <!-- Event Info Card -->
         <div class="border-border rounded-xl border p-5">
           <div class="space-y-4">
-            <div v-if="event.tagline" class="text-muted-foreground text-sm tracking-tight italic">
-              "{{ event.tagline }}"
+            <div class="flex items-start justify-between gap-x-3">
+              <div v-if="event.tagline" class="text-muted-foreground text-sm tracking-tight italic">
+                "{{ event.tagline }}"
+              </div>
+              <NuxtLink
+                :to="`${base}/details`"
+                class="border-border hover:bg-muted flex shrink-0 items-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98"
+              >
+                <Icon name="hugeicons:edit-02" class="size-4" />
+                <span>Edit Event Details</span>
+              </NuxtLink>
             </div>
 
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -20,7 +24,7 @@
                   <Icon name="hugeicons:calendar-03" class="size-4" />
                 </div>
                 <div>
-                  <p class="text-muted-foreground text-xs">Date</p>
+                  <p class="text-muted-foreground text-xs sm:text-sm">Date</p>
                   <p class="text-sm font-medium tracking-tight">{{ event.date_label }}</p>
                 </div>
               </div>
@@ -30,7 +34,7 @@
                   <Icon name="hugeicons:clock-01" class="size-4" />
                 </div>
                 <div>
-                  <p class="text-muted-foreground text-xs">Time</p>
+                  <p class="text-muted-foreground text-xs sm:text-sm">Time</p>
                   <p class="text-sm font-medium tracking-tight">
                     {{ event.start_time }}{{ event.end_time ? ` - ${event.end_time}` : "" }}
                   </p>
@@ -42,9 +46,9 @@
                   <Icon name="hugeicons:location-01" class="size-4" />
                 </div>
                 <div>
-                  <p class="text-muted-foreground text-xs">Location</p>
+                  <p class="text-muted-foreground text-xs sm:text-sm">Location</p>
                   <p class="text-sm font-medium tracking-tight">{{ event.location }}</p>
-                  <p v-if="event.hall" class="text-muted-foreground text-xs">{{ event.hall }}</p>
+                  <p v-if="event.hall" class="text-muted-foreground text-xs sm:text-sm">{{ event.hall }}</p>
                 </div>
               </div>
 
@@ -53,7 +57,7 @@
                   <Icon name="hugeicons:layers-01" class="size-4" />
                 </div>
                 <div>
-                  <p class="text-muted-foreground text-xs">Edition</p>
+                  <p class="text-muted-foreground text-xs sm:text-sm">Edition</p>
                   <p class="text-sm font-medium tracking-tight">{{ event.edition_label }}</p>
                 </div>
               </div>
@@ -61,7 +65,7 @@
           </div>
         </div>
 
-        <!-- Navigation Cards -->
+        <!-- Quick Actions -->
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <NuxtLink
             v-for="card in navCards"
@@ -74,7 +78,7 @@
             </div>
             <div>
               <h4 class="font-medium tracking-tight">{{ card.label }}</h4>
-              <p class="text-muted-foreground text-xs tracking-tight">{{ card.description }}</p>
+              <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">{{ card.description }}</p>
             </div>
           </NuxtLink>
         </div>
@@ -93,16 +97,16 @@
         <div class="border-border rounded-xl border p-4">
           <div class="space-y-3">
             <div class="flex items-center justify-between">
-              <span class="text-muted-foreground text-xs">Status</span>
-              <span class="text-xs font-medium capitalize">{{ event.status }}</span>
+              <span class="text-muted-foreground text-xs sm:text-sm">Status</span>
+              <span class="text-xs sm:text-sm font-medium capitalize">{{ event.status }}</span>
             </div>
             <div class="flex items-center justify-between">
-              <span class="text-muted-foreground text-xs">Visibility</span>
-              <span class="text-xs font-medium capitalize">{{ event.visibility }}</span>
+              <span class="text-muted-foreground text-xs sm:text-sm">Visibility</span>
+              <span class="text-xs sm:text-sm font-medium capitalize">{{ event.visibility }}</span>
             </div>
             <div v-if="event.created_at" class="flex items-center justify-between">
-              <span class="text-muted-foreground text-xs">Created</span>
-              <span class="text-xs font-medium">{{
+              <span class="text-muted-foreground text-xs sm:text-sm">Created</span>
+              <span class="text-xs sm:text-sm font-medium">{{
                 new Date(event.created_at).toLocaleDateString()
               }}</span>
             </div>
@@ -126,51 +130,27 @@ const base = computed(() => `/projects/${route.params.username}/events/${route.p
 const navCards = computed(() => [
   {
     label: "Brands",
-    icon: "hugeicons:blockchain-01",
+    icon: "hugeicons:store-02",
     description: "Manage brands and exhibitors",
     to: `${base.value}/brands`,
   },
   {
-    label: "Rundown",
-    icon: "hugeicons:time-schedule",
-    description: "Event schedule and activities",
-    to: `${base.value}/rundown`,
+    label: "Product Categories",
+    icon: "hugeicons:layers-01",
+    description: "Organize product categories",
+    to: `${base.value}/product-categories`,
   },
   {
-    label: "Tickets",
-    icon: "hugeicons:ticket-01",
-    description: "Ticket types and availability",
-    to: `${base.value}/tickets`,
+    label: "Content",
+    icon: "hugeicons:note-01",
+    description: "Rundown, programs, FAQ, and more",
+    to: `${base.value}/content/rundown`,
   },
   {
-    label: "Programs",
-    icon: "hugeicons:presentation-bar-chart-01",
-    description: "Event programs and sessions",
-    to: `${base.value}/programs`,
-  },
-  {
-    label: "FAQ",
-    icon: "hugeicons:help-circle",
-    description: "Frequently asked questions",
-    to: `${base.value}/faq`,
-  },
-  {
-    label: "Partners",
-    icon: "hugeicons:agreement-01",
-    description: "Event partners and sponsors",
-    to: `${base.value}/partners`,
-  },
-  {
-    label: "Gallery",
-    icon: "hugeicons:image-02",
-    description: "Event photos and media",
-    to: `${base.value}/gallery`,
-  },
-  {
-    label: "Settings",
-    icon: "hugeicons:settings-01",
-    description: "Event configuration",
-    to: `${base.value}/settings`,
+    label: "Ops Documents",
+    icon: "hugeicons:file-01",
+    description: "Event rules and required documents",
+    to: `${base.value}/documents`,
   },
 ]);
 </script>

@@ -17,6 +17,82 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Tags\HasTags;
 
+/**
+ * @property int $id
+ * @property string $ulid
+ * @property string $title
+ * @property string|null $description
+ * @property string $slug
+ * @property array<array-key, mixed>|null $settings
+ * @property string $status
+ * @property bool $is_active
+ * @property \Illuminate\Support\Carbon|null $opens_at
+ * @property \Illuminate\Support\Carbon|null $closes_at
+ * @property int|null $response_limit
+ * @property int|null $project_id
+ * @property int $user_id
+ * @property int $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read \App\Models\User $creator
+ * @property-read \App\Models\User|null $deleter
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\FormField> $fields
+ * @property-read int|null $fields_count
+ * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read int|null $media_count
+ * @property-read \App\Models\Project|null $project
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\FormResponse> $responses
+ * @property-read int|null $responses_count
+ * @property \Illuminate\Database\Eloquent\Collection<int, \Spatie\Tags\Tag> $tags
+ * @property-read int|null $tags_count
+ * @property-read \App\Models\User|null $updater
+ * @property-read \App\Models\User $user
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form active()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form byStatus(array|string $status)
+ * @method static \Database\Factories\FormFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form findSimilarSlugs(string $attribute, array $config, string $slug)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form open()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form published()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form search(string $search)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereClosesAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereDeletedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereOpensAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereProjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereResponseLimit($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereSettings($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereUlid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereUpdatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withAllTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withAllTagsOfAnyType($tags)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withAnyTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withAnyTagsOfAnyType($tags)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withAnyTagsOfType(array|string $type)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withoutTrashed()
+ * @mixin \Eloquent
+ */
 class Form extends Model implements HasMedia
 {
     use HasFactory;

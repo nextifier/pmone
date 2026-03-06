@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\OperationalStatus;
+use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderIndexResource;
 use App\Http\Resources\OrderResource;
@@ -49,8 +51,12 @@ class OrderController extends Controller
             });
         }
 
-        if ($status = $request->input('status')) {
-            $query->where('status', $status);
+        if ($status = $request->input('operational_status')) {
+            $query->where('operational_status', $status);
+        }
+
+        if ($paymentStatus = $request->input('payment_status')) {
+            $query->where('payment_status', $paymentStatus);
         }
 
         if ($request->boolean('client_only')) {
@@ -107,9 +113,14 @@ class OrderController extends Controller
             });
         }
 
-        if ($request->has('filter.status')) {
-            $statuses = explode(',', $request->input('filter.status'));
-            $query->whereIn('status', $statuses);
+        if ($request->has('filter.operational_status')) {
+            $statuses = explode(',', $request->input('filter.operational_status'));
+            $query->whereIn('operational_status', $statuses);
+        }
+
+        if ($request->has('filter.payment_status')) {
+            $paymentStatuses = explode(',', $request->input('filter.payment_status'));
+            $query->whereIn('payment_status', $paymentStatuses);
         }
 
         $sort = $request->input('sort', '-submitted_at');
@@ -138,7 +149,7 @@ class OrderController extends Controller
         $order = Order::query()
             ->whereIn('brand_event_id', $event->brandEvents()->select('id'))
             ->where('ulid', $ulid)
-            ->with(['items', 'brandEvent.brand', 'creator'])
+            ->with(['items.productCategory', 'brandEvent.brand', 'creator'])
             ->firstOrFail();
 
         return response()->json([
@@ -146,8 +157,17 @@ class OrderController extends Controller
         ]);
     }
 
-    public function updateStatus(Request $request, string $username, string $eventSlug, string $ulid): JsonResponse
+    public function updateOperationalStatus(Request $request, string $username, string $eventSlug, string $ulid): JsonResponse
     {
+        $user = $request->user();
+
+        // Permission check: master, admin, or staff with operational/project-coordinator
+        if (! $user->hasRole(['master', 'admin'])) {
+            if (! $user->hasRole('staff') || ! $user->hasAnyPermission(['operational', 'project-coordinator'])) {
+                return response()->json(['message' => 'Unauthorized to update operational status.'], 403);
+            }
+        }
+
         $project = $this->resolveProject($username);
         $event = $this->resolveEvent($project, $eventSlug);
 
@@ -157,24 +177,64 @@ class OrderController extends Controller
             ->firstOrFail();
 
         $validated = $request->validate([
-            'status' => ['required', 'string', Rule::in(['submitted', 'confirmed', 'processing', 'completed', 'cancelled'])],
+            'operational_status' => ['required', 'string', Rule::in(array_column(OperationalStatus::cases(), 'value'))],
+            'cancellation_reason' => ['required_if:operational_status,cancelled', 'nullable', 'string', 'max:5000'],
         ]);
 
-        $oldStatus = $order->status;
+        $oldStatus = $order->operational_status;
 
-        $order->update([
-            'status' => $validated['status'],
-            'confirmed_at' => $validated['status'] === 'confirmed' ? now() : $order->confirmed_at,
-        ]);
+        $updateData = [
+            'operational_status' => $validated['operational_status'],
+            'confirmed_at' => $validated['operational_status'] === 'confirmed' ? now() : $order->confirmed_at,
+        ];
+
+        if ($validated['operational_status'] === 'cancelled') {
+            $updateData['cancellation_reason'] = $validated['cancellation_reason'];
+        }
+
+        $order->update($updateData);
 
         // Notify the order creator if status changed
-        if ($oldStatus !== $validated['status'] && $order->creator) {
-            $order->creator->notify(new OrderStatusChangedNotification($order, $validated['status'], $request->user()));
+        if ($oldStatus?->value !== $validated['operational_status'] && $order->creator) {
+            $order->creator->notify(new OrderStatusChangedNotification($order, $validated['operational_status'], $user));
         }
 
         return response()->json([
-            'message' => 'Order status updated successfully',
-            'data' => new OrderResource($order->load(['items', 'brandEvent.brand', 'creator'])),
+            'message' => 'Operational status updated successfully',
+            'data' => new OrderResource($order->load(['items.productCategory', 'brandEvent.brand', 'creator'])),
+        ]);
+    }
+
+    public function updatePaymentStatus(Request $request, string $username, string $eventSlug, string $ulid): JsonResponse
+    {
+        $user = $request->user();
+
+        // Permission check: master, admin, or staff with finance
+        if (! $user->hasRole(['master', 'admin'])) {
+            if (! $user->hasRole('staff') || ! $user->hasPermissionTo('finance')) {
+                return response()->json(['message' => 'Unauthorized to update payment status.'], 403);
+            }
+        }
+
+        $project = $this->resolveProject($username);
+        $event = $this->resolveEvent($project, $eventSlug);
+
+        $order = Order::query()
+            ->whereIn('brand_event_id', $event->brandEvents()->select('id'))
+            ->where('ulid', $ulid)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'payment_status' => ['required', 'string', Rule::in(array_column(PaymentStatus::cases(), 'value'))],
+        ]);
+
+        $order->update([
+            'payment_status' => $validated['payment_status'],
+        ]);
+
+        return response()->json([
+            'message' => 'Payment status updated successfully',
+            'data' => new OrderResource($order->load(['items.productCategory', 'brandEvent.brand', 'creator'])),
         ]);
     }
 
@@ -221,7 +281,7 @@ class OrderController extends Controller
 
         return response()->json([
             'message' => 'Discount applied successfully',
-            'data' => new OrderResource($order->load(['items', 'brandEvent.brand', 'creator'])),
+            'data' => new OrderResource($order->load(['items.productCategory', 'brandEvent.brand', 'creator'])),
         ]);
     }
 }

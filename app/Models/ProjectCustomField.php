@@ -24,7 +24,6 @@ use Spatie\EloquentSortable\SortableTrait;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
  * @property-read int|null $activities_count
  * @property-read \App\Models\Project $project
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField ordered(string $direction = 'asc')
@@ -39,7 +38,6 @@ use Spatie\EloquentSortable\SortableTrait;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField whereProjectId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField whereUpdatedAt($value)
- *
  * @mixin \Eloquent
  */
 class ProjectCustomField extends Model implements Sortable

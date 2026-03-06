@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Event;
+use App\Models\EventProductCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,11 +18,9 @@ class EventProductFactory extends Factory
      */
     public function definition(): array
     {
-        $categories = ['Layanan Listrik', 'Audio Visual', 'Furnitur', 'Internet & Telekomunikasi', 'Dekorasi'];
-
         return [
             'event_id' => Event::factory(),
-            'category' => fake()->randomElement($categories),
+            'category_id' => EventProductCategory::factory(),
             'name' => fake()->words(3, true),
             'description' => fake()->optional(0.5)->sentence(),
             'price' => fake()->randomFloat(2, 50000, 5000000),

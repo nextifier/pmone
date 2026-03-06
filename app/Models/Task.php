@@ -46,7 +46,6 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $sharedUsers
  * @property-read int|null $shared_users_count
  * @property-read \App\Models\User|null $updater
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task byComplexity(array|string $complexity)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task byPriority(array|string $priority)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task byStatus(array|string $status)
@@ -81,7 +80,6 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereVisibility($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class Task extends Model implements HasMedia

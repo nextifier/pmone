@@ -9,10 +9,10 @@
         <Icon name="hugeicons:arrow-left-01" class="size-5" />
       </NuxtLink>
       <div class="min-w-0 flex-1">
-        <h2 class="truncate text-lg font-bold tracking-tight">
+        <h2 class="truncate text-lg font-medium tracking-tight">
           {{ brand?.name || "Brand" }}
         </h2>
-        <p v-if="brand?.company_name" class="text-muted-foreground truncate text-xs">
+        <p v-if="brand?.company_name" class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm">
           {{ brand.company_name }}
         </p>
       </div>
@@ -43,11 +43,11 @@
           <div class="min-w-0 flex-1 space-y-2">
             <div>
               <div class="flex items-center gap-x-2">
-                <h3 class="truncate font-semibold tracking-tight">{{ brand.name }}</h3>
+                <h3 class="truncate font-medium tracking-tight">{{ brand.name }}</h3>
                 <span
                   v-if="brand.status"
                   :class="[
-                    'shrink-0 rounded-full px-1.5 py-0.5 text-[10px] leading-none font-medium',
+                    'shrink-0 rounded-full px-1.5 py-0.5 text-xs leading-none font-medium tracking-tight',
                     brand.status === 'active'
                       ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                       : 'bg-muted text-muted-foreground',
@@ -56,14 +56,14 @@
                   {{ brand.status }}
                 </span>
               </div>
-              <p v-if="brand.company_name" class="text-muted-foreground text-sm">
+              <p v-if="brand.company_name" class="text-muted-foreground text-sm tracking-tight">
                 {{ brand.company_name }}
               </p>
             </div>
-            <div v-if="brand.description" class="text-muted-foreground text-sm leading-relaxed">
+            <div v-if="brand.description" class="text-muted-foreground text-sm leading-relaxed tracking-tight">
               {{ brand.description }}
             </div>
-            <div class="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-xs">
+            <div class="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-xs tracking-tight sm:text-sm">
               <span v-if="brand.company_email" class="inline-flex items-center gap-x-1">
                 <Icon name="hugeicons:mail-01" class="size-3" />
                 {{ brand.company_email }}
@@ -79,7 +79,7 @@
 
       <!-- Events -->
       <div class="space-y-3">
-        <h3 class="text-sm font-semibold tracking-tight">{{ $t('brands.events') }}</h3>
+        <h3 class="text-sm font-medium tracking-tight sm:text-base">{{ $t('brands.events') }}</h3>
 
         <div v-if="events.length" class="space-y-2">
           <div
@@ -102,11 +102,11 @@
               </div>
               <div class="min-w-0 flex-1">
                 <p class="truncate font-medium tracking-tight">{{ ev.event.title }}</p>
-                <div class="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-3 text-xs">
+                <div class="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-3 text-xs tracking-tight sm:text-sm">
                   <span v-if="ev.event.date_label">{{ ev.event.date_label }}</span>
                   <span v-if="ev.event.location">{{ ev.event.location }}</span>
                 </div>
-                <div class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 text-xs">
+                <div class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 text-xs tracking-tight sm:text-sm">
                   <span v-if="ev.booth_number">
                     {{ $t('brands.booth') }} <span class="text-foreground font-medium">{{ ev.booth_number }}</span>
                   </span>
@@ -119,6 +119,13 @@
 
             <!-- Quick Links -->
             <div class="mt-3 flex flex-wrap gap-2">
+              <NuxtLink
+                :to="`/brands/${route.params.slug}/documents/${ev.id}`"
+                class="border-border hover:bg-muted inline-flex items-center gap-x-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium tracking-tight transition active:scale-98"
+              >
+                <Icon name="hugeicons:file-01" class="size-3.5" />
+                Documents
+              </NuxtLink>
               <NuxtLink
                 :to="`/brands/${route.params.slug}/order-form/${ev.id}`"
                 class="border-border hover:bg-muted inline-flex items-center gap-x-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium tracking-tight transition active:scale-98"
@@ -139,7 +146,7 @@
               >
                 <Icon name="hugeicons:image-02" class="size-3.5" />
                 {{ $t('brands.promotionPosts') }}
-                <span class="bg-muted text-muted-foreground rounded-full px-1.5 py-0.5 text-[10px]">
+                <span class="bg-muted text-muted-foreground rounded-full px-1.5 py-0.5 text-xs tracking-tight">
                   {{ ev.promotion_posts_count }}
                 </span>
               </NuxtLink>
@@ -162,7 +169,7 @@
     <!-- Not Found -->
     <div v-else class="flex flex-col items-center justify-center gap-3 py-20">
       <div class="bg-muted flex size-14 items-center justify-center rounded-full">
-        <Icon name="hugeicons:blockchain-01" class="text-muted-foreground size-7" />
+        <Icon name="hugeicons:store-02" class="text-muted-foreground size-7" />
       </div>
       <p class="text-muted-foreground text-sm">{{ $t('brands.notFound') }}</p>
       <NuxtLink to="/dashboard" class="text-primary text-sm hover:underline">

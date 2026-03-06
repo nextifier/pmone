@@ -15,7 +15,7 @@ A new order has been submitted for **{{ $event->title }}**.
 | Product | Category | Qty | Unit Price | Total |
 |:--------|:---------|:----|:-----------|:------|
 @foreach($items as $item)
-| {{ $item->product_name }} | {{ $item->product_category }} | {{ $item->quantity }} | Rp {{ number_format($item->unit_price, 0, ',', '.') }} | Rp {{ number_format($item->total_price, 0, ',', '.') }} |
+| {{ $item->product_name }} | {{ $item->productCategory?->title }} | {{ $item->quantity }} | Rp {{ number_format($item->unit_price, 0, ',', '.') }} | Rp {{ number_format($item->total_price, 0, ',', '.') }} |
 @endforeach
 @endcomponent
 

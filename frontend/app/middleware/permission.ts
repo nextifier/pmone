@@ -45,6 +45,16 @@ export default defineNuxtRouteMiddleware((to) => {
     return;
   }
 
+  // Check if user's role is exempt from permission check
+  const exemptRoles = (to.meta.permissionsExemptRoles as string[]) || [];
+  if (exemptRoles.length > 0) {
+    const userRoles = user.value?.roles || [];
+    const isExempt = userRoles.some((role: string) => exemptRoles.includes(role));
+    if (isExempt) {
+      return;
+    }
+  }
+
   // Check if user has any of the required permissions
   const hasRequiredPermission = user.value?.permissions?.some((permission: string) =>
     requiredPermissions.includes(permission)

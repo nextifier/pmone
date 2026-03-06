@@ -10,7 +10,7 @@
           <Icon name="hugeicons:arrow-left-01" class="size-5" />
         </NuxtLink>
         <div class="min-w-0 flex-1">
-          <h2 class="truncate text-lg font-bold tracking-tight">{{ $t('brands.myOrders') }}</h2>
+          <h2 class="truncate text-lg font-medium tracking-tight">{{ $t('brands.myOrders') }}</h2>
         </div>
       </div>
 
@@ -39,14 +39,14 @@
         >
           <div>
             <p class="font-mono text-sm font-medium">{{ order.order_number }}</p>
-            <p class="text-muted-foreground mt-1 text-xs">
+            <p class="text-muted-foreground mt-1 text-xs tracking-tight sm:text-sm">
               {{ order.items_count }} {{ $t('common.item', order.items_count) }} &middot; {{ formatDate(order.submitted_at) }}
             </p>
           </div>
           <div class="flex items-center gap-x-3">
-            <p class="text-sm font-semibold">{{ formatPrice(order.total) }}</p>
-            <Badge :class="statusClass(order.status)" class="capitalize">
-              {{ order.status }}
+            <p class="text-sm font-medium">{{ formatPrice(order.total) }}</p>
+            <Badge :class="statusClass(order.operational_status)" class="capitalize">
+              {{ order.operational_status_label || order.operational_status }}
             </Badge>
           </div>
         </NuxtLink>
@@ -63,7 +63,7 @@
       </div>
       <div class="text-center">
         <p class="text-sm font-medium">{{ $t('orders.noOrdersYet') }}</p>
-        <p class="text-muted-foreground mt-1 text-xs">
+        <p class="text-muted-foreground mt-1 text-xs tracking-tight sm:text-sm">
           {{ $t('orders.placeFirstOrder') }}
         </p>
       </div>

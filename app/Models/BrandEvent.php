@@ -32,6 +32,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property numeric|null $booth_price
  * @property int $promotion_post_limit
+ * @property string|null $fascia_name
+ * @property string|null $badge_name
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
  * @property-read int|null $activities_count
  * @property-read \App\Models\Brand $brand
@@ -43,7 +45,6 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PromotionPost> $promotionPosts
  * @property-read int|null $promotion_posts_count
  * @property-read \App\Models\User|null $sales
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent byStatus(string $status)
  * @method static \Database\Factories\BrandEventFactory factory($count = null, $state = [])
@@ -51,6 +52,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent ordered(string $direction = 'asc')
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereBadgeName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereBoothNumber($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereBoothPrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereBoothSize($value)
@@ -59,6 +61,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereCustomFields($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereEventId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereFasciaName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereNotes($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereOrderColumn($value)
@@ -66,7 +69,6 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereSalesId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereUpdatedAt($value)
- *
  * @mixin \Eloquent
  */
 class BrandEvent extends Model implements HasMedia, Sortable
@@ -92,6 +94,8 @@ class BrandEvent extends Model implements HasMedia, Sortable
         'notes',
         'promotion_post_limit',
         'custom_fields',
+        'fascia_name',
+        'badge_name',
     ];
 
     public array $sortable = [

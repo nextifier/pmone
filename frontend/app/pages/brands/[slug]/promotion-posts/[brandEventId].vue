@@ -9,8 +9,8 @@
         <Icon name="hugeicons:arrow-left-01" class="size-5" />
       </NuxtLink>
       <div class="min-w-0 flex-1">
-        <h2 class="truncate text-lg font-bold tracking-tight">{{ $t('promotionPosts.title') }}</h2>
-        <p v-if="pageData" class="text-muted-foreground truncate text-xs">
+        <h2 class="truncate text-lg font-medium tracking-tight">{{ $t('promotionPosts.title') }}</h2>
+        <p v-if="pageData" class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm">
           {{ pageData.brand?.name }} &middot; {{ pageData.event?.title }}
         </p>
       </div>
@@ -37,8 +37,8 @@
           <Icon name="hugeicons:calendar-03" class="size-5" />
         </div>
         <div class="min-w-0 flex-1">
-          <p class="truncate text-sm font-medium">{{ pageData.event?.title }}</p>
-          <div class="text-muted-foreground flex items-center gap-x-3 text-xs">
+          <p class="truncate text-sm font-medium tracking-tight">{{ pageData.event?.title }}</p>
+          <div class="text-muted-foreground flex items-center gap-x-3 text-xs tracking-tight sm:text-sm">
             <span v-if="pageData.event?.date_label">{{ pageData.event.date_label }}</span>
             <span v-if="pageData.event?.location">{{ pageData.event.location }}</span>
           </div>
@@ -78,8 +78,8 @@
       <div class="border-border rounded-xl border">
         <div class="flex items-center gap-x-3 border-b px-5 py-4">
           <Icon name="hugeicons:image-add-01" class="text-muted-foreground size-4" />
-          <h3 class="text-sm font-semibold tracking-tight">{{ $t('promotionPosts.uploadNewPost') }}</h3>
-          <span v-if="pageData?.promotion_post_limit" class="text-muted-foreground ml-auto text-xs">
+          <h3 class="text-sm font-medium tracking-tight">{{ $t('promotionPosts.uploadNewPost') }}</h3>
+          <span v-if="pageData?.promotion_post_limit" class="text-muted-foreground ml-auto text-xs tracking-tight sm:text-sm">
             {{ posts.length }} / {{ pageData.promotion_post_limit }}
           </span>
         </div>
@@ -121,7 +121,7 @@
 
       <!-- Existing Posts -->
       <div class="space-y-3">
-        <h3 class="text-sm font-semibold tracking-tight">
+        <h3 class="text-sm font-medium tracking-tight">
           {{ $t('promotionPosts.posts', { count: posts.length }) }}
         </h3>
 
@@ -281,44 +281,37 @@
     </template>
 
     <!-- Delete Confirmation Dialog -->
-    <Dialog v-model:open="showDeleteDialog">
-      <DialogContent class="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>{{ $t('promotionPosts.deletePost') }}</DialogTitle>
-          <DialogDescription>{{ $t('promotionPosts.deleteConfirm') }}</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <button
-            class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-            @click="confirmingDeleteId = null"
-          >
-            {{ $t('common.cancel') }}
-          </button>
-          <Button
-            variant="destructive"
-            :disabled="deletingPostId !== null"
-            @click="deletePost(confirmingDeleteId)"
-          >
-            <Icon v-if="deletingPostId" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
-            {{ $t('common.delete') }}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <DialogResponsive v-model:open="showDeleteDialog" :overflow-content="true">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-6">
+          <div class="text-foreground text-lg font-semibold tracking-tight">{{ $t('promotionPosts.deletePost') }}</div>
+          <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">{{ $t('promotionPosts.deleteConfirm') }}</p>
+          <div class="mt-4 flex justify-end gap-2">
+            <button
+              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+              @click="confirmingDeleteId = null"
+            >
+              {{ $t('common.cancel') }}
+            </button>
+            <Button
+              variant="destructive"
+              :disabled="deletingPostId !== null"
+              @click="deletePost(confirmingDeleteId)"
+            >
+              <Icon v-if="deletingPostId" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
+              {{ $t('common.delete') }}
+            </Button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
   </div>
 </template>
 
 <script setup>
 import { useSortable } from "@vueuse/integrations/useSortable";
 import { toast } from "vue-sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import DialogResponsive from "@/components/DialogResponsive.vue";
 
 const { t } = useI18n();
 

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SubmitOrderRequest;
+use App\Http\Resources\EventDocumentResource;
+use App\Http\Resources\EventDocumentSubmissionResource;
 use App\Http\Resources\OrderIndexResource;
 use App\Http\Resources\OrderResource;
 use App\Http\Resources\PromotionPostResource;
@@ -11,12 +13,12 @@ use App\Mail\OrderConfirmationMail;
 use App\Mail\OrderSubmittedMail;
 use App\Models\Brand;
 use App\Models\BrandEvent;
+use App\Models\EventDocumentSubmission;
 use App\Models\EventProduct;
 use App\Models\Order;
 use App\Models\PromotionPost;
 use App\Models\User;
 use App\Notifications\OrderSubmittedNotification;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,19 +29,39 @@ use Illuminate\Support\Str;
 class ExhibitorDashboardController extends Controller
 {
     /**
-     * Exhibitor dashboard — profile, brands with completeness, upcoming events.
+     * Exhibitor dashboard - step-by-step progress per brand-event.
      */
     public function dashboard(Request $request): JsonResponse
     {
         $user = $request->user();
-        $brands = $user->brands()->with(['media', 'brandEvents' => function ($q) {
-            $q->with('event.media')->withCount('promotionPosts');
-        }])->get();
 
         $profileComplete = ! empty($user->name) && ! empty($user->phone) && ! empty($user->title) && ! empty($user->company_name);
 
-        $brandsData = $brands->map(function (Brand $brand) {
-            $missingFields = collect([
+        $brands = $user->brands()->with([
+            'media',
+            'brandEvents' => function ($q) {
+                $q->with(['event.media', 'event.eventDocuments' => function ($q2) {
+                    $q2->with('media')->ordered();
+                }])
+                    ->withCount(['promotionPosts', 'orders']);
+            },
+        ])->get();
+
+        // Collect all brand-event IDs to batch-load submissions
+        $allBrandEvents = $brands->flatMap(fn (Brand $b) => $b->brandEvents);
+        $boothIdentifiers = $allBrandEvents->map(fn (BrandEvent $be) => $be->booth_number ?? "be-{$be->id}");
+        $eventIds = $allBrandEvents->pluck('event_id')->unique();
+
+        // Batch load all submissions for these events + booths
+        $allSubmissions = EventDocumentSubmission::query()
+            ->whereIn('event_id', $eventIds)
+            ->whereIn('booth_identifier', $boothIdentifiers)
+            ->with(['media', 'submitter'])
+            ->get()
+            ->groupBy(fn ($s) => "{$s->event_id}:{$s->booth_identifier}:{$s->event_document_id}");
+
+        $brandEventsData = $brands->flatMap(function (Brand $brand) use ($allSubmissions) {
+            $brandMissingFields = collect([
                 'company_name' => 'Company Name',
                 'company_email' => 'Email',
                 'company_phone' => 'Phone',
@@ -47,54 +69,116 @@ class ExhibitorDashboardController extends Controller
                 'description' => 'Description',
             ])->filter(fn ($label, $field) => empty($brand->{$field}))->values()->all();
 
-            return [
-                'id' => $brand->id,
-                'name' => $brand->name,
-                'slug' => $brand->slug,
-                'company_name' => $brand->company_name,
-                'brand_logo' => $brand->brand_logo,
-                'status' => $brand->status,
-                'events_count' => $brand->brandEvents->count(),
-                'is_complete' => empty($missingFields),
-                'missing_fields' => $missingFields,
-            ];
-        });
+            return $brand->brandEvents->map(function (BrandEvent $be) use ($brand, $brandMissingFields, $allSubmissions) {
+                $event = $be->event;
+                if (! $event) {
+                    return null;
+                }
 
-        $upcomingBrandEvents = $brands->flatMap(function (Brand $brand) {
-            return $brand->brandEvents
-                ->filter(fn (BrandEvent $be) => $be->event && $be->event->end_date && $be->event->end_date->gte(Carbon::today()))
-                ->map(fn (BrandEvent $be) => [
+                $boothIdentifier = $be->booth_number ?? "be-{$be->id}";
+                $boothTypeValue = $be->booth_type?->value;
+
+                // Filter documents by booth type
+                $applicableDocs = $event->eventDocuments
+                    ->filter(fn ($doc) => $doc->appliesToBoothType($boothTypeValue))
+                    ->values();
+
+                // Split: event rules (blocking checkbox) vs operational documents
+                $eventRules = $applicableDocs->filter(fn ($doc) => $doc->isEventRule());
+                $operationalDocs = $applicableDocs->filter(fn ($doc) => ! $doc->isEventRule());
+
+                // Build event rules with submission status
+                $eventRulesData = $eventRules->map(function ($doc) use ($event, $boothIdentifier, $allSubmissions) {
+                    $key = "{$event->id}:{$boothIdentifier}:{$doc->id}";
+                    $submission = $allSubmissions->get($key)?->first();
+                    $needsReagreement = $submission && $submission->document_version < $doc->content_version;
+
+                    return [
+                        'document' => new EventDocumentResource($doc),
+                        'agreed' => $submission && $submission->agreed_at && ! $needsReagreement,
+                        'needs_reagreement' => $needsReagreement,
+                        'submission' => $submission ? [
+                            'agreed_at' => $submission->agreed_at?->toIso8601String(),
+                            'document_version' => $submission->document_version,
+                            'submitter_name' => $submission->submitter?->name,
+                        ] : null,
+                    ];
+                })->values();
+
+                $allRulesAgreed = $eventRulesData->every(fn ($r) => $r['agreed']);
+
+                // Build operational documents summary
+                $docsData = $operationalDocs->map(function ($doc) use ($event, $boothIdentifier, $allSubmissions) {
+                    $key = "{$event->id}:{$boothIdentifier}:{$doc->id}";
+                    $submission = $allSubmissions->get($key)?->first();
+
+                    $status = 'pending';
+                    if ($submission) {
+                        $needsReagreement = $submission->document_version < $doc->content_version;
+                        if ($needsReagreement) {
+                            $status = 'needs_reagreement';
+                        } elseif ($doc->document_type === 'checkbox_agreement' && $submission->agreed_at) {
+                            $status = 'completed';
+                        } elseif ($doc->document_type === 'file_upload' && $submission->hasMedia('submission_file')) {
+                            $status = 'completed';
+                        } elseif ($doc->document_type === 'text_input' && $submission->text_value) {
+                            $status = 'completed';
+                        }
+                    }
+
+                    return [
+                        'document' => new EventDocumentResource($doc),
+                        'submission' => $submission ? new EventDocumentSubmissionResource($submission) : null,
+                        'status' => $status,
+                    ];
+                })->values();
+
+                $docsTotal = $docsData->count();
+                $docsCompleted = $docsData->where('status', 'completed')->count();
+
+                return [
                     'brand_event_id' => $be->id,
                     'brand' => [
                         'id' => $brand->id,
                         'name' => $brand->name,
                         'slug' => $brand->slug,
-                        'logo' => $brand->brand_logo,
+                        'brand_logo' => $brand->brand_logo,
+                        'is_complete' => empty($brandMissingFields),
+                        'missing_fields' => $brandMissingFields,
                     ],
                     'event' => [
-                        'id' => $be->event->id,
-                        'title' => $be->event->title,
-                        'slug' => $be->event->slug,
-                        'date_label' => $be->event->date_label,
-                        'location' => $be->event->location,
-                        'poster_image' => $be->event->poster_image,
-                        'order_form_deadline' => $be->event->order_form_deadline?->toIso8601String(),
-                        'promotion_post_deadline' => $be->event->promotion_post_deadline?->toIso8601String(),
+                        'id' => $event->id,
+                        'title' => $event->title,
+                        'slug' => $event->slug,
+                        'date_label' => $event->date_label,
+                        'location' => $event->location,
+                        'poster_image' => $event->poster_image,
                     ],
+                    'booth_number' => $be->booth_number,
+                    'booth_type' => $boothTypeValue,
+                    'booth_type_label' => $be->booth_type?->label(),
+                    'fascia_name' => $be->fascia_name,
+                    'badge_name' => $be->badge_name,
+                    'event_rules' => $eventRulesData,
+                    'event_rules_agreed' => $allRulesAgreed,
+                    'brand_complete' => empty($brandMissingFields),
                     'promotion_posts_count' => $be->promotion_posts_count,
                     'promotion_post_limit' => $be->promotion_post_limit,
-                ]);
-        })->values();
+                    'promotion_post_deadline' => $event->promotion_post_deadline?->toIso8601String(),
+                    'documents' => $docsData,
+                    'documents_total' => $docsTotal,
+                    'documents_completed' => $docsCompleted,
+                    'orders_count' => $be->orders_count,
+                    'order_form_deadline' => $event->order_form_deadline?->toIso8601String(),
+                ];
+            })->filter();
+        })
+            ->sortBy(function ($item) {
+                $endDate = $item['event']['date_label'] ?? null;
 
-        // Recent orders (last 5)
-        $brandEventIds = $brands->flatMap(fn (Brand $b) => $b->brandEvents->pluck('id'));
-        $recentOrders = Order::query()
-            ->whereIn('brand_event_id', $brandEventIds)
-            ->with(['brandEvent.brand', 'brandEvent.event'])
-            ->withCount('items')
-            ->orderByDesc('submitted_at')
-            ->limit(5)
-            ->get();
+                return $endDate ?? 'zzz';
+            })
+            ->values();
 
         return response()->json([
             'data' => [
@@ -107,11 +191,75 @@ class ExhibitorDashboardController extends Controller
                     'company_name' => $user->company_name,
                 ],
                 'profile_complete' => $profileComplete,
-                'brands' => $brandsData,
-                'upcoming_brand_events' => $upcomingBrandEvents,
-                'recent_orders' => OrderIndexResource::collection($recentOrders),
+                'brand_events' => $brandEventsData,
             ],
         ]);
+    }
+
+    /**
+     * List events the exhibitor participates in, grouped by event.
+     */
+    public function myEvents(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $brands = $user->brands()->with([
+            'media',
+            'brandEvents' => function ($q) {
+                $q->with(['event.media'])
+                    ->withCount(['promotionPosts', 'orders']);
+            },
+        ])->get();
+
+        // Group brand-events by event, each event may have multiple brands
+        $eventMap = [];
+
+        foreach ($brands as $brand) {
+            foreach ($brand->brandEvents as $be) {
+                $event = $be->event;
+                if (! $event) {
+                    continue;
+                }
+
+                $eventId = $event->id;
+
+                if (! isset($eventMap[$eventId])) {
+                    $eventMap[$eventId] = [
+                        'id' => $event->id,
+                        'title' => $event->title,
+                        'slug' => $event->slug,
+                        'date_label' => $event->date_label,
+                        'location' => $event->location,
+                        'venue' => $event->venue,
+                        'start_date' => $event->start_date?->toIso8601String(),
+                        'end_date' => $event->end_date?->toIso8601String(),
+                        'poster_image' => $event->poster_image,
+                        'is_active' => $event->is_active,
+                        'brands' => [],
+                    ];
+                }
+
+                $eventMap[$eventId]['brands'][] = [
+                    'brand_event_id' => $be->id,
+                    'id' => $brand->id,
+                    'name' => $brand->name,
+                    'slug' => $brand->slug,
+                    'brand_logo' => $brand->brand_logo,
+                    'booth_number' => $be->booth_number,
+                    'booth_type' => $be->booth_type?->value,
+                    'booth_type_label' => $be->booth_type?->label(),
+                    'promotion_posts_count' => $be->promotion_posts_count,
+                    'orders_count' => $be->orders_count,
+                ];
+            }
+        }
+
+        // Sort: active events first, then by start_date descending
+        $events = collect(array_values($eventMap))
+            ->sortByDesc(fn ($e) => ($e['is_active'] ? '1' : '0').($e['start_date'] ?? ''))
+            ->values();
+
+        return response()->json(['data' => $events]);
     }
 
     /**
@@ -452,7 +600,7 @@ class ExhibitorDashboardController extends Controller
             ->findOrFail($brandEventId);
 
         $query = EventProduct::query()
-            ->with('media')
+            ->with(['media', 'productCategory'])
             ->where('event_id', $brandEvent->event_id)
             ->where('is_active', true)
             ->ordered();
@@ -469,7 +617,7 @@ class ExhibitorDashboardController extends Controller
         $products = $query->get();
 
         // Group by category
-        $grouped = $products->groupBy('category')->map(fn ($items, $category) => [
+        $grouped = $products->groupBy(fn ($p) => $p->productCategory?->title ?? 'Uncategorized')->map(fn ($items, $category) => [
             'category' => $category,
             'products' => $items->map(fn (EventProduct $p) => [
                 'id' => $p->id,
@@ -498,17 +646,37 @@ class ExhibitorDashboardController extends Controller
         $event = $brandEvent->event;
         $settings = $event->settings ?? [];
 
+        // Determine current order period
+        $now = now();
+        $currentPeriod = null;
+        $penaltyRate = 0;
+
+        if ($event->normal_order_opens_at && $event->normal_order_closes_at
+            && $now->between($event->normal_order_opens_at, $event->normal_order_closes_at)) {
+            $currentPeriod = 'normal_order';
+        } elseif ($event->onsite_order_opens_at && $event->onsite_order_closes_at
+            && $now->between($event->onsite_order_opens_at, $event->onsite_order_closes_at)) {
+            $currentPeriod = 'onsite_order';
+            $penaltyRate = (float) $event->onsite_penalty_rate;
+        } elseif (! $event->normal_order_opens_at && ! $event->onsite_order_opens_at) {
+            $currentPeriod = 'normal_order';
+        }
+
         return response()->json([
             'data' => [
                 'order_form_content' => $event->order_form_content,
                 'tax_rate' => $settings['tax_rate'] ?? 11,
                 'order_form_deadline' => $event->order_form_deadline?->toIso8601String(),
                 'promotion_post_deadline' => $event->promotion_post_deadline?->toIso8601String(),
+                'current_period' => $currentPeriod,
+                'penalty_rate' => $penaltyRate,
                 'brand_event' => [
                     'id' => $brandEvent->id,
                     'booth_number' => $brandEvent->booth_number,
                     'booth_type' => $brandEvent->booth_type?->value,
                     'booth_type_label' => $brandEvent->booth_type?->label(),
+                    'fascia_name' => $brandEvent->fascia_name,
+                    'badge_name' => $brandEvent->badge_name,
                 ],
                 'event' => [
                     'id' => $event->id,
@@ -562,7 +730,21 @@ class ExhibitorDashboardController extends Controller
 
         $products->loadMissing('media');
 
-        $order = DB::transaction(function () use ($validated, $brandEvent, $products, $taxRate) {
+        // Determine current order period and penalty
+        $now = now();
+        $orderPeriod = 'normal_order';
+        $penaltyRate = 0;
+
+        if ($event->normal_order_opens_at && $event->normal_order_closes_at
+            && $now->between($event->normal_order_opens_at, $event->normal_order_closes_at)) {
+            $orderPeriod = 'normal_order';
+        } elseif ($event->onsite_order_opens_at && $event->onsite_order_closes_at
+            && $now->between($event->onsite_order_opens_at, $event->onsite_order_closes_at)) {
+            $orderPeriod = 'onsite_order';
+            $penaltyRate = (float) $event->onsite_penalty_rate;
+        }
+
+        $order = DB::transaction(function () use ($validated, $brandEvent, $products, $taxRate, $orderPeriod, $penaltyRate) {
             $subtotal = 0;
             $itemsData = [];
 
@@ -573,8 +755,8 @@ class ExhibitorDashboardController extends Controller
 
                 $itemsData[] = [
                     'event_product_id' => $product->id,
+                    'category_id' => $product->category_id,
                     'product_name' => $product->name,
-                    'product_category' => $product->category,
                     'product_image_url' => $product->product_image['md'] ?? $product->product_image['url'] ?? null,
                     'unit_price' => $product->price,
                     'quantity' => $item['quantity'],
@@ -583,12 +765,18 @@ class ExhibitorDashboardController extends Controller
                 ];
             }
 
-            $taxAmount = round($subtotal * $taxRate / 100, 2);
-            $total = $subtotal + $taxAmount;
+            // Apply penalty if onsite
+            $penaltyAmount = $penaltyRate > 0 ? round($subtotal * $penaltyRate / 100, 2) : 0;
+            $subtotalWithPenalty = $subtotal + $penaltyAmount;
+
+            $taxAmount = round($subtotalWithPenalty * $taxRate / 100, 2);
+            $total = $subtotalWithPenalty + $taxAmount;
 
             $order = Order::create([
                 'brand_event_id' => $brandEvent->id,
-                'status' => 'submitted',
+                'operational_status' => 'submitted',
+                'order_period' => $orderPeriod,
+                'applied_penalty_rate' => $penaltyRate,
                 'notes' => $validated['notes'] ?? null,
                 'subtotal' => $subtotal,
                 'tax_rate' => $taxRate,
@@ -602,7 +790,7 @@ class ExhibitorDashboardController extends Controller
             return $order;
         });
 
-        $order->load(['items', 'brandEvent.brand', 'creator']);
+        $order->load(['items.productCategory', 'brandEvent.brand', 'creator']);
 
         // Send notification emails
         $this->sendOrderEmails($order, $event, $brand, $request->user());
@@ -654,11 +842,224 @@ class ExhibitorDashboardController extends Controller
         $order = Order::query()
             ->where('brand_event_id', $brandEvent->id)
             ->where('ulid', $ulid)
-            ->with(['items', 'creator'])
+            ->with(['items.productCategory', 'creator'])
             ->firstOrFail();
 
         return response()->json([
             'data' => new OrderResource($order),
+        ]);
+    }
+
+    /**
+     * Get event documents and exhibitor's submissions for a brand-event.
+     */
+    public function eventDocuments(Request $request, string $brandSlug, int $brandEventId): JsonResponse
+    {
+        $brand = $request->user()->brands()->where('brands.slug', $brandSlug)->firstOrFail();
+        $brandEvent = BrandEvent::query()
+            ->where('brand_id', $brand->id)
+            ->with('event')
+            ->findOrFail($brandEventId);
+
+        $event = $brandEvent->event;
+
+        // Get all documents for this event, filtered by booth type
+        $documents = $event->eventDocuments()
+            ->with('media')
+            ->ordered()
+            ->get()
+            ->filter(fn ($doc) => $doc->appliesToBoothType($brandEvent->booth_type?->value))
+            ->values();
+
+        // Get exhibitor's submissions for this booth
+        $boothIdentifier = $brandEvent->booth_number ?? "be-{$brandEvent->id}";
+        $submissions = EventDocumentSubmission::query()
+            ->where('event_id', $event->id)
+            ->where('booth_identifier', $boothIdentifier)
+            ->with(['eventDocument', 'media', 'submitter'])
+            ->get()
+            ->keyBy('event_document_id');
+
+        $documentsData = $documents->map(function ($doc) use ($submissions) {
+            $submission = $submissions->get($doc->id);
+
+            return [
+                'document' => new EventDocumentResource($doc),
+                'submission' => $submission ? new EventDocumentSubmissionResource($submission) : null,
+            ];
+        });
+
+        return response()->json([
+            'data' => [
+                'event' => [
+                    'id' => $event->id,
+                    'title' => $event->title,
+                    'date_label' => $event->date_label,
+                ],
+                'brand_event' => [
+                    'id' => $brandEvent->id,
+                    'booth_number' => $brandEvent->booth_number,
+                    'booth_type' => $brandEvent->booth_type?->value,
+                ],
+                'brand' => [
+                    'id' => $brand->id,
+                    'name' => $brand->name,
+                ],
+                'documents' => $documentsData,
+            ],
+        ]);
+    }
+
+    /**
+     * Submit/agree to an event document.
+     */
+    public function submitDocument(Request $request, string $brandSlug, int $brandEventId, string $documentUlid): JsonResponse
+    {
+        $brand = $request->user()->brands()->where('brands.slug', $brandSlug)->firstOrFail();
+        $brandEvent = BrandEvent::query()
+            ->where('brand_id', $brand->id)
+            ->with('event')
+            ->findOrFail($brandEventId);
+
+        $event = $brandEvent->event;
+        $document = $event->eventDocuments()->where('ulid', $documentUlid)->firstOrFail();
+
+        // Check booth type applicability
+        if (! $document->appliesToBoothType($brandEvent->booth_type?->value)) {
+            return response()->json(['message' => 'This document does not apply to your booth type.'], 422);
+        }
+
+        $boothIdentifier = $brandEvent->booth_number ?? "be-{$brandEvent->id}";
+
+        $rules = [
+            'text_value' => ['nullable', 'string', 'max:5000'],
+            'tmp_submission_file' => ['nullable', 'string'],
+        ];
+
+        if ($document->document_type === 'file_upload' && $document->is_required) {
+            // Check if there's already a submission with a file
+            $existingSubmission = EventDocumentSubmission::query()
+                ->where('event_document_id', $document->id)
+                ->where('booth_identifier', $boothIdentifier)
+                ->where('event_id', $event->id)
+                ->first();
+
+            if (! $existingSubmission || ! $existingSubmission->hasMedia('submission_file')) {
+                $rules['tmp_submission_file'] = ['required', 'string'];
+            }
+        }
+
+        $validated = $request->validate($rules);
+
+        // Upsert submission
+        $submission = EventDocumentSubmission::updateOrCreate(
+            [
+                'event_document_id' => $document->id,
+                'booth_identifier' => $boothIdentifier,
+                'event_id' => $event->id,
+            ],
+            [
+                'agreed_at' => $document->document_type === 'checkbox_agreement' ? now() : null,
+                'text_value' => $validated['text_value'] ?? null,
+                'document_version' => $document->content_version,
+                'submitted_by' => $request->user()->id,
+                'submitted_at' => now(),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]
+        );
+
+        // Handle file upload
+        if ($request->has('tmp_submission_file')) {
+            $this->handleTemporaryUpload($request, $submission, 'tmp_submission_file', 'submission_file');
+        }
+
+        $submission->load(['eventDocument', 'media', 'submitter']);
+
+        return response()->json([
+            'message' => 'Document submitted successfully',
+            'data' => new EventDocumentSubmissionResource($submission),
+        ]);
+    }
+
+    /**
+     * Update booth fields (fascia_name, badge_name) for a brand-event.
+     */
+    public function updateBoothFields(Request $request, string $brandSlug, int $brandEventId): JsonResponse
+    {
+        $brand = $request->user()->brands()->where('brands.slug', $brandSlug)->firstOrFail();
+        $brandEvent = BrandEvent::query()
+            ->where('brand_id', $brand->id)
+            ->findOrFail($brandEventId);
+
+        $validated = $request->validate([
+            'fascia_name' => ['nullable', 'string', 'max:255'],
+            'badge_name' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $brandEvent->update($validated);
+
+        return response()->json([
+            'message' => 'Booth fields updated successfully',
+            'data' => [
+                'fascia_name' => $brandEvent->fascia_name,
+                'badge_name' => $brandEvent->badge_name,
+            ],
+        ]);
+    }
+
+    /**
+     * Get order period info for the exhibitor.
+     */
+    public function orderPeriodInfo(Request $request, string $brandSlug, int $brandEventId): JsonResponse
+    {
+        $brand = $request->user()->brands()->where('brands.slug', $brandSlug)->firstOrFail();
+        $brandEvent = BrandEvent::query()
+            ->where('brand_id', $brand->id)
+            ->with('event')
+            ->findOrFail($brandEventId);
+
+        $event = $brandEvent->event;
+        $now = now();
+
+        $currentPeriod = null;
+        $canOrder = false;
+
+        if ($event->normal_order_opens_at && $event->normal_order_closes_at) {
+            if ($now->between($event->normal_order_opens_at, $event->normal_order_closes_at)) {
+                $currentPeriod = 'normal_order';
+                $canOrder = true;
+            }
+        }
+
+        if ($event->onsite_order_opens_at && $event->onsite_order_closes_at) {
+            if ($now->between($event->onsite_order_opens_at, $event->onsite_order_closes_at)) {
+                $currentPeriod = 'onsite_order';
+                $canOrder = true;
+            }
+        }
+
+        // Fallback: if no periods configured, use legacy deadline check
+        if (! $event->normal_order_opens_at && ! $event->onsite_order_opens_at) {
+            $canOrder = ! $event->order_form_deadline || ! $event->order_form_deadline->isPast();
+            $currentPeriod = $canOrder ? 'normal_order' : null;
+        }
+
+        return response()->json([
+            'data' => [
+                'current_period' => $currentPeriod,
+                'can_order' => $canOrder,
+                'penalty_rate' => $currentPeriod === 'onsite_order' ? (float) $event->onsite_penalty_rate : 0,
+                'normal_order' => [
+                    'opens_at' => $event->normal_order_opens_at?->toIso8601String(),
+                    'closes_at' => $event->normal_order_closes_at?->toIso8601String(),
+                ],
+                'onsite_order' => [
+                    'opens_at' => $event->onsite_order_opens_at?->toIso8601String(),
+                    'closes_at' => $event->onsite_order_closes_at?->toIso8601String(),
+                    'penalty_rate' => (float) $event->onsite_penalty_rate,
+                ],
+            ],
         ]);
     }
 

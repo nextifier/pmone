@@ -24,6 +24,8 @@ class BrandEventResource extends JsonResource
             'status' => $this->status,
             'notes' => $this->notes,
             'promotion_post_limit' => $this->promotion_post_limit,
+            'fascia_name' => $this->fascia_name,
+            'badge_name' => $this->badge_name,
             'custom_fields' => $this->custom_fields,
             'order_column' => $this->order_column,
 

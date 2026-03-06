@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\ContactFormController;
 use App\Http\Controllers\Api\ContactFormSubmissionController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\EventDocumentController;
+use App\Http\Controllers\Api\EventProductCategoryController;
 use App\Http\Controllers\Api\EventProductController;
 use App\Http\Controllers\Api\ExchangeRateController;
 use App\Http\Controllers\Api\ExhibitorDashboardController;
@@ -201,11 +203,32 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/{id}', [EventProductController::class, 'destroy'])->name('event-products.destroy');
     });
 
+    // Event product category management endpoints (nested under events)
+    Route::prefix('projects/{username}/events/{eventSlug}/product-categories')->group(function () {
+        Route::get('/', [EventProductCategoryController::class, 'index'])->name('event-product-categories.index');
+        Route::post('/', [EventProductCategoryController::class, 'store'])->name('event-product-categories.store');
+        Route::post('/reorder', [EventProductCategoryController::class, 'reorder'])->name('event-product-categories.reorder');
+        Route::get('/{id}', [EventProductCategoryController::class, 'show'])->name('event-product-categories.show');
+        Route::put('/{id}', [EventProductCategoryController::class, 'update'])->name('event-product-categories.update');
+        Route::delete('/{id}', [EventProductCategoryController::class, 'destroy'])->name('event-product-categories.destroy');
+    });
+
+    // Event document management endpoints (nested under events)
+    Route::prefix('projects/{username}/events/{eventSlug}/documents')->group(function () {
+        Route::get('/', [EventDocumentController::class, 'index'])->name('event-documents.index');
+        Route::post('/', [EventDocumentController::class, 'store'])->name('event-documents.store');
+        Route::post('/reorder', [EventDocumentController::class, 'reorder'])->name('event-documents.reorder');
+        Route::get('/{ulid}', [EventDocumentController::class, 'show'])->name('event-documents.show');
+        Route::put('/{ulid}', [EventDocumentController::class, 'update'])->name('event-documents.update');
+        Route::delete('/{ulid}', [EventDocumentController::class, 'destroy'])->name('event-documents.destroy');
+    });
+
     // Order management endpoints (nested under events)
     Route::prefix('projects/{username}/events/{eventSlug}/orders')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('orders.index');
         Route::get('/{ulid}', [OrderController::class, 'show'])->name('orders.show');
-        Route::patch('/{ulid}/status', [OrderController::class, 'updateStatus'])->name('orders.update-status');
+        Route::patch('/{ulid}/operational-status', [OrderController::class, 'updateOperationalStatus'])->name('orders.update-operational-status');
+        Route::patch('/{ulid}/payment-status', [OrderController::class, 'updatePaymentStatus'])->name('orders.update-payment-status');
         Route::patch('/{ulid}/discount', [OrderController::class, 'applyDiscount'])->name('orders.apply-discount');
     });
 
@@ -259,6 +282,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Exhibitor dashboard endpoints
     Route::prefix('exhibitor')->group(function () {
         Route::get('/dashboard', [ExhibitorDashboardController::class, 'dashboard'])->name('exhibitor.dashboard');
+        Route::get('/events', [ExhibitorDashboardController::class, 'myEvents'])->name('exhibitor.events');
         Route::get('/brands', [ExhibitorDashboardController::class, 'brands'])->name('exhibitor.brands');
         Route::get('/brands/{brandSlug}', [ExhibitorDashboardController::class, 'brandShow'])->name('exhibitor.brands.show');
         Route::put('/brands/{brandSlug}', [ExhibitorDashboardController::class, 'brandUpdate'])->name('exhibitor.brands.update');
@@ -270,6 +294,16 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::post('/brands/{brandSlug}/events/{brandEventId}/orders', [ExhibitorDashboardController::class, 'submitOrder'])->name('exhibitor.orders.store');
         Route::get('/brands/{brandSlug}/events/{brandEventId}/orders', [ExhibitorDashboardController::class, 'myOrders'])->name('exhibitor.orders.index');
         Route::get('/brands/{brandSlug}/events/{brandEventId}/orders/{ulid}', [ExhibitorDashboardController::class, 'myOrderShow'])->name('exhibitor.orders.show');
+
+        // Booth fields (fascia_name, badge_name)
+        Route::put('/brands/{brandSlug}/events/{brandEventId}/booth-fields', [ExhibitorDashboardController::class, 'updateBoothFields'])->name('exhibitor.booth-fields.update');
+
+        // Event documents & submissions
+        Route::get('/brands/{brandSlug}/events/{brandEventId}/documents', [ExhibitorDashboardController::class, 'eventDocuments'])->name('exhibitor.documents.index');
+        Route::post('/brands/{brandSlug}/events/{brandEventId}/documents/{documentUlid}', [ExhibitorDashboardController::class, 'submitDocument'])->name('exhibitor.documents.submit');
+
+        // Order period info
+        Route::get('/brands/{brandSlug}/events/{brandEventId}/order-period', [ExhibitorDashboardController::class, 'orderPeriodInfo'])->name('exhibitor.order-period');
 
         Route::get('/brands/{brandSlug}/events/{brandEventId}/promotion-posts', [ExhibitorDashboardController::class, 'promotionPosts'])->name('exhibitor.promotion-posts.index');
         Route::post('/brands/{brandSlug}/events/{brandEventId}/promotion-posts', [ExhibitorDashboardController::class, 'storePromotionPost'])->name('exhibitor.promotion-posts.store');

@@ -116,7 +116,7 @@ const props = defineProps({
   },
   overflowContent: {
     type: Boolean,
-    default: false,
+    default: true,
   },
   dialogMaxWidth: {
     type: String,
@@ -181,6 +181,39 @@ const onCloseButtonClick = () => {
 // We let the drawer close (no re-open) to avoid double-drawer stacking.
 // FormTask stays in DOM inside the closed DrawerPortal, so save still works.
 watch(isOpen, (newValue, oldValue) => {
+  // On desktop dialog: pages without scrollbar don't get padding-right from reka-ui's scroll lock,
+  // so scrollbar-gutter stays "stable" and the custom scrollbar remains visible.
+  // Fix: after reka-ui sets overflow:hidden on body, add padding-right to trigger the CSS rule
+  // that switches scrollbar-gutter to "auto" (same mechanism that works on pages WITH scrollbar).
+  if (isDesktop.value && props.isResponsive) {
+    if (newValue) {
+      const hasScrollbar =
+        document.documentElement.scrollHeight > document.documentElement.clientHeight;
+      if (!hasScrollbar) {
+        const test = document.createElement("div");
+        test.style.cssText =
+          "overflow:scroll;width:100px;height:100px;position:absolute;top:-999px";
+        document.body.appendChild(test);
+        const gutterWidth = test.offsetWidth - test.clientWidth;
+        document.body.removeChild(test);
+
+        if (gutterWidth > 0) {
+          // Wait for reka-ui to set body overflow:hidden, then append padding-right
+          const observer = new MutationObserver(() => {
+            if (document.body.style.overflow === "hidden") {
+              document.body.style.paddingRight = gutterWidth + "px";
+              observer.disconnect();
+            }
+          });
+          observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ["style"],
+          });
+        }
+      }
+    }
+  }
+
   if (!isDesktop.value) {
     if (newValue) {
       // Blur active element before drawer renders to prevent aria-hidden warning

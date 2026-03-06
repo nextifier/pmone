@@ -306,7 +306,7 @@ class EventExhibitorSeeder extends Seeder
             'hall' => $hall,
             'status' => $status,
             'visibility' => $visibility,
-            'gross_area' => fake()->randomFloat(2, 1000, 15000),
+            'saleable_area' => fake()->randomFloat(2, 1000, 15000),
             'is_active' => false,
             'order_form_deadline' => $isPast ? null : $startDate->copy()->subDays(30),
             'promotion_post_deadline' => $isPast ? null : $startDate->copy()->subDays(14),
@@ -322,9 +322,14 @@ class EventExhibitorSeeder extends Seeder
             // Randomize price a bit (+/- 20%)
             $adjustedPrice = $price * fake()->randomFloat(2, 0.8, 1.2);
 
+            $categoryModel = \App\Models\EventProductCategory::firstOrCreate(
+                ['event_id' => $event->id, 'title' => $category],
+                ['slug' => \Illuminate\Support\Str::slug($category)],
+            );
+
             $product = EventProduct::create([
                 'event_id' => $event->id,
-                'category' => $category,
+                'category_id' => $categoryModel->id,
                 'name' => $name,
                 'price' => round($adjustedPrice, -3), // Round to nearest thousand
                 'unit' => $unit,
@@ -416,7 +421,7 @@ class EventExhibitorSeeder extends Seeder
             for ($i = 0; $i < $numOrders; $i++) {
                 $order = Order::create([
                     'brand_event_id' => $brandEvent->id,
-                    'status' => fake()->randomElement(['submitted', 'submitted', 'confirmed', 'cancelled']),
+                    'operational_status' => fake()->randomElement(['submitted', 'submitted', 'confirmed', 'cancelled']),
                     'notes' => fake()->optional(0.2)->sentence(),
                     'subtotal' => 0,
                     'tax_rate' => 11.00,
@@ -427,7 +432,7 @@ class EventExhibitorSeeder extends Seeder
                     'created_by' => $creator->id,
                 ]);
 
-                if ($order->status === 'confirmed') {
+                if ($order->operational_status?->value === 'confirmed') {
                     $order->confirmed_at = fake()->dateTimeBetween($order->submitted_at, 'now');
                 }
 
@@ -445,7 +450,7 @@ class EventExhibitorSeeder extends Seeder
                         'order_id' => $order->id,
                         'event_product_id' => $product->id,
                         'product_name' => $product->name,
-                        'product_category' => $product->category,
+                        'category_id' => $product->category_id,
                         'unit_price' => $unitPrice,
                         'quantity' => $quantity,
                         'total_price' => $totalPrice,

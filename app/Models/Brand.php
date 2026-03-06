@@ -61,7 +61,6 @@ use Spatie\Tags\HasTags;
  * @property-read int|null $users_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
  * @property-read int|null $visits_count
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand byStatus(string $status)
  * @method static \Database\Factories\BrandFactory factory($count = null, $state = [])
@@ -97,7 +96,6 @@ use Spatie\Tags\HasTags;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class Brand extends Model implements HasMedia, Sortable

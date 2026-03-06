@@ -156,9 +156,14 @@ const navMainGroups = computed(() => {
             iconName: "hugeicons:dashboard-circle",
           },
           {
+            label: t("nav.myEvents"),
+            path: "/events",
+            iconName: "hugeicons:calendar-03",
+          },
+          {
             label: t("nav.brands"),
             path: "/brands",
-            iconName: "hugeicons:blockchain-01",
+            iconName: "hugeicons:store-02",
           },
           {
             label: t("nav.orders"),
@@ -232,7 +237,7 @@ const navMainGroups = computed(() => {
     coreItems.push({
       label: "Brands",
       path: "/brands",
-      iconName: "hugeicons:blockchain-01",
+      iconName: "hugeicons:store-02",
     });
   }
 

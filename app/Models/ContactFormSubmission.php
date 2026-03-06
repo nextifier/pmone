@@ -31,7 +31,6 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property-read \App\Models\User|null $deleter
  * @property-read \App\Models\User|null $followedUpByUser
  * @property-read \App\Models\Project $project
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission byStatus(string $status)
  * @method static \Database\Factories\ContactFormSubmissionFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission forProject(int $projectId)
@@ -57,7 +56,6 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereUserAgent($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class ContactFormSubmission extends Model

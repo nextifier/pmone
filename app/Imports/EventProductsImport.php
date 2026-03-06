@@ -4,6 +4,7 @@ namespace App\Imports;
 
 use App\Enums\BoothType;
 use App\Models\EventProduct;
+use App\Models\EventProductCategory;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
@@ -45,10 +46,11 @@ class EventProductsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, Wi
     {
         $boothTypes = $this->resolveBoothTypes($row['booth_types'] ?? null);
         $isActive = $this->resolveActive($row['active'] ?? null);
+        $categoryId = $this->resolveCategoryId(trim($row['category']));
 
         $product = EventProduct::create([
             'event_id' => $this->eventId,
-            'category' => trim($row['category']),
+            'category_id' => $categoryId,
             'name' => trim($row['name']),
             'description' => ! empty($row['description']) ? trim($row['description']) : null,
             'price' => (float) $row['price'],
@@ -98,6 +100,23 @@ class EventProductsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, Wi
     public function getImportedCount(): int
     {
         return $this->importedCount;
+    }
+
+    private function resolveCategoryId(string $categoryTitle): int
+    {
+        $category = EventProductCategory::query()
+            ->where('event_id', $this->eventId)
+            ->where('title', $categoryTitle)
+            ->first();
+
+        if ($category) {
+            return $category->id;
+        }
+
+        return EventProductCategory::create([
+            'event_id' => $this->eventId,
+            'title' => $categoryTitle,
+        ])->id;
     }
 
     private function resolveBoothTypes(?string $value): ?array

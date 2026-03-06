@@ -24,7 +24,7 @@ class StoreEventProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category' => ['required', 'string', 'max:255'],
+            'category_id' => ['required', 'integer', 'exists:event_product_categories,id'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
             'price' => ['required', 'numeric', 'min:0'],
@@ -44,7 +44,8 @@ class StoreEventProductRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'category.required' => 'Product category is required.',
+            'category_id.required' => 'Product category is required.',
+            'category_id.exists' => 'Selected category does not exist.',
             'name.required' => 'Product name is required.',
             'price.required' => 'Product price is required.',
             'price.min' => 'Product price cannot be negative.',

@@ -4,6 +4,7 @@ use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\Event;
 use App\Models\EventProduct;
+use App\Models\EventProductCategory;
 use App\Models\Order;
 use App\Models\Project;
 use App\Models\User;
@@ -64,17 +65,27 @@ beforeEach(function () {
         'booth_type' => 'raw_space',
     ]);
 
+    // Create categories
+    $this->catListrik = EventProductCategory::factory()->create([
+        'event_id' => $this->event->id,
+        'title' => 'Listrik',
+    ]);
+    $this->catAudio = EventProductCategory::factory()->create([
+        'event_id' => $this->event->id,
+        'title' => 'Audio',
+    ]);
+
     // Create some products
     $this->product1 = EventProduct::factory()->create([
         'event_id' => $this->event->id,
-        'category' => 'Listrik',
+        'category_id' => $this->catListrik->id,
         'name' => 'Listrik 2200W',
         'price' => 1500000,
     ]);
 
     $this->product2 = EventProduct::factory()->create([
         'event_id' => $this->event->id,
-        'category' => 'Audio',
+        'category_id' => $this->catAudio->id,
         'name' => 'Sound System',
         'price' => 3000000,
     ]);
@@ -119,7 +130,7 @@ it('exhibitor can submit an order', function () {
     );
 
     $response->assertStatus(201)
-        ->assertJsonPath('data.status', 'submitted')
+        ->assertJsonPath('data.operational_status', 'submitted')
         ->assertJsonStructure(['data' => ['ulid', 'order_number', 'subtotal', 'tax_amount', 'total', 'items']]);
 
     // Verify calculations: 1500000*2 + 3000000*1 = 6000000
@@ -224,28 +235,28 @@ it('staff can view order detail', function () {
         ->assertJsonPath('data.ulid', $order->ulid);
 });
 
-it('staff can update order status', function () {
+it('staff can update operational status', function () {
     $this->actingAs($this->staff);
 
     $order = Order::factory()->create([
         'brand_event_id' => $this->brandEvent->id,
-        'status' => 'submitted',
+        'operational_status' => 'submitted',
     ]);
 
     $response = $this->patchJson(
-        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/status",
-        ['status' => 'confirmed']
+        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/operational-status",
+        ['operational_status' => 'confirmed']
     );
 
     $response->assertSuccessful()
-        ->assertJsonPath('data.status', 'confirmed');
+        ->assertJsonPath('data.operational_status', 'confirmed');
 
     $order->refresh();
-    expect($order->status)->toBe('confirmed');
+    expect($order->operational_status->value)->toBe('confirmed');
     expect($order->confirmed_at)->not->toBeNull();
 });
 
-it('staff cannot set invalid order status', function () {
+it('staff cannot set invalid operational status', function () {
     $this->actingAs($this->staff);
 
     $order = Order::factory()->create([
@@ -253,11 +264,46 @@ it('staff cannot set invalid order status', function () {
     ]);
 
     $response = $this->patchJson(
-        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/status",
-        ['status' => 'invalid_status']
+        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/operational-status",
+        ['operational_status' => 'invalid_status']
     );
 
     $response->assertStatus(422);
+});
+
+it('cancellation requires reason', function () {
+    $this->actingAs($this->staff);
+
+    $order = Order::factory()->create([
+        'brand_event_id' => $this->brandEvent->id,
+    ]);
+
+    $response = $this->patchJson(
+        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/operational-status",
+        ['operational_status' => 'cancelled']
+    );
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['cancellation_reason']);
+});
+
+it('staff can update payment status', function () {
+    $this->actingAs($this->staff);
+
+    $order = Order::factory()->create([
+        'brand_event_id' => $this->brandEvent->id,
+    ]);
+
+    $response = $this->patchJson(
+        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/payment-status",
+        ['payment_status' => 'invoiced']
+    );
+
+    $response->assertSuccessful()
+        ->assertJsonPath('data.payment_status', 'invoiced');
+
+    $order->refresh();
+    expect($order->payment_status->value)->toBe('invoiced');
 });
 
 it('generates unique order numbers', function () {
@@ -293,7 +339,7 @@ it('snapshots product data in order items', function () {
     $item = $order->items->first();
 
     expect($item->product_name)->toBe('Listrik 2200W');
-    expect($item->product_category)->toBe('Listrik');
+    expect($item->category_id)->toBe($this->catListrik->id);
     expect($item->unit_price)->toBe('1500000.00');
 });
 

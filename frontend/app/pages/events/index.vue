@@ -1,5 +1,6 @@
 <template>
-  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
+  <ExhibitorMyEvents v-if="isExhibitor" />
+  <div v-else class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:calendar-03" class="size-5 sm:size-6" />
@@ -95,6 +96,7 @@ import { resolveDirective, withDirectives } from "vue";
 definePageMeta({
   middleware: ["sanctum:auth", "permission"],
   permissions: ["events.read"],
+  permissionsExemptRoles: ["exhibitor"],
   layout: "app",
 });
 
@@ -106,8 +108,10 @@ defineOptions({
   name: "events",
 });
 
+const { hasRole, isStaffOrAbove, hasPermission } = usePermission();
+const isExhibitor = computed(() => hasRole("exhibitor") && !isStaffOrAbove.value);
+
 const { $dayjs } = useNuxtApp();
-const { hasPermission } = usePermission();
 
 const canCreate = computed(() => hasPermission("events.create"));
 

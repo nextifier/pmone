@@ -10,6 +10,15 @@
       </div>
 
       <div class="ml-auto flex shrink-0 gap-2">
+        <!-- Categories -->
+        <NuxtLink
+          :to="`/projects/${route.params.username}/events/${route.params.eventSlug}/product-categories`"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+        >
+          <Icon name="hugeicons:layers-01" class="size-4 shrink-0" />
+          <span>Categories</span>
+        </NuxtLink>
+
         <!-- Export -->
         <button
           @click="handleExport"
@@ -61,8 +70,8 @@
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All categories</SelectItem>
-          <SelectItem v-for="cat in categories" :key="cat" :value="cat">
-            {{ cat }}
+          <SelectItem v-for="cat in categories" :key="cat.id" :value="String(cat.id)">
+            {{ cat.title }}
           </SelectItem>
         </SelectContent>
       </Select>
@@ -214,68 +223,65 @@
     </div>
 
     <!-- Add/Edit Dialog -->
-    <Dialog v-model:open="showFormDialog">
-      <DialogContent class="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{{ editingProduct ? "Edit Product" : "Add Product" }}</DialogTitle>
-          <DialogDescription>
+    <DialogResponsive v-model:open="showFormDialog" dialog-max-width="500px" :overflow-content="true">
+      <template #sticky-header>
+        <div class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left">
+          <div class="text-lg font-semibold tracking-tighter">{{ editingProduct ? "Edit Product" : "Add Product" }}</div>
+          <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">
             {{ editingProduct ? "Update the product details below." : "Fill in the details to create a new product." }}
-          </DialogDescription>
-        </DialogHeader>
-        <EventFormEventProduct
-          :product="editingProduct"
-          :api-base="apiBase"
-          @success="onFormSuccess"
-        />
-      </DialogContent>
-    </Dialog>
+          </p>
+        </div>
+      </template>
+      <template #default>
+        <div class="px-4 py-4 md:px-6">
+          <EventFormEventProduct
+            :product="editingProduct"
+            :api-base="apiBase"
+            @success="onFormSuccess"
+          />
+        </div>
+      </template>
+    </DialogResponsive>
 
     <!-- Delete Confirmation Dialog -->
-    <Dialog v-model:open="showDeleteDialog">
-      <DialogContent class="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Delete Product</DialogTitle>
-          <DialogDescription>
+    <DialogResponsive v-model:open="showDeleteDialog" :overflow-content="true">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-6">
+          <div class="text-foreground text-lg font-semibold tracking-tight">Delete Product</div>
+          <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             Are you sure you want to delete
             <span class="font-medium text-foreground">{{ deletingProduct?.name }}</span>?
             This action cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <button
-            type="button"
-            :disabled="deleteLoading"
-            @click="showDeleteDialog = false"
-            class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            :disabled="deleteLoading"
-            @click="handleDelete"
-            class="bg-destructive hover:bg-destructive/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Spinner v-if="deleteLoading" class="size-4 text-white" />
-            <span>{{ deleteLoading ? "Deleting..." : "Delete" }}</span>
-          </button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </p>
+          <div class="mt-4 flex justify-end gap-2">
+            <button
+              type="button"
+              :disabled="deleteLoading"
+              @click="showDeleteDialog = false"
+              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              :disabled="deleteLoading"
+              @click="handleDelete"
+              class="bg-destructive hover:bg-destructive/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Spinner v-if="deleteLoading" class="size-4 text-white" />
+              <span>{{ deleteLoading ? "Deleting..." : "Delete" }}</span>
+            </button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
   </div>
 </template>
 
 <script setup>
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import DialogResponsive from "@/components/DialogResponsive.vue";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -326,7 +332,7 @@ const filteredProducts = computed(() => {
   }
 
   if (selectedCategory.value && selectedCategory.value !== "all") {
-    result = result.filter((p) => p.category === selectedCategory.value);
+    result = result.filter((p) => String(p.category_id) === selectedCategory.value);
   }
 
   return result;
@@ -337,6 +343,7 @@ const boothTypeLabels = {
   raw_space: "Raw Space",
   standard_shell_scheme: "Standard Shell Scheme",
   enhanced_shell_scheme: "Enhanced Shell Scheme",
+  table_chair_only: "Table & Chair Only",
 };
 
 function boothTypeLabel(type) {
@@ -445,7 +452,7 @@ const handleExport = async () => {
       params.append("filter_search", search.value);
     }
     if (selectedCategory.value && selectedCategory.value !== "all") {
-      params.append("filter_category", selectedCategory.value);
+      params.append("filter_category_id", selectedCategory.value);
     }
 
     const response = await client(

@@ -14,12 +14,7 @@ const props = defineProps({
 
 const route = useRoute();
 
-definePageMeta({
-  middleware: ["permission"],
-  permissions: ["projects.update"],
-});
-
 usePageMeta(null, {
-  title: computed(() => `Brand Field Settings · ${props.project?.name || ""}`),
+  title: computed(() => `Brand Fields · ${props.project?.name || ""}`),
 });
 </script>

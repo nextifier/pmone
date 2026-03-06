@@ -2,6 +2,7 @@
 
 use App\Models\Event;
 use App\Models\EventProduct;
+use App\Models\EventProductCategory;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -36,8 +37,10 @@ beforeEach(function () {
 });
 
 it('can list event products', function () {
+    $category = EventProductCategory::factory()->create(['event_id' => $this->event->id]);
     EventProduct::factory()->count(3)->create([
         'event_id' => $this->event->id,
+        'category_id' => $category->id,
     ]);
 
     $response = $this->getJson($this->apiBase);
@@ -47,8 +50,13 @@ it('can list event products', function () {
 });
 
 it('can create an event product', function () {
+    $category = EventProductCategory::factory()->create([
+        'event_id' => $this->event->id,
+        'title' => 'Layanan Listrik',
+    ]);
+
     $data = [
-        'category' => 'Layanan Listrik',
+        'category_id' => $category->id,
         'name' => 'Instalasi Listrik 2200W',
         'description' => 'Paket instalasi listrik 2200W untuk booth',
         'price' => 1500000,
@@ -67,7 +75,7 @@ it('can create an event product', function () {
     $this->assertDatabaseHas('event_products', [
         'event_id' => $this->event->id,
         'name' => 'Instalasi Listrik 2200W',
-        'category' => 'Layanan Listrik',
+        'category_id' => $category->id,
     ]);
 });
 
@@ -75,12 +83,14 @@ it('validates required fields on create', function () {
     $response = $this->postJson($this->apiBase, []);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['category', 'name', 'price']);
+        ->assertJsonValidationErrors(['category_id', 'name', 'price']);
 });
 
 it('can update an event product', function () {
+    $category = EventProductCategory::factory()->create(['event_id' => $this->event->id]);
     $product = EventProduct::factory()->create([
         'event_id' => $this->event->id,
+        'category_id' => $category->id,
         'name' => 'Old Name',
     ]);
 
@@ -99,8 +109,10 @@ it('can update an event product', function () {
 });
 
 it('can delete an event product', function () {
+    $category = EventProductCategory::factory()->create(['event_id' => $this->event->id]);
     $product = EventProduct::factory()->create([
         'event_id' => $this->event->id,
+        'category_id' => $category->id,
     ]);
 
     $response = $this->deleteJson("{$this->apiBase}/{$product->id}");
@@ -110,8 +122,10 @@ it('can delete an event product', function () {
 });
 
 it('can toggle product active status', function () {
+    $category = EventProductCategory::factory()->create(['event_id' => $this->event->id]);
     $product = EventProduct::factory()->create([
         'event_id' => $this->event->id,
+        'category_id' => $category->id,
         'is_active' => true,
     ]);
 
@@ -127,24 +141,35 @@ it('can toggle product active status', function () {
 });
 
 it('can filter products by category', function () {
-    EventProduct::factory()->create([
+    $cat1 = EventProductCategory::factory()->create([
         'event_id' => $this->event->id,
-        'category' => 'Listrik',
+        'title' => 'Listrik',
     ]);
-    EventProduct::factory()->create([
+    $cat2 = EventProductCategory::factory()->create([
         'event_id' => $this->event->id,
-        'category' => 'Audio',
+        'title' => 'Audio',
     ]);
 
-    $response = $this->getJson("{$this->apiBase}?filter[category]=Listrik");
+    EventProduct::factory()->create([
+        'event_id' => $this->event->id,
+        'category_id' => $cat1->id,
+    ]);
+    EventProduct::factory()->create([
+        'event_id' => $this->event->id,
+        'category_id' => $cat2->id,
+    ]);
+
+    $response = $this->getJson("{$this->apiBase}?filter[category_id]={$cat1->id}");
 
     $response->assertSuccessful()
         ->assertJsonCount(1, 'data');
 });
 
 it('validates booth_types values', function () {
+    $category = EventProductCategory::factory()->create(['event_id' => $this->event->id]);
+
     $response = $this->postJson($this->apiBase, [
-        'category' => 'Test',
+        'category_id' => $category->id,
         'name' => 'Test Product',
         'price' => 100000,
         'booth_types' => ['invalid_type'],

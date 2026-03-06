@@ -138,7 +138,7 @@
           <div class="group relative flex flex-col items-center justify-center gap-y-2">
             <ChartSemiCircle
               :value="event.booked_area"
-              :max="event.gross_area"
+              :max="event.saleable_area"
               show-max
               :compact="false"
               suffix="m²"
@@ -209,7 +209,7 @@ interface EventItem {
   brand_events_count: number;
   orders_submitted: number;
   orders_confirmed: number;
-  gross_area: number;
+  saleable_area: number;
   booked_area: number;
   total_revenue: number;
 }
@@ -241,7 +241,7 @@ const statusConfig: Record<string, { label: string; class: string }> = {
 };
 
 function areaPercent(event: EventItem): number {
-  if (!event.gross_area) return 0;
-  return Math.min(Math.round((event.booked_area / event.gross_area) * 100), 100);
+  if (!event.saleable_area) return 0;
+  return Math.min(Math.round((event.booked_area / event.saleable_area) * 100), 100);
 }
 </script>

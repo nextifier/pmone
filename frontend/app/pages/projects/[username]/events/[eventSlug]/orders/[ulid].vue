@@ -39,9 +39,9 @@
             </h3>
             <span
               class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize"
-              :class="statusBadgeClass(order.status)"
+              :class="statusBadgeClass(order.operational_status)"
             >
-              {{ order.status }}
+              {{ order.operational_status_label || order.operational_status }}
             </span>
           </div>
           <p class="text-muted-foreground text-sm tracking-tight">
@@ -50,25 +50,44 @@
         </div>
 
         <!-- Status Update -->
-        <div class="flex items-center gap-x-2">
-          <span class="text-muted-foreground text-sm tracking-tight">Update status:</span>
-          <Select
-            :model-value="order.status"
-            :disabled="statusLoading"
-            @update:model-value="handleStatusUpdate"
-          >
-            <SelectTrigger class="w-36">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="submitted">Submitted</SelectItem>
-              <SelectItem value="confirmed">Confirmed</SelectItem>
-              <SelectItem value="processing">Processing</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-          <Spinner v-if="statusLoading" class="size-4 shrink-0 text-primary" />
+        <div class="flex items-center gap-x-3">
+          <div class="flex items-center gap-x-2">
+            <span class="text-muted-foreground text-sm tracking-tight">Operational:</span>
+            <Select
+              :model-value="order.operational_status"
+              :disabled="statusLoading"
+              @update:model-value="handleOperationalStatusUpdate"
+            >
+              <SelectTrigger class="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="submitted">Submitted</SelectItem>
+                <SelectItem value="confirmed">Confirmed</SelectItem>
+                <SelectItem value="processing">Processing</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div class="flex items-center gap-x-2">
+            <span class="text-muted-foreground text-sm tracking-tight">Payment:</span>
+            <Select
+              :model-value="order.payment_status"
+              :disabled="paymentStatusLoading"
+              @update:model-value="handlePaymentStatusUpdate"
+            >
+              <SelectTrigger class="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="not_invoiced">Belum ditagihkan</SelectItem>
+                <SelectItem value="invoiced">Sudah ditagihkan</SelectItem>
+                <SelectItem value="paid">Sudah dibayar</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Spinner v-if="statusLoading || paymentStatusLoading" class="size-4 shrink-0 text-primary" />
         </div>
       </div>
 
@@ -317,6 +336,7 @@ const client = useSanctumClient();
 const order = ref(null);
 const loading = ref(true);
 const statusLoading = ref(false);
+const paymentStatusLoading = ref(false);
 
 // Discount form
 const discountForm = reactive({ type: "none", value: 0 });
@@ -344,22 +364,47 @@ async function fetchOrder() {
   }
 }
 
-async function handleStatusUpdate(newStatus) {
+async function handleOperationalStatusUpdate(newStatus) {
+  if (newStatus === "cancelled") {
+    const reason = prompt("Masukkan alasan pembatalan:");
+    if (!reason) return;
+    return updateOperationalStatus(newStatus, reason);
+  }
+  return updateOperationalStatus(newStatus);
+}
+
+async function updateOperationalStatus(newStatus, cancellationReason = null) {
   statusLoading.value = true;
   try {
+    const body = { operational_status: newStatus };
+    if (cancellationReason) body.cancellation_reason = cancellationReason;
+
     const res = await client(
-      `/api/projects/${route.params.username}/events/${route.params.eventSlug}/orders/${route.params.ulid}/status`,
-      {
-        method: "PATCH",
-        body: { status: newStatus },
-      }
+      `/api/projects/${route.params.username}/events/${route.params.eventSlug}/orders/${route.params.ulid}/operational-status`,
+      { method: "PATCH", body }
     );
     order.value = res.data;
-    toast.success("Order status updated");
+    toast.success("Operational status updated");
   } catch (err) {
     toast.error(err?.data?.message || "Failed to update status");
   } finally {
     statusLoading.value = false;
+  }
+}
+
+async function handlePaymentStatusUpdate(newStatus) {
+  paymentStatusLoading.value = true;
+  try {
+    const res = await client(
+      `/api/projects/${route.params.username}/events/${route.params.eventSlug}/orders/${route.params.ulid}/payment-status`,
+      { method: "PATCH", body: { payment_status: newStatus } }
+    );
+    order.value = res.data;
+    toast.success("Payment status updated");
+  } catch (err) {
+    toast.error(err?.data?.message || "Failed to update payment status");
+  } finally {
+    paymentStatusLoading.value = false;
   }
 }
 

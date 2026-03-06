@@ -17,7 +17,8 @@ class EventProductResource extends JsonResource
         return [
             'id' => $this->id,
             'event_id' => $this->event_id,
-            'category' => $this->category,
+            'category_id' => $this->category_id,
+            'category' => $this->whenLoaded('productCategory', fn () => $this->productCategory->title),
             'name' => $this->name,
             'description' => $this->description,
             'price' => $this->price,

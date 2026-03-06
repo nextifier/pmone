@@ -14,6 +14,7 @@
         "cviebrock/eloquent-sluggable": "^12.0",
         "fakerphp/faker": "^1.23",
         "google/analytics-data": "^0.22.3",
+        "laravel/ai": "^0.2.6",
         "laravel/fortify": "^1.30",
         "laravel/framework": "^12.0",
         "laravel/horizon": "^5.40",
@@ -31,7 +32,8 @@
         "spatie/laravel-permission": "^6.21",
         "spatie/laravel-query-builder": "^6.3",
         "spatie/laravel-responsecache": "^8.2",
-        "spatie/laravel-tags": "^4.10"
+        "spatie/laravel-tags": "^4.10",
+        "spatie/laravel-translatable": "^6.12"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "*",

@@ -23,7 +23,7 @@ class BrandEventFactory extends Factory
             'event_id' => Event::factory(),
             'booth_number' => fake()->optional(0.7)->numerify('B-###'),
             'booth_size' => fake()->optional(0.5)->randomFloat(2, 4, 100),
-            'booth_type' => fake()->optional(0.5)->randomElement(['raw_space', 'standard_shell_scheme', 'enhanced_shell_scheme']),
+            'booth_type' => fake()->optional(0.5)->randomElement(['raw_space', 'standard_shell_scheme', 'enhanced_shell_scheme', 'table_chair_only']),
             'status' => 'draft',
         ];
     }

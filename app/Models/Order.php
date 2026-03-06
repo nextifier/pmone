@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\OperationalStatus;
+use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,7 +17,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string $ulid
  * @property int $brand_event_id
  * @property string $order_number
- * @property string $status
+ * @property OperationalStatus $operational_status
  * @property string|null $notes
  * @property numeric $subtotal
  * @property numeric $tax_rate
@@ -30,6 +32,10 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string|null $discount_type
  * @property numeric|null $discount_value
  * @property numeric|null $discount_amount
+ * @property PaymentStatus $payment_status
+ * @property string|null $cancellation_reason
+ * @property string|null $order_period
+ * @property numeric|null $applied_penalty_rate
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
  * @property-read int|null $activities_count
  * @property-read \App\Models\BrandEvent $brandEvent
@@ -37,13 +43,15 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\OrderItem> $items
  * @property-read int|null $items_count
  * @property-read \App\Models\User|null $updater
- *
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order byStatus(string $status)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order byOperationalStatus(string $status)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order byPaymentStatus(string $status)
  * @method static \Database\Factories\OrderFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereAppliedPenaltyRate($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBrandEventId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCancellationReason($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereConfirmedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCreatedBy($value)
@@ -52,8 +60,10 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereDiscountValue($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereOperationalStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereOrderNumber($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereOrderPeriod($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order wherePaymentStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereSubmittedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereSubtotal($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTaxAmount($value)
@@ -62,7 +72,6 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUlid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedBy($value)
- *
  * @mixin \Eloquent
  */
 class Order extends Model
@@ -73,7 +82,11 @@ class Order extends Model
     protected $fillable = [
         'brand_event_id',
         'order_number',
-        'status',
+        'operational_status',
+        'payment_status',
+        'cancellation_reason',
+        'order_period',
+        'applied_penalty_rate',
         'notes',
         'discount_type',
         'discount_value',
@@ -89,6 +102,9 @@ class Order extends Model
     protected function casts(): array
     {
         return [
+            'operational_status' => OperationalStatus::class,
+            'payment_status' => PaymentStatus::class,
+            'applied_penalty_rate' => 'decimal:2',
             'subtotal' => 'decimal:2',
             'discount_value' => 'decimal:2',
             'discount_amount' => 'decimal:2',
@@ -147,7 +163,7 @@ class Order extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['status', 'confirmed_at'])
+            ->logOnly(['operational_status', 'payment_status', 'confirmed_at'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
@@ -200,8 +216,13 @@ class Order extends Model
 
     // Scopes
 
-    public function scopeByStatus($query, string $status)
+    public function scopeByOperationalStatus($query, string $status)
     {
-        return $query->where('status', $status);
+        return $query->where('operational_status', $status);
+    }
+
+    public function scopeByPaymentStatus($query, string $status)
+    {
+        return $query->where('payment_status', $status);
     }
 }

@@ -4,7 +4,7 @@
       class="flex flex-col gap-x-2.5 gap-y-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
     >
       <div class="flex shrink-0 items-center gap-x-2.5">
-        <Icon name="hugeicons:blockchain-01" class="size-5 sm:size-6" />
+        <Icon name="hugeicons:store-02" class="size-5 sm:size-6" />
         <h1 class="page-title">{{ $t("brands.title") }}</h1>
       </div>
 

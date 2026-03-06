@@ -67,6 +67,18 @@
           <p v-if="errors.brand_name" class="text-destructive text-xs">{{ errors.brand_name }}</p>
         </div>
 
+        <!-- Booth Number(s) -->
+        <div class="space-y-2">
+          <Label>Booth Number(s)</Label>
+          <Input
+            v-model="form.booth_number"
+            placeholder="e.g. A01, A02, A03"
+          />
+          <p class="text-muted-foreground text-xs">
+            Comma-separated booth numbers. Each booth number creates a separate brand-event record.
+          </p>
+        </div>
+
         <div class="grid grid-cols-2 gap-x-2 gap-y-4">
           <div class="space-y-2">
             <Label>Booth Size (m²)</Label>
@@ -86,6 +98,26 @@
               min="0"
               placeholder="e.g. 50000000"
             />
+          </div>
+        </div>
+
+        <!-- Fascia Name & Badge Name -->
+        <div class="grid grid-cols-2 gap-x-2 gap-y-4">
+          <div class="space-y-2">
+            <Label>Fascia Name</Label>
+            <Input
+              v-model="form.fascia_name"
+              placeholder="Name on booth fascia"
+            />
+            <p class="text-muted-foreground text-xs">Displayed on the booth signage.</p>
+          </div>
+          <div class="space-y-2">
+            <Label>Badge Name</Label>
+            <Input
+              v-model="form.badge_name"
+              placeholder="Name on exhibitor badge"
+            />
+            <p class="text-muted-foreground text-xs">Printed on exhibitor badges.</p>
           </div>
         </div>
 
@@ -173,8 +205,11 @@ const client = useSanctumClient();
 const submitting = ref(false);
 const errors = ref({});
 const form = reactive({
+  booth_number: "",
   booth_size: null,
   booth_price: null,
+  fascia_name: "",
+  badge_name: "",
   sales_id: null,
   emails: [""],
   send_login_email: false,
@@ -282,8 +317,11 @@ watch(isOpen, (val) => {
     showDropdown.value = false;
     highlightedIndex.value = -1;
     searchTerm.value = "";
+    form.booth_number = "";
     form.booth_size = null;
     form.booth_price = null;
+    form.fascia_name = "";
+    form.badge_name = "";
     form.sales_id = null;
     form.emails = [""];
     form.send_login_email = false;
@@ -307,8 +345,11 @@ async function submit() {
       method: "POST",
       body: {
         brand_name: brandName,
+        booth_number: form.booth_number || null,
         booth_size: form.booth_size || null,
         booth_price: form.booth_price || null,
+        fascia_name: form.fascia_name || null,
+        badge_name: form.badge_name || null,
         sales_id: form.sales_id || null,
         emails,
         send_login_email: form.send_login_email,
@@ -317,8 +358,11 @@ async function submit() {
     toast.success("Brand added to event");
     selectedBrand.value = null;
     searchTerm.value = "";
+    form.booth_number = "";
     form.booth_size = null;
     form.booth_price = null;
+    form.fascia_name = "";
+    form.badge_name = "";
     form.sales_id = null;
     form.emails = [""];
     form.send_login_email = false;

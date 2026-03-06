@@ -174,9 +174,15 @@ const backDestination = computed(() => {
   if (route.params.brandSlug) {
     return `/projects/${route.params.username}/events/${route.params.eventSlug}/brands`;
   }
+  if (route.params.eventSlug && route.path.includes("/content")) {
+    return `/projects/${route.params.username}/events/${route.params.eventSlug}`;
+  }
   if (route.params.eventSlug) {
     return `/projects/${route.params.username}`;
   }
-  return "/projects";
+  if (route.params.username && route.path.includes("/settings")) {
+    return `/projects/${route.params.username}`;
+  }
+  return "/dashboard";
 });
 </script>

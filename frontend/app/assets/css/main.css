@@ -522,7 +522,7 @@
     html {
       scrollbar-gutter: stable;
 
-      &:has(body[style*="overflow: hidden"]) {
+      &:has(body[style*="overflow: hidden"][style*="padding-right"]) {
         scrollbar-gutter: auto;
       }
     }

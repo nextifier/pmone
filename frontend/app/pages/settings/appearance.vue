@@ -9,7 +9,7 @@
       <!-- Theme Selection -->
       <div class="space-y-4">
         <div>
-          <h3 class="font-semibold tracking-tight">{{ $t('settings.theme') }}</h3>
+          <h3 class="font-medium tracking-tight">{{ $t('settings.theme') }}</h3>
           <p class="text-muted-foreground mt-1 text-sm tracking-tight">
             {{ $t('settings.chooseTheme') }}
           </p>

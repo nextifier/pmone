@@ -72,7 +72,7 @@
                   { label: $t('orders.statusCancelled'), value: 'cancelled' },
                 ]"
                 :selected="selectedStatuses"
-                @change="handleFilterChange('status', $event)"
+                @change="handleFilterChange('operational_status', $event)"
               />
             </div>
           </PopoverContent>
@@ -138,7 +138,7 @@ const getFilterValue = (columnId) => {
   return [];
 };
 
-const selectedStatuses = computed(() => getFilterValue("status"));
+const selectedStatuses = computed(() => getFilterValue("operational_status"));
 const totalActiveFilters = computed(() => selectedStatuses.value.length);
 
 const handleFilterChange = (columnId, { checked, value }) => {
@@ -226,9 +226,9 @@ const columns = computed(() => [
   },
   {
     header: t('orders.status'),
-    accessorKey: "status",
+    accessorKey: "operational_status",
     cell: ({ row }) => {
-      const status = row.getValue("status");
+      const status = row.getValue("operational_status");
       const classes = statusClasses[status] || "text-muted-foreground";
       return h(
         "span",

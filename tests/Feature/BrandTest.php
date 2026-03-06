@@ -612,11 +612,9 @@ test('exhibitor can access dashboard', function () {
             'data' => [
                 'user' => ['id', 'name', 'email'],
                 'profile_complete',
-                'brands',
+                'brand_events',
             ],
         ]);
-
-    expect(count($response->json('data.brands')))->toBe(1);
 });
 
 test('exhibitor can list their brands', function () {

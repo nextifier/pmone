@@ -197,38 +197,31 @@
     </template>
 
     <!-- Delete Confirmation Dialog -->
-    <Dialog v-model:open="showDeleteDialog">
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete Submission</DialogTitle>
-          <DialogDescription>
+    <DialogResponsive v-model:open="showDeleteDialog" :overflow-content="true">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-6">
+          <div class="text-foreground text-lg font-semibold tracking-tight">Delete Submission</div>
+          <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             Are you sure you want to delete this submission? This action cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" @click="showDeleteDialog = false">
-            Cancel
-          </Button>
-          <Button variant="destructive" @click="deleteSubmission" :disabled="updating">
-            Delete
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </p>
+          <div class="mt-4 flex justify-end gap-2">
+            <Button variant="outline" @click="showDeleteDialog = false">
+              Cancel
+            </Button>
+            <Button variant="destructive" @click="deleteSubmission" :disabled="updating">
+              Delete
+            </Button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
   </div>
 </template>
 
 <script setup>
 import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import DialogResponsive from "@/components/DialogResponsive.vue";
 import FlagComponent from "@/components/FlagComponent.vue";
 
 definePageMeta({

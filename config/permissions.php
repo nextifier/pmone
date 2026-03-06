@@ -107,6 +107,18 @@ return [
             'model' => \App\Models\Order::class,
             'actions' => ['read', 'update'],
         ],
+        'event_product_categories' => [
+            'label' => 'Event Product Categories',
+            'description' => 'Manage event product categories',
+            'model' => \App\Models\EventProductCategory::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'event_documents' => [
+            'label' => 'Event Documents',
+            'description' => 'Manage event documents and rules',
+            'model' => \App\Models\EventDocument::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
         'forms' => [
             'label' => 'Forms',
             'description' => 'Manage form builder and responses',
@@ -141,6 +153,15 @@ return [
             'permissions' => [
                 'analytics.view' => 'View analytics data',
                 'analytics.export' => 'Export analytics data',
+            ],
+        ],
+        'staff_roles' => [
+            'label' => 'Staff Sub-roles',
+            'description' => 'Staff department-level permissions',
+            'permissions' => [
+                'operational' => 'Operational department access',
+                'project-coordinator' => 'Project coordinator access',
+                'finance' => 'Finance department access',
             ],
         ],
     ],

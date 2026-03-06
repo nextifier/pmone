@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\OperationalStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEventRequest;
 use App\Http\Requests\UpdateEventRequest;
@@ -70,29 +71,36 @@ class EventController extends Controller
             $query->whereIn('project_id', $projectIds);
         }
 
-        // Sorting
-        $sort = $request->input('sort', '-start_date');
-        $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
-        $field = ltrim($sort, '-');
-        $allowedSorts = ['title', 'start_date', 'end_date', 'status', 'created_at', 'order_column'];
-        if (in_array($field, $allowedSorts)) {
-            $query->orderBy($field, $direction);
-        } else {
-            $query->orderBy('start_date', 'desc');
-        }
+        // Sorting: ongoing first, upcoming (closest to today), completed (most recent first), draft/no_date last
+        $now = now();
+        $query->orderByRaw("
+            CASE
+                WHEN start_date IS NOT NULL AND start_date <= ? AND (end_date IS NULL OR end_date >= ?) THEN 0
+                WHEN start_date IS NOT NULL AND start_date > ? THEN 1
+                WHEN start_date IS NOT NULL AND (end_date IS NOT NULL AND end_date < ? OR end_date IS NULL AND start_date < ?) THEN 2
+                ELSE 3
+            END ASC
+        ", [$now, $now->copy()->startOfDay(), $now->copy()->endOfDay(), $now->copy()->startOfDay(), $now->copy()->startOfDay()])
+        ->orderByRaw("
+            CASE
+                WHEN start_date IS NOT NULL AND start_date > ? THEN ABS(EXTRACT(EPOCH FROM (start_date - ?::timestamp)))
+                WHEN start_date IS NOT NULL THEN -EXTRACT(EPOCH FROM start_date)
+                ELSE 999999999
+            END ASC
+        ", [$now->copy()->endOfDay(), $now]);
 
-        $events = $query->paginate($request->input('per_page', 15));
+        $events = $query->paginate($request->input('per_page', 50));
 
         // Batch load order stats
         $eventIds = collect($events->items())->pluck('id');
         $orderStats = Order::query()
             ->join('brand_event', 'orders.brand_event_id', '=', 'brand_event.id')
             ->whereIn('brand_event.event_id', $eventIds)
-            ->whereIn('orders.status', ['submitted', 'confirmed'])
-            ->groupBy('brand_event.event_id', 'orders.status')
+            ->whereIn('orders.operational_status', [OperationalStatus::Submitted, OperationalStatus::Confirmed])
+            ->groupBy('brand_event.event_id', 'orders.operational_status')
             ->select(
                 'brand_event.event_id',
-                'orders.status',
+                'orders.operational_status',
                 DB::raw('COUNT(*) as count'),
                 DB::raw('SUM(orders.total) as total_sum')
             )
@@ -100,7 +108,10 @@ class EventController extends Controller
 
         $orderStatsMap = [];
         foreach ($orderStats as $stat) {
-            $orderStatsMap[$stat->event_id][$stat->status] = [
+            $status = $stat->operational_status instanceof \BackedEnum
+                ? $stat->operational_status->value
+                : $stat->operational_status;
+            $orderStatsMap[$stat->event_id][$status] = [
                 'count' => (int) $stat->count,
                 'total_sum' => (float) $stat->total_sum,
             ];
@@ -151,24 +162,36 @@ class EventController extends Controller
             $query->whereIn('status', $statuses);
         }
 
-        // Sorting
-        $sort = $request->input('sort', 'order_column');
-        $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
-        $field = ltrim($sort, '-');
-        $query->orderBy($field, $direction);
+        // Sorting: ongoing first, upcoming (closest to today), completed (most recent first), draft/no_date last
+        $now = now();
+        $query->orderByRaw("
+            CASE
+                WHEN start_date IS NOT NULL AND start_date <= ? AND (end_date IS NULL OR end_date >= ?) THEN 0
+                WHEN start_date IS NOT NULL AND start_date > ? THEN 1
+                WHEN start_date IS NOT NULL AND (end_date IS NOT NULL AND end_date < ? OR end_date IS NULL AND start_date < ?) THEN 2
+                ELSE 3
+            END ASC
+        ", [$now, $now->copy()->startOfDay(), $now->copy()->endOfDay(), $now->copy()->startOfDay(), $now->copy()->startOfDay()])
+        ->orderByRaw("
+            CASE
+                WHEN start_date IS NOT NULL AND start_date > ? THEN ABS(EXTRACT(EPOCH FROM (start_date - ?::timestamp)))
+                WHEN start_date IS NOT NULL THEN -EXTRACT(EPOCH FROM start_date)
+                ELSE 999999999
+            END ASC
+        ", [$now->copy()->endOfDay(), $now]);
 
-        $events = $query->paginate($request->input('per_page', 15));
+        $events = $query->paginate($request->input('per_page', 50));
 
         // Batch load order stats
         $eventIds = collect($events->items())->pluck('id');
         $orderStats = Order::query()
             ->join('brand_event', 'orders.brand_event_id', '=', 'brand_event.id')
             ->whereIn('brand_event.event_id', $eventIds)
-            ->whereIn('orders.status', ['submitted', 'confirmed'])
-            ->groupBy('brand_event.event_id', 'orders.status')
+            ->whereIn('orders.operational_status', [OperationalStatus::Submitted, OperationalStatus::Confirmed])
+            ->groupBy('brand_event.event_id', 'orders.operational_status')
             ->select(
                 'brand_event.event_id',
-                'orders.status',
+                'orders.operational_status',
                 DB::raw('COUNT(*) as count'),
                 DB::raw('SUM(orders.total) as total_sum')
             )
@@ -176,7 +199,10 @@ class EventController extends Controller
 
         $orderStatsMap = [];
         foreach ($orderStats as $stat) {
-            $orderStatsMap[$stat->event_id][$stat->status] = [
+            $status = $stat->operational_status instanceof \BackedEnum
+                ? $stat->operational_status->value
+                : $stat->operational_status;
+            $orderStatsMap[$stat->event_id][$status] = [
                 'count' => (int) $stat->count,
                 'total_sum' => (float) $stat->total_sum,
             ];

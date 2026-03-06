@@ -37,11 +37,11 @@ class DashboardController extends Controller
         $orderStats = Order::query()
             ->join('brand_event', 'orders.brand_event_id', '=', 'brand_event.id')
             ->whereIn('brand_event.event_id', $eventIds)
-            ->whereIn('orders.status', ['submitted', 'confirmed'])
-            ->groupBy('brand_event.event_id', 'orders.status')
+            ->whereIn('orders.operational_status', ['submitted', 'confirmed'])
+            ->groupBy('brand_event.event_id', 'orders.operational_status')
             ->select(
                 'brand_event.event_id',
-                'orders.status',
+                'orders.operational_status',
                 DB::raw('COUNT(*) as count'),
                 DB::raw('SUM(orders.total) as total_sum')
             )
@@ -49,7 +49,10 @@ class DashboardController extends Controller
 
         $orderStatsMap = [];
         foreach ($orderStats as $stat) {
-            $orderStatsMap[$stat->event_id][$stat->status] = [
+            $status = $stat->operational_status instanceof \BackedEnum
+                ? $stat->operational_status->value
+                : $stat->operational_status;
+            $orderStatsMap[$stat->event_id][$status] = [
                 'count' => (int) $stat->count,
                 'total_sum' => (float) $stat->total_sum,
             ];
@@ -88,7 +91,7 @@ class DashboardController extends Controller
                     'brand_events_count' => $event->brand_events_count,
                     'orders_submitted' => $eventOrderStats['submitted']['count'] ?? 0,
                     'orders_confirmed' => $eventOrderStats['confirmed']['count'] ?? 0,
-                    'gross_area' => (float) ($event->gross_area ?? 0),
+                    'saleable_area' => (float) ($event->saleable_area ?? 0),
                     'booked_area' => (float) ($event->booked_area ?? 0),
                     'total_revenue' => (float) ($eventOrderStats['confirmed']['total_sum'] ?? 0),
                 ];

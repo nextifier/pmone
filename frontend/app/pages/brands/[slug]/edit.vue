@@ -8,7 +8,7 @@
       >
         <Icon name="hugeicons:arrow-left-01" class="size-5" />
       </NuxtLink>
-      <h2 class="text-lg font-bold tracking-tight">{{ $t('brands.editBrand') }}</h2>
+      <h2 class="text-lg font-medium tracking-tight">{{ $t('brands.editBrand') }}</h2>
     </div>
 
     <!-- Loading -->
@@ -30,7 +30,7 @@
     <!-- Not Found -->
     <div v-else class="flex flex-col items-center justify-center gap-3 py-20">
       <div class="bg-muted flex size-14 items-center justify-center rounded-full">
-        <Icon name="hugeicons:blockchain-01" class="text-muted-foreground size-7" />
+        <Icon name="hugeicons:store-02" class="text-muted-foreground size-7" />
       </div>
       <p class="text-muted-foreground text-sm">{{ $t('brands.notFound') }}</p>
       <NuxtLink to="/brands" class="text-primary text-sm hover:underline">

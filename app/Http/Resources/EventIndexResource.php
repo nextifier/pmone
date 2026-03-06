@@ -50,7 +50,7 @@ class EventIndexResource extends JsonResource
                     ? $this->project?->name
                     : null,
                 'brand_events_count' => (int) ($this->brand_events_count ?? 0),
-                'gross_area' => (float) ($this->gross_area ?? 0),
+                'saleable_area' => (float) ($this->saleable_area ?? 0),
                 'booked_area' => (float) ($this->booked_area ?? 0),
                 'orders_submitted' => (int) ($this->orders_submitted ?? 0),
                 'orders_confirmed' => (int) ($this->orders_confirmed ?? 0),

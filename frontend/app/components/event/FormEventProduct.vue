@@ -2,19 +2,19 @@
   <form @submit.prevent="handleSubmit" class="space-y-4">
     <!-- Category -->
     <div class="space-y-2">
-      <Label for="category">Category <span class="text-destructive">*</span></Label>
-      <Select v-model="form.category" required>
-        <SelectTrigger id="category" class="w-full">
+      <Label for="category_id">Category <span class="text-destructive">*</span></Label>
+      <Select v-model="form.category_id" required>
+        <SelectTrigger id="category_id" class="w-full">
           <SelectValue placeholder="Select category" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem v-for="cat in PRODUCT_CATEGORIES" :key="cat" :value="cat">
-            {{ cat }}
+          <SelectItem v-for="cat in categoryOptions" :key="cat.id" :value="String(cat.id)">
+            {{ cat.title }}
           </SelectItem>
         </SelectContent>
       </Select>
-      <p v-if="errors.category" class="text-destructive mt-1 text-xs">
-        {{ Array.isArray(errors.category) ? errors.category[0] : errors.category }}
+      <p v-if="errors.category_id" class="text-destructive mt-1 text-xs">
+        {{ Array.isArray(errors.category_id) ? errors.category_id[0] : errors.category_id }}
       </p>
     </div>
 
@@ -152,17 +152,6 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "vue-sonner";
 
-const PRODUCT_CATEGORIES = [
-  "Booth",
-  "Electricity",
-  "Audio Visual",
-  "Lighting & Furniture",
-  "Decoration",
-  "Internet & Telecommunication",
-  "Accommodation",
-  "Marketing",
-];
-
 const props = defineProps({
   product: { type: Object, default: null },
   eventId: { type: Number, default: null },
@@ -173,6 +162,7 @@ const emit = defineEmits(["success"]);
 const client = useSanctumClient();
 const submitting = ref(false);
 const errors = ref({});
+const categoryOptions = ref([]);
 
 const deleteFlags = ref({
   product_image: false,
@@ -189,7 +179,7 @@ const FILE_STATUS = {
 };
 
 const form = reactive({
-  category: "",
+  category_id: "",
   name: "",
   description: "",
   price: "",
@@ -202,12 +192,16 @@ watch(
   () => props.product,
   (newProduct) => {
     if (newProduct) {
-      Object.assign(form, { ...newProduct, booth_types: newProduct.booth_types || [] });
+      Object.assign(form, {
+        ...newProduct,
+        category_id: newProduct.category_id ? String(newProduct.category_id) : "",
+        booth_types: newProduct.booth_types || [],
+      });
       imageFiles.value.product_image = [];
       deleteFlags.value.product_image = false;
     } else {
       Object.assign(form, {
-        category: "",
+        category_id: "",
         name: "",
         description: "",
         price: "",
@@ -228,6 +222,7 @@ const boothTypeOptions = [
   { value: "raw_space", label: "Raw Space" },
   { value: "standard_shell_scheme", label: "Standard Shell Scheme" },
   { value: "enhanced_shell_scheme", label: "Enhanced Shell Scheme" },
+  { value: "table_chair_only", label: "Table & Chair Only" },
 ];
 
 function toggleBoothType(value) {
@@ -236,6 +231,15 @@ function toggleBoothType(value) {
     form.booth_types.splice(idx, 1);
   } else {
     form.booth_types.push(value);
+  }
+}
+
+async function fetchCategories() {
+  try {
+    const res = await client(`${props.apiBase}/categories`);
+    categoryOptions.value = res.data || [];
+  } catch {
+    // non-critical
   }
 }
 
@@ -252,6 +256,7 @@ async function handleSubmit() {
     const method = isEdit.value ? "PUT" : "POST";
     const body = {
       ...form,
+      category_id: form.category_id ? Number(form.category_id) : null,
       booth_types: form.booth_types.length > 0 ? form.booth_types : null,
     };
 
@@ -276,4 +281,6 @@ async function handleSubmit() {
     submitting.value = false;
   }
 }
+
+onMounted(fetchCategories);
 </script>
