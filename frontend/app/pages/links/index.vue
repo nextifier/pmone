@@ -66,12 +66,22 @@
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
-      :show-add-button="canCreate"
+      :show-add-button="false"
       @update:pagination="pagination = $event"
       @update:sorting="sorting = $event"
       @update:column-filters="columnFilters = $event"
       @refresh="refresh"
     >
+      <template #add-button>
+        <Button v-if="canCreate" size="sm" @click="openCreateDialog">
+          <Icon name="hugeicons:add-01" class="size-4" />
+          Add Link
+          <KbdGroup class="ml-1">
+            <Kbd>C</Kbd>
+          </KbdGroup>
+        </Button>
+      </template>
+
       <template #filters="{ table }">
         <!-- Filter Popover -->
         <Popover>
@@ -154,6 +164,13 @@
         </DialogResponsive>
       </template>
     </TableData>
+
+    <!-- Create / Edit Short Link Dialog -->
+    <FormShortLink
+      v-model:open="formDialogOpen"
+      :short-link="editingShortLink"
+      @success="handleFormSuccess"
+    />
   </div>
 </template>
 
@@ -196,6 +213,24 @@ const { hasPermission } = usePermission();
 // Permission checks
 const canCreate = computed(() => hasPermission("short_links.create"));
 const canDelete = computed(() => hasPermission("short_links.delete"));
+
+// Create / Edit dialog
+const formDialogOpen = ref(false);
+const editingShortLink = ref(null);
+
+function openCreateDialog() {
+  editingShortLink.value = null;
+  formDialogOpen.value = true;
+}
+
+function openEditDialog(shortLink) {
+  editingShortLink.value = shortLink;
+  formDialogOpen.value = true;
+}
+
+function handleFormSuccess() {
+  refresh();
+}
 
 // Export state
 const exportPending = ref(false);
@@ -628,21 +663,19 @@ const RowActions = defineComponent({
                         {
                           default: () =>
                             h(
-                              resolveComponent("NuxtLink"),
+                              "button",
                               {
-                                to: `/links/${props.shortLink.slug}/edit`,
                                 class:
-                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5 w-full",
+                                onClick: () => openEditDialog(props.shortLink),
                               },
-                              {
-                                default: () => [
-                                  h(resolveComponent("Icon"), {
-                                    name: "lucide:pencil-line",
-                                    class: "size-4 shrink-0",
-                                  }),
-                                  h("span", {}, "Edit"),
-                                ],
-                              }
+                              [
+                                h(resolveComponent("Icon"), {
+                                  name: "lucide:pencil-line",
+                                  class: "size-4 shrink-0",
+                                }),
+                                h("span", {}, "Edit"),
+                              ]
                             ),
                         }
                       ),
@@ -802,10 +835,10 @@ onActivated(() => { isPageActive.value = true; });
 onDeactivated(() => { isPageActive.value = false; });
 
 defineShortcuts({
-  n: {
+  c: {
     handler: () => {
       if (canCreate.value) {
-        navigateTo("/links/create");
+        openCreateDialog();
       }
     },
     whenever: [isPageActive],

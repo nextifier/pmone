@@ -101,6 +101,10 @@
         >
           <Spinner v-if="loading" class="size-4" />
           <span>{{ loading ? loadingText : submitText }}</span>
+          <KbdGroup class="ml-1">
+            <Kbd>{{ metaSymbol }}</Kbd>
+            <Kbd>S</Kbd>
+          </KbdGroup>
         </button>
         <nuxt-link
           to="/roles"
@@ -136,6 +140,7 @@ const props = defineProps({
 const emit = defineEmits(["submit", "update:loading"]);
 
 const sanctumFetch = useSanctumClient();
+const { metaSymbol } = useShortcuts();
 
 // Form state
 const formData = ref({

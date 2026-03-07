@@ -1,17 +1,17 @@
 <template>
   <div class="flex flex-col gap-y-5">
     <template v-if="settingsProject">
-      <div class="flex w-full items-center justify-between">
-        <h2 class="text-lg font-semibold tracking-tight">General</h2>
+      <div class="flex w-full items-start justify-between">
+        <h2 class="page-title">General</h2>
 
-        <button
-          @click="formProjectRef?.handleSubmit()"
-          :disabled="loading"
-          class="text-primary-foreground hover:bg-primary/80 bg-primary flex items-center justify-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
-        >
+        <Button size="sm" :disabled="loading" @click="formProjectRef?.handleSubmit()">
           <Spinner v-if="loading" />
-          <span>Save</span>
-        </button>
+          Save
+          <KbdGroup class="ml-1">
+            <Kbd>{{ metaSymbol }}</Kbd>
+            <Kbd>S</Kbd>
+          </KbdGroup>
+        </Button>
       </div>
 
       <FormProject
@@ -69,20 +69,19 @@ const { $dayjs } = useNuxtApp();
 const { signalRefresh } = useDataRefresh();
 
 const formProjectRef = ref(null);
+const { metaSymbol } = useShortcuts();
 
 const loading = ref(false);
 const errors = ref({});
 
-const {
-  isAdminOrMaster: canEditprojects,
-} = usePermission();
+const { isAdminOrMaster: canEditprojects } = usePermission();
 
-const {
-  data: projectResponse,
-  pending: settingsLoading,
-} = await useLazySanctumFetch(() => `/api/projects/${route.params.username}`, {
-  key: `project-settings-${route.params.username}`,
-});
+const { data: projectResponse, pending: settingsLoading } = await useLazySanctumFetch(
+  () => `/api/projects/${route.params.username}`,
+  {
+    key: `project-settings-${route.params.username}`,
+  }
+);
 
 const settingsProject = computed(() => projectResponse.value?.data || null);
 

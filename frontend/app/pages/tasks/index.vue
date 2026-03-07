@@ -22,15 +22,13 @@
       @refresh="refresh"
     >
       <template #actions>
-        <button
-          v-if="canCreate"
-          type="button"
-          @click="dialogs.openCreateDialog"
-          class="hover:bg-primary/80 text-primary-foreground bg-primary flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
-        >
-          <Icon name="hugeicons:plus-sign" class="-ml-1 size-4 shrink-0" />
-          <span>Add task</span>
-        </button>
+        <Button v-if="canCreate" size="sm" @click="dialogs.openCreateDialog">
+          <Icon name="hugeicons:plus-sign" class="size-4 shrink-0" />
+          Add task
+          <KbdGroup class="ml-1">
+            <Kbd>C</Kbd>
+          </KbdGroup>
+        </Button>
       </template>
     </TasksFilters>
 
@@ -658,7 +656,7 @@ watch(dialogs.deleteDialogOpen, (open) => {
 
 const route = useRoute();
 defineShortcuts({
-  n: {
+  c: {
     handler: () => {
       if (canCreate.value) {
         dialogs.openCreateDialog();

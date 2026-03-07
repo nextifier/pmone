@@ -1,17 +1,18 @@
 <template>
   <div class="flex flex-col gap-y-6">
     <div class="space-y-1">
-      <h3 class="text-lg font-semibold tracking-tight">Orders</h3>
-      <p class="text-muted-foreground text-sm tracking-tight">
-        Orders submitted by this exhibitor.
-      </p>
+      <h3 class="page-title">Orders</h3>
+      <p class="page-description">Orders submitted by this exhibitor.</p>
     </div>
 
     <div v-if="loading" class="flex items-center justify-center py-12">
       <Spinner class="size-4 shrink-0" />
     </div>
 
-    <div v-else-if="orders.length === 0" class="flex flex-col items-center justify-center px-4 py-12">
+    <div
+      v-else-if="orders.length === 0"
+      class="flex flex-col items-center justify-center px-4 py-12"
+    >
       <div class="flex flex-col items-center gap-y-3 text-center">
         <Icon name="hugeicons:shopping-cart-01" class="text-muted-foreground size-8" />
         <p class="text-muted-foreground text-sm">No orders submitted yet.</p>
@@ -46,8 +47,6 @@
 </template>
 
 <script setup>
-import { toast } from "vue-sonner";
-
 const props = defineProps({ brandEvent: Object });
 const route = useRoute();
 const client = useSanctumClient();
@@ -66,9 +65,7 @@ async function fetchOrders() {
       { params: { "filter[search]": props.brandEvent.brand?.name || "" } }
     );
     // Filter to only this brand event's orders
-    orders.value = (res.data || []).filter(
-      (o) => o.brand_event_id === props.brandEvent.id
-    );
+    orders.value = (res.data || []).filter((o) => o.brand_event_id === props.brandEvent.id);
   } catch {
     // Fallback: try to get orders directly
     orders.value = [];

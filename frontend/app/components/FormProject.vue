@@ -180,7 +180,7 @@
                   </Select>
                 </div>
 
-                <Input v-model="link.url" type="url" placeholder="Enter URL" class="grow" />
+                <InputLink v-model="link.url" :label="link.label" class="grow" />
 
                 <button
                   type="button"
@@ -405,14 +405,14 @@
     </div>
 
     <div class="flex justify-end">
-      <button
-        type="submit"
-        :disabled="loading"
-        class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-semibold tracking-tighter transition disabled:opacity-50"
-      >
+      <Button type="submit" :disabled="loading" size="sm">
         <Spinner v-if="loading" />
         {{ loading ? submitLoadingText : submitText }}
-      </button>
+        <KbdGroup class="ml-1">
+          <Kbd>{{ metaSymbol }}</Kbd>
+          <Kbd>S</Kbd>
+        </KbdGroup>
+      </Button>
     </div>
   </form>
 </template>
@@ -444,6 +444,8 @@ const PREDEFINED_PHONE_LABELS = ["WhatsApp Sales", "WhatsApp Marketing"];
 const FILE_STATUS = {
   PROCESSING: 3,
 };
+
+const { metaSymbol } = useShortcuts();
 
 const memberQuery = ref("");
 const selectedMembers = ref([]);

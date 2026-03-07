@@ -11,9 +11,9 @@ enum PaymentStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::NotInvoiced => 'Belum ditagihkan',
-            self::Invoiced => 'Sudah ditagihkan',
-            self::Paid => 'Sudah dibayar',
+            self::NotInvoiced => 'Not Invoiced',
+            self::Invoiced => 'Unpaid',
+            self::Paid => 'Paid',
         };
     }
 }

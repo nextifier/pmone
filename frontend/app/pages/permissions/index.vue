@@ -33,12 +33,22 @@
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
-      :show-add-button="canCreate"
+      :show-add-button="false"
       @update:pagination="pagination = $event"
       @update:sorting="sorting = $event"
       @update:column-filters="columnFilters = $event"
       @refresh="refresh"
     >
+      <template #add-button>
+        <Button v-if="canCreate" size="sm" @click="openCreateDialog">
+          <Icon name="hugeicons:add-01" class="size-4" />
+          Add Permission
+          <KbdGroup class="ml-1">
+            <Kbd>C</Kbd>
+          </KbdGroup>
+        </Button>
+      </template>
+
       <template #actions="{ selectedRows }">
         <DialogResponsive
           v-if="canDelete && selectedRows.length > 0"
@@ -89,6 +99,13 @@
         </DialogResponsive>
       </template>
     </TableData>
+
+    <!-- Create / Edit Permission Dialog -->
+    <FormPermission
+      v-model:open="formDialogOpen"
+      :permission="editingPermission"
+      @success="handleFormSuccess"
+    />
   </div>
 </template>
 
@@ -127,6 +144,32 @@ const { hasPermission } = usePermission();
 // Permission checks
 const canCreate = computed(() => hasPermission("permissions.create"));
 const canDelete = computed(() => hasPermission("permissions.delete"));
+
+// Create / Edit dialog
+const formDialogOpen = ref(false);
+const editingPermission = ref(null);
+
+function openCreateDialog() {
+  editingPermission.value = null;
+  formDialogOpen.value = true;
+}
+
+function openEditDialog(permission) {
+  editingPermission.value = permission;
+  formDialogOpen.value = true;
+}
+
+function handleFormSuccess() {
+  refresh();
+}
+
+defineShortcuts({
+  c: {
+    handler: () => {
+      if (canCreate.value) openCreateDialog();
+    },
+  },
+});
 
 // Table state
 const columnFilters = ref([]);
@@ -214,6 +257,7 @@ const columns = [
     cell: ({ row }) =>
       h(PermissionTableItem, {
         permission: row.original,
+        onEdit: (permission) => openEditDialog(permission),
       }),
     size: 300,
     enableHiding: false,
@@ -365,21 +409,19 @@ const RowActions = defineComponent({
                           {
                             default: () =>
                               h(
-                                resolveComponent("NuxtLink"),
+                                "button",
                                 {
-                                  to: `/permissions/${props.permission.id}/edit`,
                                   class:
-                                    "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                    "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5 w-full",
+                                  onClick: () => openEditDialog(props.permission),
                                 },
-                                {
-                                  default: () => [
-                                    h(resolveComponent("Icon"), {
-                                      name: "lucide:pencil-line",
-                                      class: "size-4 shrink-0",
-                                    }),
-                                    h("span", {}, "Edit"),
-                                  ],
-                                }
+                                [
+                                  h(resolveComponent("Icon"), {
+                                    name: "lucide:pencil-line",
+                                    class: "size-4 shrink-0",
+                                  }),
+                                  h("span", {}, "Edit"),
+                                ]
                               ),
                           }
                         ),

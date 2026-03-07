@@ -333,6 +333,10 @@
       >
         <Spinner v-if="loading" />
         {{ loading ? submitLoadingText : submitText }}
+        <KbdGroup class="ml-1">
+          <Kbd>{{ metaSymbol }}</Kbd>
+          <Kbd>S</Kbd>
+        </KbdGroup>
       </button>
     </div>
   </form>
@@ -352,6 +356,8 @@ import {
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "vue-sonner";
+
+const { metaSymbol } = useShortcuts();
 
 const FILE_STATUS = {
   PROCESSING: 3,

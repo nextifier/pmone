@@ -71,7 +71,7 @@ const truncateUrl = (url: string, maxLength = 35) => {
         <Icon name="hugeicons:link-02" class="text-muted-foreground size-4" />
         <div class="flex items-center gap-1.5">
           <p class="text-muted-foreground text-sm tracking-tight">No links yet</p>
-          <NuxtLink to="/links/create" class="text-primary text-xs font-medium tracking-tight hover:underline">
+          <NuxtLink to="/links" class="text-primary text-xs font-medium tracking-tight hover:underline">
             Create one
           </NuxtLink>
         </div>

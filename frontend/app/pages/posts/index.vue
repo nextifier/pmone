@@ -109,12 +109,22 @@
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
       :initial-column-visibility="{ status: false, media_count: false }"
-      :show-add-button="canCreate"
+      :show-add-button="false"
       @update:pagination="onPaginationUpdate"
       @update:sorting="onSortingUpdate"
       @update:column-filters="onColumnFiltersUpdate"
       @refresh="refresh"
     >
+      <template #add-button>
+        <Button v-if="canCreate" size="sm" @click="navigateTo('/posts/create')">
+          <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
+          Add Post
+          <KbdGroup class="ml-1">
+            <Kbd>C</Kbd>
+          </KbdGroup>
+        </Button>
+      </template>
+
       <template #filters="{ table }">
         <Popover>
           <PopoverTrigger asChild>
@@ -966,7 +976,7 @@ onActivated(() => { isPageActive.value = true; });
 onDeactivated(() => { isPageActive.value = false; });
 
 defineShortcuts({
-  n: {
+  c: {
     handler: () => {
       if (canCreate.value) {
         navigateTo("/posts/create");

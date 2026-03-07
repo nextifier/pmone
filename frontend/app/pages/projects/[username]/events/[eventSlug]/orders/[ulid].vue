@@ -81,9 +81,9 @@
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="not_invoiced">Belum ditagihkan</SelectItem>
-                <SelectItem value="invoiced">Sudah ditagihkan</SelectItem>
-                <SelectItem value="paid">Sudah dibayar</SelectItem>
+                <SelectItem value="not_invoiced">Not Invoiced</SelectItem>
+                <SelectItem value="invoiced">Unpaid</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
               </SelectContent>
             </Select>
           </div>

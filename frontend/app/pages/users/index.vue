@@ -72,12 +72,22 @@
         email_verified_at: false,
         status: false,
       }"
-      :show-add-button="canCreate"
+      :show-add-button="false"
       @update:pagination="onPaginationUpdate"
       @update:sorting="onSortingUpdate"
       @update:column-filters="onColumnFiltersUpdate"
       @refresh="refresh"
     >
+      <template #add-button>
+        <Button v-if="canCreate" size="sm" @click="navigateTo('/users/create')">
+          <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
+          Add User
+          <KbdGroup class="ml-1">
+            <Kbd>C</Kbd>
+          </KbdGroup>
+        </Button>
+      </template>
+
       <template #filters="{ table }">
         <Popover>
           <PopoverTrigger asChild>
@@ -527,4 +537,14 @@ const columns = [
     enableHiding: false,
   },
 ];
+
+defineShortcuts({
+  c: {
+    handler: () => {
+      if (canCreate.value) {
+        navigateTo("/users/create");
+      }
+    },
+  },
+});
 </script>

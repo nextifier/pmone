@@ -16,12 +16,9 @@
         <!-- Back Button -->
 
         <BackButton v-slot="{ goBack }" destination="/posts" :force-destination="true">
-          <button
-            @click="goBack"
-            class="text-primary hover:bg-muted flex size-8 items-center justify-center rounded-lg"
-          >
+          <Button variant="ghost" size="icon" @click="goBack">
             <Icon name="lucide:arrow-left" class="size-5 shrink-0" />
-          </button>
+          </Button>
         </BackButton>
 
         <!-- Autosave Status -->
@@ -51,54 +48,64 @@
         <!-- Action Buttons -->
         <div class="flex items-center gap-x-2">
           <!-- Save to Draft (Create mode only) -->
-          <button
+          <Button
             v-if="editor.mode.value === 'create'"
-            type="button"
-            @click="editor.saveDraft"
+            variant="outline"
+            size="sm"
             :disabled="editor.loading.value || !editor.form.title"
-            class="border-border hover:bg-muted flex items-center justify-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
+            @click="editor.saveDraft"
           >
             <Icon name="hugeicons:file-edit" class="size-4 shrink-0" />
             Save Draft
-          </button>
+            <KbdGroup class="ml-1">
+              <Kbd>{{ metaSymbol }}</Kbd>
+              <Kbd>S</Kbd>
+            </KbdGroup>
+          </Button>
 
           <!-- Publish Button -->
-          <button
+          <Button
             v-if="editor.canPublish.value"
-            type="button"
-            @click="showPublishDialog = true"
+            size="sm"
             :disabled="editor.loading.value"
-            class="bg-primary hover:bg-primary/80 text-primary-foreground flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
+            @click="showPublishDialog = true"
           >
             <Spinner v-if="editor.loading.value" class="size-4 shrink-0" />
             <Icon v-else name="hugeicons:sent" class="size-4 shrink-0" />
             Publish
-          </button>
+            <KbdGroup class="ml-1">
+              <Kbd>{{ metaSymbol }}</Kbd>
+              <Kbd>S</Kbd>
+            </KbdGroup>
+          </Button>
 
           <!-- Unpublish Button (Edit mode, status=published) -->
-          <button
+          <Button
             v-if="editor.canUnpublish.value"
-            type="button"
-            @click="editor.unpublish"
+            variant="outline"
+            size="sm"
             :disabled="editor.loading.value"
-            class="border-border hover:bg-muted flex items-center justify-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
+            @click="editor.unpublish"
           >
             <Icon name="hugeicons:archive-02" class="size-4 shrink-0" />
             Unpublish
-          </button>
+          </Button>
 
           <!-- Update Button (Edit mode) -->
-          <button
+          <Button
             v-if="editor.canUpdate.value"
-            type="button"
-            @click="editor.handleSubmit"
+            size="sm"
             :disabled="editor.loading.value"
-            class="bg-primary hover:bg-primary/80 text-primary-foreground flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
+            @click="editor.handleSubmit"
           >
             <Spinner v-if="editor.loading.value" class="size-4 shrink-0" />
             <Icon v-else name="hugeicons:checkmark-circle-01" class="size-4 shrink-0" />
             Update
-          </button>
+            <KbdGroup class="ml-1">
+              <Kbd>{{ metaSymbol }}</Kbd>
+              <Kbd>S</Kbd>
+            </KbdGroup>
+          </Button>
         </div>
 
         <!-- Utilities -->
@@ -114,19 +121,20 @@
           </Tippy>
 
           <Tippy>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               data-sidebar="trigger"
               data-slot="sidebar-trigger"
-              class="text-primary hover:bg-muted flex size-8 items-center justify-center rounded-lg"
               @click="toggleSidebar"
             >
               <Icon
                 v-if="sidebarOpen && !isMobile"
                 name="hugeicons:sidebar-right-01"
-                class="text-primary size-5"
+                class="size-5"
               />
-              <Icon v-else name="hugeicons:sidebar-right" class="text-primary size-5" />
-            </button>
+              <Icon v-else name="hugeicons:sidebar-right" class="size-5" />
+            </Button>
             <template #content>
               <span class="inline-flex items-center gap-x-1.5 tracking-tight">
                 <span>Toggle Sidebar</span>

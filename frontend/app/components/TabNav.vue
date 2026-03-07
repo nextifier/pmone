@@ -1,6 +1,6 @@
 <template>
   <nav
-    class="no-scrollbar bg-background/95 supports-backdrop-filter:bg-background/90 scroll-fade-x relative sticky top-(--navbar-height-mobile) z-10 -mx-4 flex gap-x-5 overflow-x-auto px-4 backdrop-blur-sm sm:mx-0 sm:px-0 lg:top-(--navbar-height-desktop)"
+    class="no-scrollbar bg-background scroll-fade-x relative sticky top-(--navbar-height-mobile) z-10 -mx-4 flex gap-x-5 overflow-x-auto px-4 sm:mx-0 sm:px-0 lg:top-(--navbar-height-desktop)"
   >
     <NuxtLink
       v-for="(tab, index) in tabs"

@@ -70,73 +70,72 @@
           <p v-if="errors.brand_name" class="text-destructive text-xs">{{ errors.brand_name }}</p>
         </div>
 
-        <!-- Booth Number(s) -->
-        <div class="space-y-2">
-          <Label>Booth Number(s)</Label>
-          <Input v-model="form.booth_number" placeholder="e.g. A01, A02, A03" />
-          <p class="text-muted-foreground text-xs">
-            Comma-separated booth numbers. Each booth number creates a separate brand-event record.
-          </p>
-        </div>
+        <BrandBoothFields
+          :form="form"
+          booth-number-label="Booth Number(s)"
+          booth-number-placeholder="Ex: A-01, A-02, A-03"
+        />
 
+        <!-- Badge Name & Fascia Name -->
         <div class="grid grid-cols-2 gap-x-2 gap-y-4">
-          <div class="space-y-2">
-            <Label>Booth Size (m²)</Label>
-            <Input
-              v-model.number="form.booth_size"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="e.g. 36"
-            />
-          </div>
-          <div class="space-y-2">
-            <Label>Booth Price (Rp)</Label>
-            <Input
-              v-model.number="form.booth_price"
-              type="number"
-              min="0"
-              placeholder="e.g. 50000000"
-            />
-          </div>
-        </div>
-
-        <!-- Fascia Name & Badge Name -->
-        <div class="grid grid-cols-2 gap-x-2 gap-y-4">
-          <div class="space-y-2">
-            <Label>Fascia Name</Label>
-            <Input v-model="form.fascia_name" placeholder="Name on booth fascia" />
-            <p class="text-muted-foreground text-xs">Displayed on the booth signage.</p>
-          </div>
-          <div class="space-y-2">
+          <div class="space-y-2" :class="{ 'col-span-2': !showFasciaName }">
             <Label>Badge Name</Label>
             <Input v-model="form.badge_name" placeholder="Name on exhibitor badge" />
-            <p class="text-muted-foreground text-xs">Printed on exhibitor badges.</p>
+          </div>
+          <div v-if="showFasciaName" class="space-y-2">
+            <Label>Fascia Name</Label>
+            <Input v-model="form.fascia_name" placeholder="Name on booth fascia" />
           </div>
         </div>
 
         <div class="space-y-2">
           <Label>Sales</Label>
-          <Select v-model="form.sales_id">
-            <SelectTrigger class="w-full">
-              <template #default>
-                <div v-if="selectedSales" class="flex items-center gap-2">
-                  <Avatar :model="selectedSales" size="sm" class="size-5" />
-                  <span class="truncate">{{ selectedSales.name }}</span>
-                </div>
-                <span v-else class="text-muted-foreground">Select sales person</span>
-              </template>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem :value="null">None</SelectItem>
-              <SelectItem v-for="user in members" :key="user.id" :value="user.id">
-                <div class="flex items-center gap-2">
-                  <Avatar :model="user" size="sm" class="size-5" />
-                  <span>{{ user.name }}</span>
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <Combobox v-model="form.sales_id" :ignore-filter="true" :open-on-focus="true">
+            <ComboboxAnchor as-child class="w-full">
+              <div
+                class="border-border relative flex h-9 w-full items-center rounded-md border shadow-xs"
+              >
+                <ComboboxInputPrimitive
+                  v-model="salesSearch"
+                  :display-value="() => selectedSales?.name || ''"
+                  placeholder="Select sales person"
+                  class="placeholder:text-muted-foreground h-full w-full rounded-md bg-transparent px-3 text-sm tracking-tight outline-none"
+                  autocomplete="off"
+                />
+                <button
+                  v-if="form.sales_id"
+                  type="button"
+                  class="text-muted-foreground hover:text-foreground absolute right-2 shrink-0"
+                  @click="
+                    form.sales_id = null;
+                    salesSearch = '';
+                  "
+                >
+                  <Icon name="lucide:x" class="size-3.5" />
+                </button>
+              </div>
+            </ComboboxAnchor>
+            <ComboboxList class="w-[var(--reka-combobox-trigger-width)]">
+              <ComboboxViewport>
+                <ComboboxEmpty>No results found.</ComboboxEmpty>
+                <ComboboxItem :value="null">
+                  <div class="flex items-center gap-2">
+                    <Icon name="hugeicons:border-none-02" class="size-5" />
+                    <span>None</span>
+                  </div>
+                </ComboboxItem>
+                <ComboboxItem v-for="user in filteredMembers" :key="user.id" :value="user.id">
+                  <div class="flex items-center gap-2">
+                    <Avatar :model="user" size="sm" class="squircle size-5" rounded="rounded-sm" />
+                    <span class="tracking-tight">{{ user.name }}</span>
+                  </div>
+                  <ComboboxItemIndicator>
+                    <Icon name="lucide:check" class="ml-auto size-4" />
+                  </ComboboxItemIndicator>
+                </ComboboxItem>
+              </ComboboxViewport>
+            </ComboboxList>
+          </Combobox>
         </div>
 
         <div class="space-y-2">
@@ -159,16 +158,19 @@
                 <Icon name="hugeicons:delete-02" class="size-4" />
               </Button>
             </div>
+          </div>
+
+          <div class="flex items-center justify-between gap-x-2">
+            <div class="flex items-center gap-x-2">
+              <Checkbox id="send_login" v-model="form.send_login_email" />
+              <Label for="send_login" class="text-sm font-normal">Send login email to PIC(s)</Label>
+            </div>
+
             <Button variant="outline" size="sm" type="button" @click="form.emails.push('')">
               <Icon name="hugeicons:add-01" class="mr-1 size-4" />
               Add Email
             </Button>
           </div>
-        </div>
-
-        <div class="flex items-center gap-x-2">
-          <Checkbox id="send_login" v-model="form.send_login_email" />
-          <Label for="send_login" class="text-sm font-normal">Send login email to PIC(s)</Label>
         </div>
 
         <div class="flex justify-end gap-2">
@@ -193,6 +195,7 @@ import {
   AutocompletePortal,
   AutocompleteRoot,
   AutocompleteViewport,
+  ComboboxInput as ComboboxInputPrimitive,
 } from "reka-ui";
 import { toast } from "vue-sonner";
 
@@ -212,6 +215,7 @@ const form = reactive({
   booth_number: "",
   booth_size: null,
   booth_price: null,
+  booth_type: "",
   fascia_name: "",
   badge_name: "",
   sales_id: null,
@@ -234,7 +238,17 @@ const brandResults = computed(() => {
   );
 });
 
+const salesSearch = ref("");
 const selectedSales = computed(() => props.members.find((u) => u.id === form.sales_id) || null);
+const filteredMembers = computed(() => {
+  const term = salesSearch.value.trim().toLowerCase();
+  if (!term) return props.members;
+  return props.members.filter((u) => u.name.toLowerCase().includes(term));
+});
+
+const showFasciaName = computed(() =>
+  ["standard_shell_scheme", "enhanced_shell_scheme"].includes(form.booth_type)
+);
 
 async function fetchBrands() {
   if (brandsLoaded.value) return;
@@ -262,9 +276,11 @@ watch(isOpen, (val) => {
     form.booth_number = "";
     form.booth_size = null;
     form.booth_price = null;
+    form.booth_type = "";
     form.fascia_name = "";
     form.badge_name = "";
     form.sales_id = null;
+    salesSearch.value = "";
     form.emails = [""];
     form.send_login_email = false;
     errors.value = {};
@@ -290,6 +306,7 @@ async function submit() {
         booth_number: form.booth_number || null,
         booth_size: form.booth_size || null,
         booth_price: form.booth_price || null,
+        booth_type: form.booth_type || null,
         fascia_name: form.fascia_name || null,
         badge_name: form.badge_name || null,
         sales_id: form.sales_id || null,

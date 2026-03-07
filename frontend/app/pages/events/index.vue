@@ -8,14 +8,13 @@
       </div>
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <nuxt-link
-          v-if="canCreate"
-          to="/events/create"
-          class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98"
-        >
+        <Button v-if="canCreate" size="sm" @click="navigateTo('/events/create')">
           <Icon name="hugeicons:add-01" class="size-4 shrink-0" />
-          <span>Create Event</span>
-        </nuxt-link>
+          Create Event
+          <KbdGroup class="ml-1">
+            <Kbd>C</Kbd>
+          </KbdGroup>
+        </Button>
       </div>
     </div>
 
@@ -235,21 +234,25 @@ const columns = [
       return h("div", { class: "flex items-center gap-x-3" }, [
         // Poster image
         h(
-          "div",
+          resolveComponent("NuxtLink"),
           {
+            to: link,
             class:
               "bg-muted border-border aspect-4/5 w-12 shrink-0 overflow-hidden rounded-md border",
           },
-          event.poster_image?.sm
-            ? [
-                h("img", {
-                  src: event.poster_image.sm,
-                  alt: event.title,
-                  class: "size-full object-cover select-none",
-                  loading: "lazy",
-                }),
-              ]
-            : []
+          {
+            default: () =>
+              event.poster_image?.sm
+                ? [
+                    h("img", {
+                      src: event.poster_image.sm,
+                      alt: event.title,
+                      class: "size-full object-cover select-none",
+                      loading: "lazy",
+                    }),
+                  ]
+                : [],
+          }
         ),
         // Info
         h("div", { class: "flex flex-col items-start gap-y-0.5 overflow-hidden" }, [
@@ -522,7 +525,7 @@ onActivated(() => { isPageActive.value = true; });
 onDeactivated(() => { isPageActive.value = false; });
 
 defineShortcuts({
-  n: {
+  c: {
     handler: () => {
       if (canCreate.value) {
         navigateTo("/events/create");

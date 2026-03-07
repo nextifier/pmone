@@ -50,15 +50,14 @@
 
       <!-- Submit Button -->
       <div class="flex justify-end">
-        <button
-          type="submit"
-          :disabled="isSubmitting"
-          class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center justify-center gap-x-1.5 rounded-lg px-4 py-3 text-sm font-medium tracking-tight transition active:scale-98"
-        >
-          <span>{{ isSubmitting ? $t('settings.updatingPassword') : $t('settings.updatePassword') }}</span>
-
-          <LoadingSpinner v-if="isSubmitting" class="border-primary-foreground size-4" />
-        </button>
+        <Button type="submit" :disabled="isSubmitting">
+          <Spinner v-if="isSubmitting" />
+          {{ isSubmitting ? $t('settings.updatingPassword') : $t('settings.updatePassword') }}
+          <KbdGroup class="ml-1">
+            <Kbd>{{ metaSymbol }}</Kbd>
+            <Kbd>S</Kbd>
+          </KbdGroup>
+        </Button>
       </div>
 
       <div
@@ -83,6 +82,7 @@ definePageMeta({
 const { t } = useI18n();
 
 const sanctumFetch = useSanctumClient();
+const { metaSymbol } = useShortcuts();
 
 // Form state
 const form = reactive({
@@ -166,4 +166,11 @@ const handleSubmit = async () => {
     isSubmitting.value = false;
   }
 };
+
+defineShortcuts({
+  meta_s: {
+    usingInput: true,
+    handler: () => handleSubmit(),
+  },
+});
 </script>

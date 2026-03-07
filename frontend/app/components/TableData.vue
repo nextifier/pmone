@@ -106,6 +106,7 @@
             hasActiveFilters ||
             (showRefreshButton && !displayOnly) ||
             (showAddButton && !displayOnly) ||
+            $slots['add-button'] ||
             $slots.actions
           "
           class="flex h-9 w-full items-center justify-between gap-x-1 sm:gap-x-2"
@@ -138,16 +139,18 @@
               <span class="hidden sm:flex">Refresh</span>
             </button>
 
-            <NuxtLink
-              v-if="showAddButton && !displayOnly"
-              :to="`/${props.model}/create`"
-              class="hover:bg-primary/80 text-primary-foreground bg-primary flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
-            >
-              <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
-              <span
-                >Add <span v-if="props.label">{{ props.label }}</span></span
+            <slot name="add-button">
+              <NuxtLink
+                v-if="showAddButton && !displayOnly"
+                :to="`/${props.model}/create`"
+                class="hover:bg-primary/80 text-primary-foreground bg-primary flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
               >
-            </NuxtLink>
+                <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
+                <span
+                  >Add <span v-if="props.label">{{ props.label }}</span></span
+                >
+              </NuxtLink>
+            </slot>
           </div>
         </div>
       </div>

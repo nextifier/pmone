@@ -7,10 +7,14 @@
       <h3 class="page-title">Events</h3>
       <NuxtLink
         :to="`/projects/${route.params.username}/events/create`"
+        data-variant="default"
         class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-3.5 py-2 text-sm font-medium tracking-tight transition active:scale-98"
       >
         <Icon name="hugeicons:add-01" class="size-4" />
         <span>Create Event</span>
+        <KbdGroup class="ml-1">
+          <Kbd>C</Kbd>
+        </KbdGroup>
       </NuxtLink>
     </div>
 
@@ -269,7 +273,16 @@ const props = defineProps({
 });
 
 const route = useRoute();
+const router = useRouter();
 const client = useSanctumClient();
+
+defineShortcuts({
+  c: {
+    handler: () => {
+      router.push(`/projects/${route.params.username}/events/create`);
+    },
+  },
+});
 const { $dayjs } = useNuxtApp();
 const settingActiveId = ref(null);
 

@@ -235,6 +235,10 @@
       <Button type="submit" :disabled="loading || !isFormValid">
         <Spinner v-if="loading" class="mr-2 size-4" />
         <span>{{ task ? "Update Task" : "Create Task" }}</span>
+        <KbdGroup class="ml-1">
+          <Kbd>{{ metaSymbol }}</Kbd>
+          <Kbd>S</Kbd>
+        </KbdGroup>
       </Button>
     </div>
   </form>
@@ -272,6 +276,7 @@ const props = defineProps({
 
 const emit = defineEmits(["submit", "cancel"]);
 
+const { metaSymbol } = useShortcuts();
 const { user: currentUser } = useSanctumAuth();
 
 // Form data

@@ -1,132 +1,106 @@
 <template>
-  <div class="space-y-10">
-    <form @submit.prevent="handleSubmit" class="space-y-6">
-      <div class="space-y-2">
-        <label for="name" class="text-sm font-medium">Permission Name</label>
-        <input
-          id="name"
-          v-model="formData.name"
-          type="text"
-          required
-          placeholder="posts.publish"
-          class="border-border bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm tracking-tight focus:ring-2 focus:outline-none"
-          :class="{ 'border-destructive': errors.name }"
-        />
-        <p v-if="errors.name" class="text-destructive text-xs">{{ errors.name[0] }}</p>
-        <p class="text-muted-foreground text-xs">
-          Use dot notation (e.g., "resource.action"). Will be automatically converted to slug format.
+  <DialogResponsive v-model:open="isOpen" dialog-max-width="24rem">
+    <div class="px-4 pb-10 md:px-6 md:py-5">
+      <div class="space-y-1">
+        <h3 class="page-title">{{ mode === "create" ? "Create Permission" : "Edit Permission" }}</h3>
+        <p class="page-description">
+          {{ mode === "create" ? "Add a new permission to the system." : "Update the permission name." }}
         </p>
       </div>
 
-      <div class="flex gap-2">
-        <button
-          type="submit"
-          :disabled="loading"
-          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-2 rounded-md px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Spinner v-if="loading" class="size-4" />
-          <span>{{ loading ? loadingText : submitText }}</span>
-        </button>
-        <nuxt-link
-          to="/permissions"
-          class="border-border hover:bg-muted rounded-md border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-        >
-          Cancel
-        </nuxt-link>
-      </div>
-    </form>
-  </div>
+      <form @submit.prevent="handleSubmit" class="mt-4 space-y-4">
+        <div class="space-y-2">
+          <Label for="permission_name">Permission Name</Label>
+          <Input
+            id="permission_name"
+            v-model="formData.name"
+            placeholder="posts.publish"
+            required
+            auto-focus
+          />
+          <p v-if="errors.name" class="text-destructive text-xs">{{ errors.name[0] }}</p>
+          <p class="text-muted-foreground text-xs tracking-tight">
+            Use dot notation (e.g., "resource.action").
+          </p>
+        </div>
+
+        <div class="flex justify-end gap-2">
+          <Button variant="outline" type="button" @click="isOpen = false">Cancel</Button>
+          <Button type="submit" :disabled="loading">
+            <Spinner v-if="loading" />
+            {{ mode === "create" ? "Create" : "Save" }}
+            <KbdGroup class="ml-1">
+              <Kbd>{{ metaSymbol }}</Kbd>
+              <Kbd>S</Kbd>
+            </KbdGroup>
+          </Button>
+        </div>
+      </form>
+    </div>
+  </DialogResponsive>
 </template>
 
 <script setup>
+import DialogResponsive from "@/components/DialogResponsive.vue";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
-  mode: {
-    type: String,
-    required: true,
-    validator: (value) => ["create", "edit"].includes(value),
-  },
-  permission: {
-    type: Object,
-    default: null,
-  },
-  loading: {
-    type: Boolean,
-    default: false,
-  },
+  permission: { type: Object, default: null },
 });
 
-const emit = defineEmits(["submit", "update:loading"]);
+const emit = defineEmits(["success"]);
+const isOpen = defineModel("open", { type: Boolean, default: false });
 
 const sanctumFetch = useSanctumClient();
+const { metaSymbol } = useShortcuts();
 
-// Form state
-const formData = ref({
-  name: "",
+const mode = computed(() => (props.permission ? "edit" : "create"));
+const formData = ref({ name: "" });
+const errors = ref({});
+const loading = ref(false);
+
+watch(isOpen, (val) => {
+  if (val) {
+    formData.value.name = props.permission?.name || "";
+    errors.value = {};
+  }
 });
 
-const errors = ref({});
-const internalLoading = ref(false);
-
-// Computed texts based on mode
-const submitText = computed(() => (props.mode === "create" ? "Create Permission" : "Save Changes"));
-const loadingText = computed(() => (props.mode === "create" ? "Creating..." : "Saving..."));
-const loading = computed(() => props.loading || internalLoading.value);
-
-// Populate form when editing
-watch(
-  () => props.permission,
-  (newPermission) => {
-    if (newPermission && props.mode === "edit") {
-      formData.value = {
-        name: newPermission.name,
-      };
-    }
-  },
-  { immediate: true }
-);
-
-// Handle submit
 async function handleSubmit() {
-  internalLoading.value = true;
+  loading.value = true;
   errors.value = {};
 
   try {
-    const endpoint = props.mode === "create" ? "/api/permissions" : `/api/permissions/${props.permission.id}`;
+    const endpoint =
+      mode.value === "create" ? "/api/permissions" : `/api/permissions/${props.permission.id}`;
+    const method = mode.value === "create" ? "POST" : "PUT";
 
-    const method = props.mode === "create" ? "POST" : "PUT";
+    await sanctumFetch(endpoint, { method, body: formData.value });
 
-    const response = await sanctumFetch(endpoint, {
-      method,
-      body: formData.value,
-    });
-
-    if (response.data) {
-      const successMessage =
-        props.mode === "create" ? "Permission created successfully!" : "Permission updated successfully!";
-      toast.success(successMessage);
-      navigateTo("/permissions");
-    }
+    toast.success(
+      mode.value === "create" ? "Permission created successfully!" : "Permission updated successfully!"
+    );
+    isOpen.value = false;
+    emit("success");
   } catch (err) {
     if (err.response?.status === 422 && err.response?._data?.errors) {
       errors.value = err.response._data.errors;
       const firstErrorField = Object.keys(err.response._data.errors)[0];
-      const firstErrorMessage = err.response._data.errors[firstErrorField][0];
-      toast.error(firstErrorMessage || "Please fix the validation errors.");
+      toast.error(err.response._data.errors[firstErrorField][0]);
     } else {
-      const errorMessage =
-        err.response?._data?.message || err.message || `Failed to ${props.mode} permission`;
-      toast.error(errorMessage);
+      toast.error(err.response?._data?.message || err.message || `Failed to ${mode.value} permission`);
     }
-    console.error(`Error ${props.mode}ing permission:`, err);
   } finally {
-    internalLoading.value = false;
+    loading.value = false;
   }
 }
 
-// Expose submit handler for keyboard shortcuts
-defineExpose({
-  handleSubmit,
+defineShortcuts({
+  meta_s: {
+    usingInput: true,
+    handler: () => {
+      if (isOpen.value) handleSubmit();
+    },
+  },
 });
 </script>

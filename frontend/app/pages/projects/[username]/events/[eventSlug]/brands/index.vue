@@ -40,6 +40,9 @@
         <Button @click="showAddDialog = true" size="sm">
           <Icon name="hugeicons:add-01" class="size-4" />
           Add Brand
+          <KbdGroup class="ml-1">
+            <Kbd>C</Kbd>
+          </KbdGroup>
         </Button>
       </div>
 
@@ -191,6 +194,14 @@ const { $dayjs } = useNuxtApp();
 
 const client = useSanctumClient();
 const showAddDialog = ref(false);
+
+defineShortcuts({
+  c: {
+    handler: () => {
+      showAddDialog.value = true;
+    },
+  },
+});
 
 const baseUrl = computed(
   () => `/projects/${route.params.username}/events/${route.params.eventSlug}/brands`

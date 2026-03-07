@@ -143,6 +143,10 @@
       <Button type="submit" :disabled="loading">
         <Spinner v-if="loading" class="size-4" />
         <span>{{ loading ? loadingText : submitText }}</span>
+        <KbdGroup class="ml-1">
+          <Kbd>{{ metaSymbol }}</Kbd>
+          <Kbd>S</Kbd>
+        </KbdGroup>
       </Button>
       <Button type="button" variant="outline" as-child>
         <nuxt-link to="/ga-properties">Cancel</nuxt-link>
@@ -186,6 +190,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["submit", "update:loading"]);
+
+const { metaSymbol } = useShortcuts();
 
 const sanctumFetch = useSanctumClient();
 const { $dayjs } = useNuxtApp();

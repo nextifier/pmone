@@ -72,11 +72,9 @@ const brandBase = computed(
     `/projects/${route.params.username}/events/${route.params.eventSlug}/brands/${route.params.brandSlug}`
 );
 const brandTabs = computed(() => [
-  { label: "Profile", to: brandBase.value, exact: true },
-  { label: "Booth", to: `${brandBase.value}/booth` },
-  { label: "Marketing", to: `${brandBase.value}/marketing` },
-  { label: "Orders", to: `${brandBase.value}/orders` },
-  { label: "Members", to: `${brandBase.value}/members` },
+  { label: "Details", to: brandBase.value, exact: true, icon: "hugeicons:file-edit" },
+  { label: "Promotion Posts", to: `${brandBase.value}/marketing`, icon: "hugeicons:megaphone-02" },
+  { label: "Orders", to: `${brandBase.value}/orders`, icon: "hugeicons:shopping-bag-02" },
 ]);
 
 onMounted(() => refresh());

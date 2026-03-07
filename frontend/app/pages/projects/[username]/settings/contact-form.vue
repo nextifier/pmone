@@ -1,21 +1,19 @@
 <template>
   <div class="flex flex-col gap-y-5">
-    <div class="flex w-full items-center justify-between">
+    <div class="flex w-full items-start justify-between">
       <div class="space-y-1">
-        <h2 class="text-lg font-semibold tracking-tight">Contact Form</h2>
-        <p class="text-muted-foreground text-sm tracking-tight">
-          Configure email settings for contact form submissions.
-        </p>
+        <h2 class="page-title">Contact Form</h2>
+        <p class="page-description">Configure email settings for contact form submissions.</p>
       </div>
 
-      <button
-        @click="handleSave"
-        :disabled="loading"
-        class="text-primary-foreground hover:bg-primary/80 bg-primary flex items-center justify-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
-      >
+      <Button size="sm" :disabled="loading" @click="handleSave">
         <Spinner v-if="loading" />
-        <span>Save</span>
-      </button>
+        Save
+        <KbdGroup class="ml-1">
+          <Kbd>{{ metaSymbol }}</Kbd>
+          <Kbd>S</Kbd>
+        </KbdGroup>
+      </Button>
     </div>
 
     <template v-if="settingsLoading">
@@ -200,15 +198,16 @@ const props = defineProps({
 
 const route = useRoute();
 const client = useSanctumClient();
+const { metaSymbol } = useShortcuts();
 
 const loading = ref(false);
 
-const {
-  data: projectResponse,
-  pending: settingsLoading,
-} = await useLazySanctumFetch(() => `/api/projects/${route.params.username}`, {
-  key: `project-settings-contact-form-${route.params.username}`,
-});
+const { data: projectResponse, pending: settingsLoading } = await useLazySanctumFetch(
+  () => `/api/projects/${route.params.username}`,
+  {
+    key: `project-settings-contact-form-${route.params.username}`,
+  }
+);
 
 const settingsProject = computed(() => projectResponse.value?.data || null);
 
@@ -235,9 +234,13 @@ function populateForm(data) {
   form.email_config.reply_to = cf.email_config?.reply_to || "";
 }
 
-watch(settingsProject, (val) => {
-  if (val) populateForm(val);
-}, { immediate: true });
+watch(
+  settingsProject,
+  (val) => {
+    if (val) populateForm(val);
+  },
+  { immediate: true }
+);
 
 async function handleSave() {
   loading.value = true;

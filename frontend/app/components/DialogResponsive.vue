@@ -228,6 +228,32 @@ watch(isOpen, (newValue, oldValue) => {
   }
 });
 
+// Back button/gesture closes drawer instead of navigating away
+const pushedHistoryState = ref(false);
+
+const onPopState = () => {
+  pushedHistoryState.value = false;
+  isOpen.value = false;
+};
+
+watch(isOpen, (newVal, oldVal) => {
+  if (!isDesktop.value) {
+    if (newVal && !oldVal) {
+      window.history.pushState({ drawerOpen: true }, "");
+      pushedHistoryState.value = true;
+      window.addEventListener("popstate", onPopState, { once: true });
+    } else if (!newVal && oldVal && pushedHistoryState.value) {
+      pushedHistoryState.value = false;
+      window.removeEventListener("popstate", onPopState);
+      window.history.back();
+    }
+  }
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("popstate", onPopState);
+});
+
 const drawerContentBody = ref(null);
 const drawerContentBodyYPosition = ref(0);
 const drawerContentBodyIsAtTop = ref(true);

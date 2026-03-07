@@ -176,7 +176,7 @@
                 </Select>
               </div>
 
-              <Input v-model="link.url" type="url" placeholder="Enter URL" class="grow" />
+              <InputLink v-model="link.url" :label="link.label" class="grow" />
 
               <button
                 type="button"
@@ -269,14 +269,14 @@
     </div>
 
     <div class="flex justify-end">
-      <button
-        type="submit"
-        :disabled="loading"
-        class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-semibold tracking-tighter transition disabled:opacity-50"
-      >
+      <Button type="submit" size="sm" :disabled="loading">
         <Spinner v-if="loading" />
         {{ loading ? submitLoadingText : submitText }}
-      </button>
+        <KbdGroup class="ml-1">
+          <Kbd>{{ metaSymbol }}</Kbd>
+          <Kbd>S</Kbd>
+        </KbdGroup>
+      </Button>
     </div>
   </form>
 </template>
@@ -298,6 +298,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { DateFormatter, getLocalTimeZone } from "@internationalized/date";
 import { toast } from "vue-sonner";
+
+const { metaSymbol } = useShortcuts();
 
 // Constants
 const PREDEFINED_LABELS = [

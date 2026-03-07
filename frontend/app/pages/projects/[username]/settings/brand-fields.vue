@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-y-5">
-    <h2 class="text-lg font-semibold tracking-tight">Brand Field Settings</h2>
+    <h2 class="page-title">Brand Field Settings</h2>
 
     <ProjectCustomFieldsManager :project-username="route.params.username" />
     <ProjectBusinessCategoriesManager :project-username="route.params.username" />

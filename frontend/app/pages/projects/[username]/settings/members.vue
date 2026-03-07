@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-y-5">
-    <div class="flex items-center justify-between">
-      <h2 class="text-lg font-semibold tracking-tight">Members</h2>
+    <div class="flex items-start justify-between">
+      <h2 class="page-title">Members</h2>
       <span class="text-muted-foreground text-sm tracking-tight">
         {{ memberCount }} {{ memberCount === 1 ? "member" : "members" }}
       </span>
@@ -44,10 +44,7 @@
             :disabled="togglingIds.has(user.id)"
           />
 
-          <NuxtLink
-            :to="`/${user.username}`"
-            class="flex min-w-0 flex-1 items-center gap-x-3"
-          >
+          <NuxtLink :to="`/${user.username}`" class="flex min-w-0 flex-1 items-center gap-x-3">
             <Avatar :model="user" class="size-9 shrink-0" rounded="rounded-full" />
 
             <div class="flex min-w-0 flex-1 flex-col">

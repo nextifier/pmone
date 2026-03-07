@@ -33,12 +33,22 @@
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
-      :show-add-button="canCreate"
+      :show-add-button="false"
       @update:pagination="pagination = $event"
       @update:sorting="sorting = $event"
       @update:column-filters="columnFilters = $event"
       @refresh="refresh"
     >
+      <template #add-button>
+        <Button v-if="canCreate" size="sm" @click="navigateTo('/roles/create')">
+          <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
+          Add Role
+          <KbdGroup class="ml-1">
+            <Kbd>C</Kbd>
+          </KbdGroup>
+        </Button>
+      </template>
+
       <template #actions="{ selectedRows }">
         <DialogResponsive
           v-if="canDelete && selectedRows.length > 0"
@@ -472,6 +482,16 @@ const RowActions = defineComponent({
           }
         ),
       ]);
+  },
+});
+
+defineShortcuts({
+  c: {
+    handler: () => {
+      if (canCreate.value) {
+        navigateTo("/roles/create");
+      }
+    },
   },
 });
 </script>

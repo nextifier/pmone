@@ -8,14 +8,14 @@
             <h1 class="page-title">{{ $t('settings.editProfile') }}</h1>
           </div>
 
-          <button
-            @click="formUserRef?.handleSubmit()"
-            :disabled="isSubmitting"
-            class="text-primary-foreground hover:bg-primary/80 bg-primary flex items-center justify-center gap-x-1 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50"
-          >
+          <Button size="sm" :disabled="isSubmitting" @click="formUserRef?.handleSubmit()">
             <Spinner v-if="isSubmitting" />
-            <span>{{ $t('common.save') }}</span>
-          </button>
+            {{ $t('common.save') }}
+            <KbdGroup class="ml-1">
+              <Kbd>{{ metaSymbol }}</Kbd>
+              <Kbd>S</Kbd>
+            </KbdGroup>
+          </Button>
         </div>
       </div>
 
@@ -55,6 +55,7 @@ usePageMeta(null, { title: t('settings.editProfile') });
 
 const sanctumFetch = useSanctumClient();
 const { user } = useSanctumAuth();
+const { metaSymbol } = useShortcuts();
 
 // Refs
 const formUserRef = ref(null);
@@ -86,7 +87,7 @@ const handleSubmit = async (payload) => {
 
     // Update local user data with response
     if (response.data) {
-      userData.value = response.data;
+      userDataResponse.value = response.data;
       if (user.value) {
         Object.assign(user.value, response.data);
       }
@@ -109,4 +110,13 @@ const handleSubmit = async (payload) => {
     isSubmitting.value = false;
   }
 };
+
+defineShortcuts({
+  meta_s: {
+    usingInput: true,
+    handler: () => {
+      formUserRef.value?.handleSubmit();
+    },
+  },
+});
 </script>

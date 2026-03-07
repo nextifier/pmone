@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Helpers\LinkNormalizer;
 use App\Models\ShortLink;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -13,6 +14,18 @@ class StoreUserRequest extends FormRequest
     public function authorize(): bool
     {
         return $this->user()->can('users.create');
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('links') && is_array($this->links)) {
+            $this->merge([
+                'links' => LinkNormalizer::normalizeAll($this->links),
+            ]);
+        }
     }
 
     /**

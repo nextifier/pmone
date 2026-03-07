@@ -109,6 +109,12 @@ class ProjectController extends Controller
     {
         $this->authorize('create', Project::class);
 
+        if ($request->has('links') && is_array($request->links)) {
+            $request->merge([
+                'links' => \App\Helpers\LinkNormalizer::normalizeAll($request->links),
+            ]);
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'username' => [
@@ -199,6 +205,12 @@ class ProjectController extends Controller
         $project = Project::where('username', $username)->firstOrFail();
 
         $this->authorize('update', $project);
+
+        if ($request->has('links') && is_array($request->links)) {
+            $request->merge([
+                'links' => \App\Helpers\LinkNormalizer::normalizeAll($request->links),
+            ]);
+        }
 
         $validated = $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],

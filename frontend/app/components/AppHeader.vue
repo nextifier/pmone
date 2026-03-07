@@ -1,11 +1,11 @@
 <template>
   <header
-    class="border-border/50 bg-background/95 supports-backdrop-filter:bg-background/90 sticky inset-x-0 top-0 z-50 h-(--navbar-height-mobile) gap-x-1.5 border-b text-sm backdrop-blur-sm lg:h-(--navbar-height-desktop)"
+    class="border-border/50 bg-background sticky inset-x-0 top-0 z-50 h-(--navbar-height-mobile) gap-x-1.5 border-b text-sm lg:h-(--navbar-height-desktop)"
   >
     <div class="flex h-full items-center justify-center px-4">
       <template v-if="hideSidebar">
         <div class="-ml-2 flex grow items-center gap-x-1 overflow-hidden">
-          <BackButton :destination="backDestination" :force-destination="true">
+          <BackButton :destination="backDestination">
             <template #default="{ goBack }">
               <button
                 @click="goBack"
@@ -65,9 +65,21 @@
                   />
                   <NuxtLink
                     :to="`/projects/${route.params.username}/events/${route.params.eventSlug}/brands/${route.params.brandSlug}`"
-                    class="truncate overflow-visible text-sm font-semibold tracking-tight decoration-dotted decoration-2 underline-offset-4 hover:underline"
+                    class="flex items-center gap-x-1.5"
                   >
-                    {{ headerBrand.brand?.name }}
+                    <Avatar
+                      v-if="headerBrand.brand?.brand_logo"
+                      :model="{
+                        name: headerBrand.brand.name,
+                        profile_image: headerBrand.brand.brand_logo,
+                      }"
+                      class="size-7"
+                      rounded="rounded-sm"
+                    />
+                    <span
+                      class="truncate overflow-visible text-sm font-semibold tracking-tight decoration-dotted decoration-2 underline-offset-4 hover:underline"
+                      >{{ headerBrand.brand?.name }}</span
+                    >
                   </NuxtLink>
                 </template>
               </template>

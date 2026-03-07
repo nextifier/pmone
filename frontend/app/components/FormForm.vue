@@ -244,6 +244,10 @@
         >
           <Spinner v-if="loading" class="size-4" />
           <span>{{ loading ? loadingText : submitText }}</span>
+          <KbdGroup class="ml-1">
+            <Kbd>{{ metaSymbol }}</Kbd>
+            <Kbd>S</Kbd>
+          </KbdGroup>
         </button>
         <nuxt-link
           to="/forms"
@@ -292,6 +296,7 @@ const props = defineProps({
 
 const emit = defineEmits(["saved"]);
 const sanctumFetch = useSanctumClient();
+const { metaSymbol } = useShortcuts();
 const { signalRefresh } = useDataRefresh();
 
 const formData = ref({

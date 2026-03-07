@@ -1,17 +1,33 @@
 <template>
   <div class="flex flex-col gap-y-6">
-    <div class="flex items-center justify-between">
+    <div class="flex items-start justify-between gap-x-2">
       <div class="space-y-1">
-        <h4 class="font-semibold tracking-tight">Promotion Posts</h4>
-        <p class="text-muted-foreground text-sm tracking-tight">
-          Marketing materials for this brand.
-        </p>
+        <h3 class="page-title">Promotion Posts</h3>
+        <p class="page-description">Marketing materials for this brand.</p>
       </div>
-      <Button @click="showAdd = true" size="sm">
+      <Button @click="showAdd = true" size="sm" class="shrink-0">
         <Icon name="hugeicons:add-01" class="size-4" />
         Add Post
       </Button>
     </div>
+
+    <form @submit.prevent="saveLimit" class="flex items-end gap-2">
+      <div class="flex-1 space-y-2">
+        <Label for="promotion_post_limit">Post Limit</Label>
+        <Input
+          id="promotion_post_limit"
+          v-model.number="postLimit"
+          type="number"
+          min="1"
+          max="100"
+          placeholder="1"
+        />
+      </div>
+      <Button type="submit" :disabled="savingLimit" class="shrink-0">
+        <Icon v-if="savingLimit" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
+        Save
+      </Button>
+    </form>
 
     <div v-if="pending" class="flex items-center justify-center py-10">
       <Icon name="svg-spinners:ring-resize" class="text-muted-foreground size-6" />
@@ -31,7 +47,10 @@
           />
           <div v-else class="relative size-full">
             <img
-              :src="(post.post_images[carouselIdx[post.id] || 0])?.md || (post.post_images[carouselIdx[post.id] || 0])?.url"
+              :src="
+                post.post_images[carouselIdx[post.id] || 0]?.md ||
+                post.post_images[carouselIdx[post.id] || 0]?.url
+              "
               class="size-full object-cover"
             />
             <div class="absolute inset-x-0 bottom-0 flex items-center justify-between p-1.5">
@@ -97,7 +116,9 @@
 
         <div class="space-y-2">
           <h1 class="text-2xl font-semibold tracking-tight">Promotion Posts</h1>
-          <p class="text-muted-foreground max-w-md text-sm">No promotion posts yet. Add your first post to start marketing.</p>
+          <p class="text-muted-foreground max-w-md text-sm">
+            No promotion posts yet. Add your first post to start marketing.
+          </p>
         </div>
       </div>
     </div>
@@ -112,6 +133,29 @@ const emit = defineEmits(["refresh"]);
 const route = useRoute();
 const client = useSanctumClient();
 const showAdd = ref(false);
+const postLimit = ref(props.brandEvent?.promotion_post_limit || 1);
+const savingLimit = ref(false);
+
+const brandUrl = computed(
+  () =>
+    `/api/projects/${route.params.username}/events/${route.params.eventSlug}/brands/${route.params.brandSlug}`
+);
+
+async function saveLimit() {
+  savingLimit.value = true;
+  try {
+    await client(brandUrl.value, {
+      method: "PUT",
+      body: { promotion_post_limit: postLimit.value },
+    });
+    toast.success("Post limit updated");
+    emit("refresh");
+  } catch (e) {
+    toast.error(e?.data?.message || "Failed to update");
+  } finally {
+    savingLimit.value = false;
+  }
+}
 
 const apiUrl = computed(
   () =>
@@ -133,7 +177,11 @@ async function refresh() {
 onMounted(() => refresh());
 
 async function downloadPostImages(post) {
-  const images = post.post_images?.length ? post.post_images : post.post_image ? [post.post_image] : [];
+  const images = post.post_images?.length
+    ? post.post_images
+    : post.post_image
+      ? [post.post_image]
+      : [];
   if (!images.length) return;
 
   try {
