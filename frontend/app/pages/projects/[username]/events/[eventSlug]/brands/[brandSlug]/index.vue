@@ -8,7 +8,7 @@
       <Button :disabled="saving" size="sm" @click="handleSubmit" class="shrink-0">
         <Icon v-if="saving" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
         Save
-        <KbdGroup class="ml-1">
+        <KbdGroup>
           <Kbd>{{ metaSymbol }}</Kbd>
           <Kbd>S</Kbd>
         </KbdGroup>
@@ -238,7 +238,7 @@
         <Button type="submit" :disabled="saving" size="sm">
           <Icon v-if="saving" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
           Save
-          <KbdGroup class="ml-1">
+          <KbdGroup>
             <Kbd>{{ metaSymbol }}</Kbd>
             <Kbd>S</Kbd>
           </KbdGroup>

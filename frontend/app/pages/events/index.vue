@@ -11,7 +11,7 @@
         <Button v-if="canCreate" size="sm" @click="navigateTo('/events/create')">
           <Icon name="hugeicons:add-01" class="size-4 shrink-0" />
           Create Event
-          <KbdGroup class="ml-1">
+          <KbdGroup>
             <Kbd>C</Kbd>
           </KbdGroup>
         </Button>

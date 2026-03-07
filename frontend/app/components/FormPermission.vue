@@ -29,7 +29,7 @@
           <Button type="submit" :disabled="loading">
             <Spinner v-if="loading" />
             {{ mode === "create" ? "Create" : "Save" }}
-            <KbdGroup class="ml-1">
+            <KbdGroup>
               <Kbd>{{ metaSymbol }}</Kbd>
               <Kbd>S</Kbd>
             </KbdGroup>

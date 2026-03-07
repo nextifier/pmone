@@ -57,7 +57,7 @@
           >
             <Icon name="hugeicons:file-edit" class="size-4 shrink-0" />
             Save Draft
-            <KbdGroup class="ml-1">
+            <KbdGroup>
               <Kbd>{{ metaSymbol }}</Kbd>
               <Kbd>S</Kbd>
             </KbdGroup>
@@ -73,7 +73,7 @@
             <Spinner v-if="editor.loading.value" class="size-4 shrink-0" />
             <Icon v-else name="hugeicons:sent" class="size-4 shrink-0" />
             Publish
-            <KbdGroup class="ml-1">
+            <KbdGroup>
               <Kbd>{{ metaSymbol }}</Kbd>
               <Kbd>S</Kbd>
             </KbdGroup>
@@ -101,7 +101,7 @@
             <Spinner v-if="editor.loading.value" class="size-4 shrink-0" />
             <Icon v-else name="hugeicons:checkmark-circle-01" class="size-4 shrink-0" />
             Update
-            <KbdGroup class="ml-1">
+            <KbdGroup>
               <Kbd>{{ metaSymbol }}</Kbd>
               <Kbd>S</Kbd>
             </KbdGroup>

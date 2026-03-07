@@ -12,7 +12,7 @@
       >
         <Icon name="hugeicons:add-01" class="size-4" />
         <span>Create Event</span>
-        <KbdGroup class="ml-1">
+        <KbdGroup>
           <Kbd>C</Kbd>
         </KbdGroup>
       </NuxtLink>

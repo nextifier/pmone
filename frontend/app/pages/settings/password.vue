@@ -53,7 +53,7 @@
         <Button type="submit" :disabled="isSubmitting">
           <Spinner v-if="isSubmitting" />
           {{ isSubmitting ? $t('settings.updatingPassword') : $t('settings.updatePassword') }}
-          <KbdGroup class="ml-1">
+          <KbdGroup>
             <Kbd>{{ metaSymbol }}</Kbd>
             <Kbd>S</Kbd>
           </KbdGroup>

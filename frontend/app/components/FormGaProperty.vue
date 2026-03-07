@@ -143,7 +143,7 @@
       <Button type="submit" :disabled="loading">
         <Spinner v-if="loading" class="size-4" />
         <span>{{ loading ? loadingText : submitText }}</span>
-        <KbdGroup class="ml-1">
+        <KbdGroup>
           <Kbd>{{ metaSymbol }}</Kbd>
           <Kbd>S</Kbd>
         </KbdGroup>

@@ -9,7 +9,7 @@
       <Button size="sm" :disabled="loading" @click="handleSave">
         <Spinner v-if="loading" />
         Save
-        <KbdGroup class="ml-1">
+        <KbdGroup>
           <Kbd>{{ metaSymbol }}</Kbd>
           <Kbd>S</Kbd>
         </KbdGroup>

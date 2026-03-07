@@ -7,7 +7,7 @@
         <Button size="sm" :disabled="loading" @click="formProjectRef?.handleSubmit()">
           <Spinner v-if="loading" />
           Save
-          <KbdGroup class="ml-1">
+          <KbdGroup>
             <Kbd>{{ metaSymbol }}</Kbd>
             <Kbd>S</Kbd>
           </KbdGroup>

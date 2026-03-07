@@ -408,7 +408,7 @@
       <Button type="submit" :disabled="loading" size="sm">
         <Spinner v-if="loading" />
         {{ loading ? submitLoadingText : submitText }}
-        <KbdGroup class="ml-1">
+        <KbdGroup>
           <Kbd>{{ metaSymbol }}</Kbd>
           <Kbd>S</Kbd>
         </KbdGroup>

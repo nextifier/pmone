@@ -43,7 +43,7 @@
         <Button v-if="canCreate" size="sm" @click="navigateTo('/roles/create')">
           <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
           Add Role
-          <KbdGroup class="ml-1">
+          <KbdGroup>
             <Kbd>C</Kbd>
           </KbdGroup>
         </Button>

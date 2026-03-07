@@ -11,7 +11,7 @@
           <Button size="sm" :disabled="isSubmitting" @click="formUserRef?.handleSubmit()">
             <Spinner v-if="isSubmitting" />
             {{ $t('common.save') }}
-            <KbdGroup class="ml-1">
+            <KbdGroup>
               <Kbd>{{ metaSymbol }}</Kbd>
               <Kbd>S</Kbd>
             </KbdGroup>

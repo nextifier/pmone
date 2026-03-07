@@ -370,6 +370,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::prefix('short-links')->group(function () {
         Route::get('/', [ShortLinkController::class, 'index'])->name('short-links.index');
         Route::post('/', [ShortLinkController::class, 'store'])->name('short-links.store');
+        Route::get('/check-slug', [ShortLinkController::class, 'checkSlug'])->name('short-links.check-slug');
         Route::get('/export', [ShortLinkController::class, 'export'])->name('short-links.export');
         Route::post('/import', [ShortLinkController::class, 'import'])->name('short-links.import');
         Route::get('/import/template', [ShortLinkController::class, 'downloadTemplate'])->name('short-links.import.template');

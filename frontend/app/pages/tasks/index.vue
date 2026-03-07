@@ -25,7 +25,7 @@
         <Button v-if="canCreate" size="sm" @click="dialogs.openCreateDialog">
           <Icon name="hugeicons:plus-sign" class="size-4 shrink-0" />
           Add task
-          <KbdGroup class="ml-1">
+          <KbdGroup>
             <Kbd>C</Kbd>
           </KbdGroup>
         </Button>

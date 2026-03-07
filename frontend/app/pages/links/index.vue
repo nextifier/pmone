@@ -76,7 +76,7 @@
         <Button v-if="canCreate" size="sm" @click="openCreateDialog">
           <Icon name="hugeicons:add-01" class="size-4" />
           Add Link
-          <KbdGroup class="ml-1">
+          <KbdGroup>
             <Kbd>C</Kbd>
           </KbdGroup>
         </Button>

@@ -40,7 +40,7 @@
         <Button @click="showAddDialog = true" size="sm">
           <Icon name="hugeicons:add-01" class="size-4" />
           Add Brand
-          <KbdGroup class="ml-1">
+          <KbdGroup>
             <Kbd>C</Kbd>
           </KbdGroup>
         </Button>

@@ -115,6 +115,29 @@ class ShortLinkController extends Controller
         }
     }
 
+    public function checkSlug(Request $request): JsonResponse
+    {
+        $request->validate([
+            'slug' => ['required', 'string', 'max:255'],
+            'exclude_id' => ['nullable', 'integer', 'exists:short_links,id'],
+        ]);
+
+        $slug = $request->input('slug');
+        $excludeId = $request->input('exclude_id');
+
+        $query = ShortLink::withTrashed()->where('slug', $slug);
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        $available = ! $query->exists();
+
+        return response()->json([
+            'available' => $available,
+        ]);
+    }
+
     public function show(ShortLink $shortLink): JsonResponse
     {
         $this->authorize('view', $shortLink);

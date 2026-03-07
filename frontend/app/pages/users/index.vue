@@ -82,7 +82,7 @@
         <Button v-if="canCreate" size="sm" @click="navigateTo('/users/create')">
           <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
           Add User
-          <KbdGroup class="ml-1">
+          <KbdGroup>
             <Kbd>C</Kbd>
           </KbdGroup>
         </Button>
