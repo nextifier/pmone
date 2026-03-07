@@ -14,7 +14,7 @@
         {{ error.statusMessage }}
       </h1>
 
-      <p v-if="error.message" class="mx-auto mt-1 max-w-2xl text-balance">
+      <p v-if="error.message" class="mx-auto mt-1 max-w-2xl text-balance text-sm">
         {{
           error.statusCode === 404
             ? "We couldn’t find the page you’re looking for. It might have moved, been renamed, or maybe it never existed in the first place."
@@ -22,10 +22,11 @@
         }}
       </p>
 
+      <!-- TEMPORARY: show full error details for debugging -->
       <pre
-        v-if="error.stack && error.statusCode === 500"
-        class="text-muted-foreground mt-3 w-full max-w-xl overflow-auto rounded-2xl border px-4 py-6 text-left text-xs leading-normal!"
-        >{{ error.stack }}</pre
+        v-if="error.statusCode === 500"
+        class="text-muted-foreground mt-3 w-full max-w-2xl overflow-auto rounded-2xl border px-4 py-6 text-left text-xs leading-normal!"
+        >{{ JSON.stringify({ message: error.message, stack: error.stack, data: error.data, cause: error.cause }, null, 2) }}</pre
       >
 
       <button
