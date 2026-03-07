@@ -42,9 +42,9 @@
       <template #add-button>
         <Button v-if="canCreate" size="sm" @click="navigateTo('/roles/create')">
           <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
-          Add Role
+          New Role
           <KbdGroup>
-            <Kbd>C</Kbd>
+            <Kbd>N</Kbd>
           </KbdGroup>
         </Button>
       </template>
@@ -486,7 +486,7 @@ const RowActions = defineComponent({
 });
 
 defineShortcuts({
-  c: {
+  n: {
     handler: () => {
       if (canCreate.value) {
         navigateTo("/roles/create");

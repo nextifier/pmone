@@ -81,9 +81,9 @@
       <template #add-button>
         <Button v-if="canCreate" size="sm" @click="navigateTo('/users/create')">
           <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
-          Add User
+          New User
           <KbdGroup>
-            <Kbd>C</Kbd>
+            <Kbd>N</Kbd>
           </KbdGroup>
         </Button>
       </template>
@@ -539,7 +539,7 @@ const columns = [
 ];
 
 defineShortcuts({
-  c: {
+  n: {
     handler: () => {
       if (canCreate.value) {
         navigateTo("/users/create");

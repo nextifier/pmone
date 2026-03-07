@@ -64,11 +64,13 @@
         <!-- Content Body -->
         <div class="space-y-2">
           <Label class="sr-only">Content</Label>
-          <TipTapEditor
-            v-model="editor.form.content"
-            :post-id="editor.postId.value"
-            placeholder="Start writing your post content..."
-          />
+          <ClientOnly>
+            <TipTapEditor
+              v-model="editor.form.content"
+              :post-id="editor.postId.value"
+              placeholder="Start writing your post content..."
+            />
+          </ClientOnly>
           <InputErrorMessage :errors="editor.errors.value.content" />
         </div>
       </div>

@@ -5,7 +5,7 @@
         class="hover:bg-muted relative mr-2 flex size-8 items-center justify-center rounded-lg transition active:scale-98"
       >
         <svg
-          class="text-foreground size-5 shrink-0"
+          class="text-foreground size-4.5 shrink-0"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
         >

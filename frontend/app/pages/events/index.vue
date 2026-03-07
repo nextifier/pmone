@@ -7,15 +7,6 @@
         <h1 class="page-title">Events</h1>
       </div>
 
-      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <Button v-if="canCreate" size="sm" @click="navigateTo('/events/create')">
-          <Icon name="hugeicons:add-01" class="size-4 shrink-0" />
-          Create Event
-          <KbdGroup>
-            <Kbd>C</Kbd>
-          </KbdGroup>
-        </Button>
-      </div>
     </div>
 
     <TableData
@@ -40,6 +31,16 @@
       @update:column-filters="onColumnFiltersUpdate"
       @refresh="refresh"
     >
+      <template #add-button>
+        <Button v-if="canCreate" size="sm" @click="navigateTo('/events/create')">
+          <Icon name="hugeicons:add-01" class="size-4 shrink-0" />
+          New Event
+          <KbdGroup>
+            <Kbd>N</Kbd>
+          </KbdGroup>
+        </Button>
+      </template>
+
       <template #filters="{ table }">
         <Popover>
           <PopoverTrigger asChild>
@@ -525,7 +526,7 @@ onActivated(() => { isPageActive.value = true; });
 onDeactivated(() => { isPageActive.value = false; });
 
 defineShortcuts({
-  c: {
+  n: {
     handler: () => {
       if (canCreate.value) {
         navigateTo("/events/create");

@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto flex max-w-2xl flex-col gap-y-6">
+  <div class="mx-auto flex max-w-2xl flex-col gap-y-6 pt-4">
     <div class="flex flex-col items-start">
       <BackButton destination="/events" />
       <h2 class="page-title mt-4">Create Event</h2>
@@ -14,11 +14,7 @@
           <SelectValue placeholder="Select a project" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem
-            v-for="project in projects"
-            :key="project.id"
-            :value="project.username"
-          >
+          <SelectItem v-for="project in projects" :key="project.id" :value="project.username">
             {{ project.name }}
           </SelectItem>
         </SelectContent>

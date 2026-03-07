@@ -5,7 +5,7 @@
       <template #actions>
         <NuxtLink
           to="/tasks"
-          class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
+          class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm tracking-tight active:scale-98"
         >
           <Icon name="hugeicons:task-daily-01" class="size-4 shrink-0" />
           <span>My Tasks</span>

@@ -39,9 +39,9 @@
 
         <Button @click="showAddDialog = true" size="sm">
           <Icon name="hugeicons:add-01" class="size-4" />
-          Add Brand
+          New Brand
           <KbdGroup>
-            <Kbd>C</Kbd>
+            <Kbd>N</Kbd>
           </KbdGroup>
         </Button>
       </div>
@@ -196,7 +196,7 @@ const client = useSanctumClient();
 const showAddDialog = ref(false);
 
 defineShortcuts({
-  c: {
+  n: {
     handler: () => {
       showAddDialog.value = true;
     },

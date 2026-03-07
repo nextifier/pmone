@@ -118,9 +118,9 @@
       <template #add-button>
         <Button v-if="canCreate" size="sm" @click="navigateTo('/posts/create')">
           <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
-          Add Post
+          New Post
           <KbdGroup>
-            <Kbd>C</Kbd>
+            <Kbd>N</Kbd>
           </KbdGroup>
         </Button>
       </template>
@@ -976,7 +976,7 @@ onActivated(() => { isPageActive.value = true; });
 onDeactivated(() => { isPageActive.value = false; });
 
 defineShortcuts({
-  c: {
+  n: {
     handler: () => {
       if (canCreate.value) {
         navigateTo("/posts/create");

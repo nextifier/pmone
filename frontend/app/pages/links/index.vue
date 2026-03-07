@@ -75,9 +75,9 @@
       <template #add-button>
         <Button v-if="canCreate" size="sm" @click="openCreateDialog">
           <Icon name="hugeicons:add-01" class="size-4" />
-          Add Link
+          New Link
           <KbdGroup>
-            <Kbd>C</Kbd>
+            <Kbd>N</Kbd>
           </KbdGroup>
         </Button>
       </template>
@@ -835,7 +835,7 @@ onActivated(() => { isPageActive.value = true; });
 onDeactivated(() => { isPageActive.value = false; });
 
 defineShortcuts({
-  c: {
+  n: {
     handler: () => {
       if (canCreate.value) {
         openCreateDialog();

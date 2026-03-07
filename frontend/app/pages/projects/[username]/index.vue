@@ -11,9 +11,9 @@
         class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-3.5 py-2 text-sm font-medium tracking-tight transition active:scale-98"
       >
         <Icon name="hugeicons:add-01" class="size-4" />
-        <span>Create Event</span>
+        <span>New Event</span>
         <KbdGroup>
-          <Kbd>C</Kbd>
+          <Kbd>N</Kbd>
         </KbdGroup>
       </NuxtLink>
     </div>
@@ -277,7 +277,7 @@ const router = useRouter();
 const client = useSanctumClient();
 
 defineShortcuts({
-  c: {
+  n: {
     handler: () => {
       router.push(`/projects/${route.params.username}/events/create`);
     },

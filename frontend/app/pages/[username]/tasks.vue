@@ -5,7 +5,7 @@
       <template #actions>
         <NuxtLink
           to="/tasks"
-          class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
+          class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm tracking-tight active:scale-98"
         >
           <Icon name="hugeicons:arrow-left-01" class="size-4 shrink-0" />
           <span>My Tasks</span>
@@ -160,9 +160,7 @@
                   name="hugeicons:checkmark-circle-02"
                   class="text-muted-foreground/50 mb-2 size-8"
                 />
-                <span class="text-muted-foreground text-sm tracking-tight"
-                  >No completed tasks</span
-                >
+                <span class="text-muted-foreground text-sm tracking-tight">No completed tasks</span>
               </div>
             </div>
           </div>

@@ -9,9 +9,12 @@
             <template #default="{ goBack }">
               <button
                 @click="goBack"
-                class="text-primary/80 hover:text-primary hover:bg-muted flex size-8 shrink-0 items-center justify-center gap-x-1 rounded-lg text-sm tracking-tight transition active:scale-98"
+                class="text-primary/80 hover:text-primary hover:bg-muted flex shrink-0 items-center gap-x-1 rounded-lg px-1.5 py-1 text-sm tracking-tight transition active:scale-98"
               >
                 <Icon name="hugeicons:arrow-left-02" class="size-5 shrink-0" />
+                <KbdGroup>
+                  <Kbd>B</Kbd>
+                </KbdGroup>
               </button>
             </template>
           </BackButton>

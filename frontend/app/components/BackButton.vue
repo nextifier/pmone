@@ -14,6 +14,9 @@
     >
       <Icon name="lucide:arrow-left" class="size-4 shrink-0" />
       <span v-if="showLabel">Back</span>
+      <KbdGroup v-if="showLabel">
+        <Kbd>B</Kbd>
+      </KbdGroup>
     </button>
   </slot>
 </template>
@@ -37,6 +40,12 @@ const props = defineProps({
 
 const router = useRouter();
 const route = useRoute();
+
+defineShortcuts({
+  b: {
+    handler: () => goBack(),
+  },
+});
 
 // Buat computed property untuk menentukan tujuan fallback secara dinamis.
 const fallbackDestination = computed(() => {

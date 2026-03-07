@@ -5,7 +5,7 @@
       <template #actions>
         <NuxtLink
           to="/tasks/all"
-          class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
+          class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm tracking-tight active:scale-98"
         >
           <Icon name="hugeicons:user-group" class="size-4 shrink-0" />
           <span>All Tasks</span>
@@ -24,9 +24,9 @@
       <template #actions>
         <Button v-if="canCreate" size="sm" @click="dialogs.openCreateDialog">
           <Icon name="hugeicons:plus-sign" class="size-4 shrink-0" />
-          Add task
+          New Task
           <KbdGroup>
-            <Kbd>C</Kbd>
+            <Kbd>N</Kbd>
           </KbdGroup>
         </Button>
       </template>
@@ -656,7 +656,7 @@ watch(dialogs.deleteDialogOpen, (open) => {
 
 const route = useRoute();
 defineShortcuts({
-  c: {
+  n: {
     handler: () => {
       if (canCreate.value) {
         dialogs.openCreateDialog();
