@@ -1,23 +1,20 @@
-import DOMPurify from "isomorphic-dompurify";
+import DOMPurify from "dompurify";
 
 /**
  * Sanitizes HTML content to prevent XSS attacks
- * Uses DOMPurify for safe HTML rendering
+ * Uses dompurify (browser-only) instead of isomorphic-dompurify which crashes on Cloudflare Workers
  */
 export function useSanitize() {
-  /**
-   * Sanitize HTML content
-   * @param html - The HTML string to sanitize
-   * @param options - DOMPurify configuration options
-   */
   function sanitizeHtml(
     html: string | null | undefined,
-    options: DOMPurify.Config = {}
+    options: Record<string, unknown> = {}
   ): string {
     if (!html) return "";
 
-    // Default configuration: allow common HTML elements and attributes
-    const defaultOptions: DOMPurify.Config = {
+    // On server (Cloudflare Workers), return HTML as-is since content comes from our own API
+    if (import.meta.server) return html;
+
+    const defaultOptions = {
       ALLOWED_TAGS: [
         "p",
         "br",

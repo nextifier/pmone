@@ -42,9 +42,7 @@
       </DialogRoot>
     </template>
 
-    <!-- vaul-vue (DrawerRoot) is not SSR-safe: it accesses document/window during setup.
-         Wrapping in ClientOnly prevents SSR rendering, fixing the error on Cloudflare Pages. -->
-    <ClientOnly v-else>
+    <template v-else>
       <DrawerRoot v-model:open="isOpen">
       <DrawerPortal>
         <DrawerOverlay v-if="!hideOverlay" class="fixed inset-0 z-50 bg-black/80" />
@@ -85,7 +83,7 @@
         </DrawerContent>
       </DrawerPortal>
     </DrawerRoot>
-    </ClientOnly>
+    </template>
   </div>
 </template>
 
