@@ -260,9 +260,6 @@ export default defineNuxtConfig({
     },
   },
 
-  // TEMPORARY: enable debug to get full SSR error stack trace
-  debug: true,
-
   compatibilityDate: "2025-09-16",
 
   experimental: {
