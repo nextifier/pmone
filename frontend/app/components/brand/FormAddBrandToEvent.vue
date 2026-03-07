@@ -1,79 +1,79 @@
 <template>
-  <Dialog v-model:open="isOpen">
-    <DialogContent class="sm:max-w-md">
-      <DialogHeader>
-        <DialogTitle class="page-title">Add Brand to Event</DialogTitle>
-        <DialogDescription class="page-description -mt-1"
-          >Create or attach an existing brand to this event.</DialogDescription
-        >
-      </DialogHeader>
+  <DialogResponsive v-model:open="isOpen" dialog-max-width="28rem" :overflow-content="true">
+    <div class="px-4 pb-10 md:px-6 md:py-5">
+      <div class="space-y-1">
+        <h3 class="page-title">Add Brand to Event</h3>
+        <p class="page-description">Create or attach an existing brand to this event.</p>
+      </div>
 
-      <form @submit.prevent="submit" class="space-y-4">
+      <form @submit.prevent="submit" class="mt-4 space-y-4">
         <div class="space-y-2">
           <Label>Brand Name<span class="text-destructive">*</span></Label>
-          <div class="relative">
-            <Input
-              ref="brandInputRef"
-              v-model="searchTerm"
-              placeholder="Type to search brands..."
-              autocomplete="off"
-              @focus="showDropdown = true"
-              @blur="hideDropdown"
-              @keydown="handleInputKeydown"
-            />
-            <div
-              v-if="showDropdown && brandResults.length"
-              class="bg-popover text-popover-foreground absolute top-full left-0 z-50 mt-1 w-full overflow-hidden rounded-md border shadow-md"
-            >
-              <div class="max-h-48 overflow-y-auto p-1">
-                <button
-                  v-for="(brand, idx) in brandResults"
-                  :key="brand.id"
-                  type="button"
-                  :class="[
-                    'flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left',
-                    idx === highlightedIndex ? 'bg-muted' : 'hover:bg-muted',
-                  ]"
-                  @mousedown.prevent="selectBrand(brand)"
-                  @mouseenter="highlightedIndex = idx"
-                >
-                  <img
-                    v-if="brand.brand_logo"
-                    :src="brand.brand_logo"
-                    class="size-6 rounded object-cover"
-                    alt=""
-                  />
-                  <div
-                    v-else
-                    class="text-muted-foreground flex size-6 items-center justify-center rounded text-xs font-medium"
+          <AutocompleteRoot v-model="searchTerm" :ignore-filter="true">
+            <AutocompleteAnchor as-child>
+              <AutocompleteInput
+                placeholder="Type to search brands..."
+                autocomplete="off"
+                class="placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-background border-border focus-visible:border-ring focus-visible:ring-ring flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm tracking-tight shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
+                auto-focus
+              />
+            </AutocompleteAnchor>
+            <AutocompletePortal>
+              <AutocompleteContent
+                position="popper"
+                :side-offset="4"
+                hide-when-empty
+                class="bg-popover text-popover-foreground z-[100] w-[var(--reka-combobox-trigger-width)] overflow-hidden rounded-md border shadow-md"
+              >
+                <AutocompleteViewport class="max-h-48 p-1">
+                  <AutocompleteItem
+                    v-for="brand in brandResults"
+                    :key="brand.id"
+                    :value="brand.name"
+                    class="data-[highlighted]:bg-muted flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left outline-none select-none"
+                    @select="selectedBrand = brand"
                   >
-                    {{ brand.name.charAt(0).toUpperCase() }}
-                  </div>
-                  <div class="flex flex-col">
-                    <span class="text-sm">{{ brand.name }}</span>
-                    <span v-if="brand.company_name" class="text-muted-foreground text-xs">{{
-                      brand.company_name
-                    }}</span>
-                  </div>
-                  <Icon
-                    v-if="selectedBrand?.id === brand.id"
-                    name="lucide:check"
-                    class="ml-auto size-4"
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
+                    <img
+                      v-if="brand.brand_logo"
+                      :src="brand.brand_logo"
+                      class="size-6 rounded object-cover"
+                      alt=""
+                    />
+                    <div
+                      v-else
+                      class="text-muted-foreground flex size-6 items-center justify-center rounded text-xs font-medium"
+                    >
+                      {{ brand.name.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="flex flex-col">
+                      <span class="text-sm">{{ brand.name }}</span>
+                      <span v-if="brand.company_name" class="text-muted-foreground text-xs">{{
+                        brand.company_name
+                      }}</span>
+                    </div>
+                    <Icon
+                      v-if="selectedBrand?.id === brand.id"
+                      name="lucide:check"
+                      class="ml-auto size-4"
+                    />
+                  </AutocompleteItem>
+                  <AutocompleteEmpty
+                    v-if="searchTerm.trim()"
+                    class="text-muted-foreground px-2 py-4 text-center text-sm"
+                  >
+                    No brands found
+                  </AutocompleteEmpty>
+                </AutocompleteViewport>
+              </AutocompleteContent>
+            </AutocompletePortal>
+          </AutocompleteRoot>
           <p v-if="errors.brand_name" class="text-destructive text-xs">{{ errors.brand_name }}</p>
         </div>
 
         <!-- Booth Number(s) -->
         <div class="space-y-2">
           <Label>Booth Number(s)</Label>
-          <Input
-            v-model="form.booth_number"
-            placeholder="e.g. A01, A02, A03"
-          />
+          <Input v-model="form.booth_number" placeholder="e.g. A01, A02, A03" />
           <p class="text-muted-foreground text-xs">
             Comma-separated booth numbers. Each booth number creates a separate brand-event record.
           </p>
@@ -105,18 +105,12 @@
         <div class="grid grid-cols-2 gap-x-2 gap-y-4">
           <div class="space-y-2">
             <Label>Fascia Name</Label>
-            <Input
-              v-model="form.fascia_name"
-              placeholder="Name on booth fascia"
-            />
+            <Input v-model="form.fascia_name" placeholder="Name on booth fascia" />
             <p class="text-muted-foreground text-xs">Displayed on the booth signage.</p>
           </div>
           <div class="space-y-2">
             <Label>Badge Name</Label>
-            <Input
-              v-model="form.badge_name"
-              placeholder="Name on exhibitor badge"
-            />
+            <Input v-model="form.badge_name" placeholder="Name on exhibitor badge" />
             <p class="text-muted-foreground text-xs">Printed on exhibitor badges.</p>
           </div>
         </div>
@@ -185,11 +179,21 @@
           </Button>
         </div>
       </form>
-    </DialogContent>
-  </Dialog>
+    </div>
+  </DialogResponsive>
 </template>
 
 <script setup>
+import {
+  AutocompleteAnchor,
+  AutocompleteContent,
+  AutocompleteEmpty,
+  AutocompleteInput,
+  AutocompleteItem,
+  AutocompletePortal,
+  AutocompleteRoot,
+  AutocompleteViewport,
+} from "reka-ui";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
@@ -215,10 +219,7 @@ const form = reactive({
   send_login_email: false,
 });
 
-const brandInputRef = ref(null);
 const selectedBrand = ref(null);
-const showDropdown = ref(false);
-const highlightedIndex = ref(-1);
 const searchTerm = ref("");
 const allBrands = ref([]);
 const brandsLoaded = ref(false);
@@ -246,76 +247,17 @@ async function fetchBrands() {
   }
 }
 
-function selectBrand(brand) {
-  selectedBrand.value = brand;
-  searchTerm.value = brand.name;
-  showDropdown.value = false;
-  highlightedIndex.value = -1;
-}
-
-function hideDropdown() {
-  setTimeout(() => {
-    showDropdown.value = false;
-    highlightedIndex.value = -1;
-  }, 150);
-}
-
-function handleInputKeydown(e) {
-  const results = brandResults.value;
-  const dropdownVisible = showDropdown.value && results.length > 0;
-
-  if (e.key === "ArrowDown") {
-    e.preventDefault();
-    if (!dropdownVisible) {
-      showDropdown.value = true;
-      highlightedIndex.value = 0;
-    } else {
-      highlightedIndex.value = (highlightedIndex.value + 1) % results.length;
-    }
-  } else if (e.key === "ArrowUp") {
-    e.preventDefault();
-    if (dropdownVisible) {
-      highlightedIndex.value =
-        highlightedIndex.value <= 0 ? results.length - 1 : highlightedIndex.value - 1;
-    }
-  } else if (e.key === "Enter") {
-    if (dropdownVisible && highlightedIndex.value >= 0) {
-      e.preventDefault();
-      selectBrand(results[highlightedIndex.value]);
-    }
-  } else if (e.key === "Tab") {
-    if (dropdownVisible && highlightedIndex.value >= 0) {
-      selectBrand(results[highlightedIndex.value]);
-    } else {
-      showDropdown.value = false;
-    }
-  } else if (e.key === "Escape") {
-    showDropdown.value = false;
-    highlightedIndex.value = -1;
-  }
-}
-
 watch(searchTerm, (val) => {
   if (selectedBrand.value && val !== selectedBrand.value.name) {
     selectedBrand.value = null;
-  }
-  if (val.trim()) {
-    showDropdown.value = true;
-    highlightedIndex.value = -1;
   }
 });
 
 watch(isOpen, (val) => {
   if (val) {
     fetchBrands();
-    nextTick(() => {
-      const el = brandInputRef.value?.$el || brandInputRef.value;
-      el?.focus?.();
-    });
   } else {
     selectedBrand.value = null;
-    showDropdown.value = false;
-    highlightedIndex.value = -1;
     searchTerm.value = "";
     form.booth_number = "";
     form.booth_size = null;
@@ -356,17 +298,6 @@ async function submit() {
       },
     });
     toast.success("Brand added to event");
-    selectedBrand.value = null;
-    searchTerm.value = "";
-    form.booth_number = "";
-    form.booth_size = null;
-    form.booth_price = null;
-    form.fascia_name = "";
-    form.badge_name = "";
-    form.sales_id = null;
-    form.emails = [""];
-    form.send_login_email = false;
-    brandsLoaded.value = false;
     isOpen.value = false;
     emit("success");
   } catch (e) {
