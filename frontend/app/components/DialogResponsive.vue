@@ -2,45 +2,50 @@
   <div>
     <slot name="trigger" :open="open" />
 
-    <DialogRoot v-if="isDesktop && isOpen && isResponsive" v-model:open="isOpen">
-      <DialogPortal>
-        <DialogOverlay
-          v-if="!hideOverlay"
-          class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
-        />
-        <DialogContent
-          class="bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100%-4rem)] w-full -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border shadow-lg outline-hidden duration-200"
-          :style="{ maxWidth: dialogMaxWidth }"
-          @interact-outside="onInteractOutside"
-          @escape-key-down="onEscapeKeyDown"
-        >
-          <DialogTitle class="hidden" />
-          <DialogDescription class="hidden" />
-          <slot name="sticky-header" />
-          <ScrollArea class="flex flex-col" :scrollHideDelay="0">
-            <slot :data="dialogData" />
-          </ScrollArea>
-          <slot name="sticky-footer" />
-          <button
-            v-if="preventClose"
-            @click="onCloseButtonClick"
-            class="data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
+    <template v-if="isDesktop && isOpen && isResponsive">
+      <DialogRoot v-model:open="isOpen">
+        <DialogPortal>
+          <DialogOverlay
+            v-if="!hideOverlay"
+            class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
+          />
+          <DialogContent
+            class="bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100%-4rem)] w-full -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border shadow-lg outline-hidden duration-200"
+            :style="{ maxWidth: dialogMaxWidth }"
+            @interact-outside="onInteractOutside"
+            @escape-key-down="onEscapeKeyDown"
           >
-            <IconClose class="size-4" />
-            <span class="sr-only">Close</span>
-          </button>
-          <DialogClose
-            v-else
-            class="data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
-          >
-            <IconClose class="size-4" />
-            <span class="sr-only">Close</span>
-          </DialogClose>
-        </DialogContent>
-      </DialogPortal>
-    </DialogRoot>
+            <DialogTitle class="hidden" />
+            <DialogDescription class="hidden" />
+            <slot name="sticky-header" />
+            <ScrollArea class="flex flex-col" :scrollHideDelay="0">
+              <slot :data="dialogData" />
+            </ScrollArea>
+            <slot name="sticky-footer" />
+            <button
+              v-if="preventClose"
+              @click="onCloseButtonClick"
+              class="data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
+            >
+              <IconClose class="size-4" />
+              <span class="sr-only">Close</span>
+            </button>
+            <DialogClose
+              v-else
+              class="data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
+            >
+              <IconClose class="size-4" />
+              <span class="sr-only">Close</span>
+            </DialogClose>
+          </DialogContent>
+        </DialogPortal>
+      </DialogRoot>
+    </template>
 
-    <DrawerRoot v-else v-model:open="isOpen">
+    <!-- vaul-vue (DrawerRoot) is not SSR-safe: it accesses document/window during setup.
+         Wrapping in ClientOnly prevents SSR rendering, fixing the error on Cloudflare Pages. -->
+    <ClientOnly v-else>
+      <DrawerRoot v-model:open="isOpen">
       <DrawerPortal>
         <DrawerOverlay v-if="!hideOverlay" class="fixed inset-0 z-50 bg-black/80" />
         <DrawerContent
@@ -80,6 +85,7 @@
         </DrawerContent>
       </DrawerPortal>
     </DrawerRoot>
+    </ClientOnly>
   </div>
 </template>
 

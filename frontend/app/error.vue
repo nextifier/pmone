@@ -22,13 +22,6 @@
         }}
       </p>
 
-      <!-- TEMPORARY: show full error details for debugging -->
-      <pre
-        v-if="error.statusCode === 500"
-        class="text-muted-foreground mt-3 w-full max-w-2xl overflow-auto rounded-2xl border px-4 py-6 text-left text-xs leading-normal!"
-        >{{ JSON.stringify({ message: error.message, stack: error.stack, data: error.data, cause: error.cause }, null, 2) }}</pre
-      >
-
       <button
         @click="handleError"
         class="bg-muted text-foreground hover:bg-border mt-4 flex items-center gap-x-1 rounded-md px-3 py-2 text-sm font-medium tracking-tight transition active:scale-98"
