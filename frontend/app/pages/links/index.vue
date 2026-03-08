@@ -831,8 +831,12 @@ const FilterSection = defineComponent({
 });
 
 const isPageActive = ref(true);
-onActivated(() => { isPageActive.value = true; });
-onDeactivated(() => { isPageActive.value = false; });
+onActivated(() => {
+  isPageActive.value = true;
+});
+onDeactivated(() => {
+  isPageActive.value = false;
+});
 
 defineShortcuts({
   n: {

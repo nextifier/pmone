@@ -25,16 +25,19 @@
           </button>
         </template>
         <template #default>
-          <div class="flex flex-col items-center gap-5 px-6 pt-2 pb-8">
+          <div class="flex flex-col items-center gap-5 px-6 pb-12 md:py-8">
             <div class="text-center">
-              <div class="text-primary text-base font-semibold tracking-tight">QR Code</div>
-              <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">{{ shortLinkUrl }}</p>
+              <div class="page-title">QR Code</div>
+              <div class="mt-0.5 flex items-center gap-x-1">
+                <p class="text-muted-foreground text-sm tracking-tight">
+                  {{ shortLinkUrl }}
+                </p>
+                <ButtonCopy :text="shortLinkUrl" />
+              </div>
             </div>
 
             <ClientOnly>
-              <div
-                class="aspect-square w-full max-w-[240px] overflow-hidden rounded-lg bg-white shadow-lg"
-              >
+              <div class="aspect-square w-full max-w-[240px] overflow-hidden rounded-lg bg-white">
                 <QRCode
                   v-if="qrDialogOpen"
                   :url="shortLinkUrl"
@@ -50,14 +53,14 @@
                 class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
               >
                 <Icon name="hugeicons:jpg-01" class="size-4 shrink-0" />
-                JPG
+                Download JPG
               </button>
               <button
                 @click="downloadQR('svg')"
                 class="bg-muted text-foreground hover:bg-border flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
               >
                 <Icon name="hugeicons:svg-01" class="size-4 shrink-0" />
-                SVG
+                Download SVG
               </button>
             </div>
           </div>

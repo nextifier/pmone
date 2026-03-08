@@ -4,12 +4,12 @@
   >
     <div class="flex h-full items-center justify-center px-4">
       <template v-if="hideSidebar">
-        <div class="-ml-2 flex grow items-center gap-x-1 overflow-hidden sm:ml-0 sm:gap-x-2.5">
+        <div class="-ml-2 flex grow items-center gap-x-2 overflow-hidden sm:ml-0 sm:gap-x-2.5">
           <BackButton :destination="backDestination" :force-destination="forceBackDestination">
             <template #default="{ goBack }">
               <button
                 @click="goBack"
-                class="text-primary/80 hover:text-primary hover:bg-muted border-primary/15 flex shrink-0 items-center gap-x-1 rounded-lg p-1 text-sm tracking-tight transition active:scale-98 sm:border"
+                class="text-primary/80 hover:text-primary sm:bg-card bg-muted border-border flex aspect-square h-9 shrink-0 items-center justify-center gap-x-1 rounded-full px-1 text-sm tracking-tight transition active:scale-98 sm:aspect-auto sm:h-8 sm:rounded-lg sm:border"
               >
                 <Icon name="hugeicons:arrow-left-02" class="size-5 shrink-0" />
                 <KbdGroup>
@@ -30,7 +30,7 @@
               >
                 <Avatar :model="headerProject" class="size-7" rounded="rounded-sm" />
                 <span
-                  class="truncate overflow-visible text-sm font-semibold tracking-tight decoration-dotted decoration-2 underline-offset-4 hover:underline"
+                  class="truncate overflow-visible text-sm font-medium tracking-tight decoration-dotted decoration-2 underline-offset-4 hover:underline"
                   >{{ headerProject.name }}</span
                 >
               </NuxtLink>
@@ -55,7 +55,7 @@
                     />
                   </div>
                   <h3
-                    class="text-sm font-semibold tracking-tight decoration-dotted decoration-2 underline-offset-4 group-hover:underline"
+                    class="text-sm font-medium tracking-tight decoration-dotted decoration-2 underline-offset-4 group-hover:underline"
                   >
                     {{ headerEvent.title }}
                   </h3>
@@ -80,7 +80,7 @@
                       rounded="rounded-sm"
                     />
                     <span
-                      class="truncate overflow-visible text-sm font-semibold tracking-tight decoration-dotted decoration-2 underline-offset-4 hover:underline"
+                      class="truncate overflow-visible text-sm font-medium tracking-tight decoration-dotted decoration-2 underline-offset-4 hover:underline"
                       >{{ headerBrand.brand?.name }}</span
                     >
                   </NuxtLink>
