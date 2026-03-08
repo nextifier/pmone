@@ -16,7 +16,7 @@
     <div
       :class="['absolute transition-all', copied ? 'scale-0 opacity-0' : 'scale-100 opacity-100']"
     >
-      <Icon name="lucide:copy" class="size-3.5 shrink-0" aria-hidden="true" />
+      <Icon name="hugeicons:copy-01" class="size-4 shrink-0" aria-hidden="true" />
     </div>
   </button>
 </template>

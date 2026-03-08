@@ -4,12 +4,12 @@
   >
     <div class="flex h-full items-center justify-center px-4">
       <template v-if="hideSidebar">
-        <div class="-ml-2 flex grow items-center gap-x-1 overflow-hidden">
+        <div class="-ml-2 flex grow items-center gap-x-1 overflow-hidden sm:ml-0 sm:gap-x-2.5">
           <BackButton :destination="backDestination" :force-destination="forceBackDestination">
             <template #default="{ goBack }">
               <button
                 @click="goBack"
-                class="text-primary/80 hover:text-primary hover:bg-muted flex shrink-0 items-center gap-x-1 rounded-lg px-1.5 py-1 text-sm tracking-tight transition active:scale-98"
+                class="text-primary/80 hover:text-primary hover:bg-muted border-primary/15 flex shrink-0 items-center gap-x-1 rounded-lg p-1 text-sm tracking-tight transition active:scale-98 sm:border"
               >
                 <Icon name="hugeicons:arrow-left-02" class="size-5 shrink-0" />
                 <KbdGroup>

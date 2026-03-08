@@ -11,7 +11,58 @@
         >
       </NuxtLink>
 
-      <ButtonCopy :text="`${useRuntimeConfig().public.siteUrl}/${link.slug}`" />
+      <ButtonCopy :text="shortLinkUrl" />
+
+      <DialogResponsive v-model:open="qrDialogOpen" dialogMaxWidth="360px">
+        <template #trigger="{ open }">
+          <button
+            @click="open()"
+            v-tippy="'QR Code'"
+            aria-label="QR Code"
+            class="text-muted-foreground hover:text-foreground -ml-1 flex size-7 items-center justify-center rounded-lg"
+          >
+            <Icon name="hugeicons:qr-code-01" class="size-4 shrink-0" />
+          </button>
+        </template>
+        <template #default>
+          <div class="flex flex-col items-center gap-5 px-6 pt-2 pb-8">
+            <div class="text-center">
+              <div class="text-primary text-base font-semibold tracking-tight">QR Code</div>
+              <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">{{ shortLinkUrl }}</p>
+            </div>
+
+            <ClientOnly>
+              <div
+                class="aspect-square w-full max-w-[240px] overflow-hidden rounded-lg bg-white shadow-lg"
+              >
+                <QRCode
+                  v-if="qrDialogOpen"
+                  :url="shortLinkUrl"
+                  canvasClass="size-full"
+                  :margin="2"
+                />
+              </div>
+            </ClientOnly>
+
+            <div class="flex gap-2">
+              <button
+                @click="downloadQR('jpg')"
+                class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+              >
+                <Icon name="hugeicons:jpg-01" class="size-4 shrink-0" />
+                JPG
+              </button>
+              <button
+                @click="downloadQR('svg')"
+                class="bg-muted text-foreground hover:bg-border flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+              >
+                <Icon name="hugeicons:svg-01" class="size-4 shrink-0" />
+                SVG
+              </button>
+            </div>
+          </div>
+        </template>
+      </DialogResponsive>
     </div>
 
     <div class="text-muted-foreground line-clamp-1 inline-flex items-center gap-x-0.5">
@@ -24,10 +75,58 @@
 </template>
 
 <script setup>
-defineProps({
+import DialogResponsive from "@/components/DialogResponsive.vue";
+import QRCode from "@/components/QRCode.vue";
+import { toast } from "vue-sonner";
+
+const props = defineProps({
   link: {
     type: Object,
     required: true,
   },
 });
+
+const config = useRuntimeConfig();
+const shortLinkUrl = computed(() => `${config.public.siteUrl}/${props.link.slug}`);
+const qrDialogOpen = ref(false);
+
+const downloadQR = async (format) => {
+  try {
+    const qrcodeModule = await import("qrcode");
+    const QRLib = qrcodeModule.default;
+
+    if (format === "svg") {
+      const svgString = await QRLib.toString(shortLinkUrl.value, {
+        type: "svg",
+        width: 512,
+        margin: 2,
+        errorCorrectionLevel: "H",
+        color: { dark: "#000000", light: "#FFFFFF" },
+      });
+      const blob = new Blob([svgString], { type: "image/svg+xml" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.download = `QR-${props.link.slug}.svg`;
+      a.href = url;
+      a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      const dataUrl = await QRLib.toDataURL(shortLinkUrl.value, {
+        width: 1080,
+        margin: 2,
+        errorCorrectionLevel: "H",
+        color: { dark: "#000000", light: "#FFFFFF" },
+      });
+      const a = document.createElement("a");
+      a.download = `QR-${props.link.slug}.png`;
+      a.href = dataUrl;
+      a.click();
+    }
+
+    toast.success("QR code downloaded!");
+  } catch (err) {
+    toast.error("Failed to download QR code");
+    console.error("Error downloading QR code:", err);
+  }
+};
 </script>
