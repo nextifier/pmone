@@ -5,7 +5,7 @@
     <div class="flex h-full items-center justify-center px-4">
       <template v-if="hideSidebar">
         <div class="-ml-2 flex grow items-center gap-x-1 overflow-hidden">
-          <BackButton :destination="backDestination">
+          <BackButton :destination="backDestination" :force-destination="forceBackDestination">
             <template #default="{ goBack }">
               <button
                 @click="goBack"
@@ -186,18 +186,56 @@ const headerEvent = useState("header-event", () => null);
 const headerBrand = useState("header-brand", () => null);
 
 const backDestination = computed(() => {
-  if (route.params.brandSlug) {
-    return `/projects/${route.params.username}/events/${route.params.eventSlug}/brands`;
-  }
-  if (route.params.eventSlug && route.path.includes("/content")) {
-    return `/projects/${route.params.username}/events/${route.params.eventSlug}`;
-  }
+  const basePath = `/projects/${route.params.username}`;
+
   if (route.params.eventSlug) {
-    return `/projects/${route.params.username}`;
+    const eventPath = `${basePath}/events/${route.params.eventSlug}`;
+
+    // Brand detail → brands list
+    if (route.params.brandSlug) {
+      return `${eventPath}/brands`;
+    }
+
+    // Event overview (exact) → project overview
+    if (route.path === eventPath || route.path === `${eventPath}/`) {
+      return basePath;
+    }
+
+    // Any event sub-page (content, brands, orders, etc.) → event overview
+    return eventPath;
   }
-  if (route.params.username && route.path.includes("/settings")) {
-    return `/projects/${route.params.username}`;
+
+  if (route.params.username) {
+    // Project overview → dashboard
+    if (route.path === basePath || route.path === `${basePath}/`) {
+      return "/dashboard";
+    }
+
+    // Project settings sub-pages → settings
+    if (route.path.startsWith(`${basePath}/settings/`)) {
+      return `${basePath}/settings`;
+    }
+
+    // Any project sub-page → project overview
+    return basePath;
   }
+
   return "/dashboard";
+});
+
+// Di halaman project overview, cek history sebelum back
+// Jika halaman sebelumnya adalah turunan projects/*, force ke /dashboard
+// Jika halaman sebelumnya bukan projects/*, gunakan router.back()
+const forceBackDestination = computed(() => {
+  if (!route.params.username || route.params.eventSlug) return true;
+  const basePath = `/projects/${route.params.username}`;
+  if (route.path !== basePath && route.path !== `${basePath}/`) return true;
+
+  // Cek halaman sebelumnya via history state
+  const previousPath = window?.history?.state?.back;
+  if (previousPath && typeof previousPath === "string" && !previousPath.startsWith("/projects/")) {
+    return false; // Halaman sebelumnya bukan projects/*, gunakan router.back()
+  }
+  return true; // Halaman sebelumnya adalah projects/* atau tidak ada history, force ke /dashboard
 });
 </script>
