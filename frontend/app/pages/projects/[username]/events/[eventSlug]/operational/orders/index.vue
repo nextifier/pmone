@@ -258,7 +258,7 @@ function goToPage(newPage) {
 }
 
 function orderDetailUrl(order) {
-  return `/projects/${route.params.username}/events/${route.params.eventSlug}/orders/${order.ulid}`;
+  return `/projects/${route.params.username}/events/${route.params.eventSlug}/operational/orders/${order.ulid}`;
 }
 
 function formatPrice(amount) {

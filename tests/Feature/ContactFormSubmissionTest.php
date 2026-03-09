@@ -406,25 +406,6 @@ test('can update submission status', function () {
     ]);
 });
 
-test('can mark submission as followed up', function () {
-    $submission = ContactFormSubmission::factory()->create([
-        'project_id' => $this->project->id,
-    ]);
-
-    $response = $this->actingAs($this->user)
-        ->patchJson("/api/contact-form-submissions/{$submission->ulid}/follow-up");
-
-    $response->assertSuccessful();
-
-    $this->assertDatabaseHas('contact_form_submissions', [
-        'id' => $submission->id,
-        'followed_up_by' => $this->user->id,
-    ]);
-
-    $submission->refresh();
-    expect($submission->followed_up_at)->not->toBeNull();
-});
-
 test('can delete submission', function () {
     $submission = ContactFormSubmission::factory()->create([
         'project_id' => $this->project->id,

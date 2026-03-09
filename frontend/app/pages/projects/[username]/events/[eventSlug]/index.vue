@@ -135,10 +135,10 @@ const navCards = computed(() => [
     to: `${base.value}/brands`,
   },
   {
-    label: "Product Categories",
-    icon: "hugeicons:layers-01",
-    description: "Organize product categories",
-    to: `${base.value}/product-categories`,
+    label: "Operational",
+    icon: "hugeicons:briefcase-01",
+    description: "Orders, products, and order form settings",
+    to: `${base.value}/operational/orders`,
   },
   {
     label: "Content",
@@ -147,10 +147,10 @@ const navCards = computed(() => [
     to: `${base.value}/content/rundown`,
   },
   {
-    label: "Ops Documents",
-    icon: "hugeicons:file-01",
-    description: "Event rules and required documents",
-    to: `${base.value}/documents`,
+    label: "Product Categories",
+    icon: "hugeicons:layers-01",
+    description: "Organize product categories",
+    to: `${base.value}/product-categories`,
   },
 ]);
 </script>

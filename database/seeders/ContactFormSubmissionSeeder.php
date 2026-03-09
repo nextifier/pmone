@@ -76,11 +76,5 @@ class ContactFormSubmissionSeeder extends Seeder
             $submission->update(['form_data' => $formData]);
         }
 
-        // For completed submissions, assign a follow-up user
-        if ($state === 'completed' && $users->isNotEmpty()) {
-            $submission->update([
-                'followed_up_by' => $users->random()->id,
-            ]);
-        }
     }
 }

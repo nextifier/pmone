@@ -19,7 +19,6 @@ class ContactFormSubmissionResource extends JsonResource
             'form_data' => $this->form_data,
             'ip_address' => $this->ip_address,
             'user_agent' => $this->user_agent,
-            'followed_up_at' => $this->followed_up_at?->toISOString(),
             'created_at' => $this->created_at->toISOString(),
             'updated_at' => $this->updated_at->toISOString(),
 
@@ -32,13 +31,6 @@ class ContactFormSubmissionResource extends JsonResource
                 'email' => $this->project->email,
             ]),
 
-            // Followed up by user
-            'followed_up_by_user' => $this->whenLoaded('followedUpByUser', fn () => $this->followedUpByUser ? [
-                'id' => $this->followedUpByUser->id,
-                'name' => $this->followedUpByUser->name,
-                'username' => $this->followedUpByUser->username,
-                'email' => $this->followedUpByUser->email,
-            ] : null),
         ];
     }
 }

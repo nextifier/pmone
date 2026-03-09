@@ -24,7 +24,7 @@ class ContactFormSubmissionController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = ContactFormSubmission::query()->with(['project.media', 'followedUpByUser']);
+        $query = ContactFormSubmission::query()->with(['project.media']);
 
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
@@ -203,15 +203,6 @@ class ContactFormSubmissionController extends Controller
             }
         }
 
-        // Followed up filter
-        if ($request->has('filter_followed_up')) {
-            $followedUp = $request->boolean('filter_followed_up');
-            if ($followedUp) {
-                $query->whereNotNull('followed_up_at');
-            } else {
-                $query->whereNull('followed_up_at');
-            }
-        }
     }
 
     private function applySorting($query, Request $request): void
@@ -225,7 +216,7 @@ class ContactFormSubmissionController extends Controller
             $query->leftJoin('projects', 'contact_form_submissions.project_id', '=', 'projects.id')
                 ->orderBy('projects.name', $direction)
                 ->select('contact_form_submissions.*');
-        } elseif (in_array($field, ['subject', 'status', 'created_at', 'updated_at', 'followed_up_at'])) {
+        } elseif (in_array($field, ['subject', 'status', 'created_at', 'updated_at'])) {
             $query->orderBy($field, $direction);
         } else {
             $query->orderBy('created_at', 'desc');
@@ -234,7 +225,7 @@ class ContactFormSubmissionController extends Controller
 
     public function show(ContactFormSubmission $contactFormSubmission): JsonResponse
     {
-        $contactFormSubmission->load(['project', 'followedUpByUser']);
+        $contactFormSubmission->load(['project']);
 
         return response()->json([
             'data' => new ContactFormSubmissionResource($contactFormSubmission),
@@ -273,30 +264,6 @@ class ContactFormSubmissionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update status',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    public function markAsFollowedUp(Request $request, ContactFormSubmission $contactFormSubmission): JsonResponse
-    {
-        try {
-            $contactFormSubmission->markAsFollowedUp($request->user()->id);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Marked as followed up successfully',
-                'data' => new ContactFormSubmissionResource($contactFormSubmission->fresh(['project', 'followedUpByUser'])),
-            ]);
-        } catch (\Exception $e) {
-            logger()->error('Failed to mark contact form submission as followed up', [
-                'error' => $e->getMessage(),
-                'submission_id' => $contactFormSubmission->id,
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to mark as followed up',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -366,7 +333,7 @@ class ContactFormSubmissionController extends Controller
 
     public function trash(Request $request): JsonResponse
     {
-        $query = ContactFormSubmission::onlyTrashed()->with(['project.media', 'followedUpByUser', 'deleter']);
+        $query = ContactFormSubmission::onlyTrashed()->with(['project.media', 'deleter']);
 
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
@@ -409,7 +376,7 @@ class ContactFormSubmissionController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Contact form submission restored successfully',
-                'data' => new ContactFormSubmissionResource($submission->fresh(['project', 'followedUpByUser'])),
+                'data' => new ContactFormSubmissionResource($submission->fresh(['project'])),
             ]);
         } catch (\Exception $e) {
             logger()->error('Failed to restore contact form submission', [

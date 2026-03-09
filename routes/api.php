@@ -400,7 +400,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/trash/{id}', [ContactFormSubmissionController::class, 'forceDelete'])->name('contact-form-submissions.force-delete');
         Route::get('/{contactFormSubmission:ulid}', [ContactFormSubmissionController::class, 'show'])->name('contact-form-submissions.show');
         Route::patch('/{contactFormSubmission:ulid}/status', [ContactFormSubmissionController::class, 'updateStatus'])->name('contact-form-submissions.update-status');
-        Route::patch('/{contactFormSubmission:ulid}/follow-up', [ContactFormSubmissionController::class, 'markAsFollowedUp'])->name('contact-form-submissions.follow-up');
+
         Route::delete('/{contactFormSubmission:ulid}', [ContactFormSubmissionController::class, 'destroy'])->name('contact-form-submissions.destroy');
     });
 });
@@ -565,58 +565,58 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('api-consumers')->group(
 Route::middleware(['api.key'])->prefix('public/blog')->group(function () {
     // Posts endpoints
     Route::get('/posts', [PublicBlogController::class, 'posts'])
-        ->middleware(CacheResponse::for(300, 'blog-posts'));
+        ->middleware(CacheResponse::for(3600, 'blog-posts'));
     Route::get('/posts/featured', [PublicBlogController::class, 'featured'])
-        ->middleware(CacheResponse::for(300, 'blog-posts'));
+        ->middleware(CacheResponse::for(3600, 'blog-posts'));
     Route::get('/posts/search', [PublicBlogController::class, 'search'])
-        ->middleware(CacheResponse::for(120, 'blog-posts'));
+        ->middleware(CacheResponse::for(1800, 'blog-posts'));
     Route::get('/posts/{slug}', [PublicBlogController::class, 'post']); // No cache - has trackVisit
 
     // Categories endpoints
     Route::get('/categories', [PublicBlogController::class, 'categories'])
-        ->middleware(CacheResponse::for(1800, 'blog-categories'));
+        ->middleware(CacheResponse::for(86400, 'blog-categories'));
     Route::get('/categories/{slug}', [PublicBlogController::class, 'category'])
-        ->middleware(CacheResponse::for(1800, 'blog-categories'));
+        ->middleware(CacheResponse::for(86400, 'blog-categories'));
     Route::get('/categories/{slug}/posts', [PublicBlogController::class, 'postsByCategory'])
-        ->middleware(CacheResponse::for(300, 'blog-posts'));
+        ->middleware(CacheResponse::for(3600, 'blog-posts'));
 
     // Tags endpoints
     Route::get('/tags/{tag}/posts', [PublicBlogController::class, 'postsByTag'])
-        ->middleware(CacheResponse::for(300, 'blog-posts'));
+        ->middleware(CacheResponse::for(3600, 'blog-posts'));
 
     // Authors endpoints
     Route::get('/authors/{username}/posts', [PublicBlogController::class, 'postsByAuthor'])
-        ->middleware(CacheResponse::for(300, 'blog-posts'));
+        ->middleware(CacheResponse::for(3600, 'blog-posts'));
 });
 
 // Public Project & Event API endpoints (API key authentication)
 Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
     Route::get('/{username}', [PublicProjectController::class, 'show'])
-        ->middleware(CacheResponse::for(900, 'projects'));
+        ->middleware(CacheResponse::for(86400, 'projects'));
     Route::get('/{username}/events', [PublicProjectController::class, 'events'])
-        ->middleware(CacheResponse::for(900, 'events'));
+        ->middleware(CacheResponse::for(86400, 'events'));
     Route::get('/{username}/events/active', [PublicProjectController::class, 'activeEvent'])
-        ->middleware(CacheResponse::for(900, 'events'));
+        ->middleware(CacheResponse::for(86400, 'events'));
     Route::get('/{username}/events/{eventSlug}', [PublicProjectController::class, 'event'])
-        ->middleware(CacheResponse::for(900, 'events'));
+        ->middleware(CacheResponse::for(86400, 'events'));
     Route::get('/{username}/events/{eventSlug}/brands', [PublicProjectController::class, 'brands'])
-        ->middleware(CacheResponse::for(600, 'brands'));
+        ->middleware(CacheResponse::for(86400, 'brands'));
     Route::get('/{username}/events/{eventSlug}/brands/{brandSlug}', [PublicProjectController::class, 'brand'])
-        ->middleware(CacheResponse::for(900, 'brands'));
+        ->middleware(CacheResponse::for(86400, 'brands'));
     Route::get('/{username}/events/{eventSlug}/brands/{brandSlug}/promotion-posts', [PublicProjectController::class, 'promotionPosts'])
-        ->middleware(CacheResponse::for(600, 'promotion-posts'));
+        ->middleware(CacheResponse::for(3600, 'promotion-posts'));
 });
 
 // Public Exchange Rate API endpoints (no authentication required, public proxy)
 Route::prefix('exchange-rates')->middleware('throttle:api')->group(function () {
     Route::get('/', [ExchangeRateController::class, 'index'])
-        ->middleware(CacheResponse::for(1800, 'exchange-rates'));
-    Route::get('/currencies', [ExchangeRateController::class, 'currencies'])
         ->middleware(CacheResponse::for(3600, 'exchange-rates'));
+    Route::get('/currencies', [ExchangeRateController::class, 'currencies'])
+        ->middleware(CacheResponse::for(86400, 'exchange-rates'));
     Route::get('/popular', [ExchangeRateController::class, 'popular'])
-        ->middleware(CacheResponse::for(1800, 'exchange-rates'));
+        ->middleware(CacheResponse::for(3600, 'exchange-rates'));
     Route::get('/convert', [ExchangeRateController::class, 'convert'])
-        ->middleware(CacheResponse::for(1800, 'exchange-rates'));
+        ->middleware(CacheResponse::for(3600, 'exchange-rates'));
     Route::get('/{currency}', [ExchangeRateController::class, 'show'])
-        ->middleware(CacheResponse::for(1800, 'exchange-rates'));
+        ->middleware(CacheResponse::for(3600, 'exchange-rates'));
 });

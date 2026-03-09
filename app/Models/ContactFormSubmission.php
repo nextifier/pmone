@@ -18,8 +18,6 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property array<array-key, mixed> $form_data
  * @property string|null $subject
  * @property ContactFormStatus $status
- * @property \Illuminate\Support\Carbon|null $followed_up_at
- * @property int|null $followed_up_by
  * @property string|null $ip_address
  * @property string|null $user_agent
  * @property \Illuminate\Support\Carbon|null $created_at
@@ -29,8 +27,8 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
  * @property-read int|null $activities_count
  * @property-read \App\Models\User|null $deleter
- * @property-read \App\Models\User|null $followedUpByUser
  * @property-read \App\Models\Project $project
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission byStatus(string $status)
  * @method static \Database\Factories\ContactFormSubmissionFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission forProject(int $projectId)
@@ -39,12 +37,9 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission unfollowedUp()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereDeletedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereDeletedBy($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereFollowedUpAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereFollowedUpBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereFormData($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereIpAddress($value)
@@ -56,6 +51,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission whereUserAgent($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class ContactFormSubmission extends Model
@@ -71,8 +67,6 @@ class ContactFormSubmission extends Model
         'status',
         'ip_address',
         'user_agent',
-        'followed_up_at',
-        'followed_up_by',
         'deleted_by',
     ];
 
@@ -80,7 +74,6 @@ class ContactFormSubmission extends Model
     {
         return [
             'form_data' => 'array',
-            'followed_up_at' => 'datetime',
             'status' => ContactFormStatus::class,
         ];
     }
@@ -99,7 +92,7 @@ class ContactFormSubmission extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['status', 'followed_up_at', 'followed_up_by'])
+            ->logOnly(['status'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
@@ -117,11 +110,6 @@ class ContactFormSubmission extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
-    }
-
-    public function followedUpByUser(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'followed_up_by');
     }
 
     public function deleter(): BelongsTo
@@ -142,18 +130,5 @@ class ContactFormSubmission extends Model
     public function scopeForProject($query, int $projectId)
     {
         return $query->where('project_id', $projectId);
-    }
-
-    public function scopeUnfollowedUp($query)
-    {
-        return $query->whereNull('followed_up_at');
-    }
-
-    public function markAsFollowedUp(?int $userId = null): void
-    {
-        $this->update([
-            'followed_up_at' => now(),
-            'followed_up_by' => $userId ?? auth()->id(),
-        ]);
     }
 }

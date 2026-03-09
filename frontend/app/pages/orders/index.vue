@@ -163,7 +163,7 @@ function orderDetailUrl(order) {
   // Staff: link to project-scoped detail page
   const project = be?.event?.project;
   if (project?.username && be?.event?.slug) {
-    return `/projects/${project.username}/events/${be.event.slug}/orders/${order.ulid}`;
+    return `/projects/${project.username}/events/${be.event.slug}/operational/orders/${order.ulid}`;
   }
   // Fallback
   return `/brands/${be?.brand?.slug}/orders/${order.brand_event_id}/${order.ulid}`;

@@ -23,11 +23,11 @@
     </div>
 
     <template v-else>
-      <template v-if="!isBrandPage && !isContentPage">
+      <template v-if="!isBrandPage && !isContentPage && !isOperationalPage">
         <TabNav v-if="event" :tabs="eventTabs" />
       </template>
 
-      <div :class="isBrandPage || isContentPage ? '' : 'pt-6'">
+      <div :class="isBrandPage || isContentPage || isOperationalPage ? '' : 'pt-6'">
         <NuxtPage :event="event" :project="project" />
       </div>
     </template>
@@ -72,6 +72,10 @@ const isContentPage = computed(() => {
   const contentPath = `/projects/${route.params.username}/events/${route.params.eventSlug}/content`;
   return route.path === contentPath || route.path.startsWith(`${contentPath}/`);
 });
+const isOperationalPage = computed(() => {
+  const opPath = `/projects/${route.params.username}/events/${route.params.eventSlug}/operational`;
+  return route.path === opPath || route.path.startsWith(`${opPath}/`);
+});
 
 // Share event data to AppHeader via useState
 const headerEvent = useState("header-event", () => null);
@@ -92,9 +96,7 @@ const eventBase = computed(
 const eventTabs = computed(() => [
   { label: "Overview", icon: "hugeicons:dashboard-circle", to: eventBase.value, exact: true },
   { label: "Brands", icon: "hugeicons:store-02", to: `${eventBase.value}/brands` },
-  { label: "Products", icon: "hugeicons:package-01", to: `${eventBase.value}/products` },
-  { label: "Ops Documents", icon: "hugeicons:file-validation", to: `${eventBase.value}/documents` },
-  { label: "Orders", icon: "hugeicons:shopping-bag-01", to: `${eventBase.value}/orders` },
+  { label: "Operational", icon: "hugeicons:briefcase-01", to: `${eventBase.value}/operational/orders`, activeFor: [`${eventBase.value}/operational`] },
   { label: "Content", icon: "hugeicons:note-01", to: `${eventBase.value}/content/rundown` },
 ]);
 

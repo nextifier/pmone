@@ -1,13 +1,13 @@
 <template>
   <div class="flex flex-col gap-y-1 overflow-hidden">
     <div class="flex items-center gap-x-2">
-      <NuxtLink
-        :to="`/inbox/${submission.ulid}`"
-        class="text-foreground text-sm font-medium tracking-tight hover:underline"
+      <button
+        @click="$emit('view')"
+        class="text-foreground text-left text-sm font-medium tracking-tight hover:underline"
       >
         {{ submission.subject || "No Subject" }}
         <span v-if="submission.project?.name"> - {{ submission.project.name }} </span>
-      </NuxtLink>
+      </button>
     </div>
 
     <div class="text-muted-foreground flex items-center gap-x-2 text-sm tracking-tight">
@@ -24,9 +24,6 @@
         <span v-if="submission.form_data_preview?.brand_name">
           - Brand: {{ submission.form_data_preview.brand_name }}
         </span>
-        <!-- <span v-if="submission.form_data_preview?.email" class="text-muted-foreground">
-          - {{ submission.form_data_preview.email }}
-        </span> -->
       </div>
     </div>
   </div>
@@ -42,6 +39,8 @@ const props = defineProps({
     required: true,
   },
 });
+
+defineEmits(["view"]);
 
 const { getCountryFromPhone } = usePhoneCountry();
 

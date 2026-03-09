@@ -56,7 +56,6 @@ class ContactFormSubmissionFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => ContactFormStatus::Completed->value,
-            'followed_up_at' => fake()->dateTimeBetween('-1 week', 'now'),
         ]);
     }
 
@@ -67,16 +66,6 @@ class ContactFormSubmissionFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => ContactFormStatus::Archived->value,
-        ]);
-    }
-
-    /**
-     * Indicate that the submission has been followed up.
-     */
-    public function followedUp(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'followed_up_at' => fake()->dateTimeBetween('-1 week', 'now'),
         ]);
     }
 

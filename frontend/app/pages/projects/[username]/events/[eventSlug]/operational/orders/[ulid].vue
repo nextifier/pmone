@@ -3,7 +3,7 @@
     <!-- Back Button -->
     <div>
       <NuxtLink
-        :to="`/projects/${route.params.username}/events/${route.params.eventSlug}/orders`"
+        :to="`/projects/${route.params.username}/events/${route.params.eventSlug}/operational/orders`"
         class="text-muted-foreground hover:text-foreground inline-flex items-center gap-x-1.5 text-sm tracking-tight transition"
       >
         <Icon name="lucide:arrow-left" class="size-4 shrink-0" />

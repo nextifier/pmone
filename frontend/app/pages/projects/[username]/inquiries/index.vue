@@ -466,7 +466,7 @@ const RowActions = defineComponent({
           "button",
           {
             class: "hover:bg-muted inline-flex size-8 items-center justify-center rounded-md",
-            onClick: () => router.push(`/inbox/${props.submission.ulid}`),
+            onClick: () => router.push(`/inbox`),
           },
           [
             withDirectives(

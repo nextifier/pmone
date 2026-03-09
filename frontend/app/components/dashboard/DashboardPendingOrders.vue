@@ -30,7 +30,7 @@ const formatDate = (dateStr: string | null) => {
 
 const getOrderLink = (order: OrderItem) => {
   if (order.project_username && order.event_slug) {
-    return `/projects/${order.project_username}/events/${order.event_slug}/orders/${order.ulid}`;
+    return `/projects/${order.project_username}/events/${order.event_slug}/operational/orders/${order.ulid}`;
   }
   return `/orders`;
 };

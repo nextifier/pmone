@@ -99,200 +99,6 @@
       <InputErrorMessage :errors="errors.description" />
     </div>
 
-    <!-- Order Form Settings -->
-    <div v-if="!isCreate" class="space-y-4">
-      <div class="space-y-1">
-        <Label class="text-base font-semibold">Order Form Settings</Label>
-        <p class="text-muted-foreground text-xs">
-          Configure order form for exhibitors: T&amp;C content, tax rate, and notification emails.
-        </p>
-      </div>
-
-      <div class="space-y-2">
-        <Label for="order_form_content">Terms & Conditions / Important Information</Label>
-        <TipTapEditor
-          v-model="form.order_form_content"
-          model-type="App\Models\Event"
-          collection="description_images"
-          :sticky="false"
-          min-height="150px"
-          placeholder="Write terms & conditions or important information for exhibitors..."
-        />
-      </div>
-
-      <div class="grid grid-cols-2 gap-x-2 gap-y-6">
-        <div class="space-y-2">
-          <Label for="settings_tax_rate">Tax Rate (%)</Label>
-          <Input
-            id="settings_tax_rate"
-            v-model.number="form.settings.tax_rate"
-            type="number"
-            min="0"
-            max="100"
-            step="0.01"
-            placeholder="11"
-          />
-          <p class="text-muted-foreground text-xs">Default: 11% (PPN)</p>
-        </div>
-        <div class="space-y-2">
-          <Label for="notification_emails">Notification Emails</Label>
-          <div class="space-y-2">
-            <div
-              v-for="(email, index) in notificationEmails"
-              :key="index"
-              class="flex items-center gap-x-2"
-            >
-              <Input
-                v-model="notificationEmails[index]"
-                type="email"
-                placeholder="email@example.com"
-                class="flex-1"
-              />
-              <button
-                type="button"
-                @click="notificationEmails.splice(index, 1)"
-                class="text-muted-foreground hover:text-destructive shrink-0"
-              >
-                <Icon name="hugeicons:delete-02" class="size-4" />
-              </button>
-            </div>
-            <button
-              type="button"
-              @click="notificationEmails.push('')"
-              class="text-muted-foreground hover:text-foreground flex items-center gap-x-1 text-xs"
-            >
-              <Icon name="hugeicons:add-01" class="size-3.5" />
-              Add Email
-            </button>
-          </div>
-          <p class="text-muted-foreground text-xs">
-            Order notifications will be sent to these emails.
-          </p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-x-2 gap-y-6">
-        <div class="space-y-2">
-          <Label for="order_form_deadline">Order Form Deadline</Label>
-          <DateTimePicker
-            v-model="form.order_form_deadline"
-            placeholder="No deadline"
-            :default-hour="23"
-            :default-minute="59"
-          />
-          <p class="text-muted-foreground text-xs">Exhibitors cannot submit orders after this date.</p>
-          <InputErrorMessage :errors="errors.order_form_deadline" />
-        </div>
-        <div class="space-y-2">
-          <Label for="promotion_post_deadline">Promotion Post Deadline</Label>
-          <DateTimePicker
-            v-model="form.promotion_post_deadline"
-            placeholder="No deadline"
-            :default-hour="23"
-            :default-minute="59"
-          />
-          <p class="text-muted-foreground text-xs">Exhibitors cannot upload promotion posts after this date.</p>
-          <InputErrorMessage :errors="errors.promotion_post_deadline" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Order Periods -->
-    <div v-if="!isCreate" class="space-y-4">
-      <div class="space-y-1">
-        <Label class="text-base font-semibold">Order Periods</Label>
-        <p class="text-muted-foreground text-xs">
-          Configure normal and onsite order periods. Onsite orders can have a penalty rate applied.
-        </p>
-      </div>
-
-      <div class="grid grid-cols-2 gap-x-2 gap-y-6">
-        <div class="space-y-2">
-          <Label for="normal_order_opens_at">Normal Order Opens</Label>
-          <DateTimePicker
-            v-model="form.normal_order_opens_at"
-            placeholder="Not set"
-            :default-hour="0"
-            :default-minute="0"
-          />
-          <InputErrorMessage :errors="errors.normal_order_opens_at" />
-        </div>
-        <div class="space-y-2">
-          <Label for="normal_order_closes_at">Normal Order Closes</Label>
-          <DateTimePicker
-            v-model="form.normal_order_closes_at"
-            placeholder="Not set"
-            :default-hour="23"
-            :default-minute="59"
-          />
-          <InputErrorMessage :errors="errors.normal_order_closes_at" />
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-x-2 gap-y-6">
-        <div class="space-y-2">
-          <Label for="onsite_order_opens_at">Onsite Order Opens</Label>
-          <DateTimePicker
-            v-model="form.onsite_order_opens_at"
-            placeholder="Not set"
-            :default-hour="0"
-            :default-minute="0"
-          />
-          <InputErrorMessage :errors="errors.onsite_order_opens_at" />
-        </div>
-        <div class="space-y-2">
-          <Label for="onsite_order_closes_at">Onsite Order Closes</Label>
-          <DateTimePicker
-            v-model="form.onsite_order_closes_at"
-            placeholder="Not set"
-            :default-hour="23"
-            :default-minute="59"
-          />
-          <InputErrorMessage :errors="errors.onsite_order_closes_at" />
-        </div>
-      </div>
-
-      <div class="space-y-2">
-        <Label for="onsite_penalty_rate">Onsite Penalty Rate (%)</Label>
-        <Input
-          id="onsite_penalty_rate"
-          v-model.number="form.onsite_penalty_rate"
-          type="number"
-          min="0"
-          max="100"
-          step="0.01"
-          placeholder="50"
-        />
-        <p class="text-muted-foreground text-xs">
-          Percentage added to order total for onsite period orders. Default: 50%.
-        </p>
-        <InputErrorMessage :errors="errors.onsite_penalty_rate" />
-      </div>
-    </div>
-
-    <!-- Badge & VIP Info -->
-    <div v-if="!isCreate" class="space-y-4">
-      <div class="space-y-1">
-        <Label class="text-base font-semibold">Badge & VIP Information</Label>
-        <p class="text-muted-foreground text-xs">
-          Information about exhibitor badges, VIP passes, and related policies.
-        </p>
-      </div>
-
-      <div class="space-y-2">
-        <Label for="badge_vip_info">Badge & VIP Info Content</Label>
-        <TipTapEditor
-          v-model="form.badge_vip_info"
-          model-type="App\Models\Event"
-          collection="description_images"
-          :sticky="false"
-          min-height="150px"
-          placeholder="Write badge and VIP information for exhibitors..."
-        />
-        <InputErrorMessage :errors="errors.badge_vip_info" />
-      </div>
-    </div>
-
     <!-- Status | Visibility -->
     <div class="grid grid-cols-2 gap-x-2 gap-y-6">
       <div class="space-y-2">
@@ -377,17 +183,7 @@ function createEmptyForm() {
     hall: "",
     status: "draft",
     visibility: "private",
-    settings: {},
     custom_fields: {},
-    order_form_content: "",
-    order_form_deadline: null,
-    promotion_post_deadline: null,
-    normal_order_opens_at: null,
-    normal_order_closes_at: null,
-    onsite_order_opens_at: null,
-    onsite_order_closes_at: null,
-    onsite_penalty_rate: 50,
-    badge_vip_info: "",
   };
 }
 
@@ -430,7 +226,6 @@ const imageFiles = ref({
 
 const posterImageInputRef = ref(null);
 const slugManuallyEdited = ref(false);
-const notificationEmails = ref([]);
 
 const form = reactive(createEmptyForm());
 
@@ -488,19 +283,7 @@ function populateForm(data) {
   form.hall = data.hall || "";
   form.status = data.status || "draft";
   form.visibility = data.visibility || "private";
-  form.settings = data.settings || {};
   form.custom_fields = data.custom_fields || {};
-  form.order_form_content = data.order_form_content || "";
-  form.order_form_deadline = data.order_form_deadline ? new Date(data.order_form_deadline) : null;
-  form.promotion_post_deadline = data.promotion_post_deadline ? new Date(data.promotion_post_deadline) : null;
-  form.normal_order_opens_at = data.normal_order_opens_at ? new Date(data.normal_order_opens_at) : null;
-  form.normal_order_closes_at = data.normal_order_closes_at ? new Date(data.normal_order_closes_at) : null;
-  form.onsite_order_opens_at = data.onsite_order_opens_at ? new Date(data.onsite_order_opens_at) : null;
-  form.onsite_order_closes_at = data.onsite_order_closes_at ? new Date(data.onsite_order_closes_at) : null;
-  form.onsite_penalty_rate = data.onsite_penalty_rate ?? 50;
-  form.badge_vip_info = data.badge_vip_info || "";
-
-  notificationEmails.value = form.settings?.notification_emails || [];
 
   imageFiles.value.poster_image = [];
   deleteFlags.value.poster_image = false;
@@ -544,19 +327,6 @@ function handleSubmit() {
     hall: form.hall || null,
     status: form.status,
     visibility: form.visibility,
-    order_form_content: form.order_form_content || null,
-    order_form_deadline: formatDateTimeForBackend(form.order_form_deadline),
-    promotion_post_deadline: formatDateTimeForBackend(form.promotion_post_deadline),
-    normal_order_opens_at: formatDateTimeForBackend(form.normal_order_opens_at),
-    normal_order_closes_at: formatDateTimeForBackend(form.normal_order_closes_at),
-    onsite_order_opens_at: formatDateTimeForBackend(form.onsite_order_opens_at),
-    onsite_order_closes_at: formatDateTimeForBackend(form.onsite_order_closes_at),
-    onsite_penalty_rate: form.onsite_penalty_rate ?? 50,
-    badge_vip_info: form.badge_vip_info || null,
-    settings: {
-      ...form.settings,
-      notification_emails: notificationEmails.value.filter((e) => e.trim()),
-    },
     custom_fields: Object.keys(form.custom_fields).length > 0 ? form.custom_fields : null,
   };
 

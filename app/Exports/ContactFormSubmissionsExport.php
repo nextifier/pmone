@@ -9,7 +9,7 @@ class ContactFormSubmissionsExport extends BaseExport
 {
     protected function getQuery(): Builder
     {
-        return ContactFormSubmission::query()->with(['project', 'followedUpByUser']);
+        return ContactFormSubmission::query()->with(['project']);
     }
 
     protected function phoneColumns(): array
@@ -30,8 +30,6 @@ class ContactFormSubmissionsExport extends BaseExport
             'Status',
             'Message',
             'Created At',
-            'Followed Up At',
-            'Followed Up By',
             'Referral Source',
         ];
     }
@@ -66,8 +64,6 @@ class ContactFormSubmissionsExport extends BaseExport
             $this->titleCase($submission->status?->value),
             $message,
             $submission->created_at?->format('Y-m-d H:i:s'),
-            $submission->followed_up_at?->format('Y-m-d H:i:s') ?? '-',
-            $submission->followedUpByUser?->name ?? '-',
             $referralSource,
         ];
     }
@@ -104,7 +100,7 @@ class ContactFormSubmissionsExport extends BaseExport
             $query->leftJoin('projects', 'contact_form_submissions.project_id', '=', 'projects.id')
                 ->orderBy('projects.name', $direction)
                 ->select('contact_form_submissions.*');
-        } elseif (in_array($field, ['subject', 'status', 'created_at', 'updated_at', 'followed_up_at'])) {
+        } elseif (in_array($field, ['subject', 'status', 'created_at', 'updated_at'])) {
             $query->orderBy($field, $direction);
         } else {
             $query->orderBy('created_at', 'desc');

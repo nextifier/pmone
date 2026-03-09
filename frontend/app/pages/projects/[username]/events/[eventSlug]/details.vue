@@ -9,7 +9,7 @@
         <span>Back to Overview</span>
       </NuxtLink>
       <h2 class="page-title mt-1">Edit Event Details</h2>
-      <p class="page-description mt-1.5">Edit event information, status, and configuration.</p>
+      <p class="page-description mt-1.5">Edit event information, poster, and status.</p>
     </div>
 
     <FormEvent

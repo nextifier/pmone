@@ -125,7 +125,7 @@
               class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
               @click="open()"
             >
-              <Icon name="lucide:trash" class="size-4 shrink-0" />
+              <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
               <span class="text-sm tracking-tight">Delete</span>
               <span
                 class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
@@ -163,14 +163,111 @@
         </DialogResponsive>
       </template>
     </TableData>
+
+    <!-- Detail Dialog -->
+    <DialogResponsive
+      v-model:open="detailDialogOpen"
+      dialogMaxWidth="600px"
+      :overflow-content="true"
+    >
+      <template #default>
+        <div v-if="detailSubmission" class="px-4 pb-10 md:px-6 md:py-6">
+          <!-- Header -->
+          <div class="space-y-1">
+            <h3 class="pr-8 text-lg font-semibold tracking-tight">
+              {{ detailSubmission.subject || "No Subject" }}
+            </h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              {{ detailSubmission.project?.name || "Unknown Project" }} ·
+              {{ $dayjs(detailSubmission.created_at).format("MMM D, YYYY [at] h:mm A") }}
+            </p>
+          </div>
+
+          <!-- Actions -->
+          <div class="mt-4 flex flex-wrap items-center gap-2">
+            <StatusDropdown
+              :status="detailSubmission.status"
+              :disabled="statusUpdating === detailSubmission.ulid"
+              @update="(s) => handleStatusUpdate(detailSubmission.ulid, s)"
+            />
+
+            <a
+              v-if="detailSubmission.form_data?.phone"
+              :href="`https://wa.me/${formatWhatsAppNumber(detailSubmission.form_data.phone)}`"
+              target="_blank"
+              v-tippy="'WhatsApp'"
+              class="hover:bg-muted inline-flex size-8 items-center justify-center rounded-md text-success-foreground transition"
+            >
+              <Icon name="hugeicons:whatsapp" class="size-4" />
+            </a>
+
+            <a
+              v-if="detailSubmission.form_data?.email"
+              :href="`mailto:${detailSubmission.form_data.email}`"
+              v-tippy="'Email'"
+              class="hover:bg-muted inline-flex size-8 items-center justify-center rounded-md text-info-foreground transition"
+            >
+              <Icon name="hugeicons:mail-01" class="size-4" />
+            </a>
+          </div>
+
+          <!-- Form Data -->
+          <div class="divide-border mt-5 divide-y">
+            <div
+              v-for="(value, key) in detailSubmission.form_data"
+              :key="key"
+              class="flex flex-col gap-1 py-3 first:pt-0 sm:flex-row sm:gap-4"
+            >
+              <div
+                class="text-muted-foreground w-full text-sm font-medium tracking-tight sm:w-36 sm:shrink-0"
+              >
+                {{ formatFieldLabel(key) }}
+              </div>
+              <div class="flex-1 text-sm tracking-tight">
+                <template v-if="key === 'email'">
+                  <a :href="`mailto:${value}`" class="text-primary hover:underline">
+                    {{ value }}
+                  </a>
+                </template>
+                <template v-else-if="key === 'phone'">
+                  <div class="flex items-center gap-2">
+                    <FlagComponent
+                      v-if="getCountryFromPhone(value)"
+                      v-tippy="getCountryFromPhone(value)?.name"
+                      :country="getCountryFromPhone(value)?.code"
+                      class="cursor-help"
+                    />
+                    <a
+                      :href="`https://wa.me/${formatWhatsAppNumber(value)}`"
+                      target="_blank"
+                      class="text-primary hover:underline"
+                    >
+                      {{ value }}
+                    </a>
+                  </div>
+                </template>
+                <template v-else-if="key === 'message'">
+                  <div class="whitespace-pre-wrap">{{ value }}</div>
+                </template>
+                <template v-else>
+                  {{ value }}
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
   </div>
 </template>
 
 <script setup>
 import Avatar from "@/components/Avatar.vue";
 import DialogResponsive from "@/components/DialogResponsive.vue";
+import FlagComponent from "@/components/FlagComponent.vue";
 import InboxImportDialog from "@/components/inbox/ImportDialog.vue";
 import InboxTableItem from "@/components/inbox/InboxTableItem.vue";
+import StatusDropdown from "@/components/inbox/StatusDropdown.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -191,10 +288,14 @@ defineOptions({
 usePageMeta(null, { title: "Inbox" });
 
 const { $dayjs } = useNuxtApp();
+const client = useSanctumClient();
 
 // Permission checking
 const { hasPermission } = usePermission();
 const canDelete = computed(() => hasPermission("contact_forms.delete"));
+
+// Phone country helper
+const { getCountryFromPhone } = usePhoneCountry();
 
 // Table state
 const columnFilters = ref([]);
@@ -282,17 +383,6 @@ watch(
   { deep: true }
 );
 
-// Global state for refresh tracking
-const needsRefresh = useState("inbox-needs-refresh", () => false);
-
-// Refresh when component is activated from KeepAlive
-onActivated(async () => {
-  if (needsRefresh.value) {
-    await fetchSubmissions();
-    needsRefresh.value = false;
-  }
-});
-
 const refresh = fetchSubmissions;
 
 // Status badge config
@@ -317,6 +407,38 @@ const getStatusConfig = (status) => {
   };
   return configs[status] || configs.new;
 };
+
+// Detail dialog
+const detailDialogOpen = ref(false);
+const detailSubmission = ref(null);
+
+function openDetailDialog(submission) {
+  detailSubmission.value = submission;
+  detailDialogOpen.value = true;
+}
+
+// Status update (inline from table)
+const statusUpdating = ref(null);
+
+async function handleStatusUpdate(ulid, newStatus) {
+  statusUpdating.value = ulid;
+  try {
+    await client(`/api/contact-form-submissions/${ulid}/status`, {
+      method: "PATCH",
+      body: { status: newStatus },
+    });
+    toast.success("Status updated");
+    // Update detail dialog if open for this submission
+    if (detailSubmission.value?.ulid === ulid) {
+      detailSubmission.value = { ...detailSubmission.value, status: newStatus };
+    }
+    await refresh();
+  } catch (err) {
+    toast.error("Failed to update status");
+  } finally {
+    statusUpdating.value = null;
+  }
+}
 
 // Table columns
 const columns = [
@@ -346,6 +468,7 @@ const columns = [
     cell: ({ row }) =>
       h(InboxTableItem, {
         submission: row.original,
+        onView: () => openDetailDialog(row.original),
       }),
     size: 300,
     enableHiding: false,
@@ -357,26 +480,6 @@ const columns = [
       return (
         subject.includes(searchValue) || name.includes(searchValue) || email.includes(searchValue)
       );
-    },
-  },
-  {
-    header: "Status",
-    accessorKey: "status",
-    cell: ({ row }) => {
-      const status = row.getValue("status");
-      const config = getStatusConfig(status);
-      return h(
-        "span",
-        {
-          class: `inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${config.color}`,
-        },
-        config.label
-      );
-    },
-    size: 100,
-    filterFn: (row, columnId, filterValue) => {
-      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
-      return filterValue.includes(row.getValue(columnId));
     },
   },
   {
@@ -417,6 +520,21 @@ const columns = [
       );
     },
     size: 100,
+  },
+  {
+    header: "Status",
+    accessorKey: "status",
+    cell: ({ row }) =>
+      h(StatusDropdown, {
+        status: row.getValue("status"),
+        disabled: statusUpdating.value === row.original.ulid,
+        onUpdate: (newStatus) => handleStatusUpdate(row.original.ulid, newStatus),
+      }),
+    size: 120,
+    filterFn: (row, columnId, filterValue) => {
+      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+      return filterValue.includes(row.getValue(columnId));
+    },
   },
   {
     id: "actions",
@@ -493,7 +611,6 @@ const handleDeleteRows = async (selectedRows) => {
   const ids = selectedRows.map((row) => row.original.id);
   try {
     deletePending.value = true;
-    const client = useSanctumClient();
     const response = await client("/api/contact-form-submissions/bulk", {
       method: "DELETE",
       body: { ids },
@@ -523,7 +640,6 @@ const handleDeleteRows = async (selectedRows) => {
 const handleDeleteSingleRow = async (ulid) => {
   try {
     deletePending.value = true;
-    const client = useSanctumClient();
     const response = await client(`/api/contact-form-submissions/${ulid}`, { method: "DELETE" });
     await refresh();
 
@@ -572,8 +688,6 @@ const handleExport = async () => {
     const sortDirection = sorting.value[0]?.desc ? "-" : "";
     params.append("sort", `${sortDirection}${sortField}`);
 
-    const client = useSanctumClient();
-
     // Fetch the file as blob
     const response = await client(`/api/contact-form-submissions/export?${params.toString()}`, {
       responseType: "blob",
@@ -603,13 +717,26 @@ const handleExport = async () => {
   }
 };
 
+// Helpers
+function formatFieldLabel(key) {
+  return key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+}
+
+function formatWhatsAppNumber(phone) {
+  let cleaned = phone.replace(/[^\d+]/g, "");
+  cleaned = cleaned.replace(/^\+/, "");
+  if (cleaned.startsWith("0")) {
+    cleaned = "62" + cleaned.substring(1);
+  }
+  return cleaned;
+}
+
 // Row Actions Component
 const RowActions = defineComponent({
   props: {
     submission: { type: Object, required: true },
   },
   setup(props) {
-    const router = useRouter();
     const dialogOpen = ref(false);
     const singleDeletePending = ref(false);
 
@@ -662,87 +789,23 @@ const RowActions = defineComponent({
               [[resolveDirective("tippy"), "Email"]]
             )
           : null,
-        h(
-          Popover,
-          {},
-          {
-            default: () => [
-              h(
-                PopoverTrigger,
-                { asChild: true },
-                {
-                  default: () =>
-                    h(
-                      "button",
-                      {
-                        class:
-                          "hover:bg-muted data-[state=open]:bg-muted inline-flex size-8 items-center justify-center rounded-md",
-                      },
-                      [h(resolveComponent("Icon"), { name: "lucide:ellipsis", class: "size-4" })]
-                    ),
-                }
+        // Delete button (only if user has permission)
+        ...(canDelete.value
+          ? [
+              withDirectives(
+                h(
+                  "button",
+                  {
+                    class:
+                      "hover:bg-destructive/10 text-destructive inline-flex size-8 items-center justify-center rounded-md",
+                    onClick: () => (dialogOpen.value = true),
+                  },
+                  [h(resolveComponent("Icon"), { name: "hugeicons:delete-01", class: "size-4" })]
+                ),
+                [[resolveDirective("tippy"), "Delete"]]
               ),
-              h(
-                PopoverContent,
-                { align: "end", class: "w-40 p-1" },
-                {
-                  default: () =>
-                    h("div", { class: "flex flex-col" }, [
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
-                            h(
-                              "button",
-                              {
-                                class:
-                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                onClick: () => router.push(`/inbox/${props.submission.ulid}`),
-                              },
-                              [
-                                h(resolveComponent("Icon"), {
-                                  name: "lucide:eye",
-                                  class: "size-4 shrink-0",
-                                }),
-                                h("span", {}, "View"),
-                              ]
-                            ),
-                        }
-                      ),
-                      // Delete button (only if user has permission)
-                      ...(canDelete.value
-                        ? [
-                            h(
-                              PopoverClose,
-                              { asChild: true },
-                              {
-                                default: () =>
-                                  h(
-                                    "button",
-                                    {
-                                      class:
-                                        "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                      onClick: () => (dialogOpen.value = true),
-                                    },
-                                    [
-                                      h(resolveComponent("Icon"), {
-                                        name: "lucide:trash",
-                                        class: "size-4 shrink-0",
-                                      }),
-                                      h("span", {}, "Delete"),
-                                    ]
-                                  ),
-                              }
-                            ),
-                          ]
-                        : []),
-                    ]),
-                }
-              ),
-            ],
-          }
-        ),
+            ]
+          : []),
         h(
           DialogResponsive,
           {
@@ -839,7 +902,4 @@ const FilterSection = defineComponent({
       ]);
   },
 });
-
-// Import PopoverClose
-import { PopoverClose } from "reka-ui";
 </script>

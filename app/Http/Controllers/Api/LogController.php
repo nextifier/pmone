@@ -25,7 +25,7 @@ class LogController extends Controller
         $logName = $request->input('log_name');
         $event = $request->input('event');
 
-        $query = Activity::with(['causer:id,name', 'subject'])
+        $query = Activity::with(['causer', 'causer.media', 'subject'])
             ->orderBy('created_at', 'desc');
 
         if ($search) {
@@ -140,6 +140,13 @@ class LogController extends Controller
             'subject_name' => self::getSubjectName($activity),
             'causer_id' => $activity->causer_id,
             'causer_name' => $activity->causer?->name ?? 'System',
+            'causer' => $activity->causer ? [
+                'id' => $activity->causer->id,
+                'name' => $activity->causer->name,
+                'profile_image' => $activity->causer->relationLoaded('media')
+                    ? $activity->causer->getMediaUrls('profile_image')
+                    : null,
+            ] : null,
             'changes' => self::formatChanges($activity),
             'created_at' => $activity->created_at->toISOString(),
             'time_ago' => $activity->created_at->diffForHumans(),
@@ -292,8 +299,7 @@ class LogController extends Controller
             'booth_type' => 'booth type',
             'company_name' => 'company name',
             'birth_date' => 'birth date',
-            'followed_up_at' => 'follow-up date',
-            'followed_up_by' => 'follow-up person',
+
             'og_title' => 'OG title',
             'og_description' => 'OG description',
             'is_required' => 'required status',

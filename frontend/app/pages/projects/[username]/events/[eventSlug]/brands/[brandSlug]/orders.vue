@@ -23,7 +23,7 @@
       <NuxtLink
         v-for="order in orders"
         :key="order.id"
-        :to="`/projects/${route.params.username}/events/${route.params.eventSlug}/orders/${order.ulid}`"
+        :to="`/projects/${route.params.username}/events/${route.params.eventSlug}/operational/orders/${order.ulid}`"
         class="hover:bg-muted/50 flex items-center justify-between rounded-lg border p-4 transition"
       >
         <div>

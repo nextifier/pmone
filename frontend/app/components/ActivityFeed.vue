@@ -49,21 +49,30 @@
           class="bg-border absolute top-8 bottom-0 left-[15px] w-px"
         />
 
-        <!-- Icon -->
-        <div
-          :class="[
-            'mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full border',
-            colorClasses[activity.color] || colorClasses.zinc,
-          ]"
-        >
-          <Icon :name="activity.icon" class="size-3.5" />
+        <!-- Avatar + Event badge -->
+        <div class="relative mt-0.5 size-8 shrink-0">
+          <Avatar
+            :model="activity.causer || { name: activity.causer_name }"
+            size="sm"
+            rounded="rounded-full"
+            class="size-8"
+          />
+          <div
+            :class="[
+              'border-background absolute -right-1.5 -bottom-1.5 flex size-5 items-center justify-center rounded-full border-2 text-white',
+              eventBadgeClasses[activity.event] || 'bg-primary',
+            ]"
+          >
+            <Icon :name="activity.icon" class="size-2.5" />
+          </div>
         </div>
 
         <!-- Content -->
         <div class="min-w-0 flex-1 pt-0.5">
           <div class="flex items-start justify-between gap-x-3">
             <p class="text-foreground text-sm leading-snug tracking-tight">
-              {{ activity.human_description }}
+              <span class="font-medium">{{ activity.causer_name }}</span>
+              {{ descriptionWithoutCauser(activity) }}
             </p>
             <span
               v-tippy="$dayjs(activity.created_at).format('MMMM D, YYYY [at] h:mm A')"
@@ -76,10 +85,7 @@
           <!-- Subject badge -->
           <div v-if="activity.subject_name" class="mt-1 flex items-center gap-x-1.5">
             <span
-              :class="[
-                'inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium tracking-tight',
-                badgeClasses[activity.color] || badgeClasses.zinc,
-              ]"
+              class="bg-muted text-foreground inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium tracking-tight"
             >
               {{ activity.subject_type }}
             </span>
@@ -96,7 +102,7 @@
             <div
               v-for="change in activity.changes"
               :key="change.field"
-              class="text-muted-foreground flex items-center gap-x-1.5 text-xs tracking-tight"
+              class="text-muted-foreground flex flex-wrap items-center gap-x-1.5 text-xs tracking-tight"
             >
               <span class="font-medium capitalize">{{ change.field }}:</span>
               <span
@@ -107,7 +113,7 @@
               <Icon
                 v-if="change.old !== null && change.old !== undefined"
                 name="lucide:arrow-right"
-                class="size-3.5 shrink-0"
+                class="size-3 shrink-0 opacity-40"
               />
               <span class="text-foreground">{{ formatValue(change.new) }}</span>
             </div>
@@ -236,31 +242,39 @@ const handlePageSizeChange = (value) => {
   emit("perPageChange", Number(value));
 };
 
-const colorClasses = {
-  green:
-    "border-green-200 bg-green-50 text-green-600 dark:border-green-800 dark:bg-green-950 dark:text-green-400",
-  blue: "border-blue-200 bg-blue-50 text-blue-600 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-400",
-  red: "border-red-200 bg-red-50 text-red-600 dark:border-red-800 dark:bg-red-950 dark:text-red-400",
-  amber:
-    "border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-400",
-  purple:
-    "border-purple-200 bg-purple-50 text-purple-600 dark:border-purple-800 dark:bg-purple-950 dark:text-purple-400",
-  zinc: "border-border bg-muted text-muted-foreground",
+const eventBadgeClasses = {
+  created: "bg-success",
+  updated: "bg-info",
+  deleted: "bg-destructive",
+  restored: "bg-info",
+  member_added: "bg-success",
+  member_removed: "bg-destructive",
+  imported: "bg-info",
 };
 
-const badgeClasses = {
-  green: "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400",
-  blue: "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400",
-  red: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400",
-  amber: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400",
-  purple: "bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-400",
-  zinc: "bg-muted text-muted-foreground",
+/**
+ * Remove the causer name prefix from human_description
+ * so we can render it separately with font-medium.
+ */
+const descriptionWithoutCauser = (activity) => {
+  const desc = activity.human_description || "";
+  const name = activity.causer_name || "";
+  if (name && desc.startsWith(name)) {
+    return desc.slice(name.length);
+  }
+  return desc;
+};
+
+const isDatetimeString = (value) => {
+  if (typeof value !== "string") return false;
+  return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value);
 };
 
 const formatValue = (value) => {
-  if (value === null || value === undefined) return "—";
+  if (value === null || value === undefined) return "-";
   if (typeof value === "boolean") return value ? "Yes" : "No";
   if (typeof value === "object") return JSON.stringify(value);
+  if (isDatetimeString(value)) return $dayjs(value).format("MMM D, YYYY h:mm A");
   return String(value);
 };
 </script>

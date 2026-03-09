@@ -16,13 +16,13 @@ class ContactFormSubmissionIndexResource extends JsonResource
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
             'status_color' => $this->status->color(),
+            'form_data' => $this->form_data,
             'form_data_preview' => [
                 'name' => data_get($this->form_data, 'name'),
                 'email' => data_get($this->form_data, 'email'),
                 'phone' => data_get($this->form_data, 'phone'),
                 'brand_name' => data_get($this->form_data, 'brand_name'),
             ],
-            'followed_up_at' => $this->followed_up_at?->toISOString(),
             'created_at' => $this->created_at->toISOString(),
             'updated_at' => $this->updated_at->toISOString(),
 
@@ -36,13 +36,6 @@ class ContactFormSubmissionIndexResource extends JsonResource
                     ? $this->project->getMediaUrls('profile_image')
                     : null,
             ]),
-
-            // Followed up by user
-            'followed_up_by_user' => $this->whenLoaded('followedUpByUser', fn () => $this->followedUpByUser ? [
-                'id' => $this->followedUpByUser->id,
-                'name' => $this->followedUpByUser->name,
-                'username' => $this->followedUpByUser->username,
-            ] : null),
 
             // Soft delete info
             'deleted_at' => $this->deleted_at?->toISOString(),

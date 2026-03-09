@@ -4,7 +4,7 @@
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="space-y-1">
         <NuxtLink
-          :to="`/projects/${route.params.username}/events/${route.params.eventSlug}/products`"
+          :to="`/projects/${route.params.username}/events/${route.params.eventSlug}/operational/products`"
           class="text-muted-foreground hover:text-foreground mb-1 flex items-center gap-x-1 text-sm tracking-tight transition"
         >
           <Icon name="hugeicons:arrow-left-01" class="size-4" />
