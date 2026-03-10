@@ -263,10 +263,11 @@
         <span class="text-muted-foreground text-sm tracking-tight">Invert</span>
       </button>
 
-      <button
-        @click="fetchRates"
+      <Button
+        variant="outline"
+        size="sm"
         :disabled="loading"
-        class="border-border hover:bg-muted flex h-9 items-center gap-x-1 rounded-md border px-2.5 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+        @click="fetchRates"
       >
         <Icon
           name="hugeicons:reload"
@@ -274,7 +275,10 @@
           :class="{ 'animate-spin': loading }"
         />
         <span class="hidden sm:inline">Refresh</span>
-      </button>
+        <KbdGroup class="hidden sm:flex">
+          <Kbd>R</Kbd>
+        </KbdGroup>
+      </Button>
 
       <div
         v-if="meta?.fetched_at"
@@ -299,13 +303,10 @@
         Failed to load exchange rates
       </p>
       <p class="text-muted-foreground mt-1 text-sm tracking-tight">{{ error }}</p>
-      <button
-        @click="fetchRates"
-        class="border-border hover:bg-muted mt-4 inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm tracking-tight active:scale-98"
-      >
+      <Button variant="outline" size="sm" class="mt-4" @click="fetchRates">
         <Icon name="hugeicons:reload" class="size-3.5" />
         <span>Retry</span>
-      </button>
+      </Button>
     </div>
 
     <div v-else class="mt-8">
@@ -459,6 +460,7 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -467,6 +469,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 definePageMeta({
@@ -668,5 +671,15 @@ onMounted(() => {
   calculatorTo.value = getStoredValue(STORAGE_KEY_TO, "IDR");
   invertRates.value = getStoredValue(STORAGE_KEY_INVERT, false);
   fetchRates();
+});
+
+defineShortcuts({
+  r: {
+    handler: () => {
+      if (!loading.value) {
+        fetchRates();
+      }
+    },
+  },
 });
 </script>

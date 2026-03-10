@@ -57,7 +57,7 @@
                 <button
                   class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
                 >
-                  <Icon name="lucide:columns-3" class="size-4 shrink-0" />
+                  <Icon name="hugeicons:layout-3-column" class="size-4 shrink-0" />
                   <span class="hidden sm:flex">Columns</span>
                 </button>
               </PopoverTrigger>
@@ -93,7 +93,7 @@
                 class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
                 disabled
               >
-                <Icon name="lucide:columns-3" class="size-4 shrink-0" />
+                <Icon name="hugeicons:layout-3-column" class="size-4 shrink-0" />
                 <span class="hidden sm:flex">Columns</span>
               </button>
             </template>
@@ -109,35 +109,40 @@
             $slots['add-button'] ||
             $slots.actions
           "
-          class="flex h-9 w-full items-center justify-between gap-x-1 sm:gap-x-2"
+          class="flex h-8 w-full items-center justify-between gap-x-1 sm:gap-x-2"
         >
           <!-- Actions Slot (for bulk actions like delete) -->
           <slot name="actions" :table="table" :selected-rows="table.getSelectedRowModel().rows" />
 
           <div class="ml-auto flex h-full gap-x-1 sm:gap-x-2">
             <!-- Clear Filters Button -->
-            <button
+            <Button
               v-if="hasActiveFilters"
-              class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+              variant="outline"
+              size="sm"
               @click="table.resetColumnFilters()"
             >
               <Icon name="lucide:x" class="size-4 shrink-0" />
               <span class="hidden sm:flex">Clear filters</span>
-            </button>
+            </Button>
 
             <!-- Refresh Button -->
-            <button
+            <Button
               v-if="showRefreshButton && !displayOnly"
-              class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+              variant="outline"
+              size="sm"
               @click="$emit('refresh')"
             >
               <Icon
-                name="lucide:refresh-cw"
+                name="hugeicons:reload"
                 class="size-4 shrink-0"
                 :class="pending ? 'animate-spin' : ''"
               />
               <span class="hidden sm:flex">Refresh</span>
-            </button>
+              <KbdGroup class="hidden sm:flex">
+                <Kbd>R</Kbd>
+              </KbdGroup>
+            </Button>
 
             <slot name="add-button">
               <NuxtLink
@@ -379,7 +384,9 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { Label } from "@/components/ui/label";
 import {
   Pagination,
@@ -659,6 +666,13 @@ defineShortcuts({
     usingInput: true,
     handler: () => {
       searchInputEl.value?.focus();
+    },
+  },
+  r: {
+    handler: () => {
+      if (props.showRefreshButton && !props.displayOnly) {
+        emit("refresh");
+      }
     },
   },
 });

@@ -35,7 +35,7 @@
             <button
               class="hover:bg-muted relative flex h-9 shrink-0 items-center gap-x-1.5 rounded-lg border px-2.5 text-sm tracking-tight active:scale-98"
             >
-              <Icon name="lucide:list-filter" class="size-4 shrink-0" />
+              <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
               <span class="hidden sm:flex">Filter</span>
               <span
                 v-if="totalActiveFilters > 0"

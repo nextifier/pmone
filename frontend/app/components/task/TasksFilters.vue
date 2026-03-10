@@ -98,20 +98,22 @@
       </Popover>
     </div>
 
-    <div class="flex h-9 justify-end gap-x-1 sm:gap-x-2">
-      <button
+    <div class="flex h-8 justify-end gap-x-1 sm:gap-x-2">
+      <Button
         v-if="hasActiveFilters"
+        variant="outline"
+        size="sm"
         @click="clearFilters"
-        class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
       >
         <Icon name="hugeicons:cancel-01" class="size-4 shrink-0" />
         <span class="hidden sm:flex">Clear filters</span>
-      </button>
+      </Button>
 
-      <button
-        @click="$emit('refresh')"
+      <Button
+        variant="outline"
+        size="sm"
         :disabled="pending"
-        class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+        @click="$emit('refresh')"
       >
         <Icon
           name="hugeicons:reload"
@@ -119,7 +121,10 @@
           :class="pending ? 'animate-spin' : ''"
         />
         <span class="hidden sm:flex">Refresh</span>
-      </button>
+        <KbdGroup class="hidden sm:flex">
+          <Kbd>R</Kbd>
+        </KbdGroup>
+      </Button>
 
       <slot name="actions" />
     </div>
@@ -127,7 +132,9 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
@@ -245,6 +252,13 @@ defineShortcuts({
     usingInput: true,
     handler: () => {
       searchInputEl.value?.focus();
+    },
+  },
+  r: {
+    handler: () => {
+      if (!props.pending) {
+        emit("refresh");
+      }
     },
   },
 });

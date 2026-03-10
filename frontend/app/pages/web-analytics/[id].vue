@@ -60,12 +60,10 @@
             <h3 class="text-foreground font-semibold tracking-tighter">Failed to load analytics</h3>
             <p class="text-muted-foreground mt-1 text-sm tracking-tight">{{ error }}</p>
           </div>
-          <button
-            @click="refreshData"
-            class="bg-primary text-primary-foreground hover:bg-primary/90 mt-2 rounded-md px-4 py-2 text-sm font-medium"
-          >
+          <Button variant="outline" size="sm" class="mt-2" @click="refreshData">
+            <Icon name="hugeicons:reload" class="size-4" />
             Try Again
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -269,6 +267,7 @@ import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
 import AnalyticsDevicesList from "@/components/analytics/DevicesList.vue";
 import GaPropertyProfile from "@/components/ga-property/Profile.vue";
 import TableData from "@/components/TableData.vue";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,

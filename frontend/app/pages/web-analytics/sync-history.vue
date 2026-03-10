@@ -14,18 +14,17 @@
           <Icon name="hugeicons:arrow-left-01" class="size-4" />
           <span class="hidden sm:inline">Back to Dashboard</span>
         </NuxtLink>
-        <button
-          @click="triggerSyncNow"
+        <Button
           :disabled="syncingNow"
-          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1.5 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+          @click="triggerSyncNow"
         >
           <Icon
-            name="hugeicons:refresh"
+            name="hugeicons:reload"
             class="size-4 shrink-0"
             :class="{ 'animate-spin': syncingNow }"
           />
           <span>{{ syncingNow ? "Syncing..." : "Sync Now" }}</span>
-        </button>
+        </Button>
       </div>
     </div>
 
@@ -87,17 +86,18 @@
               <option :value="72">Last 3 days</option>
               <option :value="168">Last 7 days</option>
             </select>
-            <button
-              @click="fetchSyncHistory"
+            <Button
+              variant="outline"
+              size="sm"
               :disabled="syncHistoryLoading"
-              class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+              @click="fetchSyncHistory"
             >
               <Icon
-                name="hugeicons:refresh"
+                name="hugeicons:reload"
                 class="size-4"
                 :class="{ 'animate-spin': syncHistoryLoading }"
               />
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -123,7 +123,7 @@
                 <button
                   class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
                 >
-                  <Icon name="lucide:list-filter" class="size-4 shrink-0" />
+                  <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
                   <span class="hidden sm:flex">Filter</span>
                   <span
                     v-if="table.getColumn('status')?.getFilterValue()?.length"
@@ -188,6 +188,7 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import { useAnalyticsSync } from "~/composables/useAnalyticsSync";
 import { useAnalyticsSyncHistory } from "~/composables/useAnalyticsSyncHistory";
 

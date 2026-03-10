@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Button } from "@/components/ui/button";
+
 const { fetchMetricsDashboard, fetchSystemHealth } = useComparisonData();
 
 const metrics = ref<any>(null);
@@ -48,17 +50,18 @@ const getStatusText = (status: string) => {
     <div class="border-border bg-card rounded-lg border p-6">
       <div class="mb-4 flex items-center justify-between">
         <h3 class="text-lg font-semibold">System Health</h3>
-        <button
-          @click="loadMetrics"
-          class="hover:bg-muted rounded-md p-2 transition-colors"
+        <Button
+          variant="outline"
+          size="sm"
           :disabled="loading"
+          @click="loadMetrics"
         >
           <Icon
-            name="hugeicons:refresh"
+            name="hugeicons:reload"
             class="size-4"
             :class="{ 'animate-spin': loading }"
           />
-        </button>
+        </Button>
       </div>
 
       <div v-if="loading && !systemHealth" class="flex items-center justify-center py-8">
