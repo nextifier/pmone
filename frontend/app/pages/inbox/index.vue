@@ -172,43 +172,22 @@
     >
       <template #default>
         <div v-if="detailSubmission" class="px-4 pb-10 md:px-6 md:py-6">
-          <!-- Header -->
-          <div class="space-y-1">
-            <h3 class="pr-8 text-lg font-semibold tracking-tight">
-              {{ detailSubmission.subject || "No Subject" }}
-            </h3>
-            <p class="text-muted-foreground text-sm tracking-tight">
-              {{ detailSubmission.project?.name || "Unknown Project" }} ·
-              {{ $dayjs(detailSubmission.created_at).format("MMM D, YYYY [at] h:mm A") }}
-            </p>
-          </div>
-
-          <!-- Actions -->
-          <div class="mt-4 flex flex-wrap items-center gap-2">
+          <!-- Header with Status -->
+          <div class="flex items-start justify-between gap-x-2 sm:items-end">
+            <div class="space-y-1">
+              <h3 class="pr-8 text-lg font-semibold tracking-tight">
+                {{ detailSubmission.subject || "No Subject" }}
+              </h3>
+              <p class="text-muted-foreground text-sm tracking-tight">
+                {{ detailSubmission.project?.name || "Unknown Project" }} ·
+                {{ $dayjs(detailSubmission.created_at).format("MMM D, YYYY [at] h:mm A") }}
+              </p>
+            </div>
             <StatusDropdown
               :status="detailSubmission.status"
               :disabled="statusUpdating === detailSubmission.ulid"
               @update="(s) => handleStatusUpdate(detailSubmission.ulid, s)"
             />
-
-            <a
-              v-if="detailSubmission.form_data?.phone"
-              :href="`https://wa.me/${formatWhatsAppNumber(detailSubmission.form_data.phone)}`"
-              target="_blank"
-              v-tippy="'WhatsApp'"
-              class="hover:bg-muted inline-flex size-8 items-center justify-center rounded-md text-success-foreground transition"
-            >
-              <Icon name="hugeicons:whatsapp" class="size-4" />
-            </a>
-
-            <a
-              v-if="detailSubmission.form_data?.email"
-              :href="`mailto:${detailSubmission.form_data.email}`"
-              v-tippy="'Email'"
-              class="hover:bg-muted inline-flex size-8 items-center justify-center rounded-md text-info-foreground transition"
-            >
-              <Icon name="hugeicons:mail-01" class="size-4" />
-            </a>
           </div>
 
           <!-- Form Data -->
@@ -216,18 +195,25 @@
             <div
               v-for="(value, key) in detailSubmission.form_data"
               :key="key"
-              class="flex flex-col gap-1 py-3 first:pt-0 sm:flex-row sm:gap-4"
+              class="space-y-1 py-3 first:pt-0"
             >
-              <div
-                class="text-muted-foreground w-full text-sm font-medium tracking-tight sm:w-36 sm:shrink-0"
-              >
+              <div class="text-muted-foreground text-sm font-medium tracking-tight">
                 {{ formatFieldLabel(key) }}
               </div>
-              <div class="flex-1 text-sm tracking-tight">
+              <div class="text-sm tracking-tight">
                 <template v-if="key === 'email'">
-                  <a :href="`mailto:${value}`" class="text-primary hover:underline">
-                    {{ value }}
-                  </a>
+                  <div class="flex items-center gap-2">
+                    <a :href="`mailto:${value}`" class="text-primary hover:underline">
+                      {{ value }}
+                    </a>
+                    <a
+                      :href="`mailto:${value}`"
+                      v-tippy="'Email'"
+                      class="hover:bg-muted text-info-foreground inline-flex size-7 items-center justify-center rounded-md transition"
+                    >
+                      <Icon name="hugeicons:mail-01" class="size-4" />
+                    </a>
+                  </div>
                 </template>
                 <template v-else-if="key === 'phone'">
                   <div class="flex items-center gap-2">
@@ -243,6 +229,14 @@
                       class="text-primary hover:underline"
                     >
                       {{ value }}
+                    </a>
+                    <a
+                      :href="`https://wa.me/${formatWhatsAppNumber(value)}`"
+                      target="_blank"
+                      v-tippy="'WhatsApp'"
+                      class="hover:bg-muted text-success-foreground inline-flex size-7 items-center justify-center rounded-md transition"
+                    >
+                      <Icon name="hugeicons:whatsapp" class="size-4" />
                     </a>
                   </div>
                 </template>
@@ -797,7 +791,7 @@ const RowActions = defineComponent({
                   "button",
                   {
                     class:
-                      "hover:bg-destructive/10 text-destructive inline-flex size-8 items-center justify-center rounded-md",
+                      "hover:bg-destructive/10 text-destructive-foreground inline-flex size-8 items-center justify-center rounded-md",
                     onClick: () => (dialogOpen.value = true),
                   },
                   [h(resolveComponent("Icon"), { name: "hugeicons:delete-01", class: "size-4" })]

@@ -263,6 +263,7 @@
 <script setup>
 import Avatar from "@/components/Avatar.vue";
 import DateTimePicker from "@/components/DateTimePicker.vue";
+import { toLocalDateTimeString } from "@/lib/utils";
 import InputFileImage from "@/components/InputFileImage.vue";
 import TipTapEditor from "@/components/TipTapEditor.vue";
 import {
@@ -392,8 +393,8 @@ async function handleSubmit() {
 
     // Clean up empty values
     if (!body.slug) delete body.slug;
-    body.opens_at = body.opens_at instanceof Date ? body.opens_at.toISOString() : null;
-    body.closes_at = body.closes_at instanceof Date ? body.closes_at.toISOString() : null;
+    body.opens_at = body.opens_at instanceof Date ? toLocalDateTimeString(body.opens_at) : null;
+    body.closes_at = body.closes_at instanceof Date ? toLocalDateTimeString(body.closes_at) : null;
     if (!body.response_limit) body.response_limit = null;
     if (body.project_id) {
       body.project_id = Number(body.project_id);

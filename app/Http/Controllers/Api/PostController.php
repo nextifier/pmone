@@ -309,7 +309,7 @@ class PostController extends Controller
     {
         $this->authorize('view', $post);
 
-        $post->load(['creator', 'updater', 'authors', 'tags', 'media']);
+        $post->load(['creator', 'updater', 'authors.media', 'tags', 'media']);
         $post->loadCount('visits');
 
         // Track visit only if not loading for edit or analytics

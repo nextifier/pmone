@@ -16,10 +16,7 @@ const SOCIAL_PATTERNS = {
   X: [/(?:https?:\/\/)?(?:www\.)?(?:x|twitter)\.com\//i],
   TikTok: [/(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@?/i],
   LinkedIn: [/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\//i],
-  YouTube: [
-    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/@?/i,
-    /(?:https?:\/\/)?youtu\.be\//i,
-  ],
+  YouTube: [/(?:https?:\/\/)?(?:www\.)?youtube\.com\/@?/i, /(?:https?:\/\/)?youtu\.be\//i],
 };
 
 const props = defineProps({
@@ -84,20 +81,21 @@ watch(
     if (core) {
       emit("update:modelValue", buildFullUrl(core));
     }
-  },
+  }
 );
 </script>
 
 <template>
   <InputGroup :class="props.class">
+    <InputGroupAddon>
+      <InputGroupText>{{ prefix }}</InputGroupText>
+    </InputGroupAddon>
     <InputGroupInput
       :model-value="displayValue"
       @update:model-value="onValueChange"
       @paste="onPaste"
       :placeholder="placeholder"
+      class="pl-0!"
     />
-    <InputGroupAddon>
-      <InputGroupText>{{ prefix }}</InputGroupText>
-    </InputGroupAddon>
   </InputGroup>
 </template>

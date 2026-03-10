@@ -118,7 +118,7 @@ const canCreate = computed(() => hasPermission("events.create"));
 // Table state
 const columnFilters = ref([]);
 const pagination = ref({ pageIndex: 0, pageSize: 15 });
-const sorting = ref([{ id: "start_date", desc: true }]);
+const sorting = ref([]);
 
 // Build query params
 const buildQueryParams = () => {

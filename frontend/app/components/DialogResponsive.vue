@@ -44,45 +44,45 @@
 
     <template v-else>
       <DrawerRoot v-model:open="isOpen">
-      <DrawerPortal>
-        <DrawerOverlay v-if="!hideOverlay" class="fixed inset-0 z-50 bg-black/80" />
-        <DrawerContent
-          class="border-border bg-background fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto max-h-[85vh] flex-col rounded-t-2xl border-t outline-hidden lg:max-h-[calc(100lvh-var(--navbar-height-desktop))]"
-        >
-          <div class="bg-border mx-auto mt-2 mb-7 h-1.5 w-[100px] shrink-0 rounded-full" />
-          <DrawerTitle class="hidden" />
-          <DrawerDescription class="hidden" />
-          <slot name="sticky-header" />
-          <div
-            ref="drawerContentBody"
-            class="pointer-events-auto"
-            :class="{
-              'touch-pan-down': drawerContentBodyIsAtTop,
-              'overflow-y-auto': props.overflowContent,
-            }"
-            @scroll="handleDrawerContentBodyScroll"
+        <DrawerPortal>
+          <DrawerOverlay v-if="!hideOverlay" class="fixed inset-0 z-50 bg-black/80" />
+          <DrawerContent
+            class="border-border bg-background fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto max-h-[85vh] flex-col rounded-t-2xl border-t outline-hidden lg:max-h-[calc(100lvh-var(--navbar-height-desktop))]"
           >
-            <slot :data="dialogData" />
-          </div>
-          <slot name="sticky-footer" />
-          <button
-            v-if="preventClose"
-            @click="onCloseButtonClick"
-            class="group data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-1.5 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
-          >
-            <IconClose class="size-4 opacity-60 transition group-hover:opacity-100" />
-            <span class="sr-only">Close</span>
-          </button>
-          <DrawerClose
-            v-else-if="drawerCloseButton || isDesktop"
-            class="group data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-1.5 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
-          >
-            <IconClose class="size-4 opacity-60 transition group-hover:opacity-100" />
-            <span class="sr-only">Close</span>
-          </DrawerClose>
-        </DrawerContent>
-      </DrawerPortal>
-    </DrawerRoot>
+            <div class="bg-border mx-auto mt-2 mb-7 h-1.5 w-[100px] shrink-0 rounded-full" />
+            <DrawerTitle class="hidden" />
+            <DrawerDescription class="hidden" />
+            <slot name="sticky-header" />
+            <div
+              ref="drawerContentBody"
+              class="pointer-events-auto overflow-x-hidden wrap-break-word"
+              :class="{
+                'touch-pan-down': drawerContentBodyIsAtTop,
+                'overflow-y-auto': props.overflowContent,
+              }"
+              @scroll="handleDrawerContentBodyScroll"
+            >
+              <slot :data="dialogData" />
+            </div>
+            <slot name="sticky-footer" />
+            <button
+              v-if="preventClose"
+              @click="onCloseButtonClick"
+              class="group data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-1.5 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
+            >
+              <IconClose class="size-4 opacity-60 transition group-hover:opacity-100" />
+              <span class="sr-only">Close</span>
+            </button>
+            <DrawerClose
+              v-else-if="drawerCloseButton || isDesktop"
+              class="group data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-1.5 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
+            >
+              <IconClose class="size-4 opacity-60 transition group-hover:opacity-100" />
+              <span class="sr-only">Close</span>
+            </DrawerClose>
+          </DrawerContent>
+        </DrawerPortal>
+      </DrawerRoot>
     </template>
   </div>
 </template>

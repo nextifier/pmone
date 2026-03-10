@@ -1,7 +1,7 @@
 <template>
   <div>
     <Sidebar
-      v-if="['news-slug'].includes(route.name)"
+      v-if="['news-slug'].includes(route.name) && post"
       side="right"
       variant="sidebar"
       class="top-(--navbar-height-desktop) border-transparent"
@@ -218,13 +218,19 @@ const { $dayjs } = useNuxtApp();
 import { useSidebar } from "@/components/ui/sidebar/utils";
 const { open, isMobile, setOpenMobile } = useSidebar();
 
-// Call local Nuxt server API (which proxies to PM One API)
-// API key is kept secure on the server, not exposed to browser
-const { data, pending, error } = await useFetch(`/api/blog/posts/${route.params.slug}`);
+// Always try public API first (SSR-safe, no hydration issues)
+const { data, pending: fetchPending } = await useFetch(`/api/blog/posts/${route.params.slug}`);
 
-const post = computed(() => data?.value?.data);
+// For authenticated users viewing private/members_only posts, fallback to authenticated API
+const { isAuthenticated } = useSanctumAuth();
+const authData = ref(null);
+const authPending = ref(!data.value?.data && isAuthenticated.value);
+const pending = computed(() => fetchPending.value || authPending.value);
 
-if (!post.value) {
+const post = computed(() => data.value?.data || authData.value?.data);
+
+// Only throw 404 for unauthenticated users when public API returns no data
+if (!data.value?.data && !isAuthenticated.value) {
   throw createError({
     statusCode: 404,
     statusMessage: "Page not found",
@@ -272,6 +278,18 @@ const onHeadingsFound = (headings) => {
 };
 
 onMounted(async () => {
+  // If public API returned no data and user is authenticated, try authenticated API
+  if (!post.value && isAuthenticated.value) {
+    try {
+      const client = useSanctumClient();
+      authData.value = await client(`/api/posts/${route.params.slug}`);
+    } catch {
+      showError({ statusCode: 404, statusMessage: "Page not found" });
+    } finally {
+      authPending.value = false;
+    }
+  }
+
   // Tunggu DOM di-hydrate sepenuhnya
   await nextTick();
 

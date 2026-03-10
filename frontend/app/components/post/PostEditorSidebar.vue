@@ -313,6 +313,7 @@ import {
   TagsInputItemText,
 } from "@/components/ui/tags-input";
 import { Textarea } from "@/components/ui/textarea";
+import { toLocalDateTimeString } from "@/lib/utils";
 import { usePostEditorOptional } from "@/composables/usePostEditor";
 
 const props = defineProps({
@@ -387,7 +388,7 @@ const publishDateTime = computed({
     return new Date(editor.value.form.published_at);
   },
   set: (value: Date | null) => {
-    editor.value.form.published_at = value ? value.toISOString().slice(0, 16) : null;
+    editor.value.form.published_at = value ? toLocalDateTimeString(value) : null;
   },
 });
 

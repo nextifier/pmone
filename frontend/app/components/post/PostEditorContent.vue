@@ -216,6 +216,7 @@ import { usePostEditor } from "@/composables/usePostEditor";
 
 const editor = usePostEditor();
 const { sanitizeHtml, wrapCaptionedImages } = useSanitize();
+const { highlighter } = useShiki();
 const client = useSanctumClient();
 const { $dayjs } = useNuxtApp();
 
@@ -237,8 +238,35 @@ const showCaptionInput = computed(() => {
 
 const sanitizedContent = computed(() => {
   const html = sanitizeHtml(editor.previewData.value.content) || "";
-  return wrapCaptionedImages(html);
+  const wrapped = wrapCaptionedImages(html);
+  if (!highlighter.value) return wrapped;
+  return highlightCodeBlocks(wrapped, highlighter.value);
 });
+
+function highlightCodeBlocks(html: string, shiki: any): string {
+  return html.replace(
+    /<pre><code(?:\s+class="language-(\w+)")?>([\s\S]*?)<\/code><\/pre>/g,
+    (_, lang, code) => {
+      if (!lang) return _;
+      try {
+        const decoded = code
+          .replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">")
+          .replace(/&amp;/g, "&")
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'");
+        const highlighted = shiki.codeToHtml(decoded, {
+          lang,
+          themes: { light: "github-light", dark: "github-dark" },
+          defaultColor: false,
+        });
+        return highlighted;
+      } catch {
+        return _;
+      }
+    },
+  );
+}
 
 // Preview computed properties
 const previewTags = computed(() => editor.previewData.value.tags || []);

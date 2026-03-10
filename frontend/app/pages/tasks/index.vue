@@ -526,7 +526,37 @@ const handleUpdateStatus = async (task, newStatus) => {
       body: { status: newStatus },
     });
 
-    toast.success(`Task ${statusLabels[newStatus] || newStatus}`);
+    toast.success(`Task ${statusLabels[newStatus] || newStatus}`, {
+      action: {
+        label: "Undo",
+        onClick: async () => {
+          const oldStatus = oldTask.status;
+          const currentList = listMap[newStatus];
+          const originalList = listMap[oldStatus];
+
+          // Optimistic undo: move task back
+          const idx = currentList.value.findIndex((t) => t.id === task.id);
+          if (idx !== -1) currentList.value.splice(idx, 1);
+          originalList.value.splice(sourceIndex, 0, oldTask);
+          nextTick(() => initializeSortable());
+
+          try {
+            await client(`/api/tasks/${task.ulid}`, {
+              method: "PUT",
+              body: { status: oldStatus },
+            });
+            toast.success("Task status reverted");
+          } catch (undoErr) {
+            // Rollback undo
+            const rIdx = originalList.value.findIndex((t) => t.id === task.id);
+            if (rIdx !== -1) originalList.value.splice(rIdx, 1);
+            currentList.value.push(updatedTask);
+            nextTick(() => initializeSortable());
+            toast.error("Failed to undo");
+          }
+        },
+      },
+    });
   } catch (err) {
     // Rollback
     const rIdx = targetList.value.findIndex((t) => t.id === task.id);

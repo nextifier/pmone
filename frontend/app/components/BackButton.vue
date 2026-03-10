@@ -14,7 +14,7 @@
     >
       <Icon name="lucide:arrow-left" class="size-4 shrink-0" />
       <span v-if="showLabel">Back</span>
-      <KbdGroup v-if="showLabel">
+      <KbdGroup v-if="showLabel && shortcutEnabled">
         <Kbd>B</Kbd>
       </KbdGroup>
     </button>
@@ -41,9 +41,15 @@ const props = defineProps({
 const router = useRouter();
 const route = useRoute();
 
+const shortcutEnabled = computed(() => {
+  const path = route.path;
+  return !path.endsWith("/create") && !path.endsWith("/edit") && !path.startsWith("/settings/");
+});
+
 defineShortcuts({
   b: {
     handler: () => goBack(),
+    whenever: [shortcutEnabled],
   },
 });
 

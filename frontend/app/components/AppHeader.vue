@@ -34,6 +34,7 @@
                   >{{ headerProject.name }}</span
                 >
               </NuxtLink>
+              <HeaderProjectSwitcher />
 
               <template v-if="headerEvent">
                 <Icon
@@ -60,6 +61,7 @@
                     {{ headerEvent.title }}
                   </h3>
                 </NuxtLink>
+                <HeaderEventSwitcher />
 
                 <template v-if="headerBrand">
                   <Icon

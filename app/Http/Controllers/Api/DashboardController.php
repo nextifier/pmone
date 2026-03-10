@@ -14,6 +14,37 @@ use Illuminate\Support\Facades\DB;
 class DashboardController extends Controller
 {
     /**
+     * Get navigation data for header switcher (projects + events).
+     */
+    public function navigation(): JsonResponse
+    {
+        $user = auth()->user();
+
+        $projects = $user->projects()
+            ->active()
+            ->orderBy('order_column')
+            ->with(['media', 'events' => fn ($q) => $q->active()->reorder()->latest('id')->with('media')])
+            ->get()
+            ->map(fn ($project) => [
+                'id' => $project->id,
+                'name' => $project->name,
+                'username' => $project->username,
+                'profile_image' => $project->profile_image,
+                'events' => $project->events->map(fn ($event) => [
+                    'id' => $event->id,
+                    'title' => $event->title,
+                    'slug' => $event->slug,
+                    'start_date' => $event->start_date?->toISOString(),
+                    'end_date' => $event->end_date?->toISOString(),
+                    'poster_image' => $event->poster_image,
+                ])->values(),
+            ])
+            ->values();
+
+        return response()->json(['data' => $projects]);
+    }
+
+    /**
      * Get operational dashboard statistics for the authenticated user.
      */
     public function stats(): JsonResponse

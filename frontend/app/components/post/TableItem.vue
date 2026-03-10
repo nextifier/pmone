@@ -29,6 +29,11 @@
           }"
           >{{ post.status }}</span
         >
+        <span
+          v-if="post.visibility === 'private'"
+          class="bg-muted text-muted-foreground rounded-full px-1.5 py-0.5 text-xs font-medium tracking-tight capitalize"
+          >Private</span
+        >
         <DevOnly>
           <span class="text-muted-foreground text-xs font-medium">ID: {{ post.id }}</span>
         </DevOnly>

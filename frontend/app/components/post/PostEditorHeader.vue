@@ -16,7 +16,7 @@
         <!-- Back Button -->
 
         <BackButton v-slot="{ goBack }" destination="/posts" :force-destination="true">
-          <Button variant="ghost" size="icon" @click="goBack">
+          <Button variant="ghost" size="iconSm" @click="goBack" class="-ml-2 sm:ml-0">
             <Icon name="lucide:arrow-left" class="size-5 shrink-0" />
           </Button>
         </BackButton>

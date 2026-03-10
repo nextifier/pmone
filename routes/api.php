@@ -47,6 +47,7 @@ Route::middleware(['auth:sanctum'])->get('/user', [UserController::class, 'profi
 
 // Dashboard routes (authenticated + verified)
 Route::middleware(['auth:sanctum', 'verified'])->prefix('dashboard')->group(function () {
+    Route::get('/navigation', [DashboardController::class, 'navigation'])->name('dashboard.navigation');
     Route::get('/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
     Route::get('/writer-stats', [DashboardController::class, 'writerStats'])->name('dashboard.writer-stats');
 });

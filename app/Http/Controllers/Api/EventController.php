@@ -43,7 +43,7 @@ class EventController extends Controller
      */
     public function all(Request $request): JsonResponse
     {
-        $query = Event::query()->withoutTrashed()
+        $query = Event::query()->withoutTrashed()->reorder()
             ->with('project:id,name,username')
             ->withCount('brandEvents')
             ->withSum([
@@ -73,21 +73,21 @@ class EventController extends Controller
 
         // Sorting: ongoing first, upcoming (closest to today), completed (most recent first), draft/no_date last
         $now = now();
-        $query->orderByRaw("
+        $query->orderByRaw('
             CASE
                 WHEN start_date IS NOT NULL AND start_date <= ? AND (end_date IS NULL OR end_date >= ?) THEN 0
                 WHEN start_date IS NOT NULL AND start_date > ? THEN 1
                 WHEN start_date IS NOT NULL AND (end_date IS NOT NULL AND end_date < ? OR end_date IS NULL AND start_date < ?) THEN 2
                 ELSE 3
             END ASC
-        ", [$now, $now->copy()->startOfDay(), $now->copy()->endOfDay(), $now->copy()->startOfDay(), $now->copy()->startOfDay()])
-        ->orderByRaw("
+        ', [$now, $now->copy()->startOfDay(), $now->copy()->endOfDay(), $now->copy()->startOfDay(), $now->copy()->startOfDay()])
+            ->orderByRaw('
             CASE
                 WHEN start_date IS NOT NULL AND start_date > ? THEN ABS(EXTRACT(EPOCH FROM (start_date - ?::timestamp)))
                 WHEN start_date IS NOT NULL THEN -EXTRACT(EPOCH FROM start_date)
                 ELSE 999999999
             END ASC
-        ", [$now->copy()->endOfDay(), $now]);
+        ', [$now->copy()->endOfDay(), $now]);
 
         $events = $query->paginate($request->input('per_page', 50));
 
@@ -140,7 +140,7 @@ class EventController extends Controller
         $project = $this->resolveProject($username);
         $this->authorize('viewAny', [Event::class, $project]);
 
-        $query = $project->events()->withoutTrashed()
+        $query = $project->events()->withoutTrashed()->reorder()
             ->with('project:id,username')
             ->withCount('brandEvents')
             ->withSum([
@@ -164,21 +164,21 @@ class EventController extends Controller
 
         // Sorting: ongoing first, upcoming (closest to today), completed (most recent first), draft/no_date last
         $now = now();
-        $query->orderByRaw("
+        $query->orderByRaw('
             CASE
                 WHEN start_date IS NOT NULL AND start_date <= ? AND (end_date IS NULL OR end_date >= ?) THEN 0
                 WHEN start_date IS NOT NULL AND start_date > ? THEN 1
                 WHEN start_date IS NOT NULL AND (end_date IS NOT NULL AND end_date < ? OR end_date IS NULL AND start_date < ?) THEN 2
                 ELSE 3
             END ASC
-        ", [$now, $now->copy()->startOfDay(), $now->copy()->endOfDay(), $now->copy()->startOfDay(), $now->copy()->startOfDay()])
-        ->orderByRaw("
+        ', [$now, $now->copy()->startOfDay(), $now->copy()->endOfDay(), $now->copy()->startOfDay(), $now->copy()->startOfDay()])
+            ->orderByRaw('
             CASE
                 WHEN start_date IS NOT NULL AND start_date > ? THEN ABS(EXTRACT(EPOCH FROM (start_date - ?::timestamp)))
                 WHEN start_date IS NOT NULL THEN -EXTRACT(EPOCH FROM start_date)
                 ELSE 999999999
             END ASC
-        ", [$now->copy()->endOfDay(), $now]);
+        ', [$now->copy()->endOfDay(), $now]);
 
         $events = $query->paginate($request->input('per_page', 50));
 

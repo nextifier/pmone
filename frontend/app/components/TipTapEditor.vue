@@ -93,6 +93,16 @@
         >
           <Icon name="hugeicons:quote-down" class="size-4.5" />
         </button>
+        <button
+          type="button"
+          @click="editor.chain().focus().toggleCodeBlock().run()"
+          :class="{ 'is-active': editor.isActive('codeBlock') }"
+          class="toolbar-button"
+          title="Code Block"
+          v-tippy="'Code Block'"
+        >
+          <Icon name="hugeicons:source-code" class="size-4.5" />
+        </button>
       </div>
 
       <div class="toolbar-divider"></div>
@@ -171,9 +181,14 @@
 
 <script setup>
 import ImageNodeView from "@/components/tiptap/ImageNodeView.vue";
+import CodeBlockView from "@/components/tiptap/CodeBlockView.vue";
+import { useShiki } from "@/composables/useShiki";
+import CodeBlock from "@tiptap/extension-code-block";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import TextAlign from "@tiptap/extension-text-align";
 import StarterKit from "@tiptap/starter-kit";
 import { EditorContent, useEditor, VueNodeViewRenderer } from "@tiptap/vue-3";
@@ -215,6 +230,86 @@ const emit = defineEmits(["update:modelValue"]);
 const imageInput = ref(null);
 const client = useSanctumClient();
 
+// Shiki syntax highlighting
+const { highlighter } = useShiki();
+const shikiPluginKey = new PluginKey("shiki");
+
+function getShikiDecorations(doc, shiki) {
+  const decorations = [];
+
+  doc.descendants((node, pos) => {
+    if (node.type.name !== "codeBlock") return false;
+
+    const language = node.attrs.language;
+    const code = node.textContent;
+
+    if (!code || !language) return false;
+
+    try {
+      const { tokens } = shiki.codeToTokens(code, {
+        lang: language,
+        themes: { light: "github-light", dark: "github-dark" },
+      });
+
+      let currentPos = pos + 1;
+
+      for (let i = 0; i < tokens.length; i++) {
+        for (const token of tokens[i]) {
+          const to = currentPos + token.content.length;
+          if (token.htmlStyle) {
+            const style = Object.entries(token.htmlStyle)
+              .map(([k, v]) => `${k}:${v}`)
+              .join(";");
+            decorations.push(Decoration.inline(currentPos, to, { style }));
+          }
+          currentPos = to;
+        }
+        if (i < tokens.length - 1) currentPos += 1;
+      }
+    } catch {
+      // Language not supported
+    }
+  });
+
+  return DecorationSet.create(doc, decorations);
+}
+
+const CodeBlockShiki = CodeBlock.extend({
+  addNodeView() {
+    return VueNodeViewRenderer(CodeBlockView);
+  },
+  addProseMirrorPlugins() {
+    return [
+      ...(this.parent?.() || []),
+      new Plugin({
+        key: shikiPluginKey,
+        state: {
+          init: (_, { doc }) => {
+            if (highlighter.value) {
+              return getShikiDecorations(doc, highlighter.value);
+            }
+            return DecorationSet.empty;
+          },
+          apply: (tr, set, _, newState) => {
+            if (
+              highlighter.value &&
+              (tr.docChanged || tr.getMeta(shikiPluginKey))
+            ) {
+              return getShikiDecorations(newState.doc, highlighter.value);
+            }
+            return tr.docChanged ? DecorationSet.empty : set;
+          },
+        },
+        props: {
+          decorations(state) {
+            return this.getState(state);
+          },
+        },
+      }),
+    ];
+  },
+});
+
 // Track previous images to detect deletions
 const previousImages = ref(new Set());
 
@@ -246,8 +341,10 @@ const editor = useEditor({
   content: props.modelValue,
   extensions: [
     StarterKit.configure({
-      link: false, // Disable link from StarterKit to use custom config
+      link: false,
+      codeBlock: false,
     }),
+    CodeBlockShiki,
     CustomImage.configure({
       HTMLAttributes: {
         class: "post-content-image",
@@ -307,6 +404,15 @@ const editor = useEditor({
     // Initialize tracking of existing temp images
     previousImages.value = extractTempImageFolders(editor.getHTML());
   },
+});
+
+// Trigger Shiki re-decoration when highlighter finishes loading
+watch(highlighter, (h) => {
+  if (h && editor.value) {
+    const { tr } = editor.value.state;
+    tr.setMeta(shikiPluginKey, true);
+    editor.value.view.dispatch(tr);
+  }
 });
 
 // Watch for external changes to modelValue
@@ -487,6 +593,10 @@ const handleImageUpload = async (event) => {
   @apply my-3;
 }
 
+:deep(.ProseMirror .code-block-wrapper pre code p) {
+  @apply my-0;
+}
+
 /* Dark mode text colors for all content */
 :deep(.ProseMirror) {
   @apply prose-headings:text-foreground prose-headings:font-semibold prose-headings:tracking-tighter;
@@ -498,7 +608,18 @@ const handleImageUpload = async (event) => {
 }
 
 
+:deep(.ProseMirror :not(pre) > code) {
+  @apply bg-muted rounded px-1.5 py-0.5 font-mono text-sm;
+}
+
 :deep(.post-content-link) {
   @apply text-foreground cursor-pointer font-semibold tracking-tight underline;
+}
+</style>
+
+<style>
+/* Shiki dark mode - needs non-scoped style because .dark is on <html> ancestor */
+.dark .tiptap-editor span[style*="--shiki-dark"] {
+  color: var(--shiki-dark) !important;
 }
 </style>

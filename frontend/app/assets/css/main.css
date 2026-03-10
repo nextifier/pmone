@@ -629,9 +629,32 @@
       @apply mt-6 border-l-2 pl-6 italic;
     }
 
+    & pre {
+      @apply bg-muted my-4 overflow-x-auto rounded-lg p-4 font-mono text-sm leading-tight;
+
+      & code {
+        @apply bg-transparent p-0 font-normal;
+      }
+    }
+
+    & pre.shiki {
+      @apply bg-muted!;
+
+      & span[style] {
+        color: var(--shiki-light) !important;
+      }
+    }
+
     & code {
       @apply bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
     }
+  }
+}
+
+/* Shiki dual theme dark mode switch - must be in @layer utilities to override text-inherit! */
+@layer utilities {
+  .dark .format-html pre.shiki span[style] {
+    color: var(--shiki-dark) !important;
   }
 }
 
@@ -874,7 +897,7 @@ img.pswp__img {
   }
 
   & [data-button] {
-    @apply !bg-background !text-foreground hover:!bg-background/80 !self-center !font-semibold !tracking-tight;
+    @apply bg-background! text-foreground! hover:bg-background/80! self-center! font-medium tracking-tight!;
   }
 
   &[data-type="info"] [data-icon] {

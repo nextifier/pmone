@@ -314,6 +314,7 @@ const defaultOpenItems = computed(() => {
 
 // Update task status
 const handleUpdateStatus = async (task, newStatus) => {
+  const oldStatus = task.status;
   try {
     await client(`/api/tasks/${task.ulid}`, {
       method: "PUT",
@@ -327,7 +328,23 @@ const handleUpdateStatus = async (task, newStatus) => {
       todo: "moved to To Do",
       in_progress: "started",
     };
-    toast.success(`Task ${statusLabels[newStatus] || newStatus}`);
+    toast.success(`Task ${statusLabels[newStatus] || newStatus}`, {
+      action: {
+        label: "Undo",
+        onClick: async () => {
+          try {
+            await client(`/api/tasks/${task.ulid}`, {
+              method: "PUT",
+              body: { status: oldStatus },
+            });
+            await refresh();
+            toast.success("Task status reverted");
+          } catch (undoErr) {
+            toast.error("Failed to undo");
+          }
+        },
+      },
+    });
   } catch (err) {
     console.error("Failed to update task status:", err);
     toast.error("Failed to update task status");

@@ -102,6 +102,7 @@
 
 <script setup lang="ts">
 import { useSidebar } from "@/components/ui/sidebar/utils";
+import { toLocalDateTimeString } from "@/lib/utils";
 import { providePostEditor, type PostForm } from "@/composables/usePostEditor";
 import { TabsRoot } from "reka-ui";
 import { toast } from "vue-sonner";
@@ -307,8 +308,7 @@ function populateForm() {
   form.featured_image_caption = data.featured_image?.caption || "";
 
   if (data.published_at) {
-    const date = new Date(data.published_at);
-    form.published_at = date.toISOString().slice(0, 16);
+    form.published_at = toLocalDateTimeString(new Date(data.published_at));
   }
 
   if (data.tags && Array.isArray(data.tags)) {
@@ -468,8 +468,7 @@ async function handleRestoreChanges() {
     if (savedData.tags) form.tags = savedData.tags;
     if (savedData.authors) form.authors = savedData.authors;
     if (savedData.published_at) {
-      const date = new Date(savedData.published_at);
-      form.published_at = date.toISOString().slice(0, 16);
+      form.published_at = toLocalDateTimeString(new Date(savedData.published_at));
     }
     toast.success("Draft restored successfully");
   }
@@ -590,10 +589,10 @@ async function saveDraft() {
 async function publish(scheduledAt?: Date) {
   if (scheduledAt) {
     form.status = "scheduled";
-    form.published_at = scheduledAt.toISOString().slice(0, 16);
+    form.published_at = toLocalDateTimeString(scheduledAt);
   } else {
     form.status = "published";
-    form.published_at = new Date().toISOString().slice(0, 16);
+    form.published_at = toLocalDateTimeString(new Date());
   }
   await handleSubmit();
 }
@@ -643,7 +642,7 @@ function buildPayload() {
     featured: form.featured,
     meta_title: form.meta_title || null,
     meta_description: form.meta_description || null,
-    published_at: form.published_at ? new Date(form.published_at).toISOString() : null,
+    published_at: form.published_at || null,
     tags: form.tags,
   };
 

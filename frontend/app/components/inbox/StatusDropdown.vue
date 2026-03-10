@@ -2,14 +2,19 @@
   <DropdownMenu>
     <DropdownMenuTrigger asChild>
       <button
-        class="text-muted-foreground hover:text-foreground data-[state=open]:bg-muted inline-flex items-center gap-x-1.5 rounded-md px-2 py-1 text-xs font-medium tracking-tight transition hover:bg-muted active:scale-98"
+        class="text-muted-foreground hover:text-foreground data-[state=open]:bg-muted hover:bg-muted inline-flex items-center gap-x-1.5 rounded-md px-2 py-1 text-sm font-medium tracking-tight transition active:scale-98"
       >
-        <span :class="config.dot" class="size-2 rounded-full" />
-        {{ config.label }}
-        <Icon name="lucide:chevron-down" class="size-3 opacity-60" />
+        <template v-if="disabled">
+          <Spinner class="size-4" />
+        </template>
+        <template v-else>
+          <span :class="config.dot" class="size-2 rounded-full" />
+          {{ config.label }}
+          <Icon name="lucide:chevron-down" class="size-3 opacity-60" />
+        </template>
       </button>
     </DropdownMenuTrigger>
-    <DropdownMenuContent align="start" class="w-40">
+    <DropdownMenuContent align="end" class="w-40">
       <DropdownMenuItem
         v-for="s in statuses"
         :key="s.value"
