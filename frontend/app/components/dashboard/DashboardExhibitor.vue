@@ -1,14 +1,14 @@
 <template>
   <div class="mx-auto flex flex-col gap-y-5 pt-2 pb-16 lg:max-w-4xl lg:pt-4 xl:max-w-5xl">
     <!-- Greeting -->
-    <DashboardGreeting />
+    <!-- <DashboardGreetingTips /> -->
 
     <!-- Loading -->
     <div v-if="pending" class="space-y-4">
-      <div class="h-24 animate-pulse rounded-xl bg-muted" />
-      <div class="h-10 animate-pulse rounded-xl bg-muted" />
-      <div class="h-16 animate-pulse rounded-xl bg-muted" />
-      <div class="h-16 animate-pulse rounded-xl bg-muted" />
+      <div class="bg-muted h-24 animate-pulse rounded-xl" />
+      <div class="bg-muted h-10 animate-pulse rounded-xl" />
+      <div class="bg-muted h-16 animate-pulse rounded-xl" />
+      <div class="bg-muted h-16 animate-pulse rounded-xl" />
     </div>
 
     <template v-else-if="dashboard">
@@ -22,291 +22,372 @@
       <!-- No brand events empty state -->
       <div
         v-if="!dashboard.brand_events?.length"
-        class="flex flex-col items-center gap-3 rounded-xl border border-border px-4 py-12"
+        class="border-border flex flex-col items-center gap-3 rounded-xl border px-4 py-12"
       >
-        <div class="flex size-12 items-center justify-center rounded-full bg-muted">
-          <Icon name="hugeicons:calendar-03" class="size-6 text-muted-foreground" />
+        <div class="bg-muted flex size-12 items-center justify-center rounded-full">
+          <Icon name="hugeicons:calendar-03" class="text-muted-foreground size-6" />
         </div>
-        <p class="text-sm tracking-tight text-muted-foreground">No events found for your brands.</p>
+        <p class="text-muted-foreground text-sm tracking-tight">No events found for your brands.</p>
       </div>
 
       <!-- Per Brand-Event -->
       <template v-for="(be, beIndex) in dashboard.brand_events" :key="be.brand_event_id">
         <!-- Single event: no collapsible wrapper -->
-        <div v-if="!hasMultipleEvents" class="space-y-3">
+        <div v-if="!hasMultipleEvents" class="space-y-6">
           <DashboardExhibitorEventCard :be="be" />
-          <DashboardExhibitorStepper
-            :steps="getSteps(be)"
-            @jump="(key) => handleJump(be, key)"
-          />
+          <DashboardExhibitorStepper :steps="getSteps(be)" @jump="(key) => handleJump(be, key)" />
           <div :ref="(el) => setSectionRef(be.brand_event_id, 'profile', el)" class="space-y-2.5">
-          <!-- Section 1: Profile (only if incomplete) -->
-          <DashboardExhibitorSection
-            v-if="!dashboard.profile_complete"
-            v-model:open="sectionStates[`${be.brand_event_id}_profile`]"
-            title="Complete Your Profile"
-            icon="hugeicons:user-edit-01"
-            :summary="'Fill in all required fields to continue.'"
-            badge-text="Required"
-            badge-variant="destructive"
-            :default-open="true"
-            section-key="profile"
-          >
-            <form class="space-y-4" @submit.prevent="saveProfile">
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div class="space-y-2">
-                  <Label for="ex_name">Full Name</Label>
-                  <Input id="ex_name" v-model="profileForm.name" placeholder="Your full name" />
-                </div>
-                <div class="space-y-2">
-                  <Label for="ex_phone">Phone Number</Label>
-                  <InputPhone id="ex_phone" v-model="profileForm.phone" />
-                </div>
-                <div class="space-y-2">
-                  <Label for="ex_title">Job Title</Label>
-                  <Input id="ex_title" v-model="profileForm.title" placeholder="e.g. Marketing Manager" />
-                </div>
-                <div class="space-y-2">
-                  <Label for="ex_company">Company Name</Label>
-                  <Input id="ex_company" v-model="profileForm.company_name" placeholder="Your company" />
-                </div>
-              </div>
-              <Button type="submit" size="sm" :disabled="profileSaving">
-                <Icon v-if="profileSaving" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
-                Save Profile
-              </Button>
-            </form>
-          </DashboardExhibitorSection>
-
-          <!-- Section 2: Event Rules -->
-          <div :ref="(el) => setSectionRef(be.brand_event_id, 'rules', el)">
+            <!-- Section 1: Profile (only if incomplete) -->
             <DashboardExhibitorSection
-              v-if="be.event_rules?.length"
-              v-model:open="sectionStates[`${be.brand_event_id}_rules`]"
-              title="Event Rules"
-              icon="hugeicons:file-validation"
-              :summary="be.event_rules_agreed ? 'All rules agreed.' : `${rulesAgreedCount(be)}/${be.event_rules.length} rules agreed.`"
-              :completed="be.event_rules_agreed"
-              :locked="!dashboard.profile_complete"
-              :badge-text="!be.event_rules_agreed ? 'Required' : ''"
+              v-if="!dashboard.profile_complete"
+              v-model:open="sectionStates[`${be.brand_event_id}_profile`]"
+              title="Complete Your Profile"
+              icon="hugeicons:user-edit-01"
+              :summary="'Fill in all required fields to continue.'"
+              badge-text="Required"
               badge-variant="destructive"
-              :attention-count="rulesNeedingAttention(be)"
-              section-key="rules"
+              :default-open="true"
+              section-key="profile"
             >
-              <div class="space-y-4">
-                <template v-for="rule in be.event_rules" :key="rule.document.id">
-                  <DashboardExhibitorDocItem
-                    :doc="rule.document"
-                    mode="view"
-                  />
-                  <div class="flex items-start gap-x-2">
-                    <Checkbox
-                      :id="`rule_${be.brand_event_id}_${rule.document.id}`"
-                      :checked="rule.agreed && !rule.needs_reagreement"
-                      :disabled="agreeingId === rule.document.id"
-                      @click="handleAgreeRule(be, rule)"
+              <form class="space-y-4" @submit.prevent="saveProfile">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div class="space-y-2">
+                    <Label for="ex_name">Full Name</Label>
+                    <Input id="ex_name" v-model="profileForm.name" placeholder="Your full name" />
+                  </div>
+                  <div class="space-y-2">
+                    <Label for="ex_phone">Phone Number</Label>
+                    <InputPhone id="ex_phone" v-model="profileForm.phone" />
+                  </div>
+                  <div class="space-y-2">
+                    <Label for="ex_title">Job Title</Label>
+                    <Input
+                      id="ex_title"
+                      v-model="profileForm.title"
+                      placeholder="e.g. Marketing Manager"
                     />
-                    <div>
-                      <Label
-                        :for="`rule_${be.brand_event_id}_${rule.document.id}`"
-                        class="text-sm font-normal leading-snug"
+                  </div>
+                  <div class="space-y-2">
+                    <Label for="ex_company">Company Name</Label>
+                    <Input
+                      id="ex_company"
+                      v-model="profileForm.company_name"
+                      placeholder="Your company"
+                    />
+                  </div>
+                </div>
+                <Button type="submit" size="sm" :disabled="profileSaving">
+                  <Icon
+                    v-if="profileSaving"
+                    name="svg-spinners:ring-resize"
+                    class="mr-1.5 size-4"
+                  />
+                  Save Profile
+                </Button>
+              </form>
+            </DashboardExhibitorSection>
+
+            <!-- Section 2: Event Rules -->
+            <div :ref="(el) => setSectionRef(be.brand_event_id, 'rules', el)">
+              <DashboardExhibitorSection
+                v-if="be.event_rules?.length"
+                v-model:open="sectionStates[`${be.brand_event_id}_rules`]"
+                title="Event Rules"
+                icon="hugeicons:file-validation"
+                :summary="
+                  be.event_rules_agreed
+                    ? 'All rules agreed.'
+                    : `${rulesAgreedCount(be)}/${be.event_rules.length} rules agreed.`
+                "
+                :completed="be.event_rules_agreed"
+                :locked="!dashboard.profile_complete"
+                :badge-text="!be.event_rules_agreed ? 'Required' : ''"
+                badge-variant="destructive"
+                :attention-count="rulesNeedingAttention(be)"
+                section-key="rules"
+              >
+                <div class="space-y-4">
+                  <template v-for="rule in be.event_rules" :key="rule.document.id">
+                    <DashboardExhibitorDocItem :doc="rule.document" mode="view" />
+                    <!-- Already agreed: show agreement info only -->
+                    <div
+                      v-if="rule.agreed && !rule.needs_reagreement && rule.submission"
+                      class="flex items-center gap-x-1.5"
+                    >
+                      <div
+                        class="bg-primary text-primary-foreground flex size-5 shrink-0 items-center justify-center rounded-full"
                       >
-                        I have read and agree to "{{ rule.document.title }}"
-                      </Label>
-                      <p v-if="rule.agreed && rule.submission" class="mt-1 text-xs tracking-tight text-muted-foreground sm:text-sm">
+                        <Icon name="lucide:check" class="size-3.5" />
+                      </div>
+                      <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
                         Agreed on {{ formatDate(rule.submission.agreed_at) }}
-                        <span v-if="rule.submission.submitter_name"> by {{ rule.submission.submitter_name }}</span>
-                        (v{{ rule.submission.document_version }})
+                        <span v-if="rule.submission.submitter_name">
+                          by {{ rule.submission.submitter_name }}</span
+                        >
+                        <span v-if="rule.submission.document_version > 1">
+                          (v{{ rule.submission.document_version }})</span
+                        >
                       </p>
-                      <p v-if="rule.needs_reagreement" class="mt-1 text-xs tracking-tight text-amber-600 dark:text-amber-400 sm:text-sm">
-                        Rules updated. Please re-agree to the latest version.
+                    </div>
+                    <!-- Not yet agreed or needs re-agreement: show checkbox + submit -->
+                    <div v-else>
+                      <div class="flex items-start gap-x-2">
+                        <Checkbox
+                          :id="`rule_${be.brand_event_id}_${rule.document.id}`"
+                          :model-value="!!checkedRules[`${be.brand_event_id}_${rule.document.id}`]"
+                          @update:model-value="
+                            (v) => (checkedRules[`${be.brand_event_id}_${rule.document.id}`] = v)
+                          "
+                        />
+                        <div>
+                          <Label
+                            :for="`rule_${be.brand_event_id}_${rule.document.id}`"
+                            class="text-sm leading-snug font-normal"
+                          >
+                            I have read and agree to "{{ rule.document.title }}"
+                          </Label>
+                          <p
+                            v-if="rule.needs_reagreement"
+                            class="mt-1 text-xs tracking-tight text-amber-600 sm:text-sm dark:text-amber-400"
+                          >
+                            Rules updated. Please re-agree to the latest version.
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        v-if="checkedRules[`${be.brand_event_id}_${rule.document.id}`]"
+                        size="sm"
+                        class="mt-2 ml-6"
+                        :disabled="agreeingId === rule.document.id"
+                        @click="handleAgreeRule(be, rule)"
+                      >
+                        <Icon
+                          v-if="agreeingId === rule.document.id"
+                          name="svg-spinners:ring-resize"
+                          class="mr-1.5 size-4"
+                        />
+                        Submit
+                      </Button>
+                    </div>
+                  </template>
+                </div>
+              </DashboardExhibitorSection>
+            </div>
+
+            <!-- Section 3: Brand Profile -->
+            <div :ref="(el) => setSectionRef(be.brand_event_id, 'brand', el)">
+              <DashboardExhibitorSection
+                v-model:open="sectionStates[`${be.brand_event_id}_brand`]"
+                title="Brand Profile"
+                icon="hugeicons:store-02"
+                :summary="
+                  be.brand_complete
+                    ? `${be.brand.name} profile is complete.`
+                    : `Missing: ${be.brand.missing_fields.join(', ')}`
+                "
+                :completed="be.brand_complete"
+                :locked="
+                  !dashboard.profile_complete ||
+                  (be.event_rules?.length > 0 && !be.event_rules_agreed)
+                "
+                section-key="brand"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <img
+                      v-if="be.brand.brand_logo?.sm"
+                      :src="be.brand.brand_logo.sm"
+                      :alt="be.brand.name"
+                      class="size-10 rounded-lg object-cover"
+                    />
+                    <div
+                      v-else
+                      class="bg-muted text-muted-foreground flex size-10 items-center justify-center rounded-lg"
+                    >
+                      <Icon name="hugeicons:store-02" class="size-5" />
+                    </div>
+                    <div>
+                      <p class="text-sm font-medium">{{ be.brand.name }}</p>
+                      <p
+                        v-if="!be.brand_complete"
+                        class="text-muted-foreground text-xs tracking-tight sm:text-sm"
+                      >
+                        {{ be.brand.missing_fields.length }} field{{
+                          be.brand.missing_fields.length > 1 ? "s" : ""
+                        }}
+                        remaining
                       </p>
                     </div>
                   </div>
-                </template>
-              </div>
-            </DashboardExhibitorSection>
-          </div>
-
-          <!-- Section 3: Brand Profile -->
-          <div :ref="(el) => setSectionRef(be.brand_event_id, 'brand', el)">
-            <DashboardExhibitorSection
-              v-model:open="sectionStates[`${be.brand_event_id}_brand`]"
-              title="Brand Profile"
-              icon="hugeicons:store-02"
-              :summary="be.brand_complete ? `${be.brand.name} profile is complete.` : `Missing: ${be.brand.missing_fields.join(', ')}`"
-              :completed="be.brand_complete"
-              :locked="!dashboard.profile_complete || (be.event_rules?.length > 0 && !be.event_rules_agreed)"
-              section-key="brand"
-            >
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <img
-                    v-if="be.brand.brand_logo?.sm"
-                    :src="be.brand.brand_logo.sm"
-                    :alt="be.brand.name"
-                    class="size-10 rounded-lg object-cover"
-                  />
-                  <div
-                    v-else
-                    class="flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground"
+                  <NuxtLink
+                    :to="`/brands/${be.brand.slug}/edit`"
+                    class="border-border hover:bg-muted inline-flex items-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium tracking-tight transition-colors sm:text-sm"
                   >
-                    <Icon name="hugeicons:store-02" class="size-5" />
-                  </div>
-                  <div>
-                    <p class="text-sm font-medium">{{ be.brand.name }}</p>
-                    <p v-if="!be.brand_complete" class="text-xs tracking-tight text-muted-foreground sm:text-sm">
-                      {{ be.brand.missing_fields.length }} field{{ be.brand.missing_fields.length > 1 ? 's' : '' }} remaining
-                    </p>
-                  </div>
+                    <Icon
+                      :name="be.brand_complete ? 'hugeicons:view' : 'hugeicons:edit-02'"
+                      class="size-3.5"
+                    />
+                    {{ be.brand_complete ? "View" : "Complete" }}
+                  </NuxtLink>
                 </div>
-                <NuxtLink
-                  :to="`/brands/${be.brand.slug}/edit`"
-                  class="inline-flex items-center gap-x-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium tracking-tight transition hover:bg-muted sm:text-sm"
-                >
-                  <Icon :name="be.brand_complete ? 'hugeicons:view' : 'hugeicons:edit-02'" class="size-3.5" />
-                  {{ be.brand_complete ? "View" : "Complete" }}
-                </NuxtLink>
-              </div>
-            </DashboardExhibitorSection>
-          </div>
+              </DashboardExhibitorSection>
+            </div>
 
-          <!-- Section 4: Promotion Posts -->
-          <div :ref="(el) => setSectionRef(be.brand_event_id, 'promo', el)">
-            <DashboardExhibitorSection
-              v-model:open="sectionStates[`${be.brand_event_id}_promo`]"
-              title="Promotion Posts"
-              icon="hugeicons:image-02"
-              :summary="`${be.promotion_posts_count}/${be.promotion_post_limit} uploaded`"
-              :completed="be.promotion_posts_count > 0"
-              :locked="!dashboard.profile_complete || (be.event_rules?.length > 0 && !be.event_rules_agreed)"
-              :deadline="formatDeadlineShort(be.promotion_post_deadline)"
-              :deadline-urgent="isDeadlineUrgent(be.promotion_post_deadline)"
-              section-key="promo"
-            >
-              <div class="flex items-center justify-between">
-                <p class="text-sm tracking-tight text-muted-foreground">
-                  {{ be.promotion_posts_count > 0
-                    ? `You've uploaded ${be.promotion_posts_count} of ${be.promotion_post_limit} allowed posts.`
-                    : `Upload up to ${be.promotion_post_limit} promotion post${be.promotion_post_limit > 1 ? 's' : ''} for this event.`
-                  }}
-                </p>
-                <NuxtLink
-                  :to="`/brands/${be.brand.slug}/promotion-posts/${be.brand_event_id}`"
-                  class="inline-flex shrink-0 items-center gap-x-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium tracking-tight transition hover:bg-muted sm:text-sm"
-                >
-                  <Icon :name="be.promotion_posts_count > 0 ? 'hugeicons:view' : 'hugeicons:upload-04'" class="size-3.5" />
-                  {{ be.promotion_posts_count > 0 ? "Manage" : "Upload" }}
-                </NuxtLink>
-              </div>
-            </DashboardExhibitorSection>
-          </div>
-
-          <!-- Section 5: Operational Documents -->
-          <div :ref="(el) => setSectionRef(be.brand_event_id, 'docs', el)">
-            <DashboardExhibitorSection
-              v-if="be.documents?.length || showFasciaField(be) || showBadgeField(be)"
-              v-model:open="sectionStates[`${be.brand_event_id}_docs`]"
-              title="Operational Documents"
-              icon="hugeicons:file-01"
-              :summary="docsAndBoothSummary(be)"
-              :completed="isDocsComplete(be)"
-              :locked="!dashboard.profile_complete || (be.event_rules?.length > 0 && !be.event_rules_agreed)"
-              :attention-count="docsNeedingAttention(be)"
-              section-key="docs"
-            >
-              <!-- Document list -->
-              <div v-if="be.documents?.length" class="space-y-3">
-                <DashboardExhibitorDocItem
-                  v-for="doc in be.documents"
-                  :key="doc.document.id"
-                  :doc="doc.document"
-                  :status="doc.status"
-                  mode="action"
-                />
-                <NuxtLink
-                  :to="`/brands/${be.brand.slug}/documents/${be.brand_event_id}`"
-                  class="mt-1 inline-flex items-center gap-x-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium tracking-tight transition hover:bg-muted sm:text-sm"
-                >
-                  <Icon name="hugeicons:file-01" class="size-3.5" />
-                  {{ be.documents_completed === be.documents_total ? "View All" : "Complete Documents" }}
-                </NuxtLink>
-              </div>
-
-              <!-- Booth Fields (fascia & badge) -->
-              <div
-                v-if="showFasciaField(be) || showBadgeField(be)"
-                :class="{ 'mt-5 border-t border-border pt-5': be.documents?.length }"
+            <!-- Section 4: Promotion Posts -->
+            <div :ref="(el) => setSectionRef(be.brand_event_id, 'promo', el)">
+              <DashboardExhibitorSection
+                v-model:open="sectionStates[`${be.brand_event_id}_promo`]"
+                title="Promotion Posts"
+                icon="hugeicons:image-02"
+                :summary="`${be.promotion_posts_count}/${be.promotion_post_limit} uploaded`"
+                :completed="be.promotion_posts_count > 0"
+                :locked="
+                  !dashboard.profile_complete ||
+                  (be.event_rules?.length > 0 && !be.event_rules_agreed)
+                "
+                :deadline="formatDeadlineShort(be.promotion_post_deadline)"
+                :deadline-urgent="isDeadlineUrgent(be.promotion_post_deadline)"
+                section-key="promo"
               >
-                <p class="mb-3 text-sm font-medium">Booth Details</p>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div v-if="showFasciaField(be)" class="space-y-2">
-                    <Label :for="`fascia_${be.brand_event_id}`">Fascia Name</Label>
-                    <Input
-                      :id="`fascia_${be.brand_event_id}`"
-                      :model-value="boothFields[be.brand_event_id]?.fascia_name ?? be.fascia_name ?? ''"
-                      placeholder="Name displayed on booth fascia"
-                      @update:model-value="(v) => setBoothField(be.brand_event_id, 'fascia_name', v)"
+                <div class="flex items-center justify-between">
+                  <p class="text-muted-foreground text-sm tracking-tight">
+                    {{
+                      be.promotion_posts_count > 0
+                        ? `You've uploaded ${be.promotion_posts_count} of ${be.promotion_post_limit} allowed posts.`
+                        : `Upload up to ${be.promotion_post_limit} promotion post${be.promotion_post_limit > 1 ? "s" : ""} for this event.`
+                    }}
+                  </p>
+                  <NuxtLink
+                    :to="`/brands/${be.brand.slug}/promotion-posts/${be.brand_event_id}`"
+                    class="border-border hover:bg-muted inline-flex shrink-0 items-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium tracking-tight transition-colors sm:text-sm"
+                  >
+                    <Icon
+                      :name="
+                        be.promotion_posts_count > 0 ? 'hugeicons:view' : 'hugeicons:upload-04'
+                      "
+                      class="size-3.5"
                     />
-                  </div>
-                  <div v-if="showBadgeField(be)" class="space-y-2">
-                    <Label :for="`badge_${be.brand_event_id}`">Badge Name</Label>
-                    <Input
-                      :id="`badge_${be.brand_event_id}`"
-                      :model-value="boothFields[be.brand_event_id]?.badge_name ?? be.badge_name ?? ''"
-                      placeholder="Name displayed on exhibitor badge"
-                      @update:model-value="(v) => setBoothField(be.brand_event_id, 'badge_name', v)"
-                    />
-                  </div>
-                  <div class="sm:col-span-2">
-                    <Button
-                      size="sm"
-                      :disabled="savingBoothFields === be.brand_event_id"
-                      @click="saveBoothFields(be)"
-                    >
-                      <Icon v-if="savingBoothFields === be.brand_event_id" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
-                      Save Booth Details
-                    </Button>
+                    {{ be.promotion_posts_count > 0 ? "Manage" : "Upload" }}
+                  </NuxtLink>
+                </div>
+              </DashboardExhibitorSection>
+            </div>
+
+            <!-- Section 5: Operational Documents -->
+            <div :ref="(el) => setSectionRef(be.brand_event_id, 'docs', el)">
+              <DashboardExhibitorSection
+                v-if="be.documents?.length || showFasciaField(be) || showBadgeField(be)"
+                v-model:open="sectionStates[`${be.brand_event_id}_docs`]"
+                title="Operational Documents"
+                icon="hugeicons:file-01"
+                :summary="docsAndBoothSummary(be)"
+                :completed="isDocsComplete(be)"
+                :locked="
+                  !dashboard.profile_complete ||
+                  (be.event_rules?.length > 0 && !be.event_rules_agreed)
+                "
+                :attention-count="docsNeedingAttention(be)"
+                section-key="docs"
+              >
+                <!-- Document list -->
+                <div v-if="be.documents?.length" class="divide-border -mx-4 divide-y sm:-mx-5">
+                  <DashboardExhibitorDocItem
+                    v-for="doc in be.documents"
+                    :key="doc.document.id"
+                    class="px-4 py-6 first:pt-0 last:pb-0 sm:px-5"
+                    :doc="doc.document"
+                    :submission="doc.submission"
+                    :status="doc.status"
+                    :api-base="`/api/exhibitor/brands/${be.brand.slug}/events/${be.brand_event_id}/documents`"
+                    mode="action"
+                    @submitted="refreshDashboard"
+                  />
+                </div>
+
+                <!-- Booth Fields (fascia & badge) -->
+                <div
+                  v-if="showFasciaField(be) || showBadgeField(be)"
+                  :class="{ 'border-border mt-5 border-t pt-5': be.documents?.length }"
+                >
+                  <p class="mb-3 text-sm font-medium">Booth Details</p>
+                  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div v-if="showFasciaField(be)" class="space-y-2">
+                      <Label :for="`fascia_${be.brand_event_id}`">Fascia Name</Label>
+                      <Input
+                        :id="`fascia_${be.brand_event_id}`"
+                        :model-value="
+                          boothFields[be.brand_event_id]?.fascia_name ?? be.fascia_name ?? ''
+                        "
+                        placeholder="Name displayed on booth fascia"
+                        @update:model-value="
+                          (v) => setBoothField(be.brand_event_id, 'fascia_name', v)
+                        "
+                      />
+                    </div>
+                    <div v-if="showBadgeField(be)" class="space-y-2">
+                      <Label :for="`badge_${be.brand_event_id}`">Badge Name</Label>
+                      <Input
+                        :id="`badge_${be.brand_event_id}`"
+                        :model-value="
+                          boothFields[be.brand_event_id]?.badge_name ?? be.badge_name ?? ''
+                        "
+                        placeholder="Name displayed on exhibitor badge"
+                        @update:model-value="
+                          (v) => setBoothField(be.brand_event_id, 'badge_name', v)
+                        "
+                      />
+                    </div>
+                    <div class="sm:col-span-2">
+                      <Button
+                        size="sm"
+                        :disabled="savingBoothFields === be.brand_event_id"
+                        @click="saveBoothFields(be)"
+                      >
+                        <Icon
+                          v-if="savingBoothFields === be.brand_event_id"
+                          name="svg-spinners:ring-resize"
+                          class="mr-1.5 size-4"
+                        />
+                        Save Booth Details
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </DashboardExhibitorSection>
-          </div>
+              </DashboardExhibitorSection>
+            </div>
 
-          <!-- Section 6: Order Form -->
-          <div :ref="(el) => setSectionRef(be.brand_event_id, 'order', el)">
+            <!-- Badge & VIP Information (read-only, shown only if content exists) -->
             <DashboardExhibitorSection
-              v-model:open="sectionStates[`${be.brand_event_id}_order`]"
-              title="Order Form"
-              icon="hugeicons:shopping-cart-01"
-              :summary="be.orders_count > 0 ? `${be.orders_count} order(s) submitted` : 'Submit your order for this event.'"
-              :completed="be.orders_count > 0"
-              :locked="!dashboard.profile_complete || (be.event_rules?.length > 0 && !be.event_rules_agreed)"
-              :deadline="formatDeadlineShort(be.order_form_deadline)"
-              :deadline-urgent="isDeadlineUrgent(be.order_form_deadline)"
-              section-key="order"
+              v-if="be.event.badge_vip_info"
+              v-model:open="sectionStates[`${be.brand_event_id}_badge_vip`]"
+              title="Exhibitor Badges & VIP Invitation Information"
+              icon="hugeicons:name-tag"
+              summary="Information about exhibitor badges and VIP passes."
+              :completed="true"
+              section-key="badge_vip"
             >
-              <div class="flex flex-wrap items-center gap-2">
-                <NuxtLink
-                  :to="`/brands/${be.brand.slug}/order-form/${be.brand_event_id}`"
-                  class="inline-flex items-center gap-x-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium tracking-tight text-primary-foreground transition hover:bg-primary/90 sm:text-sm"
-                >
-                  <Icon name="hugeicons:shopping-cart-01" class="size-3.5" />
-                  {{ be.orders_count > 0 ? "New Order" : "Open Order Form" }}
-                </NuxtLink>
-                <NuxtLink
-                  v-if="be.orders_count > 0"
-                  :to="`/brands/${be.brand.slug}/orders/${be.brand_event_id}`"
-                  class="inline-flex items-center gap-x-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium tracking-tight transition hover:bg-muted sm:text-sm"
-                >
-                  <Icon name="hugeicons:shopping-bag-01" class="size-3.5" />
-                  View Orders
-                </NuxtLink>
-              </div>
+              <div class="format-html" v-html="be.event.badge_vip_info" />
             </DashboardExhibitorSection>
+
+            <!-- Section 6: Order Form -->
+            <div :ref="(el) => setSectionRef(be.brand_event_id, 'order', el)">
+              <DashboardExhibitorSection
+                v-model:open="sectionStates[`${be.brand_event_id}_order`]"
+                title="Order Form"
+                icon="hugeicons:shopping-cart-01"
+                :summary="orderSectionSummary(be)"
+                :completed="be.orders_count > 0"
+                :locked="
+                  !dashboard.profile_complete ||
+                  (be.event_rules?.length > 0 && !be.event_rules_agreed)
+                "
+                section-key="order"
+              >
+                <DashboardExhibitorOrderInfo :be="be" />
+              </DashboardExhibitorSection>
+            </div>
           </div>
         </div>
-      </div>
 
         <!-- Multiple events: collapsible wrapper -->
         <Collapsible v-else v-model:open="eventCollapseStates[be.brand_event_id]">
@@ -320,16 +401,20 @@
               />
               <div
                 v-else
-                class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground"
+                class="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-lg"
               >
                 <Icon name="hugeicons:calendar-03" class="size-4" />
               </div>
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2">
                   <h3 class="truncate text-sm font-medium tracking-tight">{{ be.event.title }}</h3>
-                  <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">{{ be.brand.name }}</span>
+                  <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">{{
+                    be.brand.name
+                  }}</span>
                 </div>
-                <div class="text-muted-foreground flex items-center gap-1.5 text-xs tracking-tight sm:text-sm">
+                <div
+                  class="text-muted-foreground flex items-center gap-1.5 text-xs tracking-tight sm:text-sm"
+                >
                   <span v-if="be.event.date_label">{{ be.event.date_label }}</span>
                   <span v-if="be.booth_number">- Booth {{ be.booth_number }}</span>
                 </div>
@@ -341,7 +426,7 @@
                 <Icon
                   name="hugeicons:arrow-down-01"
                   :class="[
-                    'size-4 shrink-0 text-muted-foreground transition-transform duration-200',
+                    'text-muted-foreground size-4 shrink-0 transition-transform duration-200',
                     eventCollapseStates[be.brand_event_id] && 'rotate-180',
                   ]"
                 />
@@ -354,7 +439,10 @@
                 :steps="getSteps(be)"
                 @jump="(key) => handleJump(be, key)"
               />
-              <div :ref="(el) => setSectionRef(be.brand_event_id, 'profile', el)" class="space-y-2.5">
+              <div
+                :ref="(el) => setSectionRef(be.brand_event_id, 'profile', el)"
+                class="space-y-2.5"
+              >
                 <!-- Profile section (only if incomplete) -->
                 <DashboardExhibitorSection
                   v-if="!dashboard.profile_complete"
@@ -371,23 +459,42 @@
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div class="space-y-2">
                         <Label :for="`ex_name_${be.brand_event_id}`">Full Name</Label>
-                        <Input :id="`ex_name_${be.brand_event_id}`" v-model="profileForm.name" placeholder="Your full name" />
+                        <Input
+                          :id="`ex_name_${be.brand_event_id}`"
+                          v-model="profileForm.name"
+                          placeholder="Your full name"
+                        />
                       </div>
                       <div class="space-y-2">
                         <Label :for="`ex_phone_${be.brand_event_id}`">Phone Number</Label>
-                        <InputPhone :id="`ex_phone_${be.brand_event_id}`" v-model="profileForm.phone" />
+                        <InputPhone
+                          :id="`ex_phone_${be.brand_event_id}`"
+                          v-model="profileForm.phone"
+                        />
                       </div>
                       <div class="space-y-2">
                         <Label :for="`ex_title_${be.brand_event_id}`">Job Title</Label>
-                        <Input :id="`ex_title_${be.brand_event_id}`" v-model="profileForm.title" placeholder="e.g. Marketing Manager" />
+                        <Input
+                          :id="`ex_title_${be.brand_event_id}`"
+                          v-model="profileForm.title"
+                          placeholder="e.g. Marketing Manager"
+                        />
                       </div>
                       <div class="space-y-2">
                         <Label :for="`ex_company_${be.brand_event_id}`">Company Name</Label>
-                        <Input :id="`ex_company_${be.brand_event_id}`" v-model="profileForm.company_name" placeholder="Your company" />
+                        <Input
+                          :id="`ex_company_${be.brand_event_id}`"
+                          v-model="profileForm.company_name"
+                          placeholder="Your company"
+                        />
                       </div>
                     </div>
                     <Button type="submit" size="sm" :disabled="profileSaving">
-                      <Icon v-if="profileSaving" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
+                      <Icon
+                        v-if="profileSaving"
+                        name="svg-spinners:ring-resize"
+                        class="mr-1.5 size-4"
+                      />
                       Save Profile
                     </Button>
                   </form>
@@ -400,7 +507,11 @@
                     v-model:open="sectionStates[`${be.brand_event_id}_rules`]"
                     title="Event Rules"
                     icon="hugeicons:file-validation"
-                    :summary="be.event_rules_agreed ? 'All rules agreed.' : `${rulesAgreedCount(be)}/${be.event_rules.length} rules agreed.`"
+                    :summary="
+                      be.event_rules_agreed
+                        ? 'All rules agreed.'
+                        : `${rulesAgreedCount(be)}/${be.event_rules.length} rules agreed.`
+                    "
                     :completed="be.event_rules_agreed"
                     :locked="!dashboard.profile_complete"
                     :badge-text="!be.event_rules_agreed ? 'Required' : ''"
@@ -410,33 +521,69 @@
                   >
                     <div class="space-y-4">
                       <template v-for="rule in be.event_rules" :key="rule.document.id">
-                        <DashboardExhibitorDocItem
-                          :doc="rule.document"
-                          mode="view"
-                        />
-                        <div class="flex items-start gap-x-2">
-                          <Checkbox
-                            :id="`rule_${be.brand_event_id}_${rule.document.id}`"
-                            :checked="rule.agreed && !rule.needs_reagreement"
+                        <DashboardExhibitorDocItem :doc="rule.document" mode="view" />
+                        <!-- Already agreed: show agreement info only -->
+                        <div
+                          v-if="rule.agreed && !rule.needs_reagreement && rule.submission"
+                          class="flex items-center gap-x-2.5"
+                        >
+                          <div
+                            class="bg-success flex size-8 shrink-0 items-center justify-center rounded-full text-white"
+                          >
+                            <Icon name="lucide:check" class="size-4" />
+                          </div>
+                          <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                            Agreed on {{ formatDate(rule.submission.agreed_at) }}
+                            <span v-if="rule.submission.submitter_name">
+                              by {{ rule.submission.submitter_name }}</span
+                            >
+                            <span v-if="rule.submission.document_version > 1">
+                              (v{{ rule.submission.document_version }})</span
+                            >
+                          </p>
+                        </div>
+                        <!-- Not yet agreed or needs re-agreement: show checkbox + submit -->
+                        <div v-else>
+                          <div class="flex items-start gap-x-2">
+                            <Checkbox
+                              :id="`rule_m_${be.brand_event_id}_${rule.document.id}`"
+                              :model-value="
+                                !!checkedRules[`${be.brand_event_id}_${rule.document.id}`]
+                              "
+                              @update:model-value="
+                                (v) =>
+                                  (checkedRules[`${be.brand_event_id}_${rule.document.id}`] = v)
+                              "
+                            />
+                            <div>
+                              <Label
+                                :for="`rule_m_${be.brand_event_id}_${rule.document.id}`"
+                                class="text-sm leading-snug font-normal"
+                              >
+                                I have read and agree to "{{ rule.document.title }}"
+                              </Label>
+                              <p
+                                v-if="rule.needs_reagreement"
+                                class="mt-1 text-xs tracking-tight text-amber-600 sm:text-sm dark:text-amber-400"
+                              >
+                                Rules updated. Please re-agree to the latest version.
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            v-if="checkedRules[`${be.brand_event_id}_${rule.document.id}`]"
+                            size="sm"
+                            class="mt-2 ml-6"
                             :disabled="agreeingId === rule.document.id"
                             @click="handleAgreeRule(be, rule)"
-                          />
-                          <div>
-                            <Label
-                              :for="`rule_${be.brand_event_id}_${rule.document.id}`"
-                              class="text-sm font-normal leading-snug"
-                            >
-                              I have read and agree to "{{ rule.document.title }}"
-                            </Label>
-                            <p v-if="rule.agreed && rule.submission" class="mt-1 text-xs tracking-tight text-muted-foreground sm:text-sm">
-                              Agreed on {{ formatDate(rule.submission.agreed_at) }}
-                              <span v-if="rule.submission.submitter_name"> by {{ rule.submission.submitter_name }}</span>
-                              (v{{ rule.submission.document_version }})
-                            </p>
-                            <p v-if="rule.needs_reagreement" class="mt-1 text-xs tracking-tight text-amber-600 dark:text-amber-400 sm:text-sm">
-                              Rules updated. Please re-agree to the latest version.
-                            </p>
-                          </div>
+                          >
+                            <Icon
+                              v-if="agreeingId === rule.document.id"
+                              name="svg-spinners:ring-resize"
+                              class="mr-1.5 size-4"
+                            />
+                            Submit
+                          </Button>
                         </div>
                       </template>
                     </div>
@@ -449,29 +596,53 @@
                     v-model:open="sectionStates[`${be.brand_event_id}_brand`]"
                     title="Brand Profile"
                     icon="hugeicons:store-02"
-                    :summary="be.brand_complete ? `${be.brand.name} profile is complete.` : `Missing: ${be.brand.missing_fields.join(', ')}`"
+                    :summary="
+                      be.brand_complete
+                        ? `${be.brand.name} profile is complete.`
+                        : `Missing: ${be.brand.missing_fields.join(', ')}`
+                    "
                     :completed="be.brand_complete"
-                    :locked="!dashboard.profile_complete || (be.event_rules?.length > 0 && !be.event_rules_agreed)"
+                    :locked="
+                      !dashboard.profile_complete ||
+                      (be.event_rules?.length > 0 && !be.event_rules_agreed)
+                    "
                     section-key="brand"
                   >
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-3">
-                        <img v-if="be.brand.brand_logo?.sm" :src="be.brand.brand_logo.sm" :alt="be.brand.name" class="size-10 rounded-lg object-cover" />
-                        <div v-else class="flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                        <img
+                          v-if="be.brand.brand_logo?.sm"
+                          :src="be.brand.brand_logo.sm"
+                          :alt="be.brand.name"
+                          class="size-10 rounded-lg object-cover"
+                        />
+                        <div
+                          v-else
+                          class="bg-muted text-muted-foreground flex size-10 items-center justify-center rounded-lg"
+                        >
                           <Icon name="hugeicons:store-02" class="size-5" />
                         </div>
                         <div>
                           <p class="text-sm font-medium">{{ be.brand.name }}</p>
-                          <p v-if="!be.brand_complete" class="text-xs tracking-tight text-muted-foreground sm:text-sm">
-                            {{ be.brand.missing_fields.length }} field{{ be.brand.missing_fields.length > 1 ? 's' : '' }} remaining
+                          <p
+                            v-if="!be.brand_complete"
+                            class="text-muted-foreground text-xs tracking-tight sm:text-sm"
+                          >
+                            {{ be.brand.missing_fields.length }} field{{
+                              be.brand.missing_fields.length > 1 ? "s" : ""
+                            }}
+                            remaining
                           </p>
                         </div>
                       </div>
                       <NuxtLink
                         :to="`/brands/${be.brand.slug}/edit`"
-                        class="inline-flex items-center gap-x-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium tracking-tight transition hover:bg-muted sm:text-sm"
+                        class="border-border hover:bg-muted inline-flex items-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium tracking-tight transition-colors sm:text-sm"
                       >
-                        <Icon :name="be.brand_complete ? 'hugeicons:view' : 'hugeicons:edit-02'" class="size-3.5" />
+                        <Icon
+                          :name="be.brand_complete ? 'hugeicons:view' : 'hugeicons:edit-02'"
+                          class="size-3.5"
+                        />
                         {{ be.brand_complete ? "View" : "Complete" }}
                       </NuxtLink>
                     </div>
@@ -486,23 +657,32 @@
                     icon="hugeicons:image-02"
                     :summary="`${be.promotion_posts_count}/${be.promotion_post_limit} uploaded`"
                     :completed="be.promotion_posts_count > 0"
-                    :locked="!dashboard.profile_complete || (be.event_rules?.length > 0 && !be.event_rules_agreed)"
+                    :locked="
+                      !dashboard.profile_complete ||
+                      (be.event_rules?.length > 0 && !be.event_rules_agreed)
+                    "
                     :deadline="formatDeadlineShort(be.promotion_post_deadline)"
                     :deadline-urgent="isDeadlineUrgent(be.promotion_post_deadline)"
                     section-key="promo"
                   >
                     <div class="flex items-center justify-between">
-                      <p class="text-sm tracking-tight text-muted-foreground">
-                        {{ be.promotion_posts_count > 0
-                          ? `You've uploaded ${be.promotion_posts_count} of ${be.promotion_post_limit} allowed posts.`
-                          : `Upload up to ${be.promotion_post_limit} promotion post${be.promotion_post_limit > 1 ? 's' : ''} for this event.`
+                      <p class="text-muted-foreground text-sm tracking-tight">
+                        {{
+                          be.promotion_posts_count > 0
+                            ? `You've uploaded ${be.promotion_posts_count} of ${be.promotion_post_limit} allowed posts.`
+                            : `Upload up to ${be.promotion_post_limit} promotion post${be.promotion_post_limit > 1 ? "s" : ""} for this event.`
                         }}
                       </p>
                       <NuxtLink
                         :to="`/brands/${be.brand.slug}/promotion-posts/${be.brand_event_id}`"
-                        class="inline-flex shrink-0 items-center gap-x-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium tracking-tight transition hover:bg-muted sm:text-sm"
+                        class="border-border hover:bg-muted inline-flex shrink-0 items-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium tracking-tight transition-colors sm:text-sm"
                       >
-                        <Icon :name="be.promotion_posts_count > 0 ? 'hugeicons:view' : 'hugeicons:upload-04'" class="size-3.5" />
+                        <Icon
+                          :name="
+                            be.promotion_posts_count > 0 ? 'hugeicons:view' : 'hugeicons:upload-04'
+                          "
+                          class="size-3.5"
+                        />
                         {{ be.promotion_posts_count > 0 ? "Manage" : "Upload" }}
                       </NuxtLink>
                     </div>
@@ -518,29 +698,29 @@
                     icon="hugeicons:file-01"
                     :summary="docsAndBoothSummary(be)"
                     :completed="isDocsComplete(be)"
-                    :locked="!dashboard.profile_complete || (be.event_rules?.length > 0 && !be.event_rules_agreed)"
+                    :locked="
+                      !dashboard.profile_complete ||
+                      (be.event_rules?.length > 0 && !be.event_rules_agreed)
+                    "
                     :attention-count="docsNeedingAttention(be)"
                     section-key="docs"
                   >
-                    <div v-if="be.documents?.length" class="space-y-3">
+                    <div v-if="be.documents?.length" class="divide-border -mx-4 divide-y sm:-mx-5">
                       <DashboardExhibitorDocItem
                         v-for="doc in be.documents"
                         :key="doc.document.id"
+                        class="px-4 py-6 first:pt-0 last:pb-0 sm:px-5"
                         :doc="doc.document"
+                        :submission="doc.submission"
                         :status="doc.status"
+                        :api-base="`/api/exhibitor/brands/${be.brand.slug}/events/${be.brand_event_id}/documents`"
                         mode="action"
+                        @submitted="refreshDashboard"
                       />
-                      <NuxtLink
-                        :to="`/brands/${be.brand.slug}/documents/${be.brand_event_id}`"
-                        class="mt-1 inline-flex items-center gap-x-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium tracking-tight transition hover:bg-muted sm:text-sm"
-                      >
-                        <Icon name="hugeicons:file-01" class="size-3.5" />
-                        {{ be.documents_completed === be.documents_total ? "View All" : "Complete Documents" }}
-                      </NuxtLink>
                     </div>
                     <div
                       v-if="showFasciaField(be) || showBadgeField(be)"
-                      :class="{ 'mt-5 border-t border-border pt-5': be.documents?.length }"
+                      :class="{ 'border-border mt-5 border-t pt-5': be.documents?.length }"
                     >
                       <p class="mb-3 text-sm font-medium">Booth Details</p>
                       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -548,18 +728,26 @@
                           <Label :for="`fascia_${be.brand_event_id}`">Fascia Name</Label>
                           <Input
                             :id="`fascia_${be.brand_event_id}`"
-                            :model-value="boothFields[be.brand_event_id]?.fascia_name ?? be.fascia_name ?? ''"
+                            :model-value="
+                              boothFields[be.brand_event_id]?.fascia_name ?? be.fascia_name ?? ''
+                            "
                             placeholder="Name displayed on booth fascia"
-                            @update:model-value="(v) => setBoothField(be.brand_event_id, 'fascia_name', v)"
+                            @update:model-value="
+                              (v) => setBoothField(be.brand_event_id, 'fascia_name', v)
+                            "
                           />
                         </div>
                         <div v-if="showBadgeField(be)" class="space-y-2">
                           <Label :for="`badge_${be.brand_event_id}`">Badge Name</Label>
                           <Input
                             :id="`badge_${be.brand_event_id}`"
-                            :model-value="boothFields[be.brand_event_id]?.badge_name ?? be.badge_name ?? ''"
+                            :model-value="
+                              boothFields[be.brand_event_id]?.badge_name ?? be.badge_name ?? ''
+                            "
                             placeholder="Name displayed on exhibitor badge"
-                            @update:model-value="(v) => setBoothField(be.brand_event_id, 'badge_name', v)"
+                            @update:model-value="
+                              (v) => setBoothField(be.brand_event_id, 'badge_name', v)
+                            "
                           />
                         </div>
                         <div class="sm:col-span-2">
@@ -568,7 +756,11 @@
                             :disabled="savingBoothFields === be.brand_event_id"
                             @click="saveBoothFields(be)"
                           >
-                            <Icon v-if="savingBoothFields === be.brand_event_id" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
+                            <Icon
+                              v-if="savingBoothFields === be.brand_event_id"
+                              name="svg-spinners:ring-resize"
+                              class="mr-1.5 size-4"
+                            />
                             Save Booth Details
                           </Button>
                         </div>
@@ -577,36 +769,37 @@
                   </DashboardExhibitorSection>
                 </div>
 
+                <!-- Badge & VIP Information (read-only, shown only if content exists) -->
+                <DashboardExhibitorSection
+                  v-if="be.event.badge_vip_info"
+                  v-model:open="sectionStates[`${be.brand_event_id}_badge_vip`]"
+                  title="Badge & VIP Information"
+                  icon="hugeicons:name-tag"
+                  summary="Information about exhibitor badges and VIP passes."
+                  :completed="true"
+                  section-key="badge_vip"
+                >
+                  <div
+                    class="prose prose-sm max-w-none tracking-tight"
+                    v-html="be.event.badge_vip_info"
+                  />
+                </DashboardExhibitorSection>
+
                 <!-- Order Form -->
                 <div :ref="(el) => setSectionRef(be.brand_event_id, 'order', el)">
                   <DashboardExhibitorSection
                     v-model:open="sectionStates[`${be.brand_event_id}_order`]"
                     title="Order Form"
                     icon="hugeicons:shopping-cart-01"
-                    :summary="be.orders_count > 0 ? `${be.orders_count} order(s) submitted` : 'Submit your order for this event.'"
+                    :summary="orderSectionSummary(be)"
                     :completed="be.orders_count > 0"
-                    :locked="!dashboard.profile_complete || (be.event_rules?.length > 0 && !be.event_rules_agreed)"
-                    :deadline="formatDeadlineShort(be.order_form_deadline)"
-                    :deadline-urgent="isDeadlineUrgent(be.order_form_deadline)"
+                    :locked="
+                      !dashboard.profile_complete ||
+                      (be.event_rules?.length > 0 && !be.event_rules_agreed)
+                    "
                     section-key="order"
                   >
-                    <div class="flex flex-wrap items-center gap-2">
-                      <NuxtLink
-                        :to="`/brands/${be.brand.slug}/order-form/${be.brand_event_id}`"
-                        class="inline-flex items-center gap-x-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium tracking-tight text-primary-foreground transition hover:bg-primary/90 sm:text-sm"
-                      >
-                        <Icon name="hugeicons:shopping-cart-01" class="size-3.5" />
-                        {{ be.orders_count > 0 ? "New Order" : "Open Order Form" }}
-                      </NuxtLink>
-                      <NuxtLink
-                        v-if="be.orders_count > 0"
-                        :to="`/brands/${be.brand.slug}/orders/${be.brand_event_id}`"
-                        class="inline-flex items-center gap-x-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium tracking-tight transition hover:bg-muted sm:text-sm"
-                      >
-                        <Icon name="hugeicons:shopping-bag-01" class="size-3.5" />
-                        View Orders
-                      </NuxtLink>
-                    </div>
+                    <DashboardExhibitorOrderInfo :be="be" />
                   </DashboardExhibitorSection>
                 </div>
               </div>
@@ -624,7 +817,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "vue-sonner";
 
 const client = useSanctumClient();
@@ -633,6 +825,7 @@ const data = ref(null);
 const pending = ref(true);
 const dashboard = computed(() => data.value?.data);
 const agreeingId = ref(null);
+const checkedRules = reactive({});
 const boothFields = ref({});
 const savingBoothFields = ref(null);
 const sectionStates = reactive({});
@@ -677,6 +870,15 @@ async function fetchData() {
   pending.value = false;
 }
 
+async function refreshDashboard() {
+  try {
+    const data = await client("/api/exhibitor/dashboard");
+    dashboard.value = data.data;
+  } catch (e) {
+    console.error("Failed to refresh dashboard:", e);
+  }
+}
+
 async function saveProfile() {
   profileSaving.value = true;
   try {
@@ -715,6 +917,31 @@ function isDeadlineUrgent(dateStr) {
   const deadline = new Date(dateStr);
   const daysLeft = Math.ceil((deadline - new Date()) / (1000 * 60 * 60 * 24));
   return daysLeft > 0 && daysLeft <= 7;
+}
+
+function orderSectionSummary(be) {
+  if (be.orders_count > 0) return `${be.orders_count} order(s) submitted`;
+  const period = getCurrentOrderPeriod(be);
+  if (period === "normal") return "Normal order period is open.";
+  if (period === "onsite") return `Onsite order period (+${be.onsite_penalty_rate}% surcharge).`;
+  // No period is active
+  if (!be.normal_order_opens_at && !be.onsite_order_opens_at) return "Submit your order for this event.";
+  const now = new Date();
+  if (be.normal_order_opens_at && now < new Date(be.normal_order_opens_at)) return "Order period not yet open.";
+  if (be.onsite_order_opens_at && now < new Date(be.onsite_order_opens_at)) return "Normal order closed, onsite order not yet open.";
+  return "All order periods have closed.";
+}
+
+function getCurrentOrderPeriod(be) {
+  const now = new Date();
+  if (be.normal_order_opens_at && be.normal_order_closes_at) {
+    if (now >= new Date(be.normal_order_opens_at) && now <= new Date(be.normal_order_closes_at)) return "normal";
+  }
+  if (be.onsite_order_opens_at && be.onsite_order_closes_at) {
+    if (now >= new Date(be.onsite_order_opens_at) && now <= new Date(be.onsite_order_closes_at)) return "onsite";
+  }
+  if (!be.normal_order_opens_at && !be.onsite_order_opens_at) return "normal"; // legacy: no periods configured
+  return null;
 }
 
 function getMediaUrl(media) {
@@ -768,7 +995,7 @@ function getSteps(be) {
       key: "docs",
       label: "Docs",
       completed: isDocsComplete(be),
-      current: !rulesLocked && !isDocsComplete(be),
+      current: !rulesLocked && be.brand_complete && !isDocsComplete(be),
       locked: rulesLocked,
     });
   }
@@ -777,7 +1004,7 @@ function getSteps(be) {
     key: "order",
     label: "Order",
     completed: be.orders_count > 0,
-    current: !rulesLocked && be.orders_count === 0,
+    current: !rulesLocked && be.brand_complete && be.orders_count === 0,
     locked: rulesLocked,
   });
 
@@ -843,13 +1070,13 @@ function rulesNeedingAttention(be) {
 }
 
 async function handleAgreeRule(be, rule) {
-  if (rule.agreed && !rule.needs_reagreement) return;
   agreeingId.value = rule.document.id;
   try {
     await client(
       `/api/exhibitor/brands/${be.brand.slug}/events/${be.brand_event_id}/documents/${rule.document.ulid}`,
-      { method: "POST", body: {} },
+      { method: "POST", body: {} }
     );
+    delete checkedRules[`${be.brand_event_id}_${rule.document.id}`];
     toast.success("Agreement recorded");
     await fetchData();
   } catch (err) {
@@ -867,7 +1094,7 @@ function docStatusIcon(status) {
 }
 
 function docStatusColor(status) {
-  if (status === "completed") return "text-green-500";
+  if (status === "completed") return "text-success-foreground";
   if (status === "needs_reagreement") return "text-amber-500";
   return "text-muted-foreground";
 }
@@ -885,7 +1112,9 @@ function docsAndBoothSummary(be) {
     parts.push(`${be.documents_completed}/${be.documents_total} documents`);
   }
   if (showFasciaField(be) || showBadgeField(be)) {
-    const boothDone = (showFasciaField(be) ? (be.fascia_name ? 1 : 0) : 0) + (showBadgeField(be) ? (be.badge_name ? 1 : 0) : 0);
+    const boothDone =
+      (showFasciaField(be) ? (be.fascia_name ? 1 : 0) : 0) +
+      (showBadgeField(be) ? (be.badge_name ? 1 : 0) : 0);
     const boothTotal = (showFasciaField(be) ? 1 : 0) + (showBadgeField(be) ? 1 : 0);
     parts.push(`${boothDone}/${boothTotal} booth fields`);
   }
@@ -924,7 +1153,7 @@ async function saveBoothFields(be) {
           fascia_name: fields.fascia_name ?? be.fascia_name,
           badge_name: fields.badge_name ?? be.badge_name,
         },
-      },
+      }
     );
     toast.success("Booth details saved");
     await fetchData();

@@ -155,21 +155,16 @@ const navMainGroups = computed(() => {
             path: "/dashboard",
             iconName: "hugeicons:dashboard-circle",
           },
-          {
-            label: t("nav.myEvents"),
-            path: "/events",
-            iconName: "hugeicons:calendar-03",
-          },
-          {
-            label: t("nav.brands"),
-            path: "/brands",
-            iconName: "hugeicons:store-02",
-          },
-          {
-            label: t("nav.orders"),
-            path: "/orders",
-            iconName: "hugeicons:shopping-bag-01",
-          },
+          // {
+          //   label: t("nav.myEvents"),
+          //   path: "/events",
+          //   iconName: "hugeicons:calendar-03",
+          // },
+          // {
+          //   label: t("nav.brands"),
+          //   path: "/brands",
+          //   iconName: "hugeicons:store-02",
+          // },
           {
             label: t("nav.settings"),
             path: "/settings",
@@ -205,15 +200,6 @@ const navMainGroups = computed(() => {
     });
   }
 
-  // Orders - requires orders.read permission
-  if (hasPermission("orders.read")) {
-    coreItems.push({
-      label: "Orders",
-      path: "/orders",
-      iconName: "hugeicons:shopping-bag-01",
-    });
-  }
-
   // Projects - requires projects.read permission
   if (hasPermission("projects.read")) {
     coreItems.push({
@@ -240,6 +226,13 @@ const navMainGroups = computed(() => {
       iconName: "hugeicons:store-02",
     });
   }
+
+  coreItems.push({
+    label: "Contact List",
+    path: "/contacts",
+    iconName: "hugeicons:contact-01",
+    badgeLabel: "Coming Soon",
+  });
 
   // Tools section
   const toolsItems = [];

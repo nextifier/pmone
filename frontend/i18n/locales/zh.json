@@ -196,7 +196,8 @@
     "discountRemoved": "折扣已移除",
     "failedToApplyDiscount": "应用折扣失败",
     "notFound": "未找到该订单",
-    "failedToLoad": "订单详情加载失败"
+    "failedToLoad": "订单详情加载失败",
+    "cancellationReason": "取消原因"
   },
   "orderForm": {
     "title": "订购表",

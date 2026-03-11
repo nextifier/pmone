@@ -45,15 +45,20 @@
     <div class="grid grid-cols-2 gap-x-3">
       <div class="space-y-2">
         <Label for="price">Price <span class="text-destructive">*</span></Label>
-        <Input
-          id="price"
-          v-model.number="form.price"
-          type="number"
-          min="0"
-          step="any"
-          placeholder="0"
-          required
-        />
+        <InputGroup>
+          <InputGroupAddon>
+            <InputGroupText>Rp</InputGroupText>
+          </InputGroupAddon>
+          <InputNumber
+            id="price"
+            v-model="form.price"
+            :min="0"
+            :decimal="true"
+            placeholder="0"
+            data-slot="input-group-control"
+            class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+          />
+        </InputGroup>
         <p v-if="errors.price" class="text-destructive mt-1 text-xs">
           {{ Array.isArray(errors.price) ? errors.price[0] : errors.price }}
         </p>
@@ -92,8 +97,8 @@
         >
           <Checkbox
             :id="`booth_type_${option.value}`"
-            :checked="form.booth_types.includes(option.value)"
-            @update:checked="toggleBoothType(option.value)"
+            :model-value="form.booth_types.includes(option.value)"
+            @update:model-value="toggleBoothType(option.value)"
           />
           <Label :for="`booth_type_${option.value}`" class="text-sm font-normal">
             {{ option.label }}
@@ -137,9 +142,11 @@
 </template>
 
 <script setup>
+import InputNumber from "@/components/InputNumber.vue";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupAddon, InputGroupText } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import {
   Select,

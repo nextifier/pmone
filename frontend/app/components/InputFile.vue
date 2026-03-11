@@ -62,20 +62,30 @@ const emit = defineEmits(["update:modelValue"]);
 const sanctumFetch = useSanctumClient();
 
 const pond = ref(null);
-const uploadedTempId = ref(null);
+const uploadedTempIds = ref([]);
 
 // Handle FilePond process
 const handleProcessFile = (error, file) => {
   if (!error && file.serverId) {
-    uploadedTempId.value = file.serverId;
-    emit("update:modelValue", [file.serverId]);
+    if (props.allowMultiple) {
+      uploadedTempIds.value = [...uploadedTempIds.value, file.serverId];
+      emit("update:modelValue", [...uploadedTempIds.value]);
+    } else {
+      uploadedTempIds.value = [file.serverId];
+      emit("update:modelValue", [file.serverId]);
+    }
   }
 };
 
 // Handle FilePond remove
-const handleRemoveFile = () => {
-  uploadedTempId.value = null;
-  emit("update:modelValue", []);
+const handleRemoveFile = (error, file) => {
+  if (props.allowMultiple) {
+    uploadedTempIds.value = uploadedTempIds.value.filter((id) => id !== file.serverId);
+    emit("update:modelValue", [...uploadedTempIds.value]);
+  } else {
+    uploadedTempIds.value = [];
+    emit("update:modelValue", []);
+  }
 };
 
 // Custom server configuration

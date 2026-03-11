@@ -25,6 +25,48 @@
       </p>
     </div>
 
+    <!-- Catalog File (PDF) -->
+    <div class="space-y-2">
+      <Label>Catalog File (PDF)</Label>
+
+      <!-- Existing file -->
+      <div
+        v-if="existingCatalogFile && !deleteCatalogFile"
+        class="border-border bg-muted/50 flex items-center justify-between rounded-lg border px-3 py-2.5"
+      >
+        <div class="flex items-center gap-x-2 overflow-hidden">
+          <Icon name="hugeicons:file-02" class="text-muted-foreground size-4 shrink-0" />
+          <a
+            :href="existingCatalogFile.url"
+            target="_blank"
+            class="truncate text-sm tracking-tight underline underline-offset-2"
+          >
+            {{ existingCatalogFile.alt }}
+          </a>
+        </div>
+        <button
+          type="button"
+          @click="deleteCatalogFile = true"
+          class="text-muted-foreground hover:text-destructive shrink-0 p-1"
+        >
+          <Icon name="hugeicons:delete-02" class="size-4" />
+        </button>
+      </div>
+
+      <!-- Upload new file -->
+      <div v-else>
+        <InputFile
+          v-model="catalogFiles"
+          :accepted-file-types="['application/pdf']"
+          max-file-size="50MB"
+        />
+      </div>
+
+      <p v-if="errors.tmp_catalog_files" class="text-destructive mt-1 text-xs">
+        {{ Array.isArray(errors.tmp_catalog_files) ? errors.tmp_catalog_files[0] : errors.tmp_catalog_files }}
+      </p>
+    </div>
+
     <!-- Submit -->
     <div class="flex justify-end pt-2">
       <Button type="submit" :disabled="submitting">
@@ -36,6 +78,7 @@
 </template>
 
 <script setup>
+import InputFile from "@/components/InputFile.vue";
 import TipTapEditor from "@/components/TipTapEditor.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +100,14 @@ const form = reactive({
   description: "",
 });
 
+const catalogFiles = ref([]);
+const deleteCatalogFile = ref(false);
+
+const existingCatalogFile = computed(() => {
+  if (!props.category?.catalog_files) return null;
+  return props.category.catalog_files;
+});
+
 watch(
   () => props.category,
   (newCategory) => {
@@ -67,6 +118,8 @@ watch(
       form.title = "";
       form.description = "";
     }
+    catalogFiles.value = [];
+    deleteCatalogFile.value = false;
   },
   { immediate: true }
 );
@@ -83,6 +136,14 @@ async function handleSubmit() {
       title: form.title,
       description: form.description || null,
     };
+
+    // Handle catalog file upload
+    const catalogValue = catalogFiles.value?.[0];
+    if (catalogValue && catalogValue.startsWith("tmp-")) {
+      body.tmp_catalog_files = [catalogValue];
+    } else if (deleteCatalogFile.value) {
+      body.delete_catalog_files = true;
+    }
 
     await client(url, { method, body });
     toast.success(isEdit.value ? "Category updated" : "Category created");

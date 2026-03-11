@@ -226,11 +226,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Order management endpoints (nested under events)
     Route::prefix('projects/{username}/events/{eventSlug}/orders')->group(function () {
+        Route::get('/export', [OrderController::class, 'export'])->name('orders.export');
         Route::get('/', [OrderController::class, 'index'])->name('orders.index');
         Route::get('/{ulid}', [OrderController::class, 'show'])->name('orders.show');
         Route::patch('/{ulid}/operational-status', [OrderController::class, 'updateOperationalStatus'])->name('orders.update-operational-status');
         Route::patch('/{ulid}/payment-status', [OrderController::class, 'updatePaymentStatus'])->name('orders.update-payment-status');
         Route::patch('/{ulid}/discount', [OrderController::class, 'applyDiscount'])->name('orders.apply-discount');
+        Route::delete('/{ulid}', [OrderController::class, 'destroy'])->name('orders.destroy');
     });
 
     // Brand management endpoints (nested under project events)
@@ -251,6 +253,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/{brandSlug}/members/{userId}', [BrandEventController::class, 'removeMember'])->name('brand-events.members.destroy');
         Route::post('/{brandSlug}/members/{userId}/send-invite', [BrandEventController::class, 'sendInvite'])->name('brand-events.members.send-invite');
         // Promotion posts
+        Route::get('/{brandSlug}/document-submissions', [BrandEventController::class, 'documentSubmissions'])->name('brand-events.document-submissions.index');
+
         Route::get('/{brandSlug}/promotion-posts', [BrandEventController::class, 'promotionPosts'])->name('brand-events.promotion-posts.index');
         Route::post('/{brandSlug}/promotion-posts', [BrandEventController::class, 'storePromotionPost'])->name('brand-events.promotion-posts.store');
         Route::post('/{brandSlug}/promotion-posts/update-order', [BrandEventController::class, 'updatePromotionPostOrder'])->name('brand-events.promotion-posts.update-order');
@@ -271,6 +275,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/brands/{brand}', [BrandController::class, 'show'])->middleware('can:brands.read')->name('brands.show');
     Route::put('/brands/{brand}', [BrandController::class, 'update'])->middleware('can:brands.update')->name('brands.update');
     Route::delete('/brands/{brand}', [BrandController::class, 'destroy'])->middleware('can:brands.delete')->name('brands.delete');
+    Route::get('/brands/{brand}/members', [BrandController::class, 'members'])->middleware('can:brands.read')->name('brands.members.index');
+    Route::post('/brands/{brand}/members', [BrandController::class, 'addMember'])->middleware('can:brands.update')->name('brands.members.store');
+    Route::delete('/brands/{brand}/members/{userId}', [BrandController::class, 'removeMember'])->middleware('can:brands.update')->name('brands.members.destroy');
 
     // Notification endpoints
     Route::prefix('notifications')->group(function () {

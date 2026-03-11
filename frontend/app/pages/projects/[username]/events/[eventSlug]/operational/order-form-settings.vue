@@ -234,7 +234,8 @@
 
         <Button @click="openCreateDoc" size="sm">
           <Icon name="hugeicons:add-01" class="size-4" />
-          Add Document
+          New Document
+          <Kbd>N</Kbd>
         </Button>
       </div>
 
@@ -312,7 +313,7 @@
             variant="outline"
           >
             <Icon name="hugeicons:add-01" class="size-4" />
-            Add Document
+            New Document
           </Button>
         </div>
 
@@ -354,32 +355,22 @@
                       v-for="type in doc.booth_types"
                       :key="type"
                       variant="outline"
-                      class="text-[10px] font-normal"
+                      class="text-xs font-normal sm:text-sm"
                     >
                       {{ boothTypeLabel(type) }}
                     </Badge>
                   </div>
                 </td>
                 <td class="px-4 py-3">
-                  <Badge :variant="documentTypeBadgeVariant(doc.document_type)" class="font-normal">
+                  <Badge variant="secondary" class="font-normal">
                     {{ documentTypeLabel(doc.document_type) }}
                   </Badge>
                 </td>
-                <td class="px-4 py-3">
-                  <Icon
-                    :name="
-                      doc.is_required ? 'hugeicons:checkmark-circle-02' : 'hugeicons:cancel-circle'
-                    "
-                    :class="doc.is_required ? 'text-green-500' : 'text-muted-foreground'"
-                    class="size-4"
-                  />
+                <td class="text-muted-foreground px-4 py-3 tracking-tight">
+                  {{ doc.is_required ? "Yes" : "No" }}
                 </td>
-                <td class="px-4 py-3">
-                  <Icon
-                    :name="doc.blocks_next_step ? 'hugeicons:alert-02' : 'hugeicons:cancel-circle'"
-                    :class="doc.blocks_next_step ? 'text-amber-500' : 'text-muted-foreground'"
-                    class="size-4"
-                  />
+                <td class="text-muted-foreground px-4 py-3 tracking-tight">
+                  {{ doc.blocks_next_step ? "Yes" : "No" }}
                 </td>
                 <td class="px-4 py-3">
                   <Badge variant="secondary" class="font-mono text-xs font-normal">
@@ -618,6 +609,9 @@ defineShortcuts({
     handler: () => {
       handleSubmit();
     },
+  },
+  n: {
+    handler: () => openCreateDoc(),
   },
 });
 

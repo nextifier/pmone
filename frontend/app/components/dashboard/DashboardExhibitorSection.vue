@@ -1,42 +1,37 @@
 <template>
   <Collapsible v-model:open="isOpen" :disabled="locked">
-    <div
-      :class="[
-        'border-border overflow-hidden rounded-xl border transition-colors',
-        locked ? 'opacity-60' : '',
-      ]"
-    >
+    <div :class="['border-border overflow-hidden rounded-xl border', locked ? 'opacity-60' : '']">
       <CollapsibleTrigger as-child>
         <button
-          class="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors sm:px-5 sm:py-4"
+          class="flex w-full items-center gap-3 px-4 py-3 text-left sm:px-5 sm:py-4"
           :class="locked ? 'cursor-not-allowed' : 'hover:bg-muted/50'"
           :disabled="locked"
         >
           <!-- Step indicator -->
           <div
             :class="[
-              'flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-medium sm:text-sm',
+              'flex size-9 shrink-0 items-center justify-center rounded-full',
               locked
                 ? 'bg-muted text-muted-foreground'
                 : completed
-                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                  : 'bg-primary/10 text-primary dark:bg-primary/20',
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground',
             ]"
           >
-            <Icon v-if="locked" name="hugeicons:lock-01" class="size-3" />
-            <Icon v-else-if="completed" name="hugeicons:tick-02" class="size-3.5" />
-            <Icon v-else :name="icon" class="size-3.5" />
+            <Icon v-if="locked" name="hugeicons:lock-01" class="size-4" />
+            <Icon v-else-if="completed" name="lucide:check" class="size-4" />
+            <Icon v-else :name="icon" class="size-4" />
           </div>
 
           <!-- Title & summary -->
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2">
-              <h3 class="text-sm font-medium tracking-tight">{{ title }}</h3>
+              <h3 class="page-title !text-foreground !text-base sm:!text-base">{{ title }}</h3>
               <Badge v-if="badgeText" :variant="badgeVariant" class="text-xs tracking-tight">
                 {{ badgeText }}
               </Badge>
             </div>
-            <p class="text-muted-foreground text-xs leading-relaxed tracking-tight sm:text-sm">{{ summary }}</p>
+            <p class="page-description">{{ summary }}</p>
           </div>
 
           <!-- Attention count -->

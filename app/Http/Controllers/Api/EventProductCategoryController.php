@@ -33,7 +33,7 @@ class EventProductCategoryController extends Controller
         $project = $this->resolveProject($username);
         $event = $this->resolveEvent($project, $eventSlug);
 
-        $query = $event->eventProductCategories()->with('media');
+        $query = $event->eventProductCategories()->with('media')->withCount('products');
 
         if ($request->has('filter.search')) {
             $search = $request->input('filter.search');

@@ -34,7 +34,7 @@
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div class="space-y-1">
           <div class="flex items-center gap-x-2.5">
-            <h3 class="text-lg font-semibold tracking-tight font-mono">
+            <h3 class="font-mono text-lg font-semibold tracking-tight">
               {{ order.order_number }}
             </h3>
             <span
@@ -50,15 +50,17 @@
         </div>
 
         <!-- Status Update -->
-        <div class="flex items-center gap-x-3">
-          <div class="flex items-center gap-x-2">
-            <span class="text-muted-foreground text-sm tracking-tight">Operational:</span>
+        <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+          <div class="flex w-full items-center gap-x-2 sm:w-auto">
+            <span class="text-muted-foreground grow text-right text-sm tracking-tight"
+              >Operational:</span
+            >
             <Select
               :model-value="order.operational_status"
               :disabled="statusLoading"
               @update:model-value="handleOperationalStatusUpdate"
             >
-              <SelectTrigger class="w-36">
+              <SelectTrigger class="w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -70,8 +72,10 @@
               </SelectContent>
             </Select>
           </div>
-          <div class="flex items-center gap-x-2">
-            <span class="text-muted-foreground text-sm tracking-tight">Payment:</span>
+          <div class="flex w-full items-center gap-x-2 sm:w-auto">
+            <span class="text-muted-foreground grow text-right text-sm tracking-tight"
+              >Payment:</span
+            >
             <Select
               :model-value="order.payment_status"
               :disabled="paymentStatusLoading"
@@ -87,7 +91,10 @@
               </SelectContent>
             </Select>
           </div>
-          <Spinner v-if="statusLoading || paymentStatusLoading" class="size-4 shrink-0 text-primary" />
+          <Spinner
+            v-if="statusLoading || paymentStatusLoading"
+            class="text-primary size-4 shrink-0"
+          />
         </div>
       </div>
 
@@ -139,7 +146,10 @@
                   >
                     <td class="px-4 py-3">
                       <span class="font-medium tracking-tight">{{ item.product_name }}</span>
-                      <p v-if="item.notes" class="text-muted-foreground mt-0.5 text-sm tracking-tight">
+                      <p
+                        v-if="item.notes"
+                        class="text-muted-foreground mt-0.5 text-sm tracking-tight"
+                      >
                         {{ item.notes }}
                       </p>
                     </td>
@@ -181,9 +191,13 @@
                 >
                   <span class="text-muted-foreground tracking-tight">
                     Discount
-                    <span v-if="order.discount_type === 'percentage'">({{ order.discount_value }}%)</span>
+                    <span v-if="order.discount_type === 'percentage'"
+                      >({{ order.discount_value }}%)</span
+                    >
                   </span>
-                  <span class="tracking-tight text-green-600 dark:text-green-400">-{{ formatPrice(order.discount_amount) }}</span>
+                  <span class="tracking-tight text-green-600 dark:text-green-400"
+                    >-{{ formatPrice(order.discount_amount) }}</span
+                  >
                 </div>
                 <div
                   v-if="order.tax_amount != null"
@@ -200,6 +214,20 @@
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- Cancellation Reason -->
+          <div
+            v-if="order.operational_status === 'cancelled' && order.cancellation_reason"
+            class="border-destructive/30 bg-destructive/5 rounded-lg border p-4"
+          >
+            <div class="flex items-center gap-x-2">
+              <Icon name="hugeicons:alert-circle" class="text-destructive size-4 shrink-0" />
+              <h4 class="text-destructive font-medium tracking-tight">Cancellation Reason</h4>
+            </div>
+            <p class="text-muted-foreground mt-1.5 text-sm tracking-tight whitespace-pre-line">
+              {{ order.cancellation_reason }}
+            </p>
           </div>
 
           <!-- Notes -->
@@ -237,16 +265,15 @@
                   :placeholder="discountForm.type === 'percentage' ? 'e.g. 10' : 'e.g. 500000'"
                   class="flex-1"
                 />
-                <span v-if="discountForm.type === 'percentage'" class="text-muted-foreground text-sm">%</span>
+                <span
+                  v-if="discountForm.type === 'percentage'"
+                  class="text-muted-foreground text-sm"
+                  >%</span
+                >
               </div>
-              <Button
-                size="sm"
-                class="w-full"
-                :disabled="applyingDiscount"
-                @click="applyDiscount"
-              >
+              <Button size="sm" class="w-full" :disabled="applyingDiscount" @click="applyDiscount">
                 <Spinner v-if="applyingDiscount" class="mr-1 size-3.5" />
-                {{ discountForm.type === 'none' ? 'Remove Discount' : 'Apply' }}
+                {{ discountForm.type === "none" ? "Remove Discount" : "Apply" }}
               </Button>
             </div>
           </div>
@@ -257,7 +284,9 @@
             <div class="space-y-2.5">
               <div>
                 <p class="text-muted-foreground text-xs tracking-tight">Brand Name</p>
-                <p class="text-sm font-medium tracking-tight">{{ order.brand_event?.brand?.name ?? "-" }}</p>
+                <p class="text-sm font-medium tracking-tight">
+                  {{ order.brand_event?.brand?.name ?? "-" }}
+                </p>
               </div>
               <div v-if="order.brand_event?.brand?.company_name">
                 <p class="text-muted-foreground text-xs tracking-tight">Company</p>
@@ -313,10 +342,46 @@
         </div>
       </div>
     </template>
+
+    <!-- Cancellation Reason Dialog -->
+    <DialogResponsive v-model:open="cancelDialogOpen">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="text-primary text-lg font-semibold tracking-tight">Cancel Order</div>
+          <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
+            Provide a reason for cancelling this order.
+          </p>
+          <textarea
+            v-model="cancellationReason"
+            rows="3"
+            placeholder="Cancellation reason (optional)"
+            class="border-border bg-background placeholder:text-muted-foreground focus:ring-ring mt-3 w-full rounded-md border px-3 py-2 text-sm tracking-tight outline-none focus:ring-1"
+          />
+          <div class="mt-3 flex justify-end gap-2">
+            <button
+              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+              @click="cancelDialogOpen = false"
+              :disabled="statusLoading"
+            >
+              Cancel
+            </button>
+            <button
+              @click="confirmCancellation"
+              :disabled="statusLoading"
+              class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Spinner v-if="statusLoading" class="size-4 text-white" />
+              <span v-else>Confirm Cancellation</span>
+            </button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
   </div>
 </template>
 
 <script setup>
+import DialogResponsive from "@/components/DialogResponsive.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -343,7 +408,9 @@ const discountForm = reactive({ type: "none", value: 0 });
 const applyingDiscount = ref(false);
 
 usePageMeta(null, {
-  title: computed(() => `Order ${order.value?.order_number || ""} · ${props.event?.title || "Event"}`),
+  title: computed(
+    () => `Order ${order.value?.order_number || ""} · ${props.event?.title || "Event"}`
+  ),
 });
 
 async function fetchOrder() {
@@ -364,13 +431,22 @@ async function fetchOrder() {
   }
 }
 
+// Cancellation dialog
+const cancelDialogOpen = ref(false);
+const cancellationReason = ref("");
+
 async function handleOperationalStatusUpdate(newStatus) {
   if (newStatus === "cancelled") {
-    const reason = prompt("Masukkan alasan pembatalan:");
-    if (!reason) return;
-    return updateOperationalStatus(newStatus, reason);
+    cancellationReason.value = "";
+    cancelDialogOpen.value = true;
+    return;
   }
   return updateOperationalStatus(newStatus);
+}
+
+async function confirmCancellation() {
+  await updateOperationalStatus("cancelled", cancellationReason.value || null);
+  cancelDialogOpen.value = false;
 }
 
 async function updateOperationalStatus(newStatus, cancellationReason = null) {
@@ -418,7 +494,7 @@ async function applyDiscount() {
 
     const res = await client(
       `/api/projects/${route.params.username}/events/${route.params.eventSlug}/orders/${route.params.ulid}/discount`,
-      { method: "PATCH", body },
+      { method: "PATCH", body }
     );
     order.value = res.data;
     discountForm.type = res.data.discount_type || "none";

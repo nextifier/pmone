@@ -33,65 +33,53 @@
       <Icon name="svg-spinners:ring-resize" class="text-muted-foreground size-6" />
     </div>
 
-    <div v-else-if="posts?.length" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div v-else-if="posts?.length" class="flex flex-col gap-6">
       <div
         v-for="post in posts"
         :key="post.id"
         class="border-border overflow-hidden rounded-xl border"
       >
-        <div v-if="post.post_images?.length" class="aspect-square overflow-hidden">
-          <img
-            v-if="post.post_images.length === 1"
-            :src="post.post_images[0]?.md || post.post_images[0]?.url"
-            class="size-full object-cover"
-          />
-          <div v-else class="relative size-full">
-            <img
-              :src="
-                post.post_images[carouselIdx[post.id] || 0]?.md ||
-                post.post_images[carouselIdx[post.id] || 0]?.url
-              "
-              class="size-full object-cover"
-            />
-            <div class="absolute inset-x-0 bottom-0 flex items-center justify-between p-1.5">
-              <button
-                v-if="(carouselIdx[post.id] || 0) > 0"
-                @click.prevent="carouselIdx[post.id] = (carouselIdx[post.id] || 0) - 1"
-                class="flex size-6 items-center justify-center rounded-full bg-black/50 text-white"
-              >
-                <Icon name="lucide:chevron-left" class="size-3.5" />
-              </button>
-              <span v-else />
-              <span class="rounded-full bg-black/50 px-1.5 py-0.5 text-[10px] text-white">
-                {{ (carouselIdx[post.id] || 0) + 1 }}/{{ post.post_images.length }}
-              </span>
-              <button
-                v-if="(carouselIdx[post.id] || 0) < post.post_images.length - 1"
-                @click.prevent="carouselIdx[post.id] = (carouselIdx[post.id] || 0) + 1"
-                class="flex size-6 items-center justify-center rounded-full bg-black/50 text-white"
-              >
-                <Icon name="lucide:chevron-right" class="size-3.5" />
-              </button>
-              <span v-else />
-            </div>
-          </div>
+        <!-- Image grid -->
+        <div
+          v-if="getAllImages(post).length"
+          class="grid gap-1 p-1"
+          :class="getAllImages(post).length === 1 ? 'grid-cols-1' : 'grid-cols-2 sm:grid-cols-3'"
+        >
+          <a
+            v-for="(img, idx) in getAllImages(post)"
+            :key="idx"
+            :href="img.url || img.original"
+            target="_blank"
+            class="group relative aspect-square overflow-hidden rounded-lg"
+          >
+            <img :src="img.md || img.url" class="size-full object-cover transition-opacity group-hover:opacity-90" />
+          </a>
         </div>
-        <div v-else-if="post.post_image" class="aspect-square">
-          <img :src="post.post_image?.md || post.post_image?.url" class="size-full object-cover" />
-        </div>
+
         <div class="p-3">
-          <p class="text-sm">{{ post.caption || "No caption" }}</p>
-          <div class="mt-2 flex items-center gap-1">
-            <ButtonCopy v-if="post.caption" :text="post.caption" />
-            <button
-              v-tippy="'Download images'"
-              class="text-muted-foreground hover:text-foreground flex size-7 items-center justify-center rounded-lg"
+          <p class="text-xs tracking-tight sm:text-sm">{{ post.caption || "No caption" }}</p>
+          <div class="mt-2.5 flex flex-wrap items-center gap-2">
+            <Button
+              v-if="post.caption"
+              variant="outline"
+              size="sm"
+              @click="copyCaption(post.caption)"
+            >
+              <Icon :name="captionCopiedId === post.id ? 'lucide:check' : 'hugeicons:copy-01'" class="size-3.5" />
+              {{ captionCopiedId === post.id ? 'Copied' : 'Copy Caption' }}
+            </Button>
+            <Button
+              v-if="getAllImages(post).length"
+              variant="outline"
+              size="sm"
               @click="downloadPostImages(post)"
             >
               <Icon name="lucide:download" class="size-3.5" />
-            </button>
-            <Button variant="ghost" size="sm" class="size-7 p-0" @click="deletePost(post.id)">
-              <Icon name="hugeicons:delete-02" class="size-4" />
+              Download All Images
+            </Button>
+            <Button variant="ghost" size="sm" class="text-muted-foreground" @click="deletePost(post.id)">
+              <Icon name="hugeicons:delete-02" class="size-3.5" />
+              Delete
             </Button>
           </div>
         </div>
@@ -164,7 +152,29 @@ const apiUrl = computed(
 const data = ref(null);
 const pending = ref(true);
 const posts = computed(() => data.value?.data || []);
-const carouselIdx = reactive({});
+const captionCopiedId = ref(null);
+
+function getAllImages(post) {
+  if (post.post_images?.length) return post.post_images;
+  if (post.post_image) return [post.post_image];
+  return [];
+}
+
+async function copyCaption(caption) {
+  try {
+    await navigator.clipboard.writeText(caption);
+    // Find the post with this caption to show feedback
+    const post = posts.value.find((p) => p.caption === caption);
+    if (post) {
+      captionCopiedId.value = post.id;
+      setTimeout(() => {
+        captionCopiedId.value = null;
+      }, 2000);
+    }
+  } catch {
+    toast.error("Failed to copy");
+  }
+}
 
 async function refresh() {
   pending.value = true;

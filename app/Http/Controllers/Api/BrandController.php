@@ -77,7 +77,7 @@ class BrandController extends Controller
     {
         $this->authorizeExhibitorAccess($request->user(), $brand);
 
-        $brand->load(['media', 'tags', 'brandEvents.event.project']);
+        $brand->load(['media', 'tags', 'users.media', 'brandEvents.event.project']);
 
         // Collect business category options from all projects the brand participates in
         $projectIds = $brand->brandEvents->pluck('event.project.id')->filter()->unique();
@@ -111,6 +111,12 @@ class BrandController extends Controller
                 'visibility' => $brand->visibility,
                 'brand_logo' => $brand->brand_logo,
                 'business_categories' => $brand->business_categories_list,
+                'members' => $brand->users->map(fn ($user) => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'avatar' => $user->relationLoaded('media') ? $user->getMediaUrls('profile_image') : null,
+                ]),
             ],
             'business_category_options' => $businessCategoryOptions,
         ]);
@@ -337,6 +343,76 @@ class BrandController extends Controller
                 $query->where('status', $statuses[0]);
             }
         }
+    }
+
+    /**
+     * List brand members.
+     */
+    public function members(Request $request, Brand $brand): JsonResponse
+    {
+        $this->authorizeExhibitorAccess($request->user(), $brand);
+
+        $members = $brand->users()->with('media')->get()->map(fn ($user) => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar' => $user->relationLoaded('media') ? $user->getMediaUrls('profile_image') : null,
+        ]);
+
+        return response()->json(['data' => $members]);
+    }
+
+    /**
+     * Add member to brand.
+     */
+    public function addMember(Request $request, Brand $brand): JsonResponse
+    {
+        $this->authorizeExhibitorAccess($request->user(), $brand);
+
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $user = \App\Models\User::whereRaw('LOWER(email) = ?', [strtolower(trim($validated['email']))])->first();
+
+        if (! $user) {
+            $user = \App\Models\User::create([
+                'name' => Str::before($validated['email'], '@'),
+                'email' => $validated['email'],
+                'password' => bcrypt(Str::random(16)),
+                'email_verified_at' => now(),
+            ]);
+        }
+
+        if (! $user->hasRole('exhibitor')) {
+            $user->assignRole('exhibitor');
+        }
+
+        if (! $brand->users()->where('user_id', $user->id)->exists()) {
+            $brand->users()->attach($user->id);
+        }
+
+        return response()->json([
+            'message' => 'Member added to brand successfully.',
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'avatar' => $user->getMediaUrls('profile_image'),
+            ],
+        ], 201);
+    }
+
+    /**
+     * Remove member from brand.
+     */
+    public function removeMember(Request $request, Brand $brand, int $userId): JsonResponse
+    {
+        $this->authorizeExhibitorAccess($request->user(), $brand);
+
+        $brand->users()->detach($userId);
+
+        return response()->json(['message' => 'Member removed from brand successfully.']);
     }
 
     private function applySorting($query, Request $request): void

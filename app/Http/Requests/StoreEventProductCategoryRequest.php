@@ -19,6 +19,9 @@ class StoreEventProductCategoryRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'tmp_catalog_files' => ['nullable', 'array'],
+            'tmp_catalog_files.*' => ['string'],
+            'delete_catalog_files' => ['nullable', 'boolean'],
         ];
     }
 

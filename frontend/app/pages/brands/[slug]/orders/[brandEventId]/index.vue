@@ -1,16 +1,11 @@
 <template>
   <div class="mx-auto max-w-2xl space-y-6 py-6">
     <!-- Header -->
-    <div class="flex items-center justify-between gap-x-3">
-      <div class="flex items-center gap-x-3">
-        <NuxtLink
-          :to="`/brands/${route.params.slug}`"
-          class="text-muted-foreground hover:text-foreground flex size-8 items-center justify-center rounded-lg transition"
-        >
-          <Icon name="hugeicons:arrow-left-01" class="size-5" />
-        </NuxtLink>
+    <div class="flex items-end justify-between gap-x-3">
+      <div class="flex flex-col items-start gap-y-6">
+        <BackButton destination="/dashboard" />
         <div class="min-w-0 flex-1">
-          <h2 class="truncate text-lg font-medium tracking-tight">{{ $t('brands.myOrders') }}</h2>
+          <h2 class="truncate text-lg font-medium tracking-tight">{{ $t("brands.myOrders") }}</h2>
         </div>
       </div>
 
@@ -19,7 +14,7 @@
         class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-x-1.5 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98"
       >
         <Icon name="hugeicons:add-01" class="size-4" />
-        {{ $t('orders.newOrder') }}
+        {{ $t("orders.newOrder") }}
       </NuxtLink>
     </div>
 
@@ -30,41 +25,66 @@
 
     <!-- Orders list -->
     <template v-else-if="orders.length">
-      <div class="space-y-2">
+      <div class="space-y-3">
         <NuxtLink
           v-for="order in orders"
           :key="order.ulid"
           :to="`/brands/${route.params.slug}/orders/${route.params.brandEventId}/${order.ulid}`"
-          class="hover:bg-muted/50 flex items-center justify-between rounded-lg border p-4 transition"
+          class="hover:bg-muted/50 block rounded-lg border p-4 transition"
         >
-          <div>
-            <p class="font-mono text-sm font-medium">{{ order.order_number }}</p>
-            <p class="text-muted-foreground mt-1 text-xs tracking-tight sm:text-sm">
-              {{ order.items_count }} {{ $t('common.item', order.items_count) }} &middot; {{ formatDate(order.submitted_at) }}
+          <!-- Top row: order number, status, total -->
+          <div class="flex items-start justify-between gap-x-3">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-x-2">
+                <p class="font-mono text-sm font-medium">{{ order.order_number }}</p>
+                <Badge :class="statusClass(order.operational_status)" class="capitalize">
+                  {{ order.operational_status_label || order.operational_status }}
+                </Badge>
+              </div>
+              <p class="text-muted-foreground mt-1 text-xs tracking-tight sm:text-sm">
+                {{ formatDate(order.submitted_at) }}
+              </p>
+            </div>
+            <p class="shrink-0 text-sm font-medium tracking-tight">
+              {{ formatPrice(order.total) }}
             </p>
           </div>
-          <div class="flex items-center gap-x-3">
-            <p class="text-sm font-medium">{{ formatPrice(order.total) }}</p>
-            <Badge :class="statusClass(order.operational_status)" class="capitalize">
-              {{ order.operational_status_label || order.operational_status }}
-            </Badge>
+
+          <!-- Onsite order badge -->
+          <div
+            v-if="order.order_period === 'onsite_order'"
+            class="text-muted-foreground mt-2 flex items-center gap-x-1.5 text-xs tracking-tight sm:text-sm"
+          >
+            <Icon name="hugeicons:alert-02" class="size-3.5 shrink-0 text-amber-500" />
+            <span>Onsite Order - includes {{ order.applied_penalty_rate }}% surcharge</span>
+          </div>
+
+          <!-- Items list -->
+          <div v-if="order.items?.length" class="mt-3 space-y-1">
+            <div
+              v-for="item in order.items"
+              :key="item.id"
+              class="text-muted-foreground flex items-center justify-between text-sm tracking-tight"
+            >
+              <span class="min-w-0 flex-1 truncate">{{ item.product_name }}</span>
+              <span class="ml-3 shrink-0 tabular-nums">
+                {{ item.quantity }} x {{ formatPrice(item.unit_price) }}
+              </span>
+            </div>
           </div>
         </NuxtLink>
       </div>
     </template>
 
     <!-- Empty state -->
-    <div
-      v-else
-      class="border-border flex flex-col items-center gap-3 rounded-xl border px-4 py-12"
-    >
+    <div v-else class="border-border flex flex-col items-center gap-3 rounded-xl border px-4 py-12">
       <div class="bg-muted flex size-12 items-center justify-center rounded-full">
         <Icon name="hugeicons:shopping-bag-01" class="text-muted-foreground size-6" />
       </div>
       <div class="text-center">
-        <p class="text-sm font-medium">{{ $t('orders.noOrdersYet') }}</p>
+        <p class="text-sm font-medium">{{ $t("orders.noOrdersYet") }}</p>
         <p class="text-muted-foreground mt-1 text-xs tracking-tight sm:text-sm">
-          {{ $t('orders.placeFirstOrder') }}
+          {{ $t("orders.placeFirstOrder") }}
         </p>
       </div>
       <NuxtLink
@@ -72,7 +92,7 @@
         class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-x-1.5 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98"
       >
         <Icon name="hugeicons:add-01" class="size-4" />
-        {{ $t('orders.placeAnOrder') }}
+        {{ $t("orders.placeAnOrder") }}
       </NuxtLink>
     </div>
   </div>

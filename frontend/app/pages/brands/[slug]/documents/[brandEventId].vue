@@ -44,10 +44,18 @@
             <div class="min-w-0 flex-1 space-y-1">
               <div class="flex items-center gap-x-2">
                 <h4 class="font-medium tracking-tight">{{ item.document.title }}</h4>
-                <Badge v-if="item.document.is_required" variant="destructive" class="text-xs font-normal tracking-tight">
+                <Badge
+                  v-if="item.document.is_required"
+                  variant="destructive"
+                  class="text-xs font-normal tracking-tight"
+                >
                   Required
                 </Badge>
-                <Badge v-if="item.document.blocks_next_step" variant="outline" class="text-xs font-normal tracking-tight">
+                <Badge
+                  v-if="item.document.blocks_next_step"
+                  variant="outline"
+                  class="text-xs font-normal tracking-tight"
+                >
                   Blocks
                 </Badge>
               </div>
@@ -72,7 +80,7 @@
                 <Icon name="hugeicons:alert-02" class="size-5" />
                 <span class="text-xs font-medium tracking-tight sm:text-sm">Updated</span>
               </div>
-              <div v-else class="flex items-center gap-x-1 text-muted-foreground">
+              <div v-else class="text-muted-foreground flex items-center gap-x-1">
                 <Icon name="hugeicons:circle" class="size-5" />
                 <span class="text-xs font-medium tracking-tight sm:text-sm">Pending</span>
               </div>
@@ -87,7 +95,10 @@
           />
 
           <!-- Deadline -->
-          <p v-if="item.document.submission_deadline" class="text-muted-foreground mt-2 text-xs tracking-tight sm:text-sm">
+          <p
+            v-if="item.document.submission_deadline"
+            class="text-muted-foreground mt-2 text-xs tracking-tight sm:text-sm"
+          >
             Deadline: {{ formatDate(item.document.submission_deadline) }}
           </p>
 
@@ -102,14 +113,22 @@
                   :disabled="submittingId === item.document.id"
                   @click="handleAgree(item)"
                 />
-                <Label :for="`agree_${item.document.id}`" class="text-sm font-normal leading-snug">
+                <Label :for="`agree_${item.document.id}`" class="text-sm leading-snug font-normal">
                   I have read and agree to the above terms and conditions
                 </Label>
               </div>
-              <p v-if="getStatus(item) === 'completed' && item.submission" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-                Agreed on {{ formatDate(item.submission.agreed_at) }} (v{{ item.submission.document_version }})
+              <p
+                v-if="getStatus(item) === 'completed' && item.submission"
+                class="text-muted-foreground text-xs tracking-tight sm:text-sm"
+              >
+                Agreed on {{ formatDate(item.submission.agreed_at) }} (v{{
+                  item.submission.document_version
+                }})
               </p>
-              <p v-if="getStatus(item) === 'needs_reagreement'" class="text-xs tracking-tight text-amber-600 sm:text-sm">
+              <p
+                v-if="getStatus(item) === 'needs_reagreement'"
+                class="text-xs tracking-tight text-amber-600 sm:text-sm"
+              >
                 The document has been updated. Please re-agree to the latest version.
               </p>
             </template>
@@ -136,7 +155,7 @@
                   :ref="(el) => (fileInputRefs[item.document.id] = el)"
                   @change="(e) => handleFileSelect(item, e)"
                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  class="border-border text-sm file:bg-muted file:text-muted-foreground block w-full rounded-lg border file:mr-3 file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-sm"
+                  class="border-border file:bg-muted file:text-muted-foreground block w-full rounded-lg border text-sm file:mr-3 file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-sm"
                 />
                 <Button
                   v-if="selectedFiles[item.document.id]"
@@ -144,20 +163,31 @@
                   :disabled="submittingId === item.document.id"
                   @click="handleFileUpload(item)"
                 >
-                  <Icon v-if="submittingId === item.document.id" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
+                  <Icon
+                    v-if="submittingId === item.document.id"
+                    name="svg-spinners:ring-resize"
+                    class="mr-1.5 size-4"
+                  />
                   Upload
                 </Button>
               </div>
 
               <!-- Templates -->
-              <div v-if="item.document.template_en || item.document.template_id || item.document.example_file" class="flex flex-wrap gap-2">
+              <div
+                v-if="
+                  item.document.template_en ||
+                  item.document.template_id ||
+                  item.document.example_file
+                "
+                class="flex flex-wrap gap-2"
+              >
                 <a
                   v-if="item.document.template_en"
                   :href="getMediaUrl(item.document.template_en)"
                   target="_blank"
                   class="text-primary inline-flex items-center gap-x-1 text-xs hover:underline"
                 >
-                  <Icon name="hugeicons:download-04" class="size-3" />
+                  <Icon name="hugeicons:download-01" class="size-4.5" />
                   Template (EN)
                 </a>
                 <a
@@ -166,7 +196,7 @@
                   target="_blank"
                   class="text-primary inline-flex items-center gap-x-1 text-xs hover:underline"
                 >
-                  <Icon name="hugeicons:download-04" class="size-3" />
+                  <Icon name="hugeicons:download-01" class="size-4.5" />
                   Template (ID)
                 </a>
                 <a
@@ -175,7 +205,7 @@
                   target="_blank"
                   class="text-primary inline-flex items-center gap-x-1 text-xs hover:underline"
                 >
-                  <Icon name="hugeicons:download-04" class="size-3" />
+                  <Icon name="hugeicons:download-01" class="size-4.5" />
                   Example
                 </a>
               </div>
@@ -191,14 +221,23 @@
                 />
                 <Button
                   size="sm"
-                  :disabled="submittingId === item.document.id || !textInputs[item.document.id]?.trim()"
+                  :disabled="
+                    submittingId === item.document.id || !textInputs[item.document.id]?.trim()
+                  "
                   @click="handleTextSubmit(item)"
                 >
-                  <Icon v-if="submittingId === item.document.id" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
-                  {{ item.submission ? 'Update' : 'Submit' }}
+                  <Icon
+                    v-if="submittingId === item.document.id"
+                    name="svg-spinners:ring-resize"
+                    class="mr-1.5 size-4"
+                  />
+                  {{ item.submission ? "Update" : "Submit" }}
                 </Button>
               </div>
-              <p v-if="item.submission?.text_value" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+              <p
+                v-if="item.submission?.text_value"
+                class="text-muted-foreground text-xs tracking-tight sm:text-sm"
+              >
                 Last submitted: {{ formatDate(item.submission.submitted_at) }}
               </p>
             </template>
@@ -263,9 +302,12 @@ function getMediaUrl(media) {
 function getStatus(item) {
   if (!item.submission) return "pending";
   if (item.submission.needs_reagreement) return "needs_reagreement";
-  if (item.document.document_type === "checkbox_agreement" && item.submission.agreed_at) return "completed";
-  if (item.document.document_type === "file_upload" && item.submission.submission_file) return "completed";
-  if (item.document.document_type === "text_input" && item.submission.text_value) return "completed";
+  if (item.document.document_type === "checkbox_agreement" && item.submission.agreed_at)
+    return "completed";
+  if (item.document.document_type === "file_upload" && item.submission.submission_file)
+    return "completed";
+  if (item.document.document_type === "text_input" && item.submission.text_value)
+    return "completed";
   return "pending";
 }
 

@@ -29,6 +29,13 @@
               &middot; {{ $t('orders.statusConfirmed') }} {{ formatDate(order.confirmed_at) }}
             </span>
           </div>
+          <div
+            v-if="order.order_period === 'onsite_order'"
+            class="mt-2 inline-flex items-center gap-x-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs sm:text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+          >
+            <Icon name="hugeicons:alert-02" class="size-4 shrink-0" />
+            <span>Onsite Order - prices include {{ order.applied_penalty_rate }}% surcharge</span>
+          </div>
         </div>
         <Badge :class="statusClass(order.operational_status)" class="shrink-0 capitalize">
           {{ order.operational_status_label || order.operational_status }}
@@ -106,6 +113,20 @@
             <span>{{ formatPrice(order.total) }}</span>
           </div>
         </div>
+      </div>
+
+      <!-- Cancellation Reason -->
+      <div
+        v-if="order.operational_status === 'cancelled' && order.cancellation_reason"
+        class="border-destructive/30 bg-destructive/5 mt-6 rounded-lg border p-4"
+      >
+        <div class="flex items-center gap-x-2">
+          <Icon name="hugeicons:alert-circle" class="text-destructive size-4 shrink-0" />
+          <h4 class="text-destructive font-medium tracking-tight">{{ $t('orderDetail.cancellationReason') }}</h4>
+        </div>
+        <p class="text-muted-foreground mt-1.5 text-sm tracking-tight whitespace-pre-line">
+          {{ order.cancellation_reason }}
+        </p>
       </div>
 
       <!-- Notes -->

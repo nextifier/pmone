@@ -118,7 +118,7 @@
 
       <div class="ml-auto flex h-full shrink-0 items-center gap-x-6">
         <div class="flex h-full shrink-0 items-center gap-x-2">
-          <LanguageSwitcher v-if="isExhibitor" />
+          <!-- <LanguageSwitcher v-if="isExhibitor" /> -->
 
           <Tippy>
             <ColorModeToggle />
@@ -201,6 +201,16 @@ const backDestination = computed(() => {
     // Event overview (exact) → project overview
     if (route.path === eventPath || route.path === `${eventPath}/`) {
       return basePath;
+    }
+
+    // Product categories → products page
+    if (route.path === `${eventPath}/product-categories`) {
+      return `${eventPath}/operational/products`;
+    }
+
+    // Operational order detail → orders list
+    if (route.path.match(/\/operational\/orders\/[^/]+$/)) {
+      return `${eventPath}/operational/orders`;
     }
 
     // Any event sub-page (content, brands, orders, etc.) → event overview

@@ -28,6 +28,12 @@ class UpdateEventDocumentRequest extends FormRequest
             'booth_types' => ['nullable', 'array'],
             'booth_types.*' => ['string', Rule::in(array_column(BoothType::cases(), 'value'))],
             'settings' => ['nullable', 'array'],
+            'tmp_template_en' => ['nullable', 'string'],
+            'tmp_template_id' => ['nullable', 'string'],
+            'tmp_example_file' => ['nullable', 'string'],
+            'delete_template_en' => ['nullable', 'boolean'],
+            'delete_template_id' => ['nullable', 'boolean'],
+            'delete_example_file' => ['nullable', 'boolean'],
         ];
     }
 

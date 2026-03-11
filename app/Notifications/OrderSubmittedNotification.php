@@ -36,7 +36,7 @@ class OrderSubmittedNotification extends Notification implements ShouldQueue
             'title' => 'New order received',
             'body' => "{$this->brandName} submitted order {$this->order->ulid}",
             'icon' => 'hugeicons:shopping-bag-01',
-            'url' => "/projects/{$event->project->username}/events/{$event->slug}/orders/{$this->order->ulid}",
+            'url' => "/projects/{$event->project->username}/events/{$event->slug}/operational/orders/{$this->order->ulid}",
         ];
     }
 }

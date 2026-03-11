@@ -26,6 +26,7 @@ class EventProductCategoryResource extends JsonResource
                 $this->relationLoaded('media') || $this->hasMedia('description_images'),
                 fn () => $this->getMediaUrls('description_images')
             ),
+            'products_count' => $this->whenHas('products_count'),
             'products' => EventProductResource::collection($this->whenLoaded('products')),
             'order_column' => $this->order_column,
             'created_at' => $this->created_at,

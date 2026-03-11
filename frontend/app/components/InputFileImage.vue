@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-2">
+  <div class="w-full space-y-2">
     <InputFile
       ref="inputFileRef"
       v-if="showInput"
@@ -7,7 +7,6 @@
       :accepted-file-types="['image/jpeg', 'image/png', 'image/jpg', 'image/webp']"
       :allow-multiple="false"
       :max-files="1"
-      class="mt-3"
     />
 
     <div v-else :class="containerClass">

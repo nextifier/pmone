@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-5xl px-4 py-6 pb-16">
+  <div class="container py-6 pb-16">
     <!-- Loading skeleton -->
     <template v-if="loading">
       <div class="space-y-4">
@@ -17,18 +17,23 @@
     <template v-else-if="info">
       <!-- Header -->
       <div class="space-y-1">
+        <div class="mb-6 flex flex-col items-start gap-y-3">
+          <BackButton :show-label="true" />
+        </div>
+
         <div class="text-muted-foreground flex flex-wrap items-center gap-x-2 text-sm">
           <span>{{ info.brand?.name }}</span>
           <span class="text-muted-foreground/40">·</span>
           <span>{{ info.event?.title }}</span>
         </div>
-        <h1 class="text-2xl font-medium tracking-tight">{{ $t('orderForm.title') }}</h1>
+        <h1 class="text-2xl font-medium tracking-tight">{{ $t("orderForm.title") }}</h1>
         <div
           v-if="info.brand_event?.booth_number || info.brand_event?.booth_type"
           class="text-muted-foreground flex flex-wrap items-center gap-x-3 text-sm"
         >
           <span v-if="info.brand_event?.booth_number">
-            {{ $t('orderForm.booth') }} <span class="text-foreground font-medium">{{ info.brand_event.booth_number }}</span>
+            {{ $t("orderForm.booth") }}
+            <span class="text-foreground font-medium">{{ info.brand_event.booth_number }}</span>
           </span>
           <span v-if="info.brand_event?.booth_type_label">
             {{ info.brand_event.booth_type_label }}
@@ -41,7 +46,9 @@
         v-if="info.order_form_content"
         class="border-border bg-muted/30 mt-6 rounded-lg border p-5"
       >
-        <h2 class="mb-3 text-sm font-medium tracking-tight">{{ $t('orderForm.termsAndConditions') }}</h2>
+        <h2 class="mb-3 text-sm font-medium tracking-tight">
+          {{ $t("orderForm.termsAndConditions") }}
+        </h2>
         <div
           class="prose prose-sm dark:prose-invert max-w-none text-sm"
           v-html="info.order_form_content"
@@ -55,28 +62,17 @@
       >
         <Icon name="hugeicons:alert-02" class="size-4 shrink-0" />
         <span>
-          Onsite order period - a {{ info.penalty_rate }}% penalty will be applied to your order total.
+          Onsite order period - all prices include a {{ info.penalty_rate }}% surcharge.
         </span>
       </div>
 
-      <!-- Deadline Banner -->
+      <!-- Order Closed Banner -->
       <div
-        v-if="info.order_form_deadline"
-        :class="[
-          'mt-4 flex items-center gap-x-3 rounded-lg border px-4 py-3 text-sm',
-          isDeadlinePassed
-            ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300'
-            : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300',
-        ]"
+        v-if="!canOrder"
+        class="mt-4 flex items-center gap-x-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300"
       >
-        <Icon
-          :name="isDeadlinePassed ? 'hugeicons:alert-02' : 'hugeicons:clock-01'"
-          class="size-4 shrink-0"
-        />
-        <span v-if="isDeadlinePassed">{{ $t('orderForm.deadlinePassed') }}</span>
-        <span v-else>
-          {{ $t('orderForm.deadlineInfo', { date: formatDeadline(info.order_form_deadline) }) }}
-        </span>
+        <Icon name="hugeicons:alert-02" class="size-4 shrink-0" />
+        <span>The order form is currently closed. No active order period at this time.</span>
       </div>
 
       <!-- Main content grid -->
@@ -106,10 +102,24 @@
                 />
               </button>
 
-              <div
-                v-if="!collapsedCategories.includes(category.category)"
-                class="space-y-2"
-              >
+              <div v-if="!collapsedCategories.includes(category.category)" class="space-y-2">
+                <!-- Catalog PDF -->
+                <a
+                  v-if="category.catalog_file"
+                  :href="category.catalog_file.url"
+                  target="_blank"
+                  class="border-border bg-muted/50 hover:bg-muted flex items-center gap-x-2 rounded-lg border p-4 transition"
+                >
+                  <Icon name="teenyicons:pdf-solid" class="text-destructive size-10 shrink-0" />
+                  <span class="truncate text-sm tracking-tight">{{
+                    category.catalog_file.name
+                  }}</span>
+                  <Icon
+                    name="hugeicons:arrow-up-right-01"
+                    class="text-muted-foreground ml-auto size-3.5 shrink-0"
+                  />
+                </a>
+
                 <div
                   v-for="product in category.products"
                   :key="product.id"
@@ -131,7 +141,13 @@
                         {{ product.description }}
                       </p>
                       <p class="mt-1 text-sm font-medium">
-                        {{ formatPrice(product.price) }}
+                        <template v-if="isOnsite">
+                          <span class="text-muted-foreground text-xs line-through sm:text-sm">{{ formatPrice(product.price) }}</span>
+                          {{ formatPrice(withPenalty(product.price)) }}
+                        </template>
+                        <template v-else>
+                          {{ formatPrice(product.price) }}
+                        </template>
                         <span class="text-muted-foreground font-normal">/ {{ product.unit }}</span>
                       </p>
                     </div>
@@ -166,7 +182,7 @@
                         @click="handleAddToCart(product, category.category)"
                       >
                         <Icon name="lucide:plus" class="mr-1 size-3.5" />
-                        {{ $t('common.add') }}
+                        {{ $t("common.add") }}
                       </Button>
                     </template>
                   </div>
@@ -176,7 +192,7 @@
           </template>
 
           <div v-else class="text-muted-foreground py-12 text-center text-sm">
-            {{ $t('orderForm.noProducts') }}
+            {{ $t("orderForm.noProducts") }}
           </div>
         </div>
 
@@ -185,8 +201,8 @@
           <div class="sticky top-20 space-y-4">
             <div class="border-border rounded-lg border p-4">
               <div class="mb-3 flex items-center justify-between">
-                <h3 class="font-medium tracking-tight">
-                  {{ $t('orderForm.orderCart') }}
+                <h3 class="flex items-center font-medium tracking-tight">
+                  {{ $t("orderForm.orderCart") }}
                   <span
                     v-if="itemCount > 0"
                     class="bg-primary text-primary-foreground ml-1.5 inline-flex size-5 items-center justify-center rounded-full text-[11px] font-medium"
@@ -197,9 +213,9 @@
                 <button
                   v-if="cartItems.length > 0"
                   @click="clearCart"
-                  class="text-muted-foreground hover:text-destructive text-xs"
+                  class="text-muted-foreground hover:text-destructive text-xs sm:text-sm"
                 >
-                  {{ $t('orderForm.clearAll') }}
+                  {{ $t("orderForm.clearAll") }}
                 </button>
               </div>
 
@@ -209,8 +225,8 @@
                 class="text-muted-foreground py-8 text-center text-sm"
               >
                 <Icon name="lucide:shopping-cart" class="mx-auto mb-2 size-8 opacity-30" />
-                <p>{{ $t('orderForm.cartEmpty') }}</p>
-                <p class="mt-0.5 text-xs">{{ $t('orderForm.addFromCatalog') }}</p>
+                <p>{{ $t("orderForm.cartEmpty") }}</p>
+                <p class="mt-0.5 text-xs sm:text-sm">{{ $t("orderForm.addFromCatalog") }}</p>
               </div>
 
               <!-- Cart items -->
@@ -224,8 +240,15 @@
                     <div class="flex items-start justify-between gap-x-3">
                       <div class="min-w-0 flex-1">
                         <p class="truncate text-sm font-medium">{{ item.name }}</p>
-                        <p class="text-muted-foreground text-xs">
-                          {{ formatPrice(item.price) }} x {{ item.quantity }}
+                        <p class="text-muted-foreground mt-0.5 text-sm">
+                          <template v-if="isOnsite">
+                            <span class="text-xs line-through sm:text-sm">{{ formatPrice(item.price) }}</span>
+                            {{ formatPrice(withPenalty(item.price)) }}
+                          </template>
+                          <template v-else>
+                            {{ formatPrice(item.price) }}
+                          </template>
+                          x {{ item.quantity }}
                         </p>
                       </div>
                       <div class="flex items-center gap-x-1">
@@ -252,12 +275,12 @@
                     </div>
 
                     <!-- Item notes -->
-                    <input
-                      :value="item.notes"
-                      @input="updateItemNotes(item.event_product_id, $event.target.value)"
-                      type="text"
+                    <Textarea
+                      :model-value="item.notes"
+                      @update:model-value="updateItemNotes(item.event_product_id, $event)"
                       :placeholder="$t('orderForm.notesOptional')"
-                      class="border-border bg-background placeholder:text-muted-foreground w-full rounded border px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-current"
+                      rows="2"
+                      class="text-sm"
                     />
                   </div>
                 </div>
@@ -265,26 +288,32 @@
                 <!-- Totals -->
                 <div class="border-border mt-3 space-y-1.5 border-t pt-3 text-sm">
                   <div class="flex justify-between">
-                    <span class="text-muted-foreground">{{ $t('orderForm.subtotal') }}</span>
-                    <span>{{ formatPrice(subtotal) }}</span>
-                  </div>
-                  <div v-if="penaltyRate > 0" class="flex justify-between text-amber-600">
-                    <span>Onsite Penalty ({{ penaltyRate }}%)</span>
-                    <span>{{ formatPrice(penaltyAmount) }}</span>
+                    <span class="text-muted-foreground">{{ $t("orderForm.subtotal") }}</span>
+                    <span>
+                      <template v-if="isOnsite">
+                        <span class="text-muted-foreground text-xs line-through sm:text-sm">{{ formatPrice(subtotal) }}</span>
+                        {{ formatPrice(subtotalWithPenalty) }}
+                      </template>
+                      <template v-else>
+                        {{ formatPrice(subtotal) }}
+                      </template>
+                    </span>
                   </div>
                   <div class="flex justify-between">
-                    <span class="text-muted-foreground">{{ $t('orderForm.tax', { rate: taxRate }) }}</span>
+                    <span class="text-muted-foreground">{{
+                      $t("orderForm.tax", { rate: taxRate })
+                    }}</span>
                     <span>{{ formatPrice(computedTaxAmount) }}</span>
                   </div>
                   <div class="border-border flex justify-between border-t pt-1.5 font-semibold">
-                    <span>{{ $t('orderForm.total') }}</span>
+                    <span>{{ $t("orderForm.total") }}</span>
                     <span>{{ formatPrice(computedTotal) }}</span>
                   </div>
                 </div>
 
                 <!-- General notes -->
                 <div class="mt-4 space-y-1.5">
-                  <label class="text-xs font-medium">{{ $t('orderForm.orderNotes') }}</label>
+                  <label class="text-xs sm:text-sm font-medium">{{ $t("orderForm.orderNotes") }}</label>
                   <Textarea
                     v-model="orderNotes"
                     :placeholder="$t('orderForm.specialInstructions')"
@@ -299,7 +328,7 @@
                   @click="showConfirmDialog = true"
                   :disabled="cartItems.length === 0 || isDeadlinePassed"
                 >
-                  {{ $t('orderForm.reviewAndSubmit') }}
+                  {{ $t("orderForm.reviewAndSubmit") }}
                 </Button>
               </template>
             </div>
@@ -316,20 +345,30 @@
         @click="scrollToCart"
       >
         <Icon name="lucide:shopping-cart" class="size-4" />
-        {{ $t('orderForm.viewCart') }}
-        <span class="bg-primary-foreground text-primary inline-flex size-5 items-center justify-center rounded-full text-[11px] font-semibold">
+        {{ $t("orderForm.viewCart") }}
+        <span
+          class="bg-primary-foreground text-primary inline-flex size-5 items-center justify-center rounded-full text-[11px] font-semibold"
+        >
           {{ itemCount }}
         </span>
       </button>
     </Teleport>
 
     <!-- Confirmation Dialog -->
-    <DialogResponsive v-model:open="showConfirmDialog" dialog-max-width="450px" :overflow-content="true">
+    <DialogResponsive
+      v-model:open="showConfirmDialog"
+      dialog-max-width="450px"
+      :overflow-content="true"
+    >
       <template #sticky-header>
-        <div class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left">
-          <div class="text-lg font-semibold tracking-tighter">{{ $t('orderForm.confirmOrder') }}</div>
+        <div
+          class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left"
+        >
+          <div class="text-lg font-semibold tracking-tighter">
+            {{ $t("orderForm.confirmOrder") }}
+          </div>
           <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">
-            {{ $t('orderForm.reviewBeforeSubmitting') }}
+            {{ $t("orderForm.reviewBeforeSubmitting") }}
           </p>
         </div>
       </template>
@@ -345,15 +384,27 @@
               >
                 <div class="min-w-0 flex-1">
                   <p class="text-sm font-medium">{{ item.name }}</p>
-                  <p class="text-muted-foreground text-xs">
-                    {{ item.quantity }} × {{ formatPrice(item.price) }}
+                  <p class="text-muted-foreground text-xs sm:text-sm">
+                    {{ item.quantity }} ×
+                    <template v-if="isOnsite">
+                      <span class="text-xs line-through">{{ formatPrice(item.price) }}</span>
+                      {{ formatPrice(withPenalty(item.price)) }}
+                    </template>
+                    <template v-else>
+                      {{ formatPrice(item.price) }}
+                    </template>
                   </p>
-                  <p v-if="item.notes" class="text-muted-foreground mt-0.5 text-xs italic">
+                  <p v-if="item.notes" class="text-muted-foreground mt-0.5 text-xs sm:text-sm italic">
                     "{{ item.notes }}"
                   </p>
                 </div>
                 <span class="shrink-0 text-sm font-medium">
-                  {{ formatPrice(item.price * item.quantity) }}
+                  <template v-if="isOnsite">
+                    {{ formatPrice(withPenalty(item.price) * item.quantity) }}
+                  </template>
+                  <template v-else>
+                    {{ formatPrice(item.price * item.quantity) }}
+                  </template>
                 </span>
               </div>
             </div>
@@ -361,26 +412,32 @@
             <!-- Totals summary -->
             <div class="border-border space-y-1.5 border-t pt-3 text-sm">
               <div class="flex justify-between">
-                <span class="text-muted-foreground">{{ $t('orderForm.subtotal') }}</span>
-                <span>{{ formatPrice(subtotal) }}</span>
-              </div>
-              <div v-if="penaltyRate > 0" class="flex justify-between text-amber-600">
-                <span>Onsite Penalty ({{ penaltyRate }}%)</span>
-                <span>{{ formatPrice(penaltyAmount) }}</span>
+                <span class="text-muted-foreground">{{ $t("orderForm.subtotal") }}</span>
+                <span>
+                  <template v-if="isOnsite">
+                    <span class="text-muted-foreground text-xs line-through sm:text-sm">{{ formatPrice(subtotal) }}</span>
+                    {{ formatPrice(subtotalWithPenalty) }}
+                  </template>
+                  <template v-else>
+                    {{ formatPrice(subtotal) }}
+                  </template>
+                </span>
               </div>
               <div class="flex justify-between">
-                <span class="text-muted-foreground">{{ $t('orderForm.tax', { rate: taxRate }) }}</span>
+                <span class="text-muted-foreground">{{
+                  $t("orderForm.tax", { rate: taxRate })
+                }}</span>
                 <span>{{ formatPrice(computedTaxAmount) }}</span>
               </div>
               <div class="border-border flex justify-between border-t pt-1.5 font-semibold">
-                <span>{{ $t('orderForm.total') }}</span>
+                <span>{{ $t("orderForm.total") }}</span>
                 <span>{{ formatPrice(computedTotal) }}</span>
               </div>
             </div>
 
             <!-- Order notes preview -->
-            <div v-if="orderNotes" class="bg-muted rounded-md p-3 text-xs">
-              <span class="font-medium">{{ $t('common.notes') }}:</span> {{ orderNotes }}
+            <div v-if="orderNotes" class="bg-muted rounded-md p-3 text-xs sm:text-sm">
+              <span class="font-medium">{{ $t("common.notes") }}:</span> {{ orderNotes }}
             </div>
           </div>
 
@@ -390,11 +447,11 @@
               :disabled="submitting"
               class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
             >
-              {{ $t('common.back') }}
+              {{ $t("common.back") }}
             </button>
             <Button @click="handleSubmitOrder" :disabled="submitting">
               <Icon v-if="submitting" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
-              {{ submitting ? $t('common.submitting') : $t('orderForm.submitOrder') }}
+              {{ submitting ? $t("common.submitting") : $t("orderForm.submitOrder") }}
             </Button>
           </div>
         </div>
@@ -404,10 +461,10 @@
 </template>
 
 <script setup>
-import { useOrderCart } from "@/composables/useOrderCart";
+import DialogResponsive from "@/components/DialogResponsive.vue";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import DialogResponsive from "@/components/DialogResponsive.vue";
+import { useOrderCart } from "@/composables/useOrderCart";
 import { toast } from "vue-sonner";
 
 const { t } = useI18n();
@@ -445,17 +502,32 @@ const {
 
 const taxRate = computed(() => info.value?.tax_rate || 11);
 const penaltyRate = computed(() => info.value?.penalty_rate || 0);
+const isOnsite = computed(() => penaltyRate.value > 0);
+
+function withPenalty(price) {
+  if (!isOnsite.value) return price;
+  return Math.round(price * (1 + penaltyRate.value / 100));
+}
+
 const penaltyAmount = computed(() => {
-  if (penaltyRate.value <= 0) return 0;
-  return Math.round(subtotal.value * penaltyRate.value / 100);
+  if (!isOnsite.value) return 0;
+  return Math.round((subtotal.value * penaltyRate.value) / 100);
 });
 const subtotalWithPenalty = computed(() => subtotal.value + penaltyAmount.value);
-const computedTaxAmount = computed(() => Math.round(subtotalWithPenalty.value * taxRate.value / 100));
+const computedTaxAmount = computed(() =>
+  Math.round((subtotalWithPenalty.value * taxRate.value) / 100)
+);
 const computedTotal = computed(() => subtotalWithPenalty.value + computedTaxAmount.value);
 
+const canOrder = computed(() => {
+  if (!info.value) return false;
+  // If current_period is set (normal_order or onsite_order), ordering is allowed
+  return !!info.value.current_period;
+});
+
 const isDeadlinePassed = computed(() => {
-  if (!info.value?.order_form_deadline) return false;
-  return new Date(info.value.order_form_deadline) < new Date();
+  // Used as a guard for add/submit buttons
+  return !canOrder.value;
 });
 
 function formatDeadline(dateStr) {
@@ -475,10 +547,10 @@ async function fetchData() {
   try {
     const [productsRes, infoRes] = await Promise.all([
       client(
-        `/api/exhibitor/brands/${route.params.slug}/events/${route.params.brandEventId}/products`,
+        `/api/exhibitor/brands/${route.params.slug}/events/${route.params.brandEventId}/products`
       ),
       client(
-        `/api/exhibitor/brands/${route.params.slug}/events/${route.params.brandEventId}/order-form-info`,
+        `/api/exhibitor/brands/${route.params.slug}/events/${route.params.brandEventId}/order-form-info`
       ),
     ]);
     products.value = productsRes.data;
@@ -531,7 +603,7 @@ async function handleSubmitOrder() {
       {
         method: "POST",
         body: payload,
-      },
+      }
     );
 
     clearCart();
@@ -539,7 +611,7 @@ async function handleSubmitOrder() {
     toast.success(t("orderForm.submittedSuccess"));
 
     router.push(
-      `/brands/${route.params.slug}/orders/${route.params.brandEventId}/${res.data.ulid}`,
+      `/brands/${route.params.slug}/orders/${route.params.brandEventId}/${res.data.ulid}`
     );
   } catch (error) {
     toast.error(error.response?._data?.message || t("orderForm.failedToSubmit"));
@@ -551,8 +623,6 @@ async function handleSubmitOrder() {
 onMounted(fetchData);
 
 usePageMeta(null, {
-  title: computed(() =>
-    info.value ? `Order Form · ${info.value.event?.title}` : "Order Form",
-  ),
+  title: computed(() => (info.value ? `Order Form · ${info.value.event?.title}` : "Order Form")),
 });
 </script>

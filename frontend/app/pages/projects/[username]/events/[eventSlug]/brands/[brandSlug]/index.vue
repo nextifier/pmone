@@ -245,11 +245,213 @@
         </Button>
       </div>
     </form>
+
+    <!-- Document Submissions -->
+    <div class="frame">
+      <div class="frame-header">
+        <div class="frame-title">Document Submissions</div>
+      </div>
+      <div class="frame-panel">
+        <div v-if="docSubsLoading" class="flex items-center justify-center py-8">
+          <Icon name="svg-spinners:ring-resize" class="text-muted-foreground size-5" />
+        </div>
+        <div v-else-if="!docSubmissions.length" class="py-4 text-center">
+          <p class="text-muted-foreground text-sm tracking-tight">
+            No applicable documents for this brand.
+          </p>
+        </div>
+        <div v-else class="divide-border divide-y">
+          <div
+            v-for="item in docSubmissions"
+            :key="item.document.id"
+            class="flex items-start justify-between gap-x-3 py-3 first:pt-0 last:pb-0"
+          >
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-x-2">
+                <span class="text-sm font-medium tracking-tight">{{ item.document.title }}</span>
+                <Badge
+                  v-if="item.document.is_required"
+                  variant="outline"
+                  class="text-xs font-normal"
+                  >Required</Badge
+                >
+              </div>
+              <div class="text-muted-foreground mt-0.5 text-xs tracking-tight sm:text-sm">
+                <template
+                  v-if="
+                    item.status === 'completed' &&
+                    item.document.document_type === 'checkbox_agreement'
+                  "
+                >
+                  Agreed by {{ item.submission?.submitter?.name || "Unknown" }}
+                </template>
+                <template
+                  v-else-if="
+                    item.status === 'completed' && item.document.document_type === 'file_upload'
+                  "
+                >
+                  <a
+                    v-if="item.submission?.submission_file"
+                    :href="
+                      item.submission.submission_file.url ||
+                      item.submission.submission_file.original
+                    "
+                    target="_blank"
+                    class="text-primary mt-2 inline-flex items-center gap-1 hover:underline"
+                  >
+                    <Icon name="teenyicons:pdf-solid" class="text-destructive size-8 shrink-0" />
+                    {{ item.submission.submission_file.alt || "View file" }}
+                  </a>
+                </template>
+                <template
+                  v-else-if="
+                    item.status === 'completed' && item.document.document_type === 'text_input'
+                  "
+                >
+                  {{ item.submission?.text_value }}
+                </template>
+                <template v-else-if="item.status === 'needs_reagreement'">
+                  Needs re-submission (document updated)
+                </template>
+                <template v-else> Not submitted </template>
+              </div>
+            </div>
+            <div class="shrink-0">
+              <Badge
+                :variant="
+                  item.status === 'completed'
+                    ? 'default'
+                    : item.status === 'needs_reagreement'
+                      ? 'outline'
+                      : 'secondary'
+                "
+                :class="{
+                  'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400':
+                    item.status === 'needs_reagreement',
+                }"
+                class="text-xs font-normal sm:text-sm"
+              >
+                {{
+                  item.status === "completed"
+                    ? "Completed"
+                    : item.status === "needs_reagreement"
+                      ? "Updated"
+                      : "Pending"
+                }}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Members / PIC -->
+    <div class="frame">
+      <div class="frame-header">
+        <div class="frame-title">Members (PIC)</div>
+      </div>
+      <div class="frame-panel">
+        <div class="space-y-4">
+          <!-- Member list -->
+          <div v-if="members_list.length" class="divide-border divide-y">
+            <div
+              v-for="member in members_list"
+              :key="member.id"
+              class="flex items-center justify-between gap-x-3 py-2.5 first:pt-0 last:pb-0"
+            >
+              <div class="flex items-center gap-x-2.5 overflow-hidden">
+                <Avatar
+                  :model="{ name: member.name, profile_image: member.avatar }"
+                  class="size-8 shrink-0"
+                  rounded="rounded-full"
+                />
+                <div class="min-w-0">
+                  <div class="truncate text-sm font-medium tracking-tight">{{ member.name }}</div>
+                  <div class="text-muted-foreground truncate text-xs tracking-tight">
+                    {{ member.email }}
+                  </div>
+                </div>
+              </div>
+              <div class="flex shrink-0 items-center gap-x-1">
+                <Tippy>
+                  <button
+                    type="button"
+                    @click="resendInvite(member)"
+                    :disabled="sendingInvite === member.id"
+                    class="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md p-1.5 transition"
+                  >
+                    <Icon
+                      v-if="sendingInvite === member.id"
+                      name="svg-spinners:ring-resize"
+                      class="size-4"
+                    />
+                    <Icon v-else name="hugeicons:mail-send-02" class="size-4" />
+                  </button>
+                  <template #content>
+                    <span class="text-xs tracking-tight">Resend invite email</span>
+                  </template>
+                </Tippy>
+                <Tippy>
+                  <button
+                    type="button"
+                    @click="removeMember(member)"
+                    :disabled="removingMember === member.id"
+                    class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md p-1.5 transition"
+                  >
+                    <Icon
+                      v-if="removingMember === member.id"
+                      name="svg-spinners:ring-resize"
+                      class="size-4"
+                    />
+                    <Icon v-else name="hugeicons:delete-02" class="size-4" />
+                  </button>
+                  <template #content>
+                    <span class="text-xs tracking-tight">Remove member</span>
+                  </template>
+                </Tippy>
+              </div>
+            </div>
+          </div>
+          <p v-else class="text-muted-foreground text-sm tracking-tight">No members yet.</p>
+
+          <!-- Add member -->
+          <div class="border-border border-t pt-4">
+            <form @submit.prevent="addMember" class="flex items-end gap-x-2">
+              <div class="min-w-0 flex-1 space-y-2">
+                <Label for="new_member_email">Add Member</Label>
+                <Input
+                  id="new_member_email"
+                  v-model="newMemberEmail"
+                  type="email"
+                  placeholder="email@example.com"
+                />
+              </div>
+              <Button
+                type="submit"
+                size="sm"
+                :disabled="addingMember || !newMemberEmail.trim()"
+                class="shrink-0"
+              >
+                <Icon v-if="addingMember" name="svg-spinners:ring-resize" class="mr-1 size-4" />
+                <Icon v-else name="hugeicons:add-01" class="mr-1 size-4" />
+                Invite
+              </Button>
+            </form>
+            <div class="mt-2 flex items-center gap-x-2">
+              <Checkbox id="send_invite_email" v-model="sendLoginEmail" />
+              <Label for="send_invite_email" class="text-sm font-normal">Send login email</Label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import TipTapEditor from "@/components/TipTapEditor.vue";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { MultiSelect } from "@/components/ui/multi-select";
 import {
   TagsInput,
@@ -411,6 +613,93 @@ async function handleSubmit() {
     toast.error(e?.data?.message || "Failed to save");
   } finally {
     saving.value = false;
+  }
+}
+
+// Document Submissions
+const docSubmissions = ref([]);
+const docSubsLoading = ref(true);
+const docSubsUrl = computed(
+  () =>
+    `/api/projects/${route.params.username}/events/${route.params.eventSlug}/brands/${route.params.brandSlug}/document-submissions`
+);
+
+async function fetchDocSubmissions() {
+  docSubsLoading.value = true;
+  try {
+    const res = await client(docSubsUrl.value);
+    docSubmissions.value = res.data || [];
+  } catch {
+    docSubmissions.value = [];
+  } finally {
+    docSubsLoading.value = false;
+  }
+}
+
+onMounted(() => fetchDocSubmissions());
+
+// Members / PIC
+const membersApiBase = computed(
+  () =>
+    `/api/projects/${route.params.username}/events/${route.params.eventSlug}/brands/${route.params.brandSlug}/members`
+);
+const members_list = ref(props.brandEvent?.members || []);
+const newMemberEmail = ref("");
+const sendLoginEmail = ref(false);
+const addingMember = ref(false);
+const removingMember = ref(null);
+const sendingInvite = ref(null);
+
+watch(
+  () => props.brandEvent?.members,
+  (val) => {
+    if (val) members_list.value = val;
+  }
+);
+
+async function addMember() {
+  if (!newMemberEmail.value.trim()) return;
+  addingMember.value = true;
+  try {
+    await client(membersApiBase.value, {
+      method: "POST",
+      body: {
+        email: newMemberEmail.value.trim(),
+        send_login_email: sendLoginEmail.value,
+      },
+    });
+    toast.success("Member invited");
+    newMemberEmail.value = "";
+    emit("refresh");
+  } catch (e) {
+    toast.error(e?.data?.message || "Failed to add member");
+  } finally {
+    addingMember.value = false;
+  }
+}
+
+async function removeMember(member) {
+  removingMember.value = member.id;
+  try {
+    await client(`${membersApiBase.value}/${member.id}`, { method: "DELETE" });
+    members_list.value = members_list.value.filter((m) => m.id !== member.id);
+    toast.success("Member removed");
+  } catch (e) {
+    toast.error(e?.data?.message || "Failed to remove member");
+  } finally {
+    removingMember.value = null;
+  }
+}
+
+async function resendInvite(member) {
+  sendingInvite.value = member.id;
+  try {
+    await client(`${membersApiBase.value}/${member.id}/send-invite`, { method: "POST" });
+    toast.success("Invite email sent");
+  } catch (e) {
+    toast.error(e?.data?.message || "Failed to send invite");
+  } finally {
+    sendingInvite.value = null;
   }
 }
 

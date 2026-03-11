@@ -1397,7 +1397,7 @@ class UserController extends Controller
             'projects' => ['created_by', 'updated_by', 'deleted_by'],
             'tasks' => ['created_by', 'updated_by', 'deleted_by', 'assignee_id'],
             'short_links' => ['user_id', 'created_by', 'updated_by', 'deleted_by'],
-            'contact_form_submissions' => ['followed_up_by', 'deleted_by'],
+            'contact_form_submissions' => ['deleted_by'],
             'api_consumers' => ['created_by', 'updated_by', 'deleted_by'],
             'ga_properties' => ['created_by', 'updated_by', 'deleted_by'],
             'events' => ['created_by', 'updated_by', 'deleted_by'],

@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\BoothType;
 use App\Exports\BrandEventsExport;
 use App\Exports\BrandEventsTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BrandEventIndexResource;
 use App\Http\Resources\BrandEventResource;
+use App\Http\Resources\EventDocumentResource;
+use App\Http\Resources\EventDocumentSubmissionResource;
 use App\Http\Resources\PromotionPostResource;
 use App\Imports\BrandEventsImport;
 use App\Mail\ExhibitorInviteMail;
 use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\Event;
+use App\Models\EventDocumentSubmission;
 use App\Models\Project;
 use App\Models\PromotionPost;
 use App\Models\User;
@@ -27,6 +31,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -154,8 +159,12 @@ class BrandEventController extends Controller
 
         $validated = $request->validate([
             'brand_name' => ['required', 'string', 'max:255'],
+            'booth_type' => ['nullable', 'string', Rule::in(array_column(BoothType::cases(), 'value'))],
+            'booth_number' => ['nullable', 'string', 'max:255'],
             'booth_size' => ['nullable', 'numeric', 'min:0'],
             'booth_price' => ['nullable', 'numeric', 'min:0'],
+            'badge_name' => ['nullable', 'string', 'max:255'],
+            'fascia_name' => ['nullable', 'string', 'max:255'],
             'sales_id' => ['nullable', 'integer', 'exists:users,id'],
             'emails' => ['nullable', 'array'],
             'emails.*' => ['email'],
@@ -190,8 +199,12 @@ class BrandEventController extends Controller
         $brandEvent = BrandEvent::create([
             'brand_id' => $brand->id,
             'event_id' => $event->id,
+            'booth_type' => $validated['booth_type'] ?? null,
+            'booth_number' => $validated['booth_number'] ?? null,
             'booth_size' => $validated['booth_size'] ?? null,
             'booth_price' => $validated['booth_price'] ?? null,
+            'badge_name' => $validated['badge_name'] ?? null,
+            'fascia_name' => $validated['fascia_name'] ?? null,
             'sales_id' => $validated['sales_id'] ?? null,
         ]);
 
@@ -266,6 +279,57 @@ class BrandEventController extends Controller
             'brand_custom_fields' => $brandEvent->brand->custom_fields ?? (object) [],
             'business_category_options' => $businessCategoryOptions,
         ]);
+    }
+
+    /**
+     * List document submissions for a brand-event (staff view).
+     */
+    public function documentSubmissions(string $username, string $eventSlug, string $brandSlug): JsonResponse
+    {
+        $project = $this->resolveProject($username);
+        $event = $this->resolveEvent($project, $eventSlug);
+        $brandEvent = $this->resolveBrandEvent($event, $brandSlug);
+
+        $boothIdentifier = $brandEvent->booth_number ?: "be-{$brandEvent->id}";
+
+        $documents = $event->eventDocuments()
+            ->with('media')
+            ->ordered()
+            ->get()
+            ->filter(fn ($doc) => $doc->appliesToBoothType($brandEvent->booth_type?->value));
+
+        $submissions = EventDocumentSubmission::query()
+            ->where('event_id', $event->id)
+            ->where('booth_identifier', $boothIdentifier)
+            ->with(['submitter', 'media'])
+            ->get()
+            ->keyBy('event_document_id');
+
+        $data = $documents->map(function ($doc) use ($submissions) {
+            $submission = $submissions->get($doc->id);
+
+            $status = 'pending';
+            if ($submission) {
+                $needsReagreement = $submission->document_version < $doc->content_version;
+                if ($needsReagreement) {
+                    $status = 'needs_reagreement';
+                } elseif ($doc->document_type === 'checkbox_agreement' && $submission->agreed_at) {
+                    $status = 'completed';
+                } elseif ($doc->document_type === 'file_upload' && $submission->hasMedia('submission_file')) {
+                    $status = 'completed';
+                } elseif ($doc->document_type === 'text_input' && $submission->text_value) {
+                    $status = 'completed';
+                }
+            }
+
+            return [
+                'document' => new EventDocumentResource($doc),
+                'submission' => $submission ? new EventDocumentSubmissionResource($submission) : null,
+                'status' => $status,
+            ];
+        })->values();
+
+        return response()->json(['data' => $data]);
     }
 
     /**

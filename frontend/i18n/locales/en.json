@@ -196,7 +196,8 @@
     "discountRemoved": "Discount removed",
     "failedToApplyDiscount": "Failed to apply discount",
     "notFound": "Order not found",
-    "failedToLoad": "Failed to load order details"
+    "failedToLoad": "Failed to load order details",
+    "cancellationReason": "Cancellation Reason"
   },
   "orderForm": {
     "title": "Order Form",

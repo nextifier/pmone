@@ -10,7 +10,7 @@
           <Icon name="hugeicons:arrow-left-01" class="size-4" />
           <span>Back to Products</span>
         </NuxtLink>
-        <h3 class="text-lg font-semibold tracking-tight">Product Categories</h3>
+        <h3 class="mt-3 text-lg font-semibold tracking-tight">Product Categories</h3>
         <p class="text-muted-foreground text-sm tracking-tight">
           Manage product categories for this event's order form.
         </p>
@@ -52,7 +52,9 @@
         </div>
         <div class="space-y-1">
           <p class="text-sm font-medium">No product categories yet</p>
-          <p class="text-muted-foreground text-xs">Add categories to organize your event products.</p>
+          <p class="text-muted-foreground text-xs">
+            Add categories to organize your event products.
+          </p>
         </div>
         <Button @click="openCreate" size="sm" variant="outline">
           <Icon name="hugeicons:add-01" class="size-4" />
@@ -81,22 +83,38 @@
             >
               <td class="text-muted-foreground px-4 py-3">
                 <div class="flex items-center gap-x-1">
-                  <Icon name="lucide:grip-vertical" class="drag-handle text-muted-foreground size-4 shrink-0 cursor-grab" />
+                  <Icon
+                    name="lucide:grip-vertical"
+                    class="drag-handle text-muted-foreground size-4 shrink-0 cursor-grab"
+                  />
                   <span>{{ index + 1 }}</span>
                 </div>
               </td>
               <td class="px-4 py-3">
                 <div class="font-medium tracking-tight">{{ category.title }}</div>
-                <div v-if="category.description" class="text-muted-foreground mt-0.5 line-clamp-1 text-xs">
+                <div
+                  v-if="category.description"
+                  class="text-muted-foreground mt-0.5 line-clamp-1 text-xs"
+                >
                   {{ stripHtml(category.description) }}
                 </div>
+                <a
+                  v-if="category.catalog_files?.url"
+                  :href="category.catalog_files.url"
+                  target="_blank"
+                  class="text-muted-foreground hover:text-foreground mt-1.5 inline-flex items-center gap-x-1.5 text-sm font-medium tracking-tight transition"
+                >
+                  <Icon name="teenyicons:pdf-solid" class="text-destructive size-8 shrink-0" />
+                  <span class="truncate">{{ category.catalog_files.alt || "Catalog PDF" }}</span>
+                  <Icon name="hugeicons:arrow-up-right-01" class="size-3 shrink-0" />
+                </a>
               </td>
               <td class="px-4 py-3">
                 <code class="text-muted-foreground text-xs">{{ category.slug }}</code>
               </td>
               <td class="px-4 py-3">
                 <Badge variant="secondary" class="font-normal">
-                  {{ category.products?.length || 0 }} products
+                  {{ category.products_count ?? 0 }} products
                 </Badge>
               </td>
               <td class="px-4 py-3">
@@ -126,12 +144,24 @@
     </div>
 
     <!-- Add/Edit Dialog -->
-    <DialogResponsive v-model:open="showFormDialog" dialog-max-width="500px" :overflow-content="true">
+    <DialogResponsive
+      v-model:open="showFormDialog"
+      dialog-max-width="500px"
+      :overflow-content="true"
+    >
       <template #sticky-header>
-        <div class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left">
-          <div class="text-lg font-semibold tracking-tighter">{{ editingCategory ? "Edit Category" : "Add Category" }}</div>
+        <div
+          class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left"
+        >
+          <div class="text-lg font-semibold tracking-tighter">
+            {{ editingCategory ? "Edit Category" : "Add Category" }}
+          </div>
           <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">
-            {{ editingCategory ? "Update the category details below." : "Fill in the details to create a new category." }}
+            {{
+              editingCategory
+                ? "Update the category details below."
+                : "Fill in the details to create a new category."
+            }}
           </p>
         </div>
       </template>
@@ -153,8 +183,9 @@
           <div class="text-foreground text-lg font-semibold tracking-tight">Delete Category</div>
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             Are you sure you want to delete
-            <span class="text-foreground font-medium">{{ deletingCategory?.title }}</span>?
-            Products in this category will not be deleted, but will lose their category assignment.
+            <span class="text-foreground font-medium">{{ deletingCategory?.title }}</span
+            >? Products in this category will not be deleted, but will lose their category
+            assignment.
           </p>
           <div class="mt-4 flex justify-end gap-2">
             <button
@@ -182,9 +213,9 @@
 </template>
 
 <script setup>
+import DialogResponsive from "@/components/DialogResponsive.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import { useSortable } from "@vueuse/integrations/useSortable";
 import { toast } from "vue-sonner";
 
@@ -309,8 +340,6 @@ watch(
 );
 
 usePageMeta(null, {
-  title: computed(
-    () => `Product Categories · ${props.event?.title || route.params.eventSlug}`
-  ),
+  title: computed(() => `Product Categories · ${props.event?.title || route.params.eventSlug}`),
 });
 </script>

@@ -2,9 +2,7 @@
   <div
     :class="[
       'relative overflow-hidden rounded-xl border p-5 sm:p-6',
-      allDone
-        ? 'border-green-200 bg-green-50/50 dark:border-green-900/50 dark:bg-green-950/20'
-        : 'border-border bg-card',
+      allDone ? 'border-success/30 bg-success/5' : 'border-border bg-card',
     ]"
   >
     <div class="flex items-start gap-4">
@@ -12,31 +10,38 @@
         :class="[
           'flex size-10 shrink-0 items-center justify-center rounded-full',
           allDone
-            ? 'bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400'
+            ? 'bg-success/10 text-success-foreground'
             : isUrgent
-              ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400'
-              : 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300',
+              ? 'bg-warning/10 text-warning-foreground'
+              : 'bg-muted text-foreground',
         ]"
       >
         <Icon :name="currentAction.icon" class="size-5" />
       </div>
-      <div class="min-w-0 flex-1">
-        <h2 class="text-base font-medium tracking-tight sm:text-lg">{{ currentAction.title }}</h2>
-        <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">{{ currentAction.description }}</p>
-        <div v-if="currentAction.deadline" class="text-muted-foreground mt-1.5 flex items-center gap-1.5 text-xs tracking-tight sm:text-sm">
-          <Icon name="hugeicons:clock-01" class="size-3.5" />
-          <span>{{ currentAction.deadline }}</span>
+      <div class="min-w-0 flex-1 space-y-3">
+        <div>
+          <h2 class="text-base font-medium tracking-tighter sm:text-lg">{{ currentAction.title }}</h2>
+          <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">
+            {{ currentAction.description }}
+          </p>
+          <div
+            v-if="currentAction.deadline"
+            class="text-muted-foreground mt-1.5 flex items-center gap-1.5 text-xs tracking-tight sm:text-sm"
+          >
+            <Icon name="hugeicons:clock-01" class="size-3.5" />
+            <span>{{ currentAction.deadline }}</span>
+          </div>
         </div>
+        <Button
+          v-if="currentAction.action"
+          size="sm"
+          :variant="allDone ? 'outline' : 'default'"
+          class="w-full sm:w-auto"
+          @click="$emit('action', currentAction.actionKey)"
+        >
+          {{ currentAction.action }}
+        </Button>
       </div>
-      <Button
-        v-if="currentAction.action"
-        size="sm"
-        :variant="allDone ? 'outline' : 'default'"
-        class="shrink-0"
-        @click="$emit('action', currentAction.actionKey)"
-      >
-        {{ currentAction.action }}
-      </Button>
     </div>
   </div>
 </template>
@@ -75,9 +80,7 @@ const currentAction = computed(() => {
   const bes = props.brandEvents || [];
 
   // 2. Event rules not agreed
-  const rulesNeeded = bes.find(
-    (be) => be.event_rules?.length > 0 && !be.event_rules_agreed
-  );
+  const rulesNeeded = bes.find((be) => be.event_rules?.length > 0 && !be.event_rules_agreed);
   if (rulesNeeded) {
     return {
       icon: "hugeicons:file-validation",
@@ -89,9 +92,10 @@ const currentAction = computed(() => {
   }
 
   // 3. Documents needing re-agreement
-  const reagreement = bes.find((be) =>
-    be.event_rules?.some((r) => r.needs_reagreement) ||
-    be.documents?.some((d) => d.status === "needs_reagreement")
+  const reagreement = bes.find(
+    (be) =>
+      be.event_rules?.some((r) => r.needs_reagreement) ||
+      be.documents?.some((d) => d.status === "needs_reagreement")
   );
   if (reagreement) {
     return {

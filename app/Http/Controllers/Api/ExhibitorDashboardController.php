@@ -49,7 +49,7 @@ class ExhibitorDashboardController extends Controller
 
         // Collect all brand-event IDs to batch-load submissions
         $allBrandEvents = $brands->flatMap(fn (Brand $b) => $b->brandEvents);
-        $boothIdentifiers = $allBrandEvents->map(fn (BrandEvent $be) => $be->booth_number ?? "be-{$be->id}");
+        $boothIdentifiers = $allBrandEvents->map(fn (BrandEvent $be) => $be->booth_number ?: "be-{$be->id}");
         $eventIds = $allBrandEvents->pluck('event_id')->unique();
 
         // Batch load all submissions for these events + booths
@@ -75,7 +75,7 @@ class ExhibitorDashboardController extends Controller
                     return null;
                 }
 
-                $boothIdentifier = $be->booth_number ?? "be-{$be->id}";
+                $boothIdentifier = $be->booth_number ?: "be-{$be->id}";
                 $boothTypeValue = $be->booth_type?->value;
 
                 // Filter documents by booth type
@@ -153,6 +153,7 @@ class ExhibitorDashboardController extends Controller
                         'date_label' => $event->date_label,
                         'location' => $event->location,
                         'poster_image' => $event->poster_image,
+                        'badge_vip_info' => $event->badge_vip_info,
                     ],
                     'booth_number' => $be->booth_number,
                     'booth_type' => $boothTypeValue,
@@ -170,6 +171,11 @@ class ExhibitorDashboardController extends Controller
                     'documents_completed' => $docsCompleted,
                     'orders_count' => $be->orders_count,
                     'order_form_deadline' => $event->order_form_deadline?->toIso8601String(),
+                    'normal_order_opens_at' => $event->normal_order_opens_at?->toIso8601String(),
+                    'normal_order_closes_at' => $event->normal_order_closes_at?->toIso8601String(),
+                    'onsite_order_opens_at' => $event->onsite_order_opens_at?->toIso8601String(),
+                    'onsite_order_closes_at' => $event->onsite_order_closes_at?->toIso8601String(),
+                    'onsite_penalty_rate' => $event->onsite_penalty_rate,
                 ];
             })->filter();
         })
@@ -600,7 +606,7 @@ class ExhibitorDashboardController extends Controller
             ->findOrFail($brandEventId);
 
         $query = EventProduct::query()
-            ->with(['media', 'productCategory'])
+            ->with(['media', 'productCategory.media'])
             ->where('event_id', $brandEvent->event_id)
             ->where('is_active', true)
             ->ordered();
@@ -617,17 +623,26 @@ class ExhibitorDashboardController extends Controller
         $products = $query->get();
 
         // Group by category
-        $grouped = $products->groupBy(fn ($p) => $p->productCategory?->title ?? 'Uncategorized')->map(fn ($items, $category) => [
-            'category' => $category,
-            'products' => $items->map(fn (EventProduct $p) => [
-                'id' => $p->id,
-                'name' => $p->name,
-                'description' => $p->description,
-                'price' => $p->price,
-                'unit' => $p->unit,
-                'product_image' => $p->product_image,
-            ])->values(),
-        ])->values();
+        $grouped = $products->groupBy(fn ($p) => $p->productCategory?->title ?? 'Uncategorized')->map(function ($items, $category) {
+            $firstCategory = $items->first()?->productCategory;
+            $catalogFile = $firstCategory?->getMediaUrls('catalog_files');
+
+            return [
+                'category' => $category,
+                'catalog_file' => $catalogFile ? [
+                    'url' => $catalogFile['url'],
+                    'name' => $firstCategory->getFirstMedia('catalog_files')?->file_name,
+                ] : null,
+                'products' => $items->map(fn (EventProduct $p) => [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'description' => $p->description,
+                    'price' => $p->price,
+                    'unit' => $p->unit,
+                    'product_image' => $p->product_image,
+                ])->values(),
+            ];
+        })->values();
 
         return response()->json(['data' => $grouped]);
     }
@@ -747,10 +762,12 @@ class ExhibitorDashboardController extends Controller
         $order = DB::transaction(function () use ($validated, $brandEvent, $products, $taxRate, $orderPeriod, $penaltyRate) {
             $subtotal = 0;
             $itemsData = [];
+            $penaltyMultiplier = $penaltyRate > 0 ? (1 + $penaltyRate / 100) : 1;
 
             foreach ($validated['items'] as $item) {
                 $product = $products[$item['event_product_id']];
-                $totalPrice = (float) $product->price * $item['quantity'];
+                $unitPrice = round((float) $product->price * $penaltyMultiplier, 2);
+                $totalPrice = $unitPrice * $item['quantity'];
                 $subtotal += $totalPrice;
 
                 $itemsData[] = [
@@ -758,19 +775,15 @@ class ExhibitorDashboardController extends Controller
                     'category_id' => $product->category_id,
                     'product_name' => $product->name,
                     'product_image_url' => $product->product_image['md'] ?? $product->product_image['url'] ?? null,
-                    'unit_price' => $product->price,
+                    'unit_price' => $unitPrice,
                     'quantity' => $item['quantity'],
                     'total_price' => $totalPrice,
                     'notes' => $item['notes'] ?? null,
                 ];
             }
 
-            // Apply penalty if onsite
-            $penaltyAmount = $penaltyRate > 0 ? round($subtotal * $penaltyRate / 100, 2) : 0;
-            $subtotalWithPenalty = $subtotal + $penaltyAmount;
-
-            $taxAmount = round($subtotalWithPenalty * $taxRate / 100, 2);
-            $total = $subtotalWithPenalty + $taxAmount;
+            $taxAmount = round($subtotal * $taxRate / 100, 2);
+            $total = $subtotal + $taxAmount;
 
             $order = Order::create([
                 'brand_event_id' => $brandEvent->id,
@@ -819,7 +832,7 @@ class ExhibitorDashboardController extends Controller
 
         $orders = Order::query()
             ->where('brand_event_id', $brandEvent->id)
-            ->with('creator')
+            ->with(['creator', 'items'])
             ->withCount('items')
             ->orderByDesc('submitted_at')
             ->get();
@@ -872,7 +885,7 @@ class ExhibitorDashboardController extends Controller
             ->values();
 
         // Get exhibitor's submissions for this booth
-        $boothIdentifier = $brandEvent->booth_number ?? "be-{$brandEvent->id}";
+        $boothIdentifier = $brandEvent->booth_number ?: "be-{$brandEvent->id}";
         $submissions = EventDocumentSubmission::query()
             ->where('event_id', $event->id)
             ->where('booth_identifier', $boothIdentifier)
@@ -929,7 +942,7 @@ class ExhibitorDashboardController extends Controller
             return response()->json(['message' => 'This document does not apply to your booth type.'], 422);
         }
 
-        $boothIdentifier = $brandEvent->booth_number ?? "be-{$brandEvent->id}";
+        $boothIdentifier = $brandEvent->booth_number ?: "be-{$brandEvent->id}";
 
         $rules = [
             'text_value' => ['nullable', 'string', 'max:5000'],

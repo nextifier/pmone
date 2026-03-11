@@ -196,7 +196,8 @@
     "discountRemoved": "Diskon dihapus",
     "failedToApplyDiscount": "Gagal menerapkan diskon",
     "notFound": "Pesanan tidak ditemukan",
-    "failedToLoad": "Gagal memuat detail pesanan"
+    "failedToLoad": "Gagal memuat detail pesanan",
+    "cancellationReason": "Alasan Pembatalan"
   },
   "orderForm": {
     "title": "Order Form",

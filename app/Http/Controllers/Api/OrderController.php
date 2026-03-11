@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\OperationalStatus;
 use App\Enums\PaymentStatus;
+use App\Exports\OrdersExport;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderIndexResource;
 use App\Http\Resources\OrderResource;
@@ -16,6 +17,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
 
 class OrderController extends Controller
 {
@@ -178,7 +180,7 @@ class OrderController extends Controller
 
         $validated = $request->validate([
             'operational_status' => ['required', 'string', Rule::in(array_column(OperationalStatus::cases(), 'value'))],
-            'cancellation_reason' => ['required_if:operational_status,cancelled', 'nullable', 'string', 'max:5000'],
+            'cancellation_reason' => ['nullable', 'string', 'max:5000'],
         ]);
 
         $oldStatus = $order->operational_status;
@@ -188,7 +190,7 @@ class OrderController extends Controller
             'confirmed_at' => $validated['operational_status'] === 'confirmed' ? now() : $order->confirmed_at,
         ];
 
-        if ($validated['operational_status'] === 'cancelled') {
+        if ($validated['operational_status'] === 'cancelled' && ! empty($validated['cancellation_reason'] ?? null)) {
             $updateData['cancellation_reason'] = $validated['cancellation_reason'];
         }
 
@@ -283,5 +285,47 @@ class OrderController extends Controller
             'message' => 'Discount applied successfully',
             'data' => new OrderResource($order->load(['items.productCategory', 'brandEvent.brand', 'creator'])),
         ]);
+    }
+
+    public function destroy(Request $request, string $username, string $eventSlug, string $ulid): JsonResponse
+    {
+        $user = $request->user();
+
+        if (! $user->hasRole(['master', 'admin'])) {
+            if (! $user->hasRole('staff') || ! $user->hasAnyPermission(['operational', 'project-coordinator'])) {
+                return response()->json(['message' => 'Unauthorized to delete order.'], 403);
+            }
+        }
+
+        $project = $this->resolveProject($username);
+        $event = $this->resolveEvent($project, $eventSlug);
+
+        $order = Order::query()
+            ->whereIn('brand_event_id', $event->brandEvents()->select('id'))
+            ->where('ulid', $ulid)
+            ->firstOrFail();
+
+        $order->delete();
+
+        return response()->json(['message' => 'Order deleted successfully']);
+    }
+
+    public function export(Request $request, string $username, string $eventSlug)
+    {
+        $project = $this->resolveProject($username);
+        $event = $this->resolveEvent($project, $eventSlug);
+
+        $filters = array_filter([
+            'search' => $request->input('filter_search'),
+            'operational_status' => $request->input('filter_operational_status'),
+            'payment_status' => $request->input('filter_payment_status'),
+        ]);
+
+        $sort = $request->input('sort', '-submitted_at');
+
+        $export = new OrdersExport($event->id, $filters ?: null, $sort);
+        $filename = 'orders_'.now()->format('Y-m-d_His').'.xlsx';
+
+        return Excel::download($export, $filename);
     }
 }
