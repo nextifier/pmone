@@ -257,8 +257,43 @@ class EventController extends Controller
 
         $this->authorize('view', $event);
 
+        $event->load(['creator', 'updater', 'media']);
+        $event->loadCount('brandEvents');
+        $event->loadSum([
+            'brandEvents as booked_area' => fn ($q) => $q->whereNotNull('booth_size'),
+        ], 'booth_size');
+
+        // Load order stats
+        $orderStats = Order::query()
+            ->join('brand_event', 'orders.brand_event_id', '=', 'brand_event.id')
+            ->where('brand_event.event_id', $event->id)
+            ->whereIn('orders.operational_status', [OperationalStatus::Submitted, OperationalStatus::Confirmed])
+            ->groupBy('orders.operational_status')
+            ->select(
+                'orders.operational_status',
+                DB::raw('COUNT(*) as count'),
+                DB::raw('SUM(orders.total) as total_sum')
+            )
+            ->get();
+
+        foreach ($orderStats as $stat) {
+            $status = $stat->operational_status instanceof \BackedEnum
+                ? $stat->operational_status->value
+                : $stat->operational_status;
+            if ($status === 'submitted') {
+                $event->orders_submitted = (int) $stat->count;
+            } elseif ($status === 'confirmed') {
+                $event->orders_confirmed = (int) $stat->count;
+                $event->total_revenue = (float) $stat->total_sum;
+            }
+        }
+
+        $event->orders_submitted ??= 0;
+        $event->orders_confirmed ??= 0;
+        $event->total_revenue ??= 0.0;
+
         return response()->json([
-            'data' => new EventResource($event->load(['creator', 'updater', 'media'])),
+            'data' => new EventResource($event),
         ]);
     }
 

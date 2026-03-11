@@ -14,7 +14,7 @@ class EventResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'ulid' => $this->ulid,
             'project_id' => $this->project_id,
@@ -57,5 +57,16 @@ class EventResource extends JsonResource
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
         ];
+
+        // Include stats when aggregates are loaded
+        if (array_key_exists('brand_events_count', $this->resource->getAttributes())) {
+            $data['brand_events_count'] = (int) ($this->brand_events_count ?? 0);
+            $data['booked_area'] = (float) ($this->booked_area ?? 0);
+            $data['orders_submitted'] = (int) ($this->orders_submitted ?? 0);
+            $data['orders_confirmed'] = (int) ($this->orders_confirmed ?? 0);
+            $data['total_revenue'] = (float) ($this->total_revenue ?? 0);
+        }
+
+        return $data;
     }
 }
