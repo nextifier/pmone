@@ -1,7 +1,7 @@
 <template>
-  <div class="flex flex-col gap-y-8">
+  <div class="mx-auto flex w-full max-w-4xl flex-col gap-y-8">
     <!-- Order Form Settings -->
-    <form @submit.prevent="handleSubmit" class="space-y-6">
+    <form @submit.prevent="handleSubmit" class="space-y-8">
       <!-- Order Form Settings -->
       <div class="space-y-4">
         <div class="space-y-1">
@@ -23,54 +23,43 @@
           />
         </div>
 
-        <div class="grid grid-cols-2 gap-x-2 gap-y-6">
+        <div class="space-y-2">
+          <Label for="notification_emails">Notification Emails</Label>
           <div class="space-y-2">
-            <Label for="settings_tax_rate">Tax Rate (%)</Label>
-            <Input
-              id="settings_tax_rate"
-              v-model.number="form.settings.tax_rate"
-              type="number"
-              min="0"
-              max="100"
-              step="0.01"
-              placeholder="11"
-            />
-            <p class="text-muted-foreground text-xs">Default: 11% (PPN)</p>
-          </div>
-          <div class="space-y-2">
-            <Label for="notification_emails">Notification Emails</Label>
-            <div class="space-y-2">
-              <div
-                v-for="(email, index) in notificationEmails"
-                :key="index"
-                class="flex items-center gap-x-2"
+            <div
+              v-for="(email, index) in notificationEmails"
+              :key="index"
+              class="flex items-center gap-x-2"
+            >
+              <Input
+                v-model="notificationEmails[index]"
+                type="email"
+                placeholder="email@example.com"
+                class="flex-1"
+              />
+              <button
+                v-if="notificationEmails.length > 1"
+                type="button"
+                @click="notificationEmails.splice(index, 1)"
+                class="text-muted-foreground hover:text-destructive shrink-0"
               >
-                <Input
-                  v-model="notificationEmails[index]"
-                  type="email"
-                  placeholder="email@example.com"
-                  class="flex-1"
-                />
-                <button
-                  type="button"
-                  @click="notificationEmails.splice(index, 1)"
-                  class="text-muted-foreground hover:text-destructive shrink-0"
-                >
-                  <Icon name="hugeicons:delete-02" class="size-4" />
-                </button>
-              </div>
+                <Icon name="hugeicons:delete-02" class="size-4" />
+              </button>
+            </div>
+
+            <div class="flex w-full items-center justify-between gap-2">
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Order notifications will be sent to these emails.
+              </p>
               <button
                 type="button"
                 @click="notificationEmails.push('')"
-                class="text-muted-foreground hover:text-foreground flex items-center gap-x-1 text-xs"
+                class="hover:bg-border bg-muted flex items-center gap-x-1 rounded-md py-1 pr-2 pl-1 text-xs tracking-tight sm:text-sm"
               >
                 <Icon name="hugeicons:add-01" class="size-3.5" />
                 Add Email
               </button>
             </div>
-            <p class="text-muted-foreground text-xs">
-              Order notifications will be sent to these emails.
-            </p>
           </div>
         </div>
 
@@ -83,7 +72,9 @@
               :default-hour="23"
               :default-minute="59"
             />
-            <p class="text-muted-foreground text-xs">Exhibitors cannot submit orders after this date.</p>
+            <p class="text-muted-foreground text-xs">
+              Exhibitors cannot submit orders after this date.
+            </p>
             <InputErrorMessage :errors="errors.order_form_deadline" />
           </div>
           <div class="space-y-2">
@@ -94,7 +85,9 @@
               :default-hour="23"
               :default-minute="59"
             />
-            <p class="text-muted-foreground text-xs">Exhibitors cannot upload promotion posts after this date.</p>
+            <p class="text-muted-foreground text-xs">
+              Exhibitors cannot upload promotion posts after this date.
+            </p>
             <InputErrorMessage :errors="errors.promotion_post_deadline" />
           </div>
         </div>
@@ -105,7 +98,8 @@
         <div class="space-y-1">
           <Label class="text-base font-semibold">Order Periods</Label>
           <p class="text-muted-foreground text-xs">
-            Configure normal and onsite order periods. Onsite orders can have a penalty rate applied.
+            Configure normal and onsite order periods. Onsite orders can have a penalty rate
+            applied.
           </p>
         </div>
 
@@ -155,21 +149,37 @@
           </div>
         </div>
 
-        <div class="space-y-2">
-          <Label for="onsite_penalty_rate">Onsite Penalty Rate (%)</Label>
-          <Input
-            id="onsite_penalty_rate"
-            v-model.number="form.onsite_penalty_rate"
-            type="number"
-            min="0"
-            max="100"
-            step="0.01"
-            placeholder="50"
-          />
-          <p class="text-muted-foreground text-xs">
-            Percentage added to order total for onsite period orders. Default: 50%.
-          </p>
-          <InputErrorMessage :errors="errors.onsite_penalty_rate" />
+        <div class="grid grid-cols-2 gap-x-2 gap-y-6">
+          <div class="space-y-2">
+            <Label for="settings_tax_rate">Tax Rate (%)</Label>
+            <Input
+              id="settings_tax_rate"
+              v-model.number="form.settings.tax_rate"
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              placeholder="11"
+            />
+            <p class="text-muted-foreground text-xs">Default: 11% (PPN)</p>
+          </div>
+
+          <div class="space-y-2">
+            <Label for="onsite_penalty_rate">Onsite Penalty Rate (%)</Label>
+            <Input
+              id="onsite_penalty_rate"
+              v-model.number="form.onsite_penalty_rate"
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              placeholder="50"
+            />
+            <p class="text-muted-foreground text-xs">
+              Percentage added to order total for onsite period orders. Default: 50%.
+            </p>
+            <InputErrorMessage :errors="errors.onsite_penalty_rate" />
+          </div>
         </div>
       </div>
 
@@ -197,18 +207,14 @@
       </div>
 
       <div class="flex justify-end">
-        <button
-          type="submit"
-          :disabled="saving"
-          class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-semibold tracking-tighter transition disabled:opacity-50"
-        >
+        <Button type="submit" :disabled="saving">
           <Spinner v-if="saving" />
           {{ saving ? "Saving.." : "Save Settings" }}
           <KbdGroup>
             <Kbd>{{ metaSymbol }}</Kbd>
             <Kbd>S</Kbd>
           </KbdGroup>
-        </button>
+        </Button>
       </div>
     </form>
 
@@ -239,11 +245,7 @@
             name="hugeicons:search-01"
             class="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2"
           />
-          <Input
-            v-model="docSearch"
-            placeholder="Search documents..."
-            class="pl-9"
-          />
+          <Input v-model="docSearch" placeholder="Search documents..." class="pl-9" />
         </div>
 
         <Select v-model="selectedDocType">
@@ -289,13 +291,26 @@
           </div>
           <div class="space-y-1">
             <p class="text-sm font-medium">
-              {{ docSearch || selectedDocType !== "all" ? "No documents match your filters" : "No documents yet" }}
+              {{
+                docSearch || selectedDocType !== "all"
+                  ? "No documents match your filters"
+                  : "No documents yet"
+              }}
             </p>
             <p class="text-muted-foreground text-xs">
-              {{ docSearch || selectedDocType !== "all" ? "Try adjusting your search or filters." : "Add event rules, required documents, or forms." }}
+              {{
+                docSearch || selectedDocType !== "all"
+                  ? "Try adjusting your search or filters."
+                  : "Add event rules, required documents, or forms."
+              }}
             </p>
           </div>
-          <Button v-if="!docSearch && selectedDocType === 'all'" @click="openCreateDoc" size="sm" variant="outline">
+          <Button
+            v-if="!docSearch && selectedDocType === 'all'"
+            @click="openCreateDoc"
+            size="sm"
+            variant="outline"
+          >
             <Icon name="hugeicons:add-01" class="size-4" />
             Add Document
           </Button>
@@ -325,7 +340,10 @@
               >
                 <td class="text-muted-foreground px-4 py-3">
                   <div class="flex items-center gap-x-1">
-                    <Icon name="lucide:grip-vertical" class="drag-handle text-muted-foreground size-4 shrink-0 cursor-grab" />
+                    <Icon
+                      name="lucide:grip-vertical"
+                      class="drag-handle text-muted-foreground size-4 shrink-0 cursor-grab"
+                    />
                     <span>{{ index + 1 }}</span>
                   </div>
                 </td>
@@ -349,7 +367,9 @@
                 </td>
                 <td class="px-4 py-3">
                   <Icon
-                    :name="doc.is_required ? 'hugeicons:checkmark-circle-02' : 'hugeicons:cancel-circle'"
+                    :name="
+                      doc.is_required ? 'hugeicons:checkmark-circle-02' : 'hugeicons:cancel-circle'
+                    "
                     :class="doc.is_required ? 'text-green-500' : 'text-muted-foreground'"
                     class="size-4"
                   />
@@ -400,12 +420,24 @@
     </div>
 
     <!-- Add/Edit Document Dialog -->
-    <DialogResponsive v-model:open="showDocFormDialog" dialog-max-width="500px" :overflow-content="true">
+    <DialogResponsive
+      v-model:open="showDocFormDialog"
+      dialog-max-width="500px"
+      :overflow-content="true"
+    >
       <template #sticky-header>
-        <div class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left">
-          <div class="text-lg font-semibold tracking-tighter">{{ editingDocument ? "Edit Document" : "Add Document" }}</div>
+        <div
+          class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left"
+        >
+          <div class="text-lg font-semibold tracking-tighter">
+            {{ editingDocument ? "Edit Document" : "Add Document" }}
+          </div>
           <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">
-            {{ editingDocument ? "Update the document details below." : "Fill in the details to create a new document." }}
+            {{
+              editingDocument
+                ? "Update the document details below."
+                : "Fill in the details to create a new document."
+            }}
           </p>
         </div>
       </template>
@@ -427,8 +459,8 @@
           <div class="text-foreground text-lg font-semibold tracking-tight">Delete Document</div>
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             Are you sure you want to delete
-            <span class="text-foreground font-medium">{{ deletingDocument?.title }}</span>?
-            All submissions for this document will also be deleted. This action cannot be undone.
+            <span class="text-foreground font-medium">{{ deletingDocument?.title }}</span
+            >? All submissions for this document will also be deleted. This action cannot be undone.
           </p>
           <div class="mt-4 flex justify-end gap-2">
             <button
@@ -456,11 +488,11 @@
 </template>
 
 <script setup>
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import DateTimePicker from "@/components/DateTimePicker.vue";
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import TipTapEditor from "@/components/TipTapEditor.vue";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -504,15 +536,27 @@ function populateForm(data) {
   if (!data) return;
   form.order_form_content = data.order_form_content || "";
   form.order_form_deadline = data.order_form_deadline ? new Date(data.order_form_deadline) : null;
-  form.promotion_post_deadline = data.promotion_post_deadline ? new Date(data.promotion_post_deadline) : null;
-  form.normal_order_opens_at = data.normal_order_opens_at ? new Date(data.normal_order_opens_at) : null;
-  form.normal_order_closes_at = data.normal_order_closes_at ? new Date(data.normal_order_closes_at) : null;
-  form.onsite_order_opens_at = data.onsite_order_opens_at ? new Date(data.onsite_order_opens_at) : null;
-  form.onsite_order_closes_at = data.onsite_order_closes_at ? new Date(data.onsite_order_closes_at) : null;
-  form.onsite_penalty_rate = data.onsite_penalty_rate ?? 50;
+  form.promotion_post_deadline = data.promotion_post_deadline
+    ? new Date(data.promotion_post_deadline)
+    : null;
+  form.normal_order_opens_at = data.normal_order_opens_at
+    ? new Date(data.normal_order_opens_at)
+    : null;
+  form.normal_order_closes_at = data.normal_order_closes_at
+    ? new Date(data.normal_order_closes_at)
+    : null;
+  form.onsite_order_opens_at = data.onsite_order_opens_at
+    ? new Date(data.onsite_order_opens_at)
+    : null;
+  form.onsite_order_closes_at = data.onsite_order_closes_at
+    ? new Date(data.onsite_order_closes_at)
+    : null;
+  form.onsite_penalty_rate =
+    data.onsite_penalty_rate != null ? Math.round(data.onsite_penalty_rate) : 50;
   form.badge_vip_info = data.badge_vip_info || "";
   form.settings = data.settings || {};
-  notificationEmails.value = data.settings?.notification_emails || [];
+  const emails = data.settings?.notification_emails || [];
+  notificationEmails.value = emails.length > 0 ? emails : [""];
 }
 
 watch(
@@ -744,8 +788,6 @@ watch(
 );
 
 usePageMeta(null, {
-  title: computed(
-    () => `Order Form Settings · ${props.event?.title || route.params.eventSlug}`
-  ),
+  title: computed(() => `Order Form Settings · ${props.event?.title || route.params.eventSlug}`),
 });
 </script>
