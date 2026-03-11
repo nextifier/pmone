@@ -90,19 +90,14 @@
           </PopoverTrigger>
           <PopoverContent class="w-auto min-w-48 p-3" align="end">
             <div class="space-y-4">
-              <FilterSection
+              <InboxFilterSection
                 title="Status"
-                :options="[
-                  { label: 'New', value: 'new' },
-                  { label: 'In Progress', value: 'in_progress' },
-                  { label: 'Completed', value: 'completed' },
-                  { label: 'Archived', value: 'archived' },
-                ]"
+                :options="statusOptions"
                 :selected="selectedStatuses"
                 @change="handleFilterChange('status', $event)"
               />
 
-              <FilterSection
+              <InboxFilterSection
                 v-if="projects.length > 0"
                 title="Project"
                 :options="projectOptions"
@@ -165,106 +160,24 @@
     </TableData>
 
     <!-- Detail Dialog -->
-    <DialogResponsive
+    <InboxDetailDialog
       v-model:open="detailDialogOpen"
-      dialogMaxWidth="600px"
-      :overflow-content="true"
-    >
-      <template #default>
-        <div v-if="detailSubmission" class="px-4 pb-10 md:px-6 md:py-6">
-          <!-- Header with Status -->
-          <div class="flex items-start justify-between gap-x-2 sm:items-end">
-            <div class="space-y-1">
-              <h3 class="pr-8 text-lg font-semibold tracking-tight">
-                {{ detailSubmission.subject || "No Subject" }}
-              </h3>
-              <p class="text-muted-foreground text-sm tracking-tight">
-                {{ detailSubmission.project?.name || "Unknown Project" }} ·
-                {{ $dayjs(detailSubmission.created_at).format("MMM D, YYYY [at] h:mm A") }}
-              </p>
-            </div>
-            <StatusDropdown
-              :status="detailSubmission.status"
-              :disabled="statusUpdating === detailSubmission.ulid"
-              @update="(s) => handleStatusUpdate(detailSubmission.ulid, s)"
-            />
-          </div>
-
-          <!-- Form Data -->
-          <div class="divide-border mt-5 divide-y">
-            <div
-              v-for="(value, key) in detailSubmission.form_data"
-              :key="key"
-              class="space-y-1 py-3 first:pt-0"
-            >
-              <div class="text-muted-foreground text-sm font-medium tracking-tight">
-                {{ formatFieldLabel(key) }}
-              </div>
-              <div class="text-sm tracking-tight">
-                <template v-if="key === 'email'">
-                  <div class="flex items-center gap-2">
-                    <a :href="`mailto:${value}`" class="text-primary hover:underline">
-                      {{ value }}
-                    </a>
-                    <a
-                      :href="`mailto:${value}`"
-                      v-tippy="'Email'"
-                      class="hover:bg-muted text-info-foreground inline-flex size-7 items-center justify-center rounded-md transition"
-                    >
-                      <Icon name="hugeicons:mail-01" class="size-4" />
-                    </a>
-                  </div>
-                </template>
-                <template v-else-if="key === 'phone'">
-                  <div class="flex items-center gap-2">
-                    <FlagComponent
-                      v-if="getCountryFromPhone(value)"
-                      v-tippy="getCountryFromPhone(value)?.name"
-                      :country="getCountryFromPhone(value)?.code"
-                      class="cursor-help"
-                    />
-                    <a
-                      :href="`https://wa.me/${formatWhatsAppNumber(value)}`"
-                      target="_blank"
-                      class="text-primary hover:underline"
-                    >
-                      {{ value }}
-                    </a>
-                    <a
-                      :href="`https://wa.me/${formatWhatsAppNumber(value)}`"
-                      target="_blank"
-                      v-tippy="'WhatsApp'"
-                      class="hover:bg-muted text-success-foreground inline-flex size-7 items-center justify-center rounded-md transition"
-                    >
-                      <Icon name="hugeicons:whatsapp" class="size-4" />
-                    </a>
-                  </div>
-                </template>
-                <template v-else-if="key === 'message'">
-                  <div class="whitespace-pre-wrap">{{ value }}</div>
-                </template>
-                <template v-else>
-                  {{ value }}
-                </template>
-              </div>
-            </div>
-          </div>
-        </div>
-      </template>
-    </DialogResponsive>
+      v-model:submission="detailSubmission"
+      @status-updated="handleDetailStatusUpdated"
+    />
   </div>
 </template>
 
 <script setup>
 import Avatar from "@/components/Avatar.vue";
 import DialogResponsive from "@/components/DialogResponsive.vue";
-import FlagComponent from "@/components/FlagComponent.vue";
+import InboxDetailDialog from "@/components/inbox/DetailDialog.vue";
+import InboxFilterSection from "@/components/inbox/FilterSection.vue";
 import InboxImportDialog from "@/components/inbox/ImportDialog.vue";
 import InboxTableItem from "@/components/inbox/InboxTableItem.vue";
 import StatusDropdown from "@/components/inbox/StatusDropdown.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
@@ -288,8 +201,16 @@ const client = useSanctumClient();
 const { hasPermission } = usePermission();
 const canDelete = computed(() => hasPermission("contact_forms.delete"));
 
-// Phone country helper
-const { getCountryFromPhone } = usePhoneCountry();
+// Shared helpers
+const { getStatusConfig } = useInboxHelpers();
+
+// Status options
+const statusOptions = [
+  { label: "New", value: "new" },
+  { label: "In Progress", value: "in_progress" },
+  { label: "Completed", value: "completed" },
+  { label: "Archived", value: "archived" },
+];
 
 // Table state
 const columnFilters = ref([]);
@@ -379,29 +300,6 @@ watch(
 
 const refresh = fetchSubmissions;
 
-// Status badge config
-const getStatusConfig = (status) => {
-  const configs = {
-    new: {
-      label: "New",
-      color: "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
-    },
-    in_progress: {
-      label: "In Progress",
-      color: "bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400",
-    },
-    completed: {
-      label: "Completed",
-      color: "bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400",
-    },
-    archived: {
-      label: "Archived",
-      color: "bg-gray-500/10 text-gray-600 dark:bg-gray-500/20 dark:text-gray-400",
-    },
-  };
-  return configs[status] || configs.new;
-};
-
 // Detail dialog
 const detailDialogOpen = ref(false);
 const detailSubmission = ref(null);
@@ -409,6 +307,10 @@ const detailSubmission = ref(null);
 function openDetailDialog(submission) {
   detailSubmission.value = submission;
   detailDialogOpen.value = true;
+}
+
+function handleDetailStatusUpdated() {
+  refresh();
 }
 
 // Status update (inline from table)
@@ -711,20 +613,6 @@ const handleExport = async () => {
   }
 };
 
-// Helpers
-function formatFieldLabel(key) {
-  return key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-}
-
-function formatWhatsAppNumber(phone) {
-  let cleaned = phone.replace(/[^\d+]/g, "");
-  cleaned = cleaned.replace(/^\+/, "");
-  if (cleaned.startsWith("0")) {
-    cleaned = "62" + cleaned.substring(1);
-  }
-  return cleaned;
-}
-
 // Row Actions Component
 const RowActions = defineComponent({
   props: {
@@ -853,45 +741,6 @@ const RowActions = defineComponent({
                 ]),
               ]),
           }
-        ),
-      ]);
-  },
-});
-
-// Filter Section Component
-const FilterSection = defineComponent({
-  props: {
-    title: String,
-    options: Array,
-    selected: Array,
-  },
-  emits: ["change"],
-  setup(props, { emit }) {
-    return () =>
-      h("div", { class: "space-y-2" }, [
-        h("div", { class: "text-muted-foreground text-xs font-medium" }, props.title),
-        h(
-          "div",
-          { class: "space-y-2" },
-          props.options.map((option, i) => {
-            const value = typeof option === "string" ? option : option.value;
-            const label = typeof option === "string" ? option : option.label;
-            return h("div", { key: value, class: "flex items-center gap-2" }, [
-              h(Checkbox, {
-                id: `${props.title}-${i}`,
-                modelValue: props.selected.includes(value),
-                "onUpdate:modelValue": (checked) => emit("change", { checked: !!checked, value }),
-              }),
-              h(
-                Label,
-                {
-                  for: `${props.title}-${i}`,
-                  class: "grow cursor-pointer font-normal tracking-tight capitalize",
-                },
-                { default: () => label }
-              ),
-            ]);
-          })
         ),
       ]);
   },

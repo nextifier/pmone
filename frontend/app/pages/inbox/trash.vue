@@ -67,14 +67,9 @@
           </PopoverTrigger>
           <PopoverContent class="w-auto min-w-48 p-3" align="start">
             <div class="space-y-4">
-              <FilterSection
+              <InboxFilterSection
                 title="Status"
-                :options="[
-                  { label: 'New', value: 'new' },
-                  { label: 'In Progress', value: 'in_progress' },
-                  { label: 'Completed', value: 'completed' },
-                  { label: 'Archived', value: 'archived' },
-                ]"
+                :options="statusOptions"
                 :selected="selectedStatuses"
                 @change="handleFilterChange('status', $event)"
               />
@@ -184,15 +179,25 @@
         </DialogResponsive>
       </template>
     </TableData>
+
+    <!-- Detail Dialog (readonly for trashed items) -->
+    <InboxDetailDialog
+      v-model:open="detailDialogOpen"
+      v-model:submission="detailSubmission"
+      :readonly="true"
+    />
   </div>
 </template>
 
 <script setup>
+import Avatar from "@/components/Avatar.vue";
 import DialogResponsive from "@/components/DialogResponsive.vue";
+import InboxDetailDialog from "@/components/inbox/DetailDialog.vue";
+import InboxFilterSection from "@/components/inbox/FilterSection.vue";
 import InboxTableItem from "@/components/inbox/InboxTableItem.vue";
+import StatusDropdown from "@/components/inbox/StatusDropdown.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PopoverClose } from "reka-ui";
 import { resolveDirective, withDirectives } from "vue";
@@ -213,6 +218,18 @@ usePageMeta(null, {
 });
 
 const { $dayjs } = useNuxtApp();
+const client = useSanctumClient();
+
+// Shared helpers
+const { getStatusConfig } = useInboxHelpers();
+
+// Status options
+const statusOptions = [
+  { label: "New", value: "new" },
+  { label: "In Progress", value: "in_progress" },
+  { label: "Completed", value: "completed" },
+  { label: "Archived", value: "archived" },
+];
 
 // Table state
 const columnFilters = ref([]);
@@ -265,32 +282,21 @@ const {
 });
 
 const data = computed(() => submissionsResponse.value?.data || []);
-const meta = computed(() => submissionsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 10, total: 0 });
+const meta = computed(
+  () =>
+    submissionsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 10, total: 0 }
+);
 
 const refresh = fetchSubmissions;
 
-// Status badge config
-const getStatusConfig = (status) => {
-  const configs = {
-    new: {
-      label: "New",
-      color: "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
-    },
-    in_progress: {
-      label: "In Progress",
-      color: "bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400",
-    },
-    completed: {
-      label: "Completed",
-      color: "bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400",
-    },
-    archived: {
-      label: "Archived",
-      color: "bg-gray-500/10 text-gray-600 dark:bg-gray-500/20 dark:text-gray-400",
-    },
-  };
-  return configs[status] || configs.new;
-};
+// Detail dialog
+const detailDialogOpen = ref(false);
+const detailSubmission = ref(null);
+
+function openDetailDialog(submission) {
+  detailSubmission.value = submission;
+  detailDialogOpen.value = true;
+}
 
 // Table columns
 const columns = [
@@ -320,6 +326,7 @@ const columns = [
     cell: ({ row }) =>
       h(InboxTableItem, {
         submission: row.original,
+        onView: () => openDetailDialog(row.original),
       }),
     size: 300,
     enableHiding: false,
@@ -328,7 +335,9 @@ const columns = [
       const subject = row.original.subject?.toLowerCase() || "";
       const name = row.original.form_data_preview?.name?.toLowerCase() || "";
       const email = row.original.form_data_preview?.email?.toLowerCase() || "";
-      return subject.includes(searchValue) || name.includes(searchValue) || email.includes(searchValue);
+      return (
+        subject.includes(searchValue) || name.includes(searchValue) || email.includes(searchValue)
+      );
     },
   },
   {
@@ -359,7 +368,15 @@ const columns = [
       if (!project) {
         return h("div", { class: "text-sm text-muted-foreground tracking-tight" }, "-");
       }
-      return h("div", { class: "text-sm tracking-tight" }, project.name);
+      return h("div", { class: "flex items-center gap-2" }, [
+        h(Avatar, {
+          model: project,
+          size: "sm",
+          class: "size-6 rounded-full",
+          rounded: "rounded-full",
+        }),
+        h("span", { class: "text-sm tracking-tight truncate" }, project.name),
+      ]);
     },
     size: 120,
   },
@@ -459,7 +476,6 @@ const handleRestoreRows = async (selectedRows) => {
   const ids = selectedRows.map((row) => row.original.id);
   try {
     restorePending.value = true;
-    const client = useSanctumClient();
     const response = await client("/api/contact-form-submissions/trash/restore/bulk", {
       method: "POST",
       body: { ids },
@@ -489,7 +505,6 @@ const handleRestoreRows = async (selectedRows) => {
 const handleRestoreSingleRow = async (id) => {
   try {
     restorePending.value = true;
-    const client = useSanctumClient();
     const response = await client(`/api/contact-form-submissions/trash/${id}/restore`, {
       method: "POST",
     });
@@ -517,7 +532,6 @@ const handleDeleteRows = async (selectedRows) => {
   const ids = selectedRows.map((row) => row.original.id);
   try {
     deletePending.value = true;
-    const client = useSanctumClient();
     const response = await client("/api/contact-form-submissions/trash/bulk", {
       method: "DELETE",
       body: { ids },
@@ -547,8 +561,9 @@ const handleDeleteRows = async (selectedRows) => {
 const handleDeleteSingleRow = async (id) => {
   try {
     deletePending.value = true;
-    const client = useSanctumClient();
-    const response = await client(`/api/contact-form-submissions/trash/${id}`, { method: "DELETE" });
+    const response = await client(`/api/contact-form-submissions/trash/${id}`, {
+      method: "DELETE",
+    });
     await refresh();
 
     if (tableRef.value) {
@@ -761,45 +776,6 @@ const RowActions = defineComponent({
                 ]),
               ]),
           }
-        ),
-      ]);
-  },
-});
-
-// Filter Section Component
-const FilterSection = defineComponent({
-  props: {
-    title: String,
-    options: Array,
-    selected: Array,
-  },
-  emits: ["change"],
-  setup(props, { emit }) {
-    return () =>
-      h("div", { class: "space-y-2" }, [
-        h("div", { class: "text-muted-foreground text-xs font-medium" }, props.title),
-        h(
-          "div",
-          { class: "space-y-2" },
-          props.options.map((option, i) => {
-            const value = typeof option === "string" ? option : option.value;
-            const label = typeof option === "string" ? option : option.label;
-            return h("div", { key: value, class: "flex items-center gap-2" }, [
-              h(Checkbox, {
-                id: `${props.title}-${i}`,
-                modelValue: props.selected.includes(value),
-                "onUpdate:modelValue": (checked) => emit("change", { checked: !!checked, value }),
-              }),
-              h(
-                Label,
-                {
-                  for: `${props.title}-${i}`,
-                  class: "grow cursor-pointer font-normal tracking-tight capitalize",
-                },
-                { default: () => label }
-              ),
-            ]);
-          })
         ),
       ]);
   },

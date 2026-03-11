@@ -52,26 +52,13 @@
             </button>
           </PopoverTrigger>
           <PopoverContent class="w-auto min-w-48 p-3" align="start">
-            <div class="space-y-2">
-              <div class="text-muted-foreground text-xs font-medium">Status</div>
-              <div class="space-y-2">
-                <div
-                  v-for="(option, i) in statusOptions"
-                  :key="option.value"
-                  class="flex items-center gap-2"
-                >
-                  <Checkbox
-                    :id="`status-${i}`"
-                    :modelValue="selectedStatuses.includes(option.value)"
-                    @update:modelValue="
-                      (checked) => handleFilterChange('status', { checked: !!checked, value: option.value })
-                    "
-                  />
-                  <Label :for="`status-${i}`" class="grow cursor-pointer font-normal tracking-tight capitalize">
-                    {{ option.label }}
-                  </Label>
-                </div>
-              </div>
+            <div class="space-y-4">
+              <InboxFilterSection
+                title="Status"
+                :options="statusOptions"
+                :selected="selectedStatuses"
+                @change="handleFilterChange('status', $event)"
+              />
             </div>
           </PopoverContent>
         </Popover>
@@ -88,7 +75,7 @@
               class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
               @click="open()"
             >
-              <Icon name="lucide:trash" class="size-4 shrink-0" />
+              <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
               <span class="text-sm tracking-tight">Delete</span>
               <span
                 class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
@@ -126,16 +113,24 @@
         </DialogResponsive>
       </template>
     </TableData>
+
+    <!-- Detail Dialog -->
+    <InboxDetailDialog
+      v-model:open="detailDialogOpen"
+      v-model:submission="detailSubmission"
+      @status-updated="handleDetailStatusUpdated"
+    />
   </div>
 </template>
 
 <script setup>
-import Avatar from "@/components/Avatar.vue";
 import DialogResponsive from "@/components/DialogResponsive.vue";
+import InboxDetailDialog from "@/components/inbox/DetailDialog.vue";
+import InboxFilterSection from "@/components/inbox/FilterSection.vue";
 import InboxTableItem from "@/components/inbox/InboxTableItem.vue";
+import StatusDropdown from "@/components/inbox/StatusDropdown.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
@@ -154,22 +149,23 @@ usePageMeta(null, {
 });
 
 const { $dayjs } = useNuxtApp();
-const route = useRoute();
+const client = useSanctumClient();
 
 const { hasPermission } = usePermission();
 const canDelete = computed(() => hasPermission("contact_forms.delete"));
 
-// Table state
-const columnFilters = ref([]);
-const pagination = ref({ pageIndex: 0, pageSize: 20 });
-const sorting = ref([{ id: "created_at", desc: true }]);
-
+// Status options
 const statusOptions = [
   { label: "New", value: "new" },
   { label: "In Progress", value: "in_progress" },
   { label: "Completed", value: "completed" },
   { label: "Archived", value: "archived" },
 ];
+
+// Table state
+const columnFilters = ref([]);
+const pagination = ref({ pageIndex: 0, pageSize: 20 });
+const sorting = ref([{ id: "created_at", desc: true }]);
 
 // Build query params - always filter by current project
 const buildQueryParams = () => {
@@ -197,14 +193,14 @@ const buildQueryParams = () => {
 };
 
 // Fetch submissions
-const client = useSanctumClient();
 const submissionsResponse = ref(null);
 const pending = ref(true);
 const error = ref(null);
 
 const data = computed(() => submissionsResponse.value?.data || []);
 const meta = computed(
-  () => submissionsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 20, total: 0 }
+  () =>
+    submissionsResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 20, total: 0 }
 );
 
 async function fetchSubmissions() {
@@ -233,28 +229,41 @@ watch(
 
 onMounted(fetchSubmissions);
 
-// Status badge config
-const getStatusConfig = (status) => {
-  const configs = {
-    new: {
-      label: "New",
-      color: "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
-    },
-    in_progress: {
-      label: "In Progress",
-      color: "bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400",
-    },
-    completed: {
-      label: "Completed",
-      color: "bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400",
-    },
-    archived: {
-      label: "Archived",
-      color: "bg-gray-500/10 text-gray-600 dark:bg-gray-500/20 dark:text-gray-400",
-    },
-  };
-  return configs[status] || configs.new;
-};
+// Detail dialog
+const detailDialogOpen = ref(false);
+const detailSubmission = ref(null);
+
+function openDetailDialog(submission) {
+  detailSubmission.value = submission;
+  detailDialogOpen.value = true;
+}
+
+function handleDetailStatusUpdated() {
+  refresh();
+}
+
+// Status update (inline from table)
+const statusUpdating = ref(null);
+
+async function handleStatusUpdate(ulid, newStatus) {
+  statusUpdating.value = ulid;
+  try {
+    await client(`/api/contact-form-submissions/${ulid}/status`, {
+      method: "PATCH",
+      body: { status: newStatus },
+    });
+    toast.success("Status updated");
+    // Update detail dialog if open for this submission
+    if (detailSubmission.value?.ulid === ulid) {
+      detailSubmission.value = { ...detailSubmission.value, status: newStatus };
+    }
+    await refresh();
+  } catch (err) {
+    toast.error("Failed to update status");
+  } finally {
+    statusUpdating.value = null;
+  }
+}
 
 // Table columns (no project column since it's already filtered)
 const columns = [
@@ -263,7 +272,8 @@ const columns = [
     header: ({ table }) =>
       h(Checkbox, {
         modelValue:
-          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate"),
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate"),
         "onUpdate:modelValue": (value) => table.toggleAllPageRowsSelected(!!value),
         "aria-label": "Select all",
       }),
@@ -283,6 +293,7 @@ const columns = [
     cell: ({ row }) =>
       h(InboxTableItem, {
         submission: row.original,
+        onView: () => openDetailDialog(row.original),
       }),
     size: 300,
     enableHiding: false,
@@ -291,27 +302,9 @@ const columns = [
       const subject = row.original.subject?.toLowerCase() || "";
       const name = row.original.form_data_preview?.name?.toLowerCase() || "";
       const email = row.original.form_data_preview?.email?.toLowerCase() || "";
-      return subject.includes(searchValue) || name.includes(searchValue) || email.includes(searchValue);
-    },
-  },
-  {
-    header: "Status",
-    accessorKey: "status",
-    cell: ({ row }) => {
-      const status = row.getValue("status");
-      const config = getStatusConfig(status);
-      return h(
-        "span",
-        {
-          class: `inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${config.color}`,
-        },
-        config.label
+      return (
+        subject.includes(searchValue) || name.includes(searchValue) || email.includes(searchValue)
       );
-    },
-    size: 100,
-    filterFn: (row, columnId, filterValue) => {
-      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
-      return filterValue.includes(row.getValue(columnId));
     },
   },
   {
@@ -325,6 +318,21 @@ const columns = [
       );
     },
     size: 100,
+  },
+  {
+    header: "Status",
+    accessorKey: "status",
+    cell: ({ row }) =>
+      h(StatusDropdown, {
+        status: row.getValue("status"),
+        disabled: statusUpdating.value === row.original.ulid,
+        onUpdate: (newStatus) => handleStatusUpdate(row.original.ulid, newStatus),
+      }),
+    size: 120,
+    filterFn: (row, columnId, filterValue) => {
+      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+      return filterValue.includes(row.getValue(columnId));
+    },
   },
   {
     id: "actions",
@@ -408,13 +416,35 @@ const handleDeleteRows = async (selectedRows) => {
   }
 };
 
+const handleDeleteSingleRow = async (ulid) => {
+  try {
+    deletePending.value = true;
+    const response = await client(`/api/contact-form-submissions/${ulid}`, { method: "DELETE" });
+    await refresh();
+
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
+    }
+
+    toast.success(response.message || "Submission deleted successfully");
+  } catch (error) {
+    console.error("Failed to delete submission:", error);
+    toast.error("Failed to delete submission", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    deletePending.value = false;
+  }
+};
+
 // Row Actions Component
 const RowActions = defineComponent({
   props: {
     submission: { type: Object, required: true },
   },
   setup(props) {
-    const router = useRouter();
+    const dialogOpen = ref(false);
+    const singleDeletePending = ref(false);
 
     const phone = computed(() => props.submission.form_data_preview?.phone);
     const email = computed(() => props.submission.form_data_preview?.email);
@@ -432,6 +462,7 @@ const RowActions = defineComponent({
 
     return () =>
       h("div", { class: "flex items-center justify-end gap-1" }, [
+        // WhatsApp button (only if phone exists)
         phone.value
           ? withDirectives(
               h(
@@ -448,6 +479,7 @@ const RowActions = defineComponent({
               [[resolveDirective("tippy"), "WhatsApp"]]
             )
           : null,
+        // Email button
         email.value
           ? withDirectives(
               h(
@@ -462,18 +494,76 @@ const RowActions = defineComponent({
               [[resolveDirective("tippy"), "Email"]]
             )
           : null,
+        // Delete button (only if user has permission)
+        ...(canDelete.value
+          ? [
+              withDirectives(
+                h(
+                  "button",
+                  {
+                    class:
+                      "hover:bg-destructive/10 text-destructive-foreground inline-flex size-8 items-center justify-center rounded-md",
+                    onClick: () => (dialogOpen.value = true),
+                  },
+                  [h(resolveComponent("Icon"), { name: "hugeicons:delete-01", class: "size-4" })]
+                ),
+                [[resolveDirective("tippy"), "Delete"]]
+              ),
+            ]
+          : []),
         h(
-          "button",
+          DialogResponsive,
           {
-            class: "hover:bg-muted inline-flex size-8 items-center justify-center rounded-md",
-            onClick: () => router.push(`/inbox`),
+            open: dialogOpen.value,
+            "onUpdate:open": (value) => (dialogOpen.value = value),
           },
-          [
-            withDirectives(
-              h(resolveComponent("Icon"), { name: "lucide:eye", class: "size-4" }),
-              [[resolveDirective("tippy"), "View"]]
-            ),
-          ]
+          {
+            default: () =>
+              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
+                h(
+                  "div",
+                  { class: "text-primary text-lg font-semibold tracking-tight" },
+                  "Are you sure?"
+                ),
+                h(
+                  "p",
+                  { class: "text-body mt-1.5 text-sm tracking-tight" },
+                  "This will move this submission to trash."
+                ),
+                h("div", { class: "mt-3 flex justify-end gap-2" }, [
+                  h(
+                    "button",
+                    {
+                      class:
+                        "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                      onClick: () => (dialogOpen.value = false),
+                      disabled: singleDeletePending.value,
+                    },
+                    "Cancel"
+                  ),
+                  h(
+                    "button",
+                    {
+                      class:
+                        "bg-destructive text-white hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50",
+                      disabled: singleDeletePending.value,
+                      onClick: async () => {
+                        singleDeletePending.value = true;
+                        try {
+                          await handleDeleteSingleRow(props.submission.ulid);
+                          dialogOpen.value = false;
+                        } finally {
+                          singleDeletePending.value = false;
+                        }
+                      },
+                    },
+                    singleDeletePending.value
+                      ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
+                      : "Delete"
+                  ),
+                ]),
+              ]),
+          }
         ),
       ]);
   },
