@@ -17,7 +17,13 @@
 
           <div class="space-y-2">
             <Label for="username">Username</Label>
-            <Input id="username" v-model="form.username" type="text" :required="!isCreate" autocomplete="one-time-code" />
+            <Input
+              id="username"
+              v-model="form.username"
+              type="text"
+              :required="!isCreate"
+              autocomplete="one-time-code"
+            />
             <p class="text-muted-foreground line-clamp-1 text-xs tracking-tight">
               {{ isCreate ? "Will be auto-generated if left empty." : "" }}
             </p>
@@ -26,7 +32,13 @@
 
           <div class="space-y-2">
             <Label for="email">Email Address</Label>
-            <Input id="email" v-model="form.email" type="email" required autocomplete="one-time-code" />
+            <Input
+              id="email"
+              v-model="form.email"
+              type="email"
+              required
+              autocomplete="one-time-code"
+            />
             <InputErrorMessage :errors="errors.email" />
           </div>
 
@@ -148,7 +160,7 @@
         <div class="grid grid-cols-1 gap-y-3">
           <div v-if="form.links.length > 0" class="space-y-2">
             <div v-for="(link, index) in form.links" :key="index" class="flex items-center gap-1.5">
-              <div class="min-w-42">
+              <div class="min-w-28 sm:min-w-36">
                 <Select
                   v-model="link.label"
                   @update:model-value="(value) => handleLabelChange(index, value)"
@@ -209,7 +221,13 @@
         <div class="grid grid-cols-1 gap-y-6">
           <div v-if="showPassword" class="space-y-2">
             <Label for="password">Password</Label>
-            <Input id="password" v-model="form.password" type="password" minlength="8" autocomplete="new-password" />
+            <Input
+              id="password"
+              v-model="form.password"
+              type="password"
+              minlength="8"
+              autocomplete="new-password"
+            />
             <p class="text-muted-foreground text-xs tracking-tight">
               {{
                 isCreate

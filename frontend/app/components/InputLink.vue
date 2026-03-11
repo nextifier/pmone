@@ -95,6 +95,7 @@ watch(
       @update:model-value="onValueChange"
       @paste="onPaste"
       :placeholder="placeholder"
+      autocapitalize="none"
       class="pl-0!"
     />
   </InputGroup>

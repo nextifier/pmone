@@ -152,7 +152,7 @@
                 :key="index"
                 class="flex items-center gap-1.5"
               >
-                <div class="min-w-42">
+                <div class="min-w-28 sm:min-w-36">
                   <Select
                     v-model="link.label"
                     @update:model-value="(value) => handleLabelChange(index, value)"
