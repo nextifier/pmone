@@ -420,7 +420,7 @@ Route::prefix('projects')->group(function () {
 
 // Unified slug resolution (user profile or short link)
 Route::get('/resolve/{slug}', [ProfileController::class, 'resolveSlug'])
-    ->middleware('throttle:api');
+    ->middleware(['throttle:api', CacheResponse::for(3600, 'short-links')]);
 
 // Short link resolution (public - backward compatibility)
 Route::get('/s/{slug}', [ProfileController::class, 'resolveShortLink'])

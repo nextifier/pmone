@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\ClearsResponseCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -34,6 +35,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property-read \App\Models\User|null $deleter
  * @property-read \App\Models\User|null $updater
  * @property-read \App\Models\User $user
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink excludeProfileLinks()
  * @method static \Database\Factories\ShortLinkFactory factory($count = null, $state = [])
@@ -58,11 +60,12 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class ShortLink extends Model
 {
-    use HasFactory, LogsActivity, SoftDeletes;
+    use ClearsResponseCache, HasFactory, LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -161,5 +164,10 @@ class ShortLink extends Model
     {
         return $query->where('destination_url', 'not like', '%/users/%')
             ->where('destination_url', 'not like', '%/projects/%');
+    }
+
+    protected static function responseCacheTags(): array
+    {
+        return ['short-links'];
     }
 }
