@@ -38,7 +38,7 @@
             <div class="text-muted-foreground text-sm font-medium tracking-tight">
               {{ formatFieldLabel(key) }}
             </div>
-            <div class="text-sm tracking-tight">
+            <div class="text-lg tracking-tight">
               <template v-if="key === 'email'">
                 <div class="flex items-center gap-2">
                   <a :href="`mailto:${value}`" class="text-primary hover:underline">
@@ -47,9 +47,9 @@
                   <a
                     :href="`mailto:${value}`"
                     v-tippy="'Email'"
-                    class="hover:bg-muted text-info-foreground inline-flex size-7 items-center justify-center rounded-md transition"
+                    class="hover:bg-muted text-info-foreground inline-flex size-8 items-center justify-center rounded-md transition"
                   >
-                    <Icon name="hugeicons:mail-01" class="size-4" />
+                    <Icon name="hugeicons:mail-01" class="size-5" />
                   </a>
                 </div>
               </template>
@@ -72,14 +72,14 @@
                     :href="`https://wa.me/${formatWhatsAppNumber(value)}`"
                     target="_blank"
                     v-tippy="'WhatsApp'"
-                    class="hover:bg-muted text-success-foreground inline-flex size-7 items-center justify-center rounded-md transition"
+                    class="hover:bg-muted text-success-foreground inline-flex size-8 items-center justify-center rounded-md transition"
                   >
-                    <Icon name="hugeicons:whatsapp" class="size-4" />
+                    <Icon name="hugeicons:whatsapp" class="size-5" />
                   </a>
                 </div>
               </template>
               <template v-else-if="key === 'message'">
-                <div class="whitespace-pre-wrap">{{ value }}</div>
+                <div class="wrap-break-word whitespace-pre-wrap" v-html="linkify(value)"></div>
               </template>
               <template v-else>
                 {{ value }}
@@ -111,6 +111,15 @@ const { getStatusConfig, formatFieldLabel, formatWhatsAppNumber, getCountryFromP
 
 const open = defineModel("open", { type: Boolean, default: false });
 const submission = defineModel("submission", { type: Object, default: null });
+
+function linkify(text) {
+  if (!text) return "";
+  const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return escaped.replace(
+    /(https?:\/\/[^\s<]+)/g,
+    '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-info-foreground hover:underline break-all">$1</a>'
+  );
+}
 
 const statusUpdating = ref(false);
 

@@ -35,7 +35,7 @@ class NewInboxMessageNotification extends Notification implements ShouldQueue
             'title' => 'New inquiry received',
             'body' => "{$senderName} sent: \"{$subject}\"",
             'icon' => 'hugeicons:mail-open-love',
-            'url' => "/inbox/{$this->submission->ulid}",
+            'url' => "/inbox?open={$this->submission->ulid}",
         ];
     }
 }
