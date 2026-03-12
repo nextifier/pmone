@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\ApiConsumerController;
 use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Api\BrandEventController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\ContactBusinessCategoryController;
+use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ContactFormController;
 use App\Http\Controllers\Api\ContactFormSubmissionController;
 use App\Http\Controllers\Api\DashboardController;
@@ -278,6 +280,24 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/brands/{brand}/members', [BrandController::class, 'members'])->middleware('can:brands.read')->name('brands.members.index');
     Route::post('/brands/{brand}/members', [BrandController::class, 'addMember'])->middleware('can:brands.update')->name('brands.members.store');
     Route::delete('/brands/{brand}/members/{userId}', [BrandController::class, 'removeMember'])->middleware('can:brands.update')->name('brands.members.destroy');
+
+    // Contact management routes
+    Route::get('/contacts', [ContactController::class, 'index'])->middleware('can:contacts.read')->name('contacts.index');
+    Route::post('/contacts', [ContactController::class, 'store'])->middleware('can:contacts.create')->name('contacts.store');
+    Route::get('/contacts/export', [ContactController::class, 'export'])->middleware('can:contacts.read')->name('contacts.export');
+    Route::get('/contacts/import/template', [ContactController::class, 'downloadTemplate'])->middleware('can:contacts.create')->name('contacts.import.template');
+    Route::post('/contacts/import', [ContactController::class, 'import'])->middleware('can:contacts.create')->name('contacts.import');
+    Route::get('/contacts/search', [ContactController::class, 'search'])->name('contacts.search');
+    Route::get('/contacts/{contact}', [ContactController::class, 'show'])->middleware('can:contacts.read')->name('contacts.show');
+    Route::put('/contacts/{contact}', [ContactController::class, 'update'])->middleware('can:contacts.update')->name('contacts.update');
+    Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])->middleware('can:contacts.delete')->name('contacts.delete');
+
+    // Contact business categories
+    Route::get('/contacts-business-categories', [ContactBusinessCategoryController::class, 'index'])->middleware('can:contacts.read')->name('contacts.business-categories.index');
+    Route::post('/contacts-business-categories', [ContactBusinessCategoryController::class, 'store'])->middleware('can:contacts.create')->name('contacts.business-categories.store');
+    Route::put('/contacts-business-categories/reorder', [ContactBusinessCategoryController::class, 'reorder'])->middleware('can:contacts.update')->name('contacts.business-categories.reorder');
+    Route::put('/contacts-business-categories/{id}', [ContactBusinessCategoryController::class, 'update'])->middleware('can:contacts.update')->name('contacts.business-categories.update');
+    Route::delete('/contacts-business-categories/{id}', [ContactBusinessCategoryController::class, 'destroy'])->middleware('can:contacts.delete')->name('contacts.business-categories.destroy');
 
     // Notification endpoints
     Route::prefix('notifications')->group(function () {

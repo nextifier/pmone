@@ -125,6 +125,12 @@ return [
             'model' => \App\Models\Form::class,
             'actions' => ['create', 'read', 'update', 'delete'],
         ],
+        'contacts' => [
+            'label' => 'Contacts',
+            'description' => 'Manage contact list',
+            'model' => \App\Models\Contact::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
     ],
 
     /*

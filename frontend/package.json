@@ -92,6 +92,7 @@
   },
   "dependencies": {
     "dompurify": "^3.3.2",
+    "jszip": "^3.10.1",
     "shiki": "^4.0.2"
   }
 }

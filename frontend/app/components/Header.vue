@@ -82,11 +82,14 @@
           <template v-else>
             <nuxt-link
               to="/login"
-              class="hover:bg-muted border-border text-primary flex items-center justify-center rounded-lg border px-2.5 py-1.5 font-semibold tracking-tight transition select-none active:scale-98 sm:px-2.5 sm:py-1.5"
+              class="hover:bg-muted border-border text-primary flex items-center justify-center gap-x-2 rounded-lg border px-2.5 py-1.5 font-semibold tracking-tight transition select-none active:scale-98 sm:px-2.5 sm:py-1.5"
               @click="$scrollToTopIfCurrentPageIs('login')"
               v-ripple
             >
               <span>Log in</span>
+              <KbdGroup>
+                <Kbd>L</Kbd>
+              </KbdGroup>
             </nuxt-link>
 
             <nuxt-link
@@ -110,11 +113,22 @@ const openInquiryDialog = () => {
 };
 
 const route = useRoute();
+const router = useRouter();
 const { metaSymbol } = useShortcuts();
 
 const isMenuOpen = ref(false);
 
 const { isAuthenticated } = useSanctumAuth();
+
+defineShortcuts({
+  l: {
+    handler: () => {
+      if (!isAuthenticated.value) {
+        router.push("/login");
+      }
+    },
+  },
+});
 
 import { useSidebar } from "@/components/ui/sidebar/utils";
 const { toggleSidebar, open, isMobile } = useSidebar();

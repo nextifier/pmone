@@ -227,12 +227,13 @@ const navMainGroups = computed(() => {
     });
   }
 
-  coreItems.push({
-    label: "Contact List",
-    path: "/contacts",
-    iconName: "hugeicons:contact-01",
-    badgeLabel: "Coming Soon",
-  });
+  if (hasPermission("contacts.read")) {
+    coreItems.push({
+      label: "Contact List",
+      path: "/contacts",
+      iconName: "hugeicons:contact-01",
+    });
+  }
 
   // Tools section
   const toolsItems = [];
