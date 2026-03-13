@@ -289,6 +289,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/contacts/search', [ContactController::class, 'search'])->name('contacts.search');
     Route::get('/contacts/{contact}', [ContactController::class, 'show'])->middleware('can:contacts.read')->name('contacts.show');
     Route::put('/contacts/{contact}', [ContactController::class, 'update'])->middleware('can:contacts.update')->name('contacts.update');
+    Route::patch('/contacts/{contact}/status', [ContactController::class, 'updateStatus'])->middleware('can:contacts.update')->name('contacts.update-status');
     Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])->middleware('can:contacts.delete')->name('contacts.delete');
 
     // Contact business categories
@@ -297,6 +298,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::put('/contacts-business-categories/reorder', [ContactBusinessCategoryController::class, 'reorder'])->middleware('can:contacts.update')->name('contacts.business-categories.reorder');
     Route::put('/contacts-business-categories/{id}', [ContactBusinessCategoryController::class, 'update'])->middleware('can:contacts.update')->name('contacts.business-categories.update');
     Route::delete('/contacts-business-categories/{id}', [ContactBusinessCategoryController::class, 'destroy'])->middleware('can:contacts.delete')->name('contacts.business-categories.destroy');
+    Route::get('/contacts-business-categories/export', [ContactBusinessCategoryController::class, 'export'])->middleware('can:contacts.read')->name('contacts.business-categories.export');
+    Route::get('/contacts-business-categories/import/template', [ContactBusinessCategoryController::class, 'downloadTemplate'])->middleware('can:contacts.read')->name('contacts.business-categories.import-template');
+    Route::post('/contacts-business-categories/import', [ContactBusinessCategoryController::class, 'import'])->middleware('can:contacts.create')->name('contacts.business-categories.import');
 
     // Notification endpoints
     Route::prefix('notifications')->group(function () {

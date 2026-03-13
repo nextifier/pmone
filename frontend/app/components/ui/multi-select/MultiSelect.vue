@@ -37,7 +37,8 @@ const modelValue = defineModel<Option[]>("modelValue", {
   default: () => [],
 });
 
-const { defaultOptions, options, placeholder, openOnFocus, openOnClick } = defineProps<MultySelectProps>();
+const { defaultOptions, options, placeholder, openOnFocus, openOnClick } =
+  defineProps<MultySelectProps>();
 
 const emits = defineEmits<{
   (e: "update:modelValue", payload: Option[]): void;
@@ -68,7 +69,13 @@ const removeTag = (index: number) => {
 </script>
 
 <template>
-  <ComboboxRoot v-model="modelValue" multiple ignore-filter :open-on-focus="openOnFocus" :open-on-click="openOnClick">
+  <ComboboxRoot
+    v-model="modelValue"
+    multiple
+    ignore-filter
+    :open-on-focus="openOnFocus"
+    :open-on-click="openOnClick"
+  >
     <ComboboxAnchor class="w-full">
       <TagsInputRoot
         v-model="modelValue"

@@ -10,8 +10,8 @@
             class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
           />
           <DialogContent
-            class="bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100%-4rem)] w-full -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border shadow-lg outline-hidden duration-200"
-            :style="{ maxWidth: dialogMaxWidth }"
+            class="bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-1/2 left-1/2 z-50 flex w-full -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border shadow-lg outline-hidden duration-200"
+            :style="{ maxWidth: dialogMaxWidth, maxHeight: dialogMaxHeight }"
             @interact-outside="onInteractOutside"
             @escape-key-down="onEscapeKeyDown"
           >
@@ -125,6 +125,10 @@ const props = defineProps({
   dialogMaxWidth: {
     type: String,
     default: "400px",
+  },
+  dialogMaxHeight: {
+    type: String,
+    default: "calc(100% - 4rem)",
   },
   drawerCloseButton: {
     type: Boolean,

@@ -1,9 +1,10 @@
 <template>
   <div
     v-if="model"
-    :style="!model?.profile_image ? meshGradientStyle : undefined"
+    :style="!model?.profile_image && colorful ? meshGradientStyle : undefined"
     :class="[
       'outline-primary/10 @container relative flex aspect-square shrink-0 items-center justify-center text-center outline -outline-offset-1',
+      !model?.profile_image && !colorful ? 'bg-muted' : '',
       rounded,
     ]"
   >
@@ -19,7 +20,7 @@
     />
     <span
       v-else
-      class="initial text-[45cqw] font-medium tracking-tight text-white"
+      :class="['initial text-[45cqw] font-medium tracking-tight', colorful ? 'text-white' : 'text-muted-foreground']"
     >
       {{
         (() => {
@@ -55,6 +56,10 @@ const props = defineProps({
   rounded: {
     type: String,
     default: "rounded-lg",
+  },
+  colorful: {
+    type: Boolean,
+    default: true,
   },
 });
 

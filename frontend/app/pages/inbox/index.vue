@@ -110,6 +110,33 @@
       </template>
 
       <template #actions="{ selectedRows }">
+        <!-- Bulk Status Dropdown -->
+        <DropdownMenu v-if="selectedRows.length > 0">
+          <DropdownMenuTrigger asChild>
+            <button
+              :disabled="bulkUpdating"
+              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Spinner v-if="bulkUpdating" class="size-4 shrink-0" />
+              <Icon v-else name="hugeicons:task-edit-01" class="size-4 shrink-0" />
+              <span class="text-sm tracking-tight">Status</span>
+              <Icon name="lucide:chevron-down" class="size-3 opacity-60" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" class="w-40">
+            <DropdownMenuItem
+              v-for="s in inboxStatuses"
+              :key="s.value"
+              :disabled="bulkUpdating"
+              class="gap-x-2"
+              @click="handleBulkStatusUpdate(selectedRows, s.value)"
+            >
+              <span :class="s.dot" class="size-2 rounded-full" />
+              {{ s.label }}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <DialogResponsive
           v-if="canDelete && selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
@@ -178,6 +205,12 @@ import InboxTableItem from "@/components/inbox/InboxTableItem.vue";
 import StatusDropdown from "@/components/inbox/StatusDropdown.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
@@ -352,6 +385,40 @@ async function handleStatusUpdate(ulid, newStatus) {
     toast.error("Failed to update status");
   } finally {
     statusUpdating.value = null;
+  }
+}
+
+// Inbox statuses for bulk update dropdown
+const inboxStatuses = [
+  { value: "new", label: "New", dot: "bg-blue-500" },
+  { value: "in_progress", label: "In Progress", dot: "bg-yellow-500" },
+  { value: "completed", label: "Completed", dot: "bg-green-500" },
+  { value: "archived", label: "Archived", dot: "bg-gray-400" },
+];
+
+// Bulk status update
+const bulkUpdating = ref(false);
+
+async function handleBulkStatusUpdate(selectedRows, newStatus) {
+  const ulids = selectedRows.map((row) => row.original.ulid);
+  bulkUpdating.value = true;
+  try {
+    await Promise.all(
+      ulids.map((ulid) =>
+        client(`/api/contact-form-submissions/${ulid}/status`, {
+          method: "PATCH",
+          body: { status: newStatus },
+        })
+      )
+    );
+    toast.success(`${ulids.length} submission(s) status updated`);
+    await refresh();
+  } catch (err) {
+    toast.error("Failed to update status", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+  } finally {
+    bulkUpdating.value = false;
   }
 }
 

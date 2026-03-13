@@ -103,10 +103,40 @@
         </Popover>
       </template>
     </ActivityFeed>
+
+    <!-- Clear Logs Confirmation Dialog -->
+    <DialogResponsive v-model:open="clearDialogOpen">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+          <p class="text-body mt-1.5 text-sm tracking-tight">
+            This will permanently delete all log entries. This action cannot be undone.
+          </p>
+          <div class="mt-3 flex justify-end gap-2">
+            <button
+              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+              :disabled="clearing"
+              @click="clearDialogOpen = false"
+            >
+              Cancel
+            </button>
+            <button
+              class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+              :disabled="clearing"
+              @click="clearLogs"
+            >
+              <Spinner v-if="clearing" class="size-4 text-white" />
+              <span v-else>Clear All Logs</span>
+            </button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
   </div>
 </template>
 
 <script setup>
+import DialogResponsive from "@/components/DialogResponsive.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -131,6 +161,7 @@ const activities = ref([]);
 const meta = ref(null);
 const loading = ref(true);
 const clearing = ref(false);
+const clearDialogOpen = ref(false);
 
 // Filters
 const search = ref("");
@@ -208,19 +239,14 @@ function toggleFilter(type, value, checked) {
 }
 
 const confirmClearLogs = () => {
-  if (
-    confirm(
-      "Are you sure you want to clear all activity logs? This action cannot be undone and will permanently delete all log entries."
-    )
-  ) {
-    clearLogs();
-  }
+  clearDialogOpen.value = true;
 };
 
 const clearLogs = async () => {
   clearing.value = true;
   try {
     const response = await client("/api/logs/clear", { method: "DELETE" });
+    clearDialogOpen.value = false;
     toast.success("Activity logs cleared successfully", {
       description: `${response.deleted_count || 0} log entries deleted`,
     });

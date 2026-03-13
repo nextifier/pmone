@@ -93,10 +93,40 @@
         </div>
       </div>
     </template>
+
+    <!-- Delete User Confirmation Dialog -->
+    <DialogResponsive v-model:open="deleteDialogOpen">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+          <p class="text-body mt-1.5 text-sm tracking-tight">
+            Are you sure you want to delete {{ user?.name }}? This action cannot be undone.
+          </p>
+          <div class="mt-3 flex justify-end gap-2">
+            <button
+              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+              :disabled="deleting"
+              @click="deleteDialogOpen = false"
+            >
+              Cancel
+            </button>
+            <button
+              class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+              :disabled="deleting"
+              @click="handleDeleteUser"
+            >
+              <Spinner v-if="deleting" class="size-4 text-white" />
+              <span v-else>Delete</span>
+            </button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
   </div>
 </template>
 
 <script setup>
+import DialogResponsive from "@/components/DialogResponsive.vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -118,6 +148,7 @@ const formUserRef = ref(null);
 // State
 const loading = ref(false);
 const deleting = ref(false);
+const deleteDialogOpen = ref(false);
 const success = ref(null);
 const errors = ref({});
 
@@ -232,14 +263,12 @@ async function updateUser(payload) {
   }
 }
 
-// Confirm delete user
-async function confirmDeleteUser() {
-  if (
-    !confirm(`Are you sure you want to delete ${user.value.name}? This action cannot be undone.`)
-  ) {
-    return;
-  }
+// Delete user
+function confirmDeleteUser() {
+  deleteDialogOpen.value = true;
+}
 
+async function handleDeleteUser() {
   deleting.value = true;
 
   try {
@@ -247,6 +276,8 @@ async function confirmDeleteUser() {
     await sanctumFetch(`/api/users/${user.value.username}`, {
       method: "DELETE",
     });
+
+    deleteDialogOpen.value = false;
 
     // Signal that users list needs refresh
     signalRefresh("users-list");

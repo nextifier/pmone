@@ -61,7 +61,7 @@
             </button>
             <button
               type="button"
-              @click="deleteCategory(category)"
+              @click="openDeleteDialog(category)"
               class="text-muted-foreground hover:text-destructive rounded p-1 transition"
             >
               <Icon name="lucide:trash-2" class="size-3.5" />
@@ -74,36 +74,42 @@
         No business categories defined yet.
       </div>
 
-      <!-- Add/Edit form -->
-      <div class="border-t pt-4">
-        <h5 class="mb-3 text-sm font-medium">
-          {{ editing ? "Edit Category" : "Add New Category" }}
-        </h5>
-        <div class="flex items-end gap-x-3">
-          <div class="flex-1 space-y-2">
-            <Label for="bc_name">Name</Label>
-            <Input
-              id="bc_name"
-              v-model="categoryForm.name"
-              placeholder="e.g. Building Materials"
-              @keydown.enter.prevent="saveCategory"
-            />
-          </div>
+    </div>
 
-          <div class="flex items-center gap-x-2">
-            <Button size="sm" :disabled="!categoryForm.name || saving" @click="saveCategory">
-              <Icon v-if="saving" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
-              {{ editing ? "Update" : "Add" }}
-            </Button>
-            <Button v-if="editing" size="sm" variant="ghost" @click="cancelEdit"> Cancel </Button>
+    <!-- Delete Confirmation Dialog -->
+    <DialogResponsive v-model:open="deleteDialogOpen">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+          <p class="text-body mt-1.5 text-sm tracking-tight">
+            Delete business category "{{ categoryToDelete?.name }}"? Brands that have this category
+            selected will no longer show it.
+          </p>
+          <div class="mt-3 flex justify-end gap-2">
+            <button
+              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+              :disabled="deletePending"
+              @click="deleteDialogOpen = false"
+            >
+              Cancel
+            </button>
+            <button
+              class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+              :disabled="deletePending"
+              @click="handleDelete"
+            >
+              <Spinner v-if="deletePending" class="size-4 text-white" />
+              <span v-else>Delete</span>
+            </button>
           </div>
         </div>
-      </div>
-    </div>
+      </template>
+    </DialogResponsive>
   </div>
 </template>
 
 <script setup>
+import DialogResponsive from "@/components/DialogResponsive.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -120,6 +126,9 @@ const categories = ref([]);
 const saving = ref(false);
 const editing = ref(null);
 const exportPending = ref(false);
+const deleteDialogOpen = ref(false);
+const categoryToDelete = ref(null);
+const deletePending = ref(false);
 
 const apiBase = computed(() => `/api/projects/${props.projectUsername}/business-categories`);
 
@@ -180,23 +189,27 @@ async function saveCategory() {
   }
 }
 
-async function deleteCategory(category) {
-  if (
-    !confirm(
-      `Delete business category "${category.name}"? Brands that have this category selected will no longer show it.`
-    )
-  ) {
-    return;
-  }
+function openDeleteDialog(category) {
+  categoryToDelete.value = category;
+  deleteDialogOpen.value = true;
+}
+
+async function handleDelete() {
+  if (!categoryToDelete.value) return;
+  deletePending.value = true;
 
   try {
-    await client(`${apiBase.value}/${category.id}`, {
+    await client(`${apiBase.value}/${categoryToDelete.value.id}`, {
       method: "DELETE",
     });
     toast.success("Business category deleted");
+    deleteDialogOpen.value = false;
+    categoryToDelete.value = null;
     await fetchCategories();
   } catch (e) {
     toast.error(e?.data?.message || "Failed to delete business category");
+  } finally {
+    deletePending.value = false;
   }
 }
 

@@ -68,8 +68,12 @@
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"
       :initial-column-visibility="{
+        emails: false,
+        phones: false,
+        projects: false,
         source: false,
         created_at: false,
+        created_by_name: false,
       }"
       :show-add-button="false"
       @update:pagination="onPaginationUpdate"
@@ -78,9 +82,12 @@
       @refresh="refresh"
     >
       <template #add-button>
-        <Button v-if="canCreate" size="sm" @click="navigateTo('/contacts/create')">
+        <Button v-if="canCreate" size="sm" @click="openCreateDialog">
           <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
           Add Contact
+          <KbdGroup>
+            <Kbd>N</Kbd>
+          </KbdGroup>
         </Button>
       </template>
 
@@ -130,6 +137,33 @@
       </template>
 
       <template #actions="{ selectedRows }">
+        <!-- Bulk Status Dropdown -->
+        <DropdownMenu v-if="canUpdate && selectedRows.length > 0">
+          <DropdownMenuTrigger asChild>
+            <button
+              :disabled="bulkUpdating"
+              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Spinner v-if="bulkUpdating" class="size-4 shrink-0" />
+              <Icon v-else name="hugeicons:task-edit-01" class="size-4 shrink-0" />
+              <span class="text-sm tracking-tight">Status</span>
+              <Icon name="lucide:chevron-down" class="size-3 opacity-60" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" class="w-40">
+            <DropdownMenuItem
+              v-for="s in contactStatuses"
+              :key="s.value"
+              :disabled="bulkUpdating"
+              class="gap-x-2"
+              @click="handleBulkStatusUpdate(selectedRows, s.value)"
+            >
+              <span :class="s.dot" class="size-2 rounded-full" />
+              {{ s.label }}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <DialogResponsive
           v-if="selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
@@ -178,19 +212,98 @@
         </DialogResponsive>
       </template>
     </TableData>
+
+    <!-- Create/Edit Dialog -->
+    <DialogResponsive
+      v-model:open="formDialogOpen"
+      dialog-max-width="28rem"
+      dialog-max-height="calc(70%)"
+      :prevent-close="formDirty"
+      :overflow-content="true"
+      @close-prevented="showUnsavedWarning = true"
+    >
+      <template #sticky-header>
+        <div
+          class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left"
+        >
+          <div class="text-lg font-semibold tracking-tighter">
+            {{ editingContact ? "Edit Contact" : "New Contact" }}
+          </div>
+        </div>
+      </template>
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:pb-5">
+          <div v-if="editLoading" class="flex items-center justify-center py-12">
+            <Icon name="svg-spinners:ring-resize" class="text-muted-foreground size-6" />
+          </div>
+          <FormContact
+            v-else
+            ref="formRef"
+            :contact="editingContact"
+            :api-url="editingContact ? `/api/contacts/${editingContact.ulid}` : '/api/contacts'"
+            :method="editingContact ? 'PUT' : 'POST'"
+            :submit-label="editingContact ? 'Update Contact' : 'Create Contact'"
+            :contact-type-options="contactTypeOptions"
+            :business-category-options="businessCategoryOptions"
+            :project-options="projectOptions"
+            @saved="handleSaved"
+            @cancel="formDialogOpen = false"
+          />
+        </div>
+      </template>
+    </DialogResponsive>
+
+    <!-- Unsaved Changes Warning -->
+    <DialogResponsive v-model:open="showUnsavedWarning">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="text-primary text-lg font-semibold tracking-tight">Unsaved changes</div>
+          <p class="text-body mt-1.5 text-sm tracking-tight">
+            You have unsaved changes. Are you sure you want to close?
+          </p>
+          <div class="mt-3 flex justify-end gap-2">
+            <button
+              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+              @click="showUnsavedWarning = false"
+            >
+              Cancel
+            </button>
+            <button
+              class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98"
+              @click="
+                showUnsavedWarning = false;
+                formDirty = false;
+                formDialogOpen = false;
+              "
+            >
+              Discard
+            </button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
   </div>
 </template>
 
 <script setup>
+import Avatar from "@/components/Avatar.vue";
+import ButtonCopy from "@/components/ButtonCopy.vue";
 import ContactImportDialog from "@/components/contact/ContactImportDialog.vue";
 import ContactTableItem from "@/components/contact/ContactTableItem.vue";
+import FormContact from "@/components/contact/FormContact.vue";
+import ContactStatusDropdown from "@/components/contact/StatusDropdown.vue";
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { PopoverClose } from "reka-ui";
-import { defineComponent, resolveComponent } from "vue";
+import { defineComponent, resolveComponent, resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -205,8 +318,10 @@ usePageMeta(null, {
 
 const { $dayjs } = useNuxtApp();
 const client = useSanctumClient();
+const route = useRoute();
 const { hasPermission } = usePermission();
 const canCreate = computed(() => hasPermission("contacts.create"));
+const canUpdate = computed(() => hasPermission("contacts.update"));
 const canDelete = computed(() => hasPermission("contacts.delete"));
 
 const contactTypeLabels = {
@@ -315,7 +430,9 @@ const getFilterValue = (columnId) => {
 
 const selectedStatuses = computed(() => getFilterValue("status"));
 const selectedSources = computed(() => getFilterValue("source"));
-const totalActiveFilters = computed(() => selectedStatuses.value.length + selectedSources.value.length);
+const totalActiveFilters = computed(
+  () => selectedStatuses.value.length + selectedSources.value.length
+);
 
 const handleFilterChange = (columnId, { checked, value }) => {
   const current = getFilterValue(columnId);
@@ -335,6 +452,142 @@ const handleFilterChange = (columnId, { checked, value }) => {
   }
   pagination.value.pageIndex = 0;
 };
+
+// Contact statuses for bulk update dropdown
+const contactStatuses = [
+  { value: "active", label: "Active", dot: "bg-green-500" },
+  { value: "inactive", label: "Inactive", dot: "bg-yellow-500" },
+  { value: "archived", label: "Archived", dot: "bg-gray-400" },
+];
+
+// Bulk status update
+const bulkUpdating = ref(false);
+
+async function handleBulkStatusUpdate(selectedRows, newStatus) {
+  const ulids = selectedRows.map((row) => row.original.ulid);
+  bulkUpdating.value = true;
+  try {
+    await Promise.all(
+      ulids.map((ulid) =>
+        client(`/api/contacts/${ulid}/status`, {
+          method: "PATCH",
+          body: { status: newStatus },
+        })
+      )
+    );
+    toast.success(`${ulids.length} contact(s) status updated`);
+    await refresh();
+  } catch (err) {
+    toast.error("Failed to update status", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+  } finally {
+    bulkUpdating.value = false;
+  }
+}
+
+// Status update (inline from table)
+const statusUpdating = ref(null);
+
+async function handleStatusUpdate(ulid, newStatus) {
+  statusUpdating.value = ulid;
+  try {
+    await client(`/api/contacts/${ulid}/status`, {
+      method: "PATCH",
+      body: { status: newStatus },
+    });
+    toast.success("Status updated");
+    await refresh();
+  } catch (err) {
+    toast.error("Failed to update status");
+  } finally {
+    statusUpdating.value = null;
+  }
+}
+
+// Create/Edit Dialog
+const formDialogOpen = ref(false);
+const editingContact = ref(null);
+const editLoading = ref(false);
+const formDirty = ref(false);
+const showUnsavedWarning = ref(false);
+const formRef = ref();
+const contactTypeOptions = ref([]);
+const businessCategoryOptions = ref([]);
+const projectOptions = ref([]);
+
+// Preload options once on mount
+onMounted(async () => {
+  contactTypeOptions.value = [
+    { value: "exhibitor", label: "Exhibitor" },
+    { value: "media-partner", label: "Media Partner" },
+    { value: "sponsor", label: "Sponsor" },
+    { value: "speaker", label: "Speaker" },
+    { value: "vendor", label: "Vendor" },
+    { value: "visitor", label: "Visitor" },
+    { value: "other", label: "Other" },
+  ];
+
+  try {
+    const catRes = await client("/api/contacts-business-categories");
+    businessCategoryOptions.value = (catRes.data || []).map((c) => c.name);
+  } catch {
+    // Silent fail
+  }
+
+  try {
+    const projectRes = await client("/api/projects");
+    projectOptions.value = projectRes.data || [];
+  } catch {
+    // Projects may not be accessible
+  }
+});
+
+const openCreateDialog = () => {
+  editingContact.value = null;
+  formDirty.value = false;
+  formDialogOpen.value = true;
+};
+
+const openEditDialog = async (contact) => {
+  editingContact.value = null;
+  formDirty.value = false;
+  editLoading.value = true;
+  formDialogOpen.value = true;
+
+  try {
+    const res = await client(`/api/contacts/${contact.ulid}`);
+    editingContact.value = res.data;
+
+    if (res.business_category_options?.length) {
+      businessCategoryOptions.value = res.business_category_options;
+    }
+  } catch (e) {
+    toast.error("Failed to load contact");
+    formDialogOpen.value = false;
+  }
+
+  editLoading.value = false;
+};
+
+const handleSaved = () => {
+  formDirty.value = false;
+  formDialogOpen.value = false;
+  editingContact.value = null;
+  refresh();
+};
+
+// Keyboard shortcut
+defineShortcuts({
+  n: {
+    handler: () => {
+      if (canCreate.value) {
+        openCreateDialog();
+      }
+    },
+    whenever: [computed(() => route.path === "/contacts")],
+  },
+});
 
 // Table columns
 const columns = computed(() => [
@@ -363,13 +616,13 @@ const columns = computed(() => [
       ]
     : []),
   {
-    header: "Contact",
+    header: "Name",
     accessorKey: "name",
     cell: ({ row }) =>
       h(ContactTableItem, {
         contact: row.original,
       }),
-    size: 280,
+    size: 220,
     enableHiding: false,
   },
   {
@@ -380,7 +633,7 @@ const columns = computed(() => [
       if (!company) return h("span", { class: "text-muted-foreground text-sm" }, "-");
       return h("span", { class: "text-sm tracking-tight" }, company);
     },
-    size: 180,
+    size: 160,
   },
   {
     header: "Type",
@@ -388,50 +641,62 @@ const columns = computed(() => [
     cell: ({ row }) => {
       const types = row.original.contact_types || [];
       if (!types.length) return h("span", { class: "text-muted-foreground text-sm" }, "-");
-      return h("div", { class: "flex flex-wrap gap-1" }, [
-        ...types.map((t) =>
-          h(
-            "span",
-            {
-              class:
-                "bg-muted text-muted-foreground inline-flex truncate rounded px-1.5 py-0.5 text-xs tracking-tight",
-            },
-            contactTypeLabels[t] || t
-          )
-        ),
-      ]);
+      return h(
+        "span",
+        { class: "text-sm tracking-tight" },
+        types.map((t) => contactTypeLabels[t] || t).join(", ")
+      );
     },
     size: 140,
+    enableSorting: false,
+  },
+  {
+    header: "Email",
+    accessorKey: "emails",
+    cell: ({ row }) => h(EmailCell, { emails: row.original.emails }),
+    size: 220,
+    enableSorting: false,
+  },
+  {
+    header: "Phone",
+    accessorKey: "phones",
+    cell: ({ row }) => h(PhoneCell, { phones: row.original.phones }),
+    size: 180,
     enableSorting: false,
   },
   {
     header: "Status",
     accessorKey: "status",
     cell: ({ row }) => {
-      const status = row.original.status;
-      const colorMap = {
-        green: "text-success-foreground",
-        yellow: "text-warning-foreground",
-        gray: "text-muted-foreground",
-      };
-      return h(
-        "span",
-        {
-          class: `inline-flex items-center text-sm tracking-tight ${colorMap[status?.color] || "text-muted-foreground"}`,
-        },
-        status?.label || status?.value || "-"
-      );
+      if (!canUpdate.value) {
+        const status = row.original.status;
+        const colorMap = {
+          green: "text-success-foreground",
+          yellow: "text-warning-foreground",
+          gray: "text-muted-foreground",
+        };
+        return h(
+          "span",
+          {
+            class: `inline-flex items-center text-sm tracking-tight ${colorMap[status?.color] || "text-muted-foreground"}`,
+          },
+          status?.label || status?.value || "-"
+        );
+      }
+      return h(ContactStatusDropdown, {
+        status: row.original.status?.value || "active",
+        disabled: statusUpdating.value === row.original.ulid,
+        onUpdate: (newStatus) => handleStatusUpdate(row.original.ulid, newStatus),
+      });
     },
-    size: 100,
+    size: 120,
   },
   {
     header: "Projects",
-    accessorKey: "projects_count",
-    cell: ({ row }) => {
-      const count = row.getValue("projects_count") || 0;
-      return h("div", { class: "text-sm tracking-tight" }, count.toLocaleString());
-    },
-    size: 80,
+    accessorKey: "projects",
+    cell: ({ row }) => h(ProjectsCell, { projects: row.original.projects }),
+    size: 120,
+    enableSorting: false,
   },
   {
     header: "Source",
@@ -442,6 +707,16 @@ const columns = computed(() => [
       return h("span", { class: "text-sm tracking-tight capitalize" }, source);
     },
     size: 100,
+  },
+  {
+    header: "Created By",
+    accessorKey: "created_by_name",
+    cell: ({ row }) => {
+      const name = row.getValue("created_by_name");
+      if (!name) return h("span", { class: "text-muted-foreground text-sm" }, "-");
+      return h("span", { class: "text-sm tracking-tight" }, name);
+    },
+    size: 120,
   },
   {
     header: "Created",
@@ -461,7 +736,7 @@ const columns = computed(() => [
     id: "actions",
     header: () => h("span", { class: "sr-only" }, "Actions"),
     cell: ({ row }) => h(RowActions, { contact: row.original }),
-    size: 60,
+    size: 120,
     enableHiding: false,
   },
 ]);
@@ -476,7 +751,11 @@ const handleExport = async () => {
     const params = new URLSearchParams();
 
     columnFilters.value.forEach((filter) => {
-      const filterMapping = { name: "filter_search", status: "filter_status", source: "filter_source" };
+      const filterMapping = {
+        name: "filter_search",
+        status: "filter_status",
+        source: "filter_source",
+      };
       const paramKey = filterMapping[filter.id];
       if (paramKey && filter.value) {
         const paramValue = Array.isArray(filter.value) ? filter.value.join(",") : filter.value;
@@ -557,6 +836,103 @@ const handleDeleteSingleRow = async (contactUlid) => {
   }
 };
 
+// Email Cell Component
+const EmailCell = defineComponent({
+  props: {
+    emails: { type: Array, default: () => [] },
+  },
+  setup(props) {
+    const emails = computed(() => (props.emails || []).filter((e) => e));
+    return () => {
+      if (!emails.value.length) {
+        return h("span", { class: "text-muted-foreground text-sm" }, "-");
+      }
+      return h(
+        "div",
+        { class: "flex flex-col" },
+        emails.value.map((email) =>
+          h("div", { class: "flex items-center gap-x-0.5" }, [
+            h(
+              "a",
+              {
+                href: `mailto:${email}`,
+                class: "text-sm tracking-tight truncate hover:underline",
+              },
+              email
+            ),
+            h(ButtonCopy, { text: email }),
+          ])
+        )
+      );
+    };
+  },
+});
+
+// Phone Cell Component
+const PhoneCell = defineComponent({
+  props: {
+    phones: { type: Array, default: () => [] },
+  },
+  setup(props) {
+    const phones = computed(() => (props.phones || []).filter((p) => p));
+    return () => {
+      if (!phones.value.length) {
+        return h("span", { class: "text-muted-foreground text-sm" }, "-");
+      }
+      return h(
+        "div",
+        { class: "flex flex-col" },
+        phones.value.map((phone) => {
+          const cleanPhone = phone.replace(/\D/g, "");
+          return h("div", { class: "flex items-center gap-x-0.5" }, [
+            h(
+              "a",
+              {
+                href: `https://wa.me/${cleanPhone}`,
+                target: "_blank",
+                rel: "noopener noreferrer",
+                class: "text-sm tracking-tight truncate hover:underline",
+              },
+              phone
+            ),
+            h(ButtonCopy, { text: phone }),
+          ]);
+        })
+      );
+    };
+  },
+});
+
+// Projects Cell Component
+const ProjectsCell = defineComponent({
+  props: {
+    projects: { type: Array, default: () => [] },
+  },
+  setup(props) {
+    return () => {
+      const projects = props.projects || [];
+      if (!projects.length) {
+        return h("span", { class: "text-muted-foreground text-sm" }, "-");
+      }
+      return h(
+        "div",
+        { class: "flex items-center -space-x-1" },
+        projects.map((project) =>
+          withDirectives(
+            h(Avatar, {
+              model: project,
+              size: "sm",
+              class: "size-7 rounded-full ring-2 ring-background",
+              rounded: "rounded-full",
+            }),
+            [[resolveDirective("tippy"), project.name]]
+          )
+        )
+      );
+    };
+  },
+});
+
 // Row Actions Component
 const RowActions = defineComponent({
   props: {
@@ -566,92 +942,92 @@ const RowActions = defineComponent({
     const dialogOpen = ref(false);
     const singleDeletePending = ref(false);
 
+    const primaryPhone = computed(
+      () => props.contact.primary_phone || (props.contact.phones || [])[0]
+    );
+    const primaryEmail = computed(
+      () => props.contact.primary_email || (props.contact.emails || [])[0]
+    );
+
+    const whatsappLink = computed(() => {
+      if (!primaryPhone.value) return null;
+      const cleanPhone = primaryPhone.value.replace(/\D/g, "");
+      return `https://wa.me/${cleanPhone}`;
+    });
+
+    const emailLink = computed(() => {
+      if (!primaryEmail.value) return null;
+      return `mailto:${primaryEmail.value}`;
+    });
+
     return () =>
-      h("div", { class: "flex justify-end" }, [
-        h(
-          Popover,
-          {},
-          {
-            default: () => [
-              h(
-                PopoverTrigger,
-                { asChild: true },
-                {
-                  default: () =>
-                    h(
-                      "button",
-                      {
-                        class:
-                          "hover:bg-muted data-[state=open]:bg-muted inline-flex size-8 items-center justify-center rounded-md",
-                      },
-                      [h(resolveComponent("Icon"), { name: "lucide:ellipsis", class: "size-4" })]
-                    ),
-                }
+      h("div", { class: "flex items-center justify-end gap-1.5" }, [
+        // Edit button
+        ...(canUpdate.value
+          ? [
+              withDirectives(
+                h(
+                  "button",
+                  {
+                    class:
+                      "hover:bg-muted inline-flex size-8 items-center justify-center rounded-md",
+                    onClick: () => openEditDialog(props.contact),
+                  },
+                  [h(resolveComponent("Icon"), { name: "hugeicons:edit-03", class: "size-4" })]
+                ),
+                [[resolveDirective("tippy"), "Edit"]]
               ),
+            ]
+          : []),
+        // WhatsApp button
+        primaryPhone.value
+          ? withDirectives(
               h(
-                PopoverContent,
-                { align: "end", class: "w-40 p-1" },
+                "a",
                 {
-                  default: () =>
-                    h("div", { class: "flex flex-col" }, [
-                      // Edit
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
-                            h(
-                              resolveComponent("NuxtLink"),
-                              {
-                                to: `/contacts/${props.contact.ulid}/edit`,
-                                class:
-                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                              },
-                              {
-                                default: () => [
-                                  h(resolveComponent("Icon"), {
-                                    name: "lucide:pencil",
-                                    class: "size-4 shrink-0",
-                                  }),
-                                  h("span", {}, "Edit"),
-                                ],
-                              }
-                            ),
-                        }
-                      ),
-                      // Delete
-                      ...(canDelete.value
-                        ? [
-                            h(
-                              PopoverClose,
-                              { asChild: true },
-                              {
-                                default: () =>
-                                  h(
-                                    "button",
-                                    {
-                                      class:
-                                        "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                      onClick: () => (dialogOpen.value = true),
-                                    },
-                                    [
-                                      h(resolveComponent("Icon"), {
-                                        name: "lucide:trash",
-                                        class: "size-4 shrink-0",
-                                      }),
-                                      h("span", {}, "Delete"),
-                                    ]
-                                  ),
-                              }
-                            ),
-                          ]
-                        : []),
-                    ]),
-                }
+                  href: whatsappLink.value,
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                  class:
+                    "hover:bg-muted inline-flex size-8 items-center justify-center rounded-md text-success-foreground",
+                },
+                [h(resolveComponent("Icon"), { name: "hugeicons:whatsapp", class: "size-4" })]
               ),
-            ],
-          }
-        ),
+              [[resolveDirective("tippy"), "WhatsApp"]]
+            )
+          : null,
+        // Email button
+        primaryEmail.value
+          ? withDirectives(
+              h(
+                "a",
+                {
+                  href: emailLink.value,
+                  class:
+                    "hover:bg-muted inline-flex size-8 items-center justify-center rounded-md text-info-foreground",
+                },
+                [h(resolveComponent("Icon"), { name: "hugeicons:mail-01", class: "size-4" })]
+              ),
+              [[resolveDirective("tippy"), "Email"]]
+            )
+          : null,
+        // Delete button
+        ...(canDelete.value
+          ? [
+              withDirectives(
+                h(
+                  "button",
+                  {
+                    class:
+                      "hover:bg-destructive/10 text-destructive-foreground inline-flex size-8 items-center justify-center rounded-md",
+                    onClick: () => (dialogOpen.value = true),
+                  },
+                  [h(resolveComponent("Icon"), { name: "hugeicons:delete-01", class: "size-4" })]
+                ),
+                [[resolveDirective("tippy"), "Delete"]]
+              ),
+            ]
+          : []),
         h(
           DialogResponsive,
           {

@@ -38,7 +38,7 @@
             </button>
             <button
               type="button"
-              @click="deleteField(field)"
+              @click="openDeleteDialog(field)"
               class="text-muted-foreground hover:text-destructive rounded p-1 transition"
             >
               <Icon name="lucide:trash-2" class="size-3.5" />
@@ -108,10 +108,41 @@
         </div>
       </div>
     </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <DialogResponsive v-model:open="deleteDialogOpen">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+          <p class="text-body mt-1.5 text-sm tracking-tight">
+            Delete custom field "{{ fieldToDelete?.label }}"? This will remove the field definition
+            but won't delete any existing values.
+          </p>
+          <div class="mt-3 flex justify-end gap-2">
+            <button
+              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+              :disabled="deletePending"
+              @click="deleteDialogOpen = false"
+            >
+              Cancel
+            </button>
+            <button
+              class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+              :disabled="deletePending"
+              @click="handleDeleteField"
+            >
+              <Spinner v-if="deletePending" class="size-4 text-white" />
+              <span v-else>Delete</span>
+            </button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
   </div>
 </template>
 
 <script setup>
+import DialogResponsive from "@/components/DialogResponsive.vue";
 import { useSortable } from "@vueuse/integrations/useSortable";
 import {
   Select,
@@ -142,6 +173,9 @@ const sortableEl = ref(null);
 const fields = ref([]);
 const saving = ref(false);
 const editing = ref(null);
+const deleteDialogOpen = ref(false);
+const fieldToDelete = ref(null);
+const deletePending = ref(false);
 
 const fieldForm = reactive({
   label: "",
@@ -225,19 +259,27 @@ async function saveField() {
   }
 }
 
-async function deleteField(field) {
-  if (!confirm(`Delete custom field "${field.label}"? This will remove the field definition but won't delete any existing values.`)) {
-    return;
-  }
+function openDeleteDialog(field) {
+  fieldToDelete.value = field;
+  deleteDialogOpen.value = true;
+}
+
+async function handleDeleteField() {
+  if (!fieldToDelete.value) return;
+  deletePending.value = true;
 
   try {
-    await client(`/api/projects/${props.projectUsername}/custom-fields/${field.id}`, {
+    await client(`/api/projects/${props.projectUsername}/custom-fields/${fieldToDelete.value.id}`, {
       method: "DELETE",
     });
     toast.success("Custom field deleted");
+    deleteDialogOpen.value = false;
+    fieldToDelete.value = null;
     await fetchFields();
   } catch (e) {
     toast.error(e?.data?.message || "Failed to delete custom field");
+  } finally {
+    deletePending.value = false;
   }
 }
 

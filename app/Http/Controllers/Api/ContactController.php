@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\ContactStatus;
 use App\Enums\ContactType;
 use App\Exports\ContactsExport;
 use App\Exports\ContactsTemplateExport;
@@ -28,7 +29,7 @@ class ContactController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Contact::query()
-            ->with(['tags'])
+            ->with(['tags', 'projects.media', 'creator'])
             ->withCount(['projects']);
 
         $this->applyFilters($query, $request);
@@ -323,6 +324,31 @@ class ContactController extends Controller
                 Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
             }
         }
+    }
+
+    /**
+     * Update a contact's status.
+     */
+    public function updateStatus(Request $request, Contact $contact): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => ['required', 'string', 'in:'.implode(',', ContactStatus::values())],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $contact->update([
+            'status' => $request->input('status'),
+        ]);
+
+        return response()->json([
+            'message' => 'Status updated successfully',
+        ]);
     }
 
     private function applyFilters($query, Request $request): void

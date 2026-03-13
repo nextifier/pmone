@@ -1,262 +1,224 @@
 <template>
-  <form @submit.prevent="save" class="grid gap-y-8">
-    <!-- Contact Information -->
-    <div class="frame">
-      <div class="frame-header">
-        <div class="frame-title">Contact Information</div>
+  <form @submit.prevent="save" class="mt-4 space-y-4">
+    <div class="space-y-2">
+      <Label for="name">Person Name <span class="text-destructive">*</span></Label>
+      <Input id="name" v-model="form.name" />
+      <p v-if="errors.name" class="text-destructive text-xs tracking-tight">
+        {{ errors.name }}
+      </p>
+    </div>
+
+    <div class="space-y-2">
+      <Label for="company_name">Company Name</Label>
+      <Input id="company_name" v-model="form.company_name" />
+    </div>
+
+    <div class="space-y-2">
+      <Label for="job_title">Job Title</Label>
+      <Input id="job_title" v-model="form.job_title" />
+    </div>
+
+    <div class="grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-3">
+      <div class="space-y-2">
+        <Label for="status">Status</Label>
+        <Select v-model="form.status">
+          <SelectTrigger id="status" class="w-full">
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value="archived">Archived</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
-      <div class="frame-panel">
-        <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="name">Name <span class="text-destructive">*</span></Label>
-            <Input id="name" v-model="form.name" />
-            <p v-if="errors.name" class="text-destructive text-xs tracking-tight">
-              {{ errors.name }}
-            </p>
-          </div>
 
-          <div class="space-y-2">
-            <Label for="job_title">Job Title</Label>
-            <Input id="job_title" v-model="form.job_title" />
-          </div>
+      <div class="space-y-2">
+        <Label for="source">Source</Label>
+        <Select v-model="form.source">
+          <SelectTrigger id="source" class="w-full">
+            <SelectValue placeholder="Select source" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="event">Event</SelectItem>
+            <SelectItem value="referral">Referral</SelectItem>
+            <SelectItem value="website">Website</SelectItem>
+            <SelectItem value="import">Import</SelectItem>
+            <SelectItem value="manual">Manual</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-          <div class="grid grid-cols-1 gap-x-4 gap-y-6 lg:grid-cols-2">
-            <div class="space-y-2">
-              <Label for="status">Status</Label>
-              <Select v-model="form.status">
-                <SelectTrigger id="status" class="w-40">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="archived">Archived</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      <div class="space-y-2">
+        <Label for="contact_type">Contact Type</Label>
+        <Select v-model="selectedContactType">
+          <SelectTrigger id="contact_type" class="w-full">
+            <SelectValue placeholder="Select type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in contactTypeOptions" :key="opt.value" :value="opt.value">
+              {{ opt.label }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
 
-            <div class="space-y-2">
-              <Label for="source">Source</Label>
-              <Select v-model="form.source">
-                <SelectTrigger id="source" class="w-40">
-                  <SelectValue placeholder="Select source" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="event">Event</SelectItem>
-                  <SelectItem value="referral">Referral</SelectItem>
-                  <SelectItem value="website">Website</SelectItem>
-                  <SelectItem value="import">Import</SelectItem>
-                  <SelectItem value="manual">Manual</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div class="space-y-2">
-            <Label for="contact_type">Contact Type</Label>
-            <Select v-model="selectedContactType">
-              <SelectTrigger id="contact_type" class="w-48">
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="opt in contactTypeOptions" :key="opt.value" :value="opt.value">
-                  {{ opt.label }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div class="space-y-2">
-            <Label>Business Categories</Label>
-            <MultiSelect
-              v-if="businessCategoryOptions.length"
-              v-model="selectedCategoryOptions"
-              :options="availableCategoryOptions"
-              placeholder="Add category..."
-              open-on-focus
-            />
-            <TagsInput v-else v-model="form.business_categories" class="text-sm">
-              <TagsInputItem
-                v-for="cat in form.business_categories"
-                :key="cat"
-                :value="cat"
-              >
-                <TagsInputItemText />
-                <TagsInputItemDelete />
-              </TagsInputItem>
-              <TagsInputInput placeholder="Add category..." />
-            </TagsInput>
-          </div>
-
-          <div class="space-y-2">
-            <Label>Tags</Label>
-            <TagsInput v-model="form.tags" class="text-sm">
-              <TagsInputItem v-for="tag in form.tags" :key="tag" :value="tag">
-                <TagsInputItemText />
-                <TagsInputItemDelete />
-              </TagsInputItem>
-              <TagsInputInput placeholder="Add tag..." />
-            </TagsInput>
-          </div>
+    <!-- Emails -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between gap-x-2">
+        <Label>Emails</Label>
+        <button type="button" class="flex items-center gap-x-1 text-sm font-normal tracking-tight" @click="form.emails.push('')">
+          <Icon name="hugeicons:add-01" class="size-3.5" />
+          Add Email
+        </button>
+      </div>
+      <div class="space-y-2">
+        <div
+          v-for="(email, index) in form.emails"
+          :key="index"
+          class="flex items-center gap-x-2"
+        >
+          <Input
+            v-model="form.emails[index]"
+            type="email"
+            placeholder="email@example.com"
+            class="flex-1"
+          />
+          <button
+            v-if="form.emails.length > 1"
+            type="button"
+            @click="form.emails.splice(index, 1)"
+            class="text-muted-foreground hover:text-destructive shrink-0 rounded-md p-1.5 transition"
+          >
+            <Icon name="lucide:x" class="size-4" />
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Contact Details -->
-    <div class="frame">
-      <div class="frame-header">
-        <div class="frame-title">Contact Details</div>
+    <!-- Phones -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between gap-x-2">
+        <Label>Phones</Label>
+        <button type="button" class="flex items-center gap-x-1 text-sm font-normal tracking-tight" @click="form.phones.push('')">
+          <Icon name="hugeicons:add-01" class="size-3.5" />
+          Add Phone
+        </button>
       </div>
-      <div class="frame-panel">
-        <div class="grid grid-cols-1 gap-y-6">
-          <!-- Emails (dynamic array) -->
-          <div class="space-y-2">
-            <Label>Emails</Label>
-            <div class="space-y-2">
-              <div
-                v-for="(email, index) in form.emails"
-                :key="index"
-                class="flex items-center gap-x-2"
-              >
-                <Input
-                  v-model="form.emails[index]"
-                  type="email"
-                  :placeholder="`Email ${index + 1}`"
-                  class="flex-1"
-                />
-                <button
-                  type="button"
-                  @click="form.emails.splice(index, 1)"
-                  class="text-muted-foreground hover:text-destructive shrink-0 rounded-md p-1.5 transition"
-                >
-                  <Icon name="lucide:x" class="size-4" />
-                </button>
-              </div>
-              <button
-                type="button"
-                @click="form.emails.push('')"
-                class="text-primary flex items-center gap-x-1 text-sm tracking-tight hover:underline"
-              >
-                <Icon name="lucide:plus" class="size-3.5" />
-                <span>Add email</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Phones (dynamic array) -->
-          <div class="space-y-2">
-            <Label>Phones</Label>
-            <div class="space-y-2">
-              <div
-                v-for="(phone, index) in form.phones"
-                :key="index"
-                class="flex items-center gap-x-2"
-              >
-                <InputPhone
-                  v-model="form.phones[index]"
-                  :placeholder="`Phone ${index + 1}`"
-                  class="flex-1"
-                />
-                <button
-                  type="button"
-                  @click="form.phones.splice(index, 1)"
-                  class="text-muted-foreground hover:text-destructive shrink-0 rounded-md p-1.5 transition"
-                >
-                  <Icon name="lucide:x" class="size-4" />
-                </button>
-              </div>
-              <button
-                type="button"
-                @click="form.phones.push('')"
-                class="text-primary flex items-center gap-x-1 text-sm tracking-tight hover:underline"
-              >
-                <Icon name="lucide:plus" class="size-3.5" />
-                <span>Add phone</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="space-y-2">
-            <Label for="website">Website</Label>
-            <InputLink v-model="form.website" label="Website" />
-          </div>
+      <div class="space-y-2">
+        <div
+          v-for="(phone, index) in form.phones"
+          :key="index"
+          class="flex items-center gap-x-2"
+        >
+          <InputPhone
+            v-model="form.phones[index]"
+            class="flex-1"
+          />
+          <button
+            v-if="form.phones.length > 1"
+            type="button"
+            @click="form.phones.splice(index, 1)"
+            class="text-muted-foreground hover:text-destructive shrink-0 rounded-md p-1.5 transition"
+          >
+            <Icon name="lucide:x" class="size-4" />
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Company Information -->
-    <div class="frame">
-      <div class="frame-header">
-        <div class="frame-title">Company Information</div>
+    <div class="space-y-2">
+      <Label for="website">Website</Label>
+      <InputLink v-model="form.website" label="Website" />
+    </div>
+
+    <div class="space-y-2">
+      <Label>Business Categories</Label>
+      <MultiSelect
+        v-if="businessCategoryOptions.length"
+        v-model="selectedCategoryOptions"
+        :options="availableCategoryOptions"
+        placeholder="Add category..."
+        open-on-focus
+      />
+      <TagsInput v-else v-model="form.business_categories" class="text-sm">
+        <TagsInputItem
+          v-for="cat in form.business_categories"
+          :key="cat"
+          :value="cat"
+        >
+          <TagsInputItemText />
+          <TagsInputItemDelete />
+        </TagsInputItem>
+        <TagsInputInput placeholder="Add category..." />
+      </TagsInput>
+    </div>
+
+    <div class="space-y-2">
+      <Label>Tags</Label>
+      <TagsInput v-model="form.tags" class="text-sm">
+        <TagsInputItem v-for="tag in form.tags" :key="tag" :value="tag">
+          <TagsInputItemText />
+          <TagsInputItemDelete />
+        </TagsInputItem>
+        <TagsInputInput placeholder="Add tag..." />
+      </TagsInput>
+    </div>
+
+    <div class="space-y-2">
+      <Label for="address_street">Street Address</Label>
+      <Textarea id="address_street" v-model="form.address.street" rows="2" />
+    </div>
+
+    <div class="grid grid-cols-2 gap-x-2 gap-y-4">
+      <div class="space-y-2">
+        <Label for="address_city">City</Label>
+        <Input id="address_city" v-model="form.address.city" />
       </div>
-      <div class="frame-panel">
-        <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="company_name">Company Name</Label>
-            <Input id="company_name" v-model="form.company_name" />
-          </div>
-
-          <div class="space-y-2">
-            <Label for="address_street">Street Address</Label>
-            <Textarea id="address_street" v-model="form.address.street" rows="2" />
-          </div>
-
-          <div class="grid grid-cols-1 gap-x-4 gap-y-6 lg:grid-cols-2">
-            <div class="space-y-2">
-              <Label for="address_city">City</Label>
-              <Input id="address_city" v-model="form.address.city" />
-            </div>
-            <div class="space-y-2">
-              <Label for="address_province">Province</Label>
-              <Input id="address_province" v-model="form.address.province" />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 gap-x-4 gap-y-6 lg:grid-cols-2">
-            <div class="space-y-2">
-              <Label for="address_postal_code">Postal Code</Label>
-              <Input id="address_postal_code" v-model="form.address.postal_code" />
-            </div>
-            <div class="space-y-2">
-              <Label for="address_country">Country</Label>
-              <Input id="address_country" v-model="form.address.country" />
-            </div>
-          </div>
-        </div>
+      <div class="space-y-2">
+        <Label for="address_province">Province</Label>
+        <Input id="address_province" v-model="form.address.province" />
       </div>
     </div>
 
-    <!-- Additional Information -->
-    <div class="frame">
-      <div class="frame-header">
-        <div class="frame-title">Additional Information</div>
+    <div class="grid grid-cols-2 gap-x-2 gap-y-4">
+      <div class="space-y-2">
+        <Label for="address_postal_code">Postal Code</Label>
+        <Input id="address_postal_code" v-model="form.address.postal_code" />
       </div>
-      <div class="frame-panel">
-        <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="notes">Notes</Label>
-            <Textarea id="notes" v-model="form.notes" rows="3" placeholder="Any additional notes..." />
-          </div>
-
-          <div class="space-y-2">
-            <Label>Projects</Label>
-            <MultiSelect
-              v-if="projectOptions.length"
-              v-model="selectedProjectOptions"
-              :options="projectOptions"
-              placeholder="Associate with projects..."
-              open-on-focus
-            />
-            <p v-else class="text-muted-foreground text-sm tracking-tight">No projects available</p>
-          </div>
-        </div>
+      <div class="space-y-2">
+        <Label for="address_country">Country</Label>
+        <Input id="address_country" v-model="form.address.country" />
       </div>
     </div>
 
-    <div>
-      <Button type="submit" :disabled="saving" size="sm">
+    <div class="space-y-2">
+      <Label for="notes">Notes</Label>
+      <Textarea id="notes" v-model="form.notes" rows="3" placeholder="Any additional notes..." />
+    </div>
+
+    <div class="space-y-2">
+      <Label>Projects</Label>
+      <ProjectMultiSelect
+        v-if="projectOptions.length"
+        v-model="selectedProjects"
+        :projects="projectOptions"
+        placeholder="Associate with projects..."
+        open-on-focus
+      />
+      <p v-else class="text-muted-foreground text-sm tracking-tight">No projects available</p>
+    </div>
+
+    <div class="flex justify-end gap-2">
+      <Button variant="outline" type="button" @click="emit('cancel')">Cancel</Button>
+      <Button type="submit" :disabled="saving">
         <Icon v-if="saving" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
         {{ submitLabel }}
+        <KbdGroup>
+          <Kbd>⌘</Kbd>
+          <Kbd>S</Kbd>
+        </KbdGroup>
       </Button>
     </div>
   </form>
@@ -280,6 +242,15 @@ import {
 } from "@/components/ui/tags-input";
 import { toast } from "vue-sonner";
 
+defineShortcuts({
+  meta_s: {
+    handler: (e) => {
+      e.preventDefault();
+      save();
+    },
+  },
+});
+
 const props = defineProps({
   contact: { type: Object, default: null },
   apiUrl: { type: String, required: true },
@@ -289,7 +260,7 @@ const props = defineProps({
   contactTypeOptions: { type: Array, default: () => [] },
   projectOptions: { type: Array, default: () => [] },
 });
-const emit = defineEmits(["saved"]);
+const emit = defineEmits(["saved", "cancel"]);
 const client = useSanctumClient();
 
 const saving = ref(false);
@@ -342,16 +313,16 @@ const selectedCategoryOptions = computed({
   },
 });
 
-// MultiSelect: project options
-const selectedProjectOptions = computed({
+// ProjectMultiSelect: selected projects
+const selectedProjects = computed({
   get() {
     return (form.project_ids || []).map((id) => {
-      const project = props.projectOptions.find((p) => p.value === id);
-      return project || { value: id, label: `Project #${id}` };
+      const project = props.projectOptions.find((p) => p.id === id);
+      return project || { id, name: `Project #${id}` };
     });
   },
-  set(options) {
-    form.project_ids = options.map((opt) => opt.value);
+  set(projects) {
+    form.project_ids = projects.map((p) => p.id);
   },
 });
 

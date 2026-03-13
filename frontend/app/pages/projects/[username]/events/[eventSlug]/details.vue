@@ -72,7 +72,7 @@
           <button
             type="button"
             :disabled="deleteLoading"
-            @click="handleDelete"
+            @click="deleteDialogOpen = true"
             class="bg-destructive hover:bg-destructive/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white transition disabled:opacity-50"
           >
             <Spinner v-if="deleteLoading" />
@@ -81,10 +81,40 @@
         </div>
       </div>
     </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <DialogResponsive v-model:open="deleteDialogOpen">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+          <p class="text-body mt-1.5 text-sm tracking-tight">
+            This will move the event to trash. It can be restored later.
+          </p>
+          <div class="mt-3 flex justify-end gap-2">
+            <button
+              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+              :disabled="deleteLoading"
+              @click="deleteDialogOpen = false"
+            >
+              Cancel
+            </button>
+            <button
+              class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+              :disabled="deleteLoading"
+              @click="handleDelete"
+            >
+              <Spinner v-if="deleteLoading" class="size-4 text-white" />
+              <span v-else>Delete Event</span>
+            </button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
   </div>
 </template>
 
 <script setup>
+import DialogResponsive from "@/components/DialogResponsive.vue";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
@@ -99,6 +129,7 @@ const client = useSanctumClient();
 const loading = ref(false);
 const errors = ref({});
 const deleteLoading = ref(false);
+const deleteDialogOpen = ref(false);
 
 const base = computed(() => `/projects/${route.params.username}/events/${route.params.eventSlug}`);
 
@@ -128,8 +159,6 @@ async function handleUpdate(payload) {
 }
 
 async function handleDelete() {
-  if (!confirm("Are you sure you want to delete this event?")) return;
-
   deleteLoading.value = true;
 
   try {
