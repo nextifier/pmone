@@ -18,67 +18,21 @@
       <Input id="job_title" v-model="form.job_title" />
     </div>
 
-    <div class="grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-3">
-      <div class="space-y-2">
-        <Label for="status">Status</Label>
-        <Select v-model="form.status">
-          <SelectTrigger id="status" class="w-full">
-            <SelectValue placeholder="Select status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-            <SelectItem value="archived">Archived</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div class="space-y-2">
-        <Label for="source">Source</Label>
-        <Select v-model="form.source">
-          <SelectTrigger id="source" class="w-full">
-            <SelectValue placeholder="Select source" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="event">Event</SelectItem>
-            <SelectItem value="referral">Referral</SelectItem>
-            <SelectItem value="website">Website</SelectItem>
-            <SelectItem value="import">Import</SelectItem>
-            <SelectItem value="manual">Manual</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div class="space-y-2">
-        <Label for="contact_type">Contact Type</Label>
-        <Select v-model="selectedContactType">
-          <SelectTrigger id="contact_type" class="w-full">
-            <SelectValue placeholder="Select type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="opt in contactTypeOptions" :key="opt.value" :value="opt.value">
-              {{ opt.label }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-
     <!-- Emails -->
     <div class="space-y-2">
-      <div class="flex items-center justify-between gap-x-2">
+      <div class="flex items-end justify-between gap-x-2">
         <Label>Emails</Label>
-        <button type="button" class="flex items-center gap-x-1 text-sm font-normal tracking-tight" @click="form.emails.push('')">
+        <button
+          type="button"
+          class="hover:text-foreground text-muted-foreground flex items-center gap-x-1 text-sm tracking-tight"
+          @click="form.emails.push('')"
+        >
           <Icon name="hugeicons:add-01" class="size-3.5" />
           Add Email
         </button>
       </div>
       <div class="space-y-2">
-        <div
-          v-for="(email, index) in form.emails"
-          :key="index"
-          class="flex items-center gap-x-2"
-        >
+        <div v-for="(email, index) in form.emails" :key="index" class="flex items-center gap-x-2">
           <Input
             v-model="form.emails[index]"
             type="email"
@@ -99,23 +53,20 @@
 
     <!-- Phones -->
     <div class="space-y-2">
-      <div class="flex items-center justify-between gap-x-2">
+      <div class="flex items-end justify-between gap-x-2">
         <Label>Phones</Label>
-        <button type="button" class="flex items-center gap-x-1 text-sm font-normal tracking-tight" @click="form.phones.push('')">
+        <button
+          type="button"
+          class="text-muted-foreground hover:text-foreground flex items-center gap-x-1 text-sm tracking-tight"
+          @click="form.phones.push('')"
+        >
           <Icon name="hugeicons:add-01" class="size-3.5" />
           Add Phone
         </button>
       </div>
       <div class="space-y-2">
-        <div
-          v-for="(phone, index) in form.phones"
-          :key="index"
-          class="flex items-center gap-x-2"
-        >
-          <InputPhone
-            v-model="form.phones[index]"
-            class="flex-1"
-          />
+        <div v-for="(phone, index) in form.phones" :key="index" class="flex items-center gap-x-2">
+          <InputPhone v-model="form.phones[index]" class="flex-1" />
           <button
             v-if="form.phones.length > 1"
             type="button"
@@ -139,19 +90,15 @@
         v-if="businessCategoryOptions.length"
         v-model="selectedCategoryOptions"
         :options="availableCategoryOptions"
-        placeholder="Add category..."
+        placeholder="Add category"
         open-on-focus
       />
       <TagsInput v-else v-model="form.business_categories" class="text-sm">
-        <TagsInputItem
-          v-for="cat in form.business_categories"
-          :key="cat"
-          :value="cat"
-        >
+        <TagsInputItem v-for="cat in form.business_categories" :key="cat" :value="cat">
           <TagsInputItemText />
           <TagsInputItemDelete />
         </TagsInputItem>
-        <TagsInputInput placeholder="Add category..." />
+        <TagsInputInput placeholder="Add category" />
       </TagsInput>
     </div>
 
@@ -162,7 +109,7 @@
           <TagsInputItemText />
           <TagsInputItemDelete />
         </TagsInputItem>
-        <TagsInputInput placeholder="Add tag..." />
+        <TagsInputInput placeholder="Add tag" />
       </TagsInput>
     </div>
 
@@ -171,7 +118,8 @@
       <LocationCombobox
         v-model="form.address.country"
         :options="countries"
-        placeholder="Select country..."
+        :pinned="['Indonesia']"
+        placeholder="Select country"
       />
     </div>
 
@@ -181,7 +129,8 @@
         <LocationCombobox
           v-model="form.address.province"
           :options="provinceOptions"
-          placeholder="Select province..."
+          :pinned="['DKI Jakarta']"
+          placeholder="Select province"
         />
       </div>
       <div class="space-y-2">
@@ -190,7 +139,7 @@
           v-model="form.address.city"
           :options="cityOptions"
           :disabled="!form.address.province"
-          placeholder="Select city..."
+          placeholder="Select city"
         />
       </div>
     </div>
@@ -202,7 +151,7 @@
 
     <div class="space-y-2">
       <Label for="notes">Notes</Label>
-      <Textarea id="notes" v-model="form.notes" rows="3" placeholder="Any additional notes..." />
+      <Textarea id="notes" v-model="form.notes" rows="3" placeholder="Any additional notes" />
     </div>
 
     <div class="space-y-2">
@@ -211,10 +160,56 @@
         v-if="projectOptions.length"
         v-model="selectedProjects"
         :projects="projectOptions"
-        placeholder="Associate with projects..."
+        placeholder="Associate with projects"
         open-on-focus
       />
       <p v-else class="text-muted-foreground text-sm tracking-tight">No projects available</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-3">
+      <div class="space-y-2">
+        <Label for="contact_type">Contact Type</Label>
+        <Select v-model="selectedContactType">
+          <SelectTrigger id="contact_type" class="w-full">
+            <SelectValue placeholder="Select type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in contactTypeOptions" :key="opt.value" :value="opt.value">
+              {{ opt.label }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div class="space-y-2">
+        <Label for="source">Source</Label>
+        <Select v-model="form.source">
+          <SelectTrigger id="source" class="w-full">
+            <SelectValue placeholder="Select source" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="event">Event</SelectItem>
+            <SelectItem value="referral">Referral</SelectItem>
+            <SelectItem value="website">Website</SelectItem>
+            <SelectItem value="import">Import</SelectItem>
+            <SelectItem value="manual">Manual</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div class="col-span-2 space-y-2 sm:col-span-1">
+        <Label for="status">Status</Label>
+        <Select v-model="form.status">
+          <SelectTrigger id="status" class="w-full">
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value="archived">Archived</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
 
     <div class="flex justify-end gap-2">
@@ -248,10 +243,10 @@ import {
   TagsInputItemDelete,
   TagsInputItemText,
 } from "@/components/ui/tags-input";
-import { toast } from "vue-sonner";
 import countries from "@/data/countries.json";
-import indonesiaProvinces from "@/data/indonesia-provinces.json";
 import indonesiaCities from "@/data/indonesia-cities.json";
+import indonesiaProvinces from "@/data/indonesia-provinces.json";
+import { toast } from "vue-sonner";
 
 defineShortcuts({
   meta_s: {
@@ -398,7 +393,9 @@ watch(
       form.business_categories = newContact.business_categories || [];
       form.tags = newContact.tags || [];
       form.project_ids = newContact.projects?.map((p) => p.id) || [];
-      nextTick(() => { skipCascadeReset = false; });
+      nextTick(() => {
+        skipCascadeReset = false;
+      });
     }
   }
 );

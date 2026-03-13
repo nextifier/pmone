@@ -28,6 +28,10 @@ class ContactsExport extends BaseExport
             'Phones',
             'Company Name',
             'Website',
+            'Country',
+            'Province',
+            'City',
+            'Street Address',
             'Status',
             'Source',
             'Contact Types',
@@ -66,6 +70,8 @@ class ContactsExport extends BaseExport
 
         $projects = $contact->projects->pluck('name')->join(', ') ?: '-';
 
+        $address = $contact->address;
+
         return [
             $contact->id,
             $contact->ulid,
@@ -75,6 +81,10 @@ class ContactsExport extends BaseExport
             $phones,
             $contact->company_name ?? '-',
             $contact->website ?? '-',
+            $address['country'] ?? '-',
+            $address['province'] ?? '-',
+            $address['city'] ?? '-',
+            $address['street'] ?? '-',
             $this->titleCase($contact->status->value),
             $this->titleCase($contact->source),
             $types,

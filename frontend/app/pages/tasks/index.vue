@@ -216,6 +216,8 @@
       :with-create="true"
       :delete-mode="deleteMode"
       :deletable-completed-count="deletableCompletedTasks.length"
+      :users="eligibleUsers"
+      :projects="eligibleProjects"
       @clear-completed="handleClearCompleted"
     />
 
@@ -253,6 +255,23 @@ const { user: currentUser } = useSanctumAuth();
 const { hasPermission } = usePermission();
 
 const canCreate = computed(() => hasPermission("tasks.create"));
+
+// Fetch eligible users and projects once at page level (shared with task form dialogs)
+const eligibleUsers = ref([]);
+const eligibleProjects = ref([]);
+
+onMounted(async () => {
+  try {
+    const [usersRes, projectsRes] = await Promise.all([
+      client("/api/users?per_page=100"),
+      client("/api/projects?per_page=100"),
+    ]);
+    eligibleUsers.value = usersRes.data || [];
+    eligibleProjects.value = projectsRes.data || [];
+  } catch (err) {
+    console.error("Failed to fetch users/projects:", err);
+  }
+});
 
 // Show details toggle (persisted in localStorage)
 const showDetails = ref(true);

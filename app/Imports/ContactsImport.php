@@ -54,6 +54,22 @@ class ContactsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHea
             $phones = array_values($phones);
         }
 
+        // Build address array from individual columns
+        $address = null;
+        $country = $row['country'] ?? null;
+        $province = $row['province'] ?? null;
+        $city = $row['city'] ?? null;
+        $street = $row['street_address'] ?? null;
+
+        if ($country || $province || $city || $street) {
+            $address = [
+                'country' => $country ? trim($country) : '',
+                'province' => $province ? trim($province) : '',
+                'city' => $city ? trim($city) : '',
+                'street' => $street ? trim($street) : '',
+            ];
+        }
+
         $contact = Contact::create([
             'name' => $row['name'],
             'job_title' => $row['job_title'] ?? null,
@@ -61,6 +77,8 @@ class ContactsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHea
             'phones' => $phones,
             'company_name' => $row['company_name'] ?? null,
             'website' => $row['website'] ?? null,
+            'address' => $address,
+            'notes' => $row['notes'] ?? null,
             'status' => $row['status'] ?? 'active',
             'source' => $row['source'] ?? 'import',
         ]);
@@ -83,6 +101,15 @@ class ContactsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHea
             }
         }
 
+        // Sync tags if provided
+        if (! empty($row['tags'])) {
+            $tags = array_map('trim', explode(',', $row['tags']));
+            $tags = array_filter($tags);
+            if (! empty($tags)) {
+                $contact->syncContactTags($tags);
+            }
+        }
+
         $this->importedCount++;
 
         return $contact;
@@ -97,10 +124,16 @@ class ContactsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHea
             'phones' => ['nullable', 'string', 'max:500'],
             'company_name' => ['nullable', 'string', 'max:255'],
             'website' => ['nullable', 'string', 'max:500'],
+            'country' => ['nullable', 'string', 'max:255'],
+            'province' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'street_address' => ['nullable', 'string', 'max:1000'],
             'status' => ['nullable', 'in:active,inactive,archived'],
             'source' => ['nullable', 'string', 'max:50'],
             'contact_types' => ['nullable', 'string', 'max:500'],
             'business_categories' => ['nullable', 'string', 'max:1000'],
+            'tags' => ['nullable', 'string', 'max:1000'],
+            'notes' => ['nullable', 'string', 'max:5000'],
         ];
     }
 

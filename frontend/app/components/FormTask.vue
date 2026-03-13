@@ -272,6 +272,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  users: {
+    type: Array,
+    default: () => [],
+  },
+  projects: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const emit = defineEmits(["submit", "cancel"]);
@@ -315,28 +323,9 @@ const selectedAssignee = ref(
 );
 const selectedSharedUsers = ref(props.task?.shared_users || []);
 
-// Fetch eligible users and projects
-const sanctumClient = useSanctumClient();
-const eligibleUsers = ref([]);
-const eligibleProjects = ref([]);
-
-onMounted(async () => {
-  try {
-    // Fetch eligible users for assignment
-    const usersResponse = await sanctumClient("/api/users?per_page=100");
-    eligibleUsers.value = usersResponse.data || [];
-  } catch (err) {
-    console.error("Failed to fetch eligible users:", err);
-  }
-
-  try {
-    // Fetch projects for linking
-    const projectsResponse = await sanctumClient("/api/projects?per_page=100");
-    eligibleProjects.value = projectsResponse.data || [];
-  } catch (err) {
-    console.error("Failed to fetch projects:", err);
-  }
-});
+// Use props for eligible users and projects (fetched at page level)
+const eligibleUsers = computed(() => props.users);
+const eligibleProjects = computed(() => props.projects);
 
 // Watch selected assignee
 watch(selectedAssignee, (users) => {

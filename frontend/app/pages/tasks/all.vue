@@ -200,7 +200,7 @@
     </template>
 
     <!-- Task Dialogs -->
-    <TaskDialogs :dialogs="dialogs" />
+    <TaskDialogs :dialogs="dialogs" :users="eligibleUsers" :projects="eligibleProjects" />
   </div>
 </template>
 
@@ -227,6 +227,23 @@ definePageMeta({
 });
 
 const client = useSanctumClient();
+
+// Fetch eligible users and projects once at page level (shared with task form dialogs)
+const eligibleUsers = ref([]);
+const eligibleProjects = ref([]);
+
+onMounted(async () => {
+  try {
+    const [usersRes, projectsRes] = await Promise.all([
+      client("/api/users?per_page=100"),
+      client("/api/projects?per_page=100"),
+    ]);
+    eligibleUsers.value = usersRes.data || [];
+    eligibleProjects.value = projectsRes.data || [];
+  } catch (err) {
+    console.error("Failed to fetch users/projects:", err);
+  }
+});
 
 // Show details toggle (shared with tasks/index)
 const showDetails = ref(true);

@@ -20,6 +20,8 @@
         <FormTask
           ref="createFormRef"
           :loading="createLoading"
+          :users="props.users"
+          :projects="props.projects"
           @submit="handleCreateTask"
           @cancel="createDialogOpen = false"
         />
@@ -49,6 +51,8 @@
           ref="editFormRef"
           :task="taskToEdit"
           :loading="editLoading"
+          :users="props.users"
+          :projects="props.projects"
           @submit="handleEditTask"
           @cancel="editDialogOpen = false"
         />
@@ -137,6 +141,8 @@ const props = defineProps({
   withCreate: { type: Boolean, default: false },
   deleteMode: { type: String, default: "single" },
   deletableCompletedCount: { type: Number, default: 0 },
+  users: { type: Array, default: () => [] },
+  projects: { type: Array, default: () => [] },
 });
 
 defineEmits(["clearCompleted"]);

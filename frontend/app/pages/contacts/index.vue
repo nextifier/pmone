@@ -216,8 +216,7 @@
     <!-- Create/Edit Dialog -->
     <DialogResponsive
       v-model:open="formDialogOpen"
-      dialog-max-width="28rem"
-      dialog-max-height="calc(70%)"
+      dialog-max-width="600px"
       :prevent-close="formDirty"
       :overflow-content="true"
       @close-prevented="showUnsavedWarning = true"
@@ -227,14 +226,92 @@
           class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left"
         >
           <div class="text-lg font-semibold tracking-tighter">
-            {{ editingContact ? "Edit Contact" : "New Contact" }}
+            {{ editingContact || editLoading ? "Edit Contact" : "New Contact" }}
           </div>
         </div>
       </template>
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:pb-5">
-          <div v-if="editLoading" class="flex items-center justify-center py-12">
-            <Icon name="svg-spinners:ring-resize" class="text-muted-foreground size-6" />
+          <div v-if="editLoading" class="mt-4 space-y-4">
+            <!-- Person Name -->
+            <div class="space-y-2">
+              <Skeleton class="h-4 w-24" />
+              <Skeleton class="h-9 w-full" />
+            </div>
+            <!-- Company Name -->
+            <div class="space-y-2">
+              <Skeleton class="h-4 w-28" />
+              <Skeleton class="h-9 w-full" />
+            </div>
+            <!-- Job Title -->
+            <div class="space-y-2">
+              <Skeleton class="h-4 w-16" />
+              <Skeleton class="h-9 w-full" />
+            </div>
+            <!-- Emails -->
+            <div class="space-y-2">
+              <Skeleton class="h-4 w-14" />
+              <Skeleton class="h-9 w-full" />
+            </div>
+            <!-- Phones -->
+            <div class="space-y-2">
+              <Skeleton class="h-4 w-14" />
+              <Skeleton class="h-9 w-full" />
+            </div>
+            <!-- Website -->
+            <div class="space-y-2">
+              <Skeleton class="h-4 w-16" />
+              <Skeleton class="h-9 w-full" />
+            </div>
+            <!-- Business Categories & Tags -->
+            <div class="space-y-2">
+              <Skeleton class="h-4 w-32" />
+              <Skeleton class="h-9 w-full" />
+            </div>
+            <div class="space-y-2">
+              <Skeleton class="h-4 w-10" />
+              <Skeleton class="h-9 w-full" />
+            </div>
+            <!-- Country -->
+            <div class="space-y-2">
+              <Skeleton class="h-4 w-16" />
+              <Skeleton class="h-9 w-full" />
+            </div>
+            <!-- Street Address -->
+            <div class="space-y-2">
+              <Skeleton class="h-4 w-24" />
+              <Skeleton class="h-16 w-full" />
+            </div>
+            <!-- Notes -->
+            <div class="space-y-2">
+              <Skeleton class="h-4 w-12" />
+              <Skeleton class="h-16 w-full" />
+            </div>
+            <!-- Projects -->
+            <div class="space-y-2">
+              <Skeleton class="h-4 w-16" />
+              <Skeleton class="h-9 w-full" />
+            </div>
+            <!-- Status / Source / Contact Type -->
+            <div class="grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-3">
+              <div class="space-y-2">
+                <Skeleton class="h-4 w-12" />
+                <Skeleton class="h-9 w-full" />
+              </div>
+              <div class="space-y-2">
+                <Skeleton class="h-4 w-14" />
+                <Skeleton class="h-9 w-full" />
+              </div>
+              <div class="space-y-2">
+                <Skeleton class="h-4 w-24" />
+                <Skeleton class="h-9 w-full" />
+              </div>
+            </div>
+            <!-- Buttons -->
+            <div class="flex justify-end gap-2">
+              <Skeleton class="h-9 w-20" />
+              <Skeleton class="h-9 w-32" />
+            </div>
           </div>
           <FormContact
             v-else
@@ -852,6 +929,7 @@ const EmailCell = defineComponent({
         { class: "flex flex-col" },
         emails.value.map((email) =>
           h("div", { class: "flex items-center gap-x-0.5" }, [
+            h(ButtonCopy, { text: email, class: "size-5 shrink-0" }),
             h(
               "a",
               {
@@ -860,7 +938,6 @@ const EmailCell = defineComponent({
               },
               email
             ),
-            h(ButtonCopy, { text: email }),
           ])
         )
       );
@@ -885,6 +962,7 @@ const PhoneCell = defineComponent({
         phones.value.map((phone) => {
           const cleanPhone = phone.replace(/\D/g, "");
           return h("div", { class: "flex items-center gap-x-0.5" }, [
+            h(ButtonCopy, { text: phone, class: "size-5 shrink-0" }),
             h(
               "a",
               {
@@ -895,7 +973,6 @@ const PhoneCell = defineComponent({
               },
               phone
             ),
-            h(ButtonCopy, { text: phone }),
           ]);
         })
       );
@@ -961,7 +1038,7 @@ const RowActions = defineComponent({
     });
 
     return () =>
-      h("div", { class: "flex items-center justify-end gap-1.5" }, [
+      h("div", { class: "flex items-center justify-end gap-x-3" }, [
         // Edit button
         ...(canUpdate.value
           ? [
