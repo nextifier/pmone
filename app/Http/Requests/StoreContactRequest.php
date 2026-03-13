@@ -35,7 +35,6 @@ class StoreContactRequest extends FormRequest
             'address.street' => ['nullable', 'string', 'max:500'],
             'address.city' => ['nullable', 'string', 'max:255'],
             'address.province' => ['nullable', 'string', 'max:255'],
-            'address.postal_code' => ['nullable', 'string', 'max:20'],
             'address.country' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'source' => ['nullable', 'string', 'max:50'],
