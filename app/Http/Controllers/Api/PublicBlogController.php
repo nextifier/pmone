@@ -4,10 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\TrackingHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\CategoryResource;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\UserMinimalResource;
-use App\Models\Category;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -83,46 +81,6 @@ class PublicBlogController extends Controller
 
         return response()->json([
             'data' => new PostResource($post),
-        ]);
-    }
-
-    /**
-     * Get list of public categories
-     */
-    public function categories(Request $request): JsonResponse
-    {
-        $query = Category::query()
-            ->with(['parent', 'children'])
-            ->public();
-
-        $this->applyCategoryFilters($query, $request);
-
-        $categories = $query->paginate($request->input('per_page', 50));
-
-        return response()->json([
-            'data' => CategoryResource::collection($categories->items()),
-            'meta' => [
-                'current_page' => $categories->currentPage(),
-                'last_page' => $categories->lastPage(),
-                'per_page' => $categories->perPage(),
-                'total' => $categories->total(),
-            ],
-        ]);
-    }
-
-    /**
-     * Get single category by slug
-     */
-    public function category(Request $request, string $slug): JsonResponse
-    {
-        $category = Category::query()
-            ->with(['parent', 'children'])
-            ->where('slug', $slug)
-            ->public()
-            ->firstOrFail();
-
-        return response()->json([
-            'data' => new CategoryResource($category),
         ]);
     }
 
@@ -352,25 +310,6 @@ class PublicBlogController extends Controller
             $query->withCount('visits')->orderBy('visits_count', $direction);
         } else {
             $query->orderBy('published_at', 'desc');
-        }
-    }
-
-    /**
-     * Apply filters to category query
-     */
-    private function applyCategoryFilters($query, Request $request): void
-    {
-        // Root categories only
-        if ($request->boolean('root')) {
-            $query->whereNull('parent_id');
-        }
-
-        // Parent filter
-        if ($parentSlug = $request->input('parent')) {
-            $parent = Category::where('slug', $parentSlug)->first();
-            if ($parent) {
-                $query->where('parent_id', $parent->id);
-            }
         }
     }
 }

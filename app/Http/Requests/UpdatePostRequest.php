@@ -46,8 +46,6 @@ class UpdatePostRequest extends FormRequest
             'authors.*.user_id' => ['required', 'exists:users,id'],
             'authors.*.order' => ['sometimes', 'integer', 'min:0'],
 
-            'category_ids' => ['sometimes', 'array'],
-            'category_ids.*' => ['exists:categories,id'],
             'tags' => ['sometimes', 'array'],
             'tags.*' => ['string', 'max:50'],
 
@@ -75,7 +73,6 @@ class UpdatePostRequest extends FormRequest
             'visibility.in' => 'Visibility must be public, private, or members_only.',
             'published_at.date' => 'Published date must be a valid date.',
             'author_ids.*.exists' => 'One or more selected authors do not exist.',
-            'category_ids.*.exists' => 'One or more selected categories do not exist.',
         ];
     }
 }

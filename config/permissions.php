@@ -53,12 +53,6 @@ return [
             'model' => \App\Models\ShortLink::class,
             'actions' => ['create', 'read', 'update', 'delete'],
         ],
-        'categories' => [
-            'label' => 'Categories',
-            'description' => 'Manage blog categories',
-            'model' => \App\Models\Category::class,
-            'actions' => ['create', 'read', 'update', 'delete'],
-        ],
         'tags' => [
             'label' => 'Tags',
             'description' => 'Manage blog tags',

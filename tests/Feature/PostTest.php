@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Category;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -49,11 +48,9 @@ test('user can create a post', function () {
     ]);
 });
 
-test('user can create post with authors and categories', function () {
+test('user can create post with authors', function () {
     $author1 = User::factory()->create();
     $author2 = User::factory()->create();
-    $category1 = Category::factory()->create();
-    $category2 = Category::factory()->create();
 
     $postData = [
         'title' => 'Post with Relations',
@@ -72,7 +69,6 @@ test('user can create post with authors and categories', function () {
                 'order' => 1,
             ],
         ],
-        'category_ids' => [$category1->id, $category2->id],
     ];
 
     $response = $this->postJson('/api/posts', $postData);
@@ -82,7 +78,6 @@ test('user can create post with authors and categories', function () {
     $post = Post::where('title', 'Post with Relations')->first();
 
     expect($post->authors)->toHaveCount(2);
-    expect($post->postCategories)->toHaveCount(2);
 
     // Check pivot data
     $primaryAuthor = $post->authors()->wherePivot('order', 0)->first();
@@ -130,12 +125,11 @@ test('user can update a post', function () {
     expect($post->status)->toBe('published');
 });
 
-test('user can update post authors and categories', function () {
+test('user can update post authors', function () {
     $post = Post::factory()->create(['created_by' => $this->user->id]);
 
     $author1 = User::factory()->create();
     $author2 = User::factory()->create();
-    $category = Category::factory()->create();
 
     $response = $this->putJson("/api/posts/{$post->slug}", [
         'title' => $post->title,
@@ -152,14 +146,12 @@ test('user can update post authors and categories', function () {
                 'order' => 1,
             ],
         ],
-        'category_ids' => [$category->id],
     ]);
 
     $response->assertSuccessful();
 
     $post->refresh();
     expect($post->authors)->toHaveCount(2);
-    expect($post->postCategories)->toHaveCount(1);
 });
 
 // Delete & Trash Tests

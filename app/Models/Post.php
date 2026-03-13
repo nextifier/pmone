@@ -52,14 +52,13 @@ use Spatie\Tags\Tag;
  * @property-read \App\Models\User|null $deleter
  * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
  * @property-read int|null $media_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Category> $postCategories
- * @property-read int|null $post_categories_count
  * @property-read \App\Models\User|null $primaryAuthor
  * @property \Illuminate\Database\Eloquent\Collection<int, Tag> $tags
  * @property-read int|null $tags_count
  * @property-read \App\Models\User|null $updater
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
  * @property-read int|null $visits_count
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byAuthor(int $authorId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byCreator(int $userId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byStatus(string $status)
@@ -108,6 +107,7 @@ use Spatie\Tags\Tag;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Post extends Model implements HasMedia
@@ -412,14 +412,6 @@ class Post extends Model implements HasMedia
             ->morphToMany(Tag::class, 'taggable', 'taggables', null, 'tag_id')
             ->where('type', 'category')
             ->orderBy('order_column');
-    }
-
-    /**
-     * Get categories via the category_post pivot table
-     */
-    public function postCategories(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
-    {
-        return $this->belongsToMany(Category::class, 'category_post');
     }
 
     /**

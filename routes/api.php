@@ -4,7 +4,6 @@ use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\ApiConsumerController;
 use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Api\BrandEventController;
-use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ContactBusinessCategoryController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ContactFormController;
@@ -555,21 +554,6 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('tags')->group(function 
     Route::get('/{slug}', [TagController::class, 'show'])->name('tags.show');
 });
 
-// Category management endpoints (authenticated + verified)
-Route::middleware(['auth:sanctum', 'verified'])->prefix('categories')->group(function () {
-    Route::get('/', [CategoryController::class, 'index'])->name('categories.index');
-    Route::post('/', [CategoryController::class, 'store'])->name('categories.store');
-    Route::delete('/bulk', [CategoryController::class, 'bulkDestroy'])->name('categories.bulk-destroy');
-    Route::get('/trash', [CategoryController::class, 'trash'])->name('categories.trash');
-    Route::post('/trash/restore/bulk', [CategoryController::class, 'bulkRestore'])->name('categories.bulk-restore');
-    Route::post('/trash/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
-    Route::delete('/trash/bulk', [CategoryController::class, 'bulkForceDestroy'])->name('categories.bulk-force-destroy');
-    Route::delete('/trash/{id}', [CategoryController::class, 'forceDestroy'])->name('categories.force-destroy');
-    Route::get('/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
-    Route::put('/{category:slug}', [CategoryController::class, 'update'])->name('categories.update');
-    Route::delete('/{category:slug}', [CategoryController::class, 'destroy'])->name('categories.destroy');
-});
-
 // API Consumer management endpoints (authenticated + verified, admin/master only)
 Route::middleware(['auth:sanctum', 'verified'])->prefix('api-consumers')->group(function () {
     Route::get('/', [ApiConsumerController::class, 'index'])->name('api-consumers.index');
@@ -600,11 +584,7 @@ Route::middleware(['api.key'])->prefix('public/blog')->group(function () {
         ->middleware(CacheResponse::for(1800, 'blog-posts'));
     Route::get('/posts/{slug}', [PublicBlogController::class, 'post']); // No cache - has trackVisit
 
-    // Categories endpoints
-    Route::get('/categories', [PublicBlogController::class, 'categories'])
-        ->middleware(CacheResponse::for(86400, 'blog-categories'));
-    Route::get('/categories/{slug}', [PublicBlogController::class, 'category'])
-        ->middleware(CacheResponse::for(86400, 'blog-categories'));
+    // Categories endpoints (uses Spatie Tags with type 'category')
     Route::get('/categories/{slug}/posts', [PublicBlogController::class, 'postsByCategory'])
         ->middleware(CacheResponse::for(3600, 'blog-posts'));
 

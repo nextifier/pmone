@@ -180,7 +180,7 @@ class OrderController extends Controller
 
         $validated = $request->validate([
             'operational_status' => ['required', 'string', Rule::in(array_column(OperationalStatus::cases(), 'value'))],
-            'cancellation_reason' => ['nullable', 'string', 'max:5000'],
+            'cancellation_reason' => [$request->input('operational_status') === 'cancelled' ? 'required' : 'nullable', 'string', 'max:5000'],
         ]);
 
         $oldStatus = $order->operational_status;

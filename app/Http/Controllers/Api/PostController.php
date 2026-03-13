@@ -354,11 +354,6 @@ class PostController extends Controller
                 $post->syncPostTags($data['tags']);
             }
 
-            // Sync categories via category_post pivot
-            if (isset($data['category_ids']) && is_array($data['category_ids'])) {
-                $post->postCategories()->sync($data['category_ids']);
-            }
-
             // Attach authors - default to authenticated user if none specified
             if (isset($data['authors']) && is_array($data['authors']) && count($data['authors']) > 0) {
                 $this->syncAuthors($post, $data['authors']);
@@ -416,11 +411,6 @@ class PostController extends Controller
             // Update tags if provided with 'post' type
             if (isset($data['tags']) && is_array($data['tags'])) {
                 $post->syncPostTags($data['tags']);
-            }
-
-            // Sync categories via category_post pivot
-            if (isset($data['category_ids']) && is_array($data['category_ids'])) {
-                $post->postCategories()->sync($data['category_ids']);
             }
 
             // Update authors with roles and order

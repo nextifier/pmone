@@ -210,7 +210,7 @@
           <textarea
             v-model="cancellationReason"
             rows="3"
-            placeholder="Cancellation reason (optional)"
+            placeholder="Cancellation reason"
             class="border-border bg-background placeholder:text-muted-foreground focus:ring-ring mt-3 w-full rounded-md border px-3 py-2 text-sm tracking-tight outline-none focus:ring-1"
           />
           <div class="mt-3 flex justify-end gap-2">
@@ -223,7 +223,7 @@
             </button>
             <button
               @click="confirmCancellation"
-              :disabled="statusUpdating"
+              :disabled="statusUpdating || !cancellationReason.trim()"
               class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Spinner v-if="statusUpdating" class="size-4 text-white" />
