@@ -347,20 +347,29 @@ const cityOptions = computed(() => {
   return indonesiaCities.filter((c) => c.province === prov.value);
 });
 
+// Guard to prevent cascading reset during programmatic form sync (edit mode)
+let skipCascadeReset = false;
+
 // Reset cascading fields when country changes
 watch(
   () => form.address.country,
-  () => {
-    form.address.province = "";
-    form.address.city = "";
+  (_, oldVal) => {
+    if (skipCascadeReset) return;
+    if (oldVal) {
+      form.address.province = "";
+      form.address.city = "";
+    }
   }
 );
 
 // Reset city when province changes
 watch(
   () => form.address.province,
-  () => {
-    form.address.city = "";
+  (_, oldVal) => {
+    if (skipCascadeReset) return;
+    if (oldVal) {
+      form.address.city = "";
+    }
   }
 );
 
@@ -369,6 +378,7 @@ watch(
   () => props.contact,
   (newContact) => {
     if (newContact) {
+      skipCascadeReset = true;
       form.name = newContact.name || "";
       form.job_title = newContact.job_title || "";
       form.emails = newContact.emails?.length ? [...newContact.emails] : [""];
@@ -388,6 +398,7 @@ watch(
       form.business_categories = newContact.business_categories || [];
       form.tags = newContact.tags || [];
       form.project_ids = newContact.projects?.map((p) => p.id) || [];
+      nextTick(() => { skipCascadeReset = false; });
     }
   }
 );
