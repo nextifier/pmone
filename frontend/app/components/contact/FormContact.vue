@@ -167,30 +167,37 @@
     </div>
 
     <div class="space-y-2">
+      <Label>Country</Label>
+      <LocationCombobox
+        v-model="form.address.country"
+        :options="countries"
+        placeholder="Select country..."
+      />
+    </div>
+
+    <div v-if="isIndonesia" class="grid grid-cols-2 gap-x-2 gap-y-4">
+      <div class="space-y-2">
+        <Label>Province</Label>
+        <LocationCombobox
+          v-model="form.address.province"
+          :options="provinceOptions"
+          placeholder="Select province..."
+        />
+      </div>
+      <div class="space-y-2">
+        <Label>City</Label>
+        <LocationCombobox
+          v-model="form.address.city"
+          :options="cityOptions"
+          :disabled="!form.address.province"
+          placeholder="Select city..."
+        />
+      </div>
+    </div>
+
+    <div class="space-y-2">
       <Label for="address_street">Street Address</Label>
       <Textarea id="address_street" v-model="form.address.street" rows="2" />
-    </div>
-
-    <div class="grid grid-cols-2 gap-x-2 gap-y-4">
-      <div class="space-y-2">
-        <Label for="address_city">City</Label>
-        <Input id="address_city" v-model="form.address.city" />
-      </div>
-      <div class="space-y-2">
-        <Label for="address_province">Province</Label>
-        <Input id="address_province" v-model="form.address.province" />
-      </div>
-    </div>
-
-    <div class="grid grid-cols-2 gap-x-2 gap-y-4">
-      <div class="space-y-2">
-        <Label for="address_postal_code">Postal Code</Label>
-        <Input id="address_postal_code" v-model="form.address.postal_code" />
-      </div>
-      <div class="space-y-2">
-        <Label for="address_country">Country</Label>
-        <Input id="address_country" v-model="form.address.country" />
-      </div>
     </div>
 
     <div class="space-y-2">
@@ -225,6 +232,7 @@
 </template>
 
 <script setup>
+import { LocationCombobox } from "@/components/ui/location-combobox";
 import { MultiSelect } from "@/components/ui/multi-select";
 import {
   Select,
@@ -241,6 +249,9 @@ import {
   TagsInputItemText,
 } from "@/components/ui/tags-input";
 import { toast } from "vue-sonner";
+import countries from "@/data/countries.json";
+import indonesiaProvinces from "@/data/indonesia-provinces.json";
+import indonesiaCities from "@/data/indonesia-cities.json";
 
 defineShortcuts({
   meta_s: {
@@ -277,7 +288,6 @@ const form = reactive({
     street: props.contact?.address?.street || "",
     city: props.contact?.address?.city || "",
     province: props.contact?.address?.province || "",
-    postal_code: props.contact?.address?.postal_code || "",
     country: props.contact?.address?.country || "",
   },
   notes: props.contact?.notes || "",
@@ -326,11 +336,49 @@ const selectedProjects = computed({
   },
 });
 
+// Location: cascading dropdowns
+const isIndonesia = computed(() => form.address.country === "Indonesia");
+
+const provinceOptions = computed(() => indonesiaProvinces);
+
+const cityOptions = computed(() => {
+  const prov = indonesiaProvinces.find((p) => p.label === form.address.province);
+  if (!prov) return [];
+  return indonesiaCities.filter((c) => c.province === prov.value);
+});
+
+// Guard to prevent cascading reset during programmatic form sync (edit mode)
+let skipCascadeReset = false;
+
+// Reset cascading fields when country changes
+watch(
+  () => form.address.country,
+  (_, oldVal) => {
+    if (skipCascadeReset) return;
+    if (oldVal) {
+      form.address.province = "";
+      form.address.city = "";
+    }
+  }
+);
+
+// Reset city when province changes
+watch(
+  () => form.address.province,
+  (_, oldVal) => {
+    if (skipCascadeReset) return;
+    if (oldVal) {
+      form.address.city = "";
+    }
+  }
+);
+
 // Sync form when contact prop changes
 watch(
   () => props.contact,
   (newContact) => {
     if (newContact) {
+      skipCascadeReset = true;
       form.name = newContact.name || "";
       form.job_title = newContact.job_title || "";
       form.emails = newContact.emails?.length ? [...newContact.emails] : [""];
@@ -341,7 +389,6 @@ watch(
         street: newContact.address?.street || "",
         city: newContact.address?.city || "",
         province: newContact.address?.province || "",
-        postal_code: newContact.address?.postal_code || "",
         country: newContact.address?.country || "",
       };
       form.notes = newContact.notes || "";
@@ -351,6 +398,7 @@ watch(
       form.business_categories = newContact.business_categories || [];
       form.tags = newContact.tags || [];
       form.project_ids = newContact.projects?.map((p) => p.id) || [];
+      nextTick(() => { skipCascadeReset = false; });
     }
   }
 );
@@ -368,7 +416,7 @@ async function save() {
 
     // Clean address - send null if all empty
     const addr = body.address;
-    if (!addr.street && !addr.city && !addr.province && !addr.postal_code && !addr.country) {
+    if (!addr.street && !addr.city && !addr.province && !addr.country) {
       body.address = null;
     }
 
