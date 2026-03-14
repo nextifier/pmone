@@ -44,6 +44,12 @@ class UserResource extends JsonResource
                 $this->hasMedia('cover_image'),
                 fn () => $this->getMediaUrls('cover_image')
             ),
+            'projects' => $this->whenLoaded('projects', fn () => $this->projects->map(fn ($p) => [
+                'id' => $p->id,
+                'name' => $p->name,
+                'username' => $p->username,
+                'profile_image' => $p->hasMedia('profile_image') ? $p->getMediaUrls('profile_image') : null,
+            ])),
             'roles' => $this->whenLoaded('roles', fn () => $this->roles->pluck('name')),
             'permissions' => $this->when(
                 $this->relationLoaded('permissions') || $this->relationLoaded('roles'),

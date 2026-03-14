@@ -286,6 +286,26 @@
       </div>
     </div>
 
+    <div v-if="showProjects" class="frame">
+      <div class="frame-header">
+        <div class="frame-title">Projects</div>
+      </div>
+      <div class="frame-panel">
+        <div class="space-y-2">
+          <Label>Assigned Projects</Label>
+          <ProjectMultiSelect
+            v-if="projects.length"
+            v-model="selectedProjects"
+            :projects="projects"
+            placeholder="Select projects"
+            open-on-focus
+          />
+          <p v-else class="text-muted-foreground text-sm tracking-tight">No projects available</p>
+          <InputErrorMessage :errors="errors.project_ids" />
+        </div>
+      </div>
+    </div>
+
     <div class="flex justify-end">
       <Button type="submit" size="sm" :disabled="loading">
         <Spinner v-if="loading" />
@@ -313,6 +333,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import ProjectMultiSelect from "@/components/project/MultiSelect.vue";
 import { cn } from "@/lib/utils";
 import { DateFormatter, getLocalTimeZone } from "@internationalized/date";
 import { toast } from "vue-sonner";
@@ -353,6 +374,7 @@ function createEmptyForm() {
     visibility: "public",
     roles: [],
     links: [],
+    project_ids: [],
   };
 }
 
@@ -397,6 +419,14 @@ const props = defineProps({
   showImages: {
     type: Boolean,
     default: true,
+  },
+  showProjects: {
+    type: Boolean,
+    default: false,
+  },
+  projects: {
+    type: Array,
+    default: () => [],
   },
   submitText: {
     type: String,
@@ -443,6 +473,19 @@ function toggleRole(roleName, checked) {
     }
   }
 }
+
+// ProjectMultiSelect: selected projects
+const selectedProjects = computed({
+  get() {
+    return (form.project_ids || []).map((id) => {
+      const project = props.projects.find((p) => p.id === id);
+      return project || { id, name: `Project #${id}` };
+    });
+  },
+  set(projects) {
+    form.project_ids = projects.map((p) => p.id);
+  },
+});
 
 // Add new link
 function addLink() {
@@ -507,6 +550,9 @@ async function populateForm(data) {
 
     form.links.push(...formattedLinks);
   }
+
+  // Handle projects
+  form.project_ids = data.projects?.map((p) => p.id) || [];
 
   // Handle birth_date
   if (data.birth_date) {
@@ -603,6 +649,11 @@ function handleSubmit() {
   // Remove password if empty and not creating
   if (!props.isCreate && !payload.password) {
     delete payload.password;
+  }
+
+  // Remove project_ids if projects section is not shown
+  if (!props.showProjects) {
+    delete payload.project_ids;
   }
 
   emit("submit", payload);

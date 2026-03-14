@@ -24,6 +24,7 @@ class ProfileController extends Controller
                 $query->active()->orderBy('order');
             },
             'roles',
+            'projects.media',
         ]);
 
         // Note: Visit tracking is handled on the frontend via /api/track/visit endpoint

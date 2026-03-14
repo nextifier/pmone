@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Models\Contact;
+use App\Models\Project;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
@@ -110,6 +111,18 @@ class ContactsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHea
             }
         }
 
+        // Sync projects by name
+        if (! empty($row['projects'])) {
+            $projectNames = array_map('trim', explode(',', $row['projects']));
+            $projectNames = array_filter($projectNames);
+            if (! empty($projectNames)) {
+                $projectIds = Project::whereIn('name', $projectNames)->pluck('id')->toArray();
+                if (! empty($projectIds)) {
+                    $contact->projects()->sync($projectIds);
+                }
+            }
+        }
+
         $this->importedCount++;
 
         return $contact;
@@ -133,6 +146,7 @@ class ContactsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHea
             'contact_types' => ['nullable', 'string', 'max:500'],
             'business_categories' => ['nullable', 'string', 'max:1000'],
             'tags' => ['nullable', 'string', 'max:1000'],
+            'projects' => ['nullable', 'string', 'max:1000'],
             'notes' => ['nullable', 'string', 'max:5000'],
         ];
     }

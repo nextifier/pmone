@@ -22,12 +22,14 @@
         ref="formUserRef"
         :initial-data="user"
         :roles="roles"
+        :projects="projects"
         :loading="loading"
         :errors="errors"
         :is-create="false"
         :show-password="canEditUsers"
         :show-account-settings="canEditUsers"
         :show-roles="canEditUsers"
+        :show-projects="canEditUsers"
         :show-images="true"
         submit-text="Update User"
         submit-loading-text="Updating.."
@@ -185,6 +187,13 @@ const { data: rolesResponse } = await useLazySanctumFetch(() => `/api/users/role
 });
 
 const roles = computed(() => rolesResponse.value?.data || []);
+
+// Fetch projects data with lazy loading
+const { data: projectsResponse } = await useLazySanctumFetch("/api/projects?client_only=true", {
+  key: "user-edit-projects",
+});
+
+const projects = computed(() => projectsResponse.value?.data || []);
 
 const error = computed(() => {
   if (!userError.value) return null;

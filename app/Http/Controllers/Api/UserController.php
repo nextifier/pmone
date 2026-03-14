@@ -197,7 +197,7 @@ class UserController extends Controller
     {
         $this->authorize('users.read');
 
-        $user->load(['roles', 'media', 'links']);
+        $user->load(['roles', 'media', 'links', 'projects.media']);
 
         return response()->json([
             'data' => new UserResource($user),
@@ -377,13 +377,18 @@ class UserController extends Controller
             // Auto-sync Email and WhatsApp links
             \App\Helpers\LinkSyncHelper::syncUserContactLinks($user);
 
+            // Sync projects if provided
+            if ($request->has('project_ids')) {
+                $user->projects()->sync($request->input('project_ids', []));
+            }
+
             // Handle profile image upload from temporary storage
             $this->handleTemporaryUpload($request, $user, 'tmp_profile_image', 'profile_image');
 
             // Handle cover image upload from temporary storage
             $this->handleTemporaryUpload($request, $user, 'tmp_cover_image', 'cover_image');
 
-            $user->load(['roles', 'media', 'links']);
+            $user->load(['roles', 'media', 'links', 'projects.media']);
 
             return response()->json([
                 'message' => 'User updated successfully',

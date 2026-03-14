@@ -53,6 +53,10 @@ return [
         'redirect' => '/auth/facebook/callback',
     ],
 
+    'sheets' => [
+        'api_token' => env('SHEETS_API_TOKEN'),
+    ],
+
     'exchange_rate' => [
         'api_url' => env('EXCHANGE_RATE_API_URL', 'https://api.exchangerate-api.com/v4/latest/USD'),
         'base_currency' => env('EXCHANGE_RATE_BASE_CURRENCY', 'USD'),

@@ -62,6 +62,8 @@ class UpdateUserRequest extends FormRequest
                     $fail('Only master users can assign the master role.');
                 }
             }],
+            'project_ids' => ['sometimes', 'array'],
+            'project_ids.*' => ['integer', 'exists:projects,id'],
             'tmp_profile_image' => ['nullable', 'string', 'regex:/^tmp-[a-zA-Z0-9._]+$/'],
             'tmp_cover_image' => ['nullable', 'string', 'regex:/^tmp-[a-zA-Z0-9._]+$/'],
         ];

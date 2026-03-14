@@ -469,6 +469,11 @@ Route::prefix('public/forms')->middleware('throttle:api')->group(function () {
     Route::get('/{slug}/check', [PublicFormController::class, 'checkDuplicate'])->name('public.forms.check');
 });
 
+// Google Sheets integration (token-based auth)
+Route::get('/sheets/orders/{eventId}', [\App\Http\Controllers\Api\SheetsController::class, 'orders'])
+    ->middleware('throttle:60,1')
+    ->name('sheets.orders');
+
 // Contact form submission (requires API key for CORS and rate limiting)
 Route::post('/contact-forms/submit', [ContactFormController::class, 'submit'])->middleware(['api.key']);
 

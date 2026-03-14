@@ -23,6 +23,7 @@ class ContactsTemplateExport extends BaseTemplateExport
                 'exhibitor',
                 'Technology, Digital',
                 'VIP, priority',
+                'Megabuild Indonesia, Solartech Indonesia',
                 'Met at Megabuild 2026',
             ],
             [
@@ -41,6 +42,7 @@ class ContactsTemplateExport extends BaseTemplateExport
                 'sponsor, media-partner',
                 'Sustainability, Agriculture',
                 '',
+                'Megabuild Indonesia',
                 'Referred by John Doe',
             ],
         ];
@@ -64,6 +66,7 @@ class ContactsTemplateExport extends BaseTemplateExport
             'Contact Types',
             'Business Categories',
             'Tags',
+            'Projects',
             'Notes',
         ];
     }
