@@ -376,7 +376,6 @@ import DialogResponsive from "@/components/DialogResponsive.vue";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useSortable } from "@vueuse/integrations/useSortable";
 import { toast } from "vue-sonner";
 
 const { t } = useI18n();
@@ -429,26 +428,26 @@ const reorderingPostId = ref(null);
 const reorderImages = ref([]);
 const reorderGridRefs = reactive({});
 const savingReorder = ref(false);
-let sortableInstance = null;
+
+// Sortable for image reorder (composable handles instance lifecycle)
+const reorderEl = computed(() =>
+  reorderingPostId.value ? reorderGridRefs[reorderingPostId.value] : null
+);
+useSortableList(reorderEl, reorderImages, {
+  sortableOptions: {
+    handle: undefined,
+    ghostClass: "opacity-30",
+  },
+});
 
 function startReorder(post) {
   reorderingPostId.value = post.id;
   reorderImages.value = [...post.post_images];
-  nextTick(() => {
-    const el = reorderGridRefs[post.id];
-    if (el) {
-      sortableInstance = useSortable(el, reorderImages, {
-        animation: 200,
-        ghostClass: "opacity-30",
-      });
-    }
-  });
 }
 
 function cancelReorder() {
   reorderingPostId.value = null;
   reorderImages.value = [];
-  sortableInstance = null;
 }
 
 async function saveReorder(postId) {
@@ -465,7 +464,6 @@ async function saveReorder(postId) {
     }
     reorderingPostId.value = null;
     reorderImages.value = [];
-    sortableInstance = null;
     toast.success(t("promotionPosts.reorderSaved"));
   } catch (e) {
     toast.error(e?.data?.message || t("promotionPosts.failedToReorder"));

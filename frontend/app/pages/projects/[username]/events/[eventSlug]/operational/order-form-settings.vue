@@ -494,7 +494,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
-import { useSortable } from "@vueuse/integrations/useSortable";
 import { toast } from "vue-sonner";
 
 const props = defineProps({ event: Object, project: Object });
@@ -634,32 +633,27 @@ const docApiBase = computed(
 
 const sortableRef = ref(null);
 
-function initSortable() {
-  if (!sortableRef.value) return;
-  useSortable(sortableRef.value, documents, {
-    handle: ".drag-handle",
-    animation: 200,
-    ghostClass: "sortable-ghost",
-    chosenClass: "sortable-chosen",
-    onEnd: async () => {
-      await nextTick();
-      const orders = documents.value.map((doc, index) => ({
-        id: doc.id,
-        order: index + 1,
-      }));
+async function reorderDocuments() {
+  const orders = documents.value.map((doc, index) => ({
+    id: doc.id,
+    order: index + 1,
+  }));
 
-      try {
-        await client(`${docApiBase.value}/reorder`, {
-          method: "POST",
-          body: { orders },
-        });
-      } catch {
-        toast.error("Failed to reorder documents");
-        await fetchDocuments();
-      }
-    },
-  });
+  try {
+    await client(`${docApiBase.value}/reorder`, {
+      method: "POST",
+      body: { orders },
+    });
+  } catch {
+    toast.error("Failed to reorder documents");
+    await fetchDocuments();
+  }
 }
+
+// Sortable with proper instance lifecycle (fixes mobile touch)
+const { initialize: initSortable } = useSortableList(sortableRef, documents, {
+  onReorder: reorderDocuments,
+});
 
 const filteredDocuments = computed(() => {
   let result = documents.value;
@@ -769,17 +763,8 @@ async function onDocFormSuccess() {
 
 onMounted(async () => {
   await fetchDocuments();
-  await nextTick();
   initSortable();
 });
-
-watch(
-  () => documents.value.length,
-  async () => {
-    await nextTick();
-    initSortable();
-  }
-);
 
 usePageMeta(null, {
   title: computed(() => `Order Form Settings · ${props.event?.title || route.params.eventSlug}`),

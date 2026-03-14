@@ -216,7 +216,6 @@
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useSortable } from "@vueuse/integrations/useSortable";
 import { toast } from "vue-sonner";
 
 const props = defineProps({ event: Object, project: Object });
@@ -238,32 +237,27 @@ const apiBase = computed(
 
 const sortableRef = ref(null);
 
-function initSortable() {
-  if (!sortableRef.value) return;
-  useSortable(sortableRef.value, categories, {
-    handle: ".drag-handle",
-    animation: 200,
-    ghostClass: "sortable-ghost",
-    chosenClass: "sortable-chosen",
-    onEnd: async () => {
-      await nextTick();
-      const orders = categories.value.map((cat, index) => ({
-        id: cat.id,
-        order: index + 1,
-      }));
+async function reorderCategories() {
+  const orders = categories.value.map((cat, index) => ({
+    id: cat.id,
+    order: index + 1,
+  }));
 
-      try {
-        await client(`${apiBase.value}/reorder`, {
-          method: "POST",
-          body: { orders },
-        });
-      } catch {
-        toast.error("Failed to reorder categories");
-        await fetchCategories();
-      }
-    },
-  });
+  try {
+    await client(`${apiBase.value}/reorder`, {
+      method: "POST",
+      body: { orders },
+    });
+  } catch {
+    toast.error("Failed to reorder categories");
+    await fetchCategories();
+  }
 }
+
+// Sortable with proper instance lifecycle (fixes mobile touch)
+const { initialize: initSortable } = useSortableList(sortableRef, categories, {
+  onReorder: reorderCategories,
+});
 
 function stripHtml(html) {
   if (!html) return "";
@@ -327,17 +321,8 @@ async function onFormSuccess() {
 
 onMounted(async () => {
   await fetchCategories();
-  await nextTick();
   initSortable();
 });
-
-watch(
-  () => categories.value.length,
-  async () => {
-    await nextTick();
-    initSortable();
-  }
-);
 
 usePageMeta(null, {
   title: computed(() => `Product Categories · ${props.event?.title || route.params.eventSlug}`),

@@ -147,7 +147,6 @@ import ImportDialog from "@/components/project/ImportDialog.vue";
 import ProjectsFilters from "@/components/project/ProjectsFilters.vue";
 import ProjectsHeader from "@/components/project/ProjectsHeader.vue";
 import ProjectsList from "@/components/project/ProjectsList.vue";
-import { useSortable } from "@vueuse/integrations/useSortable";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -281,40 +280,12 @@ const updateProjectOrder = async () => {
   }
 };
 
-// Initialize sortable
-let sortableInstance = null;
-
-const initializeSortable = () => {
-  // Destroy existing instance if any
-  if (sortableInstance?.stop) {
-    sortableInstance.stop();
-    sortableInstance = null;
-  }
-
-  // Only create sortable when no filters are active and we have projects
-  if (!hasActiveFilters.value && projects.value.length > 0) {
-    nextTick(() => {
-      const element = projectsListRef.value?.projectsListEl;
-
-      if (!element) {
-        console.warn("Sortable element not found");
-        return;
-      }
-
-      sortableInstance = useSortable(element, projects, {
-        animation: 200,
-        handle: ".drag-handle",
-        ghostClass: "sortable-ghost",
-        chosenClass: "sortable-chosen",
-        dragClass: "sortable-drag",
-        onEnd: async () => {
-          await nextTick();
-          await updateProjectOrder();
-        },
-      });
-    });
-  }
-};
+// Sortable with proper instance lifecycle (composable handles watch + destroy)
+const sortableElement = computed(() => projectsListRef.value?.projectsListEl);
+const { initialize: initializeSortable } = useSortableList(sortableElement, projects, {
+  onReorder: updateProjectOrder,
+  enabled: computed(() => !hasActiveFilters.value),
+});
 
 onMounted(() => {
   initializeSortable();
@@ -326,18 +297,6 @@ onActivated(async () => {
   if (refreshSignal > 0) {
     await refresh();
     clearRefreshSignal("projects-list");
-  }
-});
-
-// Watch for filter changes to reinitialize sortable
-watch(hasActiveFilters, () => {
-  initializeSortable();
-});
-
-// Watch for projects changes to reinitialize sortable
-watch(projects, () => {
-  if (!hasActiveFilters.value) {
-    initializeSortable();
   }
 });
 

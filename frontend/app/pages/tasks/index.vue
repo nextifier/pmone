@@ -241,7 +241,6 @@ import TasksHeader from "@/components/task/TasksHeader.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GlassButton } from "@/components/ui/glass-button";
-import { useSortable } from "@vueuse/integrations/useSortable";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -433,68 +432,37 @@ const updateTaskOrder = async (tasksList) => {
   }
 };
 
-let todoSortable = null;
-let inProgressSortable = null;
-let completedSortable = null;
+// Sortable with proper instance lifecycle (composable handles watch + destroy)
+const sortableEnabled = computed(() => !hasActiveFilters.value);
+
+const { initialize: initTodoSortable } = useSortableList(todoListEl, todoTasksList, {
+  onReorder: () => updateTaskOrder(todoTasksList),
+  enabled: sortableEnabled,
+});
+
+const { initialize: initInProgressSortable } = useSortableList(
+  inProgressListEl,
+  inProgressTasksList,
+  {
+    onReorder: () => updateTaskOrder(inProgressTasksList),
+    enabled: sortableEnabled,
+  }
+);
+
+const { initialize: initCompletedSortable } = useSortableList(
+  completedListEl,
+  completedTasksList,
+  {
+    onReorder: () => updateTaskOrder(completedTasksList),
+    enabled: sortableEnabled,
+  }
+);
 
 const initializeSortable = () => {
-  if (todoSortable?.stop) {
-    todoSortable.stop();
-    todoSortable = null;
-  }
-  if (inProgressSortable?.stop) {
-    inProgressSortable.stop();
-    inProgressSortable = null;
-  }
-  if (completedSortable?.stop) {
-    completedSortable.stop();
-    completedSortable = null;
-  }
-
-  if (hasActiveFilters.value) return;
-
-  const sortableOptions = (tasksList) => ({
-    animation: 200,
-    handle: ".drag-handle",
-    ghostClass: "sortable-ghost",
-    chosenClass: "sortable-chosen",
-    dragClass: "sortable-drag",
-    onEnd: async () => {
-      await nextTick();
-      await updateTaskOrder(tasksList);
-    },
-  });
-
-  nextTick(() => {
-    if (todoListEl.value && todoTasksList.value.length > 0) {
-      todoSortable = useSortable(todoListEl.value, todoTasksList, sortableOptions(todoTasksList));
-    }
-
-    if (inProgressListEl.value && inProgressTasksList.value.length > 0) {
-      inProgressSortable = useSortable(
-        inProgressListEl.value,
-        inProgressTasksList,
-        sortableOptions(inProgressTasksList)
-      );
-    }
-
-    if (completedListEl.value && completedTasksList.value.length > 0) {
-      completedSortable = useSortable(
-        completedListEl.value,
-        completedTasksList,
-        sortableOptions(completedTasksList)
-      );
-    }
-  });
+  initTodoSortable();
+  initInProgressSortable();
+  initCompletedSortable();
 };
-
-onMounted(() => {
-  initializeSortable();
-});
-
-watch(hasActiveFilters, () => {
-  initializeSortable();
-});
 
 // Update task status with optimistic update
 const handleUpdateStatus = async (task, newStatus) => {

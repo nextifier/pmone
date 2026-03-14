@@ -143,7 +143,6 @@
 
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
-import { useSortable } from "@vueuse/integrations/useSortable";
 import {
   Select,
   SelectContent,
@@ -299,43 +298,13 @@ async function updateOrder() {
   }
 }
 
-// Setup sortable
-onMounted(async () => {
-  await fetchFields();
-
-  await nextTick();
-
-  if (sortableEl.value) {
-    useSortable(sortableEl.value, fields, {
-      animation: 200,
-      handle: ".drag-handle",
-      ghostClass: "sortable-ghost",
-      chosenClass: "sortable-chosen",
-      onEnd: async () => {
-        await nextTick();
-        await updateOrder();
-      },
-    });
-  }
+// Sortable with proper instance lifecycle (fixes mobile touch)
+const { initialize: initializeSortable } = useSortableList(sortableEl, fields, {
+  onReorder: updateOrder,
 });
 
-// Re-init sortable when fields change
-watch(
-  () => fields.value.length,
-  async () => {
-    await nextTick();
-    if (sortableEl.value) {
-      useSortable(sortableEl.value, fields, {
-        animation: 200,
-        handle: ".drag-handle",
-        ghostClass: "sortable-ghost",
-        chosenClass: "sortable-chosen",
-        onEnd: async () => {
-          await nextTick();
-          await updateOrder();
-        },
-      });
-    }
-  }
-);
+onMounted(async () => {
+  await fetchFields();
+  initializeSortable();
+});
 </script>

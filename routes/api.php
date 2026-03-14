@@ -473,6 +473,9 @@ Route::prefix('public/forms')->middleware('throttle:api')->group(function () {
 Route::get('/sheets/orders/{eventId}', [\App\Http\Controllers\Api\SheetsController::class, 'orders'])
     ->middleware('throttle:60,1')
     ->name('sheets.orders');
+Route::get('/sheets/contacts', [\App\Http\Controllers\Api\SheetsController::class, 'contacts'])
+    ->middleware('throttle:60,1')
+    ->name('sheets.contacts');
 
 // Contact form submission (requires API key for CORS and rate limiting)
 Route::post('/contact-forms/submit', [ContactFormController::class, 'submit'])->middleware(['api.key']);

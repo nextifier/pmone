@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\BrandEvent;
+use App\Models\Contact;
 use App\Models\Event;
 use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class SheetsController extends Controller
 {
@@ -100,6 +102,80 @@ class SheetsController extends Controller
 
         return response()->json([
             'event' => $event->title,
+            'headings' => $headings,
+            'rows' => $rows,
+            'updated_at' => now()->toIso8601String(),
+        ]);
+    }
+
+    public function contacts(Request $request): JsonResponse
+    {
+        if ($request->query('token') !== config('services.sheets.api_token')) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $contacts = Contact::query()
+            ->with(['tags', 'projects'])
+            ->orderBy('name')
+            ->get();
+
+        $headings = [
+            'ID', 'ULID', 'Name', 'Job Title', 'Emails', 'Phones',
+            'Company Name', 'Website', 'Country', 'Province', 'City', 'Street Address',
+            'Status', 'Source', 'Contact Types', 'Business Categories',
+            'Tags', 'Projects', 'Notes', 'Created At', 'Updated At',
+        ];
+
+        $rows = $contacts->map(function (Contact $contact) {
+            $emails = is_array($contact->emails) ? implode(', ', $contact->emails) : '-';
+            $phones = is_array($contact->phones) ? implode(', ', $contact->phones) : '-';
+
+            $types = $contact->tags
+                ->filter(fn ($tag) => $tag->type === 'contact_type')
+                ->pluck('name')
+                ->join(', ') ?: '-';
+
+            $categories = $contact->tags
+                ->filter(fn ($tag) => str_starts_with($tag->type, 'business_category'))
+                ->pluck('name')
+                ->unique()
+                ->join(', ') ?: '-';
+
+            $tags = $contact->tags
+                ->filter(fn ($tag) => $tag->type === 'contact_tag')
+                ->pluck('name')
+                ->join(', ') ?: '-';
+
+            $projects = $contact->projects->pluck('name')->join(', ') ?: '-';
+            $address = $contact->address;
+
+            return [
+                $contact->id,
+                $contact->ulid,
+                $contact->name,
+                $contact->job_title ?? '-',
+                $emails,
+                $phones,
+                $contact->company_name ?? '-',
+                $contact->website ?? '-',
+                $address['country'] ?? '-',
+                $address['province'] ?? '-',
+                $address['city'] ?? '-',
+                $address['street'] ?? '-',
+                Str::title(str_replace('_', ' ', $contact->status->value)),
+                Str::title(str_replace('_', ' ', $contact->source ?? '-')),
+                $types,
+                $categories,
+                $tags,
+                $projects,
+                $contact->notes ?? '-',
+                $contact->created_at?->format('Y-m-d H:i:s'),
+                $contact->updated_at?->format('Y-m-d H:i:s'),
+            ];
+        })->toArray();
+
+        return response()->json([
+            'title' => 'Contacts',
             'headings' => $headings,
             'rows' => $rows,
             'updated_at' => now()->toIso8601String(),

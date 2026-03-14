@@ -70,6 +70,7 @@ function countDigitsBefore(str, pos) {
 }
 
 function findPositionByDigitCount(str, digitCount) {
+  if (digitCount === 0) return 0;
   let count = 0;
   for (let i = 0; i < str.length; i++) {
     if (/[\d.\-]/.test(str[i])) count++;
@@ -148,24 +149,31 @@ function onInput(e) {
 
   // Format for display - keep partial decimal input (e.g. "123.")
   let formatted;
+  const isNegative = clean.startsWith("-");
+  const digits = clean.replace(/-/g, "").split(".")[0];
+
   if (clean.endsWith(".") && props.decimal) {
     formatted = formatNumber(num) + ".";
   } else if (clean === "-") {
     formatted = "-";
+  } else if (/^0\d/.test(digits)) {
+    // Preserve leading zeros during editing (will collapse on blur)
+    const prefix = isNegative ? "-" : "";
+    if (props.decimal && clean.includes(".")) {
+      const decPart = clean.split(".")[1] || "";
+      formatted = prefix + digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "." + decPart;
+    } else {
+      formatted = prefix + digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
   } else {
     formatted = formatNumber(num);
-  }
-
-  // Force DOM update even when formatted value hasn't changed (e.g. "00" → "0")
-  const el = inputRef.value?.$el || inputRef.value;
-  if (el && el.value !== formatted) {
-    el.value = formatted;
   }
 
   displayValue.value = formatted;
   emit("update:modelValue", num);
 
   nextTick(() => {
+    const el = inputRef.value?.$el || inputRef.value;
     if (el) {
       const newPos = findPositionByDigitCount(formatted, digitPos);
       el.setSelectionRange(newPos, newPos);

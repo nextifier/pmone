@@ -113,7 +113,6 @@ import DialogResponsive from "@/components/DialogResponsive.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useSortable } from "@vueuse/integrations/useSortable";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
@@ -258,43 +257,13 @@ async function updateOrder() {
   }
 }
 
-// Setup sortable
-onMounted(async () => {
-  await fetchCategories();
-
-  await nextTick();
-
-  if (sortableEl.value) {
-    useSortable(sortableEl.value, categories, {
-      animation: 200,
-      handle: ".drag-handle",
-      ghostClass: "sortable-ghost",
-      chosenClass: "sortable-chosen",
-      onEnd: async () => {
-        await nextTick();
-        await updateOrder();
-      },
-    });
-  }
+// Sortable with proper instance lifecycle (fixes mobile touch)
+const { initialize: initializeSortable } = useSortableList(sortableEl, categories, {
+  onReorder: updateOrder,
 });
 
-// Re-init sortable when categories change
-watch(
-  () => categories.value.length,
-  async () => {
-    await nextTick();
-    if (sortableEl.value) {
-      useSortable(sortableEl.value, categories, {
-        animation: 200,
-        handle: ".drag-handle",
-        ghostClass: "sortable-ghost",
-        chosenClass: "sortable-chosen",
-        onEnd: async () => {
-          await nextTick();
-          await updateOrder();
-        },
-      });
-    }
-  }
-);
+onMounted(async () => {
+  await fetchCategories();
+  initializeSortable();
+});
 </script>
