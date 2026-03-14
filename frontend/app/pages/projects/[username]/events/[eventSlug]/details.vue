@@ -29,6 +29,10 @@
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-4 sm:grid-cols-2">
           <div>
+            <p class="text-muted-foreground text-xs sm:text-sm">ID</p>
+            <p class="font-mono text-sm">{{ event.id }}</p>
+          </div>
+          <div>
             <p class="text-muted-foreground text-xs sm:text-sm">ULID</p>
             <p class="font-mono text-sm">{{ event.ulid }}</p>
           </div>

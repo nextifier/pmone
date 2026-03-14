@@ -85,6 +85,11 @@ watch(modelValue, () => {
         if (val) handleSelect(val);
       }
     "
+    @update:open="
+      (open: boolean) => {
+        if (open) searchTerm = '';
+      }
+    "
   >
     <ComboboxAnchor class="w-full">
       <div

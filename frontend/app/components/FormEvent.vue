@@ -132,18 +132,14 @@
     </div>
 
     <div class="flex justify-end">
-      <button
-        type="submit"
-        :disabled="loading"
-        class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-semibold tracking-tighter transition disabled:opacity-50"
-      >
+      <Button type="submit" :disabled="loading">
         <Spinner v-if="loading" />
         {{ loading ? submitLoadingText : submitText }}
         <KbdGroup>
           <Kbd>{{ metaSymbol }}</Kbd>
           <Kbd>S</Kbd>
         </KbdGroup>
-      </button>
+      </Button>
     </div>
   </form>
 </template>
