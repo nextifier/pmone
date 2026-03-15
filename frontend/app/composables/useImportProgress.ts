@@ -86,7 +86,7 @@ export function useImportProgress() {
         if (err.name === "AbortError") return;
         console.error("Failed to fetch import progress:", err);
       }
-    }, 2000);
+    }, 500);
   }
 
   function stopPolling() {

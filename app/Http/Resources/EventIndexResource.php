@@ -34,6 +34,8 @@ class EventIndexResource extends JsonResource
                 $this->hasMedia('poster_image'),
                 fn () => $this->getMediaUrls('poster_image')
             ),
+            'can_edit' => auth()->user()?->can('update', $this->resource),
+            'can_delete' => auth()->user()?->can('delete', $this->resource),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,

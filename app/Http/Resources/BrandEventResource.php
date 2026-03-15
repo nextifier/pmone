@@ -64,6 +64,7 @@ class BrandEventResource extends JsonResource
 
             'promotion_posts_count' => $this->whenLoaded('promotionPosts', fn () => $this->promotionPosts->count()),
 
+            'can_edit' => auth()->user()?->can('update', $this->resource),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

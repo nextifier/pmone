@@ -32,6 +32,7 @@ class BrandEventIndexResource extends JsonResource
                 'id' => $this->sales->id,
                 'name' => $this->sales->name,
             ]),
+            'can_edit' => auth()->user()?->can('update', $this->resource),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

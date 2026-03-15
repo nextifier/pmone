@@ -14,7 +14,7 @@ class FormPolicy
 
     public function view(User $user, Form $form): bool
     {
-        if ($user->hasRole(['master', 'admin'])) {
+        if ($user->hasRole(['master', 'admin', 'staff'])) {
             return true;
         }
 

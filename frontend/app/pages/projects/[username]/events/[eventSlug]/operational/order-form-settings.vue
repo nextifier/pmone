@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto flex w-full max-w-4xl flex-col gap-y-8">
     <!-- Order Form Settings -->
-    <form @submit.prevent="handleSubmit" class="space-y-8">
+    <form v-if="event?.can_edit" @submit.prevent="handleSubmit" class="space-y-8">
       <!-- Order Form Settings -->
       <div class="space-y-4">
         <div class="space-y-1">
@@ -232,7 +232,7 @@
           </p>
         </div>
 
-        <Button @click="openCreateDoc" size="sm">
+        <Button v-if="event?.can_edit" @click="openCreateDoc" size="sm">
           <Icon name="hugeicons:add-01" class="size-4" />
           New Document
           <Kbd>N</Kbd>
@@ -307,7 +307,7 @@
             </p>
           </div>
           <Button
-            v-if="!docSearch && selectedDocType === 'all'"
+            v-if="!docSearch && selectedDocType === 'all' && event?.can_edit"
             @click="openCreateDoc"
             size="sm"
             variant="outline"
@@ -329,7 +329,7 @@
                 <th class="text-muted-foreground px-4 py-3 font-medium">Blocks</th>
                 <th class="text-muted-foreground px-4 py-3 font-medium">Version</th>
                 <th class="text-muted-foreground px-4 py-3 font-medium">Deadline</th>
-                <th class="text-muted-foreground px-4 py-3 text-right font-medium">Actions</th>
+                <th v-if="event?.can_edit" class="text-muted-foreground px-4 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody ref="sortableRef">
@@ -383,7 +383,7 @@
                   </span>
                   <span v-else class="text-muted-foreground text-xs">No deadline</span>
                 </td>
-                <td class="px-4 py-3">
+                <td v-if="event?.can_edit" class="px-4 py-3">
                   <div class="flex items-center justify-end gap-x-1">
                     <button
                       type="button"

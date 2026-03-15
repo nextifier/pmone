@@ -5,7 +5,7 @@
         <h3 class="page-title">Brand Details</h3>
         <p class="page-description">View and edit brand and booth information.</p>
       </div>
-      <Button :disabled="saving" size="sm" @click="handleSubmit" class="shrink-0">
+      <Button v-if="event?.can_edit" :disabled="saving" size="sm" @click="handleSubmit" class="shrink-0">
         <Icon v-if="saving" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
         Save
         <KbdGroup>
@@ -15,7 +15,7 @@
       </Button>
     </div>
 
-    <form @submit.prevent="handleSubmit" class="grid gap-y-8">
+    <form v-if="event?.can_edit" @submit.prevent="handleSubmit" class="grid gap-y-8">
       <!-- Booth Information -->
       <div class="frame">
         <div class="frame-header">
@@ -372,7 +372,7 @@
                   </div>
                 </div>
               </div>
-              <div class="flex shrink-0 items-center gap-x-1">
+              <div v-if="event?.can_edit" class="flex shrink-0 items-center gap-x-1">
                 <Tippy>
                   <button
                     type="button"
@@ -415,7 +415,7 @@
           <p v-else class="text-muted-foreground text-sm tracking-tight">No members yet.</p>
 
           <!-- Add member -->
-          <div class="border-border border-t pt-4">
+          <div v-if="event?.can_edit" class="border-border border-t pt-4">
             <form @submit.prevent="addMember" class="flex items-end gap-x-2">
               <div class="min-w-0 flex-1 space-y-2">
                 <Label for="new_member_email">Add Member</Label>
@@ -474,6 +474,7 @@ const emit = defineEmits(["refresh"]);
 const route = useRoute();
 const client = useSanctumClient();
 const project = inject("project");
+const event = inject("event");
 
 const saving = ref(false);
 const { metaSymbol } = useShortcuts();

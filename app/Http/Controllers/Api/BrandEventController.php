@@ -661,13 +661,11 @@ class BrandEventController extends Controller
         // Handle post image uploads
         $this->handleTemporaryUploads($request, $post, 'tmp_post_images', 'post_image');
 
-        // Notify staff/admin users about new promotion post
-        $brandEvent->load(['brand', 'event']);
-        $staffUsers = User::role(['master', 'admin', 'staff'])->get();
-        foreach ($staffUsers as $staffUser) {
-            if ($staffUser->id !== $request->user()->id) {
-                $staffUser->notify(new PromotionPostUploadedNotification($brandEvent, $request->user()));
-            }
+        // Notify project members + master/admin about new promotion post (exclude uploader)
+        $brandEvent->load(['brand', 'event.project']);
+        $notifiableUsers = $brandEvent->event->project->getNotifiableUsers(excludeUserId: $request->user()->id);
+        foreach ($notifiableUsers as $notifiableUser) {
+            $notifiableUser->notify(new PromotionPostUploadedNotification($brandEvent, $request->user()));
         }
 
         return response()->json([

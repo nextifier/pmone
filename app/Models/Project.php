@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -61,6 +62,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property-read \App\Models\User|null $updater
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
  * @property-read int|null $visits_count
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project byStatus(string $status)
  * @method static \Database\Factories\ProjectFactory factory($count = null, $state = [])
@@ -90,6 +92,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereVisibility($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Project extends Model implements HasMedia, Sortable
@@ -334,6 +337,33 @@ class Project extends Model implements HasMedia, Sortable
     {
         return $this->belongsToMany(User::class)
             ->withTimestamps();
+    }
+
+    /**
+     * Get users who should be notified for this project.
+     *
+     * Combines project members with master/admin users (global visibility).
+     */
+    public function getNotifiableUsers(?string $permission = null, ?int $excludeUserId = null): Collection
+    {
+        $memberIds = $this->members()->pluck('users.id');
+
+        try {
+            $globalQuery = User::role(['master', 'admin']);
+            if ($permission) {
+                $globalQuery->permission($permission);
+            }
+            $globalIds = $globalQuery->pluck('id');
+            $allIds = $memberIds->merge($globalIds)->unique();
+        } catch (\Spatie\Permission\Exceptions\RoleDoesNotExist|\Spatie\Permission\Exceptions\PermissionDoesNotExist $e) {
+            $allIds = $memberIds->unique();
+        }
+
+        if ($excludeUserId) {
+            $allIds = $allIds->reject(fn ($id) => $id === $excludeUserId);
+        }
+
+        return User::whereIn('id', $allIds)->get();
     }
 
     public function links(): MorphMany

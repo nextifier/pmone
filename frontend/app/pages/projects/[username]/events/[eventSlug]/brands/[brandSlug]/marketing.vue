@@ -5,13 +5,13 @@
         <h3 class="page-title">Promotion Posts</h3>
         <p class="page-description">Marketing materials for this brand.</p>
       </div>
-      <Button @click="showAdd = true" size="sm" class="shrink-0">
+      <Button v-if="event?.can_edit" @click="showAdd = true" size="sm" class="shrink-0">
         <Icon name="hugeicons:add-01" class="size-4" />
         Add Post
       </Button>
     </div>
 
-    <form @submit.prevent="saveLimit" class="flex items-end gap-2">
+    <form v-if="event?.can_edit" @submit.prevent="saveLimit" class="flex items-end gap-2">
       <div class="flex-1 space-y-2">
         <Label for="promotion_post_limit">Post Limit</Label>
         <Input
@@ -121,49 +121,51 @@
               <Icon :name="downloadingPostId === post.id ? 'svg-spinners:ring-resize' : 'lucide:download'" class="size-3.5" />
               {{ downloadLabel(post) }}
             </Button>
-            <!-- Delete selected images -->
-            <Button
-              v-if="selectedImages[post.id]?.size"
-              variant="ghost"
-              size="sm"
-              class="text-destructive"
-              @click="confirmDeleteImages(post)"
-            >
-              <Icon name="hugeicons:delete-02" class="size-3.5" />
-              Delete {{ selectedImages[post.id].size }} Image{{ selectedImages[post.id].size > 1 ? 's' : '' }}
-            </Button>
-            <!-- Add images to existing post -->
-            <Button
-              v-if="getAllImages(post).length < 20"
-              variant="outline"
-              size="sm"
-              @click="startAddImages(post)"
-            >
-              <Icon name="hugeicons:image-add-01" class="size-3.5" />
-              Add Images
-            </Button>
-            <!-- Delete all images -->
-            <Button
-              v-if="getAllImages(post).length && !selectedImages[post.id]?.size"
-              variant="ghost"
-              size="sm"
-              class="text-muted-foreground"
-              @click="confirmDeleteAllImages(post)"
-            >
-              <Icon name="hugeicons:delete-02" class="size-3.5" />
-              Delete
-            </Button>
-            <!-- Delete post (when no images left) -->
-            <Button
-              v-if="!getAllImages(post).length"
-              variant="ghost"
-              size="sm"
-              class="text-muted-foreground"
-              @click="confirmDeletePost(post)"
-            >
-              <Icon name="hugeicons:delete-02" class="size-3.5" />
-              Delete Post
-            </Button>
+            <template v-if="event?.can_edit">
+              <!-- Delete selected images -->
+              <Button
+                v-if="selectedImages[post.id]?.size"
+                variant="ghost"
+                size="sm"
+                class="text-destructive"
+                @click="confirmDeleteImages(post)"
+              >
+                <Icon name="hugeicons:delete-02" class="size-3.5" />
+                Delete {{ selectedImages[post.id].size }} Image{{ selectedImages[post.id].size > 1 ? 's' : '' }}
+              </Button>
+              <!-- Add images to existing post -->
+              <Button
+                v-if="getAllImages(post).length < 20"
+                variant="outline"
+                size="sm"
+                @click="startAddImages(post)"
+              >
+                <Icon name="hugeicons:image-add-01" class="size-3.5" />
+                Add Images
+              </Button>
+              <!-- Delete all images -->
+              <Button
+                v-if="getAllImages(post).length && !selectedImages[post.id]?.size"
+                variant="ghost"
+                size="sm"
+                class="text-muted-foreground"
+                @click="confirmDeleteAllImages(post)"
+              >
+                <Icon name="hugeicons:delete-02" class="size-3.5" />
+                Delete
+              </Button>
+              <!-- Delete post (when no images left) -->
+              <Button
+                v-if="!getAllImages(post).length"
+                variant="ghost"
+                size="sm"
+                class="text-muted-foreground"
+                @click="confirmDeletePost(post)"
+              >
+                <Icon name="hugeicons:delete-02" class="size-3.5" />
+                Delete Post
+              </Button>
+            </template>
           </div>
         </div>
       </div>
@@ -280,6 +282,7 @@ const props = defineProps({ brandEvent: Object });
 const emit = defineEmits(["refresh"]);
 const route = useRoute();
 const client = useSanctumClient();
+const event = inject("event");
 const showAdd = ref(false);
 const newPostPondRef = ref(null);
 const newPostFiles = ref([]);

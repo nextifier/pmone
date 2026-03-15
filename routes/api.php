@@ -295,6 +295,11 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::put('/contacts/{contact}', [ContactController::class, 'update'])->middleware('can:contacts.update')->name('contacts.update');
     Route::patch('/contacts/{contact}/status', [ContactController::class, 'updateStatus'])->middleware('can:contacts.update')->name('contacts.update-status');
     Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])->middleware('can:contacts.delete')->name('contacts.delete');
+    Route::get('/contacts-trash', [ContactController::class, 'trash'])->middleware('can:contacts.delete')->name('contacts.trash');
+    Route::post('/contacts-trash/restore/bulk', [ContactController::class, 'bulkRestore'])->middleware('can:contacts.delete')->name('contacts.bulk-restore');
+    Route::post('/contacts-trash/{id}/restore', [ContactController::class, 'restore'])->middleware('can:contacts.delete')->name('contacts.restore');
+    Route::delete('/contacts-trash/bulk', [ContactController::class, 'bulkForceDestroy'])->middleware('can:contacts.delete')->name('contacts.bulk-force-delete');
+    Route::delete('/contacts-trash/{id}', [ContactController::class, 'forceDestroy'])->middleware('can:contacts.delete')->name('contacts.force-delete');
 
     // Contact business categories
     Route::get('/contacts-business-categories', [ContactBusinessCategoryController::class, 'index'])->middleware('can:contacts.read')->name('contacts.business-categories.index');

@@ -7,7 +7,6 @@ use App\Helpers\PhoneCountryHelper;
 use App\Jobs\ProcessContactFormSubmission;
 use App\Models\ContactFormSubmission;
 use App\Models\Project;
-use App\Models\User;
 use App\Notifications\NewInboxMessageNotification;
 use Illuminate\Support\Facades\DB;
 
@@ -61,9 +60,9 @@ class SubmitContactFormAction
         // Dispatch job to send email asynchronously
         ProcessContactFormSubmission::dispatch($submission);
 
-        // Notify users with contact_forms.read permission
+        // Notify project members + master/admin with contact_forms.read permission
         try {
-            $recipients = User::permission('contact_forms.read')->get();
+            $recipients = $this->project->getNotifiableUsers(permission: 'contact_forms.read');
             foreach ($recipients as $recipient) {
                 $recipient->notify(new NewInboxMessageNotification($submission));
             }

@@ -39,6 +39,7 @@
           :class="{ 'pointer-events-none opacity-50': togglingIds.has(user.id) }"
         >
           <Checkbox
+            v-if="canManageMembers"
             :modelValue="isMember(user.id)"
             @update:modelValue="toggleMember(user)"
             :disabled="togglingIds.has(user.id)"
@@ -81,6 +82,9 @@ usePageMeta(null, {
 
 const route = useRoute();
 const client = useSanctumClient();
+
+const { isAdminOrMaster } = usePermission();
+const canManageMembers = computed(() => isAdminOrMaster.value || props.project?.is_member);
 
 const search = ref("");
 const loading = ref(true);

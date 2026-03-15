@@ -47,6 +47,15 @@
           <Icon name="hugeicons:filter-remove" class="size-4 shrink-0" />
           <span>Remove Duplicates</span>
         </button>
+
+        <NuxtLink
+          v-if="canDelete"
+          to="/contacts/trash"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+        >
+          <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
+          <span>Trash</span>
+        </NuxtLink>
       </div>
 
       <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
@@ -81,7 +90,7 @@
         phones: false,
         projects: false,
         source: false,
-        created_at: false,
+        created_at: true,
         created_by_name: false,
       }"
       :show-add-button="false"
@@ -569,7 +578,7 @@ const contactTypeLabels = {
 // Table state
 const columnFilters = ref([]);
 const pagination = ref({ pageIndex: 0, pageSize: 15 });
-const sorting = ref([{ id: "name", desc: false }]);
+const sorting = ref([{ id: "created_at", desc: true }]);
 
 // Build query params for server-side pagination
 const buildQueryParams = () => {

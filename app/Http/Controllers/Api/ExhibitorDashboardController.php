@@ -17,7 +17,6 @@ use App\Models\EventDocumentSubmission;
 use App\Models\EventProduct;
 use App\Models\Order;
 use App\Models\PromotionPost;
-use App\Models\User;
 use App\Notifications\OrderSubmittedNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -808,10 +807,10 @@ class ExhibitorDashboardController extends Controller
         // Send notification emails
         $this->sendOrderEmails($order, $event, $brand, $request->user());
 
-        // Notify staff+ users about the new order
-        $staffUsers = User::role(['master', 'admin', 'staff'])->get();
-        foreach ($staffUsers as $staffUser) {
-            $staffUser->notify(new OrderSubmittedNotification($order, $brand->name));
+        // Notify project members + master/admin about the new order
+        $notifiableUsers = $event->project->getNotifiableUsers();
+        foreach ($notifiableUsers as $notifiableUser) {
+            $notifiableUser->notify(new OrderSubmittedNotification($order, $brand->name));
         }
 
         return response()->json([

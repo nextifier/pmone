@@ -22,7 +22,7 @@
                   <span class="text-muted-foreground">Importing contacts...</span>
                   <span class="font-medium tabular-nums">{{ progress?.percentage ?? 0 }}%</span>
                 </div>
-                <Progress :model-value="progress?.percentage ?? 0" />
+                <Progress :model-value="progress?.percentage ?? 0" indicator-class="bg-success" />
                 <p v-if="progress && progress.total_rows > 0" class="text-muted-foreground text-xs sm:text-sm tracking-tight tabular-nums">
                   {{ progress.processed_rows }} / {{ progress.total_rows }} rows
                 </p>

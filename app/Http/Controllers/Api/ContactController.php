@@ -541,6 +541,125 @@ class ContactController extends Controller
         return false;
     }
 
+    /**
+     * List trashed contacts.
+     */
+    public function trash(Request $request): JsonResponse
+    {
+        $query = Contact::onlyTrashed()
+            ->with(['tags', 'projects.media', 'creator', 'deleter']);
+
+        $this->applyFilters($query, $request);
+
+        // Default sort by deleted_at desc
+        $sortField = $request->input('sort', '-deleted_at');
+        $direction = str_starts_with($sortField, '-') ? 'desc' : 'asc';
+        $field = ltrim($sortField, '-');
+
+        $trashFieldMap = [
+            'name' => 'name',
+            'company_name' => 'company_name',
+            'status' => 'status',
+            'source' => 'source',
+            'created_at' => 'created_at',
+            'deleted_at' => 'deleted_at',
+        ];
+
+        if (isset($trashFieldMap[$field])) {
+            $query->orderBy($trashFieldMap[$field], $direction);
+        } else {
+            $query->orderBy('deleted_at', 'desc');
+        }
+
+        $contacts = $query->paginate($request->input('per_page', 15));
+
+        return response()->json([
+            'data' => $contacts->map(fn ($contact) => [
+                ...ContactIndexResource::make($contact)->resolve(),
+                'deleted_at' => $contact->deleted_at?->toISOString(),
+                'deleter' => $contact->deleter ? ['name' => $contact->deleter->name] : null,
+            ]),
+            'meta' => [
+                'current_page' => $contacts->currentPage(),
+                'last_page' => $contacts->lastPage(),
+                'per_page' => $contacts->perPage(),
+                'total' => $contacts->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Restore a trashed contact.
+     */
+    public function restore(string $id): JsonResponse
+    {
+        $contact = Contact::onlyTrashed()->findOrFail($id);
+        $contact->restore();
+
+        return response()->json(['message' => 'Contact restored successfully']);
+    }
+
+    /**
+     * Bulk restore trashed contacts.
+     */
+    public function bulkRestore(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['required', 'integer'],
+        ]);
+
+        $restored = 0;
+        foreach ($validated['ids'] as $id) {
+            $contact = Contact::onlyTrashed()->find($id);
+            if ($contact) {
+                $contact->restore();
+                $restored++;
+            }
+        }
+
+        return response()->json([
+            'message' => "{$restored} contact(s) restored successfully",
+            'restored_count' => $restored,
+        ]);
+    }
+
+    /**
+     * Permanently delete a trashed contact.
+     */
+    public function forceDestroy(string $id): JsonResponse
+    {
+        $contact = Contact::onlyTrashed()->findOrFail($id);
+        $contact->forceDelete();
+
+        return response()->json(['message' => 'Contact permanently deleted']);
+    }
+
+    /**
+     * Bulk permanently delete trashed contacts.
+     */
+    public function bulkForceDestroy(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['required', 'integer'],
+        ]);
+
+        $deleted = 0;
+        foreach ($validated['ids'] as $id) {
+            $contact = Contact::onlyTrashed()->find($id);
+            if ($contact) {
+                $contact->forceDelete();
+                $deleted++;
+            }
+        }
+
+        return response()->json([
+            'message' => "{$deleted} contact(s) permanently deleted",
+            'deleted_count' => $deleted,
+        ]);
+    }
+
     private function applyFilters($query, Request $request): void
     {
         // Search filter
@@ -604,6 +723,7 @@ class ContactController extends Controller
             'status' => 'status',
             'source' => 'source',
             'created_at' => 'created_at',
+            'deleted_at' => 'deleted_at',
         ];
 
         if (isset($fieldMap[$field])) {

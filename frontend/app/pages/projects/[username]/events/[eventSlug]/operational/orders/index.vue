@@ -95,7 +95,7 @@
 
       <template #actions="{ selectedRows }">
         <!-- Bulk Status Dropdown -->
-        <DropdownMenu v-if="selectedRows.length > 0">
+        <DropdownMenu v-if="selectedRows.length > 0 && event?.can_edit">
           <DropdownMenuTrigger asChild>
             <button
               :disabled="bulkUpdating"
@@ -122,7 +122,7 @@
         </DropdownMenu>
 
         <!-- Bulk Payment Dropdown -->
-        <DropdownMenu v-if="selectedRows.length > 0">
+        <DropdownMenu v-if="selectedRows.length > 0 && event?.can_edit">
           <DropdownMenuTrigger asChild>
             <button
               :disabled="bulkUpdating"
@@ -150,7 +150,7 @@
 
         <!-- Bulk Delete -->
         <DialogResponsive
-          v-if="selectedRows.length > 0"
+          v-if="selectedRows.length > 0 && event?.can_edit"
           v-model:open="deleteDialogOpen"
           class="h-full"
         >

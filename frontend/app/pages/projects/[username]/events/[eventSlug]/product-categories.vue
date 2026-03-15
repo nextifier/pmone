@@ -16,7 +16,7 @@
         </p>
       </div>
 
-      <Button @click="openCreate" size="sm">
+      <Button v-if="event?.can_edit" @click="openCreate" size="sm">
         <Icon name="hugeicons:add-01" class="size-4" />
         Add Product Category
       </Button>
@@ -56,7 +56,7 @@
             Add categories to organize your event products.
           </p>
         </div>
-        <Button @click="openCreate" size="sm" variant="outline">
+        <Button v-if="event?.can_edit" @click="openCreate" size="sm" variant="outline">
           <Icon name="hugeicons:add-01" class="size-4" />
           Add Category
         </Button>
@@ -71,7 +71,7 @@
               <th class="text-muted-foreground px-4 py-3 font-medium">Title</th>
               <th class="text-muted-foreground px-4 py-3 font-medium">Slug</th>
               <th class="text-muted-foreground px-4 py-3 font-medium">Products</th>
-              <th class="text-muted-foreground px-4 py-3 text-right font-medium">Actions</th>
+              <th v-if="event?.can_edit" class="text-muted-foreground px-4 py-3 text-right font-medium">Actions</th>
             </tr>
           </thead>
           <tbody ref="sortableRef">
@@ -117,7 +117,7 @@
                   {{ category.products_count ?? 0 }} products
                 </Badge>
               </td>
-              <td class="px-4 py-3">
+              <td v-if="event?.can_edit" class="px-4 py-3">
                 <div class="flex items-center justify-end gap-x-1">
                   <button
                     type="button"

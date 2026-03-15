@@ -350,20 +350,21 @@ function handleDetailStatusUpdated() {
 const route = useRoute();
 const router = useRouter();
 
-onMounted(async () => {
-  const openUlid = route.query.open;
-  if (openUlid) {
-    try {
-      const submission = await client(`/api/contact-form-submissions/${openUlid}`);
-      const detail = submission?.data || submission;
-      openDetailDialog(detail);
-    } catch (err) {
-      console.error("Failed to load submission from notification:", err);
-    }
-    // Clean up query param
-    router.replace({ path: route.path, query: { ...route.query, open: undefined } });
+async function openFromQueryParam(ulid) {
+  if (!ulid) return;
+  try {
+    const submission = await client(`/api/contact-form-submissions/${ulid}`);
+    const detail = submission?.data || submission;
+    openDetailDialog(detail);
+  } catch (err) {
+    console.error("Failed to load submission from notification:", err);
   }
-});
+  router.replace({ path: route.path, query: { ...route.query, open: undefined } });
+}
+
+onMounted(() => openFromQueryParam(route.query.open));
+
+watch(() => route.query.open, (newVal) => openFromQueryParam(newVal));
 
 // Status update (inline from table)
 const statusUpdating = ref(null);

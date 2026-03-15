@@ -11,6 +11,7 @@
       <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <!-- Import -->
         <BrandImportDialog
+          v-if="event?.can_edit"
           :username="route.params.username"
           :event-slug="route.params.eventSlug"
           @imported="refresh()"
@@ -37,7 +38,7 @@
           <span>Export {{ totalActiveFilters > 0 ? "selected" : "all" }}</span>
         </button>
 
-        <Button @click="showAddDialog = true" size="sm">
+        <Button v-if="event?.can_edit" @click="showAddDialog = true" size="sm">
           <Icon name="hugeicons:add-01" class="size-4" />
           New Brand
           <KbdGroup>
@@ -46,7 +47,7 @@
         </Button>
       </div>
 
-      <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div v-else-if="event?.can_edit" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <button
           @click="clearSelection"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
@@ -115,7 +116,7 @@
 
       <template #actions="{ selectedRows }">
         <DialogResponsive
-          v-if="selectedRows.length > 0"
+          v-if="selectedRows.length > 0 && event?.can_edit"
           v-model:open="deleteDialogOpen"
           class="h-full"
         >
@@ -187,7 +188,7 @@ import { PopoverClose } from "reka-ui";
 import { defineComponent, resolveComponent } from "vue";
 import { toast } from "vue-sonner";
 
-defineProps({ event: Object, project: Object });
+const props = defineProps({ event: Object, project: Object });
 
 const route = useRoute();
 const { $dayjs } = useNuxtApp();
@@ -395,7 +396,7 @@ const columns = [
   {
     id: "actions",
     header: () => h("span", { class: "sr-only" }, "Actions"),
-    cell: ({ row }) => h(RowActions, { brand: row.original }),
+    cell: ({ row }) => h(RowActions, { brand: row.original, canEdit: props.event?.can_edit }),
     size: 60,
     enableHiding: false,
   },
@@ -525,6 +526,7 @@ const handleDeleteSingleRow = async (brandSlug) => {
 const RowActions = defineComponent({
   props: {
     brand: { type: Object, required: true },
+    canEdit: { type: Boolean, default: false },
   },
   setup(props) {
     const dialogOpen = ref(false);
@@ -584,28 +586,32 @@ const RowActions = defineComponent({
                         }
                       ),
                       // Delete
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
+                      ...(props.canEdit
+                        ? [
                             h(
-                              "button",
+                              PopoverClose,
+                              { asChild: true },
                               {
-                                class:
-                                  "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                onClick: () => (dialogOpen.value = true),
-                              },
-                              [
-                                h(resolveComponent("Icon"), {
-                                  name: "lucide:trash",
-                                  class: "size-4 shrink-0",
-                                }),
-                                h("span", {}, "Remove"),
-                              ]
+                                default: () =>
+                                  h(
+                                    "button",
+                                    {
+                                      class:
+                                        "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                      onClick: () => (dialogOpen.value = true),
+                                    },
+                                    [
+                                      h(resolveComponent("Icon"), {
+                                        name: "lucide:trash",
+                                        class: "size-4 shrink-0",
+                                      }),
+                                      h("span", {}, "Remove"),
+                                    ]
+                                  ),
+                              }
                             ),
-                        }
-                      ),
+                          ]
+                        : []),
                     ]),
                 }
               ),

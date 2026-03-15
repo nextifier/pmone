@@ -30,23 +30,25 @@
           <span>Export {{ (search || selectedCategory !== "all") ? "selected" : "all" }}</span>
         </button>
 
-        <EventProductImportDialog
-          :username="route.params.username"
-          :event-slug="route.params.eventSlug"
-          @imported="onImported"
-        >
-          <template #trigger="{ open }">
-            <Button @click="open" size="sm" variant="outline">
-              <Icon name="hugeicons:upload-03" class="size-4" />
-              Import
-            </Button>
-          </template>
-        </EventProductImportDialog>
+        <template v-if="event?.can_edit">
+          <EventProductImportDialog
+            :username="route.params.username"
+            :event-slug="route.params.eventSlug"
+            @imported="onImported"
+          >
+            <template #trigger="{ open }">
+              <Button @click="open" size="sm" variant="outline">
+                <Icon name="hugeicons:upload-03" class="size-4" />
+                Import
+              </Button>
+            </template>
+          </EventProductImportDialog>
 
-        <Button @click="openCreate" size="sm">
-          <Icon name="hugeicons:add-01" class="size-4" />
-          Add Product
-        </Button>
+          <Button @click="openCreate" size="sm">
+            <Icon name="hugeicons:add-01" class="size-4" />
+            Add Product
+          </Button>
+        </template>
       </div>
     </div>
 
@@ -113,7 +115,7 @@
             {{ search || selectedCategory !== "all" ? "Try adjusting your search or filters." : "Add your first product to get started." }}
           </p>
         </div>
-        <Button v-if="!search && selectedCategory === 'all'" @click="openCreate" size="sm" variant="outline">
+        <Button v-if="!search && selectedCategory === 'all' && event?.can_edit" @click="openCreate" size="sm" variant="outline">
           <Icon name="hugeicons:add-01" class="size-4" />
           Add Product
         </Button>
@@ -130,7 +132,7 @@
               <th class="text-muted-foreground px-4 py-3 font-medium">Unit</th>
               <th class="text-muted-foreground px-4 py-3 font-medium">Booth Types</th>
               <th class="text-muted-foreground px-4 py-3 font-medium">Active</th>
-              <th class="text-muted-foreground px-4 py-3 text-right font-medium">Actions</th>
+              <th v-if="event?.can_edit" class="text-muted-foreground px-4 py-3 text-right font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -190,13 +192,13 @@
               <td class="px-4 py-3">
                 <Switch
                   :model-value="product.is_active"
-                  :disabled="togglingId === product.id"
+                  :disabled="togglingId === product.id || !event?.can_edit"
                   @update:model-value="handleToggleActive(product)"
                 />
               </td>
 
               <!-- Actions -->
-              <td class="px-4 py-3">
+              <td v-if="event?.can_edit" class="px-4 py-3">
                 <div class="flex items-center justify-end gap-x-1">
                   <button
                     type="button"
