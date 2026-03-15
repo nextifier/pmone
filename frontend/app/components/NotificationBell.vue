@@ -88,6 +88,7 @@
 
       <!-- Content -->
       <div
+        ref="contentAreaRef"
         class="max-h-[calc(100dvh-var(--navbar-height-mobile)-3.5rem)] overflow-y-auto overscroll-contain"
       >
         <div
@@ -169,6 +170,7 @@
 
 <script setup>
 import { PopoverClose } from "reka-ui";
+import { useSwipe, useEventListener } from "@vueuse/core";
 
 const { $dayjs } = useNuxtApp();
 const router = useRouter();
@@ -206,6 +208,44 @@ const switchTab = (tab) => {
   setTab(tab);
   nextTick(updateIndicator);
 };
+
+// Swipe gesture to switch tabs
+const contentAreaRef = ref(null);
+const tabOrder = ["unread", "all"];
+let swipeTouchStartTarget = null;
+
+useEventListener(contentAreaRef, "touchstart", (e) => {
+  swipeTouchStartTarget = e.target;
+}, { passive: true });
+
+const { isSwiping, direction: swipeDirection } = useSwipe(contentAreaRef, {
+  passive: true,
+  threshold: 50,
+});
+
+watch(isSwiping, (swiping) => {
+  if (!swiping) return;
+
+  // Prevent swipe inside horizontally scrollable elements
+  let el = swipeTouchStartTarget;
+  const container = contentAreaRef.value;
+  while (el && el !== container) {
+    if (el.scrollWidth > el.clientWidth) {
+      const overflowX = getComputedStyle(el).overflowX;
+      if (overflowX === "auto" || overflowX === "scroll") return;
+    }
+    el = el.parentElement;
+  }
+
+  const currentIndex = tabOrder.indexOf(activeTab.value);
+  if (currentIndex === -1) return;
+
+  if (swipeDirection.value === "left" && currentIndex < tabOrder.length - 1) {
+    switchTab(tabOrder[currentIndex + 1]);
+  } else if (swipeDirection.value === "right" && currentIndex > 0) {
+    switchTab(tabOrder[currentIndex - 1]);
+  }
+});
 
 onMounted(() => {
   startPolling();

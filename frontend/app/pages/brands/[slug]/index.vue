@@ -26,10 +26,50 @@
       </NuxtLink>
     </div>
 
-    <!-- Loading -->
-    <div v-if="loading" class="flex items-center justify-center py-20">
-      <Icon name="svg-spinners:ring-resize" class="text-muted-foreground size-6" />
-    </div>
+    <!-- Loading Skeleton -->
+    <template v-if="loading">
+      <!-- Brand Info Card Skeleton -->
+      <div class="border-border rounded-xl border p-5">
+        <div class="flex items-start gap-x-4">
+          <Skeleton class="size-14 shrink-0 rounded-xl" />
+          <div class="min-w-0 flex-1 space-y-3">
+            <div class="flex items-center gap-x-2">
+              <Skeleton class="h-5 w-36" />
+              <Skeleton class="h-5 w-14 rounded-full" />
+            </div>
+            <Skeleton class="h-4 w-28" />
+            <div class="space-y-1.5">
+              <Skeleton class="h-3.5 w-full" />
+              <Skeleton class="h-3.5 w-3/4" />
+            </div>
+            <div class="flex gap-x-4">
+              <Skeleton class="h-3.5 w-32" />
+              <Skeleton class="h-3.5 w-28" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Events Section Skeleton -->
+      <div class="space-y-3">
+        <Skeleton class="h-5 w-20" />
+        <div class="space-y-2">
+          <div v-for="i in 2" :key="i" class="border-border rounded-xl border p-4">
+            <div class="flex items-start gap-x-3">
+              <Skeleton class="size-12 shrink-0 rounded-lg" />
+              <div class="min-w-0 flex-1 space-y-2">
+                <Skeleton class="h-4 w-40" />
+                <Skeleton class="h-3.5 w-56" />
+                <Skeleton class="h-3.5 w-32" />
+              </div>
+            </div>
+            <div class="mt-3 flex gap-2">
+              <Skeleton v-for="j in 4" :key="j" class="h-8 w-24 rounded-lg" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
 
     <template v-else-if="brand">
       <!-- Brand Info Card -->

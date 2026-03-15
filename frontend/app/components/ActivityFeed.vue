@@ -19,11 +19,18 @@
       <slot name="filters" />
     </div>
 
-    <!-- Loading -->
-    <div v-if="loading" class="flex items-center justify-center py-12">
-      <div class="flex items-center gap-x-2">
-        <Spinner class="size-4 shrink-0" />
-        <span class="text-muted-foreground text-sm tracking-tight">Loading activity...</span>
+    <!-- Loading Skeleton -->
+    <div v-if="loading" class="flex flex-col">
+      <div v-for="i in 4" :key="`skeleton-${i}`" class="relative flex gap-x-3 pb-6 last:pb-0">
+        <div v-if="i < 4" class="bg-border absolute top-8 bottom-0 left-[15px] w-px" />
+        <Skeleton class="mt-0.5 size-8 shrink-0 rounded-full" />
+        <div class="min-w-0 flex-1 space-y-2 pt-0.5">
+          <div class="flex items-start justify-between gap-x-3">
+            <Skeleton class="h-4 w-48" />
+            <Skeleton class="h-3 w-14 shrink-0" />
+          </div>
+          <Skeleton class="h-3 w-28" />
+        </div>
       </div>
     </div>
 

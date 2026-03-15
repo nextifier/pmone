@@ -24,12 +24,36 @@
 
     <!-- Table -->
     <div class="frame overflow-hidden">
-      <!-- Loading -->
-      <div v-if="loading" class="flex items-center justify-center py-16">
-        <div class="flex items-center gap-x-2">
-          <Spinner class="size-4 shrink-0" />
-          <span class="text-muted-foreground text-sm">Loading categories...</span>
-        </div>
+      <!-- Loading Skeleton -->
+      <div v-if="loading" class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b text-left">
+              <th class="text-muted-foreground w-10 px-4 py-3 font-medium">#</th>
+              <th class="text-muted-foreground px-4 py-3 font-medium">Title</th>
+              <th class="text-muted-foreground px-4 py-3 font-medium">Slug</th>
+              <th class="text-muted-foreground px-4 py-3 font-medium">Products</th>
+              <th v-if="event?.can_edit" class="text-muted-foreground px-4 py-3 text-right font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="i in 4" :key="`skeleton-${i}`" class="border-b last:border-0">
+              <td class="px-4 py-3"><Skeleton class="h-4 w-6" /></td>
+              <td class="px-4 py-3">
+                <Skeleton class="h-4 w-32" />
+                <Skeleton class="mt-1.5 h-3 w-48" />
+              </td>
+              <td class="px-4 py-3"><Skeleton class="h-4 w-20" /></td>
+              <td class="px-4 py-3"><Skeleton class="h-5 w-20 rounded-full" /></td>
+              <td v-if="event?.can_edit" class="px-4 py-3">
+                <div class="flex items-center justify-end gap-x-1">
+                  <Skeleton class="size-7 rounded-md" />
+                  <Skeleton class="size-7 rounded-md" />
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- Empty State -->

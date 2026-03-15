@@ -223,7 +223,28 @@
               </TableRow>
             </TableHeader>
             <TableBody>
-              <template v-if="table.getRowModel().rows?.length">
+              <!-- Skeleton Loading Rows -->
+              <template v-if="isInitialLoading">
+                <slot name="loading">
+                  <TableRow v-for="i in 25" :key="`skeleton-${i}`" class="tracking-tight">
+                    <TableCell
+                      v-for="(header, j) in table.getHeaderGroups()[0]?.headers || []"
+                      :key="`skeleton-cell-${i}-${j}`"
+                      :style="{ width: `${header.getSize()}px` }"
+                      class="py-2.5"
+                    >
+                      <Skeleton
+                        :class="[
+                          'h-4 rounded',
+                          j === 0 ? 'w-3/4' : j % 3 === 0 ? 'w-1/2' : j % 2 === 0 ? 'w-2/3' : 'w-full',
+                        ]"
+                      />
+                    </TableCell>
+                  </TableRow>
+                </slot>
+              </template>
+
+              <template v-else-if="table.getRowModel().rows?.length">
                 <TableRow
                   v-for="row in table.getRowModel().rows"
                   :key="row.id"
@@ -243,12 +264,9 @@
             </TableBody>
           </Table>
 
-          <!-- Loading State -->
-          <LoadingState v-if="isInitialLoading" label="Loading data.." class="my-6 border-0" />
-
           <!-- Empty State -->
           <div
-            v-else-if="!hasRows"
+            v-if="!isInitialLoading && !hasRows"
             class="mx-auto flex w-full max-w-md flex-col items-center gap-4 py-10 text-center"
           >
             <div

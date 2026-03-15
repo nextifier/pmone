@@ -13,8 +13,28 @@
     </p>
   </div>
 
-  <!-- Loading State -->
-  <LoadingState v-else-if="isInitialLoading" label="Loading projects.." />
+  <!-- Loading Skeleton -->
+  <div v-else-if="isInitialLoading" class="divide-border frame divide-y border">
+    <div
+      v-for="i in 3"
+      :key="`skeleton-${i}`"
+      class="bg-background flex items-center gap-x-1 px-3 py-4 first:rounded-t-xl last:rounded-b-xl sm:gap-x-2"
+    >
+      <div class="flex w-full items-center gap-x-1.5 sm:gap-x-2">
+        <Skeleton class="squircle size-12 shrink-0" />
+        <div class="flex grow flex-col gap-y-2">
+          <Skeleton class="h-4 w-36" />
+          <div class="flex items-center gap-x-2">
+            <div class="flex -space-x-1.5">
+              <Skeleton v-for="j in 3" :key="j" class="size-6 rounded-full" />
+            </div>
+            <Skeleton class="h-3 w-20" />
+          </div>
+        </div>
+      </div>
+      <Skeleton class="h-5 w-14 shrink-0 rounded-full" />
+    </div>
+  </div>
 
   <!-- Empty State -->
   <div

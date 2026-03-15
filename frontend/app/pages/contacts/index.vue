@@ -293,12 +293,9 @@
             </div>
 
             <div class="mt-4 flex justify-end gap-2">
-              <button
-                class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-                @click="dedupeDialogOpen = false"
-              >
+              <Button variant="outline" size="sm" @click="dedupeDialogOpen = false">
                 Cancel
-              </button>
+              </Button>
               <Button size="sm" @click="handleScanDuplicates"> Continue </Button>
             </div>
           </div>
@@ -313,12 +310,9 @@
           <div v-else-if="dedupeStep === 'empty'" class="mt-3">
             <p class="text-body text-sm tracking-tight">No duplicates found.</p>
             <div class="mt-4 flex justify-end">
-              <button
-                class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-                @click="dedupeDialogOpen = false"
-              >
+              <Button variant="outline" size="sm" @click="dedupeDialogOpen = false">
                 Close
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -367,18 +361,12 @@
             </div>
 
             <div class="mt-4 flex justify-end gap-2">
-              <button
-                class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-                @click="dedupeDialogOpen = false"
-              >
+              <Button variant="outline" size="sm" @click="dedupeDialogOpen = false">
                 Cancel
-              </button>
-              <button
-                @click="handleRemoveDuplicates"
-                class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98"
-              >
+              </Button>
+              <Button variant="destructive" size="sm" @click="handleRemoveDuplicates">
                 Remove {{ dedupeScanResult.duplicate_count }} Duplicate(s)
-              </button>
+              </Button>
             </div>
           </div>
 

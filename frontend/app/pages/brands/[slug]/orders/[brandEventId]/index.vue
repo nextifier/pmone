@@ -18,9 +18,26 @@
       </NuxtLink>
     </div>
 
-    <!-- Loading -->
-    <div v-if="loading" class="flex items-center justify-center py-20">
-      <Icon name="svg-spinners:ring-resize" class="text-muted-foreground size-6" />
+    <!-- Loading Skeleton -->
+    <div v-if="loading" class="space-y-3">
+      <div v-for="i in 3" :key="`skeleton-${i}`" class="rounded-lg border p-4">
+        <div class="flex items-start justify-between gap-x-3">
+          <div class="min-w-0 flex-1 space-y-2">
+            <div class="flex items-center gap-x-2">
+              <Skeleton class="h-4 w-28" />
+              <Skeleton class="h-5 w-16 rounded-full" />
+            </div>
+            <Skeleton class="h-3.5 w-36" />
+          </div>
+          <Skeleton class="h-4 w-20 shrink-0" />
+        </div>
+        <div class="mt-3 space-y-1.5">
+          <div v-for="j in 2" :key="j" class="flex items-center justify-between">
+            <Skeleton class="h-3.5 w-40" />
+            <Skeleton class="h-3.5 w-20" />
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Orders list -->
