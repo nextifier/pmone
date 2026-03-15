@@ -349,9 +349,15 @@ function handleDetailStatusUpdated() {
 // Auto-open detail from query param (e.g. from notification click)
 const route = useRoute();
 const router = useRouter();
+const processedUlids = new Set();
 
 async function openFromQueryParam(ulid) {
-  if (!ulid) return;
+  if (!ulid || processedUlids.has(ulid)) return;
+  processedUlids.add(ulid);
+
+  // Remove query param BEFORE opening dialog to prevent history.back() from re-triggering
+  router.replace({ path: route.path, query: { ...route.query, open: undefined } });
+
   try {
     const submission = await client(`/api/contact-form-submissions/${ulid}`);
     const detail = submission?.data || submission;
@@ -359,7 +365,6 @@ async function openFromQueryParam(ulid) {
   } catch (err) {
     console.error("Failed to load submission from notification:", err);
   }
-  router.replace({ path: route.path, query: { ...route.query, open: undefined } });
 }
 
 onMounted(() => openFromQueryParam(route.query.open));
