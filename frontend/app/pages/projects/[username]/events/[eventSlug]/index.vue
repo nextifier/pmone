@@ -90,7 +90,7 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex flex-wrap items-center gap-2 pt-1">
+        <div v-if="event.can_edit" class="flex flex-wrap items-center gap-2 pt-1">
           <NuxtLink
             :to="`${base}/details`"
             class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98"

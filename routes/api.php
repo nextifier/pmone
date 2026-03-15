@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\ExhibitorDashboardController;
 use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\FormFieldController;
 use App\Http\Controllers\Api\FormResponseController;
+use App\Http\Controllers\Api\ImportProgressController;
 use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
@@ -286,6 +287,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/contacts/export', [ContactController::class, 'export'])->middleware('can:contacts.read')->name('contacts.export');
     Route::get('/contacts/import/template', [ContactController::class, 'downloadTemplate'])->middleware('can:contacts.create')->name('contacts.import.template');
     Route::post('/contacts/import', [ContactController::class, 'import'])->middleware('can:contacts.create')->name('contacts.import');
+    Route::get('/imports/{importId}/progress', [ImportProgressController::class, 'show'])->name('imports.progress');
     Route::get('/contacts/search', [ContactController::class, 'search'])->name('contacts.search');
     Route::get('/contacts/duplicates/scan', [ContactController::class, 'scanDuplicates'])->middleware('can:contacts.delete')->name('contacts.duplicates.scan');
     Route::post('/contacts/duplicates/remove', [ContactController::class, 'removeDuplicates'])->middleware('can:contacts.delete')->name('contacts.duplicates.remove');

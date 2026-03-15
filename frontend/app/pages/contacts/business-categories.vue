@@ -99,10 +99,11 @@
             </template>
             <template #default>
               <div class="px-4 pb-10 md:px-6 md:py-5">
-                <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+                <div class="text-primary text-lg font-semibold tracking-tight">Are you absolutely sure?</div>
                 <p class="text-body mt-1.5 text-sm tracking-tight">
-                  This will delete {{ selectedRows.length }}
-                  {{ selectedRows.length === 1 ? "category" : "categories" }}.
+                  This action can't be undone. This will permanently delete
+                  {{ selectedRows.length }}
+                  selected {{ selectedRows.length === 1 ? "category" : "categories" }}.
                 </p>
                 <div class="mt-3 flex justify-end gap-2">
                   <button
@@ -178,9 +179,10 @@
     <DialogResponsive v-model:open="deleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+          <div class="text-primary text-lg font-semibold tracking-tight">Are you absolutely sure?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
-            Delete business category "{{ categoryToDelete?.name }}"?
+            This action can't be undone. This will permanently delete business category
+            "<span class="font-medium">{{ categoryToDelete?.name }}</span>".
           </p>
           <div class="mt-3 flex justify-end gap-2">
             <button

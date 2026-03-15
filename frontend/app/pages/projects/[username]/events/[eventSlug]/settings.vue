@@ -44,7 +44,7 @@
       </div>
 
       <!-- Status Management -->
-      <div class="frame">
+      <div v-if="event.can_edit" class="frame">
         <div class="frame-header">
           <div class="frame-title">Status & Visibility</div>
         </div>
@@ -94,7 +94,7 @@
       </div>
 
       <!-- Danger Zone -->
-      <div class="frame border-destructive/30">
+      <div v-if="event.can_delete" class="frame border-destructive/30">
         <div class="frame-header">
           <div class="frame-title text-destructive">Danger Zone</div>
         </div>

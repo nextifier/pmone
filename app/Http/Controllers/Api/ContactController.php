@@ -12,12 +12,15 @@ use App\Http\Requests\UpdateContactRequest;
 use App\Http\Resources\ContactIndexResource;
 use App\Http\Resources\ContactResource;
 use App\Imports\ContactsImport;
+use App\Jobs\ProcessExcelImport;
 use App\Models\Contact;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Tags\Tag;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -242,7 +245,7 @@ class ContactController extends Controller
     }
 
     /**
-     * Import contacts from Excel.
+     * Import contacts from Excel (queued).
      */
     public function import(Request $request): JsonResponse
     {
@@ -257,74 +260,51 @@ class ContactController extends Controller
             ], 422);
         }
 
-        $tempFolder = null;
+        $tempFolder = $request->input('file');
 
-        try {
-            $tempFolder = $request->input('file');
+        $metadataPath = "tmp/uploads/{$tempFolder}/metadata.json";
 
-            $metadataPath = "tmp/uploads/{$tempFolder}/metadata.json";
-
-            if (! Storage::disk('local')->exists($metadataPath)) {
-                return response()->json([
-                    'message' => 'File not found',
-                ], 404);
-            }
-
-            $metadata = json_decode(
-                Storage::disk('local')->get($metadataPath),
-                true
-            );
-
-            $filePath = "tmp/uploads/{$tempFolder}/{$metadata['original_name']}";
-
-            if (! Storage::disk('local')->exists($filePath)) {
-                return response()->json([
-                    'message' => 'File not found',
-                ], 404);
-            }
-
-            $import = new ContactsImport;
-            Excel::import($import, Storage::disk('local')->path($filePath));
-
-            $failures = $import->getFailures();
-            $importedCount = $import->getImportedCount();
-            $errorMessages = [];
-
-            foreach ($failures as $failure) {
-                $errorMessages[] = [
-                    'row' => $failure->row(),
-                    'attribute' => $failure->attribute(),
-                    'errors' => $failure->errors(),
-                    'values' => $failure->values(),
-                ];
-            }
-
-            if (count($errorMessages) > 0) {
-                return response()->json([
-                    'message' => 'Import completed with errors',
-                    'errors' => $errorMessages,
-                    'imported_count' => $importedCount,
-                ], 422);
-            }
-
+        if (! Storage::disk('local')->exists($metadataPath)) {
             return response()->json([
-                'message' => 'Contacts imported successfully',
-                'imported_count' => $importedCount,
-            ]);
-        } catch (\Exception $e) {
-            logger()->error('Contact import failed', [
-                'error' => $e->getMessage(),
-            ]);
-
-            return response()->json([
-                'message' => 'Failed to import contacts',
-                'error' => $e->getMessage(),
-            ], 500);
-        } finally {
-            if ($tempFolder) {
-                Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
-            }
+                'message' => 'File not found',
+            ], 404);
         }
+
+        $metadata = json_decode(
+            Storage::disk('local')->get($metadataPath),
+            true
+        );
+
+        $filePath = "tmp/uploads/{$tempFolder}/{$metadata['original_name']}";
+
+        if (! Storage::disk('local')->exists($filePath)) {
+            return response()->json([
+                'message' => 'File not found',
+            ], 404);
+        }
+
+        $importId = Str::uuid()->toString();
+
+        Cache::put("import:{$importId}", [
+            'status' => 'pending',
+            'total_rows' => 0,
+            'processed_rows' => 0,
+            'imported_count' => 0,
+            'percentage' => 0,
+            'errors' => [],
+            'error_message' => null,
+        ], now()->addMinutes(30));
+
+        ProcessExcelImport::dispatch(
+            $importId,
+            Storage::disk('local')->path($filePath),
+            ContactsImport::class,
+            $tempFolder,
+        );
+
+        return response()->json([
+            'import_id' => $importId,
+        ]);
     }
 
     /**

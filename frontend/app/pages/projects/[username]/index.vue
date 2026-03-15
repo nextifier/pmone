@@ -6,6 +6,7 @@
     <div class="flex items-center justify-between">
       <h3 class="page-title">Events</h3>
       <NuxtLink
+        v-if="project?.is_member || isAdminOrMaster"
         :to="`/projects/${route.params.username}/events/create`"
         data-variant="default"
         class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-3.5 py-2 text-sm font-medium tracking-tight transition active:scale-98"
@@ -70,7 +71,7 @@
 
           <template #actions="{ event: ev }">
             <button
-              v-if="!ev.is_active"
+              v-if="!ev.is_active && ev.can_edit"
               type="button"
               :disabled="settingActiveId === ev.id"
               class="text-muted-foreground hover:text-foreground ml-[6.5rem] flex w-fit items-center gap-x-1 rounded px-1.5 py-0.5 text-xs font-medium tracking-tight transition hover:bg-emerald-100 hover:text-emerald-700 sm:ml-44 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400"
@@ -118,6 +119,7 @@ const props = defineProps({
 const route = useRoute();
 const router = useRouter();
 const client = useSanctumClient();
+const { isAdminOrMaster } = usePermission();
 
 defineShortcuts({
   n: {

@@ -31,8 +31,8 @@ class ProjectPolicy
             return false;
         }
 
-        // Master and admin can view all projects
-        if ($user->hasRole(['master', 'admin'])) {
+        // Master, admin, and staff can view all projects
+        if ($user->hasRole(['master', 'admin', 'staff'])) {
             return true;
         }
 

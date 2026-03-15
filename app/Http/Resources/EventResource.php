@@ -53,6 +53,8 @@ class EventResource extends JsonResource
             ),
             'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
             'updater' => $this->whenLoaded('updater', fn () => new UserMinimalResource($this->updater)),
+            'can_edit' => auth()->user()?->can('update', $this->resource),
+            'can_delete' => auth()->user()?->can('delete', $this->resource),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,

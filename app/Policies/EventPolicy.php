@@ -13,7 +13,7 @@ class EventPolicy
      */
     public function viewAny(User $user, Project $project): bool
     {
-        if ($user->hasRole(['master', 'admin'])) {
+        if ($user->hasRole(['master', 'admin', 'staff'])) {
             return true;
         }
 
@@ -25,7 +25,7 @@ class EventPolicy
      */
     public function view(User $user, Event $event): bool
     {
-        if ($user->hasRole(['master', 'admin'])) {
+        if ($user->hasRole(['master', 'admin', 'staff'])) {
             return true;
         }
 

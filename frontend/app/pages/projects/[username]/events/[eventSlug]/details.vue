@@ -13,6 +13,7 @@
     </div>
 
     <FormEvent
+      v-if="event.can_edit"
       :initial-data="event"
       :loading="loading"
       :errors="errors"
@@ -20,6 +21,17 @@
       submit-loading-text="Updating.."
       @submit="handleUpdate"
     />
+
+    <div v-else class="frame">
+      <div class="frame-header">
+        <div class="frame-title">Read Only</div>
+      </div>
+      <div class="frame-panel">
+        <p class="text-muted-foreground text-sm tracking-tight">
+          You don't have permission to edit this event.
+        </p>
+      </div>
+    </div>
 
     <!-- Event Metadata -->
     <div v-if="event" class="frame">
@@ -61,7 +73,7 @@
     </div>
 
     <!-- Danger Zone -->
-    <div v-if="event" class="frame border-destructive/30">
+    <div v-if="event && event.can_delete" class="frame border-destructive/30">
       <div class="frame-header">
         <div class="frame-title text-destructive">Danger Zone</div>
       </div>

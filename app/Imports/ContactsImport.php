@@ -3,19 +3,22 @@
 namespace App\Imports;
 
 use App\Helpers\PhoneCountryHelper;
+use App\Imports\Concerns\TracksImportProgress;
 use App\Models\Contact;
 use App\Models\Project;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Events\BeforeImport;
 use Maatwebsite\Excel\Validators\Failure;
 
-class ContactsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadingRow, WithValidation
+class ContactsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEvents, WithHeadingRow, WithValidation
 {
-    use Importable;
+    use Importable, TracksImportProgress;
 
     protected array $failures = [];
 
@@ -126,8 +129,16 @@ class ContactsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHea
         }
 
         $this->importedCount++;
+        $this->updateProgress($this->importedCount);
 
         return $contact;
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            BeforeImport::class => fn (BeforeImport $event) => $this->initProgressTracking($event),
+        ];
     }
 
     public function rules(): array

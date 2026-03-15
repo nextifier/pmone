@@ -62,6 +62,9 @@ class ProjectResource extends JsonResource
             'members' => $this->whenLoaded('members', fn () => UserMinimalResource::collection($this->members)),
             'links' => LinkResource::collection($this->whenLoaded('links')),
             'roles' => [],
+            'is_member' => auth()->user()
+                ? $this->members()->where('user_id', auth()->id())->exists()
+                : false,
             'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
             'updater' => $this->whenLoaded('updater', fn () => new UserMinimalResource($this->updater)),
             'deleter' => $this->whenLoaded('deleter', fn () => new UserMinimalResource($this->deleter)),
