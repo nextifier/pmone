@@ -8,7 +8,7 @@
         <h1 class="page-title">Contact List</h1>
       </div>
 
-      <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div v-if="!hasSelectedRows" class="ml-auto flex flex-wrap gap-x-1.5 gap-y-2.5">
         <ContactImportDialog v-if="canCreate" @imported="refresh">
           <template #trigger="{ open }">
             <button
@@ -38,6 +38,15 @@
           <Icon name="hugeicons:tag-01" class="size-4 shrink-0" />
           <span>Business Categories</span>
         </NuxtLink>
+
+        <button
+          v-if="canDelete"
+          @click="openDedupeDialog"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+        >
+          <Icon name="hugeicons:filter-remove" class="size-4 shrink-0" />
+          <span>Remove Duplicates</span>
+        </button>
       </div>
 
       <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
@@ -212,6 +221,152 @@
         </DialogResponsive>
       </template>
     </TableData>
+
+    <!-- Deduplicate Dialog -->
+    <DialogResponsive v-model:open="dedupeDialogOpen" dialog-max-width="560px">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="text-primary text-lg font-semibold tracking-tighter">Remove Duplicates</div>
+
+          <!-- Step 1: Explanation -->
+          <div v-if="dedupeStep === 'explain'" class="mt-3">
+            <p class="text-body tracking-tight">
+              Fitur ini akan mendeteksi dan menghapus contact yang duplikat berdasarkan kriteria
+              berikut:
+            </p>
+
+            <div class="mt-3 space-y-2">
+              <div class="font-medium tracking-tight">Dua contact dianggap duplikat jika:</div>
+              <ol class="text-body list-decimal space-y-1.5 pl-5 tracking-tight">
+                <li>
+                  <span class="text-primary font-medium">Nama sama</span>
+                  (case-insensitive)
+                </li>
+                <li>
+                  DAN salah satu dari:
+                  <ul class="text-body mt-1 list-disc space-y-1 pl-5">
+                    <li><span class="text-primary font-medium">Company</span> sama</li>
+                    <li>
+                      Ada <span class="text-primary font-medium">email</span> yang sama (minimal 1)
+                    </li>
+                    <li>
+                      Ada <span class="text-primary font-medium">phone</span> yang sama
+                      (dibandingkan digit-only)
+                    </li>
+                  </ul>
+                </li>
+              </ol>
+            </div>
+
+            <div class="bg-muted/50 mt-3 rounded-lg p-2.5">
+              <div class="tracking-tight">
+                <span class="text-primary font-medium">Yang dipertahankan:</span>
+                <span class="text-body"> contact paling lama (created_at terkecil)</span>
+              </div>
+              <div class="mt-1 tracking-tight">
+                <span class="text-primary font-medium">Data di-merge:</span>
+                <span class="text-body">
+                  emails, phones, tags, dan projects dari duplikat akan digabungkan ke contact yang
+                  dipertahankan</span
+                >
+              </div>
+            </div>
+
+            <div class="mt-4 flex justify-end gap-2">
+              <button
+                class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                @click="dedupeDialogOpen = false"
+              >
+                Cancel
+              </button>
+              <Button size="sm" @click="handleScanDuplicates"> Continue </Button>
+            </div>
+          </div>
+
+          <!-- Step 2: Scanning -->
+          <div v-else-if="dedupeStep === 'scanning'" class="mt-4 flex items-center gap-x-2">
+            <Spinner class="size-4" />
+            <span class="text-body text-sm tracking-tight">Scanning for duplicates...</span>
+          </div>
+
+          <!-- Step 3: No duplicates found -->
+          <div v-else-if="dedupeStep === 'empty'" class="mt-3">
+            <p class="text-body text-sm tracking-tight">No duplicates found.</p>
+            <div class="mt-4 flex justify-end">
+              <button
+                class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                @click="dedupeDialogOpen = false"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 4: Preview duplicates -->
+          <div v-else-if="dedupeStep === 'preview'" class="mt-3">
+            <p class="text-body text-sm tracking-tight">
+              Found
+              <span class="text-primary font-medium">{{ dedupeScanResult.duplicate_count }}</span>
+              duplicate contact(s) in
+              <span class="text-primary font-medium">{{ dedupeScanResult.group_count }}</span>
+              group(s).
+            </p>
+
+            <!-- Preview groups -->
+            <div class="mt-3 max-h-64 space-y-2.5 overflow-y-auto">
+              <div
+                v-for="(group, idx) in dedupeScanResult.groups.slice(0, 10)"
+                :key="idx"
+                class="border-border rounded-lg border p-2.5"
+              >
+                <div
+                  class="text-primary flex items-center gap-x-1 text-xs font-medium tracking-tight"
+                >
+                  <Icon name="lucide:check" class="size-3 shrink-0 text-green-500" />
+                  {{ group.keep.name }}
+                  <span v-if="group.keep.company_name" class="text-muted-foreground font-normal">
+                    - {{ group.keep.company_name }}
+                  </span>
+                </div>
+                <div
+                  v-for="dup in group.duplicates"
+                  :key="dup.id"
+                  class="text-muted-foreground mt-1 flex items-center gap-x-1 text-xs tracking-tight"
+                >
+                  <Icon name="lucide:trash" class="text-destructive-foreground size-3 shrink-0" />
+                  {{ dup.name }}
+                  <span v-if="dup.company_name"> - {{ dup.company_name }}</span>
+                </div>
+              </div>
+              <p
+                v-if="dedupeScanResult.groups.length > 10"
+                class="text-muted-foreground text-xs tracking-tight"
+              >
+                ... and {{ dedupeScanResult.groups.length - 10 }} more group(s)
+              </p>
+            </div>
+
+            <div class="mt-4 flex justify-end gap-2">
+              <button
+                class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                @click="dedupeDialogOpen = false"
+                :disabled="dedupeRemovePending"
+              >
+                Cancel
+              </button>
+              <button
+                @click="handleRemoveDuplicates"
+                :disabled="dedupeRemovePending"
+                class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Spinner v-if="dedupeRemovePending" class="size-4 text-white" />
+                <span v-else>Remove {{ dedupeScanResult.duplicate_count }} Duplicate(s)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
 
     <!-- Create/Edit Dialog -->
     <DialogResponsive
@@ -698,6 +853,8 @@ const columns = computed(() => [
     cell: ({ row }) =>
       h(ContactTableItem, {
         contact: row.original,
+        class: canUpdate.value ? "cursor-pointer" : "",
+        onClick: () => canUpdate.value && openEditDialog(row.original),
       }),
     size: 220,
     enableHiding: false,
@@ -874,6 +1031,48 @@ const handleExport = async () => {
 // Delete
 const deleteDialogOpen = ref(false);
 const deletePending = ref(false);
+
+// Deduplicate
+const dedupeDialogOpen = ref(false);
+const dedupeStep = ref("explain"); // 'explain' | 'scanning' | 'empty' | 'preview'
+const dedupeRemovePending = ref(false);
+const dedupeScanResult = ref(null);
+
+const openDedupeDialog = () => {
+  dedupeStep.value = "explain";
+  dedupeScanResult.value = null;
+  dedupeDialogOpen.value = true;
+};
+
+const handleScanDuplicates = async () => {
+  dedupeStep.value = "scanning";
+  try {
+    const res = await client("/api/contacts/duplicates/scan");
+    dedupeScanResult.value = res;
+    dedupeStep.value = res.duplicate_count > 0 ? "preview" : "empty";
+  } catch (err) {
+    toast.error("Failed to scan duplicates", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+    dedupeDialogOpen.value = false;
+  }
+};
+
+const handleRemoveDuplicates = async () => {
+  dedupeRemovePending.value = true;
+  try {
+    const res = await client("/api/contacts/duplicates/remove", { method: "POST" });
+    dedupeDialogOpen.value = false;
+    await refresh();
+    toast.success(res.message || `${res.removed_count} duplicate(s) removed`);
+  } catch (err) {
+    toast.error("Failed to remove duplicates", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+  } finally {
+    dedupeRemovePending.value = false;
+  }
+};
 
 const handleDeleteRows = async (selectedRows) => {
   const ulids = selectedRows.map((row) => row.original.ulid);

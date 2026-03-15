@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\ContactFormSubmission;
 use App\Models\Project;
 use App\Models\ShortLink;
+use App\Observers\ContactFormSubmissionObserver;
 use App\Observers\ProjectObserver;
 use App\Observers\ShortLinkObserver;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -32,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // Register observers
+        ContactFormSubmission::observe(ContactFormSubmissionObserver::class);
         Project::observe(ProjectObserver::class);
         ShortLink::observe(ShortLinkObserver::class);
     }

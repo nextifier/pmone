@@ -15,6 +15,7 @@ use App\Imports\ContactsImport;
 use App\Models\Contact;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
@@ -349,6 +350,215 @@ class ContactController extends Controller
         return response()->json([
             'message' => 'Status updated successfully',
         ]);
+    }
+
+    /**
+     * Scan for duplicate contacts.
+     */
+    public function scanDuplicates(): JsonResponse
+    {
+        $groups = $this->findDuplicateGroups();
+
+        $previewGroups = array_slice($groups, 0, 50);
+
+        $duplicateCount = array_reduce($groups, fn (int $carry, array $group) => $carry + count($group['duplicates']), 0);
+
+        return response()->json([
+            'duplicate_count' => $duplicateCount,
+            'group_count' => count($groups),
+            'groups' => $previewGroups,
+        ]);
+    }
+
+    /**
+     * Remove duplicate contacts by soft-deleting newer duplicates and merging their data.
+     */
+    public function removeDuplicates(): JsonResponse
+    {
+        $groups = $this->findDuplicateGroups();
+
+        if (empty($groups)) {
+            return response()->json([
+                'removed_count' => 0,
+                'message' => 'No duplicates found',
+            ]);
+        }
+
+        $removedCount = 0;
+
+        DB::transaction(function () use ($groups, &$removedCount) {
+            foreach ($groups as $group) {
+                $keep = Contact::find($group['keep']['id']);
+                if (! $keep) {
+                    continue;
+                }
+
+                $mergedEmails = $keep->emails ?? [];
+                $mergedPhones = $keep->phones ?? [];
+                $keepProjectIds = $keep->projects()->pluck('projects.id')->toArray();
+                $keepTagNames = $keep->tagsWithType('contact_tag')->pluck('name')->toArray();
+
+                foreach ($group['duplicates'] as $dupData) {
+                    $duplicate = Contact::find($dupData['id']);
+                    if (! $duplicate) {
+                        continue;
+                    }
+
+                    // Merge emails
+                    foreach ($duplicate->emails ?? [] as $email) {
+                        if (! in_array($email, $mergedEmails)) {
+                            $mergedEmails[] = $email;
+                        }
+                    }
+
+                    // Merge phones
+                    foreach ($duplicate->phones ?? [] as $phone) {
+                        if (! in_array($phone, $mergedPhones)) {
+                            $mergedPhones[] = $phone;
+                        }
+                    }
+
+                    // Collect project IDs
+                    $dupProjectIds = $duplicate->projects()->pluck('projects.id')->toArray();
+                    $keepProjectIds = array_unique(array_merge($keepProjectIds, $dupProjectIds));
+
+                    // Collect tags
+                    $dupTagNames = $duplicate->tagsWithType('contact_tag')->pluck('name')->toArray();
+                    $keepTagNames = array_unique(array_merge($keepTagNames, $dupTagNames));
+
+                    $duplicate->delete();
+                    $removedCount++;
+                }
+
+                // Update kept contact with merged data
+                $keep->update([
+                    'emails' => $mergedEmails,
+                    'phones' => $mergedPhones,
+                ]);
+
+                $keep->projects()->syncWithoutDetaching($keepProjectIds);
+
+                if (! empty($keepTagNames)) {
+                    $keep->syncContactTags($keepTagNames);
+                }
+            }
+        });
+
+        return response()->json([
+            'removed_count' => $removedCount,
+            'message' => "{$removedCount} duplicate contact(s) removed",
+        ]);
+    }
+
+    /**
+     * Find groups of duplicate contacts.
+     *
+     * @return array<int, array{keep: array, duplicates: array}>
+     */
+    private function findDuplicateGroups(): array
+    {
+        $contacts = Contact::query()
+            ->select(['id', 'ulid', 'name', 'company_name', 'emails', 'phones', 'created_at'])
+            ->orderBy('created_at')
+            ->get();
+
+        // Group by normalized name
+        $nameGroups = [];
+        foreach ($contacts as $contact) {
+            $normalizedName = mb_strtolower(trim($contact->name));
+            if ($normalizedName === '') {
+                continue;
+            }
+            $nameGroups[$normalizedName][] = $contact;
+        }
+
+        $duplicateGroups = [];
+
+        foreach ($nameGroups as $groupContacts) {
+            if (count($groupContacts) < 2) {
+                continue;
+            }
+
+            // Within same-name group, find contacts that also share company, email, or phone
+            $processed = [];
+
+            foreach ($groupContacts as $i => $contact) {
+                if (in_array($contact->id, $processed)) {
+                    continue;
+                }
+
+                $duplicates = [];
+
+                for ($j = $i + 1; $j < count($groupContacts); $j++) {
+                    $other = $groupContacts[$j];
+                    if (in_array($other->id, $processed)) {
+                        continue;
+                    }
+
+                    if ($this->isDuplicate($contact, $other)) {
+                        $duplicates[] = $other;
+                        $processed[] = $other->id;
+                    }
+                }
+
+                if (! empty($duplicates)) {
+                    $processed[] = $contact->id;
+                    $duplicateGroups[] = [
+                        'keep' => [
+                            'id' => $contact->id,
+                            'ulid' => $contact->ulid,
+                            'name' => $contact->name,
+                            'company_name' => $contact->company_name,
+                            'emails' => $contact->emails,
+                            'phones' => $contact->phones,
+                            'created_at' => $contact->created_at,
+                        ],
+                        'duplicates' => array_map(fn (Contact $dup) => [
+                            'id' => $dup->id,
+                            'ulid' => $dup->ulid,
+                            'name' => $dup->name,
+                            'company_name' => $dup->company_name,
+                            'emails' => $dup->emails,
+                            'phones' => $dup->phones,
+                            'created_at' => $dup->created_at,
+                        ], $duplicates),
+                    ];
+                }
+            }
+        }
+
+        return $duplicateGroups;
+    }
+
+    /**
+     * Check if two contacts are duplicates (same name assumed).
+     */
+    private function isDuplicate(Contact $a, Contact $b): bool
+    {
+        // Check company name match
+        $companyA = mb_strtolower(trim($a->company_name ?? ''));
+        $companyB = mb_strtolower(trim($b->company_name ?? ''));
+        if ($companyA !== '' && $companyB !== '' && $companyA === $companyB) {
+            return true;
+        }
+
+        // Check email intersection
+        $emailsA = array_map('mb_strtolower', $a->emails ?? []);
+        $emailsB = array_map('mb_strtolower', $b->emails ?? []);
+        if (! empty($emailsA) && ! empty($emailsB) && ! empty(array_intersect($emailsA, $emailsB))) {
+            return true;
+        }
+
+        // Check phone intersection (normalized: digits only)
+        $phonesA = array_map(fn (string $p) => preg_replace('/\D/', '', $p), $a->phones ?? []);
+        $phonesB = array_map(fn (string $p) => preg_replace('/\D/', '', $p), $b->phones ?? []);
+        $phonesA = array_filter($phonesA);
+        $phonesB = array_filter($phonesB);
+        if (! empty($phonesA) && ! empty($phonesB) && ! empty(array_intersect($phonesA, $phonesB))) {
+            return true;
+        }
+
+        return false;
     }
 
     private function applyFilters($query, Request $request): void

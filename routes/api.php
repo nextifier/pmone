@@ -287,6 +287,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/contacts/import/template', [ContactController::class, 'downloadTemplate'])->middleware('can:contacts.create')->name('contacts.import.template');
     Route::post('/contacts/import', [ContactController::class, 'import'])->middleware('can:contacts.create')->name('contacts.import');
     Route::get('/contacts/search', [ContactController::class, 'search'])->name('contacts.search');
+    Route::get('/contacts/duplicates/scan', [ContactController::class, 'scanDuplicates'])->middleware('can:contacts.delete')->name('contacts.duplicates.scan');
+    Route::post('/contacts/duplicates/remove', [ContactController::class, 'removeDuplicates'])->middleware('can:contacts.delete')->name('contacts.duplicates.remove');
     Route::get('/contacts/{contact}', [ContactController::class, 'show'])->middleware('can:contacts.read')->name('contacts.show');
     Route::put('/contacts/{contact}', [ContactController::class, 'update'])->middleware('can:contacts.update')->name('contacts.update');
     Route::patch('/contacts/{contact}/status', [ContactController::class, 'updateStatus'])->middleware('can:contacts.update')->name('contacts.update-status');

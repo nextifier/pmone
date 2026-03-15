@@ -3,19 +3,40 @@
     <div class="flex items-center justify-between">
       <h2 class="text-lg font-semibold tracking-tight">Inquiries</h2>
 
-      <div v-if="hasSelectedRows" class="flex shrink-0 gap-1 sm:gap-2">
+      <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+        <button
+          @click="handleExport"
+          :disabled="exportPending"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Spinner v-if="exportPending" class="size-4 shrink-0" />
+          <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
+          <span>Export {{ totalActiveFilters > 0 ? "filtered" : "all" }}</span>
+        </button>
+
+        <nuxt-link
+          :to="`/projects/${props.project?.username}/inquiries/trash`"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+        >
+          <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
+          <span>Trash</span>
+        </nuxt-link>
+      </div>
+
+      <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <button
           @click="clearSelection"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
           <Icon name="lucide:x" class="size-4 shrink-0" />
-          <span>Clear</span>
+          <span>Clear selection</span>
         </button>
       </div>
     </div>
 
     <TableData
       ref="tableRef"
+      :clientOnly="false"
       :data="data"
       :columns="columns"
       :meta="meta"
@@ -65,6 +86,33 @@
       </template>
 
       <template #actions="{ selectedRows }">
+        <!-- Bulk Status Dropdown -->
+        <DropdownMenu v-if="selectedRows.length > 0">
+          <DropdownMenuTrigger asChild>
+            <button
+              :disabled="bulkUpdating"
+              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Spinner v-if="bulkUpdating" class="size-4 shrink-0" />
+              <Icon v-else name="hugeicons:task-edit-01" class="size-4 shrink-0" />
+              <span class="text-sm tracking-tight">Status</span>
+              <Icon name="lucide:chevron-down" class="size-3 opacity-60" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" class="w-40">
+            <DropdownMenuItem
+              v-for="s in inboxStatuses"
+              :key="s.value"
+              :disabled="bulkUpdating"
+              class="gap-x-2"
+              @click="handleBulkStatusUpdate(selectedRows, s.value)"
+            >
+              <span :class="s.dot" class="size-2 rounded-full" />
+              {{ s.label }}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <DialogResponsive
           v-if="canDelete && selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
@@ -131,6 +179,12 @@ import InboxTableItem from "@/components/inbox/InboxTableItem.vue";
 import StatusDropdown from "@/components/inbox/StatusDropdown.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
@@ -160,6 +214,14 @@ const statusOptions = [
   { label: "In Progress", value: "in_progress" },
   { label: "Completed", value: "completed" },
   { label: "Archived", value: "archived" },
+];
+
+// Inbox statuses for bulk update dropdown
+const inboxStatuses = [
+  { value: "new", label: "New", dot: "bg-blue-500" },
+  { value: "in_progress", label: "In Progress", dot: "bg-yellow-500" },
+  { value: "completed", label: "Completed", dot: "bg-green-500" },
+  { value: "archived", label: "Archived", dot: "bg-gray-400" },
 ];
 
 // Table state
@@ -262,6 +324,32 @@ async function handleStatusUpdate(ulid, newStatus) {
     toast.error("Failed to update status");
   } finally {
     statusUpdating.value = null;
+  }
+}
+
+// Bulk status update
+const bulkUpdating = ref(false);
+
+async function handleBulkStatusUpdate(selectedRows, newStatus) {
+  const ulids = selectedRows.map((row) => row.original.ulid);
+  bulkUpdating.value = true;
+  try {
+    await Promise.all(
+      ulids.map((ulid) =>
+        client(`/api/contact-form-submissions/${ulid}/status`, {
+          method: "PATCH",
+          body: { status: newStatus },
+        })
+      )
+    );
+    toast.success(`${ulids.length} submission(s) status updated`);
+    await refresh();
+  } catch (err) {
+    toast.error("Failed to update status", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+  } finally {
+    bulkUpdating.value = false;
   }
 }
 
@@ -434,6 +522,56 @@ const handleDeleteSingleRow = async (ulid) => {
     });
   } finally {
     deletePending.value = false;
+  }
+};
+
+// Export handler
+const exportPending = ref(false);
+const handleExport = async () => {
+  try {
+    exportPending.value = true;
+
+    const params = new URLSearchParams();
+    params.append("filter_project", props.project?.id);
+
+    const searchFilter = columnFilters.value.find((f) => f.id === "subject");
+    if (searchFilter?.value) {
+      params.append("filter_search", searchFilter.value);
+    }
+
+    if (selectedStatuses.value.length > 0) {
+      params.append("filter_status", selectedStatuses.value.join(","));
+    }
+
+    const sortField = sorting.value[0]?.id || "created_at";
+    const sortDirection = sorting.value[0]?.desc ? "-" : "";
+    params.append("sort", `${sortDirection}${sortField}`);
+
+    const response = await client(`/api/contact-form-submissions/export?${params.toString()}`, {
+      responseType: "blob",
+    });
+
+    const blob = new Blob([response], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    const projectName = (props.project?.username || "inquiries").replace(/\s+/g, "_");
+    link.download = `${projectName}_inquiries_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    toast.success("Inquiries exported successfully");
+  } catch (error) {
+    console.error("Failed to export inquiries:", error);
+    toast.error("Failed to export inquiries", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    exportPending.value = false;
   }
 };
 
