@@ -27,7 +27,7 @@
         <TabNav v-if="event" :tabs="eventTabs" />
       </template>
 
-      <div :class="isBrandPage || isContentPage || isOperationalPage ? '' : 'pt-6'">
+      <div ref="contentArea" :class="isBrandPage || isContentPage || isOperationalPage ? '' : 'pt-6'">
         <NuxtPage :event="event" :project="project" />
       </div>
     </template>
@@ -99,6 +99,9 @@ const eventTabs = computed(() => [
   { label: "Operational", icon: "hugeicons:briefcase-01", to: `${eventBase.value}/operational/orders`, activeFor: [`${eventBase.value}/operational`] },
   { label: "Content", icon: "hugeicons:note-01", to: `${eventBase.value}/content/rundown` },
 ]);
+
+const contentArea = ref(null);
+useTabSwipe(contentArea, eventTabs);
 
 provide("event", event);
 </script>

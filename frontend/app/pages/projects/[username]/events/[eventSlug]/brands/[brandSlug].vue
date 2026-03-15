@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-y-0">
+  <div ref="contentArea" class="flex flex-col gap-y-0">
     <TabNav :tabs="brandTabs" />
 
     <!-- Loading -->
@@ -27,6 +27,8 @@
 
 <script setup>
 defineProps({ event: Object, project: Object });
+
+const contentArea = ref(null);
 const route = useRoute();
 const client = useSanctumClient();
 
@@ -76,6 +78,8 @@ const brandTabs = computed(() => [
   { label: "Promotion Posts", to: `${brandBase.value}/marketing`, icon: "hugeicons:megaphone-02" },
   { label: "Orders", to: `${brandBase.value}/orders`, icon: "hugeicons:shopping-bag-02" },
 ]);
+
+useTabSwipe(contentArea, brandTabs);
 
 onMounted(() => refresh());
 </script>
