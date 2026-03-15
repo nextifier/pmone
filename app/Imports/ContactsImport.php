@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Helpers\PhoneCountryHelper;
 use App\Models\Contact;
 use App\Models\Project;
 use Maatwebsite\Excel\Concerns\Importable;
@@ -47,11 +48,12 @@ class ContactsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHea
             $emails = array_values($emails);
         }
 
-        // Parse comma-separated phones
+        // Parse comma-separated phones and normalize to international format
         $phones = null;
         if (! empty($row['phones'])) {
             $phones = array_map('trim', explode(',', (string) $row['phones']));
             $phones = array_filter($phones);
+            $phones = array_map([PhoneCountryHelper::class, 'normalizePhoneNumber'], $phones);
             $phones = array_values($phones);
         }
 

@@ -38,7 +38,7 @@
             <div class="text-muted-foreground text-sm font-medium tracking-tight">
               {{ formatFieldLabel(key) }}
             </div>
-            <div class="text-lg tracking-tight">
+            <div class="text-base tracking-tight sm:text-lg">
               <template v-if="key === 'email'">
                 <div class="flex items-center gap-2">
                   <a :href="`mailto:${value}`" class="text-primary hover:underline">

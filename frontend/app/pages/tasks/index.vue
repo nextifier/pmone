@@ -330,7 +330,6 @@ watch(
   (newData) => {
     if (newData) {
       populateLists(JSON.parse(JSON.stringify(newData)));
-      nextTick(() => initializeSortable());
     }
   },
   { immediate: true }
@@ -435,34 +434,20 @@ const updateTaskOrder = async (tasksList) => {
 // Sortable with proper instance lifecycle (composable handles watch + destroy)
 const sortableEnabled = computed(() => !hasActiveFilters.value);
 
-const { initialize: initTodoSortable } = useSortableList(todoListEl, todoTasksList, {
+useSortableList(todoListEl, todoTasksList, {
   onReorder: () => updateTaskOrder(todoTasksList),
   enabled: sortableEnabled,
 });
 
-const { initialize: initInProgressSortable } = useSortableList(
-  inProgressListEl,
-  inProgressTasksList,
-  {
-    onReorder: () => updateTaskOrder(inProgressTasksList),
-    enabled: sortableEnabled,
-  }
-);
+useSortableList(inProgressListEl, inProgressTasksList, {
+  onReorder: () => updateTaskOrder(inProgressTasksList),
+  enabled: sortableEnabled,
+});
 
-const { initialize: initCompletedSortable } = useSortableList(
-  completedListEl,
-  completedTasksList,
-  {
-    onReorder: () => updateTaskOrder(completedTasksList),
-    enabled: sortableEnabled,
-  }
-);
-
-const initializeSortable = () => {
-  initTodoSortable();
-  initInProgressSortable();
-  initCompletedSortable();
-};
+useSortableList(completedListEl, completedTasksList, {
+  onReorder: () => updateTaskOrder(completedTasksList),
+  enabled: sortableEnabled,
+});
 
 // Update task status with optimistic update
 const handleUpdateStatus = async (task, newStatus) => {
@@ -499,8 +484,6 @@ const handleUpdateStatus = async (task, newStatus) => {
   };
   targetList.value.push(updatedTask);
 
-  nextTick(() => initializeSortable());
-
   const statusLabels = {
     completed: "completed",
     todo: "moved to To Do",
@@ -525,7 +508,6 @@ const handleUpdateStatus = async (task, newStatus) => {
           const idx = currentList.value.findIndex((t) => t.id === task.id);
           if (idx !== -1) currentList.value.splice(idx, 1);
           originalList.value.splice(sourceIndex, 0, oldTask);
-          nextTick(() => initializeSortable());
 
           try {
             await client(`/api/tasks/${task.ulid}`, {
@@ -538,7 +520,6 @@ const handleUpdateStatus = async (task, newStatus) => {
             const rIdx = originalList.value.findIndex((t) => t.id === task.id);
             if (rIdx !== -1) originalList.value.splice(rIdx, 1);
             currentList.value.push(updatedTask);
-            nextTick(() => initializeSortable());
             toast.error("Failed to undo");
           }
         },
@@ -549,7 +530,6 @@ const handleUpdateStatus = async (task, newStatus) => {
     const rIdx = targetList.value.findIndex((t) => t.id === task.id);
     if (rIdx !== -1) targetList.value.splice(rIdx, 1);
     sourceList.value.splice(sourceIndex, 0, oldTask);
-    nextTick(() => initializeSortable());
 
     console.error("Failed to update task status:", err);
     toast.error("Failed to update task status");
@@ -582,10 +562,7 @@ const handleQuickAdd = async () => {
     // Add new task directly to the todo list (no refresh needed)
     todoTasksList.value.push(response.data);
     toast.success("Task created");
-    nextTick(() => {
-      initializeSortable();
-      quickAddInputEl.value?.focus();
-    });
+    nextTick(() => quickAddInputEl.value?.focus());
   } catch (err) {
     console.error("Failed to create task:", err);
     toast.error(err.response?._data?.message || "Failed to create task");
@@ -637,7 +614,6 @@ const handleClearCompleted = async () => {
     completedTasksList.value = completedTasksList.value.filter((t) => !ids.includes(t.id));
     dialogs.deleteDialogOpen.value = false;
     toast.success("Completed tasks cleared");
-    nextTick(() => initializeSortable());
   } catch (err) {
     console.error("Failed to clear completed tasks:", err);
     toast.error("Failed to clear completed tasks");
@@ -655,7 +631,6 @@ const onAfterDelete = (deletedTask) => {
       break;
     }
   }
-  nextTick(() => initializeSortable());
 };
 
 const dialogs = useTaskDialogs({

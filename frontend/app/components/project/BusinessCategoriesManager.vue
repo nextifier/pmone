@@ -258,12 +258,11 @@ async function updateOrder() {
 }
 
 // Sortable with proper instance lifecycle (fixes mobile touch)
-const { initialize: initializeSortable } = useSortableList(sortableEl, categories, {
+useSortableList(sortableEl, categories, {
   onReorder: updateOrder,
 });
 
 onMounted(async () => {
   await fetchCategories();
-  initializeSortable();
 });
 </script>

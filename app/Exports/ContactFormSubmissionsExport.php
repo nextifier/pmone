@@ -4,9 +4,28 @@ namespace App\Exports;
 
 use App\Models\ContactFormSubmission;
 use Illuminate\Database\Eloquent\Builder;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 
-class ContactFormSubmissionsExport extends BaseExport
+class ContactFormSubmissionsExport extends BaseExport implements WithColumnWidths
 {
+    public function columnWidths(): array
+    {
+        return [
+            'A' => 6,   // ID
+            'B' => 35,  // Subject
+            'C' => 25,  // Name
+            'D' => 25,  // Brand Name
+            'E' => 30,  // Email
+            'F' => 20,  // Phone
+            'G' => 20,  // Country
+            'H' => 25,  // Project
+            'I' => 14,  // Status
+            'J' => 45,  // Message
+            'K' => 20,  // Created At
+            'L' => 20,  // Referral Source
+        ];
+    }
+
     protected function getQuery(): Builder
     {
         return ContactFormSubmission::query()->with(['project']);
@@ -26,6 +45,7 @@ class ContactFormSubmissionsExport extends BaseExport
             'Brand Name',
             'Email',
             'Phone',
+            'Country',
             'Project',
             'Status',
             'Message',
@@ -53,6 +73,8 @@ class ContactFormSubmissionsExport extends BaseExport
             $phone = preg_replace('/[^\d+]/', '', $phone);
         }
 
+        $country = $formData['country'] ?? '-';
+
         return [
             $submission->id,
             $submission->subject ?? '-',
@@ -60,6 +82,7 @@ class ContactFormSubmissionsExport extends BaseExport
             $brandName,
             $email,
             $phone,
+            $country,
             $submission->project?->name ?? '-',
             $this->titleCase($submission->status?->value),
             $message,

@@ -651,7 +651,7 @@ async function reorderDocuments() {
 }
 
 // Sortable with proper instance lifecycle (fixes mobile touch)
-const { initialize: initSortable } = useSortableList(sortableRef, documents, {
+useSortableList(sortableRef, documents, {
   onReorder: reorderDocuments,
 });
 
@@ -763,7 +763,6 @@ async function onDocFormSuccess() {
 
 onMounted(async () => {
   await fetchDocuments();
-  initSortable();
 });
 
 usePageMeta(null, {

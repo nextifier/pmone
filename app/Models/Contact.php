@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ContactStatus;
+use App\Helpers\PhoneCountryHelper;
 use App\Traits\ClearsResponseCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -68,6 +69,20 @@ class Contact extends Model
 
             if (auth()->check()) {
                 $model->created_by = auth()->id();
+            }
+
+            // Auto-detect country from phone number if address.country is empty
+            $address = $model->address;
+            $phones = $model->phones;
+
+            if (empty($address['country']) && ! empty($phones) && is_array($phones)) {
+                $country = PhoneCountryHelper::getCountryName($phones[0]);
+
+                if ($country) {
+                    $address = is_array($address) ? $address : [];
+                    $address['country'] = $country;
+                    $model->address = $address;
+                }
             }
         });
 

@@ -280,15 +280,11 @@ const updateProjectOrder = async () => {
   }
 };
 
-// Sortable with proper instance lifecycle (composable handles watch + destroy)
+// Sortable with proper instance lifecycle (VueUse handles element/data watching)
 const sortableElement = computed(() => projectsListRef.value?.projectsListEl);
-const { initialize: initializeSortable } = useSortableList(sortableElement, projects, {
+useSortableList(sortableElement, projects, {
   onReorder: updateProjectOrder,
   enabled: computed(() => !hasActiveFilters.value),
-});
-
-onMounted(() => {
-  initializeSortable();
 });
 
 // Handle keepalive reactivation - check if data needs refresh

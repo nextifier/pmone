@@ -504,7 +504,7 @@ defineShortcuts({
 // Sortable with proper instance lifecycle (fixes mobile touch)
 const sortableEnabled = computed(() => !isFiltered.value);
 
-const { initialize: initializeSortable } = useSortableList(sortableEl, categories, {
+useSortableList(sortableEl, categories, {
   onReorder: updateOrder,
   enabled: sortableEnabled,
 });
@@ -513,6 +513,5 @@ onMounted(async () => {
   await fetchCategories();
   await nextTick();
   sortableEl.value = tableWrapper.value?.querySelector("tbody");
-  initializeSortable();
 });
 </script>

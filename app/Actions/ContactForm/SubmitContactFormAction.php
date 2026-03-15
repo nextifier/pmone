@@ -3,6 +3,7 @@
 namespace App\Actions\ContactForm;
 
 use App\Enums\ContactFormStatus;
+use App\Helpers\PhoneCountryHelper;
 use App\Jobs\ProcessContactFormSubmission;
 use App\Models\ContactFormSubmission;
 use App\Models\Project;
@@ -33,11 +34,23 @@ class SubmitContactFormAction
             throw new \Exception('No email recipients configured for this project.');
         }
 
+        // Sanitize and enrich form data
+        $formData = $this->sanitizeFormData($this->formData);
+
+        // Auto-detect country from phone number prefix
+        if (! empty($formData['phone'])) {
+            $formData['phone'] = PhoneCountryHelper::normalizePhoneNumber($formData['phone']);
+
+            if (empty($formData['country'])) {
+                $formData['country'] = PhoneCountryHelper::getCountryName($formData['phone']);
+            }
+        }
+
         // Create submission in database
-        $submission = DB::transaction(function () {
+        $submission = DB::transaction(function () use ($formData) {
             return ContactFormSubmission::create([
                 'project_id' => $this->project->id,
-                'form_data' => $this->sanitizeFormData($this->formData),
+                'form_data' => $formData,
                 'subject' => $this->subject ?? "New Contact Form Submission - {$this->project->name}",
                 'status' => ContactFormStatus::New->value,
                 'ip_address' => $this->ipAddress,
