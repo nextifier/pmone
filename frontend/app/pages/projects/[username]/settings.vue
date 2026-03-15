@@ -2,7 +2,7 @@
   <div class="flex flex-col">
     <TabNav :tabs="settingsTabs" />
 
-    <div class="mx-auto w-full max-w-2xl pt-6">
+    <div ref="contentArea" class="mx-auto w-full max-w-2xl pt-6">
       <NuxtPage :project="project" />
     </div>
   </div>
@@ -20,6 +20,8 @@ const props = defineProps({
 
 const route = useRoute();
 
+const contentArea = ref(null);
+
 const settingsBase = computed(() => `/projects/${route.params.username}/settings`);
 const settingsTabs = computed(() => [
   { label: "General", icon: "hugeicons:settings-01", to: settingsBase.value, exact: true },
@@ -35,4 +37,6 @@ const settingsTabs = computed(() => [
     to: `${settingsBase.value}/brand-fields`,
   },
 ]);
+
+useTabSwipe(contentArea, settingsTabs);
 </script>

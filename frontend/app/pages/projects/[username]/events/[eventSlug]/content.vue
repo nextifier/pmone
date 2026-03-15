@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-y-0">
     <TabNav :tabs="contentTabs" />
 
-    <div class="pt-6">
+    <div ref="contentArea" class="pt-6">
       <NuxtPage :event="event" :project="project" />
     </div>
   </div>
@@ -16,6 +16,8 @@ const props = defineProps({
 
 const route = useRoute();
 
+const contentArea = ref(null);
+
 const contentBase = computed(
   () => `/projects/${route.params.username}/events/${route.params.eventSlug}/content`
 );
@@ -27,4 +29,6 @@ const contentTabs = computed(() => [
   { label: "Partners", icon: "hugeicons:agreement-01", to: `${contentBase.value}/partners` },
   { label: "Gallery", icon: "hugeicons:image-02", to: `${contentBase.value}/gallery` },
 ]);
+
+useTabSwipe(contentArea, contentTabs);
 </script>

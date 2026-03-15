@@ -47,7 +47,7 @@
 
       <TabNav :tabs="formTabs" class="mt-4" />
 
-      <div class="pt-6">
+      <div ref="contentArea" class="pt-6">
         <NuxtPage :form="form" @refresh="refreshForm" />
       </div>
     </template>
@@ -101,6 +101,8 @@ const statusVariant = (status) => {
   }
 };
 
+const contentArea = ref(null);
+
 const formBase = computed(() => `/forms/${route.params.slug}`);
 
 const formTabs = computed(() => [
@@ -114,6 +116,8 @@ const publicFormUrl = computed(() => {
   const frontendUrl = window?.location?.origin || "https://pmone.id";
   return `${frontendUrl}/f/${form.value.slug}`;
 });
+
+useTabSwipe(contentArea, formTabs);
 
 provide("form", form);
 provide("refreshForm", refreshForm);

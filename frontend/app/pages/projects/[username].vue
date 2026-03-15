@@ -31,7 +31,7 @@
         <TabNav :tabs="projectTabs" />
       </template>
 
-      <div :class="isEventPage || isSettingsPage ? '' : 'pt-6'">
+      <div ref="contentArea" :class="isEventPage || isSettingsPage ? '' : 'pt-6'">
         <NuxtPage :project="project" />
       </div>
     </template>
@@ -99,6 +99,9 @@ const projectTabs = computed(() => [
   { label: "Activity", icon: "hugeicons:activity-03", to: `${projectBase.value}/activity` },
   { label: "Settings", icon: "hugeicons:settings-01", to: `${projectBase.value}/settings` },
 ]);
+
+const contentArea = ref(null);
+useTabSwipe(contentArea, projectTabs);
 
 provide("project", project);
 </script>
