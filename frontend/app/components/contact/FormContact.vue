@@ -191,6 +191,7 @@
             <SelectItem value="event">Event</SelectItem>
             <SelectItem value="referral">Referral</SelectItem>
             <SelectItem value="website">Website</SelectItem>
+            <SelectItem value="website inquiries">Website Inquiries</SelectItem>
             <SelectItem value="import">Import</SelectItem>
             <SelectItem value="manual">Manual</SelectItem>
           </SelectContent>

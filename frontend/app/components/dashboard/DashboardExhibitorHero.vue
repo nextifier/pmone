@@ -32,15 +32,26 @@
             <span>{{ currentAction.deadline }}</span>
           </div>
         </div>
-        <Button
-          v-if="currentAction.action"
-          size="sm"
-          :variant="allDone ? 'outline' : 'default'"
-          class="w-full sm:w-auto"
-          @click="$emit('action', currentAction.actionKey)"
-        >
-          {{ currentAction.action }}
-        </Button>
+        <div class="flex flex-wrap gap-2">
+          <Button
+            v-if="currentAction.action"
+            size="sm"
+            :variant="allDone ? 'outline' : 'default'"
+            class="w-full sm:w-auto"
+            @click="$emit('action', currentAction.actionKey)"
+          >
+            {{ currentAction.action }}
+          </Button>
+          <NuxtLink
+            v-if="brandEventWithOrders"
+            :to="`/brands/${brandEventWithOrders.brand.slug}/orders/${brandEventWithOrders.brand_event_id}`"
+          >
+            <Button size="sm" variant="outline" class="w-full sm:w-auto">
+              <Icon name="hugeicons:shopping-cart-01" class="mr-1.5 size-4" />
+              View My Orders
+            </Button>
+          </NuxtLink>
+        </div>
       </div>
     </div>
   </div>
@@ -62,6 +73,10 @@ const isUrgent = computed(() => {
 
 const allDone = computed(() => {
   return currentAction.value.actionKey === "all_done";
+});
+
+const brandEventWithOrders = computed(() => {
+  return (props.brandEvents || []).find((be) => be.orders_count > 0) || null;
 });
 
 const currentAction = computed(() => {

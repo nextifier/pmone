@@ -101,7 +101,9 @@ const eventTabs = computed(() => [
 ]);
 
 const contentArea = ref(null);
-useTabSwipe(contentArea, eventTabs);
+const swipeEnabled = computed(() => !isOperationalPage.value && !isContentPage.value && !isBrandPage.value);
+useTabSwipe(contentArea, eventTabs, { enabled: swipeEnabled });
 
 provide("event", event);
+provide("eventTabs", eventTabs);
 </script>

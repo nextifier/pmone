@@ -628,6 +628,7 @@ class ExhibitorDashboardController extends Controller
 
             return [
                 'category' => $category,
+                'description' => $firstCategory?->description,
                 'catalog_file' => $catalogFile ? [
                     'url' => $catalogFile['url'],
                     'name' => $firstCategory->getFirstMedia('catalog_files')?->file_name,
@@ -1005,9 +1006,14 @@ class ExhibitorDashboardController extends Controller
             ->findOrFail($brandEventId);
 
         $validated = $request->validate([
-            'fascia_name' => ['nullable', 'string', 'max:255'],
+            'fascia_name' => ['nullable', 'string', 'max:24'],
             'badge_name' => ['nullable', 'string', 'max:255'],
         ]);
+
+        // Force fascia_name uppercase
+        if (! empty($validated['fascia_name'])) {
+            $validated['fascia_name'] = strtoupper($validated['fascia_name']);
+        }
 
         $brandEvent->update($validated);
 

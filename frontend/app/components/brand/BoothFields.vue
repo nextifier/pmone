@@ -11,6 +11,7 @@
           <SelectItem value="standard_shell_scheme">Standard Shell Scheme</SelectItem>
           <SelectItem value="enhanced_shell_scheme">Enhanced Shell Scheme</SelectItem>
           <SelectItem value="table_chair_only">Table &amp; Chair Only</SelectItem>
+          <SelectItem value="alley">Alley</SelectItem>
         </SelectContent>
       </Select>
     </div>

@@ -27,5 +27,6 @@ const opsTabs = computed(() => [
   { label: "Order Form Settings", icon: "hugeicons:settings-02", to: `${opsBase.value}/order-form-settings` },
 ]);
 
-useTabSwipe(contentArea, opsTabs);
+const eventTabs = inject("eventTabs");
+useTabSwipe(contentArea, opsTabs, { parentTabs: eventTabs });
 </script>

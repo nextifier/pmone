@@ -23,10 +23,10 @@
 
         <button
           @click="handleExport"
-          :disabled="exportPending"
+          :disabled="exportJob.processing.value"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Spinner v-if="exportPending" class="size-4 shrink-0" />
+          <Spinner v-if="exportJob.processing.value" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
           <span>{{ totalActiveFilters > 0 ? "Export Filtered" : "Export All" }}</span>
         </button>
@@ -143,6 +143,7 @@
                   { label: 'Event', value: 'event' },
                   { label: 'Referral', value: 'referral' },
                   { label: 'Website', value: 'website' },
+                  { label: 'Website Inquiries', value: 'website inquiries' },
                   { label: 'Import', value: 'import' },
                   { label: 'Manual', value: 'manual' },
                 ]"
@@ -208,21 +209,31 @@
                 This will delete {{ selectedRows.length }}
                 {{ selectedRows.length === 1 ? "contact" : "contacts" }}.
               </p>
-              <div class="mt-3 flex justify-end gap-2">
+
+              <!-- Progress bar -->
+              <div v-if="deleteJob.processing.value" class="mt-3 space-y-2">
+                <div class="flex items-center justify-between text-sm tracking-tight">
+                  <span class="text-muted-foreground">{{ deleteJob.progress.value?.message }}</span>
+                  <span class="font-medium tabular-nums">{{ deleteJob.progress.value?.percentage ?? 0 }}%</span>
+                </div>
+                <Progress :model-value="deleteJob.progress.value?.percentage ?? 0" indicator-class="bg-destructive" />
+                <p v-if="deleteJob.progress.value?.total > 0" class="text-muted-foreground text-xs sm:text-sm tracking-tight tabular-nums">
+                  {{ deleteJob.progress.value?.processed ?? 0 }} / {{ deleteJob.progress.value?.total ?? 0 }}
+                </p>
+              </div>
+
+              <div v-else class="mt-3 flex justify-end gap-2">
                 <button
                   class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
                   @click="deleteDialogOpen = false"
-                  :disabled="deletePending"
                 >
                   Cancel
                 </button>
                 <button
                   @click="handleDeleteRows(selectedRows)"
-                  :disabled="deletePending"
-                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98"
                 >
-                  <Spinner v-if="deletePending" class="size-4 text-white" />
-                  <span v-else>Delete</span>
+                  Delete
                 </button>
               </div>
             </div>
@@ -359,19 +370,44 @@
               <button
                 class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
                 @click="dedupeDialogOpen = false"
-                :disabled="dedupeRemovePending"
               >
                 Cancel
               </button>
               <button
                 @click="handleRemoveDuplicates"
-                :disabled="dedupeRemovePending"
-                class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98"
               >
-                <Spinner v-if="dedupeRemovePending" class="size-4 text-white" />
-                <span v-else>Remove {{ dedupeScanResult.duplicate_count }} Duplicate(s)</span>
+                Remove {{ dedupeScanResult.duplicate_count }} Duplicate(s)
               </button>
             </div>
+          </div>
+
+          <!-- Step 5: Removing duplicates (progress bar) -->
+          <div v-else-if="dedupeStep === 'removing'" class="mt-4 space-y-2">
+            <div class="flex items-center justify-between text-sm tracking-tight">
+              <span class="text-muted-foreground">{{ dedupeJob.progress.value?.message }}</span>
+              <span class="font-medium tabular-nums">{{ dedupeJob.progress.value?.percentage ?? 0 }}%</span>
+            </div>
+            <Progress :model-value="dedupeJob.progress.value?.percentage ?? 0" indicator-class="bg-destructive" />
+            <p v-if="dedupeJob.progress.value?.total > 0" class="text-muted-foreground text-xs sm:text-sm tracking-tight tabular-nums">
+              {{ dedupeJob.progress.value?.processed ?? 0 }} / {{ dedupeJob.progress.value?.total ?? 0 }}
+            </p>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
+
+    <!-- Export Progress Dialog -->
+    <DialogResponsive v-model:open="exportDialogOpen" dialog-max-width="400px">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="text-primary text-lg font-semibold tracking-tight">Exporting Contacts</div>
+          <div class="mt-4 space-y-2">
+            <div class="flex items-center justify-between text-sm tracking-tight">
+              <span class="text-muted-foreground">{{ exportJob.progress.value?.message || "Preparing export..." }}</span>
+              <span class="font-medium tabular-nums">{{ exportJob.progress.value?.percentage ?? 0 }}%</span>
+            </div>
+            <Progress :model-value="exportJob.progress.value?.percentage ?? 0" indicator-class="bg-success" />
           </div>
         </div>
       </template>
@@ -544,6 +580,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Progress } from "@/components/ui/progress";
 import { defineComponent, resolveComponent, resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
 
@@ -984,13 +1021,63 @@ const columns = computed(() => [
   },
 ]);
 
-// Export
-const exportPending = ref(false);
+// Export (queued with progress)
+const exportJob = useJobProgress();
+const exportDialogOpen = ref(false);
+
+// Prevent closing export dialog while processing
+watch(exportDialogOpen, (open) => {
+  if (!open && exportJob.processing.value) {
+    exportDialogOpen.value = true;
+  }
+});
+
+// Watch export completion
+watch(
+  () => exportJob.progress.value?.status,
+  async (status) => {
+    if (status === "completed") {
+      // Auto-download the file
+      try {
+        const jobId = exportJob.jobId.value;
+        const response = await client(`/api/jobs/${jobId}/download`, {
+          responseType: "blob",
+        });
+
+        const blob = new Blob([response], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download =
+          exportJob.progress.value?.download_filename ||
+          `contacts_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast.success("Contacts exported successfully");
+      } catch (err) {
+        toast.error("Failed to download export file");
+      }
+      exportDialogOpen.value = false;
+      exportJob.reset();
+    }
+
+    if (status === "failed") {
+      toast.error("Failed to export contacts", {
+        description: exportJob.progress.value?.error_message || "An error occurred",
+      });
+      exportDialogOpen.value = false;
+      exportJob.reset();
+    }
+  },
+);
 
 const handleExport = async () => {
   try {
-    exportPending.value = true;
-
     const params = new URLSearchParams();
 
     columnFilters.value.forEach((filter) => {
@@ -1010,42 +1097,103 @@ const handleExport = async () => {
     const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
     params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
 
-    const response = await client(`/api/contacts/export?${params.toString()}`, {
-      responseType: "blob",
-    });
-
-    const blob = new Blob([response], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `contacts_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.xlsx`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-
-    toast.success("Contacts exported successfully");
+    exportDialogOpen.value = true;
+    await exportJob.startJob(`/api/contacts/export?${params.toString()}`, { method: "GET" });
   } catch (err) {
     console.error("Failed to export contacts:", err);
     toast.error("Failed to export contacts", {
       description: err?.data?.message || err?.message || "An error occurred",
     });
-  } finally {
-    exportPending.value = false;
+    exportDialogOpen.value = false;
+    exportJob.reset();
   }
 };
 
-// Delete
+// Bulk delete (queued with progress)
 const deleteDialogOpen = ref(false);
-const deletePending = ref(false);
+const deleteJob = useJobProgress();
 
-// Deduplicate
+// Prevent closing delete dialog while processing
+watch(deleteDialogOpen, (open) => {
+  if (!open && deleteJob.processing.value) {
+    deleteDialogOpen.value = true;
+  }
+});
+
+// Watch delete completion
+watch(
+  () => deleteJob.progress.value?.status,
+  (status) => {
+    if (status === "completed") {
+      toast.success(deleteJob.progress.value?.message || "Contacts deleted");
+      deleteDialogOpen.value = false;
+      deleteJob.reset();
+      refresh();
+      if (tableRef.value) {
+        tableRef.value.resetRowSelection();
+      }
+    }
+
+    if (status === "failed") {
+      toast.error("Failed to delete contacts", {
+        description: deleteJob.progress.value?.error_message || "An error occurred",
+      });
+      deleteJob.reset();
+    }
+  },
+);
+
+const handleDeleteRows = async (selectedRows) => {
+  const ids = selectedRows.map((row) => row.original.id);
+  try {
+    await deleteJob.startJob("/api/contacts/bulk", {
+      method: "DELETE",
+      body: { ids },
+    });
+  } catch (err) {
+    toast.error("Failed to delete contacts", {
+      description: err?.data?.message || err?.message,
+    });
+    deleteJob.reset();
+  }
+};
+
+// Deduplicate (queued with progress)
 const dedupeDialogOpen = ref(false);
-const dedupeStep = ref("explain"); // 'explain' | 'scanning' | 'empty' | 'preview'
-const dedupeRemovePending = ref(false);
+const dedupeStep = ref("explain"); // 'explain' | 'scanning' | 'empty' | 'preview' | 'removing'
 const dedupeScanResult = ref(null);
+const dedupeJob = useJobProgress();
+
+// Prevent closing dedupe dialog while removing
+watch(dedupeDialogOpen, (open) => {
+  if (!open && dedupeJob.processing.value) {
+    dedupeDialogOpen.value = true;
+  }
+});
+
+// Watch dedupe completion
+watch(
+  () => dedupeJob.progress.value?.status,
+  (status) => {
+    if (status === "completed") {
+      toast.success(
+        dedupeJob.progress.value?.message ||
+          `${dedupeJob.progress.value?.removed_count} duplicate(s) removed`,
+      );
+      dedupeDialogOpen.value = false;
+      dedupeJob.reset();
+      refresh();
+    }
+
+    if (status === "failed") {
+      toast.error("Failed to remove duplicates", {
+        description: dedupeJob.progress.value?.error_message || "An error occurred",
+      });
+      dedupeStep.value = "preview";
+      dedupeJob.reset();
+    }
+  },
+);
 
 const openDedupeDialog = () => {
   dedupeStep.value = "explain";
@@ -1068,38 +1216,15 @@ const handleScanDuplicates = async () => {
 };
 
 const handleRemoveDuplicates = async () => {
-  dedupeRemovePending.value = true;
+  dedupeStep.value = "removing";
   try {
-    const res = await client("/api/contacts/duplicates/remove", { method: "POST" });
-    dedupeDialogOpen.value = false;
-    await refresh();
-    toast.success(res.message || `${res.removed_count} duplicate(s) removed`);
+    await dedupeJob.startJob("/api/contacts/duplicates/remove");
   } catch (err) {
     toast.error("Failed to remove duplicates", {
       description: err?.data?.message || err?.message || "An error occurred",
     });
-  } finally {
-    dedupeRemovePending.value = false;
-  }
-};
-
-const handleDeleteRows = async (selectedRows) => {
-  const ulids = selectedRows.map((row) => row.original.ulid);
-  try {
-    deletePending.value = true;
-    await Promise.all(ulids.map((ulid) => client(`/api/contacts/${ulid}`, { method: "DELETE" })));
-    await refresh();
-    deleteDialogOpen.value = false;
-    if (tableRef.value) {
-      tableRef.value.resetRowSelection();
-    }
-    toast.success(`${ulids.length} contact(s) deleted`);
-  } catch (err) {
-    toast.error("Failed to delete contacts", {
-      description: err?.data?.message || err?.message,
-    });
-  } finally {
-    deletePending.value = false;
+    dedupeStep.value = "preview";
+    dedupeJob.reset();
   }
 };
 
@@ -1280,7 +1405,7 @@ const RowActions = defineComponent({
               ),
               [[resolveDirective("tippy"), "WhatsApp"]]
             )
-          : null,
+          : h("div", { class: "size-8" }),
         // Email button
         primaryEmail.value
           ? withDirectives(
@@ -1295,7 +1420,7 @@ const RowActions = defineComponent({
               ),
               [[resolveDirective("tippy"), "Email"]]
             )
-          : null,
+          : h("div", { class: "size-8" }),
         // Delete button
         ...(canDelete.value
           ? [

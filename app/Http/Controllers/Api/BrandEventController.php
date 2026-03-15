@@ -159,24 +159,35 @@ class BrandEventController extends Controller
 
         $validated = $request->validate([
             'brand_name' => ['required', 'string', 'max:255'],
+            'company_name' => ['nullable', 'string', 'max:255'],
             'booth_type' => ['nullable', 'string', Rule::in(array_column(BoothType::cases(), 'value'))],
             'booth_number' => ['nullable', 'string', 'max:255'],
             'booth_size' => ['nullable', 'numeric', 'min:0'],
             'booth_price' => ['nullable', 'numeric', 'min:0'],
             'badge_name' => ['nullable', 'string', 'max:255'],
-            'fascia_name' => ['nullable', 'string', 'max:255'],
+            'fascia_name' => ['nullable', 'string', 'max:24'],
             'sales_id' => ['nullable', 'integer', 'exists:users,id'],
             'emails' => ['nullable', 'array'],
             'emails.*' => ['email'],
             'send_login_email' => ['nullable', 'boolean'],
         ]);
 
+        // Force fascia_name uppercase
+        if (! empty($validated['fascia_name'])) {
+            $validated['fascia_name'] = strtoupper($validated['fascia_name']);
+        }
+
         $brandName = trim($validated['brand_name']);
+        $companyName = trim($validated['company_name'] ?? '');
 
         // Find existing brand by name (case-insensitive)
         $brand = Brand::whereRaw('LOWER(TRIM(name)) = ?', [strtolower($brandName)])->first();
 
         if ($brand) {
+            // Update company_name if provided and brand doesn't have one
+            if ($companyName && ! $brand->company_name) {
+                $brand->update(['company_name' => $companyName]);
+            }
             // Check if already in this event
             $existingBrandEvent = BrandEvent::where('brand_id', $brand->id)
                 ->where('event_id', $event->id)
@@ -192,6 +203,7 @@ class BrandEventController extends Controller
             // Create new brand
             $brand = Brand::create([
                 'name' => $brandName,
+                'company_name' => $companyName ?: null,
             ]);
         }
 

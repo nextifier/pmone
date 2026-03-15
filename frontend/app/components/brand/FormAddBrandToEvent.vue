@@ -70,23 +70,16 @@
           <p v-if="errors.brand_name" class="text-destructive text-xs">{{ errors.brand_name }}</p>
         </div>
 
+        <div class="space-y-2">
+          <Label>Company Name</Label>
+          <Input v-model="form.company_name" placeholder="Company / organization name" />
+        </div>
+
         <BrandBoothFields
           :form="form"
           booth-number-label="Booth Number(s)"
           booth-number-placeholder="Ex: A-01, A-02, A-03"
         />
-
-        <!-- Badge Name & Fascia Name -->
-        <div class="grid grid-cols-2 gap-x-2 gap-y-4">
-          <div class="space-y-2" :class="{ 'col-span-2': !showFasciaName }">
-            <Label>Badge Name</Label>
-            <Input v-model="form.badge_name" placeholder="Name on exhibitor badge" />
-          </div>
-          <div v-if="showFasciaName" class="space-y-2">
-            <Label>Fascia Name</Label>
-            <Input v-model="form.fascia_name" placeholder="Name on booth fascia" />
-          </div>
-        </div>
 
         <div class="space-y-2">
           <Label>Sales</Label>
@@ -216,8 +209,7 @@ const form = reactive({
   booth_size: null,
   booth_price: null,
   booth_type: "",
-  fascia_name: "",
-  badge_name: "",
+  company_name: "",
   sales_id: null,
   emails: [""],
   send_login_email: false,
@@ -246,10 +238,6 @@ const filteredMembers = computed(() => {
   return props.members.filter((u) => u.name.toLowerCase().includes(term));
 });
 
-const showFasciaName = computed(() =>
-  ["standard_shell_scheme", "enhanced_shell_scheme"].includes(form.booth_type)
-);
-
 async function fetchBrands() {
   if (brandsLoaded.value) return;
   try {
@@ -267,6 +255,12 @@ watch(searchTerm, (val) => {
   }
 });
 
+watch(selectedBrand, (brand) => {
+  if (brand?.company_name) {
+    form.company_name = brand.company_name;
+  }
+});
+
 watch(isOpen, (val) => {
   if (val) {
     fetchBrands();
@@ -277,8 +271,7 @@ watch(isOpen, (val) => {
     form.booth_size = null;
     form.booth_price = null;
     form.booth_type = "";
-    form.fascia_name = "";
-    form.badge_name = "";
+    form.company_name = "";
     form.sales_id = null;
     salesSearch.value = "";
     form.emails = [""];
@@ -307,8 +300,7 @@ async function submit() {
         booth_size: form.booth_size || null,
         booth_price: form.booth_price || null,
         booth_type: form.booth_type || null,
-        fascia_name: form.fascia_name || null,
-        badge_name: form.badge_name || null,
+        company_name: form.company_name || null,
         sales_id: form.sales_id || null,
         emails,
         send_login_email: form.send_login_email,

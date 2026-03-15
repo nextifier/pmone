@@ -102,6 +102,12 @@
                 />
               </button>
 
+              <div
+                v-if="category.description && !collapsedCategories.includes(category.category)"
+                class="prose prose-sm dark:prose-invert text-muted-foreground max-w-none"
+                v-html="category.description"
+              />
+
               <div v-if="!collapsedCategories.includes(category.category)" class="space-y-2">
                 <!-- Catalog PDF -->
                 <a

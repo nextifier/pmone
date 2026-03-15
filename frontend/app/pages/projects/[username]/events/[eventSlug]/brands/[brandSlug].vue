@@ -79,7 +79,10 @@ const brandTabs = computed(() => [
   { label: "Orders", to: `${brandBase.value}/orders`, icon: "hugeicons:shopping-bag-02" },
 ]);
 
-useTabSwipe(contentArea, brandTabs);
+const brandsListRoute = computed(
+  () => `/projects/${route.params.username}/events/${route.params.eventSlug}/brands`
+);
+useTabSwipe(contentArea, brandTabs, { backRoute: brandsListRoute });
 
 onMounted(() => refresh());
 </script>

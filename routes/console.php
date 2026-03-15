@@ -16,3 +16,17 @@ Schedule::command('activitylog:clean')->daily()->at('01:00')->environments(['pro
 Schedule::command('backup:clean')->daily()->at('02:00')->environments(['production']);
 Schedule::command('backup:run --only-db')->daily()->at('03:00')->environments(['production']);
 Schedule::command('backup:monitor')->daily()->at('04:00')->environments(['production']);
+
+// Clean up temporary export files older than 1 hour
+Schedule::call(function () {
+    $directory = storage_path('app/tmp/exports');
+    if (! is_dir($directory)) {
+        return;
+    }
+    $files = glob($directory.'/*.xlsx');
+    foreach ($files as $file) {
+        if (filemtime($file) < now()->subHour()->timestamp) {
+            unlink($file);
+        }
+    }
+})->hourly();

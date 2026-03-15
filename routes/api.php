@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\FormFieldController;
 use App\Http\Controllers\Api\FormResponseController;
 use App\Http\Controllers\Api\ImportProgressController;
+use App\Http\Controllers\Api\JobProgressController;
 use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
@@ -281,6 +282,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/brands/{brand}/members', [BrandController::class, 'addMember'])->middleware('can:brands.update')->name('brands.members.store');
     Route::delete('/brands/{brand}/members/{userId}', [BrandController::class, 'removeMember'])->middleware('can:brands.update')->name('brands.members.destroy');
 
+    // Job progress tracking
+    Route::get('/jobs/{jobId}/progress', [JobProgressController::class, 'show'])->name('jobs.progress');
+    Route::get('/jobs/{jobId}/download', [JobProgressController::class, 'download'])->middleware('can:contacts.read')->name('jobs.download');
+
     // Contact management routes
     Route::get('/contacts', [ContactController::class, 'index'])->middleware('can:contacts.read')->name('contacts.index');
     Route::post('/contacts', [ContactController::class, 'store'])->middleware('can:contacts.create')->name('contacts.store');
@@ -291,6 +296,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/contacts/search', [ContactController::class, 'search'])->name('contacts.search');
     Route::get('/contacts/duplicates/scan', [ContactController::class, 'scanDuplicates'])->middleware('can:contacts.delete')->name('contacts.duplicates.scan');
     Route::post('/contacts/duplicates/remove', [ContactController::class, 'removeDuplicates'])->middleware('can:contacts.delete')->name('contacts.duplicates.remove');
+    Route::delete('/contacts/bulk', [ContactController::class, 'bulkDestroy'])->middleware('can:contacts.delete')->name('contacts.bulk-delete');
     Route::get('/contacts/{contact}', [ContactController::class, 'show'])->middleware('can:contacts.read')->name('contacts.show');
     Route::put('/contacts/{contact}', [ContactController::class, 'update'])->middleware('can:contacts.update')->name('contacts.update');
     Route::patch('/contacts/{contact}/status', [ContactController::class, 'updateStatus'])->middleware('can:contacts.update')->name('contacts.update-status');
@@ -299,6 +305,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/contacts-trash/restore/bulk', [ContactController::class, 'bulkRestore'])->middleware('can:contacts.delete')->name('contacts.bulk-restore');
     Route::post('/contacts-trash/{id}/restore', [ContactController::class, 'restore'])->middleware('can:contacts.delete')->name('contacts.restore');
     Route::delete('/contacts-trash/bulk', [ContactController::class, 'bulkForceDestroy'])->middleware('can:contacts.delete')->name('contacts.bulk-force-delete');
+    Route::delete('/contacts-trash/empty', [ContactController::class, 'emptyTrash'])->middleware('can:contacts.delete')->name('contacts.empty-trash');
     Route::delete('/contacts-trash/{id}', [ContactController::class, 'forceDestroy'])->middleware('can:contacts.delete')->name('contacts.force-delete');
 
     // Contact business categories

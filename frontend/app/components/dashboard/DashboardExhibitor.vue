@@ -320,12 +320,23 @@
                         "
                         placeholder="Name displayed on booth fascia"
                         @update:model-value="
-                          (v) => setBoothField(be.brand_event_id, 'fascia_name', v)
+                          (v) =>
+                            setBoothField(be.brand_event_id, 'fascia_name', v.toUpperCase())
                         "
+                        maxlength="24"
                       />
+                      <p class="text-muted-foreground text-xs tracking-tight">
+                        Max 24 characters, uppercase only
+                      </p>
                     </div>
                     <div v-if="showBadgeField(be)" class="space-y-2">
                       <Label :for="`badge_${be.brand_event_id}`">Badge Name</Label>
+                      <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                        This is the name that will be printed on your Exhibitor Badge.
+                        You can use your company name or brand name.
+                        If you choose your brand name and have multiple brands,
+                        select which brand name to use.
+                      </p>
                       <Input
                         :id="`badge_${be.brand_event_id}`"
                         :model-value="
@@ -364,6 +375,10 @@
               icon="hugeicons:name-tag"
               summary="Information about exhibitor badges and VIP passes."
               :completed="true"
+              :locked="
+                !dashboard.profile_complete ||
+                (be.event_rules?.length > 0 && !be.event_rules_agreed)
+              "
               section-key="badge_vip"
             >
               <div class="format-html" v-html="be.event.badge_vip_info" />
@@ -733,12 +748,23 @@
                             "
                             placeholder="Name displayed on booth fascia"
                             @update:model-value="
-                              (v) => setBoothField(be.brand_event_id, 'fascia_name', v)
+                              (v) =>
+                                setBoothField(be.brand_event_id, 'fascia_name', v.toUpperCase())
                             "
+                            maxlength="24"
                           />
+                          <p class="text-muted-foreground text-xs tracking-tight">
+                            Max 24 characters, uppercase only
+                          </p>
                         </div>
                         <div v-if="showBadgeField(be)" class="space-y-2">
                           <Label :for="`badge_${be.brand_event_id}`">Badge Name</Label>
+                          <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                            This is the name that will be printed on your Exhibitor Badge.
+                            You can use your company name or brand name.
+                            If you choose your brand name and have multiple brands,
+                            select which brand name to use.
+                          </p>
                           <Input
                             :id="`badge_${be.brand_event_id}`"
                             :model-value="
@@ -777,6 +803,10 @@
                   icon="hugeicons:name-tag"
                   summary="Information about exhibitor badges and VIP passes."
                   :completed="true"
+                  :locked="
+                    !dashboard.profile_complete ||
+                    (be.event_rules?.length > 0 && !be.event_rules_agreed)
+                  "
                   section-key="badge_vip"
                 >
                   <div

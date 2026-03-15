@@ -30,5 +30,6 @@ const contentTabs = computed(() => [
   { label: "Gallery", icon: "hugeicons:image-02", to: `${contentBase.value}/gallery` },
 ]);
 
-useTabSwipe(contentArea, contentTabs);
+const eventTabs = inject("eventTabs");
+useTabSwipe(contentArea, contentTabs, { parentTabs: eventTabs });
 </script>

@@ -7,6 +7,14 @@
       </div>
 
       <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+        <button
+          v-if="meta.total > 0"
+          @click="deleteAllDialogOpen = true"
+          class="border-border hover:bg-muted text-destructive-foreground flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+        >
+          <Icon name="hugeicons:delete-02" class="size-4 shrink-0" />
+          <span>Delete All</span>
+        </button>
         <NuxtLink
           to="/contacts"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
@@ -82,6 +90,7 @@
                   { label: 'Event', value: 'event' },
                   { label: 'Referral', value: 'referral' },
                   { label: 'Website', value: 'website' },
+                  { label: 'Website Inquiries', value: 'website inquiries' },
                   { label: 'Import', value: 'import' },
                   { label: 'Manual', value: 'manual' },
                 ]"
@@ -170,21 +179,31 @@
                 {{ selectedRows.length }} selected
                 {{ selectedRows.length === 1 ? "contact" : "contacts" }}.
               </p>
-              <div class="mt-3 flex justify-end gap-2">
+
+              <!-- Progress bar -->
+              <div v-if="deleteJob.processing.value" class="mt-3 space-y-2">
+                <div class="flex items-center justify-between text-sm tracking-tight">
+                  <span class="text-muted-foreground">{{ deleteJob.progress.value?.message }}</span>
+                  <span class="font-medium tabular-nums">{{ deleteJob.progress.value?.percentage ?? 0 }}%</span>
+                </div>
+                <Progress :model-value="deleteJob.progress.value?.percentage ?? 0" indicator-class="bg-destructive" />
+                <p v-if="deleteJob.progress.value?.total > 0" class="text-muted-foreground text-xs sm:text-sm tracking-tight tabular-nums">
+                  {{ deleteJob.progress.value?.processed ?? 0 }} / {{ deleteJob.progress.value?.total ?? 0 }}
+                </p>
+              </div>
+
+              <div v-else class="mt-3 flex justify-end gap-2">
                 <button
                   class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
                   @click="deleteDialogOpen = false"
-                  :disabled="deletePending"
                 >
                   Cancel
                 </button>
                 <button
                   @click="handleDeleteRows(selectedRows)"
-                  :disabled="deletePending"
-                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98"
                 >
-                  <Spinner v-if="deletePending" class="size-4 text-white" />
-                  <span v-else>Delete Permanently</span>
+                  Delete Permanently
                 </button>
               </div>
             </div>
@@ -192,6 +211,49 @@
         </DialogResponsive>
       </template>
     </TableData>
+
+    <!-- Delete All Dialog -->
+    <DialogResponsive v-model:open="deleteAllDialogOpen">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="text-primary text-lg font-semibold tracking-tight">
+            Delete all trashed contacts?
+          </div>
+          <p class="text-body mt-1.5 text-sm tracking-tight">
+            This action can't be undone. This will permanently delete
+            <span class="text-primary font-medium">all {{ meta.total }}</span>
+            trashed {{ meta.total === 1 ? "contact" : "contacts" }}.
+          </p>
+
+          <!-- Progress bar -->
+          <div v-if="deleteAllJob.processing.value" class="mt-3 space-y-2">
+            <div class="flex items-center justify-between text-sm tracking-tight">
+              <span class="text-muted-foreground">{{ deleteAllJob.progress.value?.message }}</span>
+              <span class="font-medium tabular-nums">{{ deleteAllJob.progress.value?.percentage ?? 0 }}%</span>
+            </div>
+            <Progress :model-value="deleteAllJob.progress.value?.percentage ?? 0" indicator-class="bg-destructive" />
+            <p v-if="deleteAllJob.progress.value?.total > 0" class="text-muted-foreground text-xs sm:text-sm tracking-tight tabular-nums">
+              {{ deleteAllJob.progress.value?.processed ?? 0 }} / {{ deleteAllJob.progress.value?.total ?? 0 }}
+            </p>
+          </div>
+
+          <div v-else class="mt-3 flex justify-end gap-2">
+            <button
+              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+              @click="deleteAllDialogOpen = false"
+            >
+              Cancel
+            </button>
+            <button
+              @click="handleDeleteAll"
+              class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98"
+            >
+              Delete All Permanently
+            </button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
   </div>
 </template>
 
@@ -203,6 +265,7 @@ import TableData from "@/components/TableData.vue";
 import FilterSection from "@/components/user/FilterSection.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Progress } from "@/components/ui/progress";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
 
@@ -361,30 +424,96 @@ const handleRestoreRows = async (selectedRows) => {
   }
 };
 
-// Bulk delete permanently
+// Bulk delete permanently (queued with progress)
 const deleteDialogOpen = ref(false);
-const deletePending = ref(false);
+const deleteJob = useJobProgress();
+
+// Prevent closing delete dialog while processing
+watch(deleteDialogOpen, (open) => {
+  if (!open && deleteJob.processing.value) {
+    deleteDialogOpen.value = true;
+  }
+});
+
+// Watch delete completion
+watch(
+  () => deleteJob.progress.value?.status,
+  (status) => {
+    if (status === "completed") {
+      toast.success(deleteJob.progress.value?.message || "Contacts permanently deleted");
+      deleteDialogOpen.value = false;
+      deleteJob.reset();
+      refresh();
+      if (tableRef.value) {
+        tableRef.value.resetRowSelection();
+      }
+    }
+
+    if (status === "failed") {
+      toast.error("Failed to delete contacts", {
+        description: deleteJob.progress.value?.error_message || "An error occurred",
+      });
+      deleteJob.reset();
+    }
+  },
+);
 
 const handleDeleteRows = async (selectedRows) => {
   const ids = selectedRows.map((row) => row.original.id);
-  deletePending.value = true;
   try {
-    const response = await client("/api/contacts-trash/bulk", {
+    await deleteJob.startJob("/api/contacts-trash/bulk", {
       method: "DELETE",
       body: { ids },
     });
-    await refresh();
-    deleteDialogOpen.value = false;
-    if (tableRef.value) {
-      tableRef.value.resetRowSelection();
-    }
-    toast.success(response.message || `${ids.length} contact(s) permanently deleted`);
   } catch (err) {
     toast.error("Failed to delete contacts", {
       description: err?.data?.message || err?.message || "An error occurred",
     });
-  } finally {
-    deletePending.value = false;
+    deleteJob.reset();
+  }
+};
+
+// Delete all trashed contacts (queued with progress)
+const deleteAllDialogOpen = ref(false);
+const deleteAllJob = useJobProgress();
+
+// Prevent closing delete all dialog while processing
+watch(deleteAllDialogOpen, (open) => {
+  if (!open && deleteAllJob.processing.value) {
+    deleteAllDialogOpen.value = true;
+  }
+});
+
+// Watch delete all completion
+watch(
+  () => deleteAllJob.progress.value?.status,
+  (status) => {
+    if (status === "completed") {
+      toast.success(deleteAllJob.progress.value?.message || "All trashed contacts permanently deleted");
+      deleteAllDialogOpen.value = false;
+      deleteAllJob.reset();
+      refresh();
+    }
+
+    if (status === "failed") {
+      toast.error("Failed to delete contacts", {
+        description: deleteAllJob.progress.value?.error_message || "An error occurred",
+      });
+      deleteAllJob.reset();
+    }
+  },
+);
+
+const handleDeleteAll = async () => {
+  try {
+    await deleteAllJob.startJob("/api/contacts-trash/empty", {
+      method: "DELETE",
+    });
+  } catch (err) {
+    toast.error("Failed to delete contacts", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+    deleteAllJob.reset();
   }
 };
 

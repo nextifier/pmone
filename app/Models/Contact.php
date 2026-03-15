@@ -162,7 +162,12 @@ class Contact extends Model
      */
     public function getContactTypesListAttribute(): array
     {
-        return $this->tagsWithType('contact_type')->pluck('name')->toArray();
+        return $this->tagsWithType('contact_type')
+            ->pluck('name')
+            ->map(fn ($name) => strtolower($name))
+            ->unique()
+            ->values()
+            ->toArray();
     }
 
     /**

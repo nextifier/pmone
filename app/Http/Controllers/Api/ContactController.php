@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\ContactStatus;
 use App\Enums\ContactType;
-use App\Exports\ContactsExport;
 use App\Exports\ContactsTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreContactRequest;
@@ -12,12 +11,15 @@ use App\Http\Requests\UpdateContactRequest;
 use App\Http\Resources\ContactIndexResource;
 use App\Http\Resources\ContactResource;
 use App\Imports\ContactsImport;
+use App\Jobs\BulkForceDeleteContacts;
+use App\Jobs\BulkSoftDeleteContacts;
+use App\Jobs\ExportContacts;
 use App\Jobs\ProcessExcelImport;
+use App\Jobs\RemoveDuplicateContacts;
 use App\Models\Contact;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -175,6 +177,36 @@ class ContactController extends Controller
     }
 
     /**
+     * Bulk soft-delete contacts (queued).
+     */
+    public function bulkDestroy(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer'],
+        ]);
+
+        $jobId = Str::uuid()->toString();
+
+        Cache::put("job:{$jobId}", [
+            'status' => 'pending',
+            'total' => count($validated['ids']),
+            'processed' => 0,
+            'percentage' => 0,
+            'message' => 'Preparing to delete contacts...',
+            'error_message' => null,
+        ], now()->addMinutes(30));
+
+        BulkSoftDeleteContacts::dispatch(
+            $jobId,
+            $validated['ids'],
+            auth()->id(),
+        );
+
+        return response()->json(['job_id' => $jobId]);
+    }
+
+    /**
      * Quick search contacts by name, company_name, or email.
      */
     public function search(Request $request): JsonResponse
@@ -210,9 +242,9 @@ class ContactController extends Controller
     }
 
     /**
-     * Export contacts to Excel.
+     * Export contacts to Excel (queued).
      */
-    public function export(Request $request): BinaryFileResponse
+    public function export(Request $request): JsonResponse
     {
         $filters = [];
         if ($search = $request->input('filter_search')) {
@@ -227,11 +259,20 @@ class ContactController extends Controller
 
         $sort = $request->input('sort', 'name');
 
-        $export = new ContactsExport($filters, $sort);
+        $jobId = Str::uuid()->toString();
 
-        $filename = 'contacts_'.now()->format('Y-m-d_His').'.xlsx';
+        Cache::put("job:{$jobId}", [
+            'status' => 'pending',
+            'total' => 0,
+            'processed' => 0,
+            'percentage' => 0,
+            'message' => 'Preparing export...',
+            'error_message' => null,
+        ], now()->addMinutes(30));
 
-        return Excel::download($export, $filename);
+        ExportContacts::dispatch($jobId, $filters, $sort);
+
+        return response()->json(['job_id' => $jobId]);
     }
 
     /**
@@ -351,7 +392,7 @@ class ContactController extends Controller
     }
 
     /**
-     * Remove duplicate contacts by soft-deleting newer duplicates and merging their data.
+     * Remove duplicate contacts by dispatching a queued job.
      */
     public function removeDuplicates(): JsonResponse
     {
@@ -364,70 +405,26 @@ class ContactController extends Controller
             ]);
         }
 
-        $removedCount = 0;
+        $jobId = Str::uuid()->toString();
 
-        DB::transaction(function () use ($groups, &$removedCount) {
-            foreach ($groups as $group) {
-                $keep = Contact::find($group['keep']['id']);
-                if (! $keep) {
-                    continue;
-                }
+        $totalDuplicates = array_reduce(
+            $groups,
+            fn (int $carry, array $group) => $carry + count($group['duplicates']),
+            0,
+        );
 
-                $mergedEmails = $keep->emails ?? [];
-                $mergedPhones = $keep->phones ?? [];
-                $keepProjectIds = $keep->projects()->pluck('projects.id')->toArray();
-                $keepTagNames = $keep->tagsWithType('contact_tag')->pluck('name')->toArray();
+        Cache::put("job:{$jobId}", [
+            'status' => 'pending',
+            'total' => $totalDuplicates,
+            'processed' => 0,
+            'percentage' => 0,
+            'message' => 'Preparing to remove duplicates...',
+            'error_message' => null,
+        ], now()->addMinutes(30));
 
-                foreach ($group['duplicates'] as $dupData) {
-                    $duplicate = Contact::find($dupData['id']);
-                    if (! $duplicate) {
-                        continue;
-                    }
+        RemoveDuplicateContacts::dispatch($jobId, $groups);
 
-                    // Merge emails
-                    foreach ($duplicate->emails ?? [] as $email) {
-                        if (! in_array($email, $mergedEmails)) {
-                            $mergedEmails[] = $email;
-                        }
-                    }
-
-                    // Merge phones
-                    foreach ($duplicate->phones ?? [] as $phone) {
-                        if (! in_array($phone, $mergedPhones)) {
-                            $mergedPhones[] = $phone;
-                        }
-                    }
-
-                    // Collect project IDs
-                    $dupProjectIds = $duplicate->projects()->pluck('projects.id')->toArray();
-                    $keepProjectIds = array_unique(array_merge($keepProjectIds, $dupProjectIds));
-
-                    // Collect tags
-                    $dupTagNames = $duplicate->tagsWithType('contact_tag')->pluck('name')->toArray();
-                    $keepTagNames = array_unique(array_merge($keepTagNames, $dupTagNames));
-
-                    $duplicate->delete();
-                    $removedCount++;
-                }
-
-                // Update kept contact with merged data
-                $keep->update([
-                    'emails' => $mergedEmails,
-                    'phones' => $mergedPhones,
-                ]);
-
-                $keep->projects()->syncWithoutDetaching($keepProjectIds);
-
-                if (! empty($keepTagNames)) {
-                    $keep->syncContactTags($keepTagNames);
-                }
-            }
-        });
-
-        return response()->json([
-            'removed_count' => $removedCount,
-            'message' => "{$removedCount} duplicate contact(s) removed",
-        ]);
+        return response()->json(['job_id' => $jobId]);
     }
 
     /**
@@ -636,28 +633,56 @@ class ContactController extends Controller
     }
 
     /**
-     * Bulk permanently delete trashed contacts.
+     * Bulk permanently delete trashed contacts (queued).
      */
     public function bulkForceDestroy(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'ids' => ['required', 'array', 'min:1', 'max:100'],
+            'ids' => ['required', 'array', 'min:1'],
             'ids.*' => ['required', 'integer'],
         ]);
 
-        $deleted = 0;
-        foreach ($validated['ids'] as $id) {
-            $contact = Contact::onlyTrashed()->find($id);
-            if ($contact) {
-                $contact->forceDelete();
-                $deleted++;
-            }
+        $jobId = Str::uuid()->toString();
+
+        Cache::put("job:{$jobId}", [
+            'status' => 'pending',
+            'total' => count($validated['ids']),
+            'processed' => 0,
+            'percentage' => 0,
+            'message' => 'Preparing to permanently delete contacts...',
+            'error_message' => null,
+        ], now()->addMinutes(30));
+
+        BulkForceDeleteContacts::dispatch($jobId, $validated['ids']);
+
+        return response()->json(['job_id' => $jobId]);
+    }
+
+    /**
+     * Permanently delete ALL trashed contacts (queued).
+     */
+    public function emptyTrash(): JsonResponse
+    {
+        $ids = Contact::onlyTrashed()->pluck('id')->all();
+
+        if (empty($ids)) {
+            return response()->json(['message' => 'No trashed contacts to delete'], 404);
         }
 
-        return response()->json([
-            'message' => "{$deleted} contact(s) permanently deleted",
-            'deleted_count' => $deleted,
-        ]);
+        $jobId = Str::uuid()->toString();
+
+        Cache::put("job:{$jobId}", [
+            'status' => 'pending',
+            'total' => count($ids),
+            'processed' => 0,
+            'percentage' => 0,
+            'message' => 'Preparing to permanently delete all contacts...',
+            'error_message' => null,
+        ], now()->addMinutes(30));
+
+        BulkForceDeleteContacts::dispatch($jobId, $ids);
+
+        return response()->json(['job_id' => $jobId]);
     }
 
     private function applyFilters($query, Request $request): void

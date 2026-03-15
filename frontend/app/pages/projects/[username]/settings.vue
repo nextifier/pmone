@@ -38,5 +38,6 @@ const settingsTabs = computed(() => [
   },
 ]);
 
-useTabSwipe(contentArea, settingsTabs);
+const projectTabs = inject("projectTabs");
+useTabSwipe(contentArea, settingsTabs, { parentTabs: projectTabs });
 </script>

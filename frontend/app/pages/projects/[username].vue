@@ -101,7 +101,9 @@ const projectTabs = computed(() => [
 ]);
 
 const contentArea = ref(null);
-useTabSwipe(contentArea, projectTabs);
+const swipeEnabled = computed(() => !isSettingsPage.value && !isEventPage.value);
+useTabSwipe(contentArea, projectTabs, { enabled: swipeEnabled });
 
 provide("project", project);
+provide("projectTabs", projectTabs);
 </script>
