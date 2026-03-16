@@ -74,11 +74,22 @@ export function useJobProgress() {
           signal: abortController.signal,
         });
 
-        progress.value = data;
-
         if (data.status === "completed" || data.status === "failed") {
           stopPolling();
-          processing.value = false;
+
+          // Show 100% progress first, then update status after animation completes
+          if (data.status === "completed") {
+            progress.value = { ...data, status: "processing" };
+          } else {
+            progress.value = data;
+          }
+
+          setTimeout(() => {
+            progress.value = data;
+            processing.value = false;
+          }, 700);
+        } else {
+          progress.value = data;
         }
       } catch (err: any) {
         if (err.name === "AbortError") return;

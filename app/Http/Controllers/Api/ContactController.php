@@ -207,6 +207,37 @@ class ContactController extends Controller
     }
 
     /**
+     * Soft-delete ALL contacts (queued).
+     */
+    public function deleteAll(): JsonResponse
+    {
+        $ids = Contact::query()->pluck('id')->all();
+
+        if (empty($ids)) {
+            return response()->json(['message' => 'No contacts to delete'], 404);
+        }
+
+        $jobId = Str::uuid()->toString();
+
+        Cache::put("job:{$jobId}", [
+            'status' => 'pending',
+            'total' => count($ids),
+            'processed' => 0,
+            'percentage' => 0,
+            'message' => 'Preparing to delete all contacts...',
+            'error_message' => null,
+        ], now()->addMinutes(30));
+
+        BulkSoftDeleteContacts::dispatch(
+            $jobId,
+            $ids,
+            auth()->id(),
+        );
+
+        return response()->json(['job_id' => $jobId]);
+    }
+
+    /**
      * Quick search contacts by name, company_name, or email.
      */
     public function search(Request $request): JsonResponse

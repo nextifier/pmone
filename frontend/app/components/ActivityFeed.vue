@@ -21,8 +21,8 @@
 
     <!-- Loading Skeleton -->
     <div v-if="loading" class="flex flex-col">
-      <div v-for="i in 4" :key="`skeleton-${i}`" class="relative flex gap-x-3 pb-6 last:pb-0">
-        <div v-if="i < 4" class="bg-border absolute top-8 bottom-0 left-[15px] w-px" />
+      <div v-for="i in 25" :key="`skeleton-${i}`" class="relative flex gap-x-3 pb-6 last:pb-0">
+        <div v-if="i < 25" class="bg-border absolute top-8 bottom-0 left-[15px] w-px" />
         <Skeleton class="mt-0.5 size-8 shrink-0 rounded-full" />
         <div class="min-w-0 flex-1 space-y-2 pt-0.5">
           <div class="flex items-start justify-between gap-x-3">
@@ -56,23 +56,20 @@
           class="bg-border absolute top-8 bottom-0 left-[15px] w-px"
         />
 
-        <!-- Avatar + Event badge -->
-        <div class="relative mt-0.5 size-8 shrink-0">
-          <Avatar
-            :model="activity.causer || { name: activity.causer_name }"
-            size="sm"
-            rounded="rounded-full"
-            class="size-8"
-          />
-          <div
-            :class="[
-              'border-background absolute -right-1.5 -bottom-1.5 flex size-5 items-center justify-center rounded-full border-2 text-white',
-              eventBadgeClasses[activity.event] || 'bg-primary',
-            ]"
-          >
-            <Icon :name="activity.icon" class="size-2.5" />
-          </div>
+        <!-- Avatar -->
+        <div
+          v-if="!activity.causer"
+          class="bg-muted text-muted-foreground mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full"
+        >
+          <Icon name="hugeicons:computer-activity" class="size-4" />
         </div>
+        <Avatar
+          v-else
+          :model="activity.causer"
+          size="sm"
+          rounded="rounded-full"
+          class="mt-0.5 size-8 shrink-0"
+        />
 
         <!-- Content -->
         <div class="min-w-0 flex-1 pt-0.5">
@@ -83,7 +80,7 @@
             </p>
             <span
               v-tippy="$dayjs(activity.created_at).format('MMMM D, YYYY [at] h:mm A')"
-              class="text-muted-foreground shrink-0 text-xs tracking-tight"
+              class="text-muted-foreground shrink-0 text-xs tracking-tight sm:text-sm"
             >
               {{ $dayjs(activity.created_at).fromNow() }}
             </span>
@@ -92,11 +89,11 @@
           <!-- Subject badge -->
           <div v-if="activity.subject_name" class="mt-1 flex items-center gap-x-1.5">
             <span
-              class="bg-muted text-foreground inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium tracking-tight"
+              class="bg-muted text-foreground inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium tracking-tight sm:text-sm"
             >
               {{ activity.subject_type }}
             </span>
-            <span class="text-muted-foreground truncate text-xs tracking-tight">
+            <span class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm">
               {{ activity.subject_name }}
             </span>
           </div>
@@ -109,7 +106,7 @@
             <div
               v-for="change in activity.changes"
               :key="change.field"
-              class="text-muted-foreground flex flex-wrap items-center gap-x-1.5 text-xs tracking-tight"
+              class="text-muted-foreground flex flex-wrap items-center gap-x-1.5 text-xs tracking-tight sm:text-sm"
             >
               <span class="font-medium capitalize">{{ change.field }}:</span>
               <span
@@ -120,7 +117,7 @@
               <Icon
                 v-if="change.old !== null && change.old !== undefined"
                 name="lucide:arrow-right"
-                class="size-3 shrink-0 opacity-40"
+                class="size-3 shrink-0"
               />
               <span class="text-foreground">{{ formatValue(change.new) }}</span>
             </div>
@@ -247,16 +244,6 @@ const canGoNext = computed(() => props.meta?.current_page < props.meta?.last_pag
 
 const handlePageSizeChange = (value) => {
   emit("perPageChange", Number(value));
-};
-
-const eventBadgeClasses = {
-  created: "bg-success",
-  updated: "bg-info",
-  deleted: "bg-destructive",
-  restored: "bg-info",
-  member_added: "bg-success",
-  member_removed: "bg-destructive",
-  imported: "bg-info",
 };
 
 /**

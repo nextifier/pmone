@@ -2,7 +2,7 @@
   <form @submit.prevent="save" class="mt-4 space-y-4">
     <div class="space-y-2">
       <Label for="name">Person Name <span class="text-destructive">*</span></Label>
-      <Input id="name" v-model="form.name" />
+      <Input id="name" ref="nameInputRef" v-model="form.name" />
       <p v-if="errors.name" class="text-destructive text-xs tracking-tight">
         {{ errors.name }}
       </p>
@@ -14,8 +14,42 @@
     </div>
 
     <div class="space-y-2">
-      <Label for="job_title">Job Title</Label>
-      <Input id="job_title" v-model="form.job_title" />
+      <Label>Job Title</Label>
+      <AutocompleteRoot v-model="jobTitleSearch" :ignore-filter="true">
+        <AutocompleteAnchor as-child>
+          <AutocompleteInput
+            placeholder="e.g. Marketing Manager"
+            autocomplete="off"
+            class="placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-background border-border focus-visible:border-ring focus-visible:ring-ring flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm tracking-tight shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
+          />
+        </AutocompleteAnchor>
+        <AutocompletePortal>
+          <AutocompleteContent
+            position="popper"
+            :side-offset="4"
+            hide-when-empty
+            class="bg-popover text-popover-foreground z-[100] w-[var(--reka-combobox-trigger-width)] overflow-hidden rounded-md border shadow-md"
+          >
+            <AutocompleteViewport class="max-h-48 p-1">
+              <AutocompleteItem
+                v-for="title in filteredJobTitles"
+                :key="title"
+                :value="title"
+                class="data-[highlighted]:bg-muted flex w-full cursor-default items-center rounded-sm px-2 py-1.5 text-left text-sm tracking-tight outline-none select-none"
+                @select="form.job_title = title"
+              >
+                {{ title }}
+              </AutocompleteItem>
+              <AutocompleteEmpty
+                v-if="jobTitleSearch.trim()"
+                class="text-muted-foreground px-2 py-4 text-center text-sm"
+              >
+                No suggestions found
+              </AutocompleteEmpty>
+            </AutocompleteViewport>
+          </AutocompleteContent>
+        </AutocompletePortal>
+      </AutocompleteRoot>
     </div>
 
     <!-- Emails -->
@@ -247,6 +281,17 @@ import {
 import countries from "@/data/countries.json";
 import indonesiaCities from "@/data/indonesia-cities.json";
 import indonesiaProvinces from "@/data/indonesia-provinces.json";
+import jobTitles from "@/data/job-titles";
+import {
+  AutocompleteAnchor,
+  AutocompleteContent,
+  AutocompleteEmpty,
+  AutocompleteInput,
+  AutocompleteItem,
+  AutocompletePortal,
+  AutocompleteRoot,
+  AutocompleteViewport,
+} from "reka-ui";
 import { toast } from "vue-sonner";
 
 defineShortcuts({
@@ -270,8 +315,26 @@ const props = defineProps({
 const emit = defineEmits(["saved", "cancel"]);
 const client = useSanctumClient();
 
+const nameInputRef = ref(null);
 const saving = ref(false);
 const errors = ref({});
+
+onMounted(() => {
+  setTimeout(() => {
+    nameInputRef.value?.$el?.focus();
+  }, 50);
+});
+
+const jobTitleSearch = ref(props.contact?.job_title || "");
+const filteredJobTitles = computed(() => {
+  const term = jobTitleSearch.value.trim().toLowerCase();
+  if (!term) return [];
+  return jobTitles.filter((t) => t.toLowerCase().includes(term));
+});
+
+watch(jobTitleSearch, (val) => {
+  form.job_title = val;
+});
 
 const form = reactive({
   name: props.contact?.name || "",
@@ -377,6 +440,7 @@ watch(
       skipCascadeReset = true;
       form.name = newContact.name || "";
       form.job_title = newContact.job_title || "";
+      jobTitleSearch.value = newContact.job_title || "";
       form.emails = newContact.emails?.length ? [...newContact.emails] : [""];
       form.phones = newContact.phones?.length ? [...newContact.phones] : [""];
       form.company_name = newContact.company_name || "";

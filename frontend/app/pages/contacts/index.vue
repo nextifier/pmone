@@ -48,6 +48,15 @@
           <span>Remove Duplicates</span>
         </button>
 
+        <button
+          v-if="isAdminOrMaster && meta.total > 0"
+          @click="deleteAllDialogOpen = true"
+          class="border-border hover:bg-muted text-destructive-foreground flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+        >
+          <Icon name="hugeicons:delete-02" class="size-4 shrink-0" />
+          <span>Delete All</span>
+        </button>
+
         <NuxtLink
           v-if="canDelete"
           to="/contacts/trash"
@@ -401,6 +410,49 @@
       </template>
     </DialogResponsive>
 
+    <!-- Delete All Dialog -->
+    <DialogResponsive v-model:open="deleteAllDialogOpen">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="text-primary text-lg font-semibold tracking-tight">
+            Delete all contacts?
+          </div>
+          <p class="text-body mt-1.5 text-sm tracking-tight">
+            This will move
+            <span class="text-primary font-medium">all {{ meta.total }}</span>
+            {{ meta.total === 1 ? "contact" : "contacts" }} to trash.
+          </p>
+
+          <!-- Progress bar -->
+          <div v-if="deleteAllJob.processing.value" class="mt-3 space-y-2">
+            <div class="flex items-center justify-between text-sm tracking-tight">
+              <span class="text-muted-foreground">{{ deleteAllJob.progress.value?.message }}</span>
+              <span class="font-medium tabular-nums">{{ deleteAllJob.progress.value?.percentage ?? 0 }}%</span>
+            </div>
+            <Progress :model-value="deleteAllJob.progress.value?.percentage ?? 0" indicator-class="bg-destructive" />
+            <p v-if="deleteAllJob.progress.value?.total > 0" class="text-muted-foreground text-xs sm:text-sm tracking-tight tabular-nums">
+              {{ deleteAllJob.progress.value?.processed ?? 0 }} / {{ deleteAllJob.progress.value?.total ?? 0 }}
+            </p>
+          </div>
+
+          <div v-else class="mt-3 flex justify-end gap-2">
+            <button
+              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+              @click="deleteAllDialogOpen = false"
+            >
+              Cancel
+            </button>
+            <button
+              @click="handleDeleteAll"
+              class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98"
+            >
+              Delete All
+            </button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
+
     <!-- Create/Edit Dialog -->
     <DialogResponsive
       v-model:open="formDialogOpen"
@@ -585,7 +637,7 @@ usePageMeta(null, {
 const { $dayjs } = useNuxtApp();
 const client = useSanctumClient();
 const route = useRoute();
-const { hasPermission } = usePermission();
+const { hasPermission, isAdminOrMaster } = usePermission();
 const canCreate = computed(() => hasPermission("contacts.create"));
 const canUpdate = computed(() => hasPermission("contacts.update"));
 const canDelete = computed(() => hasPermission("contacts.delete"));
@@ -1004,7 +1056,7 @@ const columns = computed(() => [
     id: "actions",
     header: () => h("span", { class: "sr-only" }, "Actions"),
     cell: ({ row }) => h(RowActions, { contact: row.original }),
-    size: 120,
+    size: 160,
     enableHiding: false,
   },
 ]);
@@ -1143,6 +1195,50 @@ const handleDeleteRows = async (selectedRows) => {
       description: err?.data?.message || err?.message,
     });
     deleteJob.reset();
+  }
+};
+
+// Delete all contacts (queued with progress)
+const deleteAllDialogOpen = ref(false);
+const deleteAllJob = useJobProgress();
+
+// Prevent closing delete all dialog while processing
+watch(deleteAllDialogOpen, (open) => {
+  if (!open && deleteAllJob.processing.value) {
+    deleteAllDialogOpen.value = true;
+  }
+});
+
+// Watch delete all completion
+watch(
+  () => deleteAllJob.progress.value?.status,
+  (status) => {
+    if (status === "completed") {
+      toast.success(deleteAllJob.progress.value?.message || "All contacts deleted");
+      deleteAllDialogOpen.value = false;
+      deleteAllJob.reset();
+      refresh();
+    }
+
+    if (status === "failed") {
+      toast.error("Failed to delete contacts", {
+        description: deleteAllJob.progress.value?.error_message || "An error occurred",
+      });
+      deleteAllJob.reset();
+    }
+  },
+);
+
+const handleDeleteAll = async () => {
+  try {
+    await deleteAllJob.startJob("/api/contacts/delete-all", {
+      method: "DELETE",
+    });
+  } catch (err) {
+    toast.error("Failed to delete contacts", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+    deleteAllJob.reset();
   }
 };
 
@@ -1359,7 +1455,7 @@ const RowActions = defineComponent({
     });
 
     return () =>
-      h("div", { class: "flex items-center justify-end gap-x-3" }, [
+      h("div", { class: "flex shrink-0 items-center justify-end gap-x-3" }, [
         // Edit button
         ...(canUpdate.value
           ? [

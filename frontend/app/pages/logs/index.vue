@@ -9,9 +9,9 @@
 
       <button
         v-if="user?.roles?.includes('master')"
-        @click="confirmClearLogs"
+        @click="clearDialogOpen = true"
         :disabled="clearing || loading"
-        class="border-destructive/16 bg-destructive/8 text-destructive-foreground hover:bg-destructive/16 flex items-center gap-x-1.5 rounded-lg border px-2.5 py-1.5 text-sm font-medium tracking-tight transition active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+        class="border-border hover:bg-muted text-destructive-foreground flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Icon name="hugeicons:delete-02" class="size-4 shrink-0" />
         <span>Clear All Logs</span>
@@ -108,7 +108,9 @@
     <DialogResponsive v-model:open="clearDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+          <div class="text-primary text-lg font-semibold tracking-tight">
+            Clear all activity logs?
+          </div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             This will permanently delete all log entries. This action cannot be undone.
           </p>
@@ -237,10 +239,6 @@ function toggleFilter(type, value, checked) {
   page.value = 1;
   fetchActivities();
 }
-
-const confirmClearLogs = () => {
-  clearDialogOpen.value = true;
-};
 
 const clearLogs = async () => {
   clearing.value = true;

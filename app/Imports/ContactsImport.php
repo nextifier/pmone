@@ -93,6 +93,7 @@ class ContactsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEve
         if (! empty($row['contact_types'])) {
             $types = array_map('trim', explode(',', $row['contact_types']));
             $types = array_filter($types);
+            $types = array_map('strtolower', $types);
             if (! empty($types)) {
                 $contact->syncContactTypes($types);
             }

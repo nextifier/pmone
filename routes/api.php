@@ -297,6 +297,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/contacts/duplicates/scan', [ContactController::class, 'scanDuplicates'])->middleware('can:contacts.delete')->name('contacts.duplicates.scan');
     Route::post('/contacts/duplicates/remove', [ContactController::class, 'removeDuplicates'])->middleware('can:contacts.delete')->name('contacts.duplicates.remove');
     Route::delete('/contacts/bulk', [ContactController::class, 'bulkDestroy'])->middleware('can:contacts.delete')->name('contacts.bulk-delete');
+    Route::delete('/contacts/delete-all', [ContactController::class, 'deleteAll'])->middleware('can:contacts.delete')->name('contacts.delete-all');
     Route::get('/contacts/{contact}', [ContactController::class, 'show'])->middleware('can:contacts.read')->name('contacts.show');
     Route::put('/contacts/{contact}', [ContactController::class, 'update'])->middleware('can:contacts.update')->name('contacts.update');
     Route::patch('/contacts/{contact}/status', [ContactController::class, 'updateStatus'])->middleware('can:contacts.update')->name('contacts.update-status');

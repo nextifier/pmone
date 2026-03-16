@@ -25,7 +25,7 @@ class ContactFormSubmissionObserver
             'company_name' => $formData['brand_name'] ?? null,
             'job_title' => $formData['job_title'] ?? null,
             'address' => ! empty($formData['country']) ? ['country' => $formData['country']] : null,
-            'source' => 'website',
+            'source' => 'website inquiries',
         ]);
 
         // Sync contact type based on subject
