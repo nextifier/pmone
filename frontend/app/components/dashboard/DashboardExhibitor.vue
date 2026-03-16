@@ -27,7 +27,7 @@
         <div class="bg-muted flex size-12 items-center justify-center rounded-full">
           <Icon name="hugeicons:calendar-03" class="text-muted-foreground size-6" />
         </div>
-        <p class="text-muted-foreground text-sm tracking-tight">No events found for your brands.</p>
+        <p class="text-muted-foreground text-sm tracking-tight">{{ $t("ed.noEvents") }}</p>
       </div>
 
       <!-- Per Brand-Event -->
@@ -41,10 +41,10 @@
             <DashboardExhibitorSection
               v-if="!dashboard.profile_complete"
               v-model:open="sectionStates[`${be.brand_event_id}_profile`]"
-              title="Complete Your Profile"
+              :title="$t('ed.profile.title')"
               icon="hugeicons:user-edit-01"
-              :summary="'Fill in all required fields to continue.'"
-              badge-text="Required"
+              :summary="$t('ed.profile.summary')"
+              :badge-text="$t('ed.profile.required')"
               badge-variant="destructive"
               :default-open="true"
               section-key="profile"
@@ -52,27 +52,27 @@
               <form class="space-y-4" @submit.prevent="saveProfile">
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div class="space-y-2">
-                    <Label for="ex_name">Full Name</Label>
-                    <Input id="ex_name" v-model="profileForm.name" placeholder="Your full name" />
+                    <Label for="ex_name">{{ $t("ed.profile.fullName") }}</Label>
+                    <Input id="ex_name" v-model="profileForm.name" :placeholder="$t('ed.profile.placeholderName')" />
                   </div>
                   <div class="space-y-2">
-                    <Label for="ex_phone">Phone Number</Label>
+                    <Label for="ex_phone">{{ $t("ed.profile.phone") }}</Label>
                     <InputPhone id="ex_phone" v-model="profileForm.phone" />
                   </div>
                   <div class="space-y-2">
-                    <Label for="ex_title">Job Title</Label>
+                    <Label for="ex_title">{{ $t("ed.profile.jobTitle") }}</Label>
                     <Input
                       id="ex_title"
                       v-model="profileForm.title"
-                      placeholder="e.g. Marketing Manager"
+                      :placeholder="$t('ed.profile.placeholderTitle')"
                     />
                   </div>
                   <div class="space-y-2">
-                    <Label for="ex_company">Company Name</Label>
+                    <Label for="ex_company">{{ $t("ed.profile.company") }}</Label>
                     <Input
                       id="ex_company"
                       v-model="profileForm.company_name"
-                      placeholder="Your company"
+                      :placeholder="$t('ed.profile.placeholderCompany')"
                     />
                   </div>
                 </div>
@@ -82,7 +82,7 @@
                     name="svg-spinners:ring-resize"
                     class="mr-1.5 size-4"
                   />
-                  Save Profile
+                  {{ $t("ed.profile.save") }}
                 </Button>
               </form>
             </DashboardExhibitorSection>
@@ -92,16 +92,16 @@
               <DashboardExhibitorSection
                 v-if="be.event_rules?.length"
                 v-model:open="sectionStates[`${be.brand_event_id}_rules`]"
-                title="Event Rules"
+                :title="$t('ed.rules.title')"
                 icon="hugeicons:file-validation"
                 :summary="
                   be.event_rules_agreed
-                    ? 'All rules agreed.'
-                    : `${rulesAgreedCount(be)}/${be.event_rules.length} rules agreed.`
+                    ? $t('ed.rules.allAgreed')
+                    : $t('ed.rules.agreedCount', { agreed: rulesAgreedCount(be), total: be.event_rules.length })
                 "
                 :completed="be.event_rules_agreed"
                 :locked="!dashboard.profile_complete"
-                :badge-text="!be.event_rules_agreed ? 'Required' : ''"
+                :badge-text="!be.event_rules_agreed ? $t('ed.profile.required') : ''"
                 badge-variant="destructive"
                 :attention-count="rulesNeedingAttention(be)"
                 section-key="rules"
@@ -120,9 +120,9 @@
                         <Icon name="lucide:check" class="size-3.5" />
                       </div>
                       <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-                        Agreed on {{ formatDate(rule.submission.agreed_at) }}
+                        {{ $t("ed.rules.agreedOn", { date: formatDate(rule.submission.agreed_at) }) }}
                         <span v-if="rule.submission.submitter_name">
-                          by {{ rule.submission.submitter_name }}</span
+                          {{ $t("ed.rules.agreedBy", { name: rule.submission.submitter_name }) }}</span
                         >
                         <span v-if="rule.submission.document_version > 1">
                           (v{{ rule.submission.document_version }})</span
@@ -144,13 +144,13 @@
                             :for="`rule_${be.brand_event_id}_${rule.document.id}`"
                             class="text-sm leading-snug font-normal"
                           >
-                            I have read and agree to "{{ rule.document.title }}"
+                            {{ $t("ed.rules.agreeLabel", { title: rule.document.title }) }}
                           </Label>
                           <p
                             v-if="rule.needs_reagreement"
                             class="mt-1 text-xs tracking-tight text-amber-600 sm:text-sm dark:text-amber-400"
                           >
-                            Rules updated. Please re-agree to the latest version.
+                            {{ $t("ed.rules.reagreeWarning") }}
                           </p>
                         </div>
                       </div>
@@ -166,7 +166,7 @@
                           name="svg-spinners:ring-resize"
                           class="mr-1.5 size-4"
                         />
-                        Submit
+                        {{ $t("ed.rules.submit") }}
                       </Button>
                     </div>
                   </template>
@@ -178,12 +178,12 @@
             <div :ref="(el) => setSectionRef(be.brand_event_id, 'brand', el)">
               <DashboardExhibitorSection
                 v-model:open="sectionStates[`${be.brand_event_id}_brand`]"
-                title="Brand Profile"
+                :title="$t('ed.brand.title')"
                 icon="hugeicons:store-02"
                 :summary="
                   be.brand_complete
-                    ? `${be.brand.name} profile is complete.`
-                    : `Missing: ${be.brand.missing_fields.join(', ')}`
+                    ? $t('ed.brand.complete', { name: be.brand.name })
+                    : $t('ed.brand.missing', { fields: be.brand.missing_fields.join(', ') })
                 "
                 :completed="be.brand_complete"
                 :locked="
@@ -212,10 +212,7 @@
                         v-if="!be.brand_complete"
                         class="text-muted-foreground text-xs tracking-tight sm:text-sm"
                       >
-                        {{ be.brand.missing_fields.length }} field{{
-                          be.brand.missing_fields.length > 1 ? "s" : ""
-                        }}
-                        remaining
+                        {{ $t("ed.brand.fieldsRemaining", be.brand.missing_fields.length, { count: be.brand.missing_fields.length }) }}
                       </p>
                     </div>
                   </div>
@@ -227,7 +224,7 @@
                       :name="be.brand_complete ? 'hugeicons:view' : 'hugeicons:edit-02'"
                       class="size-3.5"
                     />
-                    {{ be.brand_complete ? "View" : "Complete" }}
+                    {{ be.brand_complete ? $t("ed.brand.view") : $t("ed.brand.completeCta") }}
                   </NuxtLink>
                 </div>
               </DashboardExhibitorSection>
@@ -237,9 +234,9 @@
             <div :ref="(el) => setSectionRef(be.brand_event_id, 'promo', el)">
               <DashboardExhibitorSection
                 v-model:open="sectionStates[`${be.brand_event_id}_promo`]"
-                title="Promotion Posts"
+                :title="$t('ed.promo.title')"
                 icon="hugeicons:image-02"
-                :summary="`${be.promotion_posts_count}/${be.promotion_post_limit} uploaded`"
+                :summary="$t('ed.promo.uploaded', { count: be.promotion_posts_count, limit: be.promotion_post_limit })"
                 :completed="be.promotion_posts_count > 0"
                 :locked="
                   !dashboard.profile_complete ||
@@ -253,8 +250,8 @@
                   <p class="text-muted-foreground text-sm tracking-tight">
                     {{
                       be.promotion_posts_count > 0
-                        ? `You've uploaded ${be.promotion_posts_count} of ${be.promotion_post_limit} allowed posts.`
-                        : `Upload up to ${be.promotion_post_limit} promotion post${be.promotion_post_limit > 1 ? "s" : ""} for this event.`
+                        ? $t("ed.promo.uploadedDescription", { count: be.promotion_posts_count, limit: be.promotion_post_limit })
+                        : $t("ed.promo.uploadDescription", be.promotion_post_limit, { limit: be.promotion_post_limit })
                     }}
                   </p>
                   <NuxtLink
@@ -267,7 +264,7 @@
                       "
                       class="size-3.5"
                     />
-                    {{ be.promotion_posts_count > 0 ? "Manage" : "Upload" }}
+                    {{ be.promotion_posts_count > 0 ? $t("ed.promo.manage") : $t("ed.promo.upload") }}
                   </NuxtLink>
                 </div>
               </DashboardExhibitorSection>
@@ -278,7 +275,7 @@
               <DashboardExhibitorSection
                 v-if="be.documents?.length || showFasciaField(be) || showBadgeField(be)"
                 v-model:open="sectionStates[`${be.brand_event_id}_docs`]"
-                title="Operational Documents"
+                :title="$t('ed.docs.title')"
                 icon="hugeicons:file-01"
                 :summary="docsAndBoothSummary(be)"
                 :completed="isDocsComplete(be)"
@@ -309,16 +306,16 @@
                   v-if="showFasciaField(be) || showBadgeField(be)"
                   :class="{ 'border-border mt-5 border-t pt-5': be.documents?.length }"
                 >
-                  <p class="mb-3 text-sm font-medium">Booth Details</p>
+                  <p class="mb-3 text-sm font-medium">{{ $t("ed.docs.boothDetails") }}</p>
                   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div v-if="showFasciaField(be)" class="space-y-2">
-                      <Label :for="`fascia_${be.brand_event_id}`">Fascia Name</Label>
+                      <Label :for="`fascia_${be.brand_event_id}`">{{ $t("ed.docs.fasciaName") }}</Label>
                       <Input
                         :id="`fascia_${be.brand_event_id}`"
                         :model-value="
                           boothFields[be.brand_event_id]?.fascia_name ?? be.fascia_name ?? ''
                         "
-                        placeholder="Name displayed on booth fascia"
+                        :placeholder="$t('ed.docs.fasciaPlaceholder')"
                         @update:model-value="
                           (v) =>
                             setBoothField(be.brand_event_id, 'fascia_name', v.toUpperCase())
@@ -326,23 +323,20 @@
                         maxlength="24"
                       />
                       <p class="text-muted-foreground text-xs tracking-tight">
-                        Max 24 characters, uppercase only
+                        {{ $t("ed.docs.fasciaHint") }}
                       </p>
                     </div>
                     <div v-if="showBadgeField(be)" class="space-y-2">
-                      <Label :for="`badge_${be.brand_event_id}`">Badge Name</Label>
+                      <Label :for="`badge_${be.brand_event_id}`">{{ $t("ed.docs.badgeName") }}</Label>
                       <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-                        This is the name that will be printed on your Exhibitor Badge.
-                        You can use your company name or brand name.
-                        If you choose your brand name and have multiple brands,
-                        select which brand name to use.
+                        {{ $t("ed.docs.badgeDescription") }}
                       </p>
                       <Input
                         :id="`badge_${be.brand_event_id}`"
                         :model-value="
                           boothFields[be.brand_event_id]?.badge_name ?? be.badge_name ?? ''
                         "
-                        placeholder="Name displayed on exhibitor badge"
+                        :placeholder="$t('ed.docs.badgePlaceholder')"
                         @update:model-value="
                           (v) => setBoothField(be.brand_event_id, 'badge_name', v)
                         "
@@ -359,7 +353,7 @@
                           name="svg-spinners:ring-resize"
                           class="mr-1.5 size-4"
                         />
-                        Save Booth Details
+                        {{ $t("ed.docs.saveBoothDetails") }}
                       </Button>
                     </div>
                   </div>
@@ -371,9 +365,9 @@
             <DashboardExhibitorSection
               v-if="be.event.badge_vip_info"
               v-model:open="sectionStates[`${be.brand_event_id}_badge_vip`]"
-              title="Exhibitor Badges & VIP Invitation Information"
+              :title="$t('ed.badgeVip.title')"
               icon="hugeicons:name-tag"
-              summary="Information about exhibitor badges and VIP passes."
+              :summary="$t('ed.badgeVip.summary')"
               :completed="true"
               :locked="
                 !dashboard.profile_complete ||
@@ -388,7 +382,7 @@
             <div :ref="(el) => setSectionRef(be.brand_event_id, 'order', el)">
               <DashboardExhibitorSection
                 v-model:open="sectionStates[`${be.brand_event_id}_order`]"
-                title="Order Form"
+                :title="$t('ed.order.title')"
                 icon="hugeicons:shopping-cart-01"
                 :summary="orderSectionSummary(be)"
                 :completed="be.orders_count > 0"
@@ -431,7 +425,7 @@
                   class="text-muted-foreground flex items-center gap-1.5 text-xs tracking-tight sm:text-sm"
                 >
                   <span v-if="be.event.date_label">{{ be.event.date_label }}</span>
-                  <span v-if="be.booth_number">- Booth {{ be.booth_number }}</span>
+                  <span v-if="be.booth_number">- {{ $t("ed.eventCard.booth") }} {{ be.booth_number }}</span>
                 </div>
               </div>
               <div class="flex items-center gap-2">
@@ -462,10 +456,10 @@
                 <DashboardExhibitorSection
                   v-if="!dashboard.profile_complete"
                   v-model:open="sectionStates[`${be.brand_event_id}_profile`]"
-                  title="Complete Your Profile"
+                  :title="$t('ed.profile.title')"
                   icon="hugeicons:user-edit-01"
-                  :summary="'Fill in all required fields to continue.'"
-                  badge-text="Required"
+                  :summary="$t('ed.profile.summary')"
+                  :badge-text="$t('ed.profile.required')"
                   badge-variant="destructive"
                   :default-open="beIndex === 0"
                   section-key="profile"
@@ -473,34 +467,34 @@
                   <form class="space-y-4" @submit.prevent="saveProfile">
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div class="space-y-2">
-                        <Label :for="`ex_name_${be.brand_event_id}`">Full Name</Label>
+                        <Label :for="`ex_name_${be.brand_event_id}`">{{ $t("ed.profile.fullName") }}</Label>
                         <Input
                           :id="`ex_name_${be.brand_event_id}`"
                           v-model="profileForm.name"
-                          placeholder="Your full name"
+                          :placeholder="$t('ed.profile.placeholderName')"
                         />
                       </div>
                       <div class="space-y-2">
-                        <Label :for="`ex_phone_${be.brand_event_id}`">Phone Number</Label>
+                        <Label :for="`ex_phone_${be.brand_event_id}`">{{ $t("ed.profile.phone") }}</Label>
                         <InputPhone
                           :id="`ex_phone_${be.brand_event_id}`"
                           v-model="profileForm.phone"
                         />
                       </div>
                       <div class="space-y-2">
-                        <Label :for="`ex_title_${be.brand_event_id}`">Job Title</Label>
+                        <Label :for="`ex_title_${be.brand_event_id}`">{{ $t("ed.profile.jobTitle") }}</Label>
                         <Input
                           :id="`ex_title_${be.brand_event_id}`"
                           v-model="profileForm.title"
-                          placeholder="e.g. Marketing Manager"
+                          :placeholder="$t('ed.profile.placeholderTitle')"
                         />
                       </div>
                       <div class="space-y-2">
-                        <Label :for="`ex_company_${be.brand_event_id}`">Company Name</Label>
+                        <Label :for="`ex_company_${be.brand_event_id}`">{{ $t("ed.profile.company") }}</Label>
                         <Input
                           :id="`ex_company_${be.brand_event_id}`"
                           v-model="profileForm.company_name"
-                          placeholder="Your company"
+                          :placeholder="$t('ed.profile.placeholderCompany')"
                         />
                       </div>
                     </div>
@@ -510,7 +504,7 @@
                         name="svg-spinners:ring-resize"
                         class="mr-1.5 size-4"
                       />
-                      Save Profile
+                      {{ $t("ed.profile.save") }}
                     </Button>
                   </form>
                 </DashboardExhibitorSection>
@@ -520,16 +514,16 @@
                   <DashboardExhibitorSection
                     v-if="be.event_rules?.length"
                     v-model:open="sectionStates[`${be.brand_event_id}_rules`]"
-                    title="Event Rules"
+                    :title="$t('ed.rules.title')"
                     icon="hugeicons:file-validation"
                     :summary="
                       be.event_rules_agreed
-                        ? 'All rules agreed.'
-                        : `${rulesAgreedCount(be)}/${be.event_rules.length} rules agreed.`
+                        ? $t('ed.rules.allAgreed')
+                        : $t('ed.rules.agreedCount', { agreed: rulesAgreedCount(be), total: be.event_rules.length })
                     "
                     :completed="be.event_rules_agreed"
                     :locked="!dashboard.profile_complete"
-                    :badge-text="!be.event_rules_agreed ? 'Required' : ''"
+                    :badge-text="!be.event_rules_agreed ? $t('ed.profile.required') : ''"
                     badge-variant="destructive"
                     :attention-count="rulesNeedingAttention(be)"
                     section-key="rules"
@@ -548,9 +542,9 @@
                             <Icon name="lucide:check" class="size-4" />
                           </div>
                           <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-                            Agreed on {{ formatDate(rule.submission.agreed_at) }}
+                            {{ $t("ed.rules.agreedOn", { date: formatDate(rule.submission.agreed_at) }) }}
                             <span v-if="rule.submission.submitter_name">
-                              by {{ rule.submission.submitter_name }}</span
+                              {{ $t("ed.rules.agreedBy", { name: rule.submission.submitter_name }) }}</span
                             >
                             <span v-if="rule.submission.document_version > 1">
                               (v{{ rule.submission.document_version }})</span
@@ -575,13 +569,13 @@
                                 :for="`rule_m_${be.brand_event_id}_${rule.document.id}`"
                                 class="text-sm leading-snug font-normal"
                               >
-                                I have read and agree to "{{ rule.document.title }}"
+                                {{ $t("ed.rules.agreeLabel", { title: rule.document.title }) }}
                               </Label>
                               <p
                                 v-if="rule.needs_reagreement"
                                 class="mt-1 text-xs tracking-tight text-amber-600 sm:text-sm dark:text-amber-400"
                               >
-                                Rules updated. Please re-agree to the latest version.
+                                {{ $t("ed.rules.reagreeWarning") }}
                               </p>
                             </div>
                           </div>
@@ -597,7 +591,7 @@
                               name="svg-spinners:ring-resize"
                               class="mr-1.5 size-4"
                             />
-                            Submit
+                            {{ $t("ed.rules.submit") }}
                           </Button>
                         </div>
                       </template>
@@ -609,12 +603,12 @@
                 <div :ref="(el) => setSectionRef(be.brand_event_id, 'brand', el)">
                   <DashboardExhibitorSection
                     v-model:open="sectionStates[`${be.brand_event_id}_brand`]"
-                    title="Brand Profile"
+                    :title="$t('ed.brand.title')"
                     icon="hugeicons:store-02"
                     :summary="
                       be.brand_complete
-                        ? `${be.brand.name} profile is complete.`
-                        : `Missing: ${be.brand.missing_fields.join(', ')}`
+                        ? $t('ed.brand.complete', { name: be.brand.name })
+                        : $t('ed.brand.missing', { fields: be.brand.missing_fields.join(', ') })
                     "
                     :completed="be.brand_complete"
                     :locked="
@@ -643,10 +637,7 @@
                             v-if="!be.brand_complete"
                             class="text-muted-foreground text-xs tracking-tight sm:text-sm"
                           >
-                            {{ be.brand.missing_fields.length }} field{{
-                              be.brand.missing_fields.length > 1 ? "s" : ""
-                            }}
-                            remaining
+                            {{ $t("ed.brand.fieldsRemaining", be.brand.missing_fields.length, { count: be.brand.missing_fields.length }) }}
                           </p>
                         </div>
                       </div>
@@ -658,7 +649,7 @@
                           :name="be.brand_complete ? 'hugeicons:view' : 'hugeicons:edit-02'"
                           class="size-3.5"
                         />
-                        {{ be.brand_complete ? "View" : "Complete" }}
+                        {{ be.brand_complete ? $t("ed.brand.view") : $t("ed.brand.completeCta") }}
                       </NuxtLink>
                     </div>
                   </DashboardExhibitorSection>
@@ -668,9 +659,9 @@
                 <div :ref="(el) => setSectionRef(be.brand_event_id, 'promo', el)">
                   <DashboardExhibitorSection
                     v-model:open="sectionStates[`${be.brand_event_id}_promo`]"
-                    title="Promotion Posts"
+                    :title="$t('ed.promo.title')"
                     icon="hugeicons:image-02"
-                    :summary="`${be.promotion_posts_count}/${be.promotion_post_limit} uploaded`"
+                    :summary="$t('ed.promo.uploaded', { count: be.promotion_posts_count, limit: be.promotion_post_limit })"
                     :completed="be.promotion_posts_count > 0"
                     :locked="
                       !dashboard.profile_complete ||
@@ -684,8 +675,8 @@
                       <p class="text-muted-foreground text-sm tracking-tight">
                         {{
                           be.promotion_posts_count > 0
-                            ? `You've uploaded ${be.promotion_posts_count} of ${be.promotion_post_limit} allowed posts.`
-                            : `Upload up to ${be.promotion_post_limit} promotion post${be.promotion_post_limit > 1 ? "s" : ""} for this event.`
+                            ? $t("ed.promo.uploadedDescription", { count: be.promotion_posts_count, limit: be.promotion_post_limit })
+                            : $t("ed.promo.uploadDescription", be.promotion_post_limit, { limit: be.promotion_post_limit })
                         }}
                       </p>
                       <NuxtLink
@@ -698,7 +689,7 @@
                           "
                           class="size-3.5"
                         />
-                        {{ be.promotion_posts_count > 0 ? "Manage" : "Upload" }}
+                        {{ be.promotion_posts_count > 0 ? $t("ed.promo.manage") : $t("ed.promo.upload") }}
                       </NuxtLink>
                     </div>
                   </DashboardExhibitorSection>
@@ -709,7 +700,7 @@
                   <DashboardExhibitorSection
                     v-if="be.documents?.length || showFasciaField(be) || showBadgeField(be)"
                     v-model:open="sectionStates[`${be.brand_event_id}_docs`]"
-                    title="Operational Documents"
+                    :title="$t('ed.docs.title')"
                     icon="hugeicons:file-01"
                     :summary="docsAndBoothSummary(be)"
                     :completed="isDocsComplete(be)"
@@ -737,16 +728,16 @@
                       v-if="showFasciaField(be) || showBadgeField(be)"
                       :class="{ 'border-border mt-5 border-t pt-5': be.documents?.length }"
                     >
-                      <p class="mb-3 text-sm font-medium">Booth Details</p>
+                      <p class="mb-3 text-sm font-medium">{{ $t("ed.docs.boothDetails") }}</p>
                       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div v-if="showFasciaField(be)" class="space-y-2">
-                          <Label :for="`fascia_${be.brand_event_id}`">Fascia Name</Label>
+                          <Label :for="`fascia_${be.brand_event_id}`">{{ $t("ed.docs.fasciaName") }}</Label>
                           <Input
                             :id="`fascia_${be.brand_event_id}`"
                             :model-value="
                               boothFields[be.brand_event_id]?.fascia_name ?? be.fascia_name ?? ''
                             "
-                            placeholder="Name displayed on booth fascia"
+                            :placeholder="$t('ed.docs.fasciaPlaceholder')"
                             @update:model-value="
                               (v) =>
                                 setBoothField(be.brand_event_id, 'fascia_name', v.toUpperCase())
@@ -754,23 +745,20 @@
                             maxlength="24"
                           />
                           <p class="text-muted-foreground text-xs tracking-tight">
-                            Max 24 characters, uppercase only
+                            {{ $t("ed.docs.fasciaHint") }}
                           </p>
                         </div>
                         <div v-if="showBadgeField(be)" class="space-y-2">
-                          <Label :for="`badge_${be.brand_event_id}`">Badge Name</Label>
+                          <Label :for="`badge_${be.brand_event_id}`">{{ $t("ed.docs.badgeName") }}</Label>
                           <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-                            This is the name that will be printed on your Exhibitor Badge.
-                            You can use your company name or brand name.
-                            If you choose your brand name and have multiple brands,
-                            select which brand name to use.
+                            {{ $t("ed.docs.badgeDescription") }}
                           </p>
                           <Input
                             :id="`badge_${be.brand_event_id}`"
                             :model-value="
                               boothFields[be.brand_event_id]?.badge_name ?? be.badge_name ?? ''
                             "
-                            placeholder="Name displayed on exhibitor badge"
+                            :placeholder="$t('ed.docs.badgePlaceholder')"
                             @update:model-value="
                               (v) => setBoothField(be.brand_event_id, 'badge_name', v)
                             "
@@ -787,7 +775,7 @@
                               name="svg-spinners:ring-resize"
                               class="mr-1.5 size-4"
                             />
-                            Save Booth Details
+                            {{ $t("ed.docs.saveBoothDetails") }}
                           </Button>
                         </div>
                       </div>
@@ -799,9 +787,9 @@
                 <DashboardExhibitorSection
                   v-if="be.event.badge_vip_info"
                   v-model:open="sectionStates[`${be.brand_event_id}_badge_vip`]"
-                  title="Badge & VIP Information"
+                  :title="$t('ed.badgeVip.titleShort')"
                   icon="hugeicons:name-tag"
-                  summary="Information about exhibitor badges and VIP passes."
+                  :summary="$t('ed.badgeVip.summary')"
                   :completed="true"
                   :locked="
                     !dashboard.profile_complete ||
@@ -819,7 +807,7 @@
                 <div :ref="(el) => setSectionRef(be.brand_event_id, 'order', el)">
                   <DashboardExhibitorSection
                     v-model:open="sectionStates[`${be.brand_event_id}_order`]"
-                    title="Order Form"
+                    :title="$t('ed.order.title')"
                     icon="hugeicons:shopping-cart-01"
                     :summary="orderSectionSummary(be)"
                     :completed="be.orders_count > 0"
@@ -849,6 +837,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "vue-sonner";
 
+const { t, locale } = useI18n();
 const client = useSanctumClient();
 
 const data = ref(null);
@@ -863,6 +852,8 @@ const eventCollapseStates = reactive({});
 const sectionRefs = {};
 
 const hasMultipleEvents = computed(() => (dashboard.value?.brand_events?.length || 0) > 1);
+
+const dateLocale = computed(() => (locale.value === "zh" ? "zh-CN" : "en-US"));
 
 // Profile form
 const profileForm = reactive({
@@ -913,10 +904,10 @@ async function saveProfile() {
   profileSaving.value = true;
   try {
     await client("/api/user/profile", { method: "PUT", body: profileForm });
-    toast.success("Profile updated");
+    toast.success(t("ed.profile.updated"));
     await fetchData();
   } catch (e) {
-    toast.error(e?.data?.message || "Failed to update profile");
+    toast.error(e?.data?.message || t("ed.profile.failedToUpdate"));
   } finally {
     profileSaving.value = false;
   }
@@ -925,7 +916,7 @@ async function saveProfile() {
 // --- Formatting helpers ---
 function formatDate(dateStr) {
   if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("id-ID", {
+  return new Date(dateStr).toLocaleDateString(dateLocale.value, {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -938,7 +929,7 @@ function formatDeadlineShort(dateStr) {
   if (deadline < new Date()) return "";
   const daysLeft = Math.ceil((deadline - new Date()) / (1000 * 60 * 60 * 24));
   if (daysLeft <= 0) return "";
-  if (daysLeft <= 7) return `${daysLeft}d left`;
+  if (daysLeft <= 7) return t("ed.daysLeft", { days: daysLeft });
   return formatDate(dateStr);
 }
 
@@ -950,16 +941,16 @@ function isDeadlineUrgent(dateStr) {
 }
 
 function orderSectionSummary(be) {
-  if (be.orders_count > 0) return `${be.orders_count} order(s) submitted`;
+  if (be.orders_count > 0) return t("ed.order.ordersSubmitted", be.orders_count, { count: be.orders_count });
   const period = getCurrentOrderPeriod(be);
-  if (period === "normal") return "Normal order period is open.";
-  if (period === "onsite") return `Onsite order period (+${be.onsite_penalty_rate}% surcharge).`;
+  if (period === "normal") return t("ed.order.normalOpen");
+  if (period === "onsite") return t("ed.order.onsiteOpen", { rate: be.onsite_penalty_rate });
   // No period is active
-  if (!be.normal_order_opens_at && !be.onsite_order_opens_at) return "Submit your order for this event.";
+  if (!be.normal_order_opens_at && !be.onsite_order_opens_at) return t("ed.order.submitOrder");
   const now = new Date();
-  if (be.normal_order_opens_at && now < new Date(be.normal_order_opens_at)) return "Order period not yet open.";
-  if (be.onsite_order_opens_at && now < new Date(be.onsite_order_opens_at)) return "Normal order closed, onsite order not yet open.";
-  return "All order periods have closed.";
+  if (be.normal_order_opens_at && now < new Date(be.normal_order_opens_at)) return t("ed.order.notYetOpen");
+  if (be.onsite_order_opens_at && now < new Date(be.onsite_order_opens_at)) return t("ed.order.normalClosed");
+  return t("ed.order.allClosed");
 }
 
 function getCurrentOrderPeriod(be) {
@@ -988,7 +979,7 @@ function getSteps(be) {
 
   steps.push({
     key: "profile",
-    label: "Profile",
+    label: t("ed.stepper.profile"),
     completed: dashboard.value?.profile_complete,
     current: !dashboard.value?.profile_complete,
     locked: false,
@@ -997,7 +988,7 @@ function getSteps(be) {
   if (be.event_rules?.length) {
     steps.push({
       key: "rules",
-      label: "Rules",
+      label: t("ed.stepper.rules"),
       completed: be.event_rules_agreed,
       current: dashboard.value?.profile_complete && !be.event_rules_agreed,
       locked: profileLocked,
@@ -1006,7 +997,7 @@ function getSteps(be) {
 
   steps.push({
     key: "brand",
-    label: "Brand",
+    label: t("ed.stepper.brand"),
     completed: be.brand_complete,
     current: !rulesLocked && !be.brand_complete,
     locked: rulesLocked,
@@ -1014,7 +1005,7 @@ function getSteps(be) {
 
   steps.push({
     key: "promo",
-    label: "Promo",
+    label: t("ed.stepper.promo"),
     completed: be.promotion_posts_count > 0,
     current: !rulesLocked && be.brand_complete && be.promotion_posts_count === 0,
     locked: rulesLocked,
@@ -1023,7 +1014,7 @@ function getSteps(be) {
   if (be.documents?.length || showFasciaField(be) || showBadgeField(be)) {
     steps.push({
       key: "docs",
-      label: "Docs",
+      label: t("ed.stepper.docs"),
       completed: isDocsComplete(be),
       current: !rulesLocked && be.brand_complete && !isDocsComplete(be),
       locked: rulesLocked,
@@ -1032,7 +1023,7 @@ function getSteps(be) {
 
   steps.push({
     key: "order",
-    label: "Order",
+    label: t("ed.stepper.order"),
     completed: be.orders_count > 0,
     current: !rulesLocked && be.brand_complete && be.orders_count === 0,
     locked: rulesLocked,
@@ -1107,10 +1098,10 @@ async function handleAgreeRule(be, rule) {
       { method: "POST", body: {} }
     );
     delete checkedRules[`${be.brand_event_id}_${rule.document.id}`];
-    toast.success("Agreement recorded");
+    toast.success(t("ed.rules.recorded"));
     await fetchData();
   } catch (err) {
-    toast.error(err?.data?.message || "Failed to submit");
+    toast.error(err?.data?.message || t("ed.rules.failedToSubmit"));
   } finally {
     agreeingId.value = null;
   }
@@ -1139,16 +1130,16 @@ function isDocsComplete(be) {
 function docsAndBoothSummary(be) {
   const parts = [];
   if (be.documents?.length) {
-    parts.push(`${be.documents_completed}/${be.documents_total} documents`);
+    parts.push(t("ed.docs.documents", { completed: be.documents_completed, total: be.documents_total }));
   }
   if (showFasciaField(be) || showBadgeField(be)) {
     const boothDone =
       (showFasciaField(be) ? (be.fascia_name ? 1 : 0) : 0) +
       (showBadgeField(be) ? (be.badge_name ? 1 : 0) : 0);
     const boothTotal = (showFasciaField(be) ? 1 : 0) + (showBadgeField(be) ? 1 : 0);
-    parts.push(`${boothDone}/${boothTotal} booth fields`);
+    parts.push(t("ed.docs.boothFields", { completed: boothDone, total: boothTotal }));
   }
-  return parts.join(", ") || "No documents required.";
+  return parts.join(", ") || t("ed.docs.noDocsRequired");
 }
 
 function docsNeedingAttention(be) {
@@ -1185,10 +1176,10 @@ async function saveBoothFields(be) {
         },
       }
     );
-    toast.success("Booth details saved");
+    toast.success(t("ed.docs.saved"));
     await fetchData();
   } catch (err) {
-    toast.error(err?.data?.message || "Failed to save booth details");
+    toast.error(err?.data?.message || t("ed.docs.failedToSave"));
   } finally {
     savingBoothFields.value = null;
   }

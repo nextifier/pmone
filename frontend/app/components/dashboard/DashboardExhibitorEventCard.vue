@@ -25,7 +25,7 @@
       <div class="hidden text-right sm:block">
         <p class="text-sm font-medium tracking-tight">{{ be.brand.name }}</p>
         <p v-if="be.booth_number" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-          Booth {{ be.booth_number }} - {{ be.booth_type_label }}
+          {{ $t("ed.eventCard.booth") }} {{ be.booth_number }} - {{ be.booth_type_label }}
         </p>
       </div>
     </div>
@@ -34,7 +34,7 @@
     <div class="border-border flex items-center gap-2 border-t px-4 py-2.5 sm:hidden">
       <span class="text-xs font-medium tracking-tight">{{ be.brand.name }}</span>
       <span v-if="be.booth_number" class="text-muted-foreground text-xs tracking-tight">
-        Booth {{ be.booth_number }} - {{ be.booth_type_label }}
+        {{ $t("ed.eventCard.booth") }} {{ be.booth_number }} - {{ be.booth_type_label }}
       </span>
     </div>
 
@@ -57,13 +57,17 @@
 </template>
 
 <script setup>
+const { t, locale } = useI18n();
+
 const props = defineProps({
   be: { type: Object, required: true },
 });
 
+const dateLocale = computed(() => (locale.value === "zh" ? "zh-CN" : "en-US"));
+
 function formatDeadline(dateStr) {
   if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("id-ID", {
+  return new Date(dateStr).toLocaleDateString(dateLocale.value, {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -81,7 +85,7 @@ const deadlines = computed(() => {
   const items = [];
   if (props.be.promotion_post_deadline) {
     items.push({
-      label: "Promotion",
+      label: t("ed.eventCard.promotion"),
       date: formatDeadline(props.be.promotion_post_deadline),
       icon: "hugeicons:image-02",
       urgent: isUrgent(props.be.promotion_post_deadline),
@@ -89,7 +93,7 @@ const deadlines = computed(() => {
   }
   if (props.be.order_form_deadline) {
     items.push({
-      label: "Order",
+      label: t("ed.eventCard.order"),
       date: formatDeadline(props.be.order_form_deadline),
       icon: "hugeicons:shopping-cart-01",
       urgent: isUrgent(props.be.order_form_deadline),

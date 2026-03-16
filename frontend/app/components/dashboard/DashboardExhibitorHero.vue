@@ -48,7 +48,7 @@
           >
             <Button size="sm" variant="outline" class="w-full sm:w-auto">
               <Icon name="hugeicons:shopping-cart-01" class="mr-1.5 size-4" />
-              View My Orders
+              {{ $t("ed.hero.viewOrders") }}
             </Button>
           </NuxtLink>
         </div>
@@ -59,6 +59,8 @@
 
 <script setup>
 import { Button } from "@/components/ui/button";
+
+const { t } = useI18n();
 
 const props = defineProps({
   profileComplete: { type: Boolean, default: false },
@@ -84,9 +86,9 @@ const currentAction = computed(() => {
   if (!props.profileComplete) {
     return {
       icon: "hugeicons:user-edit-01",
-      title: "Complete your profile",
-      description: "Fill in your name, phone, job title, and company to continue.",
-      action: "Complete Profile",
+      title: t("ed.hero.completeProfile"),
+      description: t("ed.hero.completeProfileDesc"),
+      action: t("ed.hero.completeProfileCta"),
       actionKey: "profile",
     };
   }
@@ -99,9 +101,9 @@ const currentAction = computed(() => {
   if (rulesNeeded) {
     return {
       icon: "hugeicons:file-validation",
-      title: "Review event rules",
-      description: `Please agree to the rules for ${rulesNeeded.event.title} to proceed.`,
-      action: "Review Rules",
+      title: t("ed.hero.reviewRules"),
+      description: t("ed.hero.reviewRulesDesc", { event: rulesNeeded.event.title }),
+      action: t("ed.hero.reviewRulesCta"),
       actionKey: `rules:${rulesNeeded.brand_event_id}`,
     };
   }
@@ -115,9 +117,9 @@ const currentAction = computed(() => {
   if (reagreement) {
     return {
       icon: "hugeicons:alert-02",
-      title: "Document updated, please review",
-      description: `Some documents for ${reagreement.event.title} have been updated and need your attention.`,
-      action: "Review",
+      title: t("ed.hero.docUpdated"),
+      description: t("ed.hero.docUpdatedDesc", { event: reagreement.event.title }),
+      action: t("ed.hero.docUpdatedCta"),
       actionKey: `docs:${reagreement.brand_event_id}`,
       urgent: true,
     };
@@ -131,9 +133,9 @@ const currentAction = computed(() => {
     const remaining = docsNeeded.documents_total - docsNeeded.documents_completed;
     return {
       icon: "hugeicons:file-01",
-      title: `${remaining} document${remaining > 1 ? "s" : ""} to submit`,
-      description: `Complete your documents for ${docsNeeded.event.title}.`,
-      action: "Submit Documents",
+      title: t("ed.hero.docsToSubmit", remaining),
+      description: t("ed.hero.docsToSubmitDesc", { event: docsNeeded.event.title }),
+      action: t("ed.hero.docsToSubmitCta"),
       actionKey: `docs:${docsNeeded.brand_event_id}`,
     };
   }
@@ -149,11 +151,11 @@ const currentAction = computed(() => {
     const daysLeft = Math.ceil((deadline - new Date()) / (1000 * 60 * 60 * 24));
     return {
       icon: "hugeicons:shopping-cart-01",
-      title: "Order form is open",
-      description: `Submit your order for ${orderOpen.event.title}.`,
-      action: "Order Now",
+      title: t("ed.hero.orderOpen"),
+      description: t("ed.hero.orderOpenDesc", { event: orderOpen.event.title }),
+      action: t("ed.hero.orderOpenCta"),
       actionKey: `order:${orderOpen.brand_event_id}`,
-      deadline: daysLeft <= 7 ? `Closes in ${daysLeft} day${daysLeft > 1 ? "s" : ""}` : null,
+      deadline: daysLeft <= 7 ? t("ed.hero.orderDeadline", daysLeft, { days: daysLeft }) : null,
       urgent: daysLeft <= 3,
     };
   }
@@ -161,8 +163,8 @@ const currentAction = computed(() => {
   // 6. All done
   return {
     icon: "hugeicons:checkmark-circle-02",
-    title: "You're all set!",
-    description: "All steps are complete. Check back for updates or new deadlines.",
+    title: t("ed.hero.allDone"),
+    description: t("ed.hero.allDoneDesc"),
     actionKey: "all_done",
   };
 });

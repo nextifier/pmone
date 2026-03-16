@@ -90,7 +90,6 @@
                   { label: 'Event', value: 'event' },
                   { label: 'Referral', value: 'referral' },
                   { label: 'Website', value: 'website' },
-                  { label: 'Website Inquiries', value: 'website inquiries' },
                   { label: 'Import', value: 'import' },
                   { label: 'Manual', value: 'manual' },
                 ]"

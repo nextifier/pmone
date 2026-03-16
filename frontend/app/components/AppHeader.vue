@@ -118,7 +118,7 @@
 
       <div class="ml-auto flex h-full shrink-0 items-center gap-x-6">
         <div class="flex h-full shrink-0 items-center gap-x-2">
-          <!-- <LanguageSwitcher v-if="isExhibitor" /> -->
+          <LanguageSwitcher v-if="isExhibitor" />
 
           <Tippy>
             <ColorModeToggle />

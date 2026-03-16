@@ -14,15 +14,16 @@ class ContactFormSubmissionsExport extends BaseExport implements WithColumnWidth
             'A' => 6,   // ID
             'B' => 35,  // Subject
             'C' => 25,  // Name
-            'D' => 25,  // Brand Name
-            'E' => 30,  // Email
-            'F' => 20,  // Phone
-            'G' => 20,  // Country
-            'H' => 25,  // Project
-            'I' => 14,  // Status
-            'J' => 45,  // Message
-            'K' => 20,  // Created At
-            'L' => 20,  // Referral Source
+            'D' => 25,  // Job Title
+            'E' => 25,  // Brand Name
+            'F' => 30,  // Email
+            'G' => 20,  // Phone
+            'H' => 20,  // Country
+            'I' => 25,  // Project
+            'J' => 14,  // Status
+            'K' => 45,  // Message
+            'L' => 20,  // Created At
+            'M' => 20,  // Referral Source
         ];
     }
 
@@ -33,7 +34,7 @@ class ContactFormSubmissionsExport extends BaseExport implements WithColumnWidth
 
     protected function phoneColumns(): array
     {
-        return ['F'];
+        return ['G'];
     }
 
     public function headings(): array
@@ -42,6 +43,7 @@ class ContactFormSubmissionsExport extends BaseExport implements WithColumnWidth
             'ID',
             'Subject',
             'Name',
+            'Job Title',
             'Brand Name',
             'Email',
             'Phone',
@@ -62,6 +64,7 @@ class ContactFormSubmissionsExport extends BaseExport implements WithColumnWidth
         // Extract form data
         $formData = $submission->form_data ?? [];
         $name = $formData['name'] ?? '-';
+        $jobTitle = $formData['job_title'] ?? '-';
         $brandName = $formData['brand_name'] ?? '-';
         $email = $formData['email'] ?? '-';
         $phone = $formData['phone'] ?? '-';
@@ -79,6 +82,7 @@ class ContactFormSubmissionsExport extends BaseExport implements WithColumnWidth
             $submission->id,
             $submission->subject ?? '-',
             $name,
+            $jobTitle,
             $brandName,
             $email,
             $phone,

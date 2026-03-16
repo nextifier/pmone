@@ -9,14 +9,14 @@
           variant="outline"
           class="text-xs font-normal tracking-tight"
         >
-          Required
+          {{ $t("ed.docs.required") }}
         </Badge>
         <Badge
           v-if="status === 'needs_reagreement'"
           variant="outline"
           class="border-amber-200 bg-amber-50 text-xs font-normal tracking-tight text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400"
         >
-          Updated
+          {{ $t("ed.docs.updated") }}
         </Badge>
         <Icon
           v-if="status === 'completed'"
@@ -25,7 +25,7 @@
         />
       </div>
       <p v-if="doc.submission_deadline" class="text-muted-foreground mt-1 text-sm tracking-tight">
-        Deadline: {{ formatDeadline(doc.submission_deadline) }} ({{
+        {{ $t("ed.docs.deadline", { date: formatDeadline(doc.submission_deadline) }) }} ({{
           $dayjs(doc.submission_deadline).fromNow()
         }})
       </p>
@@ -50,7 +50,7 @@
           class="border-border bg-card hover:bg-muted inline-flex w-full items-center gap-1.5 rounded-xl border p-4 text-xs font-medium tracking-tight transition-colors sm:w-auto sm:text-sm"
         >
           <Icon name="teenyicons:pdf-solid" class="text-destructive size-10" />
-          View Document (EN)
+          {{ $t("ed.docs.viewDocEn") }}
           <Icon name="hugeicons:arrow-up-right-01" class="text-muted-foreground size-3" />
         </a>
         <a
@@ -61,7 +61,7 @@
           class="border-border bg-card hover:bg-muted inline-flex w-full items-center gap-1.5 rounded-xl border p-4 text-xs font-medium tracking-tight transition-colors sm:w-auto sm:text-sm"
         >
           <Icon name="teenyicons:pdf-solid" class="text-destructive size-10" />
-          View Document (ID)
+          {{ $t("ed.docs.viewDocId") }}
           <Icon name="hugeicons:arrow-up-right-01" class="text-muted-foreground size-3" />
         </a>
       </template>
@@ -76,7 +76,7 @@
           class="border-border bg-card hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium tracking-tight transition-colors sm:text-sm"
         >
           <Icon name="hugeicons:download-01" class="text-primary size-4.5" />
-          Download Template (EN)
+          {{ $t("ed.docs.downloadTemplateEn") }}
           <Icon name="hugeicons:arrow-up-right-01" class="text-muted-foreground size-3" />
         </a>
         <a
@@ -87,7 +87,7 @@
           class="border-border bg-card hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium tracking-tight transition-colors sm:text-sm"
         >
           <Icon name="hugeicons:download-01" class="text-primary size-4.5" />
-          Download Template (ID)
+          {{ $t("ed.docs.downloadTemplateId") }}
           <Icon name="hugeicons:arrow-up-right-01" class="text-muted-foreground size-3" />
         </a>
       </template>
@@ -101,7 +101,7 @@
         class="border-border bg-card hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium tracking-tight transition-colors sm:text-sm"
       >
         <Icon name="hugeicons:file-search" class="text-muted-foreground size-4.5" />
-        View Example
+        {{ $t("ed.docs.viewExample") }}
         <Icon name="hugeicons:arrow-up-right-01" class="text-muted-foreground size-3" />
       </a>
     </div>
@@ -113,7 +113,7 @@
         v-if="isPastDeadline && status !== 'completed'"
         class="text-muted-foreground bg-muted rounded-lg px-3 py-2 text-sm tracking-tight"
       >
-        Submission deadline has passed.
+        {{ $t("ed.docs.deadlinePassed") }}
       </div>
 
       <!-- File Upload type -->
@@ -136,13 +136,13 @@
           </div>
           <Button v-if="!isPastDeadline" size="sm" variant="outline" @click="isReplacingFile = true">
             <Icon name="hugeicons:exchange-01" class="mr-1 size-3.5" />
-            Replace File
+            {{ $t("ed.docs.replaceFile") }}
           </Button>
         </div>
 
         <!-- Upload area: shown when no file yet OR replacing -->
         <div v-else class="space-y-2.5">
-          <Label>Upload your {{ doc.title }} here</Label>
+          <Label>{{ $t("ed.docs.uploadLabel", { title: doc.title }) }}</Label>
           <InputFile
             ref="fileInputRef"
             v-model="tmpFile"
@@ -165,7 +165,7 @@
               @click="handleFileUpload"
             >
               <Icon v-if="submitting" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
-              {{ currentSubmission?.submission_file ? "Replace" : "Upload" }}
+              {{ currentSubmission?.submission_file ? $t("ed.docs.replace") : $t("ed.docs.upload") }}
             </Button>
             <Button
               v-if="isReplacingFile"
@@ -176,7 +176,7 @@
                 tmpFile = [];
               "
             >
-              Cancel
+              {{ $t("ed.docs.cancel") }}
             </Button>
           </div>
         </div>
@@ -190,15 +190,15 @@
           </p>
           <Button v-if="!isPastDeadline" size="sm" variant="ghost" @click="isEditingText = true">
             <Icon name="hugeicons:edit-02" class="mr-1 size-3.5" />
-            Edit
+            {{ $t("ed.docs.edit") }}
           </Button>
         </div>
         <div v-else-if="!isPastDeadline" class="space-y-2">
-          <Textarea v-model="textValue" placeholder="Enter your response..." rows="3" />
+          <Textarea v-model="textValue" :placeholder="$t('ed.docs.placeholder')" rows="3" />
           <div class="flex gap-2">
             <Button size="sm" :disabled="submitting || !textValue.trim()" @click="handleTextSubmit">
               <Icon v-if="submitting" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
-              {{ currentSubmission?.text_value ? "Update" : "Submit" }}
+              {{ currentSubmission?.text_value ? $t("ed.docs.update") : $t("ed.docs.submit") }}
             </Button>
             <Button
               v-if="status === 'completed'"
@@ -206,7 +206,7 @@
               variant="ghost"
               @click="isEditingText = false"
             >
-              Cancel
+              {{ $t("ed.docs.cancel") }}
             </Button>
           </div>
         </div>
@@ -221,6 +221,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "vue-sonner";
 
+const { t, locale } = useI18n();
 const client = useSanctumClient();
 
 const props = defineProps({
@@ -239,11 +240,13 @@ const emit = defineEmits(["submitted"]);
 
 const { $dayjs } = useNuxtApp();
 
+const dateLocale = computed(() => (locale.value === "zh" ? "zh-CN" : "en-US"));
+
 function formatDeadline(dateStr) {
   if (!dateStr) return "";
   const d = new Date(dateStr);
   return (
-    d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) +
+    d.toLocaleDateString(dateLocale.value, { day: "numeric", month: "long", year: "numeric" }) +
     " " +
     String(d.getHours()).padStart(2, "0") +
     ":" +
@@ -309,10 +312,10 @@ async function handleFileUpload() {
     currentSubmission.value = res.data;
     tmpFile.value = [];
     isReplacingFile.value = false;
-    toast.success("File uploaded successfully");
+    toast.success(t("ed.docs.fileUploaded"));
     emit("submitted", res.data);
   } catch (err) {
-    toast.error(err?.data?.message || "Failed to upload file");
+    toast.error(err?.data?.message || t("ed.docs.failedToUpload"));
   } finally {
     submitting.value = false;
   }
@@ -328,10 +331,10 @@ async function handleTextSubmit() {
     });
     currentSubmission.value = res.data;
     isEditingText.value = false;
-    toast.success("Response submitted");
+    toast.success(t("ed.docs.responseSubmitted"));
     emit("submitted", res.data);
   } catch (err) {
-    toast.error(err?.data?.message || "Failed to submit");
+    toast.error(err?.data?.message || t("ed.docs.failedToSubmit"));
   } finally {
     submitting.value = false;
   }

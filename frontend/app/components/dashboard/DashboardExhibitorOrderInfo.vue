@@ -13,7 +13,7 @@
         />
         <div>
           <p>
-            <span class="font-medium">Normal Order:</span>
+            <span class="font-medium">{{ $t("ed.order.normalLabel") }}</span>
             {{ formatDateTime(be.normal_order_opens_at) }}
             <template v-if="be.normal_order_closes_at">
               - {{ formatDateTime(be.normal_order_closes_at) }}
@@ -36,14 +36,14 @@
         />
         <div>
           <p>
-            <span class="font-medium">Onsite Order:</span>
+            <span class="font-medium">{{ $t("ed.order.onsiteLabel") }}</span>
             {{ formatDateTime(be.onsite_order_opens_at) }}
             <template v-if="be.onsite_order_closes_at">
               - {{ formatDateTime(be.onsite_order_closes_at) }}
             </template>
           </p>
           <p class="text-muted-foreground text-xs sm:text-sm">
-            +{{ be.onsite_penalty_rate }}% surcharge applied to onsite orders.
+            {{ $t("ed.order.surcharge", { rate: be.onsite_penalty_rate }) }}
           </p>
           <p v-if="onsiteStatus.label" :class="['text-xs sm:text-sm', onsiteStatus.color]">
             {{ onsiteStatus.label }}
@@ -60,7 +60,7 @@
         class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-x-1.5 rounded-lg px-3 py-1.5 text-xs font-medium tracking-tight transition-colors sm:text-sm"
       >
         <Icon name="hugeicons:shopping-cart-01" class="size-3.5" />
-        {{ be.orders_count > 0 ? "New Order" : "Open Order Form" }}
+        {{ be.orders_count > 0 ? $t("ed.order.newOrder") : $t("ed.order.openForm") }}
       </NuxtLink>
       <p v-else class="text-muted-foreground text-sm tracking-tight">
         {{ closedMessage }}
@@ -71,22 +71,26 @@
         class="border-border hover:bg-muted inline-flex items-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium tracking-tight transition-colors sm:text-sm"
       >
         <Icon name="hugeicons:shopping-bag-01" class="size-3.5" />
-        View Orders
+        {{ $t("ed.order.viewOrders") }}
       </NuxtLink>
     </div>
   </div>
 </template>
 
 <script setup>
+const { t, locale } = useI18n();
+
 const props = defineProps({
   be: { type: Object, required: true },
 });
+
+const dateLocale = computed(() => (locale.value === "zh" ? "zh-CN" : "en-US"));
 
 function formatDateTime(dateStr) {
   if (!dateStr) return "";
   const d = new Date(dateStr);
   return (
-    d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) +
+    d.toLocaleDateString(dateLocale.value, { day: "numeric", month: "short", year: "numeric" }) +
     " " +
     String(d.getHours()).padStart(2, "0") +
     ":" +
@@ -95,22 +99,23 @@ function formatDateTime(dateStr) {
 }
 
 function getPeriodStatus(opensAt, closesAt) {
-  if (!opensAt) return { icon: "hugeicons:circle", color: "text-muted-foreground", label: "" };
+  if (!opensAt) return { icon: "hugeicons:circle", color: "text-muted-foreground", label: "", status: "none" };
   const now = new Date();
   const opens = new Date(opensAt);
   const closes = closesAt ? new Date(closesAt) : null;
 
   if (now < opens) {
-    return { icon: "hugeicons:clock-01", color: "text-muted-foreground", label: "Not yet open" };
+    return { icon: "hugeicons:clock-01", color: "text-muted-foreground", label: t("ed.order.statusNotOpen"), status: "not_open" };
   }
   if (!closes || now <= closes) {
     return {
       icon: "hugeicons:checkmark-circle-02",
       color: "text-success-foreground",
-      label: "Open now",
+      label: t("ed.order.statusOpen"),
+      status: "open",
     };
   }
-  return { icon: "hugeicons:cancel-circle", color: "text-muted-foreground", label: "Closed" };
+  return { icon: "hugeicons:cancel-circle", color: "text-muted-foreground", label: t("ed.order.statusClosed"), status: "closed" };
 }
 
 const normalStatus = computed(() =>
@@ -124,7 +129,7 @@ const canOrder = computed(() => {
   const be = props.be;
   // Legacy: no periods configured, always allow
   if (!be.normal_order_opens_at && !be.onsite_order_opens_at) return true;
-  return normalStatus.value.label === "Open now" || onsiteStatus.value.label === "Open now";
+  return normalStatus.value.status === "open" || onsiteStatus.value.status === "open";
 });
 
 const closedMessage = computed(() => {
@@ -132,11 +137,11 @@ const closedMessage = computed(() => {
   if (!be.normal_order_opens_at && !be.onsite_order_opens_at) return "";
   const now = new Date();
   if (be.normal_order_opens_at && now < new Date(be.normal_order_opens_at)) {
-    return "Order form will be available when the order period opens.";
+    return t("ed.order.waitingMessage");
   }
   if (be.onsite_order_opens_at && now < new Date(be.onsite_order_opens_at)) {
-    return "Normal order period has closed. Onsite order period has not yet started.";
+    return t("ed.order.gapMessage");
   }
-  return "All order periods have closed.";
+  return t("ed.order.closedMessage");
 });
 </script>
