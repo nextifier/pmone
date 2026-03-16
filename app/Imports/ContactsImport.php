@@ -6,6 +6,7 @@ use App\Helpers\PhoneCountryHelper;
 use App\Imports\Concerns\TracksImportProgress;
 use App\Models\Contact;
 use App\Models\Project;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
@@ -26,8 +27,22 @@ class ContactsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEve
 
     public function prepareForValidation($data, $index)
     {
+        // Treat "-" values as NULL (export uses "-" for empty values)
+        foreach ($data as $key => $value) {
+            if (is_string($value) && trim($value) === '-') {
+                $data[$key] = null;
+            }
+        }
+
         if (isset($data['phones']) && ! is_null($data['phones'])) {
             $data['phones'] = (string) $data['phones'];
+
+            // Normalize phones and drop invalid ones (keep data, skip bad phones)
+            $phones = array_map('trim', explode(',', $data['phones']));
+            $phones = array_filter($phones);
+            $phones = array_map([PhoneCountryHelper::class, 'normalizePhoneNumber'], $phones);
+            $phones = array_filter($phones, fn ($phone) => preg_match('/^\+\d+$/', $phone));
+            $data['phones'] = ! empty($phones) ? implode(', ', $phones) : null;
         }
 
         if (isset($data['status']) && ! is_null($data['status'])) {
@@ -88,6 +103,11 @@ class ContactsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEve
             'status' => $row['status'] ?? 'active',
             'source' => $row['source'] ?? 'import',
         ]);
+
+        // Set custom created_at if provided (bypass Eloquent timestamps)
+        if (! empty($row['created_at'])) {
+            Contact::where('id', $contact->id)->update(['created_at' => Carbon::parse($row['created_at'])]);
+        }
 
         // Sync contact types if provided
         if (! empty($row['contact_types'])) {
@@ -162,6 +182,7 @@ class ContactsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEve
             'tags' => ['nullable', 'string', 'max:1000'],
             'projects' => ['nullable', 'string', 'max:1000'],
             'notes' => ['nullable', 'string', 'max:5000'],
+            'created_at' => ['nullable', 'string', 'max:50'],
         ];
     }
 

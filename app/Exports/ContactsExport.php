@@ -111,6 +111,73 @@ class ContactsExport extends BaseExport
             $sources = array_map('strtolower', explode(',', $this->filters['source']));
             $query->whereIn('source', $sources);
         }
+
+        if (isset($this->filters['type'])) {
+            $types = array_filter(explode(',', $this->filters['type']));
+            if (! empty($types)) {
+                $query->withAnyTags($types, 'contact_type');
+            }
+        }
+
+        if (isset($this->filters['business_category'])) {
+            $categories = array_filter(explode(',', $this->filters['business_category']));
+            if (! empty($categories)) {
+                $query->withAnyTags($categories, 'business_category');
+            }
+        }
+
+        if (isset($this->filters['tag'])) {
+            $tags = array_filter(explode(',', $this->filters['tag']));
+            if (! empty($tags)) {
+                $query->withAnyTags($tags, 'contact_tag');
+            }
+        }
+
+        if (isset($this->filters['job_title'])) {
+            $query->where('job_title', 'ilike', "%{$this->filters['job_title']}%");
+        }
+
+        if (isset($this->filters['country'])) {
+            $countries = array_filter(explode(',', $this->filters['country']));
+            if (! empty($countries)) {
+                $query->where(function ($q) use ($countries) {
+                    foreach ($countries as $c) {
+                        $q->orWhereRaw("address->>'country' ilike ?", ["%{$c}%"]);
+                    }
+                });
+            }
+        }
+
+        if (isset($this->filters['province'])) {
+            $provinces = array_filter(explode(',', $this->filters['province']));
+            if (! empty($provinces)) {
+                $query->where(function ($q) use ($provinces) {
+                    foreach ($provinces as $p) {
+                        $q->orWhereRaw("address->>'province' ilike ?", ["%{$p}%"]);
+                    }
+                });
+            }
+        }
+
+        if (isset($this->filters['city'])) {
+            $cities = array_filter(explode(',', $this->filters['city']));
+            if (! empty($cities)) {
+                $query->where(function ($q) use ($cities) {
+                    foreach ($cities as $c) {
+                        $q->orWhereRaw("address->>'city' ilike ?", ["%{$c}%"]);
+                    }
+                });
+            }
+        }
+
+        if (isset($this->filters['project'])) {
+            $projectIds = array_filter(array_map('intval', explode(',', $this->filters['project'])));
+            if (count($projectIds) === 1) {
+                $query->whereHas('projects', fn ($q) => $q->where('projects.id', $projectIds[0]));
+            } elseif (count($projectIds) > 1) {
+                $query->whereHas('projects', fn ($q) => $q->whereIn('projects.id', $projectIds));
+            }
+        }
     }
 
     protected function applySorting(Builder $query): void

@@ -135,7 +135,7 @@
             </button>
           </PopoverTrigger>
           <PopoverContent class="w-auto min-w-48 p-3 pb-4.5" align="end">
-            <div class="space-y-4">
+            <div class="max-h-[70vh] space-y-4 overflow-y-auto">
               <FilterSection
                 title="Status"
                 :options="[
@@ -145,6 +145,13 @@
                 ]"
                 :selected="selectedStatuses"
                 @change="handleFilterChange('status', $event)"
+              />
+              <FilterSection
+                title="Contact Type"
+                :options="contactTypeOptions"
+                :selected="selectedTypes"
+                @change="handleFilterChange('contact_type', $event)"
+                class="border-t pt-4"
               />
               <FilterSection
                 title="Source"
@@ -157,6 +164,61 @@
                 ]"
                 :selected="selectedSources"
                 @change="handleFilterChange('source', $event)"
+                class="border-t pt-4"
+              />
+              <FilterSection
+                v-if="projectOptions.length > 0"
+                title="Projects"
+                :options="projectOptions.map((p) => ({ label: p.name, value: String(p.id) }))"
+                :selected="selectedProjects"
+                @change="handleFilterChange('project', $event)"
+                class="border-t pt-4"
+              />
+              <FilterTextInput
+                title="Job Title"
+                :model-value="jobTitleFilter"
+                @update:model-value="handleJobTitleFilter"
+                class="border-t pt-4"
+              />
+              <FilterSection
+                v-if="filterOptionsData.countries?.length > 0"
+                title="Country"
+                :options="filterOptionsData.countries"
+                :selected="selectedCountries"
+                @change="handleFilterChange('country', $event)"
+                class="border-t pt-4"
+              />
+              <FilterSection
+                v-if="filterOptionsData.provinces?.length > 0"
+                title="Province"
+                :options="filterOptionsData.provinces"
+                :selected="selectedProvinces"
+                @change="handleFilterChange('province', $event)"
+                class="border-t pt-4"
+              />
+              <FilterSection
+                v-if="filterOptionsData.cities?.length > 0"
+                title="City"
+                :options="filterOptionsData.cities"
+                :selected="selectedCities"
+                @change="handleFilterChange('city', $event)"
+                class="border-t pt-4"
+              />
+              <FilterSection
+                v-if="businessCategoryOptions.length > 0"
+                title="Business Category"
+                :options="businessCategoryOptions"
+                :selected="selectedBusinessCategories"
+                @change="handleFilterChange('business_category', $event)"
+                class="border-t pt-4"
+              />
+              <FilterSection
+                v-if="filterOptionsData.contact_tags?.length > 0"
+                title="Tags"
+                :options="filterOptionsData.contact_tags"
+                :selected="selectedTags"
+                @change="handleFilterChange('tag', $event)"
+                class="border-t pt-4"
               />
             </div>
           </PopoverContent>
@@ -620,6 +682,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
+import { useDebounceFn } from "@vueuse/core";
 import { defineComponent, resolveComponent, resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
 
@@ -668,6 +731,14 @@ const buildQueryParams = () => {
     name: "filter_search",
     status: "filter_status",
     source: "filter_source",
+    contact_type: "filter_type",
+    business_category: "filter_business_category",
+    tag: "filter_tag",
+    job_title: "filter_job_title",
+    country: "filter_country",
+    province: "filter_province",
+    city: "filter_city",
+    project: "filter_project",
   };
 
   Object.entries(filters).forEach(([columnId, paramKey]) => {
@@ -747,8 +818,29 @@ const getFilterValue = (columnId) => {
 
 const selectedStatuses = computed(() => getFilterValue("status"));
 const selectedSources = computed(() => getFilterValue("source"));
+const selectedTypes = computed(() => getFilterValue("contact_type"));
+const selectedProjects = computed(() => getFilterValue("project"));
+const selectedCountries = computed(() => getFilterValue("country"));
+const selectedProvinces = computed(() => getFilterValue("province"));
+const selectedCities = computed(() => getFilterValue("city"));
+const selectedBusinessCategories = computed(() => getFilterValue("business_category"));
+const selectedTags = computed(() => getFilterValue("tag"));
+const jobTitleFilter = computed(() => {
+  const f = columnFilters.value.find((f) => f.id === "job_title");
+  return f?.value || "";
+});
 const totalActiveFilters = computed(
-  () => selectedStatuses.value.length + selectedSources.value.length
+  () =>
+    selectedStatuses.value.length +
+    selectedSources.value.length +
+    selectedTypes.value.length +
+    selectedProjects.value.length +
+    selectedCountries.value.length +
+    selectedProvinces.value.length +
+    selectedCities.value.length +
+    selectedBusinessCategories.value.length +
+    selectedTags.value.length +
+    (jobTitleFilter.value ? 1 : 0)
 );
 
 const handleFilterChange = (columnId, { checked, value }) => {
@@ -769,6 +861,23 @@ const handleFilterChange = (columnId, { checked, value }) => {
   }
   pagination.value.pageIndex = 0;
 };
+
+// Job title text filter with debounce
+const handleJobTitleFilter = useDebounceFn((value) => {
+  const existingIndex = columnFilters.value.findIndex((f) => f.id === "job_title");
+  if (value) {
+    if (existingIndex >= 0) {
+      columnFilters.value[existingIndex].value = value;
+    } else {
+      columnFilters.value.push({ id: "job_title", value });
+    }
+  } else {
+    if (existingIndex >= 0) {
+      columnFilters.value.splice(existingIndex, 1);
+    }
+  }
+  pagination.value.pageIndex = 0;
+}, 400);
 
 // Contact statuses for bulk update dropdown
 const contactStatuses = [
@@ -832,6 +941,7 @@ const formRef = ref();
 const contactTypeOptions = ref([]);
 const businessCategoryOptions = ref([]);
 const projectOptions = ref([]);
+const filterOptionsData = ref({ countries: [], provinces: [], cities: [], contact_tags: [] });
 
 // Preload options once on mount
 onMounted(async () => {
@@ -857,6 +967,13 @@ onMounted(async () => {
     projectOptions.value = projectRes.data || [];
   } catch {
     // Projects may not be accessible
+  }
+
+  try {
+    const filterRes = await client("/api/contacts/filter-options");
+    filterOptionsData.value = filterRes;
+  } catch {
+    // Silent fail
   }
 });
 
@@ -1124,6 +1241,14 @@ const handleExport = async () => {
         name: "filter_search",
         status: "filter_status",
         source: "filter_source",
+        contact_type: "filter_type",
+        business_category: "filter_business_category",
+        tag: "filter_tag",
+        job_title: "filter_job_title",
+        country: "filter_country",
+        province: "filter_province",
+        city: "filter_city",
+        project: "filter_project",
       };
       const paramKey = filterMapping[filter.id];
       if (paramKey && filter.value) {
@@ -1614,6 +1739,29 @@ const FilterSection = defineComponent({
             ]);
           })
         ),
+      ]);
+  },
+});
+
+// Filter Text Input Component
+const FilterTextInput = defineComponent({
+  props: {
+    title: String,
+    modelValue: String,
+  },
+  emits: ["update:modelValue"],
+  setup(props, { emit }) {
+    return () =>
+      h("div", { class: "space-y-2" }, [
+        h("div", { class: "text-muted-foreground text-xs font-medium" }, props.title),
+        h("input", {
+          type: "text",
+          value: props.modelValue,
+          placeholder: `Search ${props.title?.toLowerCase()}...`,
+          class:
+            "border-input bg-background placeholder:text-muted-foreground w-full rounded-md border px-2.5 py-1.5 text-sm tracking-tight outline-none focus:ring-1 focus:ring-ring",
+          onInput: (e) => emit("update:modelValue", e.target.value),
+        }),
       ]);
   },
 });

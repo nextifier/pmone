@@ -238,6 +238,48 @@ class ContactController extends Controller
     }
 
     /**
+     * Return distinct filter options for the contacts list.
+     */
+    public function filterOptions(): JsonResponse
+    {
+        $countries = Contact::query()
+            ->whereNotNull('address')
+            ->whereRaw("address->>'country' IS NOT NULL AND address->>'country' != ''")
+            ->selectRaw("DISTINCT address->>'country' as value")
+            ->orderByRaw("address->>'country'")
+            ->pluck('value')
+            ->toArray();
+
+        $provinces = Contact::query()
+            ->whereNotNull('address')
+            ->whereRaw("address->>'province' IS NOT NULL AND address->>'province' != ''")
+            ->selectRaw("DISTINCT address->>'province' as value")
+            ->orderByRaw("address->>'province'")
+            ->pluck('value')
+            ->toArray();
+
+        $cities = Contact::query()
+            ->whereNotNull('address')
+            ->whereRaw("address->>'city' IS NOT NULL AND address->>'city' != ''")
+            ->selectRaw("DISTINCT address->>'city' as value")
+            ->orderByRaw("address->>'city'")
+            ->pluck('value')
+            ->toArray();
+
+        $contactTags = Tag::withType('contact_tag')
+            ->ordered()
+            ->pluck('name')
+            ->toArray();
+
+        return response()->json([
+            'countries' => $countries,
+            'provinces' => $provinces,
+            'cities' => $cities,
+            'contact_tags' => $contactTags,
+        ]);
+    }
+
+    /**
      * Quick search contacts by name, company_name, or email.
      */
     public function search(Request $request): JsonResponse
@@ -278,14 +320,24 @@ class ContactController extends Controller
     public function export(Request $request): JsonResponse
     {
         $filters = [];
-        if ($search = $request->input('filter_search')) {
-            $filters['search'] = $search;
-        }
-        if ($status = $request->input('filter_status')) {
-            $filters['status'] = $status;
-        }
-        if ($source = $request->input('filter_source')) {
-            $filters['source'] = $source;
+        $filterKeys = [
+            'filter_search' => 'search',
+            'filter_status' => 'status',
+            'filter_source' => 'source',
+            'filter_type' => 'type',
+            'filter_business_category' => 'business_category',
+            'filter_tag' => 'tag',
+            'filter_job_title' => 'job_title',
+            'filter_country' => 'country',
+            'filter_province' => 'province',
+            'filter_city' => 'city',
+            'filter_project' => 'project',
+        ];
+
+        foreach ($filterKeys as $param => $key) {
+            if ($value = $request->input($param)) {
+                $filters[$key] = $value;
+            }
         }
 
         $sort = $request->input('sort', 'name');
@@ -751,9 +803,16 @@ class ContactController extends Controller
             }
         }
 
-        // Project filter
+        // Project filter (supports multiple IDs)
         if ($projectId = $request->input('filter_project')) {
-            $query->forProject((int) $projectId);
+            $projectIds = is_array($projectId) ? $projectId : explode(',', $projectId);
+            $projectIds = array_filter(array_map('intval', $projectIds));
+
+            if (count($projectIds) === 1) {
+                $query->forProject($projectIds[0]);
+            } elseif (count($projectIds) > 1) {
+                $query->whereHas('projects', fn ($q) => $q->whereIn('projects.id', $projectIds));
+            }
         }
 
         // Contact type filter (via tags)
@@ -763,6 +822,73 @@ class ContactController extends Controller
 
             if (! empty($types)) {
                 $query->withAnyTags($types, 'contact_type');
+            }
+        }
+
+        // Business category filter (via tags)
+        if ($category = $request->input('filter_business_category')) {
+            $categories = is_array($category) ? $category : explode(',', $category);
+            $categories = array_filter($categories);
+
+            if (! empty($categories)) {
+                $query->withAnyTags($categories, 'business_category');
+            }
+        }
+
+        // Contact tag filter (via tags)
+        if ($tag = $request->input('filter_tag')) {
+            $tags = is_array($tag) ? $tag : explode(',', $tag);
+            $tags = array_filter($tags);
+
+            if (! empty($tags)) {
+                $query->withAnyTags($tags, 'contact_tag');
+            }
+        }
+
+        // Job title filter
+        if ($jobTitle = $request->input('filter_job_title')) {
+            $query->where('job_title', 'ilike', "%{$jobTitle}%");
+        }
+
+        // Country filter
+        if ($country = $request->input('filter_country')) {
+            $countries = is_array($country) ? $country : explode(',', $country);
+            $countries = array_filter($countries);
+
+            if (! empty($countries)) {
+                $query->where(function ($q) use ($countries) {
+                    foreach ($countries as $c) {
+                        $q->orWhereRaw("address->>'country' ilike ?", ["%{$c}%"]);
+                    }
+                });
+            }
+        }
+
+        // Province filter
+        if ($province = $request->input('filter_province')) {
+            $provinces = is_array($province) ? $province : explode(',', $province);
+            $provinces = array_filter($provinces);
+
+            if (! empty($provinces)) {
+                $query->where(function ($q) use ($provinces) {
+                    foreach ($provinces as $p) {
+                        $q->orWhereRaw("address->>'province' ilike ?", ["%{$p}%"]);
+                    }
+                });
+            }
+        }
+
+        // City filter
+        if ($city = $request->input('filter_city')) {
+            $cities = is_array($city) ? $city : explode(',', $city);
+            $cities = array_filter($cities);
+
+            if (! empty($cities)) {
+                $query->where(function ($q) use ($cities) {
+                    foreach ($cities as $c) {
+                        $q->orWhereRaw("address->>'city' ilike ?", ["%{$c}%"]);
+                    }
+                });
             }
         }
     }

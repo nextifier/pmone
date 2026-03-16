@@ -55,7 +55,7 @@
     <!-- Emails -->
     <div class="space-y-2">
       <div class="flex items-end justify-between gap-x-2">
-        <Label>Emails</Label>
+        <Label>Email</Label>
         <button
           type="button"
           class="hover:text-foreground text-muted-foreground flex items-center gap-x-1 text-sm tracking-tight"
@@ -88,7 +88,7 @@
     <!-- Phones -->
     <div class="space-y-2">
       <div class="flex items-end justify-between gap-x-2">
-        <Label>Phones</Label>
+        <Label>Phone</Label>
         <button
           type="button"
           class="text-muted-foreground hover:text-foreground flex items-center gap-x-1 text-sm tracking-tight"

@@ -25,6 +25,7 @@ class ContactsTemplateExport extends BaseTemplateExport
                 'VIP, priority',
                 'Megabuild Indonesia, Solartech Indonesia',
                 'Met at Megabuild 2026',
+                '2026-01-15 10:30:00',
             ],
             [
                 'Jane Smith',
@@ -44,6 +45,7 @@ class ContactsTemplateExport extends BaseTemplateExport
                 '',
                 'Megabuild Indonesia',
                 'Referred by John Doe',
+                '',
             ],
         ];
     }
@@ -68,6 +70,7 @@ class ContactsTemplateExport extends BaseTemplateExport
             'Tags',
             'Projects',
             'Notes',
+            'Created At',
         ];
     }
 
