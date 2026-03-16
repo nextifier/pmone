@@ -1,12 +1,12 @@
 <template>
   <PhoneInput
-    v-model="phoneValue"
+    :model-value="phoneValue"
     noUseBrowserLocale
-    fetchCountry
-    country-code="ID"
+    :country-code="activeCountry"
     :ignored-countries="['AC', 'TA']"
     class="flex"
-    @update:model-value="handlePhoneUpdate"
+    @update="handleResults"
+    @update:country-code="handleCountryChange"
   >
     <template #selector="{ inputValue, updateInputValue, countries }">
       <Popover v-model:open="open">
@@ -75,22 +75,58 @@ const emit = defineEmits<{
   "update:modelValue": [value: string];
 }>();
 
+const { getCountryCode } = usePhoneCountry();
+
 const open = ref(false);
 const phoneInput = ref(null);
 const { focused } = useFocus(phoneInput);
 
-// Internal phone value - must be a string for base-vue-phone-input
 const phoneValue = ref(props.modelValue || "");
+const activeCountry = ref<string>(
+  (props.modelValue ? getCountryCode(props.modelValue) : null) || "ID",
+);
 
-// Handle phone value updates and emit formatted phone number
-const handlePhoneUpdate = (value: any) => {
-  // base-vue-phone-input emits an object with phone details
-  if (value?.e164) {
-    emit("update:modelValue", value.e164);
-  } else if (value?.nationalNumber) {
-    emit("update:modelValue", value.nationalNumber);
-  } else if (typeof value === "string") {
-    emit("update:modelValue", value);
+let isInitializing = true;
+let lastEmittedValue = props.modelValue || "";
+
+onMounted(() => {
+  nextTick(() => {
+    isInitializing = false;
+  });
+});
+
+const handleResults = (results: any) => {
+  if (isInitializing) return;
+  let value = "";
+  if (results?.e164 && results?.isValid) {
+    value = results.e164;
+  } else if (results?.phoneNumber) {
+    value = results.phoneNumber;
   }
+  lastEmittedValue = value;
+  emit("update:modelValue", value);
 };
+
+const handleCountryChange = (countryCode: string) => {
+  activeCountry.value = countryCode;
+};
+
+watch(
+  () => props.modelValue,
+  (newVal) => {
+    const incoming = newVal || "";
+    if (incoming === lastEmittedValue) return;
+    isInitializing = true;
+    phoneValue.value = incoming;
+    if (incoming) {
+      const detected = getCountryCode(incoming);
+      if (detected) activeCountry.value = detected;
+    } else {
+      activeCountry.value = "ID";
+    }
+    nextTick(() => {
+      isInitializing = false;
+    });
+  },
+);
 </script>

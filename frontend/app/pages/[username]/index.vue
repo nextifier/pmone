@@ -8,6 +8,12 @@
     </div>
   </div>
 
+  <LinkPageView
+    v-else-if="resolvedType === 'linkpage'"
+    :link-page="linkPageData"
+    @track-click="trackLinkPageItemClick"
+  />
+
   <ProfileView
     v-else
     :profile="user"
@@ -21,6 +27,8 @@
 </template>
 
 <script setup>
+import LinkPageView from "@/components/link-page/LinkPageView.vue";
+
 definePageMeta({
   layout: "empty",
 });
@@ -43,6 +51,9 @@ const resolvedType = computed(() => data.value?.type || null);
 const user = computed(() => (resolvedType.value === "user" ? data.value?.data : null));
 const shortLinkData = computed(() =>
   resolvedType.value === "shortlink" ? data.value?.data : null
+);
+const linkPageData = computed(() =>
+  resolvedType.value === "linkpage" ? data.value?.data : null
 );
 
 const error = computed(() => {
@@ -72,6 +83,10 @@ const title = computed(() => {
     const link = shortLinkData.value;
     return link?.og_title || link?.slug || "Redirecting...";
   }
+  if (resolvedType.value === "linkpage") {
+    const lp = linkPageData.value;
+    return lp?.og_title || lp?.title || "Link Page";
+  }
   return user.value ? `${user.value.name} (@${user.value.username})` : "Profile";
 });
 
@@ -80,13 +95,34 @@ const description = computed(() => {
     const link = shortLinkData.value;
     return link?.og_description || "Click to visit this link";
   }
+  if (resolvedType.value === "linkpage") {
+    const lp = linkPageData.value;
+    return lp?.og_description || lp?.description || "View this link page";
+  }
   return user.value?.bio || "View profile";
 });
 
-// Handle short link OG meta (with custom titleTemplate)
+// Handle short link / linkpage OG meta (with custom titleTemplate)
 if (resolvedType.value === "shortlink") {
   const ogImage = computed(() => shortLinkData.value?.og_image || null);
   const ogType = computed(() => shortLinkData.value?.og_type || "website");
+
+  watchEffect(() => {
+    useSeoMeta({
+      titleTemplate: "%s",
+      title: title.value,
+      ogTitle: title.value,
+      description: description.value,
+      ogDescription: description.value,
+      ogImage: ogImage.value,
+      ogType: ogType.value,
+      ogUrl: useAppConfig().app.url + route.fullPath,
+      twitterCard: "summary_large_image",
+    });
+  });
+} else if (resolvedType.value === "linkpage") {
+  const ogImage = computed(() => linkPageData.value?.og_image || linkPageData.value?.cover_image?.md || null);
+  const ogType = computed(() => linkPageData.value?.og_type || "website");
 
   watchEffect(() => {
     useSeoMeta({
@@ -195,6 +231,57 @@ if (import.meta.client) {
     (newUser) => {
       if (newUser?.id) {
         trackProfileVisit();
+      }
+    },
+    { immediate: true }
+  );
+}
+
+// LinkPage tracking
+const linkPageVisitTracked = ref(false);
+
+const trackLinkPageVisit = () => {
+  if (!import.meta.client || !linkPageData.value?.id || linkPageVisitTracked.value) return;
+
+  linkPageVisitTracked.value = true;
+
+  $fetch("/api/track/visit", {
+    method: "POST",
+    baseURL: useRuntimeConfig().public.apiUrl,
+    credentials: "include",
+    body: {
+      visitable_type: "App\\Models\\LinkPage",
+      visitable_id: linkPageData.value.id,
+    },
+  }).catch((err) => {
+    console.error("Failed to track link page visit:", err);
+    linkPageVisitTracked.value = false;
+  });
+};
+
+const trackLinkPageItemClick = (item) => {
+  if (!import.meta.client || !item?.id) return;
+
+  $fetch("/api/track/click", {
+    method: "POST",
+    baseURL: useRuntimeConfig().public.apiUrl,
+    credentials: "include",
+    body: {
+      clickable_type: "App\\Models\\LinkPageItem",
+      clickable_id: item.id,
+      link_label: item.label,
+    },
+  }).catch((err) => {
+    console.error("Failed to track link page item click:", err);
+  });
+};
+
+if (import.meta.client) {
+  watch(
+    linkPageData,
+    (newData) => {
+      if (newData?.id) {
+        trackLinkPageVisit();
       }
     },
     { immediate: true }

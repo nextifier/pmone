@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\TrackingHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\LinkPageResource;
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\UserResource;
+use App\Models\LinkPage;
 use App\Models\Project;
 use App\Models\ShortLink;
 use App\Models\User;
@@ -119,6 +121,21 @@ class ProfileController extends Controller
                     'og_image' => $shortLink->og_image,
                     'og_type' => $shortLink->og_type,
                 ],
+            ]);
+        }
+
+        // Check link page
+        $linkPage = LinkPage::where('slug', $slug)
+            ->where('is_active', true)
+            ->with(['items' => function ($query) {
+                $query->active()->ordered();
+            }, 'user', 'media'])
+            ->first();
+
+        if ($linkPage) {
+            return response()->json([
+                'type' => 'linkpage',
+                'data' => new LinkPageResource($linkPage),
             ]);
         }
 

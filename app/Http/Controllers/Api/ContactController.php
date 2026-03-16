@@ -16,10 +16,12 @@ use App\Jobs\BulkSoftDeleteContacts;
 use App\Jobs\ExportContacts;
 use App\Jobs\ProcessExcelImport;
 use App\Jobs\RemoveDuplicateContacts;
+use App\Jobs\RemoveUnusedTags;
 use App\Models\Contact;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -619,6 +621,99 @@ class ContactController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Scan for unused tags (not associated with any model via taggables).
+     */
+    public function scanUnusedTags(): JsonResponse
+    {
+        $unusedTags = $this->findUnusedTags();
+
+        $groups = [];
+        foreach ($unusedTags as $tag) {
+            $type = $tag->type;
+
+            // Build readable label
+            if ($type === 'contact_tag') {
+                $label = 'Contact Tags';
+            } elseif ($type === 'contact_type') {
+                $label = 'Contact Types';
+            } else {
+                $label = $type;
+            }
+
+            $groups[$type] ??= ['label' => $label, 'type' => $type, 'tags' => []];
+            $groups[$type]['tags'][] = [
+                'id' => $tag->id,
+                'name' => $tag->name,
+                'type' => $tag->type,
+            ];
+        }
+
+        return response()->json([
+            'unused_count' => $unusedTags->count(),
+            'groups' => array_values($groups),
+        ]);
+    }
+
+    /**
+     * Remove unused tags by dispatching a queued job.
+     */
+    public function removeUnusedTags(): JsonResponse
+    {
+        $unusedTags = $this->findUnusedTags();
+
+        if ($unusedTags->isEmpty()) {
+            return response()->json([
+                'removed_count' => 0,
+                'message' => 'No unused tags found',
+            ]);
+        }
+
+        $tagIds = $unusedTags->pluck('id')->all();
+
+        $jobId = Str::uuid()->toString();
+
+        Cache::put("job:{$jobId}", [
+            'status' => 'pending',
+            'total' => count($tagIds),
+            'processed' => 0,
+            'percentage' => 0,
+            'message' => 'Preparing to remove unused tags...',
+            'error_message' => null,
+        ], now()->addMinutes(30));
+
+        RemoveUnusedTags::dispatch($jobId, $tagIds);
+
+        return response()->json(['job_id' => $jobId]);
+    }
+
+    /**
+     * Find Contact-related tags that are not used by any model (safe to delete).
+     *
+     * @return \Illuminate\Support\Collection<int, Tag>
+     */
+    private function findUnusedTags(): \Illuminate\Support\Collection
+    {
+        // Only scan Contact-specific tag types.
+        // Business categories (global & project-scoped) are excluded because they
+        // serve as master option lists for Projects/Brands and should not be removed
+        // just because no Contact/Brand currently uses them.
+        $types = ['contact_tag', 'contact_type'];
+
+        // Find tags not referenced in taggables at all
+        $usedTagIds = DB::table('taggables')
+            ->distinct()
+            ->pluck('tag_id')
+            ->all();
+
+        return Tag::query()
+            ->whereIn('type', $types)
+            ->whereNotIn('id', $usedTagIds)
+            ->orderBy('type')
+            ->orderByRaw('name::text')
+            ->get();
     }
 
     /**

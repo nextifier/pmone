@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\LinkPage;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -17,14 +18,18 @@ class AnalyticsController extends Controller
     public function getVisits(Request $request): JsonResponse
     {
         $request->validate([
-            'type' => 'required|in:user,project',
+            'type' => 'required|in:user,project,linkpage',
             'id' => 'required|integer',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
             'days' => 'nullable|integer|min:1|max:365',
         ]);
 
-        $model = $request->type === 'user' ? User::findOrFail($request->id) : Project::findOrFail($request->id);
+        $model = match ($request->type) {
+            'user' => User::findOrFail($request->id),
+            'project' => Project::findOrFail($request->id),
+            'linkpage' => LinkPage::findOrFail($request->id),
+        };
 
         // Authorization check
         if (! $this->canViewAnalytics($request, $model)) {
@@ -126,14 +131,18 @@ class AnalyticsController extends Controller
     public function getClicks(Request $request): JsonResponse
     {
         $request->validate([
-            'type' => 'required|in:user,project',
+            'type' => 'required|in:user,project,linkpage',
             'id' => 'required|integer',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
             'days' => 'nullable|integer|min:1|max:365',
         ]);
 
-        $model = $request->type === 'user' ? User::findOrFail($request->id) : Project::findOrFail($request->id);
+        $model = match ($request->type) {
+            'user' => User::findOrFail($request->id),
+            'project' => Project::findOrFail($request->id),
+            'linkpage' => LinkPage::findOrFail($request->id),
+        };
 
         // Authorization check
         if (! $this->canViewAnalytics($request, $model)) {
@@ -304,12 +313,16 @@ class AnalyticsController extends Controller
     public function getSummary(Request $request): JsonResponse
     {
         $request->validate([
-            'type' => 'required|in:user,project',
+            'type' => 'required|in:user,project,linkpage',
             'id' => 'required|integer',
             'days' => 'nullable|integer|min:1|max:365',
         ]);
 
-        $model = $request->type === 'user' ? User::findOrFail($request->id) : Project::findOrFail($request->id);
+        $model = match ($request->type) {
+            'user' => User::findOrFail($request->id),
+            'project' => Project::findOrFail($request->id),
+            'linkpage' => LinkPage::findOrFail($request->id),
+        };
 
         // Authorization check
         if (! $this->canViewAnalytics($request, $model)) {
@@ -370,6 +383,11 @@ class AnalyticsController extends Controller
 
         // Project members can view project analytics
         if ($model instanceof Project && $model->members()->where('user_id', $user->id)->exists()) {
+            return true;
+        }
+
+        // LinkPage owner can view their own analytics
+        if ($model instanceof LinkPage && $model->user_id === $user->id) {
             return true;
         }
 

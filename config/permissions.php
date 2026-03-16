@@ -53,6 +53,12 @@ return [
             'model' => \App\Models\ShortLink::class,
             'actions' => ['create', 'read', 'update', 'delete'],
         ],
+        'link_pages' => [
+            'label' => 'Link Pages',
+            'description' => 'Manage link pages',
+            'model' => \App\Models\LinkPage::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
         'tags' => [
             'label' => 'Tags',
             'description' => 'Manage blog tags',

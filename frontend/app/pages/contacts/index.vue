@@ -49,6 +49,15 @@
         </button>
 
         <button
+          v-if="canDelete"
+          @click="openUnusedTagsDialog"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+        >
+          <Icon name="hugeicons:bookmark-remove-02" class="size-4 shrink-0" />
+          <span>Remove Unused Tags</span>
+        </button>
+
+        <button
           v-if="isAdminOrMaster && meta.total > 0"
           @click="deleteAllDialogOpen = true"
           class="border-border hover:bg-muted text-destructive-foreground flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
@@ -449,6 +458,119 @@
             <Progress :model-value="dedupeJob.progress.value?.percentage ?? 0" indicator-class="bg-destructive" />
             <p v-if="dedupeJob.progress.value?.total > 0" class="text-muted-foreground text-xs sm:text-sm tracking-tight tabular-nums">
               {{ dedupeJob.progress.value?.processed ?? 0 }} / {{ dedupeJob.progress.value?.total ?? 0 }}
+            </p>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
+
+    <!-- Unused Tags Dialog -->
+    <DialogResponsive v-model:open="unusedTagsDialogOpen" dialog-max-width="560px">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="text-primary text-lg font-semibold tracking-tighter">Remove Unused Tags</div>
+
+          <!-- Step 1: Explanation -->
+          <div v-if="unusedTagsStep === 'explain'" class="mt-3">
+            <p class="text-body tracking-tight">
+              Fitur ini akan mendeteksi dan menghapus tags yang tidak digunakan oleh Contact
+              manapun. Tag yang masih digunakan oleh model lain (Brand, dll) tidak akan dihapus.
+            </p>
+
+            <div class="mt-3 space-y-2">
+              <div class="font-medium tracking-tight">Tag yang di-scan:</div>
+              <ul class="text-body list-disc space-y-1.5 pl-5 tracking-tight">
+                <li><span class="text-primary font-medium">Contact Tags</span></li>
+                <li><span class="text-primary font-medium">Contact Types</span></li>
+              </ul>
+            </div>
+
+            <div class="bg-muted/50 mt-3 rounded-lg p-2.5">
+              <div class="tracking-tight">
+                <span class="text-primary font-medium">Aman:</span>
+                <span class="text-body">
+                  Business Categories dan tag yang masih digunakan oleh model lain tidak akan
+                  dihapus</span
+                >
+              </div>
+            </div>
+
+            <div class="mt-4 flex justify-end gap-2">
+              <Button variant="outline" size="sm" @click="unusedTagsDialogOpen = false">
+                Cancel
+              </Button>
+              <Button size="sm" @click="handleScanUnusedTags"> Continue </Button>
+            </div>
+          </div>
+
+          <!-- Step 2: Scanning -->
+          <div v-else-if="unusedTagsStep === 'scanning'" class="mt-4 flex items-center gap-x-2">
+            <Spinner class="size-4" />
+            <span class="text-body text-sm tracking-tight">Scanning for unused tags...</span>
+          </div>
+
+          <!-- Step 3: No unused tags found -->
+          <div v-else-if="unusedTagsStep === 'empty'" class="mt-3">
+            <p class="text-body text-sm tracking-tight">No unused tags found.</p>
+            <div class="mt-4 flex justify-end">
+              <Button variant="outline" size="sm" @click="unusedTagsDialogOpen = false">
+                Close
+              </Button>
+            </div>
+          </div>
+
+          <!-- Step 4: Preview unused tags -->
+          <div v-else-if="unusedTagsStep === 'preview'" class="mt-3">
+            <p class="text-body text-sm tracking-tight">
+              Found
+              <span class="text-primary font-medium">{{ unusedTagsScanResult.unused_count }}</span>
+              unused tag(s).
+            </p>
+
+            <!-- Preview groups -->
+            <div class="mt-3 max-h-64 space-y-2.5 overflow-y-auto">
+              <div
+                v-for="group in unusedTagsScanResult.groups"
+                :key="group.type"
+                class="border-border rounded-lg border p-2.5"
+              >
+                <div
+                  class="text-primary text-xs font-medium tracking-tight"
+                >
+                  {{ group.label }}
+                  <span class="text-muted-foreground font-normal">({{ group.tags.length }})</span>
+                </div>
+                <div class="mt-1.5 flex flex-wrap gap-1">
+                  <span
+                    v-for="tag in group.tags"
+                    :key="tag.id"
+                    class="bg-muted text-muted-foreground inline-flex items-center rounded-md px-1.5 py-0.5 text-xs tracking-tight"
+                  >
+                    {{ tag.name }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex justify-end gap-2">
+              <Button variant="outline" size="sm" @click="unusedTagsDialogOpen = false">
+                Cancel
+              </Button>
+              <Button variant="destructive" size="sm" @click="handleRemoveUnusedTags">
+                Remove {{ unusedTagsScanResult.unused_count }} Tag(s)
+              </Button>
+            </div>
+          </div>
+
+          <!-- Step 5: Removing (progress bar) -->
+          <div v-else-if="unusedTagsStep === 'removing'" class="mt-4 space-y-2">
+            <div class="flex items-center justify-between text-sm tracking-tight">
+              <span class="text-muted-foreground">{{ unusedTagsJob.progress.value?.message }}</span>
+              <span class="font-medium tabular-nums">{{ unusedTagsJob.progress.value?.percentage ?? 0 }}%</span>
+            </div>
+            <Progress :model-value="unusedTagsJob.progress.value?.percentage ?? 0" indicator-class="bg-destructive" />
+            <p v-if="unusedTagsJob.progress.value?.total > 0" class="text-muted-foreground text-xs sm:text-sm tracking-tight tabular-nums">
+              {{ unusedTagsJob.progress.value?.processed ?? 0 }} / {{ unusedTagsJob.progress.value?.total ?? 0 }}
             </p>
           </div>
         </div>
@@ -1433,6 +1555,76 @@ const handleRemoveDuplicates = async () => {
     });
     dedupeStep.value = "preview";
     dedupeJob.reset();
+  }
+};
+
+// Unused Tags (queued with progress)
+const unusedTagsDialogOpen = ref(false);
+const unusedTagsStep = ref("explain"); // 'explain' | 'scanning' | 'empty' | 'preview' | 'removing'
+const unusedTagsScanResult = ref(null);
+const unusedTagsJob = useJobProgress();
+
+// Prevent closing dialog while removing
+watch(unusedTagsDialogOpen, (open) => {
+  if (!open && unusedTagsJob.processing.value) {
+    unusedTagsDialogOpen.value = true;
+  }
+});
+
+// Watch completion
+watch(
+  () => unusedTagsJob.progress.value?.status,
+  (status) => {
+    if (status === "completed") {
+      toast.success(
+        unusedTagsJob.progress.value?.message ||
+          `${unusedTagsJob.progress.value?.removed_count} unused tag(s) removed`,
+      );
+      unusedTagsDialogOpen.value = false;
+      unusedTagsJob.reset();
+      refresh();
+    }
+
+    if (status === "failed") {
+      toast.error("Failed to remove unused tags", {
+        description: unusedTagsJob.progress.value?.error_message || "An error occurred",
+      });
+      unusedTagsStep.value = "preview";
+      unusedTagsJob.reset();
+    }
+  },
+);
+
+const openUnusedTagsDialog = () => {
+  unusedTagsStep.value = "explain";
+  unusedTagsScanResult.value = null;
+  unusedTagsDialogOpen.value = true;
+};
+
+const handleScanUnusedTags = async () => {
+  unusedTagsStep.value = "scanning";
+  try {
+    const res = await client("/api/contacts/unused-tags/scan");
+    unusedTagsScanResult.value = res;
+    unusedTagsStep.value = res.unused_count > 0 ? "preview" : "empty";
+  } catch (err) {
+    toast.error("Failed to scan unused tags", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+    unusedTagsDialogOpen.value = false;
+  }
+};
+
+const handleRemoveUnusedTags = async () => {
+  unusedTagsStep.value = "removing";
+  try {
+    await unusedTagsJob.startJob("/api/contacts/unused-tags/remove");
+  } catch (err) {
+    toast.error("Failed to remove unused tags", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+    unusedTagsStep.value = "preview";
+    unusedTagsJob.reset();
   }
 };
 

@@ -20,6 +20,8 @@ use App\Http\Controllers\Api\FormFieldController;
 use App\Http\Controllers\Api\FormResponseController;
 use App\Http\Controllers\Api\ImportProgressController;
 use App\Http\Controllers\Api\JobProgressController;
+use App\Http\Controllers\Api\LinkPageController;
+use App\Http\Controllers\Api\LinkPageItemController;
 use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
@@ -297,6 +299,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/contacts/search', [ContactController::class, 'search'])->name('contacts.search');
     Route::get('/contacts/duplicates/scan', [ContactController::class, 'scanDuplicates'])->middleware('can:contacts.delete')->name('contacts.duplicates.scan');
     Route::post('/contacts/duplicates/remove', [ContactController::class, 'removeDuplicates'])->middleware('can:contacts.delete')->name('contacts.duplicates.remove');
+    Route::get('/contacts/unused-tags/scan', [ContactController::class, 'scanUnusedTags'])->middleware('can:contacts.delete')->name('contacts.unused-tags.scan');
+    Route::post('/contacts/unused-tags/remove', [ContactController::class, 'removeUnusedTags'])->middleware('can:contacts.delete')->name('contacts.unused-tags.remove');
     Route::delete('/contacts/bulk', [ContactController::class, 'bulkDestroy'])->middleware('can:contacts.delete')->name('contacts.bulk-delete');
     Route::delete('/contacts/delete-all', [ContactController::class, 'deleteAll'])->middleware('can:contacts.delete')->name('contacts.delete-all');
     Route::get('/contacts/{contact}', [ContactController::class, 'show'])->middleware('can:contacts.read')->name('contacts.show');
@@ -433,6 +437,35 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::put('/{shortLink:slug}', [ShortLinkController::class, 'update'])->name('short-links.update');
         Route::delete('/{shortLink:slug}', [ShortLinkController::class, 'destroy'])->name('short-links.destroy');
         Route::get('/{shortLink:slug}/analytics', [ShortLinkController::class, 'getAnalytics'])->name('short-links.analytics');
+    });
+
+    // Link page management endpoints
+    Route::prefix('link-pages')->group(function () {
+        Route::get('/', [LinkPageController::class, 'index'])->name('link-pages.index');
+        Route::post('/', [LinkPageController::class, 'store'])->name('link-pages.store');
+        Route::get('/check-slug', [LinkPageController::class, 'checkSlug'])->name('link-pages.check-slug');
+        Route::put('/update-order', [LinkPageController::class, 'updateOrder'])->name('link-pages.update-order');
+        Route::delete('/bulk', [LinkPageController::class, 'bulkDestroy'])->name('link-pages.bulk-destroy');
+        Route::get('/trash', [LinkPageController::class, 'trash'])->name('link-pages.trash');
+        Route::post('/trash/restore/bulk', [LinkPageController::class, 'bulkRestore'])->name('link-pages.bulk-restore');
+        Route::post('/trash/{id}/restore', [LinkPageController::class, 'restore'])->name('link-pages.restore');
+        Route::delete('/trash/bulk', [LinkPageController::class, 'bulkForceDestroy'])->name('link-pages.bulk-force-destroy');
+        Route::delete('/trash/{id}', [LinkPageController::class, 'forceDestroy'])->name('link-pages.force-destroy');
+        Route::get('/{linkPage:slug}', [LinkPageController::class, 'show'])->name('link-pages.show');
+        Route::put('/{linkPage:slug}', [LinkPageController::class, 'update'])->name('link-pages.update');
+        Route::delete('/{linkPage:slug}', [LinkPageController::class, 'destroy'])->name('link-pages.destroy');
+        Route::get('/{linkPage:slug}/analytics', [LinkPageController::class, 'getAnalytics'])->name('link-pages.analytics');
+
+        // Items (nested)
+        Route::get('/{linkPage:slug}/items', [LinkPageItemController::class, 'index'])->name('link-pages.items.index');
+        Route::post('/{linkPage:slug}/items', [LinkPageItemController::class, 'store'])->name('link-pages.items.store');
+        Route::put('/{linkPage:slug}/items/reorder', [LinkPageItemController::class, 'reorder'])->name('link-pages.items.reorder');
+        Route::put('/{linkPage:slug}/items/{linkPageItem}', [LinkPageItemController::class, 'update'])->name('link-pages.items.update');
+        Route::delete('/{linkPage:slug}/items/{linkPageItem}', [LinkPageItemController::class, 'destroy'])->name('link-pages.items.destroy');
+        Route::patch('/{linkPage:slug}/items/{linkPageItem}/toggle', [LinkPageItemController::class, 'toggleActive'])->name('link-pages.items.toggle');
+        Route::get('/{linkPage:slug}/items/trash', [LinkPageItemController::class, 'trash'])->name('link-pages.items.trash');
+        Route::post('/{linkPage:slug}/items/trash/{id}/restore', [LinkPageItemController::class, 'restore'])->name('link-pages.items.restore');
+        Route::delete('/{linkPage:slug}/items/trash/{id}', [LinkPageItemController::class, 'forceDestroy'])->name('link-pages.items.force-destroy');
     });
 
     // Contact form submission management (inbox)

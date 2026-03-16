@@ -34,13 +34,14 @@ class UpdateShortLinkRequest extends FormRequest
                 'regex:/^[a-zA-Z0-9._\-]+$/',
                 Rule::unique('short_links', 'slug')->ignore($shortLinkId),
                 function ($attribute, $value, $fail) use ($shortLink) {
-                    // Only validate against users/projects if slug is changing
+                    // Only validate against users/projects/link_pages if slug is changing
                     if ($value !== $shortLink->slug) {
                         $existsInUsers = \App\Models\User::where('username', $value)->exists();
                         $existsInProjects = \App\Models\Project::where('username', $value)->exists();
+                        $existsInLinkPages = \App\Models\LinkPage::where('slug', $value)->exists();
 
-                        if ($existsInUsers || $existsInProjects) {
-                            $fail('This slug is already taken by a user or project.');
+                        if ($existsInUsers || $existsInProjects || $existsInLinkPages) {
+                            $fail('This slug is already taken.');
                         }
                     }
                 },

@@ -256,6 +256,15 @@ const navMainGroups = computed(() => {
     });
   }
 
+  // Link Pages - requires link_pages.read permission
+  if (hasPermission("link_pages.read")) {
+    toolsItems.push({
+      label: "Link Pages",
+      path: "/link-pages",
+      iconName: "hugeicons:link-circle-02",
+    });
+  }
+
   // Static QR Code Generator - accessible by all users
   toolsItems.push({
     label: "Static QR Code Generator",
