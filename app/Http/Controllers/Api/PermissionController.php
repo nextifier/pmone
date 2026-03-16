@@ -8,7 +8,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 
 class PermissionController extends Controller
@@ -93,8 +92,8 @@ class PermissionController extends Controller
             ], 403);
         }
 
-        // Convert permission name to slug format with dots
-        $permissionName = Str::slug($request->name, '.');
+        // Sanitize permission name: lowercase, allow alphanumeric, dots, and underscores
+        $permissionName = strtolower(preg_replace('/[^a-zA-Z0-9._]/', '', $request->name));
 
         $validator = Validator::make(
             ['name' => $permissionName, 'description' => $request->description, 'group' => $request->group],
@@ -179,8 +178,8 @@ class PermissionController extends Controller
             ], 404);
         }
 
-        // Convert permission name to slug format if provided
-        $permissionName = $request->has('name') ? Str::slug($request->name, '.') : null;
+        // Sanitize permission name if provided: lowercase, allow alphanumeric, dots, and underscores
+        $permissionName = $request->has('name') ? strtolower(preg_replace('/[^a-zA-Z0-9._]/', '', $request->name)) : null;
 
         $validationData = array_filter([
             'name' => $permissionName,
