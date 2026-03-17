@@ -420,12 +420,15 @@ const navMainGroups = computed(() => {
       path: "/exchange-rate",
       iconName: "hugeicons:money-exchange-02",
     },
-    {
+  ];
+
+  if (hasRole("master") || hasRole("admin")) {
+    otherItems.push({
       label: "Database Diagram",
       path: "/database-diagram",
       iconName: "hugeicons:structure-03",
-    },
-  ];
+    });
+  }
 
   groups.push({
     label: "Others",

@@ -296,7 +296,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-definePageMeta({ layout: "empty" });
+definePageMeta({
+  layout: "empty",
+  middleware: ["sanctum:auth", "role"],
+  roles: ["master", "admin"],
+});
 usePageMeta(null, { title: "Database Diagram" });
 
 const containerRef = ref(null);

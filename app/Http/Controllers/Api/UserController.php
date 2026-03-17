@@ -237,6 +237,13 @@ class UserController extends Controller
                 $roles = $request->input('roles', ['user']);
                 $user->assignRole($roles);
 
+                activity()
+                    ->causedBy($request->user())
+                    ->performedOn($user)
+                    ->event('role_assigned')
+                    ->withProperties(['roles' => $roles])
+                    ->log("Assigned role(s) to {$user->name}");
+
                 // Create links if provided
                 if (! empty($linksData)) {
                     foreach ($linksData as $index => $linkData) {
@@ -346,6 +353,19 @@ class UserController extends Controller
                 // Notify user if roles changed (and not self)
                 if ($oldRoles !== $newRoles && $user->id !== $request->user()->id) {
                     $user->notify(new UserRoleChangedNotification($newRoles, $request->user()));
+                }
+
+                // Log role change
+                if ($oldRoles !== $newRoles) {
+                    activity()
+                        ->causedBy($request->user())
+                        ->performedOn($user)
+                        ->event('role_assigned')
+                        ->withProperties([
+                            'old_roles' => $oldRoles,
+                            'new_roles' => $newRoles,
+                        ])
+                        ->log("Changed roles for {$user->name}");
                 }
             }
 
@@ -486,6 +506,17 @@ class UserController extends Controller
 
                 $user->delete();
                 $deletedCount++;
+            }
+
+            if ($deletedCount > 0) {
+                activity()
+                    ->causedBy($currentUser)
+                    ->event('bulk_deleted')
+                    ->withProperties([
+                        'deleted_count' => $deletedCount,
+                        'model_type' => 'User',
+                    ])
+                    ->log("Bulk deleted {$deletedCount} user(s)");
             }
 
             $message = $deletedCount > 0
@@ -839,6 +870,15 @@ class UserController extends Controller
         $filenamePrefix = $request->input('filename_prefix', 'users');
         $filename = $filenamePrefix.'_'.now()->format('Y-m-d_His').'.xlsx';
 
+        activity()
+            ->causedBy($request->user())
+            ->event('exported')
+            ->withProperties([
+                'model_type' => 'User',
+                'filename' => $filename,
+            ])
+            ->log('Exported users');
+
         return Excel::download($export, $filename);
     }
 
@@ -921,6 +961,15 @@ class UserController extends Controller
                     'imported_count' => $importedCount,
                 ], 422);
             }
+
+            activity()
+                ->causedBy($request->user())
+                ->event('imported')
+                ->withProperties([
+                    'imported_count' => $importedCount,
+                    'model_type' => 'User',
+                ])
+                ->log("Imported {$importedCount} user(s)");
 
             return response()->json([
                 'message' => 'Users imported successfully',

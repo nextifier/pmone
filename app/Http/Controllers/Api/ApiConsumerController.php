@@ -141,6 +141,13 @@ class ApiConsumerController extends Controller
             'updated_by' => auth()->id(),
         ]);
 
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($apiConsumer)
+            ->event('api_key_regenerated')
+            ->withProperties(['consumer_name' => $apiConsumer->name])
+            ->log("Regenerated API key for {$apiConsumer->name}");
+
         return response()->json([
             'message' => 'API key regenerated successfully',
             'data' => [
@@ -333,11 +340,22 @@ class ApiConsumerController extends Controller
             $this->authorize('restore', $consumer);
         }
 
-        ApiConsumer::onlyTrashed()->whereIn('id', $request->ids)->restore();
+        $restoredCount = ApiConsumer::onlyTrashed()->whereIn('id', $request->ids)->restore();
+
+        if ($restoredCount > 0) {
+            activity()
+                ->causedBy(auth()->user())
+                ->event('bulk_restored')
+                ->withProperties([
+                    'restored_count' => $restoredCount,
+                    'model_type' => 'ApiConsumer',
+                ])
+                ->log("Bulk restored {$restoredCount} API consumer(s)");
+        }
 
         return response()->json([
-            'message' => count($request->ids).' API Consumer(s) restored successfully',
-            'restored_count' => count($request->ids),
+            'message' => $restoredCount.' API Consumer(s) restored successfully',
+            'restored_count' => $restoredCount,
         ]);
     }
 
@@ -374,11 +392,22 @@ class ApiConsumerController extends Controller
             $this->authorize('forceDelete', $consumer);
         }
 
-        ApiConsumer::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
+        $deletedCount = ApiConsumer::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
+
+        if ($deletedCount > 0) {
+            activity()
+                ->causedBy(auth()->user())
+                ->event('bulk_force_deleted')
+                ->withProperties([
+                    'deleted_count' => $deletedCount,
+                    'model_type' => 'ApiConsumer',
+                ])
+                ->log("Permanently deleted {$deletedCount} API consumer(s)");
+        }
 
         return response()->json([
-            'message' => count($request->ids).' API Consumer(s) permanently deleted',
-            'deleted_count' => count($request->ids),
+            'message' => $deletedCount.' API Consumer(s) permanently deleted',
+            'deleted_count' => $deletedCount,
         ]);
     }
 }

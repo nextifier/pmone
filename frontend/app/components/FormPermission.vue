@@ -13,10 +13,10 @@
           <Label for="permission_name">Permission Name</Label>
           <Input
             id="permission_name"
+            ref="nameInputRef"
             v-model="formData.name"
             placeholder="posts.publish"
             required
-            auto-focus
           />
           <p v-if="errors.name" class="text-destructive text-xs">{{ errors.name[0] }}</p>
           <p class="text-muted-foreground text-xs tracking-tight">
@@ -58,11 +58,17 @@ const mode = computed(() => (props.permission ? "edit" : "create"));
 const formData = ref({ name: "" });
 const errors = ref({});
 const loading = ref(false);
+const nameInputRef = ref(null);
 
 watch(isOpen, (val) => {
   if (val) {
     formData.value.name = props.permission?.name || "";
     errors.value = {};
+    if (!props.permission) {
+      setTimeout(() => {
+        nameInputRef.value?.$el?.focus();
+      }, 50);
+    }
   }
 });
 

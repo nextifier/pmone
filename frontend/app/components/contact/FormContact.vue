@@ -319,9 +319,11 @@ const saving = ref(false);
 const errors = ref({});
 
 onMounted(() => {
-  setTimeout(() => {
-    nameInputRef.value?.$el?.focus();
-  }, 50);
+  if (!props.contact) {
+    setTimeout(() => {
+      nameInputRef.value?.$el?.focus();
+    }, 50);
+  }
 });
 
 const jobTitleSearch = ref(props.contact?.job_title || "");

@@ -296,6 +296,17 @@ class TaskController extends Controller
             }
         }
 
+        if ($deletedCount > 0) {
+            activity()
+                ->causedBy(auth()->user())
+                ->event('bulk_deleted')
+                ->withProperties([
+                    'deleted_count' => $deletedCount,
+                    'model_type' => 'Task',
+                ])
+                ->log("Bulk deleted {$deletedCount} task(s)");
+        }
+
         return response()->json([
             'message' => "{$deletedCount} task(s) deleted successfully",
             'deleted_count' => $deletedCount,
@@ -348,6 +359,17 @@ class TaskController extends Controller
                     'error' => $e->getMessage(),
                 ];
             }
+        }
+
+        if ($restoredCount > 0) {
+            activity()
+                ->causedBy(auth()->user())
+                ->event('bulk_restored')
+                ->withProperties([
+                    'restored_count' => $restoredCount,
+                    'model_type' => 'Task',
+                ])
+                ->log("Bulk restored {$restoredCount} task(s)");
         }
 
         return response()->json([
@@ -403,6 +425,17 @@ class TaskController extends Controller
                     'error' => $e->getMessage(),
                 ];
             }
+        }
+
+        if ($deletedCount > 0) {
+            activity()
+                ->causedBy(auth()->user())
+                ->event('bulk_force_deleted')
+                ->withProperties([
+                    'deleted_count' => $deletedCount,
+                    'model_type' => 'Task',
+                ])
+                ->log("Permanently deleted {$deletedCount} task(s)");
         }
 
         return response()->json([

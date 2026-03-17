@@ -205,6 +205,15 @@ class ContactController extends Controller
             auth()->id(),
         );
 
+        activity()
+            ->causedBy(auth()->user())
+            ->event('bulk_deleted')
+            ->withProperties([
+                'deleted_count' => count($validated['ids']),
+                'model_type' => 'Contact',
+            ])
+            ->log('Bulk deleted '.count($validated['ids']).' contact(s)');
+
         return response()->json(['job_id' => $jobId]);
     }
 
@@ -357,6 +366,12 @@ class ContactController extends Controller
 
         ExportContacts::dispatch($jobId, $filters, $sort);
 
+        activity()
+            ->causedBy(auth()->user())
+            ->event('exported')
+            ->withProperties(['model_type' => 'Contact'])
+            ->log('Exported contacts');
+
         return response()->json(['job_id' => $jobId]);
     }
 
@@ -427,6 +442,12 @@ class ContactController extends Controller
             ContactsImport::class,
             $tempFolder,
         );
+
+        activity()
+            ->causedBy(auth()->user())
+            ->event('imported')
+            ->withProperties(['model_type' => 'Contact'])
+            ->log('Imported contacts');
 
         return response()->json([
             'import_id' => $importId,
@@ -793,6 +814,17 @@ class ContactController extends Controller
             }
         }
 
+        if ($restored > 0) {
+            activity()
+                ->causedBy(auth()->user())
+                ->event('bulk_restored')
+                ->withProperties([
+                    'restored_count' => $restored,
+                    'model_type' => 'Contact',
+                ])
+                ->log("Bulk restored {$restored} contact(s)");
+        }
+
         return response()->json([
             'message' => "{$restored} contact(s) restored successfully",
             'restored_count' => $restored,
@@ -832,6 +864,15 @@ class ContactController extends Controller
         ], now()->addMinutes(30));
 
         BulkForceDeleteContacts::dispatch($jobId, $validated['ids']);
+
+        activity()
+            ->causedBy(auth()->user())
+            ->event('bulk_force_deleted')
+            ->withProperties([
+                'deleted_count' => count($validated['ids']),
+                'model_type' => 'Contact',
+            ])
+            ->log('Permanently deleted '.count($validated['ids']).' contact(s)');
 
         return response()->json(['job_id' => $jobId]);
     }

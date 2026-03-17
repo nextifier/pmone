@@ -704,10 +704,21 @@ class PostController extends Controller
             $this->authorize('delete', $post);
         }
 
-        Post::whereIn('id', $request->ids)->delete();
+        $deletedCount = Post::whereIn('id', $request->ids)->delete();
+
+        if ($deletedCount > 0) {
+            activity()
+                ->causedBy(auth()->user())
+                ->event('bulk_deleted')
+                ->withProperties([
+                    'deleted_count' => $deletedCount,
+                    'model_type' => 'Post',
+                ])
+                ->log("Bulk deleted {$deletedCount} post(s)");
+        }
 
         return response()->json([
-            'message' => count($request->ids).' posts deleted successfully',
+            'message' => $deletedCount.' posts deleted successfully',
         ]);
     }
 
@@ -729,10 +740,21 @@ class PostController extends Controller
             $this->authorize('restore', $post);
         }
 
-        Post::onlyTrashed()->whereIn('id', $request->ids)->restore();
+        $restoredCount = Post::onlyTrashed()->whereIn('id', $request->ids)->restore();
+
+        if ($restoredCount > 0) {
+            activity()
+                ->causedBy(auth()->user())
+                ->event('bulk_restored')
+                ->withProperties([
+                    'restored_count' => $restoredCount,
+                    'model_type' => 'Post',
+                ])
+                ->log("Bulk restored {$restoredCount} post(s)");
+        }
 
         return response()->json([
-            'message' => count($request->ids).' posts restored successfully',
+            'message' => $restoredCount.' posts restored successfully',
         ]);
     }
 
@@ -754,10 +776,21 @@ class PostController extends Controller
             $this->authorize('forceDelete', $post);
         }
 
-        Post::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
+        $deletedCount = Post::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
+
+        if ($deletedCount > 0) {
+            activity()
+                ->causedBy(auth()->user())
+                ->event('bulk_force_deleted')
+                ->withProperties([
+                    'deleted_count' => $deletedCount,
+                    'model_type' => 'Post',
+                ])
+                ->log("Permanently deleted {$deletedCount} post(s)");
+        }
 
         return response()->json([
-            'message' => count($request->ids).' posts permanently deleted',
+            'message' => $deletedCount.' posts permanently deleted',
         ]);
     }
 
@@ -781,6 +814,16 @@ class PostController extends Controller
         foreach ($posts as $post) {
             $post->update(['status' => $request->status]);
         }
+
+        activity()
+            ->causedBy(auth()->user())
+            ->event('bulk_status_updated')
+            ->withProperties([
+                'updated_count' => count($request->ids),
+                'model_type' => 'Post',
+                'new_status' => $request->status,
+            ])
+            ->log('Bulk updated status of '.count($request->ids)." post(s) to {$request->status}");
 
         return response()->json([
             'message' => count($request->ids).' posts updated successfully',
@@ -1070,6 +1113,15 @@ class PostController extends Controller
         $export = new PostsExport($filters, $sort);
         $filename = 'posts_'.now()->format('Y-m-d_His').'.csv';
 
+        activity()
+            ->causedBy(auth()->user())
+            ->event('exported')
+            ->withProperties([
+                'model_type' => 'Post',
+                'filename' => $filename,
+            ])
+            ->log('Exported posts');
+
         return Excel::download($export, $filename, \Maatwebsite\Excel\Excel::CSV);
     }
 
@@ -1094,6 +1146,16 @@ class PostController extends Controller
                 'message' => $result['error'],
             ], $result['code']);
         }
+
+        activity()
+            ->causedBy(auth()->user())
+            ->event('exported')
+            ->withProperties([
+                'model_type' => 'Post',
+                'filename' => $result['filename'],
+                'with_images' => true,
+            ])
+            ->log('Exported posts with images');
 
         return response()
             ->download($result['path'], $result['filename'], [

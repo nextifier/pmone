@@ -25,5 +25,12 @@ class ResetUserPassword implements ResetsUserPasswords
         $user->forceFill([
             'password' => Hash::make($input['password']),
         ])->save();
+
+        activity()
+            ->causedBy($user)
+            ->performedOn($user)
+            ->event('password_changed')
+            ->withProperties(['ip' => request()->ip(), 'via_reset' => true])
+            ->log('Password reset');
     }
 }

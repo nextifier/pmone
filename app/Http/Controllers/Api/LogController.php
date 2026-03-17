@@ -242,6 +242,76 @@ class LogController extends Controller
             case 'imported':
                 return $description ?: "{$userName} imported data";
 
+            case 'role_created':
+                $roleName = $activity->properties['role_name'] ?? $subjectName ?? 'unknown';
+
+                return "{$userName} created role \"{$roleName}\"";
+
+            case 'role_updated':
+                $roleName = $activity->properties['new_name'] ?? $activity->properties['role_name'] ?? $subjectName ?? 'unknown';
+
+                return "{$userName} updated role \"{$roleName}\"";
+
+            case 'role_deleted':
+                $roleName = $activity->properties['role_name'] ?? $subjectName ?? 'unknown';
+
+                return "{$userName} deleted role \"{$roleName}\"";
+
+            case 'role_assigned':
+                $roles = $activity->properties['new_roles'] ?? $activity->properties['roles'] ?? [];
+                $roleList = is_array($roles) ? implode(', ', $roles) : $roles;
+                $targetName = $subjectName ?? 'a user';
+
+                return "{$userName} assigned role(s) {$roleList} to {$targetName}";
+
+            case 'bulk_deleted':
+                $count = $activity->properties['deleted_count'] ?? 0;
+                $modelType = $activity->properties['model_type'] ?? 'record';
+
+                return "{$userName} bulk deleted {$count} {$modelType}(s)";
+
+            case 'bulk_restored':
+                $count = $activity->properties['restored_count'] ?? 0;
+                $modelType = $activity->properties['model_type'] ?? 'record';
+
+                return "{$userName} bulk restored {$count} {$modelType}(s)";
+
+            case 'bulk_force_deleted':
+                $count = $activity->properties['deleted_count'] ?? 0;
+                $modelType = $activity->properties['model_type'] ?? 'record';
+
+                return "{$userName} permanently deleted {$count} {$modelType}(s)";
+
+            case 'bulk_status_updated':
+                $count = $activity->properties['updated_count'] ?? 0;
+                $modelType = $activity->properties['model_type'] ?? 'record';
+                $status = $activity->properties['new_status'] ?? 'unknown';
+
+                return "{$userName} changed status to \"{$status}\" for {$count} {$modelType}(s)";
+
+            case 'exported':
+                $modelType = $activity->properties['model_type'] ?? 'data';
+
+                return "{$userName} exported {$modelType}";
+
+            case 'api_key_regenerated':
+                $consumerName = $activity->properties['consumer_name'] ?? $subjectName ?? 'unknown';
+
+                return "{$userName} regenerated API key for \"{$consumerName}\"";
+
+            case 'password_changed':
+                $viaReset = $activity->properties['via_reset'] ?? false;
+
+                if ($isSelf) {
+                    return $viaReset
+                        ? "{$userName} reset their password"
+                        : "{$userName} changed their password";
+                }
+
+                return $viaReset
+                    ? "{$userName} reset password for {$subjectName}"
+                    : "{$userName} changed password for {$subjectName}";
+
             default:
                 if ($description === 'User logged in') {
                     return "{$userName} logged in";
@@ -341,6 +411,14 @@ class LogController extends Controller
             'member_added' => 'hugeicons:user-add-01',
             'member_removed' => 'hugeicons:user-remove-01',
             'imported' => 'hugeicons:file-import',
+            'exported' => 'hugeicons:file-export',
+            'role_created', 'role_updated', 'role_deleted' => 'hugeicons:shield-01',
+            'role_assigned' => 'hugeicons:user-shield-01',
+            'bulk_deleted', 'bulk_force_deleted' => 'hugeicons:delete-02',
+            'bulk_restored' => 'hugeicons:refresh',
+            'bulk_status_updated' => 'hugeicons:edit-02',
+            'api_key_regenerated' => 'hugeicons:key-01',
+            'password_changed' => 'hugeicons:lock',
             default => 'hugeicons:activity-01',
         };
     }
@@ -355,6 +433,16 @@ class LogController extends Controller
             'member_added' => 'green',
             'member_removed' => 'red',
             'imported' => 'purple',
+            'exported' => 'purple',
+            'role_created' => 'green',
+            'role_updated' => 'blue',
+            'role_deleted' => 'red',
+            'role_assigned' => 'blue',
+            'bulk_deleted', 'bulk_force_deleted' => 'red',
+            'bulk_restored' => 'amber',
+            'bulk_status_updated' => 'blue',
+            'api_key_regenerated' => 'amber',
+            'password_changed' => 'amber',
             default => 'zinc',
         };
     }

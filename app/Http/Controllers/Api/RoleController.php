@@ -104,6 +104,15 @@ class RoleController extends Controller
 
             DB::commit();
 
+            activity()
+                ->causedBy($request->user())
+                ->event('role_created')
+                ->withProperties([
+                    'role_name' => $role->name,
+                    'permissions' => $role->permissions->pluck('name')->toArray(),
+                ])
+                ->log("Created role {$role->name}");
+
             // Load permissions relationship
             $role->load('permissions');
 
@@ -185,6 +194,9 @@ class RoleController extends Controller
             ], 422);
         }
 
+        $oldName = $role->name;
+        $oldPermissions = $role->permissions->pluck('name')->toArray();
+
         DB::beginTransaction();
 
         try {
@@ -201,6 +213,17 @@ class RoleController extends Controller
 
             // Load permissions relationship
             $role->load('permissions');
+
+            activity()
+                ->causedBy($request->user())
+                ->event('role_updated')
+                ->withProperties([
+                    'old_name' => $oldName,
+                    'new_name' => $role->name,
+                    'old_permissions' => $oldPermissions,
+                    'new_permissions' => $role->permissions->pluck('name')->toArray(),
+                ])
+                ->log("Updated role {$role->name}");
 
             return response()->json([
                 'message' => 'Role updated successfully',
@@ -253,7 +276,14 @@ class RoleController extends Controller
             ], 422);
         }
 
+        $roleName = $role->name;
         $role->delete();
+
+        activity()
+            ->causedBy($request->user())
+            ->event('role_deleted')
+            ->withProperties(['role_name' => $roleName])
+            ->log("Deleted role {$roleName}");
 
         return response()->json([
             'message' => 'Role deleted successfully',
@@ -313,6 +343,17 @@ class RoleController extends Controller
 
             $role->delete();
             $deletedCount++;
+        }
+
+        if ($deletedCount > 0) {
+            activity()
+                ->causedBy($request->user())
+                ->event('bulk_deleted')
+                ->withProperties([
+                    'deleted_count' => $deletedCount,
+                    'model_type' => 'Role',
+                ])
+                ->log("Bulk deleted {$deletedCount} role(s)");
         }
 
         return response()->json([
