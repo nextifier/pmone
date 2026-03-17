@@ -86,7 +86,7 @@
               <template v-if="hasChanges">
                 <div
                   v-if="previewData.permissions_to_create.length > 0"
-                  class="border-border rounded-md border p-3"
+                  class="border-border rounded-md border p-3 space-y-2"
                 >
                   <div class="text-sm font-medium tracking-tight">
                     {{ previewData.permissions_to_create.length }} new permission{{
@@ -94,14 +94,20 @@
                     }}
                     will be created
                   </div>
-                  <p class="text-muted-foreground mt-1 text-xs tracking-tight">
-                    {{ previewData.permissions_to_create.join(", ") }}
-                  </p>
+                  <div class="flex flex-col gap-1">
+                    <span
+                      v-for="perm in previewData.permissions_to_create"
+                      :key="perm"
+                      class="text-sm tracking-tight"
+                    >
+                      {{ perm }}
+                    </span>
+                  </div>
                 </div>
 
                 <div
                   v-if="previewData.roles_to_create.length > 0"
-                  class="border-border rounded-md border p-3"
+                  class="border-border rounded-md border p-3 space-y-2"
                 >
                   <div class="text-sm font-medium tracking-tight">
                     {{ previewData.roles_to_create.length }} new role{{
@@ -109,31 +115,43 @@
                     }}
                     will be created
                   </div>
-                  <p class="text-muted-foreground mt-1 text-xs tracking-tight">
-                    {{ previewData.roles_to_create.join(", ") }}
-                  </p>
+                  <div class="flex flex-col gap-1">
+                    <span
+                      v-for="role in previewData.roles_to_create"
+                      :key="role"
+                      class="text-sm tracking-tight"
+                    >
+                      {{ role }}
+                    </span>
+                  </div>
                 </div>
 
                 <div
                   v-for="(sync, roleName) in previewData.roles_to_sync"
                   :key="roleName"
-                  class="border-border rounded-md border p-3"
+                  class="border-border rounded-md border p-3 space-y-2"
                 >
                   <div class="text-sm font-medium tracking-tight">{{ roleName }}</div>
-                  <div class="text-muted-foreground mt-1 space-y-0.5 text-xs tracking-tight">
-                    <p v-if="sync.added.length > 0" class="text-success-foreground">
-                      +{{ sync.added.length }} permission{{ sync.added.length > 1 ? "s" : "" }}:
-                      {{ sync.added.join(", ") }}
-                    </p>
-                    <p v-if="sync.removed.length > 0" class="text-destructive">
-                      -{{ sync.removed.length }} permission{{ sync.removed.length > 1 ? "s" : "" }}:
-                      {{ sync.removed.join(", ") }}
-                    </p>
+                  <div class="flex flex-col gap-1">
+                    <span
+                      v-for="perm in sync.added"
+                      :key="'add-' + perm"
+                      class="text-success-foreground text-sm tracking-tight"
+                    >
+                      + {{ perm }}
+                    </span>
+                    <span
+                      v-for="perm in sync.removed"
+                      :key="'rm-' + perm"
+                      class="text-destructive text-sm tracking-tight"
+                    >
+                      - {{ perm }}
+                    </span>
                   </div>
                 </div>
               </template>
 
-              <div v-else class="text-muted-foreground py-4 text-center text-sm tracking-tight">
+              <div v-else class="py-4 text-center text-sm tracking-tight">
                 Everything is already in sync.
               </div>
             </div>

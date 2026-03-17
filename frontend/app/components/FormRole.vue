@@ -94,31 +94,26 @@
       </div>
 
       <div class="flex gap-2">
-        <button
-          type="submit"
-          :disabled="loading"
-          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-2 rounded-md px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button type="submit" size="sm" :disabled="loading">
           <Spinner v-if="loading" class="size-4" />
           <span>{{ loading ? loadingText : submitText }}</span>
           <KbdGroup>
             <Kbd>{{ metaSymbol }}</Kbd>
             <Kbd>S</Kbd>
           </KbdGroup>
-        </button>
-        <nuxt-link
-          to="/roles"
-          class="border-border hover:bg-muted rounded-md border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-        >
-          Cancel
-        </nuxt-link>
+        </Button>
+        <Button variant="outline" size="sm" as-child>
+          <nuxt-link to="/roles">Cancel</nuxt-link>
+        </Button>
       </div>
     </form>
   </div>
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Spinner } from "@/components/ui/spinner";
 import { toast } from "vue-sonner";
 
 const props = defineProps({

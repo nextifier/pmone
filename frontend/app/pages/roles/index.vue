@@ -15,7 +15,7 @@
           <span>Clear selection</span>
         </button>
       </div>
-      <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div v-else-if="isMaster" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <DialogSyncRolesPermissions @success="refresh" />
       </div>
     </div>
@@ -139,6 +139,7 @@ const { $dayjs } = useNuxtApp();
 const { hasPermission } = usePermission();
 
 // Permission checks
+const isMaster = computed(() => user.value?.roles?.includes("master"));
 const canCreate = computed(() => hasPermission("roles.create"));
 const canDelete = computed(() => hasPermission("roles.delete"));
 

@@ -13,7 +13,7 @@
         <PopoverTrigger as-child>
           <Button
             variant="outline"
-            class="border-border flex h-full gap-1 rounded-s-lg rounded-e-none border border-e-0 px-3"
+            class="border-border flex h-9 gap-1 rounded-s-lg rounded-e-none border border-e-0 px-3"
           >
             <FlagComponent :country="inputValue" />
             <ChevronsUpDown class="h-4 w-4 opacity-50" />
@@ -83,7 +83,7 @@ const { focused } = useFocus(phoneInput);
 
 const phoneValue = ref(props.modelValue || "");
 const activeCountry = ref<string>(
-  (props.modelValue ? getCountryCode(props.modelValue) : null) || "ID",
+  (props.modelValue ? getCountryCode(props.modelValue) : null) || "ID"
 );
 
 let isInitializing = true;
@@ -127,6 +127,6 @@ watch(
     nextTick(() => {
       isInitializing = false;
     });
-  },
+  }
 );
 </script>
