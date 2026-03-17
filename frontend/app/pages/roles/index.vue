@@ -15,6 +15,9 @@
           <span>Clear selection</span>
         </button>
       </div>
+      <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+        <DialogSyncRolesPermissions @success="refresh" />
+      </div>
     </div>
 
     <TableData
@@ -104,6 +107,7 @@
 
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
+import DialogSyncRolesPermissions from "@/components/DialogSyncRolesPermissions.vue";
 import RoleTableItem from "@/components/role/RoleTableItem.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";

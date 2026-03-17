@@ -37,6 +37,7 @@ use App\Http\Controllers\Api\PublicBlogController;
 use App\Http\Controllers\Api\PublicFormController;
 use App\Http\Controllers\Api\PublicProjectController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\RolesPermissionsSyncController;
 use App\Http\Controllers\Api\ShortLinkController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\TaskController;
@@ -120,6 +121,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/{name}', [RoleController::class, 'show']);
         Route::put('/{name}', [RoleController::class, 'update']);
         Route::delete('/{name}', [RoleController::class, 'destroy']);
+    });
+
+    // Roles & permissions sync (export/import)
+    Route::prefix('roles-permissions')->group(function () {
+        Route::get('/export', [RolesPermissionsSyncController::class, 'export']);
+        Route::post('/import', [RolesPermissionsSyncController::class, 'import']);
     });
 
     // Permission management endpoints
