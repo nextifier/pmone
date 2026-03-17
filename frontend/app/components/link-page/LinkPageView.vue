@@ -1,31 +1,42 @@
 <template>
-  <div class="mx-auto flex min-h-screen max-w-lg flex-col justify-between gap-y-4 px-4 py-12">
+  <div
+    class="relative mx-auto flex min-h-screen max-w-lg flex-col justify-between gap-y-8 pt-2 pb-16 sm:pt-4"
+  >
+    <div class="absolute top-4 right-4 sm:top-6">
+      <Tippy>
+        <ColorModeToggle />
+        <template #content>
+          <span class="inline-flex items-center gap-x-1.5 tracking-tight">
+            <span>Light / Dark Mode</span>
+            <kbd class="keyboard-symbol">{{ metaSymbol }} D</kbd>
+          </span>
+        </template>
+      </Tippy>
+    </div>
     <!-- Title & Description -->
-    <div class="flex flex-col items-center gap-y-2 text-center">
-      <h1
-        class="text-primary text-2xl leading-[1.2]! font-medium tracking-tighter text-balance sm:text-3xl"
-      >
+    <div class="bg-muted mx-2 flex flex-col gap-y-1 rounded-2xl px-4 py-6 sm:px-6">
+      <h1 class="text-primary text-2xl leading-[1.2]! font-medium tracking-tighter text-balance">
         {{ linkPage.title }}
       </h1>
-      <p v-if="linkPage.description" class="text-body tracking-tight">
+      <p v-if="linkPage.description" class="text-body tracking-tight text-pretty">
         {{ linkPage.description }}
       </p>
     </div>
 
     <!-- Links -->
-    <div class="grid grid-cols-1 gap-y-2">
+    <div class="grid grid-cols-1 gap-y-2 px-4">
       <a
         v-for="item in activeItems"
         :key="item.id"
         :href="item.url"
         target="_blank"
         rel="noopener noreferrer"
-        class="border-border hover:bg-muted flex items-center gap-3 rounded-xl border p-1 transition active:scale-98"
+        class="border-border flex items-center gap-3 rounded-xl border p-1 transition duration-300 ease-out hover:scale-105 active:scale-98"
         @click="$emit('trackClick', item)"
       >
         <div v-if="item.poster" class="w-16 shrink-0">
           <img
-            :src="item.poster.md || item.poster.url"
+            :src="item.poster.sm || item.poster.url"
             :alt="item.label"
             class="w-full rounded-lg object-contain"
           />
@@ -53,6 +64,8 @@ const props = defineProps({
 });
 
 defineEmits(["trackClick"]);
+
+const { metaSymbol } = useShortcuts();
 
 const activeItems = computed(() => {
   return (props.linkPage.items || []).filter((item) => item.is_active);
