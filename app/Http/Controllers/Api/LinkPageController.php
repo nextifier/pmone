@@ -28,7 +28,7 @@ class LinkPageController extends Controller
         $clientOnly = $request->boolean('client_only', false);
 
         $user = $request->user();
-        if ($user && ! $user->hasRole(['master', 'admin'])) {
+        if ($user && ! $user->hasRole(['master', 'admin', 'staff'])) {
             $query->where('user_id', $user->id);
         }
 
@@ -333,7 +333,7 @@ class LinkPageController extends Controller
         $clientOnly = $request->boolean('client_only', false);
 
         $user = $request->user();
-        if ($user && ! $user->hasRole(['master', 'admin'])) {
+        if ($user && ! $user->hasRole(['master', 'admin', 'staff'])) {
             $query->where('user_id', $user->id);
         }
 

@@ -1,0 +1,200 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e95]:
+      - generic [ref=e98]:
+        - link "PM One Staff Dashboard" [ref=e100] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e102]
+          - generic [ref=e105]:
+            - generic [ref=e106]: PM One
+            - generic [ref=e107]: Staff Dashboard
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - generic [ref=e112]: Core
+            - list [ref=e113]:
+              - link "Dashboard" [ref=e115] [cursor=pointer]:
+                - /url: /dashboard
+                - button "Dashboard" [ref=e116]:
+                  - img [ref=e117]
+                  - generic [ref=e119]: Dashboard
+              - link "Inbox" [ref=e121] [cursor=pointer]:
+                - /url: /inbox
+                - button "Inbox" [ref=e122]:
+                  - img [ref=e123]
+                  - generic [ref=e129]: Inbox
+              - link "Projects" [ref=e131] [cursor=pointer]:
+                - /url: /projects
+                - button "Projects" [ref=e132]:
+                  - img [ref=e133]
+                  - generic [ref=e138]: Projects
+              - link "Events" [ref=e140] [cursor=pointer]:
+                - /url: /events
+                - button "Events" [ref=e141]:
+                  - img [ref=e142]
+                  - generic [ref=e146]: Events
+              - link "Brands" [ref=e148] [cursor=pointer]:
+                - /url: /brands
+                - button "Brands" [ref=e149]:
+                  - img [ref=e150]
+                  - generic [ref=e154]: Brands
+              - link "Contact List" [ref=e156] [cursor=pointer]:
+                - /url: /contacts
+                - button "Contact List" [ref=e157]:
+                  - img [ref=e158]
+                  - generic [ref=e163]: Contact List
+          - generic [ref=e164]:
+            - generic [ref=e165]: Tools
+            - list [ref=e166]:
+              - link "Tasks" [ref=e168] [cursor=pointer]:
+                - /url: /tasks
+                - button "Tasks" [ref=e169]:
+                  - img [ref=e170]
+                  - generic [ref=e175]: Tasks
+              - link "Short Links & Dynamic QR Code" [ref=e177] [cursor=pointer]:
+                - /url: /links
+                - button "Short Links & Dynamic QR Code" [ref=e178]:
+                  - img [ref=e179]
+                  - generic [ref=e183]: Short Links & Dynamic QR Code
+              - link "Link Pages" [ref=e185] [cursor=pointer]:
+                - /url: /link-pages
+                - button "Link Pages" [ref=e186]:
+                  - img [ref=e187]
+                  - generic [ref=e189]: Link Pages
+              - link "Static QR Code Generator" [ref=e191] [cursor=pointer]:
+                - /url: /qr
+                - button "Static QR Code Generator" [ref=e192]:
+                  - img [ref=e193]
+                  - generic [ref=e199]: Static QR Code Generator
+              - link "Form Builder Coming Soon" [ref=e201] [cursor=pointer]:
+                - /url: /forms
+                - button "Form Builder Coming Soon" [ref=e202]:
+                  - img [ref=e203]
+                  - generic [ref=e205]: Form Builder
+                  - generic [ref=e206]: Coming Soon
+              - link "Posts" [ref=e208] [cursor=pointer]:
+                - /url: /posts
+                - button "Posts" [ref=e209]:
+                  - img [ref=e210]
+                  - generic [ref=e214]: Posts
+              - link "Web Analytics" [ref=e216] [cursor=pointer]:
+                - /url: /web-analytics
+                - button "Web Analytics" [ref=e217]:
+                  - img [ref=e218]
+                  - generic [ref=e222]: Web Analytics
+          - generic [ref=e223]:
+            - generic [ref=e224]: Admin
+            - list [ref=e225]:
+              - link "Users" [ref=e227] [cursor=pointer]:
+                - /url: /users
+                - button "Users" [ref=e228]:
+                  - img [ref=e229]
+                  - generic [ref=e234]: Users
+              - link "Exhibitor PICs" [ref=e236] [cursor=pointer]:
+                - /url: /exhibitors
+                - button "Exhibitor PICs" [ref=e237]:
+                  - img [ref=e238]
+                  - generic [ref=e243]: Exhibitor PICs
+              - link "Roles" [ref=e245] [cursor=pointer]:
+                - /url: /roles
+                - button "Roles" [ref=e246]:
+                  - img [ref=e247]
+                  - generic [ref=e251]: Roles
+              - link "Permissions" [ref=e253] [cursor=pointer]:
+                - /url: /permissions
+                - button "Permissions" [ref=e254]:
+                  - img [ref=e255]
+                  - generic [ref=e259]: Permissions
+              - link "API Consumers" [ref=e261] [cursor=pointer]:
+                - /url: /api-consumers
+                - button "API Consumers" [ref=e262]:
+                  - img [ref=e263]
+                  - generic [ref=e267]: API Consumers
+              - link "Google Analytics Properties" [ref=e269] [cursor=pointer]:
+                - /url: /ga-properties
+                - button "Google Analytics Properties" [ref=e270]:
+                  - img [ref=e271]
+                  - generic [ref=e275]: Google Analytics Properties
+              - link "Activity Logs" [ref=e277] [cursor=pointer]:
+                - /url: /logs
+                - button "Activity Logs" [ref=e278]:
+                  - img [ref=e279]
+                  - generic [ref=e283]: Activity Logs
+              - listitem [ref=e285]:
+                - button "Settings" [ref=e286] [cursor=pointer]:
+                  - img [ref=e287]
+                  - generic [ref=e291]: Settings
+                  - img [ref=e292]
+          - generic [ref=e294]:
+            - generic [ref=e295]: Others
+            - list [ref=e296]:
+              - link "Docs" [ref=e298] [cursor=pointer]:
+                - /url: /docs
+                - button "Docs" [ref=e299]:
+                  - img [ref=e300]
+                  - generic [ref=e302]: Docs
+              - link "Colors" [ref=e304] [cursor=pointer]:
+                - /url: /colors
+                - button "Colors" [ref=e305]:
+                  - img [ref=e306]
+                  - generic [ref=e312]: Colors
+              - link "Exchange Rate" [ref=e314] [cursor=pointer]:
+                - /url: /exchange-rate
+                - button "Exchange Rate" [ref=e315]:
+                  - img [ref=e316]
+                  - generic [ref=e321]: Exchange Rate
+              - link "Database Diagram" [ref=e323] [cursor=pointer]:
+                - /url: /database-diagram
+                - button "Database Diagram" [ref=e324]:
+                  - img [ref=e325]
+                  - generic [ref=e330]: Database Diagram
+          - generic [ref=e332]:
+            - generic [ref=e333]: Projects
+            - img [ref=e334]
+        - list [ref=e337]:
+          - listitem [ref=e338]:
+            - button "Antonius Richardo Antonius Richardo antonius@panoramamedia.co.id" [ref=e339] [cursor=pointer]:
+              - generic [ref=e340]:
+                - img "Antonius Richardo" [ref=e342]
+                - generic [ref=e343]:
+                  - generic [ref=e344]:
+                    - generic [ref=e345]: Antonius Richardo
+                    - img [ref=e346]
+                    - img [ref=e349]
+                  - generic [ref=e351]: antonius@panoramamedia.co.id
+              - img [ref=e352]
+        - button "Toggle Sidebar" [ref=e355]
+      - main [ref=e356]:
+        - generic [ref=e358]:
+          - button [ref=e360] [cursor=pointer]:
+            - img [ref=e361]
+          - generic [ref=e366]:
+            - switch "Toggle Dark Mode" [ref=e368] [cursor=pointer]:
+              - img [ref=e370]
+            - button "9+" [ref=e377] [cursor=pointer]:
+              - img [ref=e378]
+              - generic [ref=e382]: 9+
+            - button "Antonius Richardo" [ref=e383] [cursor=pointer]:
+              - img "Antonius Richardo" [ref=e385]
+        - generic [ref=e388]:
+          - heading "Nice to see you back, Antonius!" [level=2] [ref=e390]
+          - heading "Choose Your Project" [level=3] [ref=e393]
+          - heading "Recents Events" [level=3] [ref=e420]
+    - region "Notifications alt+T":
+      - list
+  - generic:
+    - img
+  - generic:
+    - generic:
+      - generic:
+        - button "Go to parent" [disabled]
+        - button "Open in editor"
+        - button "Close"
+  - generic [ref=e81]:
+    - button "Toggle Nuxt DevTools" [ref=e82] [cursor=pointer]:
+      - img [ref=e83]
+    - generic "Page load time" [ref=e86]:
+      - generic [ref=e87]: "1.1"
+      - generic [ref=e88]: s
+    - button "Toggle Component Inspector" [ref=e90] [cursor=pointer]:
+      - img [ref=e91]
+  - img [ref=e509]

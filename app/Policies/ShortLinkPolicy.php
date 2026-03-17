@@ -28,7 +28,7 @@ class ShortLinkPolicy
         }
 
         // Master and admin can view all short links
-        return $user->hasAnyRole(['master', 'admin']);
+        return $user->hasAnyRole(['master', 'admin', 'staff']);
     }
 
     /**
@@ -51,7 +51,7 @@ class ShortLinkPolicy
         }
 
         // Master and admin can update all short links
-        return $user->hasAnyRole(['master', 'admin']);
+        return $user->hasAnyRole(['master', 'admin', 'staff']);
     }
 
     /**
@@ -65,7 +65,7 @@ class ShortLinkPolicy
         }
 
         // Master and admin can delete all short links
-        return $user->hasAnyRole(['master', 'admin']);
+        return $user->hasAnyRole(['master', 'admin', 'staff']);
     }
 
     /**
@@ -79,7 +79,7 @@ class ShortLinkPolicy
         }
 
         // Master and admin can restore all short links
-        return $user->hasAnyRole(['master', 'admin']);
+        return $user->hasAnyRole(['master', 'admin', 'staff']);
     }
 
     /**
@@ -103,7 +103,7 @@ class ShortLinkPolicy
         }
 
         // Master and admin can force delete all short links
-        return $user->hasAnyRole(['master', 'admin']);
+        return $user->hasAnyRole(['master', 'admin', 'staff']);
     }
 
     /**

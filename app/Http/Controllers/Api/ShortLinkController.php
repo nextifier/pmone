@@ -33,7 +33,7 @@ class ShortLinkController extends Controller
 
         // Role-based filtering: Non-admin users can only see their own short links
         $user = $request->user();
-        if ($user && ! $user->hasRole(['master', 'admin'])) {
+        if ($user && ! $user->hasRole(['master', 'admin', 'staff'])) {
             $query->where('user_id', $user->id);
         }
 
@@ -436,7 +436,7 @@ class ShortLinkController extends Controller
 
         // Role-based filtering: Non-admin users can only see their own short links
         $user = $request->user();
-        if ($user && ! $user->hasRole(['master', 'admin'])) {
+        if ($user && ! $user->hasRole(['master', 'admin', 'staff'])) {
             $query->where('user_id', $user->id);
         }
 

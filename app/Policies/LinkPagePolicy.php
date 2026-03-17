@@ -18,7 +18,7 @@ class LinkPagePolicy
             return true;
         }
 
-        return $user->hasAnyRole(['master', 'admin']);
+        return $user->hasAnyRole(['master', 'admin', 'staff']);
     }
 
     public function create(User $user): bool
@@ -32,7 +32,7 @@ class LinkPagePolicy
             return true;
         }
 
-        return $user->hasAnyRole(['master', 'admin']);
+        return $user->hasAnyRole(['master', 'admin', 'staff']);
     }
 
     public function delete(User $user, LinkPage $linkPage): bool
@@ -41,7 +41,7 @@ class LinkPagePolicy
             return true;
         }
 
-        return $user->hasAnyRole(['master', 'admin']);
+        return $user->hasAnyRole(['master', 'admin', 'staff']);
     }
 
     public function restore(User $user, LinkPage $linkPage): bool
@@ -50,7 +50,7 @@ class LinkPagePolicy
             return true;
         }
 
-        return $user->hasAnyRole(['master', 'admin']);
+        return $user->hasAnyRole(['master', 'admin', 'staff']);
     }
 
     public function restoreAny(User $user): bool
@@ -64,7 +64,7 @@ class LinkPagePolicy
             return true;
         }
 
-        return $user->hasAnyRole(['master', 'admin']);
+        return $user->hasAnyRole(['master', 'admin', 'staff']);
     }
 
     public function forceDeleteAny(User $user): bool
