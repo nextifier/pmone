@@ -5,16 +5,22 @@ namespace App\Models;
 use App\Enums\BoothType;
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * @property int $id
@@ -23,52 +29,54 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property string|null $booth_number
  * @property numeric|null $booth_size
  * @property BoothType|null $booth_type
+ * @property numeric|null $booth_price
  * @property int|null $sales_id
  * @property string $status
  * @property string|null $notes
+ * @property int $promotion_post_limit
  * @property array<array-key, mixed>|null $custom_fields
  * @property int|null $order_column
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property numeric|null $booth_price
- * @property int $promotion_post_limit
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property string|null $fascia_name
  * @property string|null $badge_name
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\Brand $brand
- * @property-read \App\Models\Event $event
- * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read Brand|null $brand
+ * @property-read Event|null $event
+ * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order> $orders
+ * @property-read Collection<int, Order> $orders
  * @property-read int|null $orders_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PromotionPost> $promotionPosts
+ * @property-read Collection<int, PromotionPost> $promotionPosts
  * @property-read int|null $promotion_posts_count
- * @property-read \App\Models\User|null $sales
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent active()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent byStatus(string $status)
+ * @property-read User|null $sales
+ *
+ * @method static Builder<static>|BrandEvent active()
+ * @method static Builder<static>|BrandEvent byStatus(string $status)
  * @method static \Database\Factories\BrandEventFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent ordered(string $direction = 'asc')
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereBadgeName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereBoothNumber($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereBoothPrice($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereBoothSize($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereBoothType($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereBrandId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereCustomFields($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereEventId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereFasciaName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereNotes($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereOrderColumn($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent wherePromotionPostLimit($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereSalesId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereStatus($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|BrandEvent whereUpdatedAt($value)
+ * @method static Builder<static>|BrandEvent newModelQuery()
+ * @method static Builder<static>|BrandEvent newQuery()
+ * @method static Builder<static>|BrandEvent ordered(string $direction = 'asc')
+ * @method static Builder<static>|BrandEvent query()
+ * @method static Builder<static>|BrandEvent whereBadgeName($value)
+ * @method static Builder<static>|BrandEvent whereBoothNumber($value)
+ * @method static Builder<static>|BrandEvent whereBoothPrice($value)
+ * @method static Builder<static>|BrandEvent whereBoothSize($value)
+ * @method static Builder<static>|BrandEvent whereBoothType($value)
+ * @method static Builder<static>|BrandEvent whereBrandId($value)
+ * @method static Builder<static>|BrandEvent whereCreatedAt($value)
+ * @method static Builder<static>|BrandEvent whereCustomFields($value)
+ * @method static Builder<static>|BrandEvent whereEventId($value)
+ * @method static Builder<static>|BrandEvent whereFasciaName($value)
+ * @method static Builder<static>|BrandEvent whereId($value)
+ * @method static Builder<static>|BrandEvent whereNotes($value)
+ * @method static Builder<static>|BrandEvent whereOrderColumn($value)
+ * @method static Builder<static>|BrandEvent wherePromotionPostLimit($value)
+ * @method static Builder<static>|BrandEvent whereSalesId($value)
+ * @method static Builder<static>|BrandEvent whereStatus($value)
+ * @method static Builder<static>|BrandEvent whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 class BrandEvent extends Model implements HasMedia, Sortable
@@ -126,14 +134,14 @@ class BrandEvent extends Model implements HasMedia, Sortable
             ->dontSubmitEmptyLogs();
     }
 
-    public function tapActivity(\Spatie\Activitylog\Models\Activity $activity, string $eventName): void
+    public function tapActivity(Activity $activity, string $eventName): void
     {
         if ($this->event) {
             $activity->properties = $activity->properties->put('project_id', $this->event->project_id);
         }
     }
 
-    public function buildSortQuery(): \Illuminate\Database\Eloquent\Builder
+    public function buildSortQuery(): Builder
     {
         return static::query()->where('event_id', $this->event_id);
     }

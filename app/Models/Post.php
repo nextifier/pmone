@@ -4,18 +4,25 @@ namespace App\Models;
 
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
-use Cviebrock\EloquentSluggable\Sluggable;
+use App\Traits\HasSlug;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Tags\HasTags;
 use Spatie\Tags\Tag;
 
@@ -31,32 +38,32 @@ use Spatie\Tags\Tag;
  * @property string|null $meta_description
  * @property string $status
  * @property string $visibility
- * @property \Illuminate\Support\Carbon|null $published_at
+ * @property Carbon|null $published_at
  * @property bool $featured
  * @property int|null $reading_time
  * @property array<array-key, mixed> $settings
  * @property string $source
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $authors
+ * @property-read Collection<int, User> $authors
  * @property-read int|null $authors_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Tag> $categories
+ * @property-read Collection<int, Tag> $categories
  * @property-read int|null $categories_count
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\User|null $deleter
- * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
+ * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read \App\Models\User|null $primaryAuthor
- * @property \Illuminate\Database\Eloquent\Collection<int, Tag> $tags
+ * @property-read User|null $primaryAuthor
+ * @property Collection<int, Tag> $tags
  * @property-read int|null $tags_count
- * @property-read \App\Models\User|null $updater
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
+ * @property-read User|null $updater
+ * @property-read Collection<int, Visit> $visits
  * @property-read int|null $visits_count
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byAuthor(int $authorId)
@@ -115,10 +122,10 @@ class Post extends Model implements HasMedia
     use ClearsResponseCache;
     use HasFactory;
     use HasMediaManager;
+    use HasSlug;
     use HasTags;
     use InteractsWithMedia;
     use LogsActivity;
-    use Sluggable;
     use SoftDeletes;
 
     protected $fillable = [
@@ -386,7 +393,7 @@ class Post extends Model implements HasMedia
     /**
      * Post authors (many-to-many with pivot data)
      */
-    public function authors(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function authors(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'post_authors')
             ->withPivot('order')
@@ -397,7 +404,7 @@ class Post extends Model implements HasMedia
     /**
      * Get the primary author (first author based on order)
      */
-    public function primaryAuthor(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function primaryAuthor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
@@ -406,7 +413,7 @@ class Post extends Model implements HasMedia
      * Get categories as tags with type 'category'
      * This returns a MorphToMany relationship to support eager loading
      */
-    public function categories(): \Illuminate\Database\Eloquent\Relations\MorphToMany
+    public function categories(): MorphToMany
     {
         return $this
             ->morphToMany(Tag::class, 'taggable', 'taggables', null, 'tag_id')

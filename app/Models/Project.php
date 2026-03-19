@@ -11,15 +11,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Permission\Exceptions\PermissionDoesNotExist;
+use Spatie\Permission\Exceptions\RoleDoesNotExist;
 
 /**
  * @property int $id
@@ -34,33 +40,33 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property string|null $email
  * @property array<array-key, mixed>|null $phone
  * @property int|null $order_column
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ContactFormSubmission> $contactFormSubmissions
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ContactFormSubmission> $contactFormSubmissions
  * @property-read int|null $contact_form_submissions_count
- * @property-read \App\Models\User|null $creator
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProjectCustomField> $customFields
+ * @property-read User|null $creator
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProjectCustomField> $customFields
  * @property-read int|null $custom_fields_count
- * @property-read \App\Models\User|null $deleter
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Event> $events
+ * @property-read User|null $deleter
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Event> $events
  * @property-read int|null $events_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\GaProperty> $gaProperties
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, GaProperty> $gaProperties
  * @property-read int|null $ga_properties_count
  * @property-read array|null $profile_image
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Link> $links
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Link> $links
  * @property-read int|null $links_count
- * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $members
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, User> $members
  * @property-read int|null $members_count
- * @property-read \App\Models\User|null $updater
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
+ * @property-read User|null $updater
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Visit> $visits
  * @property-read int|null $visits_count
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project active()
@@ -355,7 +361,7 @@ class Project extends Model implements HasMedia, Sortable
             }
             $globalIds = $globalQuery->pluck('id');
             $allIds = $memberIds->merge($globalIds)->unique();
-        } catch (\Spatie\Permission\Exceptions\RoleDoesNotExist|\Spatie\Permission\Exceptions\PermissionDoesNotExist $e) {
+        } catch (RoleDoesNotExist|PermissionDoesNotExist $e) {
             $allIds = $memberIds->unique();
         }
 

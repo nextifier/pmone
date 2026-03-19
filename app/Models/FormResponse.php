@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
@@ -16,10 +17,11 @@ use Illuminate\Support\Str;
  * @property string|null $ip_address
  * @property string|null $user_agent
  * @property string $status
- * @property \Illuminate\Support\Carbon $submitted_at
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Form $form
+ * @property Carbon $submitted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Form|null $form
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse query()
@@ -35,6 +37,7 @@ use Illuminate\Support\Str;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse whereUlid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse whereUserAgent($value)
+ *
  * @mixin \Eloquent
  */
 class FormResponse extends Model

@@ -6,9 +6,12 @@ use App\Traits\HasMediaManager;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * @property int $id
@@ -16,20 +19,21 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property int $event_document_id
  * @property string $booth_identifier
  * @property int $event_id
- * @property \Illuminate\Support\Carbon|null $agreed_at
+ * @property Carbon|null $agreed_at
  * @property string|null $text_value
  * @property int $document_version
  * @property int $submitted_by
- * @property \Illuminate\Support\Carbon $submitted_at
+ * @property Carbon $submitted_at
  * @property string|null $ip_address
  * @property string|null $user_agent
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Event $event
- * @property-read \App\Models\EventDocument $eventDocument
- * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Event|null $event
+ * @property-read EventDocument $eventDocument
+ * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read \App\Models\User $submitter
+ * @property-read User|null $submitter
+ *
  * @method static \Database\Factories\EventDocumentSubmissionFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission newQuery()
@@ -48,6 +52,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission whereUlid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission whereUserAgent($value)
+ *
  * @mixin \Eloquent
  */
 class EventDocumentSubmission extends Model implements HasMedia

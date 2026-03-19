@@ -3,19 +3,25 @@
 namespace App\Models;
 
 use App\Traits\HasMediaManager;
-use Cviebrock\EloquentSluggable\Sluggable;
+use App\Traits\HasSlug;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Tags\HasTags;
+use Spatie\Tags\Tag;
 
 /**
  * @property int $id
@@ -26,32 +32,33 @@ use Spatie\Tags\HasTags;
  * @property array<array-key, mixed>|null $settings
  * @property string $status
  * @property bool $is_active
- * @property \Illuminate\Support\Carbon|null $opens_at
- * @property \Illuminate\Support\Carbon|null $closes_at
+ * @property Carbon|null $opens_at
+ * @property Carbon|null $closes_at
  * @property int|null $response_limit
  * @property int|null $project_id
  * @property int $user_id
  * @property int $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\User $creator
- * @property-read \App\Models\User|null $deleter
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\FormField> $fields
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
+ * @property-read Collection<int, FormField> $fields
  * @property-read int|null $fields_count
- * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read \App\Models\Project|null $project
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\FormResponse> $responses
+ * @property-read Project|null $project
+ * @property-read Collection<int, FormResponse> $responses
  * @property-read int|null $responses_count
- * @property \Illuminate\Database\Eloquent\Collection<int, \Spatie\Tags\Tag> $tags
+ * @property Collection<int, Tag> $tags
  * @property-read int|null $tags_count
- * @property-read \App\Models\User|null $updater
- * @property-read \App\Models\User $user
+ * @property-read User|null $updater
+ * @property-read User|null $user
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Form active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Form byStatus(array|string $status)
  * @method static \Database\Factories\FormFactory factory($count = null, $state = [])
@@ -91,16 +98,17 @@ use Spatie\Tags\HasTags;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Form extends Model implements HasMedia
 {
     use HasFactory;
     use HasMediaManager;
+    use HasSlug;
     use HasTags;
     use InteractsWithMedia;
     use LogsActivity;
-    use Sluggable;
     use SoftDeletes;
 
     protected $fillable = [

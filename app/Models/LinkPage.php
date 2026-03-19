@@ -4,17 +4,92 @@ namespace App\Models;
 
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property string $slug
+ * @property string $title
+ * @property string|null $description
+ * @property bool $is_active
+ * @property string $visibility
+ * @property array<array-key, mixed>|null $more_details
+ * @property array<array-key, mixed>|null $settings
+ * @property int $order_column
+ * @property string|null $og_title
+ * @property string|null $og_description
+ * @property string|null $og_image
+ * @property string $og_type
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read Collection<int, Click> $clicks
+ * @property-read int $clicks_count
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
+ * @property-read array|null $cover_image
+ * @property-read int|null $items_count
+ * @property-read int|null $visits_count
+ * @property-read Collection<int, LinkPageItem> $items
+ * @property-read MediaCollection<int, Media> $media
+ * @property-read int|null $media_count
+ * @property-read User|null $updater
+ * @property-read User|null $user
+ * @property-read Collection<int, Visit> $visits
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage active()
+ * @method static \Database\Factories\LinkPageFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage ordered()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage public()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereDeletedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereMoreDetails($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereOgDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereOgImage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereOgTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereOgType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereOrderColumn($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereSettings($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereUpdatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereVisibility($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage withoutTrashed()
+ *
+ * @mixin \Eloquent
+ */
 class LinkPage extends Model implements HasMedia
 {
     use ClearsResponseCache, HasFactory, HasMediaManager, InteractsWithMedia, LogsActivity, SoftDeletes;

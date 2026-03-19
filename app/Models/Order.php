@@ -4,12 +4,15 @@ namespace App\Models;
 
 use App\Enums\OperationalStatus;
 use App\Enums\PaymentStatus;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
@@ -19,30 +22,31 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string $order_number
  * @property OperationalStatus $operational_status
  * @property string|null $notes
+ * @property string|null $discount_type
+ * @property numeric|null $discount_value
+ * @property numeric|null $discount_amount
  * @property numeric $subtotal
  * @property numeric $tax_rate
  * @property numeric $tax_amount
  * @property numeric $total
- * @property \Illuminate\Support\Carbon|null $submitted_at
- * @property \Illuminate\Support\Carbon|null $confirmed_at
+ * @property Carbon|null $submitted_at
+ * @property Carbon|null $confirmed_at
  * @property int|null $created_by
  * @property int|null $updated_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property string|null $discount_type
- * @property numeric|null $discount_value
- * @property numeric|null $discount_amount
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property PaymentStatus $payment_status
  * @property string|null $cancellation_reason
  * @property string|null $order_period
  * @property numeric|null $applied_penalty_rate
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\BrandEvent $brandEvent
- * @property-read \App\Models\User|null $creator
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\OrderItem> $items
+ * @property-read BrandEvent $brandEvent
+ * @property-read User|null $creator
+ * @property-read Collection<int, OrderItem> $items
  * @property-read int|null $items_count
- * @property-read \App\Models\User|null $updater
+ * @property-read User|null $updater
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order byOperationalStatus(string $status)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order byPaymentStatus(string $status)
  * @method static \Database\Factories\OrderFactory factory($count = null, $state = [])
@@ -72,6 +76,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUlid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedBy($value)
+ *
  * @mixin \Eloquent
  */
 class Order extends Model

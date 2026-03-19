@@ -4,14 +4,68 @@ namespace App\Models;
 
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
+/**
+ * @property int $id
+ * @property int $link_page_id
+ * @property string $label
+ * @property string|null $url
+ * @property string|null $description
+ * @property bool $is_active
+ * @property int $sort_order
+ * @property string|null $og_title
+ * @property string|null $og_description
+ * @property string|null $og_image
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Click> $clicks
+ * @property-read int $clicks_count
+ * @property-read array|null $poster
+ * @property-read LinkPage|null $linkPage
+ * @property-read MediaCollection<int, Media> $media
+ * @property-read int|null $media_count
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem active()
+ * @method static \Database\Factories\LinkPageItemFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem ordered()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem whereLabel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem whereLinkPageId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem whereOgDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem whereOgImage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem whereOgTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem whereSortOrder($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem whereUpdatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem whereUrl($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem withoutTrashed()
+ *
+ * @mixin \Eloquent
+ */
 class LinkPageItem extends Model implements HasMedia
 {
     use ClearsResponseCache, HasFactory, HasMediaManager, InteractsWithMedia, SoftDeletes;

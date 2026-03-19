@@ -5,16 +5,91 @@ namespace App\Models;
 use App\Enums\ContactStatus;
 use App\Helpers\PhoneCountryHelper;
 use App\Traits\ClearsResponseCache;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Tags\HasTags;
+use Spatie\Tags\Tag;
 
+/**
+ * @property int $id
+ * @property string $ulid
+ * @property string $name
+ * @property string|null $job_title
+ * @property array<array-key, mixed>|null $emails
+ * @property array<array-key, mixed>|null $phones
+ * @property string|null $company_name
+ * @property string|null $website
+ * @property array<array-key, mixed>|null $address
+ * @property string|null $notes
+ * @property string|null $source
+ * @property array<array-key, mixed>|null $more_details
+ * @property ContactStatus $status
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
+ * @property-read array<string> $business_categories_list
+ * @property-read array<string> $contact_types_list
+ * @property-read array<string> $tags_list
+ * @property-read Collection<int, Project> $projects
+ * @property-read int|null $projects_count
+ * @property Collection<int, Tag> $tags
+ * @property-read int|null $tags_count
+ * @property-read User|null $updater
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact active()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact byStatus(string $status)
+ * @method static \Database\Factories\ContactFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact forProject(int $projectId)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereAddress($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereCompanyName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereDeletedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereEmails($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereJobTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereMoreDetails($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact wherePhones($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereSource($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereUlid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereUpdatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact whereWebsite($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact withAllTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact withAllTagsOfAnyType($tags)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact withAnyTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact withAnyTagsOfAnyType($tags)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact withAnyTagsOfType(array|string $type)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact withoutTrashed()
+ *
+ * @mixin \Eloquent
+ */
 class Contact extends Model
 {
     use ClearsResponseCache;

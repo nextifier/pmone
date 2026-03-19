@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
@@ -19,25 +23,27 @@ use Spatie\EloquentSortable\SortableTrait;
  * @property array<array-key, mixed>|null $options
  * @property bool $is_required
  * @property int $order_column
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\Project $project
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField ordered(string $direction = 'asc')
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField whereIsRequired($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField whereKey($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField whereLabel($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField whereOptions($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField whereOrderColumn($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField whereProjectId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField whereType($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectCustomField whereUpdatedAt($value)
+ * @property-read Project|null $project
+ *
+ * @method static Builder<static>|ProjectCustomField newModelQuery()
+ * @method static Builder<static>|ProjectCustomField newQuery()
+ * @method static Builder<static>|ProjectCustomField ordered(string $direction = 'asc')
+ * @method static Builder<static>|ProjectCustomField query()
+ * @method static Builder<static>|ProjectCustomField whereCreatedAt($value)
+ * @method static Builder<static>|ProjectCustomField whereId($value)
+ * @method static Builder<static>|ProjectCustomField whereIsRequired($value)
+ * @method static Builder<static>|ProjectCustomField whereKey($value)
+ * @method static Builder<static>|ProjectCustomField whereLabel($value)
+ * @method static Builder<static>|ProjectCustomField whereOptions($value)
+ * @method static Builder<static>|ProjectCustomField whereOrderColumn($value)
+ * @method static Builder<static>|ProjectCustomField whereProjectId($value)
+ * @method static Builder<static>|ProjectCustomField whereType($value)
+ * @method static Builder<static>|ProjectCustomField whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 class ProjectCustomField extends Model implements Sortable
@@ -87,7 +93,7 @@ class ProjectCustomField extends Model implements Sortable
         });
     }
 
-    public function buildSortQuery(): \Illuminate\Database\Eloquent\Builder
+    public function buildSortQuery(): Builder
     {
         return static::query()->where('project_id', $this->project_id);
     }

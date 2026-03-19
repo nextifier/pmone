@@ -4,23 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property int $order_id
  * @property int|null $event_product_id
  * @property string $product_name
+ * @property string|null $product_image_url
  * @property numeric $unit_price
  * @property int $quantity
  * @property numeric $total_price
  * @property string|null $notes
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property string|null $product_image_url
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property int|null $category_id
- * @property-read \App\Models\EventProduct|null $eventProduct
- * @property-read \App\Models\Order $order
- * @property-read \App\Models\EventProductCategory|null $productCategory
+ * @property-read EventProduct|null $eventProduct
+ * @property-read Order $order
+ * @property-read EventProductCategory|null $productCategory
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem query()
@@ -36,6 +38,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereTotalPrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereUnitPrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 class OrderItem extends Model

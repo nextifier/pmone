@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
+use App\Traits\HasSlug;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,14 +13,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Tags\HasTags;
+use Spatie\Tags\Tag;
 
 /**
  * @property int $id
@@ -37,30 +44,31 @@ use Spatie\Tags\HasTags;
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\BrandEvent> $brandEvents
+ * @property-read Collection<int, BrandEvent> $brandEvents
  * @property-read int|null $brand_events_count
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\User|null $deleter
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Event> $events
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
+ * @property-read Collection<int, Event> $events
  * @property-read int|null $events_count
  * @property-read array|null $brand_logo
  * @property-read array $business_categories_list
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Link> $links
+ * @property-read Collection<int, Link> $links
  * @property-read int|null $links_count
- * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property \Illuminate\Database\Eloquent\Collection<int, \Spatie\Tags\Tag> $tags
+ * @property Collection<int, Tag> $tags
  * @property-read int|null $tags_count
- * @property-read \App\Models\User|null $updater
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $users
+ * @property-read User|null $updater
+ * @property-read Collection<int, User> $users
  * @property-read int|null $users_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
+ * @property-read Collection<int, Visit> $visits
  * @property-read int|null $visits_count
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand byStatus(string $status)
  * @method static \Database\Factories\BrandFactory factory($count = null, $state = [])
@@ -96,6 +104,7 @@ use Spatie\Tags\HasTags;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Brand extends Model implements HasMedia, Sortable
@@ -103,6 +112,7 @@ class Brand extends Model implements HasMedia, Sortable
     use ClearsResponseCache;
     use HasFactory;
     use HasMediaManager;
+    use HasSlug;
     use HasTags;
     use InteractsWithMedia;
     use LogsActivity;
@@ -139,6 +149,16 @@ class Brand extends Model implements HasMedia, Sortable
         return ['brands'];
     }
 
+    public function sluggable(): array
+    {
+        return [
+            'slug' => [
+                'source' => 'name',
+                'includeTrashed' => true,
+            ],
+        ];
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';
@@ -151,24 +171,6 @@ class Brand extends Model implements HasMedia, Sortable
         static::creating(function ($model) {
             if (empty($model->ulid)) {
                 $model->ulid = (string) Str::ulid();
-            }
-
-            if (empty($model->slug) && ! empty($model->name)) {
-                $baseSlug = Str::slug($model->name);
-
-                if (empty($baseSlug)) {
-                    $baseSlug = 'brand';
-                }
-
-                $slug = $baseSlug;
-                $counter = 1;
-
-                while (static::withTrashed()->where('slug', $slug)->exists()) {
-                    $slug = $baseSlug.'-'.$counter;
-                    $counter++;
-                }
-
-                $model->slug = $slug;
             }
 
             if (auth()->check()) {

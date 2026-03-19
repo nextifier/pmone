@@ -1,9 +1,19 @@
 <?php
 
+use App\Http\Middleware\UpdateLastSeen;
+use App\Http\Middleware\ValidateApiKey;
+use App\Jobs\FetchExchangeRates;
+use App\Jobs\RefreshRealtimeAnalytics;
+use App\Jobs\SyncTodayAnalyticsJob;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Http\Request;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
+use Spatie\ResponseCache\Middlewares\CacheResponse;
+use Spatie\ResponseCache\Middlewares\DoNotCacheResponse;
 
 // Suppress PHP 8.5 deprecation warnings for PDO::MYSQL_ATTR_SSL_CA
 // This is a temporary fix until Laravel releases an update
@@ -20,32 +30,32 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Handle CORS for all requests
         $middleware->use([
-            \Illuminate\Http\Middleware\HandleCors::class,
+            HandleCors::class,
         ]);
 
         $middleware->api(prepend: [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            EnsureFrontendRequestsAreStateful::class,
         ]);
 
         // Add UpdateLastSeen middleware to API routes
         $middleware->api(append: [
-            \App\Http\Middleware\UpdateLastSeen::class,
+            UpdateLastSeen::class,
         ]);
 
         // Register middleware aliases
         $middleware->alias([
-            'api.key' => \App\Http\Middleware\ValidateApiKey::class,
-            'cacheResponse' => \Spatie\ResponseCache\Middlewares\CacheResponse::class,
-            'doNotCacheResponse' => \Spatie\ResponseCache\Middlewares\DoNotCacheResponse::class,
+            'api.key' => ValidateApiKey::class,
+            'cacheResponse' => CacheResponse::class,
+            'doNotCacheResponse' => DoNotCacheResponse::class,
         ]);
 
-        // Exclude tracking endpoints from CSRF verification (for anonymous tracking)
-        $middleware->validateCsrfTokens(except: [
+        // Exclude tracking endpoints from request forgery protection (for anonymous tracking)
+        $middleware->preventRequestForgery(except: [
             'api/track/*',
             'api/public/*',
         ]);
     })
-    ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule): void {
+    ->withSchedule(function (Schedule $schedule): void {
         // Cleanup temporary uploads older than 1 hour, run hourly
         $schedule->command('uploads:cleanup-temp --hours=1')->hourly();
 
@@ -63,14 +73,14 @@ return Application::configure(basePath: dirname(__DIR__))
         // Sync today's analytics data - runs every 15 minutes for instant loading
         // This proactively fetches today's data so users never have to wait
         // when requesting the "today" period on analytics dashboard
-        $schedule->job(new \App\Jobs\SyncTodayAnalyticsJob)->everyFifteenMinutes();
+        $schedule->job(new SyncTodayAnalyticsJob)->everyFifteenMinutes();
 
         // Realtime analytics - refresh every 2 minutes for live user counts
-        $schedule->job(new \App\Jobs\RefreshRealtimeAnalytics)->everyTwoMinutes();
+        $schedule->job(new RefreshRealtimeAnalytics)->everyTwoMinutes();
 
         // Fetch exchange rates - interval configurable via EXCHANGE_RATE_SYNC_INTERVAL (default: 60 minutes)
         $exchangeRateInterval = (int) config('services.exchange_rate.sync_interval_minutes', 60);
-        $schedule->job(new \App\Jobs\FetchExchangeRates)->cron("*/{$exchangeRateInterval} * * * *");
+        $schedule->job(new FetchExchangeRates)->cron("*/{$exchangeRateInterval} * * * *");
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Force JSON response for API requests

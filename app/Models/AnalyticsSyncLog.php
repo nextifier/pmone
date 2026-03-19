@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -11,15 +12,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $ga_property_id
  * @property int $days
  * @property string $status
- * @property \Illuminate\Support\Carbon|null $started_at
- * @property \Illuminate\Support\Carbon|null $completed_at
- * @property string|null $duration_seconds
+ * @property Carbon|null $started_at
+ * @property Carbon|null $completed_at
+ * @property numeric|null $duration_seconds
  * @property array<array-key, mixed>|null $metadata
  * @property string|null $error_message
  * @property string|null $job_id
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\GaProperty|null $property
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read GaProperty|null $property
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog aggregateSyncs()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog failed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog newModelQuery()
@@ -41,6 +43,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereSyncType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 class AnalyticsSyncLog extends Model

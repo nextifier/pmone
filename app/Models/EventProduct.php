@@ -3,16 +3,22 @@
 namespace App\Models;
 
 use App\Traits\HasMediaManager;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * @property int $id
@@ -26,40 +32,42 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property int|null $order_column
  * @property int|null $created_by
  * @property int|null $updated_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property int|null $category_id
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\Event $event
+ * @property-read User|null $creator
+ * @property-read Event|null $event
  * @property-read array|null $product_image
- * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\OrderItem> $orderItems
+ * @property-read Collection<int, OrderItem> $orderItems
  * @property-read int|null $order_items_count
- * @property-read \App\Models\EventProductCategory|null $productCategory
- * @property-read \App\Models\User|null $updater
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct active()
+ * @property-read EventProductCategory|null $productCategory
+ * @property-read User|null $updater
+ *
+ * @method static Builder<static>|EventProduct active()
  * @method static \Database\Factories\EventProductFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct ordered(string $direction = 'asc')
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereBoothTypes($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereCategoryId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereCreatedBy($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereDescription($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereEventId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereIsActive($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereOrderColumn($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct wherePrice($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereUnit($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProduct whereUpdatedBy($value)
+ * @method static Builder<static>|EventProduct newModelQuery()
+ * @method static Builder<static>|EventProduct newQuery()
+ * @method static Builder<static>|EventProduct ordered(string $direction = 'asc')
+ * @method static Builder<static>|EventProduct query()
+ * @method static Builder<static>|EventProduct whereBoothTypes($value)
+ * @method static Builder<static>|EventProduct whereCategoryId($value)
+ * @method static Builder<static>|EventProduct whereCreatedAt($value)
+ * @method static Builder<static>|EventProduct whereCreatedBy($value)
+ * @method static Builder<static>|EventProduct whereDescription($value)
+ * @method static Builder<static>|EventProduct whereEventId($value)
+ * @method static Builder<static>|EventProduct whereId($value)
+ * @method static Builder<static>|EventProduct whereIsActive($value)
+ * @method static Builder<static>|EventProduct whereName($value)
+ * @method static Builder<static>|EventProduct whereOrderColumn($value)
+ * @method static Builder<static>|EventProduct wherePrice($value)
+ * @method static Builder<static>|EventProduct whereUnit($value)
+ * @method static Builder<static>|EventProduct whereUpdatedAt($value)
+ * @method static Builder<static>|EventProduct whereUpdatedBy($value)
+ *
  * @mixin \Eloquent
  */
 class EventProduct extends Model implements HasMedia, Sortable
@@ -120,7 +128,7 @@ class EventProduct extends Model implements HasMedia, Sortable
             ->dontSubmitEmptyLogs();
     }
 
-    public function buildSortQuery(): \Illuminate\Database\Eloquent\Builder
+    public function buildSortQuery(): Builder
     {
         return static::query()->where('event_id', $this->event_id);
     }

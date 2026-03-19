@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use App\Enums\ContactFormStatus;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
@@ -20,14 +23,14 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property ContactFormStatus $status
  * @property string|null $ip_address
  * @property string|null $user_agent
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property int|null $deleted_by
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\User|null $deleter
- * @property-read \App\Models\Project $project
+ * @property-read User|null $deleter
+ * @property-read Project|null $project
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ContactFormSubmission byStatus(string $status)
  * @method static \Database\Factories\ContactFormSubmissionFactory factory($count = null, $state = [])
@@ -97,7 +100,7 @@ class ContactFormSubmission extends Model
             ->dontSubmitEmptyLogs();
     }
 
-    public function tapActivity(\Spatie\Activitylog\Models\Activity $activity, string $eventName): void
+    public function tapActivity(Activity $activity, string $eventName): void
     {
         $activity->properties = $activity->properties->put('project_id', $this->project_id);
     }

@@ -4,6 +4,9 @@ namespace App\Models;
 
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
+use App\Traits\HasSlug;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,14 +14,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * @property int $id
@@ -28,8 +35,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property string $slug
  * @property int|null $edition_number
  * @property string|null $description
- * @property \Illuminate\Support\Carbon|null $start_date
- * @property \Illuminate\Support\Carbon|null $end_date
+ * @property Carbon|null $start_date
+ * @property Carbon|null $end_date
  * @property string|null $location
  * @property string|null $location_link
  * @property string|null $hall
@@ -37,98 +44,100 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property string $visibility
  * @property array<array-key, mixed>|null $settings
  * @property array<array-key, mixed>|null $custom_fields
+ * @property string|null $order_form_content
+ * @property Carbon|null $order_form_deadline
+ * @property Carbon|null $promotion_post_deadline
+ * @property numeric|null $saleable_area
+ * @property bool $is_active
  * @property int|null $order_column
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property string|null $order_form_content
- * @property numeric|null $saleable_area
- * @property bool $is_active
- * @property \Illuminate\Support\Carbon|null $order_form_deadline
- * @property \Illuminate\Support\Carbon|null $promotion_post_deadline
- * @property \Illuminate\Support\Carbon|null $normal_order_opens_at
- * @property \Illuminate\Support\Carbon|null $normal_order_closes_at
- * @property \Illuminate\Support\Carbon|null $onsite_order_opens_at
- * @property \Illuminate\Support\Carbon|null $onsite_order_closes_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property Carbon|null $normal_order_opens_at
+ * @property Carbon|null $normal_order_closes_at
+ * @property Carbon|null $onsite_order_opens_at
+ * @property Carbon|null $onsite_order_closes_at
  * @property numeric $onsite_penalty_rate
  * @property string|null $badge_vip_info
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\BrandEvent> $brandEvents
+ * @property-read Collection<int, BrandEvent> $brandEvents
  * @property-read int|null $brand_events_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Brand> $brands
+ * @property-read Collection<int, Brand> $brands
  * @property-read int|null $brands_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Event> $conjunctionEvents
+ * @property-read Collection<int, Event> $conjunctionEvents
  * @property-read int|null $conjunction_events_count
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\User|null $deleter
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EventDocumentSubmission> $eventDocumentSubmissions
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
+ * @property-read Collection<int, EventDocumentSubmission> $eventDocumentSubmissions
  * @property-read int|null $event_document_submissions_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EventDocument> $eventDocuments
+ * @property-read Collection<int, EventDocument> $eventDocuments
  * @property-read int|null $event_documents_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EventProductCategory> $eventProductCategories
+ * @property-read Collection<int, EventProductCategory> $eventProductCategories
  * @property-read int|null $event_product_categories_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EventProduct> $eventProducts
+ * @property-read Collection<int, EventProduct> $eventProducts
  * @property-read int|null $event_products_count
  * @property-read string|null $date_label
  * @property-read string|null $edition_number_with_ordinal
  * @property-read string|null $end_time
  * @property-read array|null $poster_image
  * @property-read string|null $start_time
- * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order> $orders
+ * @property-read Collection<int, Order> $orders
  * @property-read int|null $orders_count
- * @property-read \App\Models\Project $project
- * @property-read \App\Models\User|null $updater
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event active()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event byStatus(string $status)
+ * @property-read Project|null $project
+ * @property-read User|null $updater
+ *
+ * @method static Builder<static>|Event active()
+ * @method static Builder<static>|Event byStatus(string $status)
  * @method static \Database\Factories\EventFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event onlyTrashed()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event ordered(string $direction = 'asc')
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event published()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereBadgeVipInfo($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereCreatedBy($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereCustomFields($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereDeletedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereDeletedBy($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereDescription($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereEditionNumber($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereEndDate($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereHall($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereIsActive($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereLocation($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereLocationLink($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereNormalOrderClosesAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereNormalOrderOpensAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereOnsiteOrderClosesAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereOnsiteOrderOpensAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereOnsitePenaltyRate($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereOrderColumn($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereOrderFormContent($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereOrderFormDeadline($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereProjectId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event wherePromotionPostDeadline($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereSaleableArea($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereSettings($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereSlug($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereStartDate($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereStatus($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereTitle($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereUlid($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereUpdatedBy($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event whereVisibility($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event withTrashed(bool $withTrashed = true)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Event withoutTrashed()
+ * @method static Builder<static>|Event newModelQuery()
+ * @method static Builder<static>|Event newQuery()
+ * @method static Builder<static>|Event onlyTrashed()
+ * @method static Builder<static>|Event ordered(string $direction = 'asc')
+ * @method static Builder<static>|Event published()
+ * @method static Builder<static>|Event query()
+ * @method static Builder<static>|Event whereBadgeVipInfo($value)
+ * @method static Builder<static>|Event whereCreatedAt($value)
+ * @method static Builder<static>|Event whereCreatedBy($value)
+ * @method static Builder<static>|Event whereCustomFields($value)
+ * @method static Builder<static>|Event whereDeletedAt($value)
+ * @method static Builder<static>|Event whereDeletedBy($value)
+ * @method static Builder<static>|Event whereDescription($value)
+ * @method static Builder<static>|Event whereEditionNumber($value)
+ * @method static Builder<static>|Event whereEndDate($value)
+ * @method static Builder<static>|Event whereHall($value)
+ * @method static Builder<static>|Event whereId($value)
+ * @method static Builder<static>|Event whereIsActive($value)
+ * @method static Builder<static>|Event whereLocation($value)
+ * @method static Builder<static>|Event whereLocationLink($value)
+ * @method static Builder<static>|Event whereNormalOrderClosesAt($value)
+ * @method static Builder<static>|Event whereNormalOrderOpensAt($value)
+ * @method static Builder<static>|Event whereOnsiteOrderClosesAt($value)
+ * @method static Builder<static>|Event whereOnsiteOrderOpensAt($value)
+ * @method static Builder<static>|Event whereOnsitePenaltyRate($value)
+ * @method static Builder<static>|Event whereOrderColumn($value)
+ * @method static Builder<static>|Event whereOrderFormContent($value)
+ * @method static Builder<static>|Event whereOrderFormDeadline($value)
+ * @method static Builder<static>|Event whereProjectId($value)
+ * @method static Builder<static>|Event wherePromotionPostDeadline($value)
+ * @method static Builder<static>|Event whereSaleableArea($value)
+ * @method static Builder<static>|Event whereSettings($value)
+ * @method static Builder<static>|Event whereSlug($value)
+ * @method static Builder<static>|Event whereStartDate($value)
+ * @method static Builder<static>|Event whereStatus($value)
+ * @method static Builder<static>|Event whereTitle($value)
+ * @method static Builder<static>|Event whereUlid($value)
+ * @method static Builder<static>|Event whereUpdatedAt($value)
+ * @method static Builder<static>|Event whereUpdatedBy($value)
+ * @method static Builder<static>|Event whereVisibility($value)
+ * @method static Builder<static>|Event withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Event withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Event extends Model implements HasMedia, Sortable
@@ -136,6 +145,7 @@ class Event extends Model implements HasMedia, Sortable
     use ClearsResponseCache;
     use HasFactory;
     use HasMediaManager;
+    use HasSlug;
     use InteractsWithMedia;
     use LogsActivity;
     use SoftDeletes;
@@ -258,7 +268,26 @@ class Event extends Model implements HasMedia, Sortable
         return $this->end_date->format('g:i A');
     }
 
-    public function buildSortQuery(): \Illuminate\Database\Eloquent\Builder
+    public function sluggable(): array
+    {
+        return [
+            'slug' => [
+                'source' => 'title',
+            ],
+        ];
+    }
+
+    public function scopeWithUniqueSlugConstraints(
+        Builder $query,
+        Model $model,
+        string $attribute,
+        array $config,
+        string $slug
+    ): Builder {
+        return $query->where('project_id', $model->project_id);
+    }
+
+    public function buildSortQuery(): Builder
     {
         return static::query()->where('project_id', $this->project_id);
     }
@@ -270,28 +299,6 @@ class Event extends Model implements HasMedia, Sortable
         static::creating(function ($model) {
             if (empty($model->ulid)) {
                 $model->ulid = (string) Str::ulid();
-            }
-
-            // Generate slug from title if not provided
-            if (empty($model->slug) && ! empty($model->title)) {
-                $baseSlug = Str::slug($model->title);
-
-                if (empty($baseSlug)) {
-                    $baseSlug = 'event';
-                }
-
-                $slug = $baseSlug;
-                $counter = 1;
-
-                while (static::where('project_id', $model->project_id)
-                    ->where('slug', $slug)
-                    ->exists()
-                ) {
-                    $slug = $baseSlug.'-'.$counter;
-                    $counter++;
-                }
-
-                $model->slug = $slug;
             }
 
             if (auth()->check()) {
@@ -325,7 +332,7 @@ class Event extends Model implements HasMedia, Sortable
             ->dontSubmitEmptyLogs();
     }
 
-    public function tapActivity(\Spatie\Activitylog\Models\Activity $activity, string $eventName): void
+    public function tapActivity(Activity $activity, string $eventName): void
     {
         $activity->properties = $activity->properties->put('project_id', $this->project_id);
     }

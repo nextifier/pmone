@@ -3,16 +3,21 @@
 namespace App\Models;
 
 use App\Traits\HasMediaManager;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * @property int $id
@@ -25,27 +30,28 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property string $visibility
  * @property int|null $project_id
  * @property int|null $assignee_id
- * @property \Illuminate\Support\Carbon|null $estimated_start_at
- * @property \Illuminate\Support\Carbon|null $estimated_completion_at
- * @property \Illuminate\Support\Carbon|null $completed_at
+ * @property Carbon|null $estimated_start_at
+ * @property Carbon|null $estimated_completion_at
+ * @property Carbon|null $completed_at
  * @property int $order_column
  * @property int $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\User|null $assignee
- * @property-read \App\Models\User $creator
- * @property-read \App\Models\User|null $deleter
- * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read User|null $assignee
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
+ * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read \App\Models\Project|null $project
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $sharedUsers
+ * @property-read Project|null $project
+ * @property-read Collection<int, User> $sharedUsers
  * @property-read int|null $shared_users_count
- * @property-read \App\Models\User|null $updater
+ * @property-read User|null $updater
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task byComplexity(array|string $complexity)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task byPriority(array|string $priority)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task byStatus(array|string $status)
@@ -80,6 +86,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereVisibility($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Task extends Model implements HasMedia
@@ -260,7 +267,7 @@ class Task extends Model implements HasMedia
             ->dontSubmitEmptyLogs();
     }
 
-    public function tapActivity(\Spatie\Activitylog\Models\Activity $activity, string $eventName): void
+    public function tapActivity(Activity $activity, string $eventName): void
     {
         if ($this->project_id) {
             $activity->properties = $activity->properties->put('project_id', $this->project_id);

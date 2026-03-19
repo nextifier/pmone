@@ -3,15 +3,20 @@
 namespace App\Models;
 
 use App\Traits\HasMediaManager;
+use App\Traits\HasSlug;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * @property int $id
@@ -22,36 +27,39 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property int|null $order_column
  * @property int|null $created_by
  * @property int|null $updated_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\Event $event
- * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read User|null $creator
+ * @property-read Event|null $event
+ * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EventProduct> $products
+ * @property-read Collection<int, EventProduct> $products
  * @property-read int|null $products_count
- * @property-read \App\Models\User|null $updater
+ * @property-read User|null $updater
+ *
  * @method static \Database\Factories\EventProductCategoryFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProductCategory newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProductCategory newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProductCategory ordered(string $direction = 'asc')
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProductCategory query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProductCategory whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProductCategory whereCreatedBy($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProductCategory whereDescription($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProductCategory whereEventId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProductCategory whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProductCategory whereOrderColumn($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProductCategory whereSlug($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProductCategory whereTitle($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProductCategory whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|EventProductCategory whereUpdatedBy($value)
+ * @method static Builder<static>|EventProductCategory newModelQuery()
+ * @method static Builder<static>|EventProductCategory newQuery()
+ * @method static Builder<static>|EventProductCategory ordered(string $direction = 'asc')
+ * @method static Builder<static>|EventProductCategory query()
+ * @method static Builder<static>|EventProductCategory whereCreatedAt($value)
+ * @method static Builder<static>|EventProductCategory whereCreatedBy($value)
+ * @method static Builder<static>|EventProductCategory whereDescription($value)
+ * @method static Builder<static>|EventProductCategory whereEventId($value)
+ * @method static Builder<static>|EventProductCategory whereId($value)
+ * @method static Builder<static>|EventProductCategory whereOrderColumn($value)
+ * @method static Builder<static>|EventProductCategory whereSlug($value)
+ * @method static Builder<static>|EventProductCategory whereTitle($value)
+ * @method static Builder<static>|EventProductCategory whereUpdatedAt($value)
+ * @method static Builder<static>|EventProductCategory whereUpdatedBy($value)
+ *
  * @mixin \Eloquent
  */
 class EventProductCategory extends Model implements HasMedia, Sortable
 {
     use HasFactory;
     use HasMediaManager;
+    use HasSlug;
     use InteractsWithMedia;
     use SortableTrait;
 
@@ -67,32 +75,30 @@ class EventProductCategory extends Model implements HasMedia, Sortable
         'sort_when_creating' => true,
     ];
 
+    public function sluggable(): array
+    {
+        return [
+            'slug' => [
+                'source' => 'title',
+            ],
+        ];
+    }
+
+    public function scopeWithUniqueSlugConstraints(
+        Builder $query,
+        Model $model,
+        string $attribute,
+        array $config,
+        string $slug
+    ): Builder {
+        return $query->where('event_id', $model->event_id);
+    }
+
     protected static function boot(): void
     {
         parent::boot();
 
         static::creating(function ($model) {
-            if (empty($model->slug) && ! empty($model->title)) {
-                $baseSlug = Str::slug($model->title);
-
-                if (empty($baseSlug)) {
-                    $baseSlug = 'category';
-                }
-
-                $slug = $baseSlug;
-                $counter = 1;
-
-                while (static::where('event_id', $model->event_id)
-                    ->where('slug', $slug)
-                    ->exists()
-                ) {
-                    $slug = $baseSlug.'-'.$counter;
-                    $counter++;
-                }
-
-                $model->slug = $slug;
-            }
-
             if (auth()->check()) {
                 $model->created_by = auth()->id();
             }
@@ -105,7 +111,7 @@ class EventProductCategory extends Model implements HasMedia, Sortable
         });
     }
 
-    public function buildSortQuery(): \Illuminate\Database\Eloquent\Builder
+    public function buildSortQuery(): Builder
     {
         return static::query()->where('event_id', $this->event_id);
     }

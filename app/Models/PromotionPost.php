@@ -4,43 +4,51 @@ namespace App\Models;
 
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * @property int $id
+ * @property int $brand_event_id
  * @property string|null $caption
  * @property array<array-key, mixed>|null $custom_fields
  * @property int|null $order_column
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property int $brand_event_id
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\BrandEvent $brandEvent
+ * @property-read BrandEvent $brandEvent
  * @property-read array|null $post_image
  * @property-read array $post_images
- * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
+ *
  * @method static \Database\Factories\PromotionPostFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PromotionPost newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PromotionPost newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PromotionPost ordered(string $direction = 'asc')
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PromotionPost query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PromotionPost whereBrandEventId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PromotionPost whereCaption($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PromotionPost whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PromotionPost whereCustomFields($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PromotionPost whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PromotionPost whereOrderColumn($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|PromotionPost whereUpdatedAt($value)
+ * @method static Builder<static>|PromotionPost newModelQuery()
+ * @method static Builder<static>|PromotionPost newQuery()
+ * @method static Builder<static>|PromotionPost ordered(string $direction = 'asc')
+ * @method static Builder<static>|PromotionPost query()
+ * @method static Builder<static>|PromotionPost whereBrandEventId($value)
+ * @method static Builder<static>|PromotionPost whereCaption($value)
+ * @method static Builder<static>|PromotionPost whereCreatedAt($value)
+ * @method static Builder<static>|PromotionPost whereCustomFields($value)
+ * @method static Builder<static>|PromotionPost whereId($value)
+ * @method static Builder<static>|PromotionPost whereOrderColumn($value)
+ * @method static Builder<static>|PromotionPost whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 class PromotionPost extends Model implements HasMedia, Sortable
@@ -83,7 +91,7 @@ class PromotionPost extends Model implements HasMedia, Sortable
         ];
     }
 
-    public function buildSortQuery(): \Illuminate\Database\Eloquent\Builder
+    public function buildSortQuery(): Builder
     {
         return static::query()->where('brand_event_id', $this->brand_event_id);
     }
