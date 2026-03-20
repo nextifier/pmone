@@ -259,6 +259,15 @@ export default defineNuxtConfig({
     },
   },
 
+  nitro: {
+    externals: {
+      inline: [],
+    },
+    rollupConfig: {
+      external: ["mermaid"],
+    },
+  },
+
   compatibilityDate: "2025-09-16",
 
   experimental: {
