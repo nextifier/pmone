@@ -2,9 +2,12 @@
 
 namespace App\Services\GoogleAnalytics;
 
+use App\Jobs\RefreshAggregateCache;
+use App\Jobs\RefreshRealtimeAnalytics;
 use App\Models\GaProperty;
 use App\Services\GoogleAnalytics\AnalyticsCacheKeyGenerator as CacheKey;
 use App\Services\GoogleAnalytics\Concerns\CalculatesTotalsFromRows;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
@@ -186,7 +189,8 @@ class AnalyticsService
 
         // Get cached data and timestamp
         $cachedData = Cache::get($cacheKey);
-        $cacheTimestamp = Cache::get($cacheTimestampKey);
+        $rawCacheTimestamp = Cache::get($cacheTimestampKey);
+        $cacheTimestamp = $this->parseCachedTimestamp($rawCacheTimestamp);
         $lastSuccessData = Cache::get($lastSuccessKey); // Last known good data
 
         \Log::info('Cache status', [
@@ -202,7 +206,8 @@ class AnalyticsService
 
             // Check if daily data has been updated since this aggregate was cached
             // This solves the race condition where aggregate caches zeros before daily data is ready
-            $lastDailyRefresh = Cache::get('analytics:last_daily_refresh');
+            $rawLastDailyRefresh = Cache::get('analytics:last_daily_refresh');
+            $lastDailyRefresh = $this->parseCachedTimestamp($rawLastDailyRefresh);
             if ($isFresh && $lastDailyRefresh && $cacheTimestamp && $lastDailyRefresh->gt($cacheTimestamp)) {
                 $hasPropertyData = ! empty($cachedData['property_breakdown'] ?? []);
                 if (! $hasPropertyData) {
@@ -392,7 +397,7 @@ class AnalyticsService
         $mappedRows = [];
         foreach ($previousDailyData as $prevDate => $metrics) {
             // Calculate offset from previous start date
-            $prevDateObj = \Carbon\Carbon::parse($prevDate);
+            $prevDateObj = Carbon::parse($prevDate);
             $dayOffset = $previousStart->diffInDays($prevDateObj);
 
             // Map to corresponding current date
@@ -450,7 +455,7 @@ class AnalyticsService
     /**
      * Get most recent sync time from properties.
      */
-    protected function getMostRecentSyncTime(?array $propertyIds): ?\Carbon\Carbon
+    protected function getMostRecentSyncTime(?array $propertyIds): ?Carbon
     {
         $query = GaProperty::query();
 
@@ -478,7 +483,7 @@ class AnalyticsService
         $days = $period->startDate->diffInDays($period->endDate) + 1;
 
         // Dispatch job instead of closure to prevent memory leaks in Octane
-        dispatch(new \App\Jobs\RefreshAggregateCache(
+        dispatch(new RefreshAggregateCache(
             period: $period,
             propertyIds: $propertyIds,
             cacheKey: $cacheKey,
@@ -762,8 +767,8 @@ class AnalyticsService
     public function createPeriodFromDates(string $startDate, string $endDate): Period
     {
         return Period::create(
-            \Carbon\Carbon::parse($startDate),
-            \Carbon\Carbon::parse($endDate)
+            Carbon::parse($startDate),
+            Carbon::parse($endDate)
         );
     }
 
@@ -934,6 +939,7 @@ class AnalyticsService
         $cacheTimestamp = Cache::get($cacheKey.':timestamp');
 
         // PRIORITY 1: Return fresh cached data if available (< 30 seconds old)
+        $cacheTimestamp = $this->parseCachedTimestamp($cacheTimestamp);
         if ($cachedData && $cacheTimestamp) {
             $cacheAge = now()->diffInSeconds($cacheTimestamp);
             if ($cacheAge < 30) {
@@ -942,7 +948,7 @@ class AnalyticsService
 
             // Cache is stale but exists - dispatch background job to refresh
             if (! Cache::has($refreshingKey)) {
-                dispatch(new \App\Jobs\RefreshRealtimeAnalytics($propertyIds));
+                dispatch(new RefreshRealtimeAnalytics($propertyIds));
             }
 
             return $cachedData;
@@ -953,7 +959,7 @@ class AnalyticsService
         if ($lastSuccess) {
             // Dispatch background refresh job to get new data (Octane-safe)
             if (! Cache::has($refreshingKey)) {
-                dispatch(new \App\Jobs\RefreshRealtimeAnalytics($propertyIds));
+                dispatch(new RefreshRealtimeAnalytics($propertyIds));
             }
 
             return $lastSuccess;
@@ -962,7 +968,7 @@ class AnalyticsService
         // PRIORITY 3: No cache at all - dispatch background job, return empty immediately
         // NEVER fetch synchronously to avoid blocking PHP-FPM workers
         if (! Cache::has($refreshingKey)) {
-            dispatch(new \App\Jobs\RefreshRealtimeAnalytics($propertyIds));
+            dispatch(new RefreshRealtimeAnalytics($propertyIds));
         }
 
         return [
@@ -972,5 +978,30 @@ class AnalyticsService
             'timestamp' => now()->toIso8601String(),
             'is_loading' => true,
         ];
+    }
+
+    /**
+     * Safely parse a cached timestamp value to Carbon.
+     * Handles legacy __PHP_Incomplete_Class values from serialized cache.
+     */
+    protected function parseCachedTimestamp(mixed $value): ?Carbon
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if ($value instanceof Carbon) {
+            return $value;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return Carbon::instance($value);
+        }
+
+        if (is_string($value)) {
+            return Carbon::parse($value);
+        }
+
+        return null;
     }
 }

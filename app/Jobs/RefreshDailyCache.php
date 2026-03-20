@@ -110,7 +110,7 @@ class RefreshDailyCache implements ShouldBeUnique, ShouldQueue
             ];
 
             Cache::put($this->cacheKey, $freshData, now()->addMinutes($this->ttl));
-            Cache::put($this->timestampKey, now(), now()->addMinutes($this->ttl));
+            Cache::put($this->timestampKey, now()->toIso8601String(), now()->addMinutes($this->ttl));
 
             Log::info('Daily cache refreshed successfully', [
                 'property_id' => $this->propertyId,
@@ -120,7 +120,7 @@ class RefreshDailyCache implements ShouldBeUnique, ShouldQueue
 
             // Mark that daily data has been updated so aggregate cache knows to refresh
             // This solves the race condition where aggregate caches zeros before daily data is ready
-            Cache::put('analytics:last_daily_refresh', now(), now()->addDay());
+            Cache::put('analytics:last_daily_refresh', now()->toIso8601String(), now()->addDay());
         } catch (Throwable $e) {
             Log::error('Failed to refresh daily data in background', [
                 'property_id' => $this->propertyId,

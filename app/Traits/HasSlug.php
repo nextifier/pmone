@@ -8,10 +8,9 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
- * Drop-in replacement for cviebrock/eloquent-sluggable.
+ * Auto-generates unique slugs for Eloquent models.
  *
- * Models using this trait must implement a sluggable() method returning
- * the slug configuration array, e.g.:
+ * Models using this trait must implement a sluggable() method:
  *
  *     public function sluggable(): array
  *     {
@@ -20,6 +19,13 @@ use Illuminate\Support\Str;
  *                 'source' => 'title',
  *             ],
  *         ];
+ *     }
+ *
+ * For scoped uniqueness (e.g. per-project), override scopeWithUniqueSlugConstraints:
+ *
+ *     public function scopeWithUniqueSlugConstraints(Builder $query, Model $model, ...): Builder
+ *     {
+ *         return $query->where('project_id', $model->project_id);
  *     }
  */
 trait HasSlug
@@ -61,7 +67,6 @@ trait HasSlug
 
             $config = array_merge(static::defaultSlugConfig(), $config);
 
-            // Clear slug so it gets regenerated
             $instance->setAttribute($attribute, null);
 
             $slug = static::buildSlugFor($instance, $attribute, $config, force: true);
@@ -88,7 +93,6 @@ trait HasSlug
     }
 
     /**
-     * Optionally add constraints to the query that determines uniqueness.
      * Override in model to scope slug uniqueness (e.g. per-project).
      */
     public function scopeWithUniqueSlugConstraints(
@@ -120,8 +124,25 @@ trait HasSlug
 
     protected static function buildSlugFor(Model $model, string $attribute, array $config, bool $force = false): ?string
     {
-        if (! $force && ! static::needsSlugging($model, $attribute, $config)) {
+        $needsSlug = $force || static::needsSlugging($model, $attribute, $config);
+        $userProvidedSlug = ! $needsSlug && $model->isDirty($attribute);
+
+        if (! $needsSlug && ! $userProvidedSlug) {
             return null;
+        }
+
+        if ($userProvidedSlug) {
+            $slug = $model->getAttribute($attribute);
+
+            if (! $slug || trim((string) $slug) === '') {
+                return null;
+            }
+
+            if ($config['unique']) {
+                return static::makeSlugUnique($model, $slug, $attribute, $config);
+            }
+
+            return $slug;
         }
 
         $source = static::getSlugSource($model, $config['source']);
@@ -233,38 +254,28 @@ trait HasSlug
 
         $list = static::getExistingSlugs($model, $slug, $attribute, $config);
 
-        // Slug not taken at all
-        if ($list->count() === 0 || ! $list->contains($slug)) {
+        if ($list->isEmpty() || ! $list->contains($slug)) {
             return $slug;
         }
 
-        // Slug belongs to our own model
-        if ($list->has($model->getKey())) {
+        // Slug exists but belongs to our own model (updating itself)
+        if ($model->getKey() && $list->has($model->getKey())) {
             $currentSlug = $list->get($model->getKey());
 
-            if ($currentSlug === $slug || (! $slug || str_starts_with($currentSlug, $slug))) {
-                return $currentSlug;
+            if ($currentSlug === $slug) {
+                return $slug;
             }
         }
 
         // Generate unique suffix
         $firstSuffix = $config['firstUniqueSuffix'];
-        $len = strlen($slug.$separator);
+        $prefixLen = strlen($slug.$separator);
 
-        // If the slug already exists but belongs to our model, return current suffix
-        if ($list->search($slug) === $model->getKey()) {
-            $suffix = explode($separator, $slug);
+        $maxSuffix = $list->map(function ($value) use ($prefixLen) {
+            return (int) substr($value, $prefixLen);
+        })->max();
 
-            return $slug;
-        }
-
-        $suffixes = $list->transform(function ($value) use ($len) {
-            return (int) substr($value, $len);
-        });
-
-        $max = $suffixes->max();
-
-        $suffix = (string) ($max === 0 ? $firstSuffix : $max + 1);
+        $suffix = $maxSuffix === 0 ? $firstSuffix : $maxSuffix + 1;
 
         return $slug.$separator.$suffix;
     }

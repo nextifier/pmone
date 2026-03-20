@@ -147,7 +147,7 @@ class RefreshAggregateCache implements ShouldBeUnique, ShouldQueue
 
             // Store with 30-minute expiry
             Cache::put($this->cacheKey, $data, now()->addMinutes(30));
-            Cache::put(CacheKey::timestamp($this->cacheKey), now(), now()->addMinutes(30));
+            Cache::put(CacheKey::timestamp($this->cacheKey), now()->toIso8601String(), now()->addMinutes(30));
 
             // Store as "last known good data" that never expires (for instant fallback)
             $lastSuccessKey = CacheKey::lastSuccess($this->cacheKey);

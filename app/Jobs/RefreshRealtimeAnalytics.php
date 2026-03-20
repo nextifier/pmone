@@ -119,7 +119,7 @@ class RefreshRealtimeAnalytics implements ShouldBeUnique, ShouldQueue
 
             // Cache for 2 minutes (matches schedule frequency)
             Cache::put($cacheKey, $result, now()->addMinutes(2));
-            Cache::put($cacheKey.':timestamp', now(), now()->addMinutes(2));
+            Cache::put($cacheKey.':timestamp', now()->toIso8601String(), now()->addMinutes(2));
 
             // Store as long-term fallback
             Cache::put($lastSuccessKey, $result, now()->addYears(10));

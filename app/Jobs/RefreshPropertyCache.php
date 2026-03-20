@@ -3,6 +3,8 @@
 namespace App\Jobs;
 
 use App\Models\GaProperty;
+use App\Services\GoogleAnalytics\AnalyticsDataFetcher;
+use App\Services\GoogleAnalytics\Period;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -82,10 +84,10 @@ class RefreshPropertyCache implements ShouldBeUnique, ShouldQueue
             }
 
             // Resolve AnalyticsDataFetcher fresh from container
-            $dataFetcher = app(\App\Services\GoogleAnalytics\AnalyticsDataFetcher::class);
+            $dataFetcher = app(AnalyticsDataFetcher::class);
 
             // Create period
-            $period = \App\Services\GoogleAnalytics\Period::create(
+            $period = Period::create(
                 $this->startDate,
                 $this->endDate
             );
@@ -95,7 +97,7 @@ class RefreshPropertyCache implements ShouldBeUnique, ShouldQueue
 
             // Store with configured duration
             Cache::put($this->cacheKey, $freshData, now()->addMinutes($this->cacheDuration));
-            Cache::put($this->cacheKey.':timestamp', now(), now()->addMinutes($this->cacheDuration));
+            Cache::put($this->cacheKey.':timestamp', now()->toIso8601String(), now()->addMinutes($this->cacheDuration));
 
             Log::info('Property cache refreshed successfully', [
                 'cache_key' => $this->cacheKey,

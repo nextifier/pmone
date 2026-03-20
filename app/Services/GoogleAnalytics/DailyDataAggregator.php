@@ -2,8 +2,10 @@
 
 namespace App\Services\GoogleAnalytics;
 
+use App\Jobs\RefreshDailyCache;
 use App\Models\GaProperty;
 use App\Services\GoogleAnalytics\Concerns\CalculatesTotalsFromRows;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -314,7 +316,10 @@ class DailyDataAggregator
 
         // Check if we have cached data
         $cached = Cache::get($cacheKey);
-        $timestamp = Cache::get($timestampKey);
+        $rawTimestamp = Cache::get($timestampKey);
+        $timestamp = is_string($rawTimestamp) || $rawTimestamp instanceof \DateTimeInterface
+            ? Carbon::parse($rawTimestamp)
+            : null;
 
         // Return fresh cache (less than 24 hours old)
         if ($cached && $timestamp) {
@@ -333,7 +338,7 @@ class DailyDataAggregator
                 Cache::put($refreshingKey, true, now()->addMinutes(30));
 
                 // Dispatch job instead of closure to prevent memory leaks in Octane
-                dispatch(new \App\Jobs\RefreshDailyCache(
+                dispatch(new RefreshDailyCache(
                     propertyId: $property->id,
                     cacheKey: $cacheKey,
                     timestampKey: $timestampKey,
@@ -358,7 +363,7 @@ class DailyDataAggregator
                 'property_id' => $property->property_id,
             ]);
 
-            dispatch(new \App\Jobs\RefreshDailyCache(
+            dispatch(new RefreshDailyCache(
                 propertyId: $property->id,
                 cacheKey: $cacheKey,
                 timestampKey: $timestampKey,

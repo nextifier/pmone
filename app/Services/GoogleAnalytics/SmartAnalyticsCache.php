@@ -2,9 +2,11 @@
 
 namespace App\Services\GoogleAnalytics;
 
+use App\Jobs\RefreshPropertyCache;
 use App\Models\GaProperty;
 use App\Services\GoogleAnalytics\AnalyticsCacheKeyGenerator as CacheKey;
 use App\Services\GoogleAnalytics\Concerns\CalculatesTotalsFromRows;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 
@@ -41,7 +43,10 @@ class SmartAnalyticsCache
 
         // Check if exact match exists in cache
         $cachedData = Cache::get($cacheKey);
-        $cacheTimestamp = Cache::get(CacheKey::timestamp($cacheKey));
+        $rawTimestamp = Cache::get(CacheKey::timestamp($cacheKey));
+        $cacheTimestamp = is_string($rawTimestamp) || $rawTimestamp instanceof \DateTimeInterface
+            ? Carbon::parse($rawTimestamp)
+            : null;
 
         // CACHE-FIRST: If cache exists, return it immediately (even if stale)
         if ($cachedData) {
@@ -111,7 +116,7 @@ class SmartAnalyticsCache
         $cacheDuration = $this->getDynamicCacheDuration($property);
 
         Cache::put($cacheKey, $freshData, now()->addMinutes($cacheDuration));
-        Cache::put(CacheKey::timestamp($cacheKey), now(), now()->addMinutes($cacheDuration));
+        Cache::put(CacheKey::timestamp($cacheKey), now()->toIso8601String(), now()->addMinutes($cacheDuration));
 
         return [
             'data' => $freshData,
@@ -149,7 +154,7 @@ class SmartAnalyticsCache
         $cacheDuration = $this->getDynamicCacheDuration($property);
 
         // Dispatch job instead of closure to prevent memory leaks in Octane
-        dispatch(new \App\Jobs\RefreshPropertyCache(
+        dispatch(new RefreshPropertyCache(
             propertyId: $property->id,
             startDate: $startDate,
             endDate: $endDate,
@@ -262,7 +267,10 @@ class SmartAnalyticsCache
             $largeCacheKey = $this->generateCacheKey($propertyId, $largeStart, $largeEnd);
 
             $largeCache = Cache::get($largeCacheKey);
-            $largeCacheTimestamp = Cache::get(CacheKey::timestamp($largeCacheKey));
+            $rawLargeCacheTimestamp = Cache::get(CacheKey::timestamp($largeCacheKey));
+            $largeCacheTimestamp = is_string($rawLargeCacheTimestamp) || $rawLargeCacheTimestamp instanceof \DateTimeInterface
+                ? Carbon::parse($rawLargeCacheTimestamp)
+                : null;
 
             // Skip if cache doesn't exist or is stale
             if (! $largeCache || ! $this->isCacheStillFresh($largeCacheTimestamp)) {
