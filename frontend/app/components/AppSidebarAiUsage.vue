@@ -16,11 +16,7 @@
             of ${{ formatMoney(usage.total_credits) }}
           </span>
         </div>
-        <Progress
-          :model-value="remainingPercent"
-          class="h-1.5"
-          indicator-class="bg-linear-to-r from-green-500 to-green-400 dark:from-green-600 dark:to-green-500"
-        />
+        <Progress :model-value="remainingPercent" class="h-1.5" />
       </div>
 
       <!-- Spent -->
