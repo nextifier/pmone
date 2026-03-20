@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\AiChatController;
 use App\Http\Controllers\Api\AnalyticsController;
+use App\Http\Controllers\Api\AnalyticsSyncLogController;
 use App\Http\Controllers\Api\ApiConsumerController;
 use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Api\BrandEventController;
@@ -18,6 +20,7 @@ use App\Http\Controllers\Api\ExhibitorDashboardController;
 use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\FormFieldController;
 use App\Http\Controllers\Api\FormResponseController;
+use App\Http\Controllers\Api\GoogleAnalyticsController;
 use App\Http\Controllers\Api\ImportProgressController;
 use App\Http\Controllers\Api\JobProgressController;
 use App\Http\Controllers\Api\LinkPageController;
@@ -38,6 +41,7 @@ use App\Http\Controllers\Api\PublicFormController;
 use App\Http\Controllers\Api\PublicProjectController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\RolesPermissionsSyncController;
+use App\Http\Controllers\Api\SheetsController;
 use App\Http\Controllers\Api\ShortLinkController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\TaskController;
@@ -475,6 +479,15 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/{linkPage:slug}/items/trash/{id}', [LinkPageItemController::class, 'forceDestroy'])->name('link-pages.items.force-destroy');
     });
 
+    // AI Chat endpoints
+    Route::prefix('ai')->group(function () {
+        Route::get('/conversations', [AiChatController::class, 'conversations'])->name('ai.conversations');
+        Route::post('/chat', [AiChatController::class, 'chat'])->name('ai.chat');
+        Route::get('/usage', [AiChatController::class, 'usage'])->name('ai.usage');
+        Route::get('/conversations/{id}/messages', [AiChatController::class, 'messages'])->name('ai.messages');
+        Route::delete('/conversations/{id}', [AiChatController::class, 'destroy'])->name('ai.destroy');
+    });
+
     // Contact form submission management (inbox)
     Route::prefix('contact-form-submissions')->group(function () {
         Route::get('/', [ContactFormSubmissionController::class, 'index'])->name('contact-form-submissions.index');
@@ -528,10 +541,10 @@ Route::prefix('public/forms')->middleware('throttle:api')->group(function () {
 });
 
 // Google Sheets integration (token-based auth)
-Route::get('/sheets/orders/{eventId}', [\App\Http\Controllers\Api\SheetsController::class, 'orders'])
+Route::get('/sheets/orders/{eventId}', [SheetsController::class, 'orders'])
     ->middleware('throttle:60,1')
     ->name('sheets.orders');
-Route::get('/sheets/contacts', [\App\Http\Controllers\Api\SheetsController::class, 'contacts'])
+Route::get('/sheets/contacts', [SheetsController::class, 'contacts'])
     ->middleware('throttle:60,1')
     ->name('sheets.contacts');
 
@@ -549,35 +562,35 @@ Route::middleware(['auth:sanctum'])->prefix('analytics')->group(function () {
 // Google Analytics (GA4) routes (authenticated + admin/master only)
 Route::middleware(['auth:sanctum'])->prefix('google-analytics')->group(function () {
     // GA Properties Import/Export (must be before {id} routes)
-    Route::get('/ga-properties/export', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'export']);
-    Route::get('/ga-properties/import/template', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'downloadTemplate']);
-    Route::post('/ga-properties/import', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'import']);
+    Route::get('/ga-properties/export', [GoogleAnalyticsController::class, 'export']);
+    Route::get('/ga-properties/import/template', [GoogleAnalyticsController::class, 'downloadTemplate']);
+    Route::post('/ga-properties/import', [GoogleAnalyticsController::class, 'import']);
 
     // CRUD endpoints for GA properties
-    Route::get('/ga-properties', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'index']);
-    Route::post('/ga-properties', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'store']);
-    Route::get('/ga-properties/{id}', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'show']);
-    Route::put('/ga-properties/{id}', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'update']);
-    Route::delete('/ga-properties/{id}', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'destroy']);
+    Route::get('/ga-properties', [GoogleAnalyticsController::class, 'index']);
+    Route::post('/ga-properties', [GoogleAnalyticsController::class, 'store']);
+    Route::get('/ga-properties/{id}', [GoogleAnalyticsController::class, 'show']);
+    Route::put('/ga-properties/{id}', [GoogleAnalyticsController::class, 'update']);
+    Route::delete('/ga-properties/{id}', [GoogleAnalyticsController::class, 'destroy']);
 
     // Analytics data endpoints
-    Route::get('/properties', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getProperties']);
-    Route::get('/properties/{id}/analytics', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getPropertyAnalytics']);
-    Route::get('/properties/{id}/analytics/export', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'exportPropertyAnalytics']);
-    Route::get('/aggregate', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getAggregatedAnalytics']);
-    Route::get('/aggregate/export', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'exportAggregatedAnalytics']);
-    Route::get('/realtime', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getRealtimeActiveUsers']);
-    Route::post('/sync', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'sync']);
-    Route::post('/aggregate', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'aggregate']);
-    Route::post('/aggregate/sync-now', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'triggerAggregateSyncNow']);
-    Route::get('/cache/status', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'getCacheStatus']);
-    Route::delete('/cache/properties/{id}', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'clearPropertyCache']);
-    Route::delete('/cache/all', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'clearAllCache']);
-    Route::delete('/rate-limit', [\App\Http\Controllers\Api\GoogleAnalyticsController::class, 'clearRateLimit']);
+    Route::get('/properties', [GoogleAnalyticsController::class, 'getProperties']);
+    Route::get('/properties/{id}/analytics', [GoogleAnalyticsController::class, 'getPropertyAnalytics']);
+    Route::get('/properties/{id}/analytics/export', [GoogleAnalyticsController::class, 'exportPropertyAnalytics']);
+    Route::get('/aggregate', [GoogleAnalyticsController::class, 'getAggregatedAnalytics']);
+    Route::get('/aggregate/export', [GoogleAnalyticsController::class, 'exportAggregatedAnalytics']);
+    Route::get('/realtime', [GoogleAnalyticsController::class, 'getRealtimeActiveUsers']);
+    Route::post('/sync', [GoogleAnalyticsController::class, 'sync']);
+    Route::post('/aggregate', [GoogleAnalyticsController::class, 'aggregate']);
+    Route::post('/aggregate/sync-now', [GoogleAnalyticsController::class, 'triggerAggregateSyncNow']);
+    Route::get('/cache/status', [GoogleAnalyticsController::class, 'getCacheStatus']);
+    Route::delete('/cache/properties/{id}', [GoogleAnalyticsController::class, 'clearPropertyCache']);
+    Route::delete('/cache/all', [GoogleAnalyticsController::class, 'clearAllCache']);
+    Route::delete('/rate-limit', [GoogleAnalyticsController::class, 'clearRateLimit']);
 
     // Sync logs endpoints
-    Route::get('/sync-logs', [\App\Http\Controllers\Api\AnalyticsSyncLogController::class, 'index']);
-    Route::get('/sync-logs/stats', [\App\Http\Controllers\Api\AnalyticsSyncLogController::class, 'stats']);
+    Route::get('/sync-logs', [AnalyticsSyncLogController::class, 'index']);
+    Route::get('/sync-logs/stats', [AnalyticsSyncLogController::class, 'stats']);
 });
 
 // Public post endpoints

@@ -300,6 +300,14 @@ const navMainGroups = computed(() => {
     });
   }
 
+  // AI Chat - accessible by all authenticated users
+  toolsItems.push({
+    label: "AI Chat",
+    path: "/ai",
+    iconName: "hugeicons:ai-chat-02",
+    badgeLabel: "Beta",
+  });
+
   const groups = [
     {
       label: "Core",

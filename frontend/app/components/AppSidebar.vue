@@ -19,10 +19,16 @@
       </NuxtLink>
     </SidebarHeader>
     <SidebarContent class="gap-y-1">
-      <AppSidebarNavMain />
-      <AppSidebarNavProjects v-if="!isExhibitor && !isWriter" />
+      <template v-if="isAiPage">
+        <AppSidebarAiConversations />
+      </template>
+      <template v-else>
+        <AppSidebarNavMain />
+        <AppSidebarNavProjects v-if="!isExhibitor && !isWriter" />
+      </template>
     </SidebarContent>
     <SidebarFooter>
+      <AppSidebarAiUsage v-if="isAiPage" />
       <AppSidebarNavUser />
     </SidebarFooter>
     <SidebarRail />
@@ -32,7 +38,9 @@
 <script setup>
 import { useSidebar } from "@/components/ui/sidebar/utils";
 const { setOpenMobile } = useSidebar();
+const route = useRoute();
 const { hasRole, isStaffOrAbove } = usePermission();
+const isAiPage = computed(() => String(route.name) === "ai");
 const isExhibitor = computed(() => hasRole("exhibitor") && !isStaffOrAbove.value);
 const isWriter = computed(() => hasRole("writer") && !isStaffOrAbove.value);
 

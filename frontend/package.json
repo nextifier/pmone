@@ -69,7 +69,7 @@
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "qrcode": "^1.5.4",
-    "reka-ui": "^2.9.0",
+    "reka-ui": "^2.9.2",
     "shadcn-nuxt": "^2.4.3",
     "sortablejs": "^1.15.7",
     "tailwind-merge": "^3.5.0",
@@ -91,8 +91,13 @@
     "esm-env": "npm:esm-env-runtime@^0.1.1"
   },
   "dependencies": {
+    "ai": "^6.0.116",
     "dompurify": "^3.3.2",
     "jszip": "^3.10.1",
-    "shiki": "^4.0.2"
+    "marked": "^17.0.4",
+    "nanoid": "^5.1.7",
+    "shiki": "^4.0.2",
+    "vue-stick-to-bottom": "^1.0.0",
+    "vue-stream-markdown": "^0.6.5"
   }
 }

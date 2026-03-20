@@ -1,0 +1,37 @@
+<script setup lang="ts">
+import { cn } from "@/lib/utils";
+import type { HTMLAttributes } from "vue";
+
+interface Props {
+  class?: HTMLAttributes["class"];
+  title?: string;
+  description?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  title: "No messages yet",
+  description: "Start a conversation to see messages here",
+});
+</script>
+
+<template>
+  <div
+    :class="cn('flex size-full flex-col items-center justify-center text-center', props.class)"
+    v-bind="$attrs"
+  >
+    <slot>
+      <div v-if="$slots.icon" class="text-muted-foreground">
+        <slot name="icon" />
+      </div>
+
+      <div class="space-y-1">
+        <h3 class="text-sm font-medium">
+          {{ props.title }}
+        </h3>
+        <p v-if="props.description" class="text-muted-foreground text-sm">
+          {{ props.description }}
+        </p>
+      </div>
+    </slot>
+  </div>
+</template>
