@@ -124,31 +124,33 @@ export function useAiChat() {
           const dataStr = line.slice(6).trim();
           if (!dataStr) continue;
 
+          let data;
           try {
-            const data = JSON.parse(dataStr);
-
-            if (data.type === "error") {
-              throw new Error(data.message || "Terjadi kesalahan.");
-            } else if (data.type === "text_delta") {
-              streamingContent.value += data.delta;
-              toolStatus.value = null;
-            } else if (data.type === "tool_call") {
-              toolStatus.value = `Querying database...`;
-            } else if (data.type === "tool_result") {
-              toolStatus.value = null;
-            } else if (data.type === "done") {
-              if (data.conversation_id) {
-                const isNewConversation = !activeConversationId.value;
-                activeConversationId.value = data.conversation_id;
-
-                if (isNewConversation) {
-                  // Refresh conversation list to get the new one
-                  await fetchConversations();
-                }
-              }
-            }
+            data = JSON.parse(dataStr);
           } catch {
             // Skip unparseable lines
+            continue;
+          }
+
+          if (data.type === "error") {
+            throw new Error(data.message || "Terjadi kesalahan.");
+          } else if (data.type === "text_delta") {
+            streamingContent.value += data.delta;
+            toolStatus.value = null;
+          } else if (data.type === "tool_call") {
+            toolStatus.value = `Querying database...`;
+          } else if (data.type === "tool_result") {
+            toolStatus.value = null;
+          } else if (data.type === "done") {
+            if (data.conversation_id) {
+              const isNewConversation = !activeConversationId.value;
+              activeConversationId.value = data.conversation_id;
+
+              if (isNewConversation) {
+                // Refresh conversation list to get the new one
+                await fetchConversations();
+              }
+            }
           }
         }
       }

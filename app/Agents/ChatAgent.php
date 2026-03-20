@@ -3,8 +3,11 @@
 namespace App\Agents;
 
 use App\Ai\Tools\DatabaseQueryTool;
+use Laravel\Ai\Attributes\MaxSteps;
+use Laravel\Ai\Attributes\MaxTokens;
 use Laravel\Ai\Attributes\Model;
 use Laravel\Ai\Attributes\Provider;
+use Laravel\Ai\Attributes\Timeout;
 use Laravel\Ai\Concerns\RemembersConversations;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\Conversational;
@@ -15,6 +18,9 @@ use Laravel\Ai\Promptable;
 
 #[Provider(Lab::Anthropic)]
 #[Model('claude-haiku-4-5-20251001')]
+#[MaxTokens(8192)]
+#[MaxSteps(5)]
+#[Timeout(120)]
 class ChatAgent implements Agent, Conversational, HasTools
 {
     use Promptable;
