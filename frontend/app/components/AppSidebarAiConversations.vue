@@ -46,9 +46,11 @@
       Recent Chats
     </SidebarGroupLabel>
     <SidebarMenu>
-      <template v-if="isLoadingConversations">
+      <template v-if="isLoadingConversations || !hasFetchedConversations">
         <SidebarMenuItem v-for="i in 3" :key="i">
-          <SidebarMenuSkeleton />
+          <div class="flex h-8 items-center px-2">
+            <Skeleton class="h-4 w-full" />
+          </div>
         </SidebarMenuItem>
       </template>
       <p
@@ -116,6 +118,7 @@ const {
   conversations,
   activeConversationId,
   isLoadingConversations,
+  hasFetchedConversations,
   loadConversation,
   newConversation,
   deleteConversation,

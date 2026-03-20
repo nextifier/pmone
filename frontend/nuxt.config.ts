@@ -260,11 +260,8 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    externals: {
-      inline: [],
-    },
-    rollupConfig: {
-      external: ["mermaid"],
+    alias: {
+      "vue-stream-markdown": "unenv/runtime/mock/noop",
     },
   },
 

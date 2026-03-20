@@ -24,6 +24,7 @@ export function useAiChat() {
   const streamingContent = useState("ai-streaming-content", () => "");
   const toolStatus = useState<string | null>("ai-tool-status", () => null);
   const isLoadingConversations = useState("ai-loading-conversations", () => false);
+  const hasFetchedConversations = useState("ai-has-fetched-conversations", () => false);
   const isLoadingMessages = useState("ai-loading-messages", () => false);
 
   let abortController: AbortController | null = null;
@@ -39,6 +40,7 @@ export function useAiChat() {
       conversations.value = res.data;
     } finally {
       isLoadingConversations.value = false;
+      hasFetchedConversations.value = true;
     }
   }
 
@@ -221,6 +223,7 @@ export function useAiChat() {
     streamingContent,
     toolStatus,
     isLoadingConversations,
+    hasFetchedConversations,
     isLoadingMessages,
     fetchConversations,
     loadConversation,

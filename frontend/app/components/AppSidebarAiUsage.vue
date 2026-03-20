@@ -1,10 +1,18 @@
 <template>
   <div class="bg-card border-border -mx-1 rounded-2xl border px-2.5 py-4">
-    <span class="text-muted-foreground text-sm tracking-tight">Credits</span>
+    <div class="flex items-center justify-between gap-x-2">
+      <span class="text-muted-foreground text-sm tracking-tight">Credits</span>
+      <Button variant="outline" size="sm" class="h-6 gap-x-1 px-2 text-xs" as-child>
+        <a href="https://platform.claude.com/settings/billing" target="_blank" rel="noopener">
+          <Icon name="hugeicons:plus-sign" class="size-3" />
+          Top Up
+        </a>
+      </Button>
+    </div>
 
     <div v-if="!loaded" class="space-y-3 py-1.5">
-      <Skeleton class="h-8 w-full" />
-      <Skeleton class="h-4 w-full" />
+      <Skeleton class="h-11 w-full" />
+      <Skeleton class="h-5 w-full" />
     </div>
 
     <div v-else-if="usage" class="space-y-3 py-1.5">

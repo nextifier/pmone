@@ -305,7 +305,7 @@ const navMainGroups = computed(() => {
     label: "AI Chat",
     path: "/ai",
     iconName: "hugeicons:ai-chat-02",
-    badgeLabel: "Beta",
+    // badgeLabel: "Beta",
   });
 
   const groups = [

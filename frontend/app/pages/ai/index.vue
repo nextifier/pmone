@@ -2,11 +2,11 @@
   <div class="h-screen-offset relative isolate -mx-4 flex flex-col overflow-hidden">
     <!-- Conversation area -->
     <Conversation class="grow">
-      <div class="bg-info/50 mx-auto flex max-w-3xl grow flex-col gap-y-4 p-4">
+      <div class="mx-auto flex max-w-3xl flex-col gap-y-4 p-4">
         <!-- Empty state -->
         <div
           v-if="messages.length === 0 && !streamingContent"
-          class="flex grow flex-col items-center justify-center text-center tracking-tight"
+          class="flex flex-col items-center justify-center text-center tracking-tight"
         >
           <Icon name="hugeicons:claude" class="text-primary size-12" />
           <h3 class="page-title mt-2">
@@ -197,12 +197,3 @@ onMounted(() => {
   fetchConversations();
 });
 </script>
-
-<style>
-/* Make StickToBottom's contentRef stretch so empty state can vertically center */
-[role="log"] > div > div > div {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-}
-</style>

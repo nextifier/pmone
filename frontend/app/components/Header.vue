@@ -48,7 +48,7 @@
             <template #content>
               <span class="inline-flex items-center gap-x-1.5 tracking-tight">
                 <span>Light / Dark Mode</span>
-                <kbd class="keyboard-symbol">{{ metaSymbol }} D</kbd>
+                <kbd class="keyboard-symbol">D</kbd>
               </span>
             </template>
           </Tippy>
