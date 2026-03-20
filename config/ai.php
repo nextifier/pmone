@@ -61,6 +61,10 @@ return [
 
     'total_credits' => (float) env('AI_TOTAL_CREDITS', 5.00),
 
+    'admin_api_key' => env('ANTHROPIC_ADMIN_API_KEY'),
+
+    'credit_grant_date' => env('AI_CREDIT_GRANT_DATE', '2026-03-21'),
+
     /*
     |--------------------------------------------------------------------------
     | Model Pricing (per 1M tokens in USD)

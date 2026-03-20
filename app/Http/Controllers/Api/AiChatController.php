@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Agents\ChatAgent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AiChatRequest;
+use App\Services\AnthropicBillingService;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -141,10 +142,24 @@ class AiChatController extends Controller
     }
 
     /**
-     * Get AI credit usage calculated from conversation messages.
+     * Get AI credit usage from Anthropic's Usage Report API (with local fallback).
      */
     public function usage(Request $request): JsonResponse
     {
+        // Try Anthropic Usage Report API for accurate credit data
+        $billingService = new AnthropicBillingService(
+            adminApiKey: config('ai.admin_api_key', ''),
+            totalCredits: config('ai.total_credits', 5.00),
+            creditGrantDate: config('ai.credit_grant_date', '2026-03-21'),
+        );
+
+        $billing = $billingService->getCreditUsage();
+
+        if ($billing) {
+            return response()->json($billing);
+        }
+
+        // Fallback: calculate from local token usage
         $messages = DB::table('agent_conversation_messages')
             ->whereRaw("usage != '[]'")
             ->select('usage', 'meta')
@@ -159,11 +174,10 @@ class AiChatController extends Controller
             $usage = json_decode($message->usage, true);
             $meta = json_decode($message->meta, true);
 
-            if (empty($usage) || empty($meta['model'])) {
+            if (empty($usage)) {
                 continue;
             }
 
-            $model = $meta['model'];
             $inputTokens = $usage['prompt_tokens'] ?? 0;
             $outputTokens = $usage['completion_tokens'] ?? 0;
             $reasoningTokens = $usage['reasoning_tokens'] ?? 0;
@@ -171,7 +185,7 @@ class AiChatController extends Controller
             $totalInputTokens += $inputTokens;
             $totalOutputTokens += $outputTokens + $reasoningTokens;
 
-            $modelPricing = $pricing[$model] ?? null;
+            $modelPricing = ($meta['model'] ?? null) ? ($pricing[$meta['model']] ?? null) : null;
 
             if ($modelPricing) {
                 $totalCost += ($inputTokens / 1_000_000) * $modelPricing['input'];
