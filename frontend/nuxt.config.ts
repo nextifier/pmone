@@ -1,4 +1,7 @@
 import tailwindcss from "@tailwindcss/vite";
+import { fileURLToPath } from "node:url";
+
+const noopMock = fileURLToPath(new URL("./mock/noop.mjs", import.meta.url));
 
 export default defineNuxtConfig({
   devtools: {
@@ -261,7 +264,7 @@ export default defineNuxtConfig({
 
   nitro: {
     alias: {
-      "vue-stream-markdown": "unenv/runtime/mock/noop",
+      "vue-stream-markdown": noopMock,
     },
   },
 
