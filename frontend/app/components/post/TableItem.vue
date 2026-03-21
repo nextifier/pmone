@@ -9,7 +9,7 @@
         :src="
           typeof post.featured_image === 'string'
             ? post.featured_image
-            : post.featured_image?.sm || post.featured_image?.original
+            : post.featured_image?.sm?.url || post.featured_image?.original
         "
         :alt="post.title"
         class="size-full object-cover select-none"

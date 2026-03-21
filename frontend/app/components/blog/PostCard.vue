@@ -2,29 +2,29 @@
   <div v-if="post?.slug" class="@container flex flex-col gap-y-2 select-none">
     <nuxt-link
       :to="postUrl"
-      class="border-border relative flex aspect-16/10 items-center justify-center overflow-hidden rounded-lg border"
+      class="outline-inside relative flex aspect-16/10 items-center justify-center overflow-hidden rounded-lg"
       @click="active = post.slug"
     >
-      <NuxtImg
+      <BlurImage
         v-if="post.featured_image"
-        :src="post.featured_image?.md || post.featured_image?.sm || post.featured_image?.original || post.featured_image"
+        :src="
+          post.featured_image?.md?.url ||
+          post.featured_image?.sm?.url ||
+          post.featured_image?.original
+        "
+        :lqip="post.featured_image?.lqip?.url"
         :alt="post.title"
-        class="h-full w-full object-cover"
+        :width="post.featured_image?.md?.width || post.featured_image?.width || 900"
+        :height="post.featured_image?.md?.height || post.featured_image?.height || 600"
         :style="imageStyle"
         loading="lazy"
-        sizes="100vw sm:600px"
-        width="479"
-        height="269"
-        format="webp"
+        image-class="h-full w-full object-cover"
       />
-
-      <Logo v-else class="text-primary w-[50%] opacity-50" />
 
       <div
         class="pointer-events-none absolute inset-x-0 bottom-0 flex h-20 w-full items-end justify-between px-3 pb-2.5 text-xs font-semibold tracking-tight select-none"
         :class="{
-          'bg-linear-to-t from-black/60 to-transparent text-white':
-            post.featured_image,
+          'bg-linear-to-t from-black/60 to-transparent text-white': post.featured_image,
           '': !post.featured_image,
         }"
       >
@@ -35,9 +35,7 @@
 
         <span v-if="post.reading_time">
           <span class="font-normal"
-            >{{ post.reading_time }} min<span v-if="post.reading_time > 1"
-              >s</span
-            >
+            >{{ post.reading_time }} min<span v-if="post.reading_time > 1">s</span>
             read
           </span>
         </span>
@@ -55,10 +53,7 @@
       >
 
       <p
-        v-if="
-          useAppConfig()?.settings?.blog?.showPostCardExcerpt &&
-          post.excerpt
-        "
+        v-if="useAppConfig()?.settings?.blog?.showPostCardExcerpt && post.excerpt"
         class="mt-2 text-sm tracking-tight"
       >
         {{ post.excerpt }}
@@ -66,10 +61,7 @@
 
       <div class="mt-2 flex w-full items-center justify-between gap-x-3">
         <div
-          v-if="
-            useAppConfig()?.settings?.blog?.showPostCardAuthor &&
-            post.authors?.length
-          "
+          v-if="useAppConfig()?.settings?.blog?.showPostCardAuthor && post.authors?.length"
           class="flex items-center gap-x-1.5 text-left"
         >
           <div class="flex shrink-0 -space-x-4">
@@ -84,26 +76,26 @@
               :style="`z-index: ${post.authors.length - index}`"
             >
               <div
-                class="border-border bg-muted flex size-8 items-center justify-center overflow-hidden rounded-full border"
+                class="outline-inside bg-muted flex size-8 items-center justify-center overflow-hidden rounded-full"
               >
-                <NuxtImg
+                <img
                   v-if="author.profile_image"
-                  :src="author.profile_image?.sm || author.profile_image?.original || author.profile_image"
+                  :src="
+                    author.profile_image?.sm ||
+                    author.profile_image?.original ||
+                    author.profile_image
+                  "
                   class="size-full object-cover"
                   width="36"
                   height="36"
-                  sizes="36px"
                   loading="lazy"
-                  format="webp"
                 />
               </div>
             </component>
           </div>
 
           <div class="flex flex-col gap-y-1">
-            <div
-              class="text-primary line-clamp-1 text-sm font-semibold tracking-tight"
-            >
+            <div class="text-primary line-clamp-1 text-sm font-semibold tracking-tight">
               <component
                 :is="author.website ? 'a' : 'span'"
                 v-for="(author, index) in post.authors"
@@ -114,9 +106,7 @@
                 :class="{ 'hover:underline': author.website }"
               >
                 {{ author.name
-                }}<span v-if="index != Object.keys(post.authors).length - 1"
-                  >,
-                </span>
+                }}<span v-if="index != Object.keys(post.authors).length - 1">, </span>
               </component>
             </div>
           </div>
@@ -148,7 +138,7 @@ const { $dayjs } = useNuxtApp();
 const active = useState("active-post-slug", () => null);
 
 // Computed URL to avoid template string issues
-const postUrl = computed(() => `/news/${props.post?.slug || ''}`);
+const postUrl = computed(() => `/news/${props.post?.slug || ""}`);
 
 const imageStyle = computed(() => {
   if (active.value === props.post?.slug) {

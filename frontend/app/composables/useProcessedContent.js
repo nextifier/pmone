@@ -7,6 +7,7 @@
  */
 export const useProcessedContent = (htmlContent) => {
   const { highlighter } = useShiki();
+  const { wrapCaptionedImages } = useSanitize();
 
   const createUniqueId = (text, index) => {
     const slug = text
@@ -18,9 +19,11 @@ export const useProcessedContent = (htmlContent) => {
 
   const processedHtml = computed(() => {
     const rawHtml = htmlContent.value;
-    if (!rawHtml || typeof document === "undefined") {
+    if (!rawHtml) return "";
+
+    if (typeof document === "undefined") {
       let index = 0;
-      return rawHtml.replace(
+      let html = rawHtml.replace(
         /<h([2-6])(.*?)>(.*?)<\/h\1>/gi,
         (match, level, attrs, innerText) => {
           const text = innerText.replace(/<[^>]+>/g, "").trim();
@@ -29,6 +32,7 @@ export const useProcessedContent = (htmlContent) => {
           return `<h${level} id="${newId}"${cleanAttrs}>${innerText}</h${level}>`;
         },
       );
+      return wrapCaptionedImages(html);
     }
 
     const parser = new DOMParser();
@@ -41,6 +45,8 @@ export const useProcessedContent = (htmlContent) => {
     });
 
     let html = doc.body.innerHTML;
+
+    html = wrapCaptionedImages(html);
 
     if (highlighter.value) {
       html = highlightCodeBlocks(html, highlighter.value);

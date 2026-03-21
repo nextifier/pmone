@@ -35,6 +35,8 @@ trait HasMediaManager
             'original' => $originalUrl,
             'caption' => $media->getCustomProperty('caption'),
             'alt' => $media->getCustomProperty('alt') ?? $media->name,
+            'width' => $media->getCustomProperty('width'),
+            'height' => $media->getCustomProperty('height'),
         ];
 
         foreach (['lqip', 'sm', 'md', 'lg', 'xl'] as $conversion) {
@@ -44,6 +46,70 @@ trait HasMediaManager
         }
 
         return $urls;
+    }
+
+    /**
+     * Get media URLs with per-conversion dimensions.
+     * Each conversion returns {url, width, height}.
+     */
+    public function getMediaUrlsDetailed(string $collection): ?array
+    {
+        if (! $this->hasMedia($collection)) {
+            return null;
+        }
+
+        $media = $this->getFirstMedia($collection);
+        $originalUrl = $media->getUrl();
+        $originalWidth = $media->getCustomProperty('width');
+        $originalHeight = $media->getCustomProperty('height');
+
+        $urls = [
+            'url' => $originalUrl,
+            'original' => $originalUrl,
+            'caption' => $media->getCustomProperty('caption'),
+            'alt' => $media->getCustomProperty('alt') ?? $media->name,
+            'width' => $originalWidth,
+            'height' => $originalHeight,
+        ];
+
+        $targetWidths = $this->getConversionTargetWidths();
+
+        foreach (['lqip', 'sm', 'md', 'lg', 'xl'] as $conversion) {
+            $convUrl = $media->hasGeneratedConversion($conversion)
+                ? $media->getUrl($conversion)
+                : $originalUrl;
+
+            $convWidth = $originalWidth;
+            $convHeight = $originalHeight;
+
+            if ($originalWidth && $originalHeight && isset($targetWidths[$conversion])) {
+                $convWidth = min($targetWidths[$conversion], $originalWidth);
+                $convHeight = (int) round($originalHeight * $convWidth / $originalWidth);
+            }
+
+            $urls[$conversion] = [
+                'url' => $convUrl,
+                'width' => $convWidth,
+                'height' => $convHeight,
+            ];
+        }
+
+        return $urls;
+    }
+
+    /**
+     * Get target widths for each conversion name.
+     * Override in models if conversions differ.
+     */
+    protected function getConversionTargetWidths(): array
+    {
+        return [
+            'lqip' => 20,
+            'sm' => 450,
+            'md' => 900,
+            'lg' => 1200,
+            'xl' => 1500,
+        ];
     }
 
     /**

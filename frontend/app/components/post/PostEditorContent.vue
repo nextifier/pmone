@@ -45,17 +45,14 @@
           <InputErrorMessage :errors="editor.errors.value.tmp_featured_image" />
 
           <!-- Featured Image Caption -->
-          <div v-if="showCaptionInput" class="space-y-2">
-            <Label for="featured_image_caption" class="text-muted-foreground text-xs">
-              Image Caption (Optional)
-            </Label>
-            <Input
+          <div v-if="showCaptionInput" class="!mt-2">
+            <input
               id="featured_image_caption"
               v-model="editor.form.featured_image_caption"
               type="text"
               maxlength="500"
-              placeholder="Add a caption for the featured image..."
-              class="text-sm"
+              placeholder="Add a caption..."
+              class="text-muted-foreground w-full border-none bg-transparent text-center text-sm outline-none placeholder:text-muted-foreground/50 focus:text-foreground"
             />
             <InputErrorMessage :errors="editor.errors.value.featured_image_caption" />
           </div>
@@ -175,6 +172,12 @@
             format="webp"
           />
         </div>
+        <p
+          v-if="editor.previewData.value.featured_image_caption"
+          class="text-muted-foreground mt-2 text-center text-sm"
+        >
+          {{ editor.previewData.value.featured_image_caption }}
+        </p>
 
         <!-- Content -->
         <div
@@ -307,7 +310,7 @@ function getImageSrc(image: any): string {
   if (typeof image === "string") {
     return image;
   }
-  return image?.lg || image?.md || image?.original || "";
+  return image?.lg?.url || image?.md?.url || image?.original || "";
 }
 
 async function clearFeaturedImage() {

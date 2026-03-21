@@ -27,39 +27,20 @@
   </TabsRoot>
 
   <!-- Restore Draft Dialog -->
-  <DialogResponsive v-model:open="showRestoreDialog" dialog-max-width="450px">
-    <div class="px-4 pb-8 md:pt-8">
-      <div class="flex items-start gap-x-3">
-        <div class="bg-info/15 flex size-10 shrink-0 items-center justify-center rounded-xl">
-          <Icon name="hugeicons:unarchive-03" class="text-info-foreground size-5" />
-        </div>
-        <div class="grow">
-          <h3 class="text-primary text-lg font-semibold tracking-tighter">Restore Draft?</h3>
-          <p
-            class="text-muted-foreground mt-1.5 text-sm leading-relaxed tracking-tight text-pretty"
-          >
-            You have unsaved changes from a previous session. Would you like to restore them or
-            start fresh?
-          </p>
+  <DialogResponsive v-model:open="showRestoreDialog">
+    <template #default>
+      <div class="px-4 pb-10 md:px-6 md:py-6">
+        <div class="text-foreground text-lg font-semibold tracking-tight">Restore Draft?</div>
+        <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
+          You have unsaved changes from a previous session. Would you like to restore them or start
+          fresh?
+        </p>
+        <div class="mt-4 flex justify-end gap-2">
+          <Button variant="outline" @click="handleDiscardRestore">Discard</Button>
+          <Button @click="handleRestoreChanges">Restore</Button>
         </div>
       </div>
-      <div class="mt-4 flex justify-end gap-2">
-        <button
-          type="button"
-          @click="handleDiscardRestore"
-          class="bg-muted hover:bg-border rounded-lg px-3 py-2 text-sm font-medium tracking-tight transition"
-        >
-          Discard
-        </button>
-        <button
-          type="button"
-          @click="handleRestoreChanges"
-          class="bg-info hover:bg-info/90 flex items-center gap-x-1.5 rounded-lg px-3 py-2 text-sm font-medium tracking-tight text-white transition disabled:opacity-50"
-        >
-          Restore Draft
-        </button>
-      </div>
-    </div>
+    </template>
   </DialogResponsive>
 
   <!-- Delete Confirmation Dialog -->
@@ -418,7 +399,8 @@ function hasAutosaveChanges(savedData: any): boolean {
 
   if (
     (savedData.meta_title || "") !== (data.meta_title || "") ||
-    (savedData.meta_description || "") !== (data.meta_description || "")
+    (savedData.meta_description || "") !== (data.meta_description || "") ||
+    (savedData.featured_image_caption || "") !== (data.featured_image?.caption || "")
   ) {
     return true;
   }
@@ -662,9 +644,7 @@ function buildPayload() {
     payload.delete_featured_image = true;
   }
 
-  if (form.featured_image_caption) {
-    payload.featured_image_caption = form.featured_image_caption;
-  }
+  payload.featured_image_caption = form.featured_image_caption || null;
 
   const ogImageValue = imageFiles.value.og_image?.[0];
   if (typeof ogImageValue === "string" && ogImageValue.startsWith("tmp-")) {

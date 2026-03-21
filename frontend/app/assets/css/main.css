@@ -9,8 +9,9 @@
 }
 
 body {
-  font-family: "MinusOne", ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-family:
+    "MinusOne", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
 }
 
 @plugin "@tailwindcss/typography";
@@ -28,8 +29,8 @@ body {
   --breakpoint-3xl: 1600px;
 
   --font-sans:
-    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-    "Segoe UI Symbol", "Noto Color Emoji";
+    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+    "Noto Color Emoji";
 
   /* Slate */
   /* --color-gray-50: oklch(0.984 0.003 247.858);
@@ -618,7 +619,7 @@ body {
 }
 
 @utility format-html {
-  @apply prose dark:prose-invert prose-headings:font-medium! prose-strong:font-semibold prose-headings:tracking-tighter sm:prose-lg prose-figcaption:capitalize prose-figcaption:text-center prose-figcaption:text-xs prose-img:w-full prose-headings:not-first:mt-[1.5em] prose-headings:mb-[0.5em] prose-p:not-first:mt-[1em] prose-p:not-last:mb-[1em] prose-ul:my-[1em] prose-p:first:mt-0 prose-p:last:mb-0 text-foreground dark:text-body max-w-2xl tracking-[-0.015em] wrap-break-word;
+  @apply prose dark:prose-invert prose-headings:font-medium! prose-strong:font-semibold prose-headings:tracking-tighter sm:prose-lg prose-figcaption:text-center prose-figcaption:text-sm prose-figcaption:text-muted-foreground prose-img:w-full prose-img:my-0 prose-figure:mt-3 prose-figure:mb-0 prose-headings:not-first:mt-[1.5em] prose-headings:mb-[0.5em] prose-p:not-first:mt-[1em] prose-p:not-last:mb-[1em] prose-ul:my-[1em] prose-p:first:mt-0 prose-p:last:mb-0 text-foreground dark:text-body max-w-2xl tracking-[-0.015em] wrap-break-word;
 
   & :is(:not(:where([class~="not-prose"], [class~="not-prose"] *))) {
     & *:not(h1, h2, h3, h4, h5, h6, a) {
@@ -992,17 +993,53 @@ img.pswp__img {
   }
 }
 
+/* LQIP shimmer overlay */
+@keyframes shimmer-lqip {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.shimmer-overlay {
+  overflow: hidden;
+}
+
+.shimmer-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.25) 50%,
+    transparent 70%
+  );
+  animation: shimmer-lqip 2s infinite;
+}
+
+:is(.dark *) .shimmer-overlay::after {
+  background: linear-gradient(
+    120deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 70%
+  );
+}
+
 /* Post content images styling */
 .prose img {
   @apply my-6 h-auto max-w-full rounded-lg;
 }
 
 .prose figure {
-  @apply my-6;
+  @apply my-0;
 }
 
 .prose figcaption {
-  @apply text-muted-foreground mt-2 text-center text-sm italic;
+  @apply text-muted-foreground mt-2 text-center text-sm;
 }
 
 /* Vue JSON Pretty - Start */

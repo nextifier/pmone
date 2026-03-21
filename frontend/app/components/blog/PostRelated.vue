@@ -13,22 +13,13 @@
           class="flex items-center gap-x-2"
           @click="onLinkClick"
         >
-          <div
-            class="bg-muted border-border size-16 shrink-0 overflow-hidden rounded-lg border"
-          >
-            <NuxtImg
+          <div class="bg-muted border-border size-16 shrink-0 overflow-hidden rounded-lg border">
+            <img
               v-if="post.featured_image"
-              :src="
-                post.featured_image?.thumb ||
-                post.featured_image?.medium ||
-                post.featured_image?.original ||
-                post.featured_image
-              "
+              :src="post.featured_image?.sm?.url || post.featured_image?.original"
               :alt="post.title"
               class="size-full object-cover"
               loading="lazy"
-              sizes="64px"
-              format="webp"
             />
           </div>
 
@@ -75,18 +66,12 @@
           <div
             class="bg-muted aspect-[20/19] w-full shrink-0 overflow-hidden rounded-lg lg:aspect-[16/9]"
           >
-            <NuxtImg
+            <img
               v-if="post.featured_image"
-              :src="
-                post.featured_image?.medium ||
-                post.featured_image?.original ||
-                post.featured_image
-              "
+              :src="post.featured_image?.md?.url || post.featured_image?.original"
               :alt="post.title"
               class="size-full object-cover"
               loading="lazy"
-              sizes="200px lg:400px"
-              format="webp"
             />
           </div>
 

@@ -62,13 +62,13 @@ class PostResource extends JsonResource
             'title' => $this->title,
             'slug' => $this->slug,
             'excerpt' => $this->excerpt,
-            'content' => $this->content,
+            'content' => $this->injectContentImageLqip($this->content),
             'content_format' => $this->content_format,
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
             'og_image' => $this->when(
                 $this->relationLoaded('media') && $this->hasMedia('og_image'),
-                fn () => $this->getMediaUrls('og_image')
+                fn () => $this->getMediaUrlsDetailed('og_image')
             ),
             'status' => $this->status,
             'visibility' => $this->visibility,
@@ -102,10 +102,77 @@ class PostResource extends JsonResource
             $featuredMedia = $this->media->firstWhere('collection_name', 'featured_image');
 
             if ($featuredMedia) {
-                return $this->getMediaUrls('featured_image');
+                return $this->getMediaUrlsDetailed('featured_image');
             }
         }
 
         return $this->featured_image;
+    }
+
+    /**
+     * Inject data-lqip attributes into content image tags.
+     * Derives LQIP URL directly from the src URL pattern.
+     */
+    private function injectContentImageLqip(?string $content): ?string
+    {
+        if (! $content) {
+            return $content;
+        }
+
+        return preg_replace_callback('/<img([^>]+)>/', function ($match) {
+            $imgTag = $match[0];
+            $attrs = $match[1];
+
+            // Skip if already has data-lqip
+            if (str_contains($attrs, 'data-lqip')) {
+                return $imgTag;
+            }
+
+            // Extract src attribute
+            if (! preg_match('/src="([^"]+)"/', $attrs, $srcMatch)) {
+                return $imgTag;
+            }
+
+            $src = $srcMatch[1];
+
+            // Skip external images (not from our CDN/storage)
+            if (! str_contains($src, 'content_images')) {
+                return $imgTag;
+            }
+
+            $lqipUrl = $this->deriveLqipUrl($src);
+
+            if (! $lqipUrl) {
+                return $imgTag;
+            }
+
+            $lqipAttr = sprintf(' data-lqip="%s"', htmlspecialchars($lqipUrl, ENT_QUOTES, 'UTF-8'));
+
+            return '<img'.$attrs.$lqipAttr.'>';
+        }, $content);
+    }
+
+    /**
+     * Derive LQIP URL from content image src URL pattern.
+     * Conversion URLs: .../conversions/{name}-lg.jpg -> .../conversions/{name}-lqip.jpg
+     * Original URLs: .../{name}.jpg -> .../conversions/{name}-lqip.jpg
+     */
+    private function deriveLqipUrl(string $src): ?string
+    {
+        // New format: conversion URL (e.g. /conversions/image-lg.jpg?v=...)
+        if (preg_match('/^(.+\/conversions\/.+)-(sm|md|lg|xl)(\.[^.?]+)(.*)$/', $src, $match)) {
+            return $match[1].'-lqip'.$match[3].$match[4];
+        }
+
+        // Old format: original URL (e.g. /image.jpg?v=...)
+        if (preg_match('/^(.+\/content_images\/\d+)\/([^\/]+?)(\.[^.?]+)(.*)$/', $src, $match)) {
+            $basePath = $match[1];
+            $name = $match[2];
+            $queryString = $match[4];
+
+            return $basePath.'/conversions/'.$name.'-lqip.jpg'.$queryString;
+        }
+
+        return null;
     }
 }

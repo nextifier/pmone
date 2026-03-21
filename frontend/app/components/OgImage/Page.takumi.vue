@@ -2,15 +2,15 @@
 const props = defineProps({
   headline: {
     type: String,
-    default: "headline",
+    default: "",
   },
   title: {
     type: String,
-    default: "title",
+    default: "",
   },
   description: {
     type: String,
-    default: "description",
+    default: "",
   },
   brandName: {
     type: String,

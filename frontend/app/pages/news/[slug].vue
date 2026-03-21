@@ -146,26 +146,30 @@
             </div>
           </div>
 
-          <div v-if="post.featured_image" class="bg-muted mx-auto mt-10 block overflow-hidden">
-            <NuxtImg
+          <div v-if="post.featured_image" class="mx-auto mt-10 block overflow-hidden rounded-xl">
+            <BlurImage
               :src="
-                post.featured_image?.lg ||
-                post.featured_image?.md ||
-                post.featured_image?.original ||
-                post.featured_image
+                post.featured_image?.lg?.url ||
+                post.featured_image?.md?.url ||
+                post.featured_image?.original
               "
+              :lqip="post.featured_image?.lqip?.url"
               :alt="post.title"
-              class="size-full rounded-xl object-cover"
-              :style="{
+              :width="post.featured_image?.lg?.width || post.featured_image?.width || 1200"
+              :height="post.featured_image?.lg?.height || post.featured_image?.height || 800"
+              loading="lazy"
+              image-class="size-full rounded-xl object-cover"
+              :image-style="{
                 'view-transition-name': `post-feature-img-${post.slug}`,
               }"
-              loading="lazy"
-              sizes="100vw lg:1024px"
-              width="1000"
-              height="auto"
-              format="webp"
             />
           </div>
+          <p
+            v-if="post.featured_image?.caption"
+            class="text-muted-foreground mt-2 text-center text-sm"
+          >
+            {{ post.featured_image.caption }}
+          </p>
 
           <div
             class="format-html prose-img:rounded-xl prose-headings:scroll-mt-[calc(var(--navbar-height-mobile)+var(--scroll-offset,2.5rem))] mx-auto mt-6 overflow-x-hidden [--scroll-offset:2.5rem] lg:mt-8"
@@ -203,7 +207,7 @@
         variant="grid"
         class="container-wider mt-10 transition-all duration-200 ease-linear"
         :class="{
-          'pr-(--sidebar-width)': open && !isMobile,
+          'pr-(--sidebar-width)': isMounted && open && !isMobile,
         }"
       />
     </div>
@@ -271,18 +275,27 @@ usePageMeta(null, {
 const rawHtml = computed(() => post.value?.content || "");
 const { processedHtml } = useProcessedContent(rawHtml);
 
+// Apply LQIP blur effect to content images
+const articleSelector = computed(() => (post.value?.slug ? `#${post.value.slug}` : null));
+const { reprocess: reprocessContentImages } = useContentImageBlur(articleSelector);
+
 const foundHeadings = ref([]);
 
 const onHeadingsFound = (headings) => {
   foundHeadings.value = headings;
 };
 
+const isMounted = ref(false);
+
 onMounted(async () => {
+  isMounted.value = true;
   // If public API returned no data and user is authenticated, try authenticated API
   if (!post.value && isAuthenticated.value) {
     try {
       const client = useSanctumClient();
       authData.value = await client(`/api/posts/${route.params.slug}`);
+      // Re-process content images after auth data loads
+      reprocessContentImages();
     } catch {
       showError({ statusCode: 404, statusMessage: "Page not found" });
     } finally {

@@ -123,8 +123,8 @@
           >
             <div class="bg-muted border-border size-12 shrink-0 overflow-hidden rounded-sm border">
               <img
-                v-if="post.featured_image?.sm"
-                :src="post.featured_image.sm"
+                v-if="post.featured_image?.sm?.url"
+                :src="post.featured_image.sm.url"
                 :alt="post.title"
                 class="size-full object-cover select-none"
                 loading="lazy"
@@ -195,8 +195,8 @@
           >
             <div class="bg-muted border-border size-12 shrink-0 overflow-hidden rounded-sm border">
               <img
-                v-if="post.featured_image?.sm"
-                :src="post.featured_image.sm"
+                v-if="post.featured_image?.sm?.url"
+                :src="post.featured_image.sm.url"
                 :alt="post.title"
                 class="size-full object-cover select-none"
                 loading="lazy"

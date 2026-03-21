@@ -84,13 +84,6 @@
     "vue-scrollto": "^2.20.0",
     "vue-sonner": "^2.0.9",
     "vue-tippy": "^6.7.1",
-    "vue3-picture-swipe": "^3.0.6"
-  },
-  "overrides": {
-    "vue": "latest",
-    "esm-env": "npm:esm-env-runtime@^0.1.1"
-  },
-  "dependencies": {
     "@takumi-rs/wasm": "^1.0.0-beta.8",
     "ai": "^6.0.116",
     "dompurify": "^3.3.2",
@@ -99,6 +92,11 @@
     "nanoid": "^5.1.7",
     "shiki": "^4.0.2",
     "vue-stick-to-bottom": "^1.0.0",
-    "vue-stream-markdown": "^0.6.5"
+    "vue-stream-markdown": "^0.6.5",
+    "vue3-picture-swipe": "^3.0.6"
+  },
+  "overrides": {
+    "vue": "latest",
+    "esm-env": "npm:esm-env-runtime@^0.1.1"
   }
 }

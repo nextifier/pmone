@@ -9,11 +9,16 @@ use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
+use App\Models\User;
+use App\Models\Visit;
 use App\Services\PostExportService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -253,7 +258,7 @@ class PostController extends Controller
 
         // If user is master/admin or has users.read permission, return all verified users with posts
         if ($user->hasRole(['master', 'admin']) || $user->can('users.read')) {
-            $users = \App\Models\User::query()
+            $users = User::query()
                 ->whereNotNull('email_verified_at')
                 ->whereHas('createdPosts')
                 ->select('id', 'name', 'email', 'username', 'title')
@@ -315,7 +320,7 @@ class PostController extends Controller
         // Track visit only if not loading for edit or analytics
         $forParam = request()->input('for');
         if (! $forParam || ! in_array($forParam, ['edit', 'analytics'])) {
-            \App\Models\Visit::create([
+            Visit::create([
                 'visitable_type' => Post::class,
                 'visitable_id' => $post->id,
                 'visitor_id' => auth()->id(),
@@ -420,6 +425,15 @@ class PostController extends Controller
 
             // Handle featured image upload from temporary storage
             $this->handleTemporaryUpload($request, $post, 'tmp_featured_image', 'featured_image', $data['featured_image_caption'] ?? null);
+
+            // Update caption on existing featured image (when no new upload)
+            if (array_key_exists('featured_image_caption', $data) && ! $request->has('tmp_featured_image')) {
+                $media = $post->getFirstMedia('featured_image');
+                if ($media) {
+                    $media->setCustomProperty('caption', $data['featured_image_caption'] ?: null);
+                    $media->save();
+                }
+            }
 
             // Handle OG image upload from temporary storage
             $this->handleTemporaryUpload($request, $post, 'tmp_og_image', 'og_image');
@@ -599,7 +613,7 @@ class PostController extends Controller
 
         // If user is master/admin or has users.read permission, return all users with trashed posts
         if ($user->hasRole(['master', 'admin']) || $user->can('users.read')) {
-            $users = \App\Models\User::query()
+            $users = User::query()
                 ->whereNotNull('email_verified_at')
                 ->whereHas('createdPosts', function ($query) {
                     $query->onlyTrashed();
@@ -853,7 +867,7 @@ class PostController extends Controller
         }
 
         // If value doesn't start with 'tmp-', it's an existing media URL, skip
-        if (! \Illuminate\Support\Str::startsWith($value, 'tmp-')) {
+        if (! Str::startsWith($value, 'tmp-')) {
             return;
         }
 
@@ -862,11 +876,11 @@ class PostController extends Controller
 
         // Get metadata to find the actual filename
         $metadataPath = "tmp/uploads/{$value}/metadata.json";
-        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+        if (! Storage::disk('local')->exists($metadataPath)) {
             throw new \Exception("File `{$value}` does not exist");
         }
 
-        $metadata = json_decode(\Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath), true);
+        $metadata = json_decode(Storage::disk('local')->get($metadataPath), true);
         $filename = $metadata['original_name'];
 
         // Construct full path to the file in temporary storage
@@ -876,15 +890,27 @@ class PostController extends Controller
         $mediaAdder = $post->addMediaFromDisk($tempFilePath, 'local')
             ->usingName(pathinfo($filename, PATHINFO_FILENAME));
 
-        // Add caption if provided
+        // Build custom properties with caption and dimensions
+        $customProps = [];
         if ($caption) {
-            $mediaAdder->withCustomProperties(['caption' => $caption]);
+            $customProps['caption'] = $caption;
+        }
+
+        $tempFullPath = Storage::disk('local')->path($tempFilePath);
+        $imageInfo = @getimagesize($tempFullPath);
+        if ($imageInfo) {
+            $customProps['width'] = $imageInfo[0];
+            $customProps['height'] = $imageInfo[1];
+        }
+
+        if ($customProps) {
+            $mediaAdder->withCustomProperties($customProps);
         }
 
         $mediaAdder->toMediaCollection($collection);
 
         // Clean up temporary storage
-        \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
+        Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
     }
 
     /**
@@ -912,15 +938,15 @@ class PostController extends Controller
             try {
                 $metadataPath = "tmp/uploads/{$folder}/metadata.json";
 
-                if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+                if (! Storage::disk('local')->exists($metadataPath)) {
                     continue;
                 }
 
-                $metadata = json_decode(\Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath), true);
+                $metadata = json_decode(Storage::disk('local')->get($metadataPath), true);
                 $filename = $metadata['original_name'];
                 $tempFilePath = "tmp/uploads/{$folder}/{$filename}";
 
-                if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($tempFilePath)) {
+                if (! Storage::disk('local')->exists($tempFilePath)) {
                     continue;
                 }
 
@@ -934,9 +960,21 @@ class PostController extends Controller
                 $mediaAdder = $post->addMediaFromDisk($tempFilePath, 'local')
                     ->usingName(pathinfo($filename, PATHINFO_FILENAME));
 
-                // Add caption if provided
+                // Build custom properties with caption and dimensions
+                $customProps = [];
                 if ($caption) {
-                    $mediaAdder->withCustomProperties(['caption' => $caption]);
+                    $customProps['caption'] = $caption;
+                }
+
+                $tempFullPath = Storage::disk('local')->path($tempFilePath);
+                $imageInfo = @getimagesize($tempFullPath);
+                if ($imageInfo) {
+                    $customProps['width'] = $imageInfo[0];
+                    $customProps['height'] = $imageInfo[1];
+                }
+
+                if ($customProps) {
+                    $mediaAdder->withCustomProperties($customProps);
                 }
 
                 $media = $mediaAdder->toMediaCollection('content_images');
@@ -948,7 +986,7 @@ class PostController extends Controller
                 $content = str_replace($fullImgTag, $responsiveImg, $content);
 
                 // Clean up temporary storage
-                \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$folder}");
+                Storage::disk('local')->deleteDirectory("tmp/uploads/{$folder}");
             } catch (\Exception $e) {
                 logger()->warning('Failed to process content image', [
                     'folder' => $folder,
@@ -1070,6 +1108,8 @@ class PostController extends Controller
     private function buildResponsiveImageHtml($media, ?string $caption = null): string
     {
         $alt = $caption ?? $media->getCustomProperty('caption') ?? $media->name;
+        $width = $media->getCustomProperty('width');
+        $height = $media->getCustomProperty('height');
 
         // Build srcset with all available conversions
         $srcset = [
@@ -1088,13 +1128,28 @@ class PostController extends Controller
             ? sprintf(' data-caption="%s"', htmlspecialchars($caption, ENT_QUOTES, 'UTF-8'))
             : '';
 
+        $dimensionAttrs = '';
+        if ($width && $height) {
+            $dimensionAttrs = sprintf(' width="%d" height="%d"', $width, $height);
+        }
+
+        $lqipUrl = $media->hasGeneratedConversion('lqip')
+            ? $media->getUrl('lqip')
+            : '';
+
+        $lqipAttr = $lqipUrl
+            ? sprintf(' data-lqip="%s"', htmlspecialchars($lqipUrl, ENT_QUOTES, 'UTF-8'))
+            : '';
+
         $html = sprintf(
-            '<img src="%s" srcset="%s" sizes="%s" alt="%s"%s loading="lazy" class="w-full h-auto rounded-lg">',
-            $media->getUrl('lg'), // default fallback
+            '<img src="%s" srcset="%s" sizes="%s" alt="%s"%s%s%s loading="lazy" class="w-full h-auto rounded-lg">',
+            $media->getUrl('lg'),
             $srcsetString,
             $sizes,
             htmlspecialchars($alt, ENT_QUOTES, 'UTF-8'),
-            $captionAttr
+            $captionAttr,
+            $dimensionAttrs,
+            $lqipAttr
         );
 
         return $html;
@@ -1221,8 +1276,8 @@ class PostController extends Controller
             $endDate = $dateRange['end'];
             $query->inDateRange($startDate, $endDate);
         } elseif ($request->has('start_date') && $request->has('end_date')) {
-            $startDate = \Carbon\Carbon::parse($request->start_date)->startOfDay();
-            $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
+            $startDate = Carbon::parse($request->start_date)->startOfDay();
+            $endDate = Carbon::parse($request->end_date)->endOfDay();
             $query->inDateRange($startDate, $endDate);
         } elseif ($request->has('days')) {
             $startDate = now()->subDays($request->days)->startOfDay();
@@ -1347,8 +1402,8 @@ class PostController extends Controller
             $startDate = $dateRange['start'];
             $endDate = $dateRange['end'];
         } elseif ($request->has('start_date') && $request->has('end_date')) {
-            $startDate = \Carbon\Carbon::parse($request->start_date)->startOfDay();
-            $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
+            $startDate = Carbon::parse($request->start_date)->startOfDay();
+            $endDate = Carbon::parse($request->end_date)->endOfDay();
         } else {
             $days = $request->get('days', 30);
             $startDate = now()->subDays($days)->startOfDay();
@@ -1382,7 +1437,7 @@ class PostController extends Controller
         });
 
         // Get total visits for all posts
-        $totalVisitsQuery = \App\Models\Visit::query()
+        $totalVisitsQuery = Visit::query()
             ->where('visitable_type', Post::class)
             ->inDateRange($startDate, $endDate);
 

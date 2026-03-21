@@ -119,8 +119,11 @@ const imageUrl = computed(() => {
     if (typeof props.initialImage === "string") {
       return props.initialImage;
     }
-    // Handle object with lg/url properties (Media Library)
-    return props.initialImage?.lg || props.initialImage?.url;
+    // Handle object with conversion URLs (Media Library)
+    // Supports both nested {url, width, height} and flat string formats
+    const lg = props.initialImage?.lg;
+    const lgUrl = typeof lg === "object" ? lg?.url : lg;
+    return lgUrl || props.initialImage?.url;
   }
 
   return null;

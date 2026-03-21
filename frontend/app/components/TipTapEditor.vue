@@ -108,16 +108,59 @@
       <div class="toolbar-divider"></div>
 
       <div class="toolbar-group">
-        <button
-          type="button"
-          @click="setLink"
-          :class="{ 'is-active': editor.isActive('link') }"
-          class="toolbar-button"
-          title="Add Link"
-          v-tippy="'Add Link'"
-        >
-          <Icon name="hugeicons:link-01" class="size-4.5" />
-        </button>
+        <Popover v-model:open="linkPopoverOpen">
+          <PopoverTrigger as-child>
+            <button
+              type="button"
+              @click="openLinkPopover"
+              :class="{ 'is-active': editor.isActive('link') }"
+              class="toolbar-button"
+              title="Add Link"
+              v-tippy="'Add Link'"
+            >
+              <Icon name="hugeicons:link-01" class="size-4.5" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent class="w-80 p-3" align="start" :side-offset="8">
+            <form @submit.prevent="applyLink" class="flex flex-col gap-y-2">
+              <label class="text-sm tracking-tight font-medium">URL</label>
+              <input
+                ref="linkInputRef"
+                v-model="linkUrl"
+                type="url"
+                placeholder="https://example.com"
+                class="border-border bg-background text-foreground placeholder:text-muted-foreground h-9 w-full rounded-md border px-3 text-sm tracking-tight outline-none focus:ring-1 focus:ring-ring"
+                @keydown.escape="linkPopoverOpen = false"
+              />
+              <div class="flex items-center justify-between">
+                <button
+                  v-if="linkHasExisting"
+                  type="button"
+                  @click="removeLink"
+                  class="text-destructive hover:text-destructive/80 text-sm tracking-tight font-medium transition-colors"
+                >
+                  Remove
+                </button>
+                <div v-else />
+                <div class="flex items-center gap-x-2">
+                  <button
+                    type="button"
+                    @click="linkPopoverOpen = false"
+                    class="text-muted-foreground hover:text-foreground text-sm tracking-tight font-medium transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    class="bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-md px-3 text-sm tracking-tight font-medium transition-colors"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            </form>
+          </PopoverContent>
+        </Popover>
         <button
           type="button"
           @click="triggerImageUpload"
@@ -470,22 +513,39 @@ function handleImageDeletion(newContent) {
 }
 
 // Link handling
-const setLink = () => {
+const linkPopoverOpen = ref(false);
+const linkUrl = ref("");
+const linkInputRef = ref(null);
+const linkHasExisting = ref(false);
+
+const openLinkPopover = () => {
+  if (!editor.value) return;
+  const previousUrl = editor.value.getAttributes("link").href;
+  linkUrl.value = previousUrl || "";
+  linkHasExisting.value = !!previousUrl;
+};
+
+watch(linkPopoverOpen, (open) => {
+  if (open) {
+    nextTick(() => linkInputRef.value?.focus());
+  }
+});
+
+const applyLink = () => {
   if (!editor.value) return;
 
-  const previousUrl = editor.value.getAttributes("link").href;
-  const url = window.prompt("URL", previousUrl);
-
-  if (url === null) {
-    return;
-  }
-
-  if (url === "") {
+  if (!linkUrl.value) {
     editor.value.chain().focus().extendMarkRange("link").unsetLink().run();
-    return;
+  } else {
+    editor.value.chain().focus().extendMarkRange("link").setLink({ href: linkUrl.value }).run();
   }
+  linkPopoverOpen.value = false;
+};
 
-  editor.value.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+const removeLink = () => {
+  if (!editor.value) return;
+  editor.value.chain().focus().extendMarkRange("link").unsetLink().run();
+  linkPopoverOpen.value = false;
 };
 
 // Image upload handling
@@ -591,6 +651,10 @@ const handleImageUpload = async (event) => {
 
 :deep(.ProseMirror p) {
   @apply my-3;
+}
+
+:deep(.ProseMirror .image-node-view img) {
+  @apply my-0;
 }
 
 :deep(.ProseMirror .code-block-wrapper pre code p) {

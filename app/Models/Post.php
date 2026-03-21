@@ -18,7 +18,6 @@ use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
@@ -280,34 +279,33 @@ class Post extends Model implements HasMedia
 
     public function registerMediaConversions($media = null): void
     {
-        // Featured image conversions (crop for consistent aspect ratio)
+        // Featured image conversions (maintain aspect ratio, no crop)
         $this->addMediaConversion('lqip')
             ->width(20)
-            ->height(20)
             ->quality(10)
             ->blur(10)
             ->performOnCollections('featured_image', 'og_image')
             ->nonQueued();
 
         $this->addMediaConversion('sm')
-            ->fit(Fit::Crop, 450, 300)
+            ->width(450)
             ->quality(85)
             ->performOnCollections('featured_image', 'og_image')
             ->nonQueued();
 
         $this->addMediaConversion('md')
-            ->fit(Fit::Crop, 900, 600)
+            ->width(900)
             ->quality(90)
             ->performOnCollections('featured_image', 'og_image');
 
         $this->addMediaConversion('lg')
-            ->fit(Fit::Crop, 1200, 800)
+            ->width(1200)
             ->quality(90)
             ->performOnCollections('featured_image', 'og_image')
             ->nonQueued();
 
         $this->addMediaConversion('xl')
-            ->fit(Fit::Crop, 1500, 1000)
+            ->width(1500)
             ->quality(95)
             ->performOnCollections('featured_image', 'og_image');
 

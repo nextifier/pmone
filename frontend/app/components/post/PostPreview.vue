@@ -38,7 +38,7 @@
                     :src="
                       typeof previewData.featured_image === 'string'
                         ? previewData.featured_image
-                        : previewData.featured_image?.lg || previewData.featured_image?.original
+                        : previewData.featured_image?.lg?.url || previewData.featured_image?.original
                     "
                     :alt="previewData.title"
                     class="size-full object-cover"

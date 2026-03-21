@@ -48,7 +48,7 @@ const updateCaption = (event) => {
 @reference "../../assets/css/main.css";
 
 .image-node-view {
-  @apply my-4;
+  @apply my-0;
 }
 
 .image-node-view.is-selected .post-content-image {
@@ -60,11 +60,11 @@ const updateCaption = (event) => {
 }
 
 .caption-wrapper {
-  @apply mt-1.5;
+  @apply mt-2;
 }
 
 .caption-input {
-  @apply text-muted-foreground w-full border-none bg-transparent text-center text-sm italic outline-none;
+  @apply text-muted-foreground w-full border-none bg-transparent text-center text-sm outline-none;
   @apply placeholder:text-muted-foreground/50;
   @apply focus:text-foreground;
 }
