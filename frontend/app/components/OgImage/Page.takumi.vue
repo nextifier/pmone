@@ -66,7 +66,7 @@ const isDarkMode = ref(useAppConfig().settings.ogImage.isDarkMode);
         {{ description }}
       </p>
 
-      <div class="mt-auto flex flex-row items-center gap-x-4" style="transform: translateY(50%)">
+      <div class="mt-auto flex flex-row items-center" style="transform: translateY(50%)">
         <div
           class="outline-inside flex size-20 items-center justify-center overflow-hidden rounded-2xl"
         >
@@ -79,7 +79,7 @@ const isDarkMode = ref(useAppConfig().settings.ogImage.isDarkMode);
           />
         </div>
 
-        <div class="flex flex-col items-start gap-y-2">
+        <div class="ml-4 flex flex-col items-start gap-y-2">
           <span v-if="useAppConfig().app.name" class="text-3xl font-semibold tracking-tighter">{{
             useAppConfig().app.name
           }}</span>
