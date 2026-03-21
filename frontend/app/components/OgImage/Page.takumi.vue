@@ -27,26 +27,27 @@ const isDarkMode = ref(useAppConfig().settings.ogImage.isDarkMode);
 
 <template>
   <div
-    class="relative flex h-full w-full flex-col px-[80px] py-[80px]"
+    class="relative flex h-full w-full flex-col px-[100px] py-[100px]"
+    style="font-family: &quot;Inter&quot;, sans-serif"
     :class="isDarkMode ? 'bg-black text-white' : 'bg-white text-black'"
   >
     <div
-      class="absolute inset-y-0 left-[80px] border-l-2 border-solid"
+      class="absolute inset-y-0 left-[100px] border-l-2 border-solid"
       :class="isDarkMode ? 'border-white/15' : 'border-black/10'"
     ></div>
 
     <div
-      class="absolute inset-y-0 right-[80px] border-r-2 border-solid"
+      class="absolute inset-y-0 right-[100px] border-r-2 border-solid"
       :class="isDarkMode ? 'border-white/15' : 'border-black/10'"
     ></div>
 
     <div
-      class="absolute inset-x-0 top-[80px] border-t-2 border-solid"
+      class="absolute inset-x-0 top-[100px] border-t-2 border-solid"
       :class="isDarkMode ? 'border-white/15' : 'border-black/10'"
     ></div>
 
     <div
-      class="absolute inset-x-0 bottom-[80px] border-b-2 border-solid"
+      class="absolute inset-x-0 bottom-[100px] border-b-2 border-solid"
       :class="isDarkMode ? 'border-white/15' : 'border-black/10'"
     ></div>
 
@@ -57,7 +58,7 @@ const isDarkMode = ref(useAppConfig().settings.ogImage.isDarkMode);
       </h1>
       <p
         v-if="description"
-        class="mt-4 text-[32px] leading-[1.6] font-normal tracking-tight text-balance"
+        class="mt-4 text-[28px] leading-[1.6] font-medium tracking-tight text-balance"
       >
         <span v-if="description.length > 160">{{ description.slice(0, 160) }}...</span>
         <span v-else>{{ description }}</span>
@@ -81,7 +82,7 @@ const isDarkMode = ref(useAppConfig().settings.ogImage.isDarkMode);
           <span v-if="useAppConfig().app.name" class="text-3xl font-bold tracking-tighter">{{
             useAppConfig().app.name
           }}</span>
-          <span v-if="useAppConfig().app.url" class="text-2xl font-normal tracking-tight">{{
+          <span v-if="useAppConfig().app.url" class="text-2xl font-medium tracking-tight">{{
             useAppConfig().app.url
           }}</span>
         </div>
