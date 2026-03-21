@@ -28,58 +28,59 @@ const isDarkMode = ref(useAppConfig().settings.ogImage.isDarkMode);
 <template>
   <div
     class="relative flex h-full w-full flex-col px-[100px] py-[100px]"
-    style="font-family: &quot;Inter&quot;, sans-serif"
     :class="isDarkMode ? 'bg-black text-white' : 'bg-white text-black'"
   >
     <div
       class="absolute inset-y-0 left-[100px] border-l-2 border-solid"
-      :class="isDarkMode ? 'border-white/15' : 'border-black/10'"
+      :class="isDarkMode ? 'border-white/25' : 'border-black/15'"
     ></div>
 
     <div
       class="absolute inset-y-0 right-[100px] border-r-2 border-solid"
-      :class="isDarkMode ? 'border-white/15' : 'border-black/10'"
+      :class="isDarkMode ? 'border-white/25' : 'border-black/15'"
     ></div>
 
     <div
       class="absolute inset-x-0 top-[100px] border-t-2 border-solid"
-      :class="isDarkMode ? 'border-white/15' : 'border-black/10'"
+      :class="isDarkMode ? 'border-white/25' : 'border-black/15'"
     ></div>
 
     <div
       class="absolute inset-x-0 bottom-[100px] border-b-2 border-solid"
-      :class="isDarkMode ? 'border-white/15' : 'border-black/10'"
+      :class="isDarkMode ? 'border-white/25' : 'border-black/15'"
     ></div>
 
     <div class="flex h-full flex-col text-left">
-      <h1 v-if="title" class="mt-2 text-[80px] leading-none font-bold tracking-tighter">
-        <span v-if="title.length > 40">{{ title.slice(0, 40) }}...</span>
-        <span v-else>{{ title }}</span>
+      <h1
+        v-if="title"
+        class="mt-2 shrink-0 text-[72px] leading-[1.1] font-semibold tracking-[-0.06em]"
+        style="line-clamp: 2; text-overflow: ellipsis; overflow: hidden"
+      >
+        {{ title }}
       </h1>
       <p
         v-if="description"
-        class="mt-4 text-[28px] leading-[1.6] font-medium tracking-tight text-balance"
+        class="mt-3 shrink-0 text-[32px] leading-[1.6] font-medium tracking-tighter text-pretty"
+        style="line-clamp: 2; text-overflow: ellipsis; overflow: hidden"
       >
-        <span v-if="description.length > 160">{{ description.slice(0, 160) }}...</span>
-        <span v-else>{{ description }}</span>
+        {{ description }}
       </p>
 
-      <div class="mt-auto flex flex-row items-center gap-x-5">
+      <div class="mt-auto flex flex-row items-center gap-x-4" style="transform: translateY(50%)">
         <div
-          class="flex size-24 items-center justify-center overflow-hidden rounded-full border"
-          :class="isDarkMode ? 'border-white/15' : 'border-black/5'"
+          class="outline-inside flex size-20 items-center justify-center overflow-hidden rounded-2xl"
         >
           <img
             src="/icons/icon-192x192.png"
-            class="size-full object-contain"
+            class="size-20 object-contain"
             alt=""
-            width="192"
-            height="192"
+            width="80"
+            height="80"
           />
         </div>
 
         <div class="flex flex-col items-start gap-y-2">
-          <span v-if="useAppConfig().app.name" class="text-3xl font-bold tracking-tighter">{{
+          <span v-if="useAppConfig().app.name" class="text-3xl font-semibold tracking-tighter">{{
             useAppConfig().app.name
           }}</span>
           <span v-if="useAppConfig().app.url" class="text-2xl font-medium tracking-tight">{{
