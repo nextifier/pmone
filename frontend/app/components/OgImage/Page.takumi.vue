@@ -28,7 +28,7 @@ const isDarkMode = ref(useAppConfig().settings.ogImage.isDarkMode);
 <template>
   <div
     class="relative flex h-full w-full flex-col px-[100px] py-[100px]"
-    style="font-family: 'Inter', sans-serif"
+    style="font-family: &quot;Inter&quot;, sans-serif"
     :class="isDarkMode ? 'bg-black text-white' : 'bg-white text-black'"
   >
     <div
@@ -56,7 +56,10 @@ const isDarkMode = ref(useAppConfig().settings.ogImage.isDarkMode);
         <span v-if="title.length > 40">{{ title.slice(0, 40) }}...</span>
         <span v-else>{{ title }}</span>
       </h1>
-      <p v-if="description" class="mt-4 text-[28px] leading-[1.6] tracking-tight text-balance">
+      <p
+        v-if="description"
+        class="mt-4 text-[32px] leading-[1.6] font-normal tracking-tight text-balance"
+      >
         <span v-if="description.length > 160">{{ description.slice(0, 160) }}...</span>
         <span v-else>{{ description }}</span>
       </p>
@@ -79,7 +82,7 @@ const isDarkMode = ref(useAppConfig().settings.ogImage.isDarkMode);
           <span v-if="useAppConfig().app.name" class="text-3xl font-bold tracking-tighter">{{
             useAppConfig().app.name
           }}</span>
-          <span v-if="useAppConfig().app.url" class="text-2xl tracking-tight">{{
+          <span v-if="useAppConfig().app.url" class="text-2xl font-normal tracking-tight">{{
             useAppConfig().app.url
           }}</span>
         </div>
