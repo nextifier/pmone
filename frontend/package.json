@@ -91,7 +91,7 @@
     "esm-env": "npm:esm-env-runtime@^0.1.1"
   },
   "dependencies": {
-    "@takumi-rs/core": "^1.0.0-beta.8",
+    "@takumi-rs/wasm": "^1.0.0-beta.8",
     "ai": "^6.0.116",
     "dompurify": "^3.3.2",
     "jszip": "^3.10.1",
