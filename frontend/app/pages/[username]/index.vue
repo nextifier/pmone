@@ -52,9 +52,7 @@ const user = computed(() => (resolvedType.value === "user" ? data.value?.data : 
 const shortLinkData = computed(() =>
   resolvedType.value === "shortlink" ? data.value?.data : null
 );
-const linkPageData = computed(() =>
-  resolvedType.value === "linkpage" ? data.value?.data : null
-);
+const linkPageData = computed(() => (resolvedType.value === "linkpage" ? data.value?.data : null));
 
 const error = computed(() => {
   if (!fetchError.value && user.value && user.value.status !== "active") {
@@ -106,23 +104,6 @@ const description = computed(() => {
 if (resolvedType.value === "shortlink") {
   const ogImage = computed(() => shortLinkData.value?.og_image || null);
   const ogType = computed(() => shortLinkData.value?.og_type || "website");
-
-  watchEffect(() => {
-    useSeoMeta({
-      titleTemplate: "%s",
-      title: title.value,
-      ogTitle: title.value,
-      description: description.value,
-      ogDescription: description.value,
-      ogImage: ogImage.value,
-      ogType: ogType.value,
-      ogUrl: useAppConfig().app.url + route.fullPath,
-      twitterCard: "summary_large_image",
-    });
-  });
-} else if (resolvedType.value === "linkpage") {
-  const ogImage = computed(() => linkPageData.value?.og_image || linkPageData.value?.cover_image?.md || null);
-  const ogType = computed(() => linkPageData.value?.og_type || "website");
 
   watchEffect(() => {
     useSeoMeta({

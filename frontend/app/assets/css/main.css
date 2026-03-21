@@ -1,6 +1,18 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@font-face {
+  font-family: "MinusOne";
+  src: url("/fonts/MinusOne-VF.woff2") format("woff2");
+  font-weight: 100 1000;
+  font-display: swap;
+}
+
+body {
+  font-family: "MinusOne", ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
@@ -16,7 +28,7 @@
   --breakpoint-3xl: 1600px;
 
   --font-sans:
-    MinusOne, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
     "Segoe UI Symbol", "Noto Color Emoji";
 
   /* Slate */

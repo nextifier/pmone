@@ -135,17 +135,6 @@ export default defineNuxtConfig({
     vueI18n: "./i18n.config.ts",
   },
 
-  fonts: {
-    provider: "local",
-    families: [
-      {
-        name: "MinusOne",
-        src: "/fonts/MinusOne-VF.woff2",
-        weight: "100 1000",
-        display: "swap",
-      },
-    ],
-  },
 
   icon: {
     mode: "svg",
@@ -184,6 +173,12 @@ export default defineNuxtConfig({
   site: {
     name: "PM One",
     url: process.env.NODE_ENV === "production" ? "https://pmone.id" : "http://localhost:3000",
+  },
+
+  ogImage: {
+    defaults: {
+      renderer: "takumi",
+    },
   },
 
   schemaOrg: {

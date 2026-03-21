@@ -16,14 +16,16 @@ export const usePageMeta = (pageKey, overrides = {}) => {
     ogDescription: description,
     ogUrl: useAppConfig().app.url + route.fullPath,
     twitterCard: "summary_large_image",
+    twitterTitle: title,
+    twitterDescription: description,
   });
 
   if (meta?.ogImage) {
-    defineOgImage({
-      url: meta.ogImage,
+    useSeoMeta({
+      ogImage: meta.ogImage,
     });
   } else {
-    defineOgImageComponent("Page", {
+    defineOgImage("Page", {
       headline: useAppConfig().app.name,
       title: title.value,
       description: description.value,
