@@ -27,27 +27,26 @@ const isDarkMode = ref(useAppConfig().settings.ogImage.isDarkMode);
 
 <template>
   <div
-    class="relative flex h-full w-full flex-col px-[100px] py-[100px]"
-    style="font-family: &quot;Inter&quot;, sans-serif"
+    class="relative flex h-full w-full flex-col px-[80px] py-[80px]"
     :class="isDarkMode ? 'bg-black text-white' : 'bg-white text-black'"
   >
     <div
-      class="absolute inset-y-0 left-[100px] border-l-2 border-solid"
+      class="absolute inset-y-0 left-[80px] border-l-2 border-solid"
       :class="isDarkMode ? 'border-white/15' : 'border-black/10'"
     ></div>
 
     <div
-      class="absolute inset-y-0 right-[100px] border-r-2 border-solid"
+      class="absolute inset-y-0 right-[80px] border-r-2 border-solid"
       :class="isDarkMode ? 'border-white/15' : 'border-black/10'"
     ></div>
 
     <div
-      class="absolute inset-x-0 top-[100px] border-t-2 border-solid"
+      class="absolute inset-x-0 top-[80px] border-t-2 border-solid"
       :class="isDarkMode ? 'border-white/15' : 'border-black/10'"
     ></div>
 
     <div
-      class="absolute inset-x-0 bottom-[100px] border-b-2 border-solid"
+      class="absolute inset-x-0 bottom-[80px] border-b-2 border-solid"
       :class="isDarkMode ? 'border-white/15' : 'border-black/10'"
     ></div>
 
