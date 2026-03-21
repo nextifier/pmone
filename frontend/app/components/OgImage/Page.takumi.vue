@@ -27,7 +27,7 @@ const isDarkMode = ref(useAppConfig().settings.ogImage.isDarkMode);
 
 <template>
   <div
-    class="relative flex h-full w-full flex-col px-[100px] py-[100px]"
+    class="relative flex h-full w-full flex-col px-[100px] py-[100px] antialiased"
     :class="isDarkMode ? 'bg-black text-white' : 'bg-white text-black'"
   >
     <div
