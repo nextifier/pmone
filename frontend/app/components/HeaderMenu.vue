@@ -1,10 +1,7 @@
 <template>
   <DialogRoot v-model:open="isOpen">
     <DialogTrigger as-child>
-      <button
-        class="relative flex size-8 items-center justify-center rounded-lg"
-        aria-label="Menu"
-      >
+      <button class="relative flex size-8 items-center justify-center rounded-lg" aria-label="Menu">
         <span
           v-for="(_, index) in 2"
           :key="index"
@@ -38,9 +35,7 @@
             ref="headerMenuContent"
             class="h-[calc(100dvh-var(--navbar-height-mobile)-3.5rem)] lg:h-[calc(100dvh-var(--navbar-height-desktop)-3.5rem)]"
           >
-            <div
-              class="grid grid-cols-12 gap-x-1 gap-y-10 px-2 pt-6 pb-10 sm:px-8"
-            >
+            <div class="grid grid-cols-12 gap-x-1 gap-y-10 px-2 pt-6 pb-10 sm:px-8">
               <div class="col-span-7 flex flex-col gap-y-4 lg:col-span-6">
                 <span
                   class="text-muted-foreground/90 px-4 text-sm tracking-tight sm:text-base lg:px-6"
@@ -50,8 +45,7 @@
                 <div class="flex flex-col gap-y-3">
                   <DialogClose
                     as-child
-                    v-for="(link, index) in useAppConfig().routes.dialog[0]
-                      .links"
+                    v-for="(link, index) in useAppConfig().routes.dialog[0].links"
                     :key="index"
                   >
                     <NuxtLink
@@ -78,9 +72,7 @@
                 </div>
               </div>
 
-              <div
-                class="order-first col-span-5 flex flex-col gap-y-6 lg:col-span-6"
-              >
+              <div class="order-first col-span-5 flex flex-col gap-y-6 lg:col-span-6">
                 <ColorModeButtons />
 
                 <div
@@ -94,11 +86,7 @@
                   >
 
                   <div class="flex flex-col gap-y-2 sm:gap-y-1">
-                    <DialogClose
-                      as-child
-                      v-for="(link, index) in item.links"
-                      :key="index"
-                    >
+                    <DialogClose as-child v-for="(link, index) in item.links" :key="index">
                       <NuxtLink
                         :to="link.path"
                         :target="link.path.startsWith('http') ? '_blank' : ''"
@@ -177,7 +165,7 @@ const openInquiryDialog = () => {
 };
 
 defineShortcuts({
-  meta_m: {
+  m: {
     handler: () => {
       isOpen.value = !isOpen.value;
     },
