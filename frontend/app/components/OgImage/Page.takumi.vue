@@ -29,6 +29,7 @@ const isDarkMode = ref(useAppConfig().settings.ogImage.isDarkMode);
   <div
     class="relative flex h-full w-full flex-col px-[100px] py-[100px] antialiased"
     :class="isDarkMode ? 'bg-black text-white' : 'bg-white text-black'"
+    style="font-family: Inter, ui-sans-serif, system-ui, sans-serif"
   >
     <div
       class="absolute inset-y-0 left-[100px] border-l-2 border-solid"
