@@ -148,7 +148,10 @@
 </template>
 
 <script setup>
-usePageMeta(null, { title: "News" });
+usePageMeta(null, {
+  title: "News",
+  description: "Articles and updates covering events, exhibitions, and industry news.",
+});
 defineOptions({
   name: "news",
 });

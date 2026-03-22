@@ -25,10 +25,19 @@ export const usePageMeta = (pageKey, overrides = {}) => {
       ogImage: meta.ogImage,
     });
   } else {
+    // Sanitize values for OG image URL to prevent unsafe attribute errors.
+    // nuxt-og-image v6 uses comma-separated URL params and doesn't properly
+    // encode special characters (?,!,commas) which breaks Vue server renderer.
+    const sanitize = (val) => (val || "").replace(/[?,!]/g, "").replace(/,/g, " ");
+    const ogTitle = computed(() => sanitize(toValue(title)));
+    const ogDescription = computed(() => sanitize(toValue(description)));
+
     defineOgImage("Page", {
       headline: useAppConfig().app.name,
-      title: title.value,
-      description: description.value,
+      pageTitle: ogTitle,
+      pageDescription: ogDescription,
+      title: ogTitle,
+      description: ogDescription,
     });
   }
 

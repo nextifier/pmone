@@ -53,6 +53,31 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: [
+        "embla-carousel-wheel-gestures",
+        "vue-json-pretty",
+        "vue3-picture-swipe",
+        "vue-scrollto",
+        "v-wave",
+        "dayjs",
+        "dayjs/plugin/relativeTime",
+        "dayjs/plugin/customParseFormat",
+        "vue-tippy",
+        "@number-flow/vue",
+        "class-variance-authority",
+        "vue-sonner",
+        "reka-ui",
+        "clsx",
+        "tailwind-merge",
+        "lucide-vue-next",
+        "vaul-vue",
+        "shiki",
+        "dompurify",
+        "@vue/devtools-core",
+        "@vue/devtools-kit",
+      ],
+    },
     server: {
       hmr: {
         timeout: 60000, // Increase HMR timeout to 60 seconds

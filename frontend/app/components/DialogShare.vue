@@ -4,16 +4,10 @@
       <button
         type="button"
         @click="open({ title: pageTitle })"
-        class="text-primary lg:hover:bg-muted flex items-center justify-center gap-x-1 rounded-full border p-3 transition active:scale-98 lg:border-0"
-        :class="
-          isSemiTransparent
-            ? 'bg-background/70 border border-white/10 shadow-lg backdrop-blur-sm'
-            : 'bg-background border-border'
-        "
-        v-ripple
+        class="text-primary/80 hover:text-primary flex items-center justify-center gap-x-1 text-sm tracking-tight transition active:scale-98"
       >
         <Icon name="lucide:share" class="size-4 shrink-0" />
-        <span class="hidden text-sm tracking-tight lg:block">Share</span>
+        <span>Share</span>
       </button>
     </template>
 
@@ -35,10 +29,6 @@ const props = defineProps({
   pageTitle: {
     type: String,
     required: true,
-  },
-  isSemiTransparent: {
-    type: Boolean,
-    default: false,
   },
 });
 
