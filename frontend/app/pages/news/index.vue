@@ -75,9 +75,29 @@
             >
 
             <span class="text-base tracking-tight sm:text-lg"
-              >Maybe try a different keyword, or explore other topics—we're sure you'll find
+              >Maybe try a different keyword, or explore other topics. We're sure you'll find
               something awesome!</span
             >
+          </div>
+
+          <!-- Page out of range (e.g., ?page=10 when max is 9) -->
+          <div v-else-if="isPageOutOfRange" class="flex flex-col items-start">
+            <h2
+              class="text-4xl font-semibold tracking-tighter text-black sm:text-4xl xl:text-5xl dark:text-white"
+            >
+              Page {{ currentPage }} doesn't exist
+            </h2>
+            <p class="text-muted-foreground mt-4 text-base tracking-tight sm:text-lg">
+              There are only {{ meta.last_page }} pages available.
+            </p>
+
+            <div class="mt-6 flex items-center gap-3">
+              <Button @click="currentPage = meta.last_page"> Go to last page </Button>
+              <Button variant="outline" @click="currentPage = 1">
+                <IconChevronLeft class="size-4" />
+                Back to first page
+              </Button>
+            </div>
           </div>
 
           <!-- No posts at all (not searching) -->
@@ -89,13 +109,10 @@
             </h2>
             <p class="mt-4 text-base tracking-tight sm:text-lg">Please come back later</p>
 
-            <nuxt-link
-              to="/"
-              class="mt-4 flex items-center gap-x-1 rounded-full bg-black p-4 font-semibold tracking-tight text-white dark:bg-white dark:text-black"
-            >
-              <IconChevronLeft class="h-4" />
-              <span>Back to Home</span>
-            </nuxt-link>
+            <Button as="a" href="/" class="mt-4">
+              <IconChevronLeft class="size-4" />
+              Back to Home
+            </Button>
           </div>
 
           <!-- Posts list (regular or search results) -->
@@ -146,88 +163,82 @@ const postCardClasses = ref(
 const postStore = usePostStore();
 const { posts, pending, error, meta } = storeToRefs(postStore);
 
-// Get initial values from URL query parameters
-const initialPage = Number(route.query.page) || 1;
-const initialSearchQuery = (route.query.q || "").toString();
+// URL-driven pagination (source of truth)
+const currentPage = computed({
+  get: () => Number(route.query.page) || 1,
+  set: (val) => {
+    const query = { ...route.query };
+    if (val > 1) {
+      query.page = String(val);
+    } else {
+      delete query.page;
+    }
+    router.push({ query });
+  },
+});
 
-// Initialize search input with URL query
+// Search state
+const initialSearchQuery = (route.query.q || "").toString();
 const searchInput = ref(initialSearchQuery);
 const debouncedSearchInput = refDebounced(searchInput, 400);
+const isSearching = computed(() => debouncedSearchInput.value.length > 0);
+const isPageOutOfRange = computed(
+  () =>
+    !isSearching.value &&
+    currentPage.value > 1 &&
+    meta.value.last_page >= 1 &&
+    currentPage.value > meta.value.last_page
+);
 
-// Fetch initial data based on URL parameters
-// Always force fetch to ensure data matches current URL state
+// Initial SSR fetch
+const initialPage = Number(route.query.page) || 1;
 if (initialSearchQuery) {
   await postStore.searchPosts(initialSearchQuery, { page: initialPage });
 } else {
   await postStore.fetchPosts({ page: initialPage, force: true });
 }
 
-// Check if user is searching
-const isSearching = computed(() => debouncedSearchInput.value.length > 0);
+// Search input changes -> update URL (reset to page 1)
+watch(debouncedSearchInput, (newSearchTerm) => {
+  const currentQ = (route.query.q || "").toString();
+  const trimmed = newSearchTerm.trim();
 
-// Current page for pagination
-const currentPage = ref(initialPage);
+  // Skip if URL already matches (prevents loop from back/forward sync)
+  if (trimmed === currentQ) return;
 
-// Flag to prevent duplicate fetches when search triggers page reset
-const isSearchTriggeredPageChange = ref(false);
-
-// Watch for search input changes and search from backend
-watch(debouncedSearchInput, async (newSearchTerm) => {
-  if (newSearchTerm.trim()) {
-    // Mark that search is triggering the page change to prevent duplicate fetch
-    isSearchTriggeredPageChange.value = true;
-    currentPage.value = 1;
-    await postStore.searchPosts(newSearchTerm, { page: 1 });
-    isSearchTriggeredPageChange.value = false;
-
-    // Update URL with search query (without page param since it's page 1)
-    router.push({
-      query: { q: newSearchTerm },
-    });
-  } else {
-    // Mark that search clear is triggering the page change
-    isSearchTriggeredPageChange.value = true;
-    currentPage.value = 1;
-    await postStore.clearSearch();
-    isSearchTriggeredPageChange.value = false;
-
-    // Remove search query from URL
-    router.push({
-      query: {},
-    });
+  const query = {};
+  if (trimmed) {
+    query.q = trimmed;
   }
+  router.push({ query });
 });
 
-// Watch for page changes and fetch new data (only for user-initiated pagination)
-watch(currentPage, async (newPage) => {
-  // Skip if this page change was triggered by search (already handled above)
-  if (isSearchTriggeredPageChange.value) {
-    return;
-  }
+// Route query changes -> fetch data
+// Handles: pagination clicks, search, browser back/forward
+watch(
+  () => ({ page: route.query.page, q: route.query.q }),
+  async (newQuery, oldQuery) => {
+    const newPage = Number(newQuery.page) || 1;
+    const newSearch = (newQuery.q || "").toString();
+    const oldPage = Number(oldQuery?.page) || 1;
+    const oldSearch = (oldQuery?.q || "").toString();
 
-  if (newPage !== meta.value.current_page) {
-    if (isSearching.value) {
-      await postStore.searchPosts(debouncedSearchInput.value, { page: newPage });
-    } else {
-      await postStore.goToPage(newPage);
+    // Skip if nothing changed
+    if (newPage === oldPage && newSearch === oldSearch) return;
+
+    // Sync search input with URL (for browser back/forward)
+    if (newSearch !== searchInput.value) {
+      searchInput.value = newSearch;
     }
 
-    // Update URL query parameter
-    const query = {};
-    if (newPage > 1) query.page = newPage;
-    if (isSearching.value) query.q = debouncedSearchInput.value;
-    router.push({ query });
+    // Fetch data based on current URL state
+    if (newSearch) {
+      await postStore.searchPosts(newSearch, { page: newPage });
+    } else {
+      await postStore.fetchPosts({ page: newPage, force: true });
+    }
 
-    // Scroll to top of the page
     window.scrollTo({ top: 0 });
-  }
-});
-
-// Sync currentPage with meta when meta changes (e.g., after fetch)
-watch(
-  () => meta.value.current_page,
-  (newPage) => {
-    currentPage.value = newPage;
   }
 );
 

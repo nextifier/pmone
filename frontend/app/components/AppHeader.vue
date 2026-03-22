@@ -124,7 +124,7 @@
             <template #trigger>
               <Tippy>
                 <button
-                  class="text-primary hover:bg-muted hidden size-8 items-center justify-center rounded-lg sm:flex"
+                  class="text-primary hover:bg-muted flex size-8 items-center justify-center rounded-lg"
                   @click="shortcutsDialogOpen = true"
                 >
                   <Icon name="hugeicons:keyboard" class="size-5" />
@@ -146,9 +146,7 @@
 
                 <div class="mt-5 space-y-5">
                   <div>
-                    <h3
-                      class="text-muted-foreground text-xs font-medium tracking-tight uppercase"
-                    >
+                    <h3 class="text-muted-foreground text-sm font-medium tracking-tight uppercase">
                       General
                     </h3>
                     <div class="divide-border mt-2 divide-y">
@@ -195,24 +193,18 @@
                   </div>
 
                   <div>
-                    <h3
-                      class="text-muted-foreground text-xs font-medium tracking-tight uppercase"
-                    >
+                    <h3 class="text-muted-foreground text-sm font-medium tracking-tight uppercase">
                       Navigation
                     </h3>
                     <div class="divide-border mt-2 divide-y">
                       <div class="flex items-center justify-between py-2">
-                        <span class="text-sm tracking-tight"
-                          >Close dialog, dropdown, drawer</span
-                        >
+                        <span class="text-sm tracking-tight">Close dialog, dropdown, drawer</span>
                         <KbdGroup class="inline-flex">
                           <Kbd>Esc</Kbd>
                         </KbdGroup>
                       </div>
                       <div class="flex items-center justify-between py-2">
-                        <span class="text-sm tracking-tight"
-                          >Navigate focusable elements</span
-                        >
+                        <span class="text-sm tracking-tight">Navigate focusable elements</span>
                         <KbdGroup class="inline-flex">
                           <Kbd>Tab</Kbd>
                         </KbdGroup>
@@ -242,6 +234,38 @@
                           <Kbd>←</Kbd>
                           <Kbd>→</Kbd>
                         </KbdGroup>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 class="text-muted-foreground text-sm font-medium tracking-tight uppercase">
+                      Gestures
+                    </h3>
+                    <div class="divide-border mt-2 divide-y">
+                      <div class="flex items-center justify-between py-2">
+                        <span class="text-sm tracking-tight">Close drawer</span>
+                        <span class="text-muted-foreground text-sm font-medium tracking-tight"
+                          >Swipe Down</span
+                        >
+                      </div>
+                      <div class="flex items-center justify-between py-2">
+                        <span class="text-sm tracking-tight">Close sidebar</span>
+                        <span class="text-muted-foreground text-sm font-medium tracking-tight"
+                          >Swipe Left</span
+                        >
+                      </div>
+                      <div class="flex items-center justify-between py-2">
+                        <span class="text-sm tracking-tight">Navigate between tabs</span>
+                        <span class="text-muted-foreground text-sm font-medium tracking-tight"
+                          >Swipe Left / Right</span
+                        >
+                      </div>
+                      <div class="flex items-center justify-between py-2">
+                        <span class="text-sm tracking-tight">Reorder list items</span>
+                        <span class="text-muted-foreground text-sm font-medium tracking-tight"
+                          >Drag Handle</span
+                        >
                       </div>
                     </div>
                   </div>
