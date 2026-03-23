@@ -163,6 +163,12 @@
           >
             Try it with your next event.
           </h2>
+          <p
+            class="text-body mt-4 max-w-lg text-base leading-relaxed tracking-tight text-pretty sm:text-lg"
+          >
+            We handle the setup. You run the show. One login, your whole team aligned, exhibitors
+            managing themselves.
+          </p>
 
           <div class="mt-8">
             <a
