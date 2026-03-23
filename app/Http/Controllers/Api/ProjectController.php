@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Exports\ProjectsExport;
 use App\Exports\ProjectsTemplateExport;
+use App\Helpers\LinkNormalizer;
+use App\Helpers\LinkSyncHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\UserMinimalResource;
@@ -15,7 +17,9 @@ use App\Notifications\ProjectMemberRemovedNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -111,7 +115,7 @@ class ProjectController extends Controller
 
         if ($request->has('links') && is_array($request->links)) {
             $request->merge([
-                'links' => \App\Helpers\LinkNormalizer::normalizeAll($request->links),
+                'links' => LinkNormalizer::normalizeAll($request->links),
             ]);
         }
 
@@ -125,7 +129,7 @@ class ProjectController extends Controller
                 'not_in:'.implode(',', config('reserved_slugs')),
                 'unique:projects,username',
             ],
-            'bio' => ['nullable', 'string', 'max:1000'],
+            'bio' => ['nullable', 'string'],
             'settings' => ['nullable', 'array'],
             'more_details' => ['nullable', 'array'],
             'status' => ['required', Rule::in(['draft', 'active', 'archived'])],
@@ -159,7 +163,7 @@ class ProjectController extends Controller
         if (! empty($validated['links'])) {
             foreach ($validated['links'] as $index => $link) {
                 // Skip if trying to create Email or WhatsApp link manually
-                if (\App\Helpers\LinkSyncHelper::isContactLink($link['label'])) {
+                if (LinkSyncHelper::isContactLink($link['label'])) {
                     continue;
                 }
 
@@ -173,13 +177,16 @@ class ProjectController extends Controller
         }
 
         // Auto-sync Email and WhatsApp links
-        \App\Helpers\LinkSyncHelper::syncProjectContactLinks($project);
+        LinkSyncHelper::syncProjectContactLinks($project);
 
         // Handle profile image upload from temporary storage
         $this->handleTemporaryUpload($request, $project, 'tmp_profile_image', 'profile_image');
 
         // Handle cover image upload from temporary storage
         $this->handleTemporaryUpload($request, $project, 'tmp_cover_image', 'cover_image');
+
+        // Process content images in bio
+        $this->processContentImages($project);
 
         return response()->json([
             'message' => 'Project created successfully',
@@ -208,7 +215,7 @@ class ProjectController extends Controller
 
         if ($request->has('links') && is_array($request->links)) {
             $request->merge([
-                'links' => \App\Helpers\LinkNormalizer::normalizeAll($request->links),
+                'links' => LinkNormalizer::normalizeAll($request->links),
             ]);
         }
 
@@ -222,7 +229,7 @@ class ProjectController extends Controller
                 'not_in:'.implode(',', config('reserved_slugs')),
                 Rule::unique('projects', 'username')->ignore($project->id),
             ],
-            'bio' => ['nullable', 'string', 'max:1000'],
+            'bio' => ['nullable', 'string'],
             'settings' => ['nullable', 'array'],
             'more_details' => ['nullable', 'array'],
             'status' => ['sometimes', Rule::in(['draft', 'active', 'archived'])],
@@ -248,6 +255,8 @@ class ProjectController extends Controller
             unset($validated['phones']);
         }
 
+        $oldBio = $project->bio;
+
         $project->update($validated);
 
         if (isset($validated['member_ids'])) {
@@ -266,7 +275,7 @@ class ProjectController extends Controller
             // Create new links (skip Email/WhatsApp from form)
             foreach ($validated['links'] as $index => $link) {
                 // Skip if trying to create Email or WhatsApp link manually
-                if (\App\Helpers\LinkSyncHelper::isContactLink($link['label'])) {
+                if (LinkSyncHelper::isContactLink($link['label'])) {
                     continue;
                 }
 
@@ -280,13 +289,17 @@ class ProjectController extends Controller
         }
 
         // Auto-sync Email and WhatsApp links
-        \App\Helpers\LinkSyncHelper::syncProjectContactLinks($project);
+        LinkSyncHelper::syncProjectContactLinks($project);
 
         // Handle profile image upload from temporary storage
         $this->handleTemporaryUpload($request, $project, 'tmp_profile_image', 'profile_image');
 
         // Handle cover image upload from temporary storage
         $this->handleTemporaryUpload($request, $project, 'tmp_cover_image', 'cover_image');
+
+        // Process content images in bio
+        $this->processContentImages($project);
+        $this->cleanupRemovedContentImages($project, $oldBio);
 
         return response()->json([
             'message' => 'Project updated successfully',
@@ -614,20 +627,20 @@ class ProjectController extends Controller
             // Get file path from temporary storage
             $metadataPath = "tmp/uploads/{$tempFolder}/metadata.json";
 
-            if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+            if (! Storage::disk('local')->exists($metadataPath)) {
                 return response()->json([
                     'message' => 'File not found',
                 ], 404);
             }
 
             $metadata = json_decode(
-                \Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath),
+                Storage::disk('local')->get($metadataPath),
                 true
             );
 
             $filePath = "tmp/uploads/{$tempFolder}/{$metadata['original_name']}";
 
-            if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($filePath)) {
+            if (! Storage::disk('local')->exists($filePath)) {
                 return response()->json([
                     'message' => 'File not found',
                 ], 404);
@@ -635,7 +648,7 @@ class ProjectController extends Controller
 
             // Import projects
             $import = new ProjectsImport;
-            Excel::import($import, \Illuminate\Support\Facades\Storage::disk('local')->path($filePath));
+            Excel::import($import, Storage::disk('local')->path($filePath));
 
             // Get import results
             $failures = $import->getFailures();
@@ -675,7 +688,7 @@ class ProjectController extends Controller
         } finally {
             // Always clean up temporary files
             if ($tempFolder) {
-                \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
+                Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
             }
         }
     }
@@ -737,25 +750,25 @@ class ProjectController extends Controller
         }
 
         // If value doesn't start with 'tmp-', it's an existing media URL, skip
-        if (! \Illuminate\Support\Str::startsWith($value, 'tmp-')) {
+        if (! Str::startsWith($value, 'tmp-')) {
             return;
         }
 
         // Handle new upload from temporary storage
         $metadataPath = "tmp/uploads/{$value}/metadata.json";
 
-        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+        if (! Storage::disk('local')->exists($metadataPath)) {
             return;
         }
 
         $metadata = json_decode(
-            \Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath),
+            Storage::disk('local')->get($metadataPath),
             true
         );
 
         $filePath = "tmp/uploads/{$value}/{$metadata['original_name']}";
 
-        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($filePath)) {
+        if (! Storage::disk('local')->exists($filePath)) {
             return;
         }
 
@@ -763,10 +776,152 @@ class ProjectController extends Controller
         $project->clearMediaCollection($collection);
 
         // Add new media
-        $project->addMedia(\Illuminate\Support\Facades\Storage::disk('local')->path($filePath))
+        $project->addMedia(Storage::disk('local')->path($filePath))
             ->toMediaCollection($collection);
 
         // Clean up temporary files
-        \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
+        Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
+    }
+
+    private function processContentImages(Project $project): void
+    {
+        if (! $project->bio) {
+            return;
+        }
+
+        $content = $project->bio;
+        $pattern = '/<img[^>]+src="(?:https?:\/\/[^\/]+)?\/api\/tmp-media\/(tmp-media-[a-zA-Z0-9._-]+)"[^>]*>/';
+
+        if (! preg_match_all($pattern, $content, $matches, PREG_SET_ORDER)) {
+            return;
+        }
+
+        foreach ($matches as $match) {
+            $fullImgTag = $match[0];
+            $folder = $match[1];
+
+            try {
+                $metadataPath = "tmp/uploads/{$folder}/metadata.json";
+
+                if (! Storage::disk('local')->exists($metadataPath)) {
+                    continue;
+                }
+
+                $metadata = json_decode(Storage::disk('local')->get($metadataPath), true);
+                $filename = $metadata['original_name'];
+                $tempFilePath = "tmp/uploads/{$folder}/{$filename}";
+
+                if (! Storage::disk('local')->exists($tempFilePath)) {
+                    continue;
+                }
+
+                $caption = null;
+                if (preg_match('/data-caption="([^"]*)"/', $fullImgTag, $captionMatch)) {
+                    $caption = html_entity_decode($captionMatch[1]);
+                }
+
+                $mediaAdder = $project->addMediaFromDisk($tempFilePath, 'local')
+                    ->usingName(pathinfo($filename, PATHINFO_FILENAME));
+
+                if ($caption) {
+                    $mediaAdder->withCustomProperties(['caption' => $caption]);
+                }
+
+                $media = $mediaAdder->toMediaCollection('bio_images');
+
+                $responsiveImg = $this->buildResponsiveImageHtml($media, $caption);
+                $content = str_replace($fullImgTag, $responsiveImg, $content);
+
+                Storage::disk('local')->deleteDirectory("tmp/uploads/{$folder}");
+            } catch (\Exception $e) {
+                logger()->warning('Failed to process content image', [
+                    'folder' => $folder,
+                    'error' => $e->getMessage(),
+                    'project_id' => $project->id,
+                ]);
+            }
+        }
+
+        if ($content !== $project->bio) {
+            $project->update(['bio' => $content]);
+        }
+    }
+
+    private function buildResponsiveImageHtml($media, ?string $caption = null): string
+    {
+        $alt = $caption ?? $media->getCustomProperty('caption') ?? $media->name;
+
+        $srcset = [
+            $media->getUrl('sm').' 600w',
+            $media->getUrl('md').' 900w',
+            $media->getUrl('lg').' 1200w',
+            $media->getUrl('xl').' 1600w',
+        ];
+
+        $srcsetString = implode(', ', $srcset);
+        $sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1200px';
+
+        $captionAttr = $caption
+            ? sprintf(' data-caption="%s"', htmlspecialchars($caption, ENT_QUOTES, 'UTF-8'))
+            : '';
+
+        return sprintf(
+            '<img src="%s" srcset="%s" sizes="%s" alt="%s"%s loading="lazy" class="w-full h-auto rounded-lg">',
+            $media->getUrl('lg'),
+            $srcsetString,
+            $sizes,
+            htmlspecialchars($alt, ENT_QUOTES, 'UTF-8'),
+            $captionAttr
+        );
+    }
+
+    private function cleanupRemovedContentImages(Project $project, ?string $oldBio): void
+    {
+        $contentImages = $project->getMedia('bio_images');
+
+        if ($contentImages->isEmpty()) {
+            return;
+        }
+
+        $currentContent = $project->bio ?? '';
+
+        foreach ($contentImages as $media) {
+            if (! $this->isMediaUsedInContent($media, $currentContent)) {
+                try {
+                    $media->delete();
+                } catch (\Exception $e) {
+                    logger()->warning('Failed to cleanup removed bio image', [
+                        'project_id' => $project->id,
+                        'media_id' => $media->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+    }
+
+    private function isMediaUsedInContent($media, string $content): bool
+    {
+        if (empty($content)) {
+            return false;
+        }
+
+        $filename = $media->file_name;
+
+        if (str_contains($content, $filename)) {
+            return true;
+        }
+
+        $encodedFilename = rawurlencode($filename);
+        if (str_contains($content, $encodedFilename)) {
+            return true;
+        }
+
+        $baseName = pathinfo($filename, PATHINFO_FILENAME);
+        if (str_contains($content, $baseName)) {
+            return true;
+        }
+
+        return false;
     }
 }

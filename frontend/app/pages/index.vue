@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="space-y-16 lg:space-y-24">
     <!-- Hero -->
     <section class="relative isolate">
       <!-- Grid Background -->
@@ -40,364 +40,113 @@
 
       <div class="relative z-2 container">
         <div
-          class="flex flex-col items-center justify-center pt-10 pb-12 text-center lg:pt-14 lg:pb-20"
+          class="flex flex-col items-center justify-center pt-10 pb-8 text-center lg:pt-14 lg:pb-12"
         >
-          <!-- Badge -->
-          <NuxtLink
-            to="/news"
-            class="group bg-muted/50 ring-border hover:bg-muted mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm ring-1 transition"
-          >
-            <span class="text-muted-foreground tracking-tight"
-              >Event management, project tools, and analytics</span
-            >
-            <span
-              class="text-primary inline-flex items-center gap-1 font-medium transition group-hover:translate-x-0.5"
-            >
-              <Icon name="lucide:arrow-right" class="size-3.5" />
-            </span>
-          </NuxtLink>
-
           <!-- Headline -->
           <h1
-            class="text-foreground max-w-3xl text-4xl leading-[1.2]! font-medium tracking-tighter text-balance sm:text-6xl"
+            class="text-foreground max-w-3xl text-4xl leading-[1.15]! font-medium tracking-tighter text-balance sm:text-6xl"
           >
-            One platform. Every moving part of your event, handled.
+            Manage events, exhibitors, and content from one dashboard.
           </h1>
 
           <!-- Subtitle -->
           <p
-            class="text-body mt-5 max-w-2xl text-center text-base leading-relaxed tracking-tight text-pretty sm:text-lg"
+            class="text-body mt-4 max-w-2xl text-center text-base leading-relaxed tracking-tight text-pretty sm:text-lg"
           >
-            Projects, exhibitors, orders, links, analytics, content. All under one roof. Built for
-            event organizers who need less tabs and more clarity.
+            Projects, brands, orders, short links, blog posts, analytics, forms, and tasks.
+            Connected and searchable under one login.
           </p>
 
           <!-- CTA -->
-          <div class="mt-8">
-            <NuxtLink
-              to="/signup"
-              class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-5 py-2.5 text-sm font-medium tracking-tight transition active:scale-95"
-              v-ripple
-            >
-              Get started
-            </NuxtLink>
+          <div class="mt-6">
+            <Button to="/signup" size="lg" class="rounded-xl" v-ripple>Get started</Button>
           </div>
+        </div>
 
-          <!-- Feature pills -->
-          <div class="mt-12 flex flex-wrap items-center justify-center gap-2">
-            <div
-              v-for="pill in heroPills"
-              :key="pill.label"
-              class="ring-border bg-background inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium tracking-tight ring-1"
-            >
-              <span class="flex size-5 items-center justify-center rounded-md" :class="pill.bg">
-                <Icon :name="pill.icon" class="size-3 text-white" />
-              </span>
-              {{ pill.label }}
-            </div>
-          </div>
+        <!-- Hero Browser Mockup -->
+        <div class="mx-auto max-w-5xl">
+          <HomeBrowserMockup title="pmone.id/dashboard" size="lg" />
         </div>
       </div>
     </section>
 
-    <!-- Core Features: Bento Grid -->
-    <section class="py-20 lg:py-28">
+    <!-- Feature Sections -->
+    <section v-for="(feature, index) in features" :key="feature.id">
       <div class="container">
-        <div class="mb-12 max-w-xl lg:mb-16">
-          <p class="section-subtitle text-sm">Core platform</p>
-          <h2 class="section-title mt-3">The stuff you'll use every day.</h2>
-          <p class="section-description mt-4">
-            Everything you need in one place. Each tool designed to talk to the others.
-          </p>
-        </div>
-
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <NuxtLink
-            v-for="feature in coreFeatures"
-            :key="feature.title"
-            :to="feature.link"
-            class="group bg-card ring-border relative flex flex-col rounded-xl p-6 ring-1 transition hover:shadow-md"
-          >
-            <div class="mb-4 flex items-center gap-3">
-              <div
-                class="flex size-9 items-center justify-center rounded-lg transition"
-                :class="feature.iconBg"
-              >
-                <Icon :name="feature.icon" class="size-4 text-white" />
-              </div>
-              <h3 class="text-foreground text-base font-medium tracking-tighter">
-                {{ feature.title }}
-              </h3>
-            </div>
-            <p class="text-muted-foreground text-sm leading-relaxed tracking-tight">
-              {{ feature.description }}
-            </p>
-            <div class="mt-4 flex flex-wrap gap-1.5">
-              <span
-                v-for="tag in feature.tags"
-                :key="tag"
-                class="bg-muted text-muted-foreground rounded-md px-2 py-0.5 text-xs tracking-tight"
-              >
-                {{ tag }}
-              </span>
-            </div>
-            <div
-              class="text-muted-foreground mt-4 flex items-center gap-1 text-sm tracking-tight transition group-hover:translate-x-0.5"
-            >
-              <span>Explore</span>
-              <Icon name="lucide:arrow-right" class="size-3.5" />
-            </div>
-          </NuxtLink>
-        </div>
-      </div>
-    </section>
-
-    <!-- Event Management: Spotlight -->
-    <section class="bg-muted/30 py-20 lg:py-28">
-      <div class="container">
-        <div class="flex flex-col gap-12 lg:flex-row lg:items-start lg:gap-16">
-          <!-- Left: Copy -->
-          <div class="max-w-xl shrink-0 lg:w-1/2">
-            <p class="section-subtitle text-sm">Event management</p>
-            <h2 class="section-title mt-3">
-              Events have enough chaos already. Your tools shouldn't add more.
-            </h2>
-            <p class="section-description mt-4">
-              Create events under any project. Manage brands, booth assignments, product catalogs,
-              and orders. Your exhibitors get their own portal. You keep the overview.
-            </p>
+        <div
+          class="flex flex-col gap-8 lg:items-start lg:gap-16"
+          :class="index % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'"
+        >
+          <!-- Text column -->
+          <div class="flex max-w-xl shrink-0 flex-col items-start lg:w-1/2">
+            <p class="section-subtitle">{{ feature.subtitle }}</p>
+            <h2 class="section-title mt-2 leading-[1.2]!">{{ feature.title }}</h2>
+            <p class="section-description mt-3">{{ feature.description }}</p>
 
             <div class="mt-8 space-y-4">
-              <div v-for="item in eventHighlights" :key="item.title" class="flex gap-3">
+              <div
+                v-for="highlight in feature.highlights"
+                :key="highlight.title"
+                class="flex gap-3"
+              >
                 <div class="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
-                  <Icon :name="item.icon" class="text-muted-foreground size-4" />
+                  <Icon :name="highlight.icon" class="text-muted-foreground size-4" />
                 </div>
                 <div>
                   <p class="text-foreground text-sm font-medium tracking-tighter">
-                    {{ item.title }}
+                    {{ highlight.title }}
                   </p>
                   <p class="text-muted-foreground text-sm leading-relaxed tracking-tight">
-                    {{ item.description }}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right: Coming Soon Features Grid -->
-          <div class="flex-1">
-            <p class="text-muted-foreground mb-4 text-sm font-medium tracking-tight">
-              Event features
-            </p>
-            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <div
-                v-for="item in eventFeatures"
-                :key="item.label"
-                class="bg-card ring-border group flex flex-col items-center gap-2 rounded-xl p-4 text-center ring-1 transition hover:shadow-md"
-              >
-                <div
-                  class="bg-muted flex size-9 items-center justify-center rounded-lg transition group-hover:bg-orange-500/10"
-                >
-                  <Icon
-                    :name="item.icon"
-                    class="text-muted-foreground size-4 transition group-hover:text-orange-500"
-                  />
-                </div>
-                <span class="text-foreground text-xs font-medium tracking-tight sm:text-sm">{{
-                  item.label
-                }}</span>
-                <span
-                  v-if="item.soon"
-                  class="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-[10px] tracking-tight sm:text-xs"
-                >
-                  Soon
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Links & Analytics -->
-    <section class="py-20 lg:py-28">
-      <div class="container">
-        <div class="flex flex-col gap-12 lg:flex-row-reverse lg:items-start lg:gap-16">
-          <!-- Right: Copy -->
-          <div class="max-w-xl shrink-0 lg:w-1/2">
-            <p class="section-subtitle text-sm">Links & Analytics</p>
-            <h2 class="section-title mt-3">Short links with memory.</h2>
-            <p class="section-description mt-4">
-              Create branded short links, auto-generate QR codes, and know exactly where your clicks
-              come from. Device, location, referrer. The full picture.
-            </p>
-
-            <div class="mt-8 grid gap-4 sm:grid-cols-2">
-              <div v-for="item in linkHighlights" :key="item.title" class="flex gap-3">
-                <Icon :name="item.icon" class="text-muted-foreground mt-0.5 size-4 shrink-0" />
-                <div>
-                  <p class="text-foreground text-sm font-medium tracking-tighter">
-                    {{ item.title }}
-                  </p>
-                  <p class="text-muted-foreground text-sm leading-relaxed tracking-tight">
-                    {{ item.description }}
+                    {{ highlight.description }}
                   </p>
                 </div>
               </div>
             </div>
 
-            <NuxtLink
-              to="/links"
-              class="text-foreground group mt-6 inline-flex items-center gap-1.5 text-sm font-medium tracking-tight transition"
-            >
-              Try Short Links
+            <Button variant="link" :to="feature.link" class="group mt-6 gap-1.5 px-0">
+              {{ feature.linkText }}
               <Icon
-                name="lucide:arrow-right"
+                name="hugeicons:arrow-right-01"
                 class="size-3.5 transition-transform group-hover:translate-x-0.5"
               />
-            </NuxtLink>
+            </Button>
           </div>
 
-          <!-- Left: Stats cards -->
+          <!-- Video column -->
           <div class="flex-1">
-            <div class="grid gap-3 sm:grid-cols-2">
-              <div class="bg-card ring-border rounded-xl p-5 ring-1">
-                <div class="flex items-center gap-2">
-                  <div class="bg-success/10 flex size-8 items-center justify-center rounded-full">
-                    <Icon name="lucide:trending-up" class="text-success-foreground size-4" />
-                  </div>
-                  <span class="text-muted-foreground text-sm tracking-tight">Traffic</span>
-                </div>
-                <p class="text-foreground mt-3 text-2xl font-medium tracking-tighter">+247%</p>
-                <p class="text-muted-foreground text-sm tracking-tight">this month</p>
-              </div>
-              <div class="bg-card ring-border rounded-xl p-5 ring-1">
-                <div class="flex items-center gap-2">
-                  <div class="bg-info/10 flex size-8 items-center justify-center rounded-full">
-                    <Icon name="lucide:mouse-pointer-click" class="text-info-foreground size-4" />
-                  </div>
-                  <span class="text-muted-foreground text-sm tracking-tight">Clicks</span>
-                </div>
-                <p class="text-foreground mt-3 text-2xl font-medium tracking-tighter">12.5K</p>
-                <p class="text-muted-foreground text-sm tracking-tight">this week</p>
-              </div>
-              <div class="bg-card ring-border rounded-xl p-5 ring-1">
-                <div class="flex items-center gap-2">
-                  <div class="bg-warning/10 flex size-8 items-center justify-center rounded-full">
-                    <Icon name="lucide:qr-code" class="text-warning-foreground size-4" />
-                  </div>
-                  <span class="text-muted-foreground text-sm tracking-tight">QR Scans</span>
-                </div>
-                <p class="text-foreground mt-3 text-2xl font-medium tracking-tighter">3.8K</p>
-                <p class="text-muted-foreground text-sm tracking-tight">total scans</p>
-              </div>
-              <div class="bg-card ring-border rounded-xl p-5 ring-1">
-                <div class="flex items-center gap-2">
-                  <div
-                    class="bg-destructive/10 flex size-8 items-center justify-center rounded-full"
-                  >
-                    <Icon name="lucide:globe" class="text-destructive-foreground size-4" />
-                  </div>
-                  <span class="text-muted-foreground text-sm tracking-tight">Countries</span>
-                </div>
-                <p class="text-foreground mt-3 text-2xl font-medium tracking-tighter">24</p>
-                <p class="text-muted-foreground text-sm tracking-tight">unique locations</p>
-              </div>
-            </div>
+            <HomeBrowserMockup :title="feature.mockupUrl" />
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Content Publishing -->
-    <section class="bg-muted/30 py-20 lg:py-28">
+    <!-- Coming Soon -->
+    <section>
       <div class="container">
-        <div class="flex flex-col gap-12 lg:flex-row lg:items-start lg:gap-16">
-          <div class="max-w-xl shrink-0 lg:w-1/2">
-            <p class="section-subtitle text-sm">Content publishing</p>
-            <h2 class="section-title mt-3">Write it. Schedule it. Done.</h2>
-            <p class="section-description mt-4">
-              A clean rich-text editor with image uploads, categories, tags, and scheduled
-              publishing. No plugin hell. No theme conflicts. Just writing.
-            </p>
-
-            <div class="mt-8 space-y-3">
-              <div
-                v-for="item in contentHighlights"
-                :key="item.label"
-                class="flex items-center gap-3"
-              >
-                <Icon name="lucide:check" class="text-success-foreground size-4 shrink-0" />
-                <span class="text-body text-sm tracking-tight">{{ item.label }}</span>
-              </div>
-            </div>
-
-            <NuxtLink
-              to="/posts"
-              class="text-foreground group mt-6 inline-flex items-center gap-1.5 text-sm font-medium tracking-tight transition"
-            >
-              Explore Content
-              <Icon
-                name="lucide:arrow-right"
-                class="size-3.5 transition-transform group-hover:translate-x-0.5"
-              />
-            </NuxtLink>
-          </div>
-
-          <!-- Right: Simulated editor -->
-          <div class="flex-1">
-            <div class="bg-card ring-border overflow-hidden rounded-xl ring-1">
-              <!-- Toolbar -->
-              <div class="border-border flex items-center gap-1 border-b px-4 py-2.5">
-                <div
-                  v-for="tool in editorTools"
-                  :key="tool"
-                  class="bg-muted text-muted-foreground flex size-7 items-center justify-center rounded-md"
-                >
-                  <Icon :name="tool" class="size-3.5" />
-                </div>
-              </div>
-              <!-- Content -->
-              <div class="p-5 sm:p-6">
-                <div class="bg-muted mb-3 h-3 w-3/4 rounded" />
-                <div class="bg-muted/70 mb-2 h-2.5 w-full rounded" />
-                <div class="bg-muted/70 mb-2 h-2.5 w-full rounded" />
-                <div class="bg-muted/70 mb-2 h-2.5 w-5/6 rounded" />
-                <div class="bg-muted/50 mt-5 aspect-video w-full rounded-lg" />
-                <div class="bg-muted/70 mt-5 mb-2 h-2.5 w-full rounded" />
-                <div class="bg-muted/70 mb-2 h-2.5 w-4/5 rounded" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- API & Integrations -->
-    <section class="py-20 lg:py-28">
-      <div class="container">
-        <div class="mb-12 max-w-xl lg:mb-16">
-          <p class="section-subtitle text-sm">Integrations</p>
-          <h2 class="section-title mt-3">Connects to the tools you already use.</h2>
-          <p class="section-description mt-4">
-            Google Analytics, custom webhooks, REST API. Build what you need on top of PM One.
+        <div class="mb-12 text-center lg:mb-16">
+          <p class="section-subtitle text-sm">Coming soon</p>
+          <h2 class="section-title mt-3">More on the way.</h2>
+          <p class="section-description mx-auto mt-4">
+            These features are in active development. They will roll out over the coming months.
           </p>
         </div>
 
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="mx-auto grid max-w-4xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <div
-            v-for="item in integrations"
+            v-for="item in comingSoon"
             :key="item.title"
-            class="group bg-card ring-border rounded-xl p-5 ring-1 transition hover:shadow-md"
+            class="bg-card ring-border rounded-xl p-6 ring-1"
           >
-            <div class="mb-3">
-              <Icon
-                :name="item.icon"
-                class="text-muted-foreground size-5 transition group-hover:text-orange-500"
-              />
+            <Badge variant="secondary">Coming soon</Badge>
+            <div class="bg-muted mt-4 flex size-10 items-center justify-center rounded-lg">
+              <Icon :name="item.icon" class="text-muted-foreground size-5" />
             </div>
-            <h3 class="text-foreground text-sm font-medium tracking-tighter">{{ item.title }}</h3>
-            <p class="text-muted-foreground mt-1.5 text-sm leading-relaxed tracking-tight">
+            <h3 class="text-foreground mt-4 text-lg font-medium tracking-tighter">
+              {{ item.title }}
+            </h3>
+            <p
+              class="text-muted-foreground mt-2 text-sm leading-relaxed tracking-tight sm:text-base"
+            >
               {{ item.description }}
             </p>
           </div>
@@ -405,260 +154,87 @@
       </div>
     </section>
 
-    <!-- Platform Features Grid -->
-    <section class="bg-muted/30 py-20 lg:py-28">
-      <div class="container">
-        <div class="mb-12 text-center lg:mb-16">
-          <h2 class="section-title">Built for real work.</h2>
-          <p class="section-description mx-auto mt-4">
-            The details that make the difference when you're managing events at scale.
-          </p>
-        </div>
-
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <div
-            v-for="feature in platformFeatures"
-            :key="feature.title"
-            class="group bg-card ring-border rounded-xl p-5 ring-1 transition hover:shadow-md"
-          >
-            <div class="mb-3 flex items-center gap-3">
-              <div
-                class="bg-muted flex size-9 items-center justify-center rounded-lg transition group-hover:bg-orange-500/10"
-              >
-                <Icon
-                  :name="feature.icon"
-                  class="text-muted-foreground size-4 transition group-hover:text-orange-500"
-                />
-              </div>
-              <h3 class="text-foreground text-sm font-medium tracking-tighter">
-                {{ feature.title }}
-              </h3>
-            </div>
-            <p class="text-muted-foreground text-sm leading-relaxed tracking-tight">
-              {{ feature.description }}
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Numbers -->
-    <section class="border-border/50 border-y py-16">
-      <div class="container">
-        <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          <div v-for="stat in stats" :key="stat.label" class="text-center">
-            <p class="text-primary text-4xl font-medium tracking-tighter lg:text-5xl">
-              {{ stat.value }}
-            </p>
-            <p class="text-muted-foreground mt-2 text-sm tracking-tight">{{ stat.label }}</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Who it's for -->
-    <section class="bg-muted/30 py-20 lg:py-28">
-      <div class="container">
-        <div class="mb-12 text-center lg:mb-16">
-          <p class="section-subtitle text-sm">Built for</p>
-          <h2 class="section-title mt-3">Different roles. Same platform.</h2>
-          <p class="section-description mx-auto mt-4">
-            Whether you're running the show or exhibiting at one, PM One fits your workflow.
-          </p>
-        </div>
-
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <div
-            v-for="persona in personas"
-            :key="persona.title"
-            class="bg-card ring-border rounded-xl p-6 ring-1"
-          >
-            <div
-              class="mb-4 flex size-10 items-center justify-center rounded-lg"
-              :class="persona.iconBg"
-            >
-              <Icon :name="persona.icon" class="size-5 text-white" />
-            </div>
-            <h3 class="text-foreground text-base font-medium tracking-tighter">
-              {{ persona.title }}
-            </h3>
-            <p class="text-muted-foreground mt-2 text-sm leading-relaxed tracking-tight">
-              {{ persona.description }}
-            </p>
-            <ul class="mt-4 space-y-2">
-              <li v-for="point in persona.points" :key="point" class="flex items-start gap-2">
-                <Icon
-                  name="lucide:check"
-                  class="text-success-foreground mt-0.5 size-3.5 shrink-0"
-                />
-                <span class="text-body text-sm tracking-tight">{{ point }}</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Testimonial -->
-    <section class="py-20 lg:py-28">
-      <div class="container">
-        <div class="mx-auto max-w-3xl text-center">
-          <Icon name="lucide:quote" class="text-muted-foreground/30 mx-auto size-10" />
-          <blockquote
-            class="text-foreground mt-6 text-xl leading-relaxed font-medium tracking-tighter sm:text-2xl"
-          >
-            "{{ testimonial.quote }}"
-          </blockquote>
-          <div class="mt-6 flex items-center justify-center gap-3">
-            <div class="bg-muted flex size-10 items-center justify-center rounded-full">
-              <Icon name="lucide:user" class="text-muted-foreground size-5" />
-            </div>
-            <div class="text-left">
-              <p class="text-foreground text-sm font-medium tracking-tight">
-                {{ testimonial.author }}
-              </p>
-              <p class="text-muted-foreground text-sm tracking-tight">
-                {{ testimonial.role }}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- CTA -->
-    <section class="relative overflow-hidden py-20 lg:py-28">
+    <section class="relative overflow-hidden">
       <div class="relative container">
         <div class="flex flex-col items-center text-center">
           <h2
             class="max-w-2xl text-4xl leading-tight font-medium tracking-tighter sm:text-5xl lg:text-6xl"
           >
-            Less tools. More focus.
+            Try it with your next event.
           </h2>
-          <p class="text-body mt-4 max-w-lg text-base tracking-tight sm:text-lg">
-            Try it with your next event. Free plan, no credit card, 5-minute setup.
-          </p>
 
-          <div class="mt-8 flex items-center gap-3">
-            <NuxtLink
-              to="/signup"
-              class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-5 py-2.5 text-sm font-medium tracking-tight transition active:scale-95"
+          <div class="mt-8">
+            <a
+              href="mailto:hello@panoramamedia.co.id"
+              class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-medium tracking-tight transition"
               v-ripple
             >
-              Create free account
-            </NuxtLink>
-          </div>
-
-          <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <div class="text-primary/70 flex items-center gap-2">
-              <Icon name="hugeicons:star-circle" class="size-5 shrink-0" />
-              <span class="text-sm tracking-tight">5.0 Rating</span>
-            </div>
-            <div class="bg-border hidden h-4 w-px sm:block" />
-            <p class="text-primary/70 text-sm tracking-tight">No credit card</p>
-            <div class="bg-border hidden h-4 w-px sm:block" />
-            <p class="text-primary/70 text-sm tracking-tight">Setup in 5 minutes</p>
+              Contact Us
+            </a>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Footer -->
-    <footer class="bg-background border-border border-t py-16">
+    <footer class="pt-10 lg:pt-16">
       <div class="container">
-        <div class="grid gap-10 lg:grid-cols-6">
-          <div class="lg:col-span-2">
+        <div class="flex flex-col gap-x-2 gap-y-10 lg:flex-row lg:gap-x-8">
+          <div class="flex shrink-0 flex-col items-center gap-y-1 lg:items-start">
             <NuxtLink to="/">
               <Logo class="text-primary h-6" />
             </NuxtLink>
-            <p class="text-muted-foreground mt-4 max-w-xs text-sm leading-relaxed tracking-tight">
-              Event management and project collaboration platform. Built for teams who run events,
-              manage exhibitors, and track everything in between.
+            <p
+              class="text-muted-foreground mt-4 max-w-xs text-center text-sm leading-relaxed tracking-tight lg:text-left"
+            >
+              Event management and project collaboration platform for teams who run events, manage
+              exhibitors, and keep everything in one place.
             </p>
-            <div class="mt-6 flex items-center gap-3">
-              <a
-                v-for="social in socialLinks"
-                :key="social.label"
-                :href="social.url"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-muted-foreground hover:text-foreground transition"
-                :aria-label="social.label"
-              >
-                <Icon :name="social.icon" class="size-5" />
-              </a>
+          </div>
+
+          <div
+            class="grid grow grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-x-2 gap-y-10 lg:gap-x-4"
+          >
+            <div v-for="section in footerSections" :key="section.label" class="flex flex-col">
+              <span class="text-muted-foreground px-3 text-xs font-medium tracking-tight uppercase">
+                {{ section.label }}
+              </span>
+              <div class="mt-3 flex flex-col gap-y-0.5">
+                <NuxtLink
+                  v-for="link in section.links"
+                  :key="link.to"
+                  :to="link.to"
+                  class="text-primary hover:bg-muted rounded-lg px-3 py-1 text-base font-medium tracking-[-0.04em]"
+                >
+                  {{ link.label }}
+                </NuxtLink>
+              </div>
             </div>
-          </div>
-
-          <div>
-            <h4 class="text-foreground mb-4 text-sm font-medium tracking-tighter">Platform</h4>
-            <ul class="space-y-3">
-              <li v-for="link in platformLinks" :key="link.to">
-                <NuxtLink
-                  :to="link.to"
-                  class="text-muted-foreground hover:text-foreground text-sm tracking-tight transition"
-                >
-                  {{ link.label }}
-                </NuxtLink>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 class="text-foreground mb-4 text-sm font-medium tracking-tighter">Events</h4>
-            <ul class="space-y-3">
-              <li v-for="link in eventLinks" :key="link.label">
-                <NuxtLink
-                  :to="link.to"
-                  class="text-muted-foreground hover:text-foreground text-sm tracking-tight transition"
-                >
-                  {{ link.label }}
-                </NuxtLink>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 class="text-foreground mb-4 text-sm font-medium tracking-tighter">Resources</h4>
-            <ul class="space-y-3">
-              <li v-for="link in resourceLinks" :key="link.to">
-                <NuxtLink
-                  :to="link.to"
-                  class="text-muted-foreground hover:text-foreground text-sm tracking-tight transition"
-                >
-                  {{ link.label }}
-                </NuxtLink>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 class="text-foreground mb-4 text-sm font-medium tracking-tighter">Account</h4>
-            <ul class="space-y-3">
-              <li v-for="link in accountLinks" :key="link.to">
-                <NuxtLink
-                  :to="link.to"
-                  class="text-muted-foreground hover:text-foreground text-sm tracking-tight transition"
-                >
-                  {{ link.label }}
-                </NuxtLink>
-              </li>
-            </ul>
           </div>
         </div>
 
+        <div class="mt-10 flex items-center justify-center gap-6">
+          <a
+            v-for="social in socialLinks"
+            :key="social.label"
+            :href="social.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-muted-foreground hover:text-foreground transition"
+            :aria-label="social.label"
+          >
+            <Icon :name="social.icon" class="size-6" />
+          </a>
+        </div>
+
         <div
-          class="border-border mt-12 flex flex-col items-center justify-between gap-4 border-t pt-8 md:flex-row"
+          class="text-muted-foreground flex items-center justify-center pt-8 pb-16 text-center text-xs"
         >
-          <div class="flex items-center gap-2">
-            <span class="bg-success size-2 rounded-full" />
-            <span class="text-muted-foreground text-sm tracking-tight"
-              >All systems operational</span
-            >
-          </div>
-          <p class="text-muted-foreground text-sm tracking-tight">
-            &copy; {{ new Date().getFullYear() }} PM One. All rights reserved.
-          </p>
+          <span>
+            <span class="hidden sm:inline">Copyright</span> &copy; {{ new Date().getFullYear() }} PM
+            One. All rights reserved.
+          </span>
         </div>
       </div>
     </footer>
@@ -670,329 +246,292 @@ definePageMeta({});
 
 usePageMeta(null, { title: "PM One", withoutTitleTemplate: true });
 
-// Hero pills
-const heroPills = [
-  { label: "Projects", icon: "lucide:folder-kanban", bg: "bg-orange-500" },
-  { label: "Events", icon: "lucide:calendar-days", bg: "bg-red-500" },
-  { label: "Exhibitors", icon: "lucide:store", bg: "bg-emerald-500" },
-  { label: "Short Links", icon: "lucide:link", bg: "bg-green-500" },
-  { label: "Analytics", icon: "lucide:bar-chart-3", bg: "bg-blue-500" },
-  { label: "Blog", icon: "lucide:file-text", bg: "bg-purple-500" },
-  { label: "Tasks", icon: "lucide:square-check", bg: "bg-sky-500" },
-  { label: "Inbox", icon: "lucide:inbox", bg: "bg-pink-500" },
-];
-
-// Core features
-const coreFeatures = [
+// Feature sections
+const features = [
   {
-    title: "Projects",
-    icon: "lucide:folder-kanban",
-    iconBg: "bg-orange-500",
-    link: "/projects",
+    id: "events",
+    subtitle: "Event management",
+    title: "Set up events in minutes, manage them for months.",
     description:
-      "Unlimited projects with their own teams, settings, and visibility. Kanban tasks, member roles, custom fields, and activity logs built in.",
-    tags: ["Members", "Custom Fields", "Activity", "Settings"],
+      "Create events under any project. Add venues, dates, product catalogs, and order forms. Your exhibitors get their own portal while you keep the full overview.",
+    highlights: [
+      {
+        icon: "hugeicons:map-pin",
+        title: "Venues & schedules",
+        description: "Set locations, halls, and time slots for any event format.",
+      },
+      {
+        icon: "hugeicons:package",
+        title: "Product catalogs",
+        description: "Define event products with pricing, categories, and booth types.",
+      },
+      {
+        icon: "hugeicons:clipboard",
+        title: "Order tracking",
+        description: "Follow every order from placement through to fulfillment.",
+      },
+    ],
+    mockupUrl: "pmone.id/events",
+    link: "/projects",
+    linkText: "Explore events",
   },
   {
-    title: "Events",
-    icon: "lucide:calendar-days",
-    iconBg: "bg-red-500",
-    link: "/projects",
+    id: "exhibitors",
+    subtitle: "Exhibitor portal",
+    title: "Your exhibitors handle their own setup.",
     description:
-      "Create events under any project. Handle dates, venues, product catalogs, and order forms. Multi-day or single-day, both work.",
-    tags: ["Products", "Orders", "Schedules", "Multi-day"],
-  },
-  {
-    title: "Brands & Exhibitors",
-    icon: "lucide:store",
-    iconBg: "bg-emerald-500",
+      "Exhibitors log in, update their brand profile, review booth details, submit documents, and place orders through their own dashboard. You review and approve when ready.",
+    highlights: [
+      {
+        icon: "hugeicons:building-02",
+        title: "Brand profiles",
+        description: "Exhibitors update company info, logos, and descriptions on their own.",
+      },
+      {
+        icon: "hugeicons:file-validation",
+        title: "Document submission",
+        description: "Collect signed agreements and required uploads per event.",
+      },
+      {
+        icon: "hugeicons:shopping-cart-01",
+        title: "Self-service orders",
+        description: "Exhibitors browse the catalog and submit orders without your help.",
+      },
+    ],
+    mockupUrl: "pmone.id/exhibitor",
     link: "/brands",
-    description:
-      "Onboard exhibitors, assign them to events, manage booth details, and let them submit marketing materials through their own portal.",
-    tags: ["Booth", "Portal", "Import/Export", "Invites"],
+    linkText: "Explore brands",
   },
   {
-    title: "Short Links",
-    icon: "lucide:link",
-    iconBg: "bg-green-500",
-    link: "/links",
+    id: "content",
+    subtitle: "Content publishing",
+    title: "Write, schedule, publish. See what gets traction.",
     description:
-      "Branded short URLs with auto-generated QR codes. Track clicks by device, country, and referrer. Static QR generator included.",
-    tags: ["QR Codes", "Click Analytics", "Custom Slugs"],
-  },
-  {
-    title: "Web Analytics",
-    icon: "lucide:bar-chart-3",
-    iconBg: "bg-blue-500",
-    link: "/web-analytics",
-    description:
-      "First-party analytics that actually respect privacy. Page views, traffic sources, device breakdowns. Connect Google Analytics for deeper data.",
-    tags: ["GA Integration", "Pageviews", "Traffic Sources"],
-  },
-  {
-    title: "Content & Blog",
-    icon: "lucide:file-text",
-    iconBg: "bg-purple-500",
+      "A clean rich-text editor with image uploads, embeds, and formatting. Organize posts with categories and tags. Schedule ahead or publish on the spot. Every post shows its own view count.",
+    highlights: [
+      {
+        icon: "hugeicons:cursor-text",
+        title: "Rich editor",
+        description: "Full formatting, image uploads, and embed support. Autosave included.",
+      },
+      {
+        icon: "hugeicons:clock-01",
+        title: "Scheduling",
+        description: "Write today, publish next Tuesday. Set it and move on.",
+      },
+      {
+        icon: "hugeicons:eye",
+        title: "Post analytics",
+        description: "See which posts pull traffic without extra setup.",
+      },
+    ],
+    mockupUrl: "pmone.id/posts",
     link: "/posts",
-    description:
-      "Rich text editor with images, embeds, and formatting. Scheduled publishing, categories, tags. Per-post analytics included.",
-    tags: ["Rich Editor", "Scheduling", "Categories"],
+    linkText: "Explore content",
   },
   {
-    title: "Tasks",
-    icon: "lucide:square-check",
-    iconBg: "bg-sky-500",
+    id: "contacts",
+    subtitle: "Contacts & CRM",
+    title: "Every contact, one searchable place.",
+    description:
+      "Add contacts one by one or import thousands via spreadsheet. Tag them, sort by business type, link to projects. Find duplicates before they pile up.",
+    highlights: [
+      {
+        icon: "hugeicons:tags",
+        title: "Tags & categories",
+        description: "Organize contacts by type, industry, or any custom label.",
+      },
+      {
+        icon: "hugeicons:copy-01",
+        title: "Duplicate detection",
+        description: "Scan for duplicates and merge or remove them in bulk.",
+      },
+      {
+        icon: "hugeicons:upload-01",
+        title: "Import & export",
+        description: "Bring contacts in via CSV. Export any time for reports.",
+      },
+    ],
+    mockupUrl: "pmone.id/contacts",
+    link: "/contacts",
+    linkText: "Explore contacts",
+  },
+  {
+    id: "links",
+    subtitle: "Short links & link pages",
+    title: "Branded short links with click tracking.",
+    description:
+      "Create short URLs with custom slugs. Every link gets a QR code. Track clicks by device, country, and referrer. Bundle multiple links into one page for your bio or event.",
+    highlights: [
+      {
+        icon: "hugeicons:link-02",
+        title: "Custom slugs",
+        description: "Pick your own URL endings instead of random strings.",
+      },
+      {
+        icon: "hugeicons:qr-code",
+        title: "Auto QR codes",
+        description: "Every short link generates a QR code you can download or print.",
+      },
+      {
+        icon: "hugeicons:layout-table-01",
+        title: "Link pages",
+        description: "Group links under one URL for bios and event landing pages.",
+      },
+    ],
+    mockupUrl: "pmone.id/links",
+    link: "/links",
+    linkText: "Explore links",
+  },
+  {
+    id: "forms",
+    subtitle: "Form builder",
+    title: "Build forms, collect responses, export the data.",
+    description:
+      "Drag and drop fields to create any form. Publish it with a short link. Responses land in your inbox with read/unread tracking and export to Excel.",
+    highlights: [
+      {
+        icon: "hugeicons:task-add-01",
+        title: "Drag & drop fields",
+        description: "Text, email, dropdown, file upload, checkbox, and more.",
+      },
+      {
+        icon: "hugeicons:link-forward",
+        title: "Public links",
+        description: "Each form gets its own URL and short link.",
+      },
+      {
+        icon: "hugeicons:inbox",
+        title: "Response inbox",
+        description: "Filter, export, and track submission status in one place.",
+      },
+    ],
+    mockupUrl: "pmone.id/forms",
+    link: "/forms",
+    linkText: "Explore forms",
+  },
+  {
+    id: "analytics",
+    subtitle: "Web analytics",
+    title: "See where your traffic comes from.",
+    description:
+      "Connect your Google Analytics properties and pull the data into PM One. Page views, traffic sources, device breakdowns, and real-time visitors in one dashboard.",
+    highlights: [
+      {
+        icon: "hugeicons:link-01",
+        title: "GA4 integration",
+        description: "Link GA4 properties and sync data on a schedule.",
+      },
+      {
+        icon: "hugeicons:pie-chart",
+        title: "Traffic breakdown",
+        description: "See which channels bring visitors to your event sites.",
+      },
+      {
+        icon: "hugeicons:activity-01",
+        title: "Real-time visitors",
+        description: "Check how many people are on your site right now.",
+      },
+    ],
+    mockupUrl: "pmone.id/analytics",
+    link: "/web-analytics",
+    linkText: "Explore analytics",
+  },
+  {
+    id: "tasks",
+    subtitle: "Task management",
+    title: "Assign work, track progress, hit deadlines.",
+    description:
+      "Create tasks inside any project. Set priorities, assign team members, add due dates. Drag to reorder. Everyone sees what they need to do next.",
+    highlights: [
+      {
+        icon: "hugeicons:user-check-01",
+        title: "Assignments",
+        description: "Give tasks to specific team members with due dates.",
+      },
+      {
+        icon: "hugeicons:signal",
+        title: "Priorities",
+        description: "Mark tasks as high, medium, or low.",
+      },
+      {
+        icon: "hugeicons:folder-01",
+        title: "Project-scoped",
+        description: "Each project has its own task list. Nothing bleeds across.",
+      },
+    ],
+    mockupUrl: "pmone.id/tasks",
     link: "/projects",
+    linkText: "Explore tasks",
+  },
+];
+
+// Coming soon features
+const comingSoon = [
+  {
+    title: "Ticket sales",
+    icon: "hugeicons:ticket-01",
     description:
-      "Assign work, set priorities, track deadlines. List view or kanban. Drag to reorder, click to update. Works inside any project.",
-    tags: ["Kanban", "Priorities", "Assignees", "Due Dates"],
+      "Attendees buy tickets from your event website. Seat selection, pricing tiers, and payment processing.",
   },
   {
-    title: "Inbox",
-    icon: "lucide:inbox",
-    iconBg: "bg-pink-500",
-    link: "/inbox",
+    title: "Check-in & redeem",
+    icon: "hugeicons:barcode-scan",
     description:
-      "Every contact form submission, exhibitor inquiry, and message lands here. Read, reply, and mark resolved. Nothing gets lost.",
-    tags: ["Inquiries", "Replies", "Read/Unread", "Filters"],
-  },
-];
-
-// Event management highlights
-const eventHighlights = [
-  {
-    title: "Brand Portal",
-    icon: "lucide:layout-dashboard",
-    description: "Exhibitors log in and manage their own brand profiles, booth info, and orders.",
+      "Scan QR codes at the door. A real-time dashboard shows who arrived and who has not.",
   },
   {
-    title: "Product & Order System",
-    icon: "lucide:shopping-cart",
-    description: "Define event products, let exhibitors place orders, track everything.",
-  },
-  {
-    title: "Bulk Import",
-    icon: "lucide:upload",
-    description: "Import hundreds of brands or exhibitors via CSV. Export any time.",
-  },
-];
-
-// Event feature grid
-const eventFeatures = [
-  { label: "Brands", icon: "lucide:store", soon: false },
-  { label: "Orders", icon: "lucide:shopping-cart", soon: false },
-  { label: "Products", icon: "lucide:package", soon: false },
-  { label: "Rundown", icon: "lucide:list-ordered", soon: true },
-  { label: "Tickets", icon: "lucide:ticket", soon: true },
-  { label: "Programs", icon: "lucide:presentation", soon: true },
-  { label: "FAQ", icon: "lucide:help-circle", soon: true },
-  { label: "Partners", icon: "lucide:handshake", soon: true },
-  { label: "Gallery", icon: "lucide:image", soon: true },
-  { label: "Guests", icon: "lucide:mic-2", soon: true },
-  { label: "Promotion", icon: "lucide:megaphone", soon: false },
-  { label: "Inquiries", icon: "lucide:mail", soon: false },
-];
-
-// Link highlights
-const linkHighlights = [
-  {
-    title: "Custom Slugs",
-    icon: "lucide:link-2",
-    description: "Memorable URLs, not random strings.",
-  },
-  {
-    title: "Auto QR Codes",
-    icon: "lucide:qr-code",
-    description: "Every link gets one. Download or print.",
-  },
-  {
-    title: "Click Analytics",
-    icon: "lucide:mouse-pointer-click",
-    description: "Device, location, referrer. Full picture.",
-  },
-  {
-    title: "Static QR",
-    icon: "lucide:scan",
-    description: "Generate QR codes for any URL. No account needed.",
-  },
-];
-
-// Content highlights
-const contentHighlights = [
-  { label: "Rich text editor with image uploads and embeds" },
-  { label: "Scheduled publishing. Write now, go live later" },
-  { label: "Categories and tags for organized content" },
-  { label: "Per-post analytics so you see what resonates" },
-  { label: "Autosave so you never lose a draft" },
-  { label: "Multi-language support" },
-];
-
-// Editor toolbar icons
-const editorTools = [
-  "lucide:bold",
-  "lucide:italic",
-  "lucide:underline",
-  "lucide:heading-1",
-  "lucide:heading-2",
-  "lucide:list",
-  "lucide:list-ordered",
-  "lucide:image",
-  "lucide:link",
-  "lucide:align-left",
-];
-
-// Integrations
-const integrations = [
-  {
-    title: "REST API",
-    icon: "lucide:code",
-    description: "Well-documented endpoints. Create keys, set rate limits, whitelist origins.",
-  },
-  {
-    title: "Google Analytics",
-    icon: "lucide:line-chart",
-    description: "Connect your GA properties and pull data directly into PM One dashboards.",
-  },
-  {
-    title: "Exchange Rate",
-    icon: "lucide:coins",
-    description: "Built-in currency converter for international events and multi-currency orders.",
-  },
-];
-
-// Platform features
-const platformFeatures = [
-  {
-    title: "Two-Factor Auth",
-    description: "TOTP-based 2FA for every account. One tap to enable.",
-    icon: "lucide:shield-check",
-  },
-  {
-    title: "Roles & Permissions",
-    description: "Granular access control. Master, staff, exhibitor. Each sees what they need.",
-    icon: "lucide:user-cog",
-  },
-  {
-    title: "User Management",
-    description: "Invite users, assign roles, import via CSV, manage from one table.",
-    icon: "lucide:users",
-  },
-  {
-    title: "Activity Logs",
-    description: "Full audit trail. Know who changed what, and when.",
-    icon: "lucide:history",
-  },
-  {
-    title: "Media Library",
-    description: "Upload, organize, and optimize images automatically with Spatie Media.",
-    icon: "lucide:image",
-  },
-  {
-    title: "Dark Mode",
-    description: "Switch between light and dark. Persists across sessions.",
-    icon: "lucide:moon",
-  },
-  {
-    title: "Import / Export",
-    description: "Bulk operations with CSV and Excel. Brands, users, exhibitors. All supported.",
-    icon: "lucide:download",
-  },
-  {
-    title: "Multi-language",
-    description: "Interface available in multiple languages. Content translation support built in.",
-    icon: "lucide:languages",
-  },
-];
-
-// Personas
-const personas = [
-  {
-    title: "Event Organizers",
-    icon: "lucide:calendar-check",
-    iconBg: "bg-orange-500",
+    title: "Business matching",
+    icon: "hugeicons:agreement-02",
     description:
-      "You're running expos, conferences, or trade shows. You need one place for everything, not five spreadsheets.",
-    points: [
-      "Create events under projects with full exhibitor management",
-      "Track orders, products, and booth assignments",
-      "Import hundreds of brands in one go",
-    ],
+      "Match exhibitors with attendees by interest and category. Meetings scheduled before the event starts.",
   },
-  {
-    title: "Exhibitors",
-    icon: "lucide:store",
-    iconBg: "bg-emerald-500",
-    description:
-      "You got invited to an event. Log in, set up your brand, pick a booth, place orders. All through your own portal.",
-    points: [
-      "Dedicated portal with brand and booth management",
-      "Submit promotion materials and company info",
-      "Place and track orders for event products",
-    ],
-  },
-  {
-    title: "Project Teams",
-    icon: "lucide:users",
-    iconBg: "bg-blue-500",
-    description:
-      "You have projects to ship, content to publish, and links to track. PM One keeps it all connected.",
-    points: [
-      "Manage tasks with priorities, assignees, and due dates",
-      "Publish blog posts and track content performance",
-      "Create short links and monitor analytics",
-    ],
-  },
-];
-
-// Testimonial
-const testimonial = {
-  quote:
-    "Before PM One, our event data lived in seven different places. Links in one tool, exhibitors in spreadsheets, tasks in another app. Took us two weeks to consolidate after each event. Now it takes a day.",
-  author: "Rina Hartono",
-  role: "Event Director, Southeast Asia Expo Group",
-};
-
-// Stats
-const stats = [
-  { value: "10K+", label: "Links created" },
-  { value: "1M+", label: "Clicks tracked" },
-  { value: "500+", label: "Active projects" },
-  { value: "99.9%", label: "Uptime" },
 ];
 
 // Footer data
 const socialLinks = [
-  { label: "Twitter", icon: "lucide:twitter", url: "https://twitter.com" },
-  { label: "LinkedIn", icon: "lucide:linkedin", url: "https://linkedin.com" },
-  { label: "GitHub", icon: "lucide:github", url: "https://github.com" },
-  { label: "Instagram", icon: "lucide:instagram", url: "https://instagram.com" },
+  { label: "Twitter", icon: "hugeicons:new-twitter", url: "https://twitter.com" },
+  { label: "LinkedIn", icon: "hugeicons:linkedin-01", url: "https://linkedin.com" },
+  { label: "GitHub", icon: "hugeicons:github", url: "https://github.com" },
+  { label: "Instagram", icon: "hugeicons:instagram", url: "https://instagram.com" },
 ];
 
-const platformLinks = [
-  { label: "Projects", to: "/projects" },
-  { label: "Short Links", to: "/links" },
-  { label: "Blog", to: "/posts" },
-  { label: "Web Analytics", to: "/web-analytics" },
-  { label: "API Consumers", to: "/api-consumers" },
-];
-
-const eventLinks = [
-  { label: "Brands", to: "/brands" },
-  { label: "Exhibitors", to: "/exhibitors" },
-  { label: "Orders", to: "/orders" },
-  { label: "Exchange Rate", to: "/exchange-rate" },
-];
-
-const resourceLinks = [
-  { label: "News", to: "/news" },
-  { label: "Documentation", to: "/web-analytics/docs" },
-  { label: "Privacy Policy", to: "/privacy" },
-  { label: "Terms of Service", to: "/terms" },
-];
-
-const accountLinks = [
-  { label: "Log in", to: "/login" },
-  { label: "Sign up", to: "/signup" },
-  { label: "Forgot Password", to: "/forgot-password" },
+const footerSections = [
+  {
+    label: "Platform",
+    links: [
+      { label: "Projects", to: "/projects" },
+      { label: "Short Links", to: "/links" },
+      { label: "Blog", to: "/posts" },
+      { label: "Web Analytics", to: "/web-analytics" },
+      { label: "API Consumers", to: "/api-consumers" },
+    ],
+  },
+  {
+    label: "Events",
+    links: [
+      { label: "Brands", to: "/brands" },
+      { label: "Exhibitors", to: "/exhibitors" },
+      { label: "Orders", to: "/orders" },
+      { label: "Exchange Rate", to: "/exchange-rate" },
+    ],
+  },
+  {
+    label: "Resources",
+    links: [
+      { label: "News", to: "/news" },
+      { label: "Documentation", to: "/web-analytics/docs" },
+      { label: "Privacy Policy", to: "/privacy" },
+      { label: "Terms of Service", to: "/terms" },
+    ],
+  },
+  {
+    label: "Account",
+    links: [
+      { label: "Log in", to: "/login" },
+      { label: "Sign up", to: "/signup" },
+      { label: "Forgot Password", to: "/forgot-password" },
+    ],
+  },
 ];
 </script>

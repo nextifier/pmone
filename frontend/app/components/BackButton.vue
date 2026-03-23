@@ -42,8 +42,7 @@ const router = useRouter();
 const route = useRoute();
 
 const shortcutEnabled = computed(() => {
-  const path = route.path;
-  return !path.endsWith("/create") && !path.endsWith("/edit") && !path.startsWith("/settings/");
+  return !/\/posts\/(create|[^/]+\/edit)/.test(route.path);
 });
 
 defineShortcuts({

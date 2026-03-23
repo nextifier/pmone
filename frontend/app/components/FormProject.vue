@@ -29,7 +29,14 @@
 
           <div class="space-y-2">
             <Label for="bio">Description</Label>
-            <Textarea id="bio" v-model="form.bio" maxlength="1000" />
+            <TipTapEditor
+              v-model="form.bio"
+              model-type="App\Models\Project"
+              collection="bio_images"
+              :sticky="false"
+              min-height="200px"
+              placeholder="Write project description..."
+            />
             <InputErrorMessage :errors="errors.bio" />
           </div>
         </div>

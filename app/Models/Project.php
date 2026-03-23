@@ -313,6 +313,35 @@ class Project extends Model implements HasMedia, Sortable
             ->fit(Fit::Crop, 1500, 500)
             ->quality(95)
             ->performOnCollections('cover_image');
+
+        $this->addMediaConversion('lqip')
+            ->width(20)
+            ->height(20)
+            ->quality(10)
+            ->blur(10)
+            ->performOnCollections('bio_images')
+            ->nonQueued();
+
+        $this->addMediaConversion('sm')
+            ->width(450)
+            ->quality(85)
+            ->performOnCollections('bio_images')
+            ->nonQueued();
+
+        $this->addMediaConversion('md')
+            ->width(900)
+            ->quality(90)
+            ->performOnCollections('bio_images');
+
+        $this->addMediaConversion('lg')
+            ->width(1200)
+            ->quality(90)
+            ->performOnCollections('bio_images');
+
+        $this->addMediaConversion('xl')
+            ->width(1500)
+            ->quality(95)
+            ->performOnCollections('bio_images');
     }
 
     public function getMediaCollections(): array
@@ -325,6 +354,11 @@ class Project extends Model implements HasMedia, Sortable
             'cover_image' => [
                 'single_file' => true,
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
+            ],
+            'bio_images' => [
+                'single_file' => false,
+                'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'],
+                'max_size' => 20480,
             ],
         ];
     }

@@ -791,7 +791,7 @@ img.pswp__img {
 }
 
 .section-subtitle {
-  @apply inline-block bg-linear-to-r from-red-500 via-orange-600 to-orange-500 bg-clip-text font-semibold tracking-tight text-balance text-transparent dark:from-red-500 dark:via-orange-500 dark:to-yellow-500;
+  @apply inline-block bg-linear-to-r from-red-500 via-orange-600 to-orange-500 bg-clip-text text-base font-medium tracking-tighter text-balance text-transparent sm:text-lg dark:from-red-500 dark:via-orange-500 dark:to-yellow-500;
 }
 
 .section-description {
