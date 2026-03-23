@@ -89,17 +89,6 @@ export default defineNuxtConfig({
     },
   },
 
-  fonts: {
-    families: [
-      {
-        name: "MinusOne",
-        src: "/fonts/MinusOne-VF.woff2",
-        weight: "100 1000",
-        display: "swap",
-      },
-    ],
-  },
-
   modules: [
     "@nuxt/fonts",
     "@nuxt/icon",
