@@ -43,15 +43,7 @@
         <!-- <HeaderNav class="hidden xl:absolute xl:left-1/2 xl:flex xl:-translate-x-1/2" /> -->
 
         <div class="flex h-full shrink-0 items-center gap-x-2">
-          <Tippy>
-            <ColorModeToggle />
-            <template #content>
-              <span class="inline-flex items-center gap-x-1.5 tracking-tight">
-                <span>Light / Dark Mode</span>
-                <kbd class="keyboard-symbol">D</kbd>
-              </span>
-            </template>
-          </Tippy>
+          <ColorModeToggle />
 
           <Tippy v-if="['news-slug'].includes(route.name)">
             <button
@@ -80,9 +72,11 @@
           </template>
 
           <template v-else>
-            <nuxt-link
+            <Button
               to="/login"
-              class="hover:bg-muted border-border text-primary flex items-center justify-center gap-x-2 rounded-lg border px-2.5 py-1.5 font-semibold tracking-tight transition select-none active:scale-98 sm:px-2.5 sm:py-1.5"
+              variant="outline"
+              size="sm"
+              class="font-semibold select-none active:scale-98"
               @click="$scrollToTopIfCurrentPageIs('login')"
               v-ripple
             >
@@ -90,15 +84,17 @@
               <KbdGroup>
                 <Kbd>L</Kbd>
               </KbdGroup>
-            </nuxt-link>
+            </Button>
 
-            <nuxt-link
+            <Button
               to="/signup"
-              class="hover:bg-primary/80 bg-primary text-primary-foreground flex items-center justify-center rounded-lg px-2.5 py-1.5 font-semibold tracking-tight transition select-none active:scale-98 sm:px-2.5 sm:py-1.5"
+              size="sm"
+              class="font-semibold select-none active:scale-98"
               @click="$scrollToTopIfCurrentPageIs('signup')"
               v-ripple
-              >Sign up</nuxt-link
             >
+              Sign up
+            </Button>
           </template>
         </div>
       </div>
@@ -107,11 +103,6 @@
 </template>
 
 <script setup>
-const uiStore = useUiStore();
-const openInquiryDialog = () => {
-  uiStore.openInquiryDialog();
-};
-
 const route = useRoute();
 const router = useRouter();
 const { metaSymbol } = useShortcuts();
