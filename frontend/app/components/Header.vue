@@ -16,7 +16,7 @@
       <button
         v-if="isDocsPage"
         class="text-primary flex items-center gap-x-1.5 rounded-lg text-sm font-medium tracking-tight lg:hidden"
-        @click="openDocsMobile"
+        @click="toggleSidebar"
       >
         <Icon name="lucide:menu" class="size-4" />
         <span>Menu</span>
@@ -43,6 +43,16 @@
         <!-- <HeaderNav class="hidden xl:absolute xl:left-1/2 xl:flex xl:-translate-x-1/2" /> -->
 
         <div class="flex h-full shrink-0 items-center gap-x-2">
+          <Button
+            to="/docs"
+            variant="secondary"
+            size="sm"
+            class="bg-muted hover:bg-border hidden items-center gap-x-1 text-base font-semibold tracking-tighter transition sm:flex"
+          >
+            <!-- <Icon name="hugeicons:book-open-01" class="size-4" /> -->
+            <span>Docs</span>
+          </Button>
+
           <ColorModeToggle />
 
           <Tippy v-if="['news-slug'].includes(route.name)">
@@ -76,7 +86,7 @@
               to="/login"
               variant="outline"
               size="sm"
-              class="font-semibold select-none active:scale-98"
+              class="font-semibold tracking-tighter select-none active:scale-98 sm:text-base"
               @click="$scrollToTopIfCurrentPageIs('login')"
               v-ripple
             >
@@ -89,7 +99,7 @@
             <Button
               to="/signup"
               size="sm"
-              class="font-semibold select-none active:scale-98"
+              class="font-semibold tracking-tighter select-none active:scale-98 sm:text-base"
               @click="$scrollToTopIfCurrentPageIs('signup')"
               v-ripple
             >
@@ -125,9 +135,4 @@ import { useSidebar } from "@/components/ui/sidebar/utils";
 const { toggleSidebar, open, isMobile } = useSidebar();
 
 const isDocsPage = computed(() => route.name?.toString().startsWith("docs"));
-const docsMobileOpen = useState("docs-mobile-open", () => false);
-
-function openDocsMobile() {
-  docsMobileOpen.value = true;
-}
 </script>

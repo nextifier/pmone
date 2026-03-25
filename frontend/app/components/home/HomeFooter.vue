@@ -121,7 +121,7 @@ const productLinks = [
 
 const resourceLinks = [
   { label: "News", to: "/news" },
-  { label: "Documentation", to: "/web-analytics/docs" },
+  { label: "Documentation", to: "/docs" },
   { label: "Demo", to: "/demo" },
 ];
 

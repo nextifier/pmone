@@ -2,7 +2,7 @@
   <nav v-show="headings.length > 0" class="flex flex-col gap-1 py-2">
     <h3
       v-if="showLabel"
-      class="text-foreground flex h-7 items-center text-xs font-medium"
+      class="text-foreground flex h-7 items-center text-sm font-medium tracking-tight"
     >
       On This Page
     </h3>
@@ -18,17 +18,22 @@
           top: indicatorTop + 'px',
           height: indicatorHeight + 'px',
           opacity: indicatorOpacity,
-          transition: 'top 0.26s cubic-bezier(0.215, 0.610, 0.355, 1), height 0.26s cubic-bezier(0.215, 0.610, 0.355, 1), opacity 0.2s ease',
+          transition:
+            'top 0.26s cubic-bezier(0.215, 0.610, 0.355, 1), height 0.26s cubic-bezier(0.215, 0.610, 0.355, 1), opacity 0.2s ease',
         }"
       ></div>
 
       <a
         v-for="heading in headings"
         :key="heading.id"
-        :ref="(el) => { if (el) linkRefs[heading.id] = el }"
+        :ref="
+          (el) => {
+            if (el) linkRefs[heading.id] = el;
+          }
+        "
         :href="`#${heading.id}`"
         @click.prevent="scrollToHeading(heading.id)"
-        class="relative py-1 text-[13px] leading-[1.125rem] tracking-tight no-underline transition-colors duration-200"
+        class="relative py-1 text-sm leading-[1.125rem] tracking-tight no-underline transition-colors duration-200"
         :class="[
           activeHeadingId === heading.id
             ? 'text-foreground'
