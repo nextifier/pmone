@@ -1,7 +1,25 @@
 import tailwindcss from "@tailwindcss/vite";
+import { readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const noopMock = fileURLToPath(new URL("./mock/noop.mjs", import.meta.url));
+
+function getDocsRoutes(dir: string, base = ""): string[] {
+  const routes: string[] = [];
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    if (entry.startsWith("_") || entry === "README.md") continue;
+    if (statSync(full).isDirectory()) {
+      routes.push(...getDocsRoutes(full, `${base}/${entry}`));
+    } else if (entry.endsWith(".md")) {
+      routes.push(`/docs${base}/${entry.replace(".md", "")}`);
+    }
+  }
+  return routes;
+}
+
+const docsRoutes = getDocsRoutes(fileURLToPath(new URL("./content/docs", import.meta.url)));
 
 export default defineNuxtConfig({
   devtools: {
@@ -297,10 +315,10 @@ export default defineNuxtConfig({
   nitro: {
     alias: {
       "vue-stream-markdown": noopMock,
+      "better-sqlite3": noopMock,
     },
     prerender: {
-      routes: ["/docs/staff/getting-started/dashboard-overview"],
-      crawlLinks: true,
+      routes: docsRoutes,
     },
   },
 
