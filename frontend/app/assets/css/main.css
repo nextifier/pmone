@@ -643,6 +643,13 @@
       @apply text-lg font-medium! sm:text-xl;
     }
 
+    & :is(h1, h2, h3, h4, h5, h6) a {
+      text-decoration: none !important;
+      font-weight: inherit !important;
+      color: inherit !important;
+      cursor: text;
+    }
+
     & blockquote {
       @apply mt-6 border-l-2 pl-6 italic;
     }

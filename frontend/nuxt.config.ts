@@ -90,6 +90,7 @@ export default defineNuxtConfig({
   },
 
   modules: [
+    "@nuxt/content",
     "@nuxt/fonts",
     "@nuxt/icon",
     "@nuxt/image",
@@ -295,18 +296,6 @@ export default defineNuxtConfig({
   nitro: {
     alias: {
       "vue-stream-markdown": noopMock,
-    },
-    serverAssets: [
-      {
-        baseName: "docs",
-        dir: "./docs",
-      },
-    ],
-    devStorage: {
-      "assets:server:docs": {
-        driver: "fs",
-        base: "./docs",
-      },
     },
   },
 

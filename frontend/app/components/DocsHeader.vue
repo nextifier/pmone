@@ -2,7 +2,7 @@
   <header
     class="border-border/50 bg-background sticky inset-x-0 top-0 z-50 h-(--navbar-height-mobile) gap-x-1.5 border-b text-sm lg:h-(--navbar-height-desktop)"
   >
-    <div class="flex h-full items-center justify-center px-4">
+    <div class="flex h-full items-center justify-center gap-x-2 px-4">
       <Tippy>
         <button
           data-sidebar="trigger"
@@ -25,43 +25,40 @@
         </template>
       </Tippy>
 
-      <div class="ml-auto flex h-full shrink-0 items-center gap-x-6">
-        <div class="flex h-full shrink-0 items-center gap-x-2">
-          <DocsSearch />
+      <div class="flex grow items-center justify-end gap-x-2">
+        <DocsSearch class="grow" />
+        <ColorModeToggle />
 
-          <ColorModeToggle />
+        <template v-if="isAuthenticated">
+          <NotificationBell />
+          <AuthDropdownMenu />
+        </template>
 
-          <template v-if="isAuthenticated">
-            <NotificationBell />
-            <AuthDropdownMenu />
-          </template>
+        <template v-else>
+          <Button
+            to="/login"
+            variant="outline"
+            size="sm"
+            class="font-semibold tracking-tighter select-none active:scale-98 sm:text-base"
+            @click="$scrollToTopIfCurrentPageIs('login')"
+            v-ripple
+          >
+            <span>Log in</span>
+            <KbdGroup>
+              <Kbd>L</Kbd>
+            </KbdGroup>
+          </Button>
 
-          <template v-else>
-            <Button
-              to="/login"
-              variant="outline"
-              size="sm"
-              class="font-semibold tracking-tighter select-none active:scale-98 sm:text-base"
-              @click="$scrollToTopIfCurrentPageIs('login')"
-              v-ripple
-            >
-              <span>Log in</span>
-              <KbdGroup>
-                <Kbd>L</Kbd>
-              </KbdGroup>
-            </Button>
-
-            <Button
-              to="/signup"
-              size="sm"
-              class="font-semibold tracking-tighter select-none active:scale-98 sm:text-base"
-              @click="$scrollToTopIfCurrentPageIs('signup')"
-              v-ripple
-            >
-              Sign up
-            </Button>
-          </template>
-        </div>
+          <Button
+            to="/signup"
+            size="sm"
+            class="font-semibold tracking-tighter select-none active:scale-98 sm:text-base"
+            @click="$scrollToTopIfCurrentPageIs('signup')"
+            v-ripple
+          >
+            Sign up
+          </Button>
+        </template>
       </div>
     </div>
   </header>
