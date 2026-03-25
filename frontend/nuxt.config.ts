@@ -296,6 +296,18 @@ export default defineNuxtConfig({
     alias: {
       "vue-stream-markdown": noopMock,
     },
+    serverAssets: [
+      {
+        baseName: "docs",
+        dir: "./docs",
+      },
+    ],
+    devStorage: {
+      "assets:server:docs": {
+        driver: "fs",
+        base: "./docs",
+      },
+    },
   },
 
   compatibilityDate: "2025-09-16",

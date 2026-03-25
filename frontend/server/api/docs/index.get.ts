@@ -1,5 +1,3 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
 import matter from "gray-matter";
 
 interface DocEntry {
@@ -11,37 +9,11 @@ interface DocEntry {
   sectionOrder: number;
 }
 
-function getDocsRoot() {
-  return join(process.cwd(), "docs");
-}
-
-function scanMarkdownFiles(dir: string): string[] {
-  const files: string[] = [];
-
-  try {
-    const entries = readdirSync(dir);
-    for (const entry of entries) {
-      const fullPath = join(dir, entry);
-      const stat = statSync(fullPath);
-      if (stat.isDirectory()) {
-        files.push(...scanMarkdownFiles(fullPath));
-      } else if (entry.endsWith(".md") && !entry.startsWith("_")) {
-        files.push(fullPath);
-      }
-    }
-  } catch {
-    // Directory doesn't exist, return empty
-  }
-
-  return files;
-}
-
-function filePathToSlug(filePath: string, docsRoot: string): string {
-  const rel = relative(docsRoot, filePath)
-    .replace(/\.md$/, "")
-    .replace(/\\/g, "/");
-
-  const parts = rel.split("/");
+function keyToSlug(key: string): string {
+  // key: "staff:en:01-getting-started:01-dashboard-overview.md"
+  // -> "staff-getting-started-dashboard-overview"
+  const clean = key.replace(/\.md$/, "");
+  const parts = clean.split(":");
   return parts
     .filter((p) => !["en", "zh"].includes(p))
     .map((p) => p.replace(/^\d+-/, ""))
@@ -58,9 +30,9 @@ function mapToTag(audience: string, section: string): string {
   return "exhibitor-guide";
 }
 
-function extractSectionOrder(filePath: string, docsRoot: string): number {
-  const rel = relative(docsRoot, filePath).replace(/\\/g, "/");
-  const parts = rel.split("/");
+function extractSectionOrder(key: string): number {
+  const parts = key.split(":");
+  // Section folder is 3rd segment: staff:en:01-getting-started:...
   const sectionFolder = parts[2] || "";
   const match = sectionFolder.match(/^(\d+)-/);
   return match ? parseInt(match[1], 10) : 999;
@@ -75,27 +47,27 @@ export default defineEventHandler(async (event) => {
 
   const now = Date.now();
   if (cachedDocs && now - cachedDocs.timestamp < CACHE_TTL) {
-    const filtered = filterByLocale(cachedDocs.entries, locale);
-    return { data: filtered };
+    return { data: filterByLocale(cachedDocs.entries, locale) };
   }
 
-  const docsRoot = getDocsRoot();
-  const allFiles = [
-    ...scanMarkdownFiles(join(docsRoot, "staff", "en")),
-    ...scanMarkdownFiles(join(docsRoot, "exhibitor", "en")),
-    ...scanMarkdownFiles(join(docsRoot, "exhibitor", "zh")),
-  ];
+  const storage = useStorage("assets:server:docs");
+  const allKeys = await storage.getKeys();
+
+  const mdKeys = allKeys.filter(
+    (k) => k.endsWith(".md") && !k.split(":").pop()?.startsWith("_") && !k.startsWith("README"),
+  );
 
   const entries: DocEntry[] = [];
 
-  for (const filePath of allFiles) {
+  for (const key of mdKeys) {
     try {
-      const raw = readFileSync(filePath, "utf-8");
-      const { data: fm } = matter(raw);
+      const raw = (await storage.getItem(key)) as string;
+      if (!raw) continue;
 
+      const { data: fm } = matter(raw);
       if (!fm.title) continue;
 
-      const slug = filePathToSlug(filePath, docsRoot);
+      const slug = keyToSlug(key);
       const tag = mapToTag(fm.audience || "staff", fm.section || "");
       const localeTag = fm.locale === "zh" ? "zh" : "en";
 
@@ -105,10 +77,10 @@ export default defineEventHandler(async (event) => {
         tags: ["docs", tag, localeTag],
         excerpt: fm.description || "",
         order: fm.order || 999,
-        sectionOrder: extractSectionOrder(filePath, docsRoot),
+        sectionOrder: extractSectionOrder(key),
       });
     } catch {
-      // Skip files that can't be parsed
+      // Skip
     }
   }
 
@@ -118,9 +90,7 @@ export default defineEventHandler(async (event) => {
   });
 
   cachedDocs = { entries, timestamp: now };
-
-  const filtered = filterByLocale(entries, locale);
-  return { data: filtered };
+  return { data: filterByLocale(entries, locale) };
 });
 
 function filterByLocale(entries: DocEntry[], locale: string): DocEntry[] {
