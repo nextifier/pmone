@@ -22,9 +22,9 @@ export default defineNuxtConfig({
     },
   },
 
-  //   routeRules: {
-  //     "/": { redirect: "/dashboard" },
-  //   },
+  routeRules: {
+    "/docs/**": { prerender: true },
+  },
 
   app: {
     head: {
@@ -296,6 +296,10 @@ export default defineNuxtConfig({
   nitro: {
     alias: {
       "vue-stream-markdown": noopMock,
+    },
+    prerender: {
+      routes: ["/docs/staff/getting-started/dashboard-overview"],
+      crawlLinks: true,
     },
   },
 
