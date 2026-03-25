@@ -7,22 +7,52 @@
         <!-- Content area -->
         <div class="min-w-0 flex-1">
           <div v-if="docPending" class="relative flex items-start gap-x-4">
-            <div class="min-h-screen-offset my-6 min-w-0 flex-1 sm:p-10">
-              <Skeleton class="h-10 w-3/4" />
-              <Skeleton class="mt-3 h-5 w-full" />
-              <Skeleton class="mt-2 h-5 w-2/3" />
-              <div class="mt-8 space-y-4">
-                <Skeleton class="h-4 w-full" />
-                <Skeleton class="h-4 w-full" />
-                <Skeleton class="h-4 w-5/6" />
-                <Skeleton class="h-4 w-full" />
-                <Skeleton class="h-4 w-3/4" />
-                <Skeleton class="mt-6 h-7 w-1/2" />
-                <Skeleton class="h-4 w-full" />
-                <Skeleton class="h-4 w-full" />
-                <Skeleton class="h-4 w-4/5" />
-                <Skeleton class="h-4 w-full" />
-                <Skeleton class="h-4 w-2/3" />
+            <div class="my-6 min-w-0 flex-1 sm:p-10">
+              <div class="mx-auto max-w-2xl">
+                <!-- Title -->
+                <Skeleton class="h-10 w-3/4" />
+                <!-- Description -->
+                <Skeleton class="mt-3 h-5 w-full" />
+                <Skeleton class="mt-2 h-5 w-2/3" />
+
+                <!-- Content paragraphs -->
+                <div class="mt-8 space-y-4">
+                  <Skeleton class="h-4 w-full" />
+                  <Skeleton class="h-4 w-full" />
+                  <Skeleton class="h-4 w-5/6" />
+                  <Skeleton class="h-4 w-full" />
+                  <Skeleton class="h-4 w-3/4" />
+                </div>
+
+                <!-- Heading -->
+                <Skeleton class="mt-10 h-7 w-1/2" />
+                <div class="mt-4 space-y-4">
+                  <Skeleton class="h-4 w-full" />
+                  <Skeleton class="h-4 w-full" />
+                  <Skeleton class="h-4 w-4/5" />
+                  <Skeleton class="h-4 w-full" />
+                  <Skeleton class="h-4 w-2/3" />
+                </div>
+
+                <!-- Heading -->
+                <Skeleton class="mt-10 h-7 w-2/5" />
+                <div class="mt-4 space-y-4">
+                  <Skeleton class="h-4 w-full" />
+                  <Skeleton class="h-4 w-full" />
+                  <Skeleton class="h-4 w-5/6" />
+                  <Skeleton class="h-4 w-3/4" />
+                </div>
+
+                <!-- Heading -->
+                <Skeleton class="mt-10 h-7 w-1/3" />
+                <div class="mt-4 space-y-4">
+                  <Skeleton class="h-4 w-full" />
+                  <Skeleton class="h-4 w-full" />
+                  <Skeleton class="h-4 w-4/5" />
+                  <Skeleton class="h-4 w-full" />
+                  <Skeleton class="h-4 w-2/3" />
+                  <Skeleton class="h-4 w-full" />
+                </div>
               </div>
             </div>
             <div class="hidden w-[220px] shrink-0 py-8 xl:block">
@@ -32,6 +62,8 @@
                 <Skeleton class="h-3.5 w-28" />
                 <Skeleton class="h-3.5 w-36" />
                 <Skeleton class="h-3.5 w-24" />
+                <Skeleton class="h-3.5 w-30" />
+                <Skeleton class="h-3.5 w-20" />
               </div>
             </div>
           </div>

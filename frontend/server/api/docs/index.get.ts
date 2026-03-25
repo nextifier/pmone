@@ -12,8 +12,7 @@ interface DocEntry {
 }
 
 function getDocsRoot() {
-  // docs/ lives at the project root (one level above frontend/)
-  return join(process.cwd(), "..", "docs");
+  return join(process.cwd(), "docs");
 }
 
 function scanMarkdownFiles(dir: string): string[] {
@@ -38,14 +37,11 @@ function scanMarkdownFiles(dir: string): string[] {
 }
 
 function filePathToSlug(filePath: string, docsRoot: string): string {
-  // e.g. staff/en/01-getting-started/01-dashboard-overview.md
-  //   -> staff-getting-started-dashboard-overview
   const rel = relative(docsRoot, filePath)
     .replace(/\.md$/, "")
     .replace(/\\/g, "/");
 
   const parts = rel.split("/");
-  // Remove locale segment (en/zh) and strip numeric prefixes
   return parts
     .filter((p) => !["en", "zh"].includes(p))
     .map((p) => p.replace(/^\d+-/, ""))
@@ -62,18 +58,16 @@ function mapToTag(audience: string, section: string): string {
   return "exhibitor-guide";
 }
 
-// Extract section order from folder name like "01-getting-started"
 function extractSectionOrder(filePath: string, docsRoot: string): number {
   const rel = relative(docsRoot, filePath).replace(/\\/g, "/");
   const parts = rel.split("/");
-  // Section folder is the 3rd segment: staff/en/01-getting-started/...
   const sectionFolder = parts[2] || "";
   const match = sectionFolder.match(/^(\d+)-/);
   return match ? parseInt(match[1], 10) : 999;
 }
 
 let cachedDocs: { entries: DocEntry[]; timestamp: number } | null = null;
-const CACHE_TTL = 60_000; // 1 minute in dev, sufficient for file changes
+const CACHE_TTL = 60_000;
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
@@ -118,7 +112,6 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // Sort by section order, then article order
   entries.sort((a, b) => {
     if (a.sectionOrder !== b.sectionOrder) return a.sectionOrder - b.sectionOrder;
     return a.order - b.order;
@@ -136,13 +129,11 @@ function filterByLocale(entries: DocEntry[], locale: string): DocEntry[] {
     const isEn = e.tags.includes("en");
 
     if (locale === "zh") {
-      // Show staff EN + exhibitor ZH
       const isStaff = e.tags.includes("staff-guide") || e.tags.includes("getting-started");
       if (isStaff) return isEn;
       return isZh;
     }
 
-    // Default EN: show only EN docs
     return isEn;
   });
 }

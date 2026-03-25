@@ -4,7 +4,7 @@ import matter from "gray-matter";
 import { marked } from "marked";
 
 function getDocsRoot() {
-  return join(process.cwd(), "..", "docs");
+  return join(process.cwd(), "docs");
 }
 
 function scanMarkdownFiles(dir: string): string[] {
@@ -48,7 +48,6 @@ function mapToTag(audience: string, section: string): string {
   return "exhibitor-guide";
 }
 
-// Build slug -> filePath map (cached)
 let slugMap: Map<string, string> | null = null;
 let slugMapTimestamp = 0;
 const CACHE_TTL = 60_000;

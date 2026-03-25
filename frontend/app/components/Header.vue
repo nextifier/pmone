@@ -36,24 +36,24 @@
           <LogoMark class="size-4" />
         </div>
 
-        <span class="text-primary text-lg font-semibold tracking-tighter">PM One</span>
+        <span class="text-primary text-base font-semibold tracking-tighter sm:text-lg">PM One</span>
       </nuxt-link>
 
       <div class="ml-auto flex h-full items-center gap-x-6">
         <!-- <HeaderNav class="hidden xl:absolute xl:left-1/2 xl:flex xl:-translate-x-1/2" /> -->
 
-        <div class="flex h-full shrink-0 items-center gap-x-2">
+        <div class="flex h-full shrink-0 items-center gap-x-1.5 sm:gap-x-2">
+          <ColorModeToggle />
+
           <Button
             to="/docs"
-            variant="secondary"
+            variant="outline"
             size="sm"
-            class="bg-muted hover:bg-border hidden items-center gap-x-1 text-base font-semibold tracking-tighter transition sm:flex"
+            class="font-semibold tracking-tighter select-none active:scale-98 sm:text-base"
+            v-ripple
           >
-            <!-- <Icon name="hugeicons:book-open-01" class="size-4" /> -->
             <span>Docs</span>
           </Button>
-
-          <ColorModeToggle />
 
           <Tippy v-if="['news-slug'].includes(route.name)">
             <button
