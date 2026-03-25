@@ -23,6 +23,7 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
+    "/docs": { redirect: { to: "/docs/staff/getting-started/dashboard-overview", statusCode: 302 } },
     "/docs/**": { prerender: true },
   },
 

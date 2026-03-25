@@ -159,11 +159,6 @@
 <script setup>
 definePageMeta({
   layout: "docs",
-  middleware: (to) => {
-    if (to.path === "/docs" || to.path === "/docs/") {
-      return navigateTo("/docs/staff/getting-started/dashboard-overview", { replace: true, redirectCode: 302 });
-    }
-  },
 });
 
 const route = useRoute();
