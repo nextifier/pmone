@@ -32,6 +32,16 @@
 
       <div class="ml-auto flex h-full shrink-0 items-center gap-x-6">
         <div class="flex h-full shrink-0 items-center gap-x-2">
+          <Button
+            to="/docs"
+            variant="outline"
+            size="sm"
+            class="text-base tracking-tighter"
+            v-ripple
+          >
+            <span>Docs</span>
+          </Button>
+
           <LanguageSwitcher v-if="isExhibitor" />
 
           <KeyboardShortcutsDialog />
@@ -48,7 +58,7 @@
               to="/login"
               variant="outline"
               size="sm"
-              class="font-semibold select-none active:scale-98"
+              class="text-base tracking-tighter"
               @click="$scrollToTopIfCurrentPageIs('login')"
               v-ripple
             >
@@ -58,7 +68,7 @@
             <Button
               to="/signup"
               size="sm"
-              class="font-semibold select-none active:scale-98"
+              class="text-base tracking-tighter"
               @click="$scrollToTopIfCurrentPageIs('signup')"
               v-ripple
             >

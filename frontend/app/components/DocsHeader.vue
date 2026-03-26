@@ -27,6 +27,16 @@
 
       <div class="flex grow items-center justify-end gap-x-2">
         <DocsSearch class="grow" />
+        <Button
+          v-if="isAuthenticated"
+          to="/dashboard"
+          variant="outline"
+          size="sm"
+          class="text-base tracking-tighter"
+          v-ripple
+        >
+          <span>Dashboard</span>
+        </Button>
         <ColorModeToggle />
 
         <template v-if="isAuthenticated">
@@ -39,7 +49,7 @@
             to="/login"
             variant="outline"
             size="sm"
-            class="font-semibold tracking-tighter select-none active:scale-98 sm:text-base"
+            class="text-base tracking-tighter"
             @click="$scrollToTopIfCurrentPageIs('login')"
             v-ripple
           >
@@ -52,7 +62,7 @@
           <Button
             to="/signup"
             size="sm"
-            class="font-semibold tracking-tighter select-none active:scale-98 sm:text-base"
+            class="text-base tracking-tighter"
             @click="$scrollToTopIfCurrentPageIs('signup')"
             v-ripple
           >
