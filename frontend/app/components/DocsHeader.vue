@@ -25,14 +25,14 @@
         </template>
       </Tippy>
 
-      <div class="flex grow items-center justify-end gap-x-2">
+      <div class="flex grow items-center justify-end gap-x-1 sm:gap-x-2">
         <DocsSearch class="grow" />
         <Button
           v-if="isAuthenticated"
           to="/dashboard"
           variant="outline"
           size="sm"
-          class="text-base tracking-tighter"
+          class="hidden text-base tracking-tighter sm:flex"
           v-ripple
         >
           <span>Dashboard</span>

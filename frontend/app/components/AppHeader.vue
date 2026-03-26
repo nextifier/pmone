@@ -30,52 +30,50 @@
         </Tippy>
       </template>
 
-      <div class="ml-auto flex h-full shrink-0 items-center gap-x-6">
-        <div class="flex h-full shrink-0 items-center gap-x-2">
+      <div class="ml-auto flex h-full shrink-0 items-center gap-x-1 sm:gap-x-2">
+        <Button
+          to="/docs"
+          variant="outline"
+          size="sm"
+          class="mr-1 text-base tracking-tighter"
+          v-ripple
+        >
+          <span>Docs</span>
+        </Button>
+
+        <LanguageSwitcher v-if="isExhibitor" />
+
+        <KeyboardShortcutsDialog class="hidden sm:flex" />
+
+        <ColorModeToggle />
+
+        <template v-if="isAuthenticated">
+          <NotificationBell />
+          <AuthDropdownMenu />
+        </template>
+
+        <template v-else>
           <Button
-            to="/docs"
+            to="/login"
             variant="outline"
             size="sm"
             class="text-base tracking-tighter"
+            @click="$scrollToTopIfCurrentPageIs('login')"
             v-ripple
           >
-            <span>Docs</span>
+            {{ $t("header.login") }}
           </Button>
 
-          <LanguageSwitcher v-if="isExhibitor" />
-
-          <KeyboardShortcutsDialog />
-
-          <ColorModeToggle />
-
-          <template v-if="isAuthenticated">
-            <NotificationBell />
-            <AuthDropdownMenu />
-          </template>
-
-          <template v-else>
-            <Button
-              to="/login"
-              variant="outline"
-              size="sm"
-              class="text-base tracking-tighter"
-              @click="$scrollToTopIfCurrentPageIs('login')"
-              v-ripple
-            >
-              {{ $t("header.login") }}
-            </Button>
-
-            <Button
-              to="/signup"
-              size="sm"
-              class="text-base tracking-tighter"
-              @click="$scrollToTopIfCurrentPageIs('signup')"
-              v-ripple
-            >
-              {{ $t("header.signup") }}
-            </Button>
-          </template>
-        </div>
+          <Button
+            to="/signup"
+            size="sm"
+            class="text-base tracking-tighter"
+            @click="$scrollToTopIfCurrentPageIs('signup')"
+            v-ripple
+          >
+            {{ $t("header.signup") }}
+          </Button>
+        </template>
       </div>
     </div>
   </header>
