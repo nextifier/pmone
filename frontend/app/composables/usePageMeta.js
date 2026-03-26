@@ -32,13 +32,15 @@ export const usePageMeta = (pageKey, overrides = {}) => {
     const ogTitle = computed(() => sanitize(toValue(title)));
     const ogDescription = computed(() => sanitize(toValue(description)));
 
-    defineOgImage("Page", {
-      headline: useAppConfig().app.name,
-      pageTitle: ogTitle,
-      pageDescription: ogDescription,
-      title: ogTitle,
-      description: ogDescription,
-    });
+    if (!import.meta.client) {
+      defineOgImage("Page", {
+        headline: useAppConfig().app.name,
+        pageTitle: ogTitle,
+        pageDescription: ogDescription,
+        title: ogTitle,
+        description: ogDescription,
+      });
+    }
   }
 
   const structuredData = {
