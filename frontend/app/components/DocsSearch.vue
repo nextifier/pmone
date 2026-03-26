@@ -2,10 +2,10 @@
   <div>
     <!-- Search trigger button -->
     <button
-      class="border-border bg-muted/50 hover:bg-muted text-muted-foreground flex h-8 w-full max-w-xs items-center gap-x-2 justify-self-end rounded-lg border px-3 text-sm tracking-tight transition"
+      class="border-border bg-card hover:bg-muted text-muted-foreground flex h-8 w-full max-w-xs items-center gap-x-2 justify-self-end rounded-lg border px-2.5 text-sm tracking-tight transition"
       @click="open = true"
     >
-      <Icon name="lucide:search" class="size-3.5 shrink-0" />
+      <Icon name="hugeicons:search-01" class="size-4 shrink-0" />
       <span class="truncate">Search docs</span>
       <KbdGroup class="ml-auto hidden shrink-0 sm:inline-flex">
         <Kbd>{{ metaSymbol }} K</Kbd>
@@ -15,7 +15,7 @@
     <!-- Command dialog -->
     <CommandDialog v-model:open="open">
       <CommandInput placeholder="Search documentation..." />
-      <CommandList>
+      <CommandList class="h-[50vh]! max-h-[50vh]">
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup v-for="group in groupedDocs" :key="group.label" :heading="group.label">
           <CommandItem
@@ -25,7 +25,7 @@
             class="tracking-tight"
             @select="navigateToDoc(doc.slug)"
           >
-            <Icon name="lucide:arrow-right" class="mr-2 size-4" />
+            <Icon name="hugeicons:arrow-right-02" class="mr-2 size-4" />
             <span>{{ doc.title }}</span>
           </CommandItem>
         </CommandGroup>
