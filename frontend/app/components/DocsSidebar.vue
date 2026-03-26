@@ -37,12 +37,12 @@
         <SidebarGroup v-for="group in groupedDocs" :key="group.label">
           <SidebarGroupLabel class="text-sm tracking-tight">{{ group.label }}</SidebarGroupLabel>
           <ul class="flex flex-col">
-            <li v-for="doc in group.docs" :key="doc.path">
+            <li v-for="doc in group.docs" :key="doc.slug">
               <NuxtLink
-                :to="doc.path"
+                :to="`/docs/${doc.slug}`"
                 class="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground block rounded-md px-2 py-1.5 text-base tracking-tight transition"
                 :class="
-                  currentSlug === doc.path &&
+                  currentSlug === doc.slug &&
                   'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
                 "
                 @click="setOpenMobile(false)"

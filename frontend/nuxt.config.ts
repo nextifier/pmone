@@ -23,8 +23,7 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    "/docs": { redirect: { to: "/docs/staff/getting-started/dashboard-overview", statusCode: 302 } },
-    "/docs/**": { ssr: false },
+    "/docs": { redirect: { to: "/docs/staff-dashboard-overview", statusCode: 302 } },
   },
 
   app: {
@@ -91,7 +90,6 @@ export default defineNuxtConfig({
   },
 
   modules: [
-    "@nuxt/content",
     "@nuxt/fonts",
     "@nuxt/icon",
     "@nuxt/image",

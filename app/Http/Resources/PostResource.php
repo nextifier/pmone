@@ -49,6 +49,7 @@ class PostResource extends JsonResource
                 'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
                 'authors' => $this->whenLoaded('authors', fn () => UserMinimalResource::collection($this->authors)),
                 'tags' => $this->whenLoaded('tags', fn () => $this->tags->pluck('name')),
+                'settings' => $this->settings,
                 'created_at' => $this->created_at,
                 'updated_at' => $this->updated_at,
                 'deleted_at' => $this->deleted_at,

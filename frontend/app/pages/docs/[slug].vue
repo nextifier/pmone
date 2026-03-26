@@ -1,5 +1,5 @@
 <template>
-  <DocsSidebar :grouped-docs="groupedDocs" :current-slug="currentPath" :pending="!allDocs" />
+  <DocsSidebar :grouped-docs="groupedDocs" :current-slug="currentSlug" :pending="listPending" />
   <SidebarInset>
     <DocsHeader />
     <div class="min-h-screen-offset">
@@ -7,15 +7,15 @@
         <!-- Content area -->
         <div class="min-w-0 flex-1">
           <!-- Not found -->
-          <div v-if="!doc && !isDocsRoot && docStatus === 'success'" class="my-6 min-w-0 flex-1 sm:p-10">
+          <div v-if="!doc && docStatus === 'success'" class="my-6 min-w-0 flex-1 sm:p-10">
             <div class="mx-auto max-w-2xl text-center">
               <h1 class="text-primary text-3xl font-semibold tracking-tighter">Page not found</h1>
               <p class="text-muted-foreground mt-3 tracking-tight">
                 The documentation page you're looking for doesn't exist.
               </p>
               <Button
-                v-if="groupedDocs?.[0]?.docs?.[0]?.path"
-                :to="groupedDocs[0].docs[0].path"
+                v-if="groupedDocs?.[0]?.docs?.[0]?.slug"
+                :to="`/docs/${groupedDocs[0].docs[0].slug}`"
                 variant="outline"
                 class="mt-6 tracking-tight"
               >
@@ -28,13 +28,9 @@
           <div v-else-if="!doc" class="relative flex items-start gap-x-4">
             <div class="my-6 min-w-0 flex-1 sm:p-10">
               <div class="mx-auto max-w-2xl">
-                <!-- Title -->
                 <Skeleton class="h-10 w-3/4" />
-                <!-- Description -->
                 <Skeleton class="mt-3 h-5 w-full" />
                 <Skeleton class="mt-2 h-5 w-2/3" />
-
-                <!-- Content paragraphs -->
                 <div class="mt-8 space-y-4">
                   <Skeleton class="h-4 w-full" />
                   <Skeleton class="h-4 w-full" />
@@ -42,8 +38,6 @@
                   <Skeleton class="h-4 w-full" />
                   <Skeleton class="h-4 w-3/4" />
                 </div>
-
-                <!-- Heading -->
                 <Skeleton class="mt-10 h-7 w-1/2" />
                 <div class="mt-4 space-y-4">
                   <Skeleton class="h-4 w-full" />
@@ -52,25 +46,12 @@
                   <Skeleton class="h-4 w-full" />
                   <Skeleton class="h-4 w-2/3" />
                 </div>
-
-                <!-- Heading -->
                 <Skeleton class="mt-10 h-7 w-2/5" />
                 <div class="mt-4 space-y-4">
                   <Skeleton class="h-4 w-full" />
                   <Skeleton class="h-4 w-full" />
                   <Skeleton class="h-4 w-5/6" />
                   <Skeleton class="h-4 w-3/4" />
-                </div>
-
-                <!-- Heading -->
-                <Skeleton class="mt-10 h-7 w-1/3" />
-                <div class="mt-4 space-y-4">
-                  <Skeleton class="h-4 w-full" />
-                  <Skeleton class="h-4 w-full" />
-                  <Skeleton class="h-4 w-4/5" />
-                  <Skeleton class="h-4 w-full" />
-                  <Skeleton class="h-4 w-2/3" />
-                  <Skeleton class="h-4 w-full" />
                 </div>
               </div>
             </div>
@@ -97,19 +78,17 @@
               </h1>
 
               <p
-                v-if="doc.description"
+                v-if="doc.excerpt"
                 class="text-muted-foreground mx-auto mt-3 max-w-2xl text-base tracking-tight text-pretty sm:text-lg"
               >
-                {{ doc.description }}
+                {{ doc.excerpt }}
               </p>
 
               <div
                 :id="contentId"
                 class="format-html prose-headings:scroll-mt-[calc(var(--navbar-height-mobile)+var(--scroll-offset,4rem))] lg:prose-headings:scroll-mt-[calc(var(--navbar-height-desktop)+var(--scroll-offset,2rem))] mx-auto mt-8"
-                @click="onHeadingLinkClick"
-              >
-                <ContentRenderer :value="doc" />
-              </div>
+                v-html="doc.content"
+              />
 
               <!-- Prev/Next navigation -->
               <div
@@ -118,7 +97,7 @@
               >
                 <NuxtLink
                   v-if="prevDoc"
-                  :to="prevDoc.path"
+                  :to="`/docs/${prevDoc.slug}`"
                   class="text-muted-foreground hover:text-foreground group inline-flex items-center gap-x-1 text-sm tracking-tight transition"
                 >
                   <Icon
@@ -131,7 +110,7 @@
 
                 <NuxtLink
                   v-if="nextDoc"
-                  :to="nextDoc.path"
+                  :to="`/docs/${nextDoc.slug}`"
                   class="text-muted-foreground hover:text-foreground group ml-auto inline-flex items-center gap-x-1 text-sm tracking-tight transition"
                 >
                   <span>{{ nextDoc.title }}</span>
@@ -162,37 +141,40 @@ definePageMeta({
 });
 
 const route = useRoute();
-
-const currentPath = computed(() => route.path);
-const contentId = computed(() => currentPath.value.replace(/\//g, "-").replace(/^-/, ""));
-
-// Prevent heading anchor clicks from going through Vue Router (causes scrollBehavior warning)
-function onHeadingLinkClick(e) {
-  const link = e.target.closest(":is(h1, h2, h3, h4, h5, h6) a[href^='#']");
-  if (link) {
-    e.preventDefault();
-  }
-}
-
+const currentSlug = computed(() => route.params.slug || "");
+const contentId = computed(() => `doc-${currentSlug.value}`);
 
 // Fetch all docs for sidebar
-const { data: allDocs } = await useAsyncData("docs-list", () =>
-  queryCollection("docs")
-    .select("title", "path", "section", "audience", "order", "locale")
-    .where("locale", "=", "en")
-    .order("order", "ASC")
-    .all(),
+const { data: listData, pending: listPending } = useLazyFetch("/api/docs");
+
+const allDocs = computed(() => listData.value?.data || []);
+
+// Redirect to first doc if no slug
+watch(
+  [allDocs, currentSlug],
+  ([docs, slug]) => {
+    if (!slug && docs?.length > 0) {
+      const firstDoc = groupedDocs.value?.[0]?.docs?.[0];
+      if (firstDoc) {
+        navigateTo(`/docs/${firstDoc.slug}`, { replace: true });
+      }
+    }
+  },
+  { immediate: true },
 );
 
-// Fetch current doc
-const { data: doc, status: docStatus } = await useAsyncData(`doc-${currentPath.value}`, () =>
-  queryCollection("docs").path(currentPath.value).first(),
-  { watch: [currentPath] },
+// Fetch current doc (await for SSR so OG image meta is available)
+const { data: docData, status: docStatus } = await useFetch(
+  () => (currentSlug.value ? `/api/docs/${currentSlug.value}` : null),
+  { key: computed(() => `doc-${currentSlug.value}`), watch: [currentSlug] },
 );
+
+const doc = computed(() => docData.value?.data);
 
 // Page meta
 usePageMeta(null, {
   title: computed(() => (doc.value?.title ? `${doc.value.title} · Docs` : "Docs")),
+  description: computed(() => doc.value?.excerpt || ""),
 });
 
 // --- Sidebar nav grouping logic ---
@@ -203,22 +185,24 @@ function mapToCategory(audience, section) {
   return "exhibitor-guide";
 }
 
-const categoryOrder = ["getting-started", "staff-guide", "exhibitor-guide", "advanced"];
+const categoryOrder = ["getting-started", "staff-guide", "exhibitor-guide"];
 
 const categoryLabels = {
   "getting-started": "Getting Started",
   "staff-guide": "Staff Guide",
   "exhibitor-guide": "Exhibitor Guide",
-  advanced: "Advanced",
 };
 
 const groupedDocs = computed(() => {
-  if (!allDocs.value) return [];
+  if (!allDocs.value?.length) return [];
 
   const groups = {};
 
-  allDocs.value.forEach((doc) => {
-    const category = mapToCategory(doc.audience, doc.section);
+  allDocs.value.forEach((post) => {
+    const audience = post.settings?.docs_audience || "staff";
+    const section = post.settings?.docs_section || "general";
+    const order = post.settings?.docs_order ?? 999;
+    const category = mapToCategory(audience, section);
 
     if (!groups[category]) {
       groups[category] = {
@@ -228,10 +212,14 @@ const groupedDocs = computed(() => {
       };
     }
     groups[category].docs.push({
-      title: doc.title,
-      path: doc.path,
+      title: post.title,
+      slug: post.slug,
+      docsOrder: order,
     });
   });
+
+  // Sort docs within each group by order
+  Object.values(groups).forEach((g) => g.docs.sort((a, b) => a.docsOrder - b.docsOrder));
 
   return Object.values(groups).sort((a, b) => {
     const orderA = a.order === -1 ? 999 : a.order;
@@ -242,9 +230,9 @@ const groupedDocs = computed(() => {
 
 // Prev/Next based on grouped order
 const flatDocs = computed(() => groupedDocs.value.flatMap((g) => g.docs));
-const currentFlatIndex = computed(() => flatDocs.value.findIndex((d) => d.path === currentPath.value));
-const prevDoc = computed(() => currentFlatIndex.value > 0 ? flatDocs.value[currentFlatIndex.value - 1] : null);
-const nextDoc = computed(() => currentFlatIndex.value < flatDocs.value.length - 1 ? flatDocs.value[currentFlatIndex.value + 1] : null);
-
-const isDocsRoot = computed(() => route.path === "/docs" || route.path === "/docs/");
+const currentFlatIndex = computed(() => flatDocs.value.findIndex((d) => d.slug === currentSlug.value));
+const prevDoc = computed(() => (currentFlatIndex.value > 0 ? flatDocs.value[currentFlatIndex.value - 1] : null));
+const nextDoc = computed(() =>
+  currentFlatIndex.value < flatDocs.value.length - 1 ? flatDocs.value[currentFlatIndex.value + 1] : null,
+);
 </script>

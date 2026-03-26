@@ -20,10 +20,10 @@
         <CommandGroup v-for="group in groupedDocs" :key="group.label" :heading="group.label">
           <CommandItem
             v-for="doc in group.docs"
-            :key="doc.path"
+            :key="doc.slug"
             :value="doc.title"
             class="tracking-tight"
-            @select="navigateToDoc(doc.path)"
+            @select="navigateToDoc(doc.slug)"
           >
             <Icon name="lucide:arrow-right" class="mr-2 size-4" />
             <span>{{ doc.title }}</span>
@@ -38,15 +38,8 @@
 const open = ref(false);
 const router = useRouter();
 const { metaSymbol } = useShortcuts();
-
-// Fetch docs list via Nuxt Content
-const { data: allDocs } = await useAsyncData("docs-search", () =>
-  queryCollection("docs")
-    .select("title", "path", "section", "audience", "order", "locale")
-    .where("locale", "=", "en")
-    .order("order", "ASC")
-    .all()
-);
+// Fetch docs list via server API
+const { data: listData } = useLazyFetch("/api/docs", { key: "docs-search" });
 
 function mapToCategory(audience, section) {
   if (audience === "staff" && section === "getting-started") return "getting-started";
@@ -54,22 +47,25 @@ function mapToCategory(audience, section) {
   return "exhibitor-guide";
 }
 
-const categoryOrder = ["getting-started", "staff-guide", "exhibitor-guide", "advanced"];
+const categoryOrder = ["getting-started", "staff-guide", "exhibitor-guide"];
 
 const categoryLabels = {
   "getting-started": "Getting Started",
   "staff-guide": "Staff Guide",
   "exhibitor-guide": "Exhibitor Guide",
-  advanced: "Advanced",
 };
 
 const groupedDocs = computed(() => {
-  if (!allDocs.value) return [];
+  const posts = listData.value?.data || [];
+  if (!posts.length) return [];
 
   const groups = {};
 
-  allDocs.value.forEach((doc) => {
-    const category = mapToCategory(doc.audience, doc.section);
+  posts.forEach((post) => {
+    const audience = post.settings?.docs_audience || "staff";
+    const section = post.settings?.docs_section || "general";
+    const order = post.settings?.docs_order ?? 999;
+    const category = mapToCategory(audience, section);
 
     if (!groups[category]) {
       groups[category] = {
@@ -79,10 +75,13 @@ const groupedDocs = computed(() => {
       };
     }
     groups[category].docs.push({
-      title: doc.title,
-      path: doc.path,
+      title: post.title,
+      slug: post.slug,
+      docsOrder: order,
     });
   });
+
+  Object.values(groups).forEach((g) => g.docs.sort((a, b) => a.docsOrder - b.docsOrder));
 
   return Object.values(groups).sort((a, b) => {
     const orderA = a.order === -1 ? 999 : a.order;
@@ -91,9 +90,9 @@ const groupedDocs = computed(() => {
   });
 });
 
-function navigateToDoc(path) {
+function navigateToDoc(slug) {
   open.value = false;
-  router.push(path);
+  router.push(`/docs/${slug}`);
 }
 
 // Keyboard shortcut: Cmd+K / Ctrl+K

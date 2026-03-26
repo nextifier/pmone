@@ -37,7 +37,8 @@ class PublicBlogController extends Controller
                 'media',
             ])
             ->published()
-            ->public();
+            ->public()
+            ->whereDoesntHave('tags', fn ($q) => $q->where('name->en', 'docs')->where('type', 'post'));
 
         $this->applyPostFilters($query, $request);
         $this->applyPostSorting($query, $request);
