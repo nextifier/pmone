@@ -93,7 +93,6 @@
         :format="{
           style: 'currency',
           currency: 'IDR',
-          notation: 'compact',
           maximumFractionDigits: 0,
         }"
       />

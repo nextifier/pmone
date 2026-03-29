@@ -1,71 +1,47 @@
 <template>
   <div class="space-y-16 lg:space-y-24">
     <!-- Hero -->
-    <section class="relative isolate">
-      <!-- Grid Background -->
-      <div class="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
-        <div
-          class="border-border/50 dark:border-border/30 absolute inset-x-0 top-0 mx-auto h-full max-w-6xl border-x"
-        />
-        <svg
-          class="text-border absolute inset-0 size-full mask-[linear-gradient(to_bottom,black,black_70%,transparent)]"
-        >
-          <defs>
-            <pattern
-              id="grid-pattern"
-              x="0"
-              y="0"
-              width="60"
-              height="60"
-              patternUnits="userSpaceOnUse"
-            >
-              <path
-                d="M 60 0 L 0 0 0 60"
-                fill="transparent"
-                stroke="currentColor"
-                stroke-width="1"
-              />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid-pattern)" />
-        </svg>
-      </div>
+    <section>
+      <div class="container">
+        <div class="pt-10 pb-8 lg:pt-14 lg:pb-12">
+          <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div class="max-w-2xl">
+              <h1
+                class="text-foreground text-4xl leading-[1.15]! font-medium tracking-tighter text-balance sm:text-6xl"
+              >
+                Manage events, exhibitors, and content from one dashboard.
+              </h1>
+              <p
+                class="text-body mt-4 max-w-xl text-base leading-relaxed tracking-tight text-pretty sm:text-lg"
+              >
+                Projects, brands, orders, short links, blog posts, analytics, forms, and tasks.
+                Connected and searchable under one login.
+              </p>
+            </div>
 
-      <!-- Gradient Glow -->
-      <div class="pointer-events-none absolute inset-0 z-1 overflow-hidden" aria-hidden="true">
-        <div
-          class="bg-background absolute -top-40 left-1/2 h-[600px] w-[1200px] -translate-x-1/2 rounded-full blur-3xl"
-        />
-      </div>
-
-      <div class="relative z-2 container">
-        <div
-          class="flex flex-col items-center justify-center pt-10 pb-8 text-center lg:pt-14 lg:pb-12"
-        >
-          <!-- Headline -->
-          <h1
-            class="text-foreground max-w-3xl text-4xl leading-[1.15]! font-medium tracking-tighter text-balance sm:text-6xl"
-          >
-            Manage events, exhibitors, and content from one dashboard.
-          </h1>
-
-          <!-- Subtitle -->
-          <p
-            class="text-body mt-4 max-w-2xl text-center text-base leading-relaxed tracking-tight text-pretty sm:text-lg"
-          >
-            Projects, brands, orders, short links, blog posts, analytics, forms, and tasks.
-            Connected and searchable under one login.
-          </p>
-
-          <!-- CTA -->
-          <div class="mt-6">
-            <Button to="/signup" size="lg" class="rounded-xl" v-ripple>Get started</Button>
+            <div class="flex shrink-0 gap-2">
+              <Button to="/login" size="lg" variant="default" v-ripple> Get Started </Button>
+              <Button size="lg" variant="outline" v-ripple> Watch Demo </Button>
+            </div>
           </div>
-        </div>
 
-        <!-- Hero Browser Mockup -->
-        <div class="mx-auto max-w-5xl">
-          <HomeBrowserMockup title="pmone.id/dashboard" size="lg" />
+          <!-- Row 3: Hero images -->
+          <div
+            class="bg-muted border-border mt-8 overflow-hidden rounded-2xl border p-6 sm:rounded-4xl sm:p-10 lg:p-14"
+          >
+            <div class="flex flex-col -space-y-[50%]">
+              <img
+                v-for="(n, index) in 3"
+                :key="index"
+                :src="`/img/hero-img-${n}.png`"
+                :alt="`PM One Dashboard Screenshot ${n}`"
+                class="size-full rounded-xl shadow-2xl"
+                :style="`z-index: ${3 - index}; transform: skewX(6deg) translateX(${[8, 4, 0][index]}%)`"
+                width="1470"
+                height="848"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -251,6 +227,17 @@
 definePageMeta({});
 
 usePageMeta(null, { title: "PM One", withoutTitleTemplate: true });
+
+const activeTab = ref("overview");
+
+const heroTabs = [
+  { id: "overview", label: "Overview" },
+  { id: "events", label: "Events" },
+  { id: "exhibitors", label: "Exhibitors" },
+  { id: "content", label: "Content" },
+  { id: "analytics", label: "Analytics" },
+  { id: "links", label: "Short Links" },
+];
 
 // Feature sections
 const features = [

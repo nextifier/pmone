@@ -1,7 +1,10 @@
 import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 
 const noopMock = fileURLToPath(new URL("./mock/noop.mjs", import.meta.url));
+const require = createRequire(import.meta.url);
+const vidstackDir = require.resolve("vidstack/package.json").replace("/package.json", "");
 
 export default defineNuxtConfig({
   devtools: {
@@ -51,8 +54,22 @@ export default defineNuxtConfig({
 
   css: ["~/assets/css/main.css"],
 
+  vue: {
+    compilerOptions: {
+      isCustomElement: (tag: string) => tag.startsWith("media-"),
+    },
+  },
+
   vite: {
     plugins: [tailwindcss()],
+    resolve: {
+      alias: {
+        "vidstack/global/player": `${vidstackDir}/prod/global/vidstack-player.js`,
+        "vidstack/player/styles/base.css": `${vidstackDir}/player/styles/base.css`,
+        "vidstack/player/styles/default/theme.css": `${vidstackDir}/player/styles/default/theme.css`,
+        "vidstack/player/styles/default/layouts/video.css": `${vidstackDir}/player/styles/default/layouts/video.css`,
+      },
+    },
     optimizeDeps: {
       include: [
         "embla-carousel-wheel-gestures",

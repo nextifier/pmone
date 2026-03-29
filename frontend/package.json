@@ -84,6 +84,7 @@
     "typescript": "^5.9.3",
     "v-wave": "^3.0.4",
     "vaul-vue": "^0.4.1",
+    "vidstack": "^1.12.13",
     "vue-filepond": "^7.0.4",
     "vue-json-pretty": "^2.6.0",
     "vue-router": "^5.0.4",
