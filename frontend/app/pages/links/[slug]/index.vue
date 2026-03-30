@@ -31,51 +31,50 @@
 
     <div v-else-if="analyticsData" class="space-y-6">
       <!-- QR Code Section -->
-      <Card v-if="shortLink">
-        <CardHeader>
-          <CardTitle>QR Code</CardTitle>
-          <CardDescription>Share your short link with a QR code</CardDescription>
-        </CardHeader>
-        <CardContent class="flex flex-col items-center gap-6">
-          <!-- Short Link URL with Copy Button -->
-          <div class="w-full max-w-md">
-            <div class="flex items-center gap-2">
-              <Input :model-value="shortLinkUrl" readonly class="flex-1 font-mono text-sm" />
-              <Button @click="copyToClipboard" variant="outline" size="icon">
-                <Icon :name="copied ? 'lucide:check' : 'lucide:copy'" class="size-4" />
-              </Button>
-            </div>
-          </div>
+      <div v-if="shortLink" class="flex flex-col items-center gap-6 pb-6">
+        <div class="flex flex-col gap-1 text-center">
+          <h2 class="text-lg font-semibold tracking-tighter">QR Code</h2>
+          <p class="text-muted-foreground text-sm tracking-tight">Share your short link with a QR code</p>
+        </div>
 
-          <!-- QR Code Preview -->
-          <div class="flex items-center justify-center">
-            <div
-              v-if="qrDataUrl"
-              class="xs:max-w-[280px] aspect-square w-full overflow-hidden rounded-lg bg-white shadow-lg"
-            >
-              <img :src="qrDataUrl" alt="QR Code" class="size-full object-contain" />
-            </div>
+        <!-- Short Link URL with Copy Button -->
+        <div class="w-full max-w-md">
+          <div class="flex items-center gap-2">
+            <Input :model-value="shortLinkUrl" readonly class="flex-1 font-mono text-sm" />
+            <Button @click="copyToClipboard" variant="outline" size="icon">
+              <Icon :name="copied ? 'lucide:check' : 'lucide:copy'" class="size-4" />
+            </Button>
           </div>
+        </div>
 
-          <!-- Download Buttons -->
-          <div class="flex flex-wrap justify-center gap-x-2 gap-y-4">
-            <button
-              @click="downloadJPG"
-              class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center justify-center gap-x-1.5 rounded-lg px-4 py-2 font-medium tracking-tight transition active:scale-98"
-            >
-              <Icon name="hugeicons:jpg-01" class="size-5 shrink-0" />
-              <span>Download JPG</span>
-            </button>
-            <button
-              @click="downloadSVG"
-              class="bg-muted text-foreground hover:bg-border flex items-center justify-center gap-x-1.5 rounded-lg px-4 py-2 font-medium tracking-tight transition active:scale-98"
-            >
-              <Icon name="hugeicons:svg-01" class="size-5 shrink-0" />
-              <span>Download SVG</span>
-            </button>
-          </div>
-        </CardContent>
-      </Card>
+        <!-- QR Code Preview -->
+        <div class="flex items-center justify-center">
+          <ClientOnly>
+            <QRCodeComponent
+              :url="shortLinkUrl"
+              class="xs:max-w-[280px] w-full"
+            />
+          </ClientOnly>
+        </div>
+
+        <!-- Download Buttons -->
+        <div class="flex flex-wrap justify-center gap-x-2 gap-y-4">
+          <button
+            @click="downloadJPG"
+            class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center justify-center gap-x-1.5 rounded-lg px-4 py-2 font-medium tracking-tight transition active:scale-98"
+          >
+            <Icon name="hugeicons:jpg-01" class="size-5 shrink-0" />
+            <span>Download JPG</span>
+          </button>
+          <button
+            @click="downloadSVG"
+            class="bg-muted text-foreground hover:bg-border flex items-center justify-center gap-x-1.5 rounded-lg px-4 py-2 font-medium tracking-tight transition active:scale-98"
+          >
+            <Icon name="hugeicons:svg-01" class="size-5 shrink-0" />
+            <span>Download SVG</span>
+          </button>
+        </div>
+      </div>
 
       <!-- Summary Cards -->
       <div class="grid gap-4 sm:grid-cols-3">
@@ -231,7 +230,9 @@
 </template>
 
 <script setup>
+import QRCodeComponent from "@/components/QRCode.vue";
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
+import { useQRCode } from "@/composables/useQRCode";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -245,22 +246,8 @@ const slug = computed(() => route.params.slug);
 const { $dayjs } = useNuxtApp();
 const config = useRuntimeConfig();
 
-// QR Code - dynamic import for client-side only
-const QRCode = ref(null);
-
-// QR Code state
-const qrDataUrl = ref("");
 const copied = ref(false);
-const previewSize = 300;
-const downloadSize = 1080;
-const errorCorrectionLevel = "H";
-const qrMargin = 2;
-
-// Load QRCode library on client-side
-onMounted(async () => {
-  const qrcodeModule = await import("qrcode");
-  QRCode.value = qrcodeModule.default;
-});
+const { downloadSVG: qrDownloadSVG, downloadJPG: qrDownloadJPG } = useQRCode();
 
 const selectedPeriod = ref("7");
 
@@ -303,33 +290,6 @@ const shortLinkUrl = computed(() => {
   return `${config.public.siteUrl}/${shortLink.value.slug}`;
 });
 
-// Generate QR code whenever short link is available
-watch(
-  [shortLink, QRCode],
-  async ([link, qrLib]) => {
-    if (!link || !qrLib) {
-      qrDataUrl.value = "";
-      return;
-    }
-
-    try {
-      qrDataUrl.value = await qrLib.toDataURL(shortLinkUrl.value, {
-        width: previewSize,
-        margin: qrMargin,
-        errorCorrectionLevel: errorCorrectionLevel,
-        color: {
-          dark: "#000000",
-          light: "#FFFFFF",
-        },
-      });
-    } catch (err) {
-      console.error("Error generating QR code:", err);
-      qrDataUrl.value = "";
-    }
-  },
-  { immediate: true }
-);
-
 // Copy to clipboard
 const copyToClipboard = async () => {
   try {
@@ -347,23 +307,9 @@ const copyToClipboard = async () => {
 
 // Download as JPG
 const downloadJPG = async () => {
-  if (!shortLinkUrl.value || !QRCode.value) return;
-
+  if (!shortLinkUrl.value) return;
   try {
-    const dataUrl = await QRCode.value.toDataURL(shortLinkUrl.value, {
-      width: downloadSize,
-      margin: qrMargin,
-      errorCorrectionLevel: errorCorrectionLevel,
-      color: {
-        dark: "#000000",
-        light: "#FFFFFF",
-      },
-    });
-
-    const link = document.createElement("a");
-    link.download = `QR-${shortLink.value.slug}.png`;
-    link.href = dataUrl;
-    link.click();
+    await qrDownloadJPG(shortLinkUrl.value, `QR-${shortLink.value.slug}.png`);
     toast.success("QR code downloaded!");
   } catch (err) {
     toast.error("Failed to download QR code");
@@ -373,27 +319,9 @@ const downloadJPG = async () => {
 
 // Download as SVG
 const downloadSVG = async () => {
-  if (!shortLinkUrl.value || !QRCode.value) return;
-
+  if (!shortLinkUrl.value) return;
   try {
-    const svgString = await QRCode.value.toString(shortLinkUrl.value, {
-      type: "svg",
-      width: 512,
-      margin: qrMargin,
-      errorCorrectionLevel: errorCorrectionLevel,
-      color: {
-        dark: "#000000",
-        light: "#FFFFFF",
-      },
-    });
-
-    const blob = new Blob([svgString], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.download = `QR-${shortLink.value.slug}.svg`;
-    link.href = url;
-    link.click();
-    URL.revokeObjectURL(url);
+    await qrDownloadSVG(shortLinkUrl.value, `QR-${shortLink.value.slug}.svg`);
     toast.success("QR code downloaded!");
   } catch (err) {
     toast.error("Failed to download QR code");

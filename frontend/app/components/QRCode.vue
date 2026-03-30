@@ -1,56 +1,80 @@
 <template>
-  <div
-    class="relative isolate before:absolute before:-inset-1.5 before:z-[-1] before:rounded-sm before:bg-white"
-  >
-    <canvas ref="qrcodeCanvas" :class="canvasClass" />
-  </div>
+  <div v-if="svgContent" v-html="svgContent" />
 </template>
 
 <script setup>
+import { buildQRSvgString } from "@/composables/useQRCode";
+
 const props = defineProps({
   url: {
     type: String,
     required: true,
   },
-  canvasClass: {
-    type: String,
-    default: "size-24",
+  size: {
+    type: Number,
+    default: 268,
   },
   margin: {
     type: Number,
-    default: 0,
+    default: 2,
+  },
+  fgColor: {
+    type: String,
+    default: "var(--foreground)",
+  },
+  bgColor: {
+    type: String,
+    default: "var(--background)",
+  },
+  errorCorrectionLevel: {
+    type: String,
+    default: "M",
   },
 });
 
-const qrcodeCanvas = ref(null);
+const qrData = shallowRef(null);
+const QRLib = shallowRef(null);
 
-const generateQRCode = async () => {
-  if (!import.meta.client || !qrcodeCanvas.value || !props.url) return;
+const svgContent = computed(() => {
+  if (!qrData.value) return "";
+
+  const svg = buildQRSvgString(qrData.value, {
+    size: props.size,
+    margin: props.margin,
+    fgColor: props.fgColor,
+    bgColor: props.bgColor,
+  });
+
+  // Replace fixed width/height with 100% so it fills the container
+  return svg
+    .replace(`width="${props.size}"`, 'width="100%"')
+    .replace(`height="${props.size}"`, 'height="100%"');
+});
+
+const generateQRData = async () => {
+  if (!import.meta.client || !props.url) {
+    qrData.value = null;
+    return;
+  }
 
   try {
-    const QRCode = await import("qrcode");
-    const canvasSize = qrcodeCanvas.value.clientWidth || 96;
-
-    qrcodeCanvas.value.width = canvasSize;
-    qrcodeCanvas.value.height = canvasSize;
-
-    await QRCode.toCanvas(qrcodeCanvas.value, props.url, {
-      width: canvasSize,
-      margin: props.margin,
-      color: {
-        dark: "#000000",
-        light: "#FFFFFF",
-      },
+    if (!QRLib.value) {
+      const mod = await import("qrcode");
+      QRLib.value = mod.default;
+    }
+    qrData.value = QRLib.value.create(props.url, {
+      errorCorrectionLevel: props.errorCorrectionLevel,
     });
   } catch (err) {
     console.error("Failed to generate QR code:", err);
+    qrData.value = null;
   }
 };
 
-onMounted(() => props.url && nextTick(generateQRCode));
+onMounted(() => props.url && nextTick(generateQRData));
 
 watch(
-  () => props.url,
-  (newUrl) => newUrl && nextTick(generateQRCode)
+  () => [props.url, props.errorCorrectionLevel],
+  () => props.url && nextTick(generateQRData)
 );
 </script>

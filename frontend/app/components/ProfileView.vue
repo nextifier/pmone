@@ -203,7 +203,7 @@
 
           <ClientOnly>
             <div class="flex flex-col items-end gap-y-3 text-center">
-              <QRCode :url="qrCodeUrl" canvas-class="size-24" />
+              <QRCode :url="qrCodeUrl" class="size-24" />
 
               <p
                 v-if="useRuntimeConfig().public.siteUrl"

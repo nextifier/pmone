@@ -37,14 +37,11 @@
             </div>
 
             <ClientOnly>
-              <div class="aspect-square w-full max-w-[240px] overflow-hidden rounded-lg bg-white">
-                <QRCode
-                  v-if="qrDialogOpen"
-                  :url="shortLinkUrl"
-                  canvasClass="size-full"
-                  :margin="2"
-                />
-              </div>
+              <QRCode
+                v-if="qrDialogOpen"
+                :url="shortLinkUrl"
+                class="w-full max-w-[240px]"
+              />
             </ClientOnly>
 
             <div class="flex gap-2">
@@ -80,6 +77,7 @@
 <script setup>
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import QRCode from "@/components/QRCode.vue";
+import { useQRCode } from "@/composables/useQRCode";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
@@ -93,39 +91,15 @@ const config = useRuntimeConfig();
 const shortLinkUrl = computed(() => `${config.public.siteUrl}/${props.link.slug}`);
 const qrDialogOpen = ref(false);
 
+const { downloadSVG, downloadJPG } = useQRCode();
+
 const downloadQR = async (format) => {
   try {
-    const qrcodeModule = await import("qrcode");
-    const QRLib = qrcodeModule.default;
-
     if (format === "svg") {
-      const svgString = await QRLib.toString(shortLinkUrl.value, {
-        type: "svg",
-        width: 512,
-        margin: 2,
-        errorCorrectionLevel: "H",
-        color: { dark: "#000000", light: "#FFFFFF" },
-      });
-      const blob = new Blob([svgString], { type: "image/svg+xml" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.download = `QR-${props.link.slug}.svg`;
-      a.href = url;
-      a.click();
-      URL.revokeObjectURL(url);
+      await downloadSVG(shortLinkUrl.value, `QR-${props.link.slug}.svg`);
     } else {
-      const dataUrl = await QRLib.toDataURL(shortLinkUrl.value, {
-        width: 1080,
-        margin: 2,
-        errorCorrectionLevel: "H",
-        color: { dark: "#000000", light: "#FFFFFF" },
-      });
-      const a = document.createElement("a");
-      a.download = `QR-${props.link.slug}.png`;
-      a.href = dataUrl;
-      a.click();
+      await downloadJPG(shortLinkUrl.value, `QR-${props.link.slug}.png`);
     }
-
     toast.success("QR code downloaded!");
   } catch (err) {
     toast.error("Failed to download QR code");
