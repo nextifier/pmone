@@ -1628,6 +1628,7 @@ const handleRemoveUnusedTags = async () => {
   }
 };
 
+const deletePending = ref(false);
 const handleDeleteSingleRow = async (contactUlid) => {
   try {
     deletePending.value = true;
