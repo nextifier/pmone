@@ -292,6 +292,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/brands/search', [BrandController::class, 'search'])->name('brands.search');
     Route::get('/brands/{brand}', [BrandController::class, 'show'])->middleware('can:brands.read')->name('brands.show');
     Route::put('/brands/{brand}', [BrandController::class, 'update'])->middleware('can:brands.update')->name('brands.update');
+    Route::delete('/brands/bulk', [BrandController::class, 'bulkDestroy'])->middleware('can:brands.delete')->name('brands.bulk-destroy');
     Route::delete('/brands/{brand}', [BrandController::class, 'destroy'])->middleware('can:brands.delete')->name('brands.delete');
     Route::get('/brands/{brand}/members', [BrandController::class, 'members'])->middleware('can:brands.read')->name('brands.members.index');
     Route::post('/brands/{brand}/members', [BrandController::class, 'addMember'])->middleware('can:brands.update')->name('brands.members.store');

@@ -12,6 +12,7 @@ use App\Http\Resources\EventDocumentResource;
 use App\Http\Resources\EventDocumentSubmissionResource;
 use App\Http\Resources\PromotionPostResource;
 use App\Imports\BrandEventsImport;
+use App\Jobs\BulkPermanentDeleteBrands;
 use App\Jobs\ProcessExcelImport;
 use App\Mail\ExhibitorInviteMail;
 use App\Models\Brand;
@@ -541,31 +542,24 @@ class BrandEventController extends Controller
             'slugs.*' => ['string'],
         ]);
 
-        $brands = Brand::whereIn('slug', $validated['slugs'])
-            ->whereHas('events', fn ($q) => $q->where('events.id', $event->id))
-            ->get();
+        $jobId = Str::uuid()->toString();
 
-        $deletedCount = 0;
-        $errors = [];
+        Cache::put("job:{$jobId}", [
+            'status' => 'pending',
+            'total' => count($validated['slugs']),
+            'processed' => 0,
+            'percentage' => 0,
+            'message' => 'Preparing to delete brands...',
+            'error_message' => null,
+        ], now()->addMinutes(30));
 
-        foreach ($brands as $brand) {
-            try {
-                $brand->forceDelete();
-                $deletedCount++;
-            } catch (\Exception $e) {
-                $errors[] = [
-                    'slug' => $brand->slug,
-                    'name' => $brand->name,
-                    'message' => $e->getMessage(),
-                ];
-            }
-        }
+        BulkPermanentDeleteBrands::dispatch(
+            $jobId,
+            $validated['slugs'],
+            $event->id,
+        );
 
-        return response()->json([
-            'message' => "{$deletedCount} brand(s) permanently deleted.",
-            'deleted_count' => $deletedCount,
-            'errors' => $errors,
-        ]);
+        return response()->json(['job_id' => $jobId]);
     }
 
     /**

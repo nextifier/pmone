@@ -2,18 +2,21 @@
 
 namespace App\Imports;
 
+use App\Imports\Concerns\TracksImportProgress;
 use App\Models\Brand;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Events\BeforeImport;
 use Maatwebsite\Excel\Validators\Failure;
 
-class BrandsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadingRow, WithValidation
+class BrandsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEvents, WithHeadingRow, WithValidation
 {
-    use Importable;
+    use Importable, TracksImportProgress;
 
     protected array $failures = [];
 
@@ -58,8 +61,16 @@ class BrandsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadi
         }
 
         $this->importedCount++;
+        $this->updateProgress($this->importedCount);
 
         return $brand;
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            BeforeImport::class => fn (BeforeImport $event) => $this->initProgressTracking($event),
+        ];
     }
 
     public function rules(): array

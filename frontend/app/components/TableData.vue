@@ -109,7 +109,7 @@
             $slots['add-button'] ||
             $slots.actions
           "
-          class="flex h-8 w-full items-center justify-between gap-x-1 sm:gap-x-2"
+          class="flex w-full flex-wrap items-center justify-between gap-1 sm:gap-x-2"
         >
           <!-- Actions Slot (for bulk actions like delete) -->
           <slot name="actions" :table="table" :selected-rows="table.getSelectedRowModel().rows" />

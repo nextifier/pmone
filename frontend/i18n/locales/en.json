@@ -95,10 +95,13 @@
     "downloadTemplateBtn": "Download Template",
     "uploadFile": "Upload File",
     "importBrands": "Import Brands",
+    "importing": "Importing brands...",
     "templateDownloaded": "Template downloaded successfully",
     "failedToDownloadTemplate": "Failed to download template",
     "pleaseUploadFile": "Please upload a file",
     "importedSuccess": "Brands imported successfully",
+    "importSuccess": "{count} brand(s) imported successfully",
+    "importSuccessGeneric": "Brands imported successfully",
     "importWithErrors": "Import completed with errors",
     "failedToImport": "Failed to import brands"
   },

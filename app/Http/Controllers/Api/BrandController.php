@@ -6,11 +6,14 @@ use App\Exports\BrandsExport;
 use App\Exports\BrandsTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Imports\BrandsImport;
+use App\Jobs\BulkSoftDeleteBrands;
+use App\Jobs\ProcessExcelImport;
 use App\Models\Brand;
 use App\Models\ProjectCustomField;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -218,6 +221,36 @@ class BrandController extends Controller
     }
 
     /**
+     * Bulk delete brands (soft delete, queued with progress).
+     */
+    public function bulkDestroy(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer'],
+        ]);
+
+        $jobId = Str::uuid()->toString();
+
+        Cache::put("job:{$jobId}", [
+            'status' => 'pending',
+            'total' => count($validated['ids']),
+            'processed' => 0,
+            'percentage' => 0,
+            'message' => 'Preparing to delete brands...',
+            'error_message' => null,
+        ], now()->addMinutes(30));
+
+        BulkSoftDeleteBrands::dispatch(
+            $jobId,
+            $validated['ids'],
+            auth()->id(),
+        );
+
+        return response()->json(['job_id' => $jobId]);
+    }
+
+    /**
      * Delete a brand (soft delete, staff+).
      */
     public function destroy(Brand $brand): JsonResponse
@@ -420,74 +453,49 @@ class BrandController extends Controller
             ], 422);
         }
 
-        $tempFolder = null;
+        $tempFolder = $request->input('file');
 
-        try {
-            $tempFolder = $request->input('file');
+        $metadataPath = "tmp/uploads/{$tempFolder}/metadata.json";
 
-            $metadataPath = "tmp/uploads/{$tempFolder}/metadata.json";
-
-            if (! Storage::disk('local')->exists($metadataPath)) {
-                return response()->json([
-                    'message' => 'File not found',
-                ], 404);
-            }
-
-            $metadata = json_decode(
-                Storage::disk('local')->get($metadataPath),
-                true
-            );
-
-            $filePath = "tmp/uploads/{$tempFolder}/{$metadata['original_name']}";
-
-            if (! Storage::disk('local')->exists($filePath)) {
-                return response()->json([
-                    'message' => 'File not found',
-                ], 404);
-            }
-
-            $import = new BrandsImport;
-            Excel::import($import, Storage::disk('local')->path($filePath));
-
-            $failures = $import->getFailures();
-            $importedCount = $import->getImportedCount();
-            $errorMessages = [];
-
-            foreach ($failures as $failure) {
-                $errorMessages[] = [
-                    'row' => $failure->row(),
-                    'attribute' => $failure->attribute(),
-                    'errors' => $failure->errors(),
-                    'values' => $failure->values(),
-                ];
-            }
-
-            if (count($errorMessages) > 0) {
-                return response()->json([
-                    'message' => 'Import completed with errors',
-                    'errors' => $errorMessages,
-                    'imported_count' => $importedCount,
-                ], 422);
-            }
-
+        if (! Storage::disk('local')->exists($metadataPath)) {
             return response()->json([
-                'message' => 'Brands imported successfully',
-                'imported_count' => $importedCount,
-            ]);
-        } catch (\Exception $e) {
-            logger()->error('Brand import failed', [
-                'error' => $e->getMessage(),
-            ]);
-
-            return response()->json([
-                'message' => 'Failed to import brands',
-                'error' => $e->getMessage(),
-            ], 500);
-        } finally {
-            if ($tempFolder) {
-                Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
-            }
+                'message' => 'File not found',
+            ], 404);
         }
+
+        $metadata = json_decode(
+            Storage::disk('local')->get($metadataPath),
+            true
+        );
+
+        $filePath = "tmp/uploads/{$tempFolder}/{$metadata['original_name']}";
+
+        if (! Storage::disk('local')->exists($filePath)) {
+            return response()->json([
+                'message' => 'File not found',
+            ], 404);
+        }
+
+        $importId = Str::uuid()->toString();
+
+        Cache::put("import:{$importId}", [
+            'status' => 'pending',
+            'total_rows' => 0,
+            'processed_rows' => 0,
+            'imported_count' => 0,
+            'percentage' => 0,
+            'errors' => [],
+            'error_message' => null,
+        ], now()->addMinutes(30));
+
+        ProcessExcelImport::dispatch(
+            $importId,
+            Storage::disk('local')->path($filePath),
+            BrandsImport::class,
+            $tempFolder,
+        );
+
+        return response()->json(['import_id' => $importId]);
     }
 
     private function applyFilters($query, Request $request): void

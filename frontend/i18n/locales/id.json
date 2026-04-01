@@ -118,10 +118,13 @@
     "downloadTemplateBtn": "Download Template",
     "uploadFile": "Upload File",
     "importBrands": "Import Brand",
+    "importing": "Mengimport brand...",
     "templateDownloaded": "Template berhasil di-download",
     "failedToDownloadTemplate": "Gagal men-download template",
     "pleaseUploadFile": "Silakan upload file terlebih dahulu",
     "importedSuccess": "Brand berhasil di-import",
+    "importSuccess": "{count} brand berhasil di-import",
+    "importSuccessGeneric": "Brand berhasil di-import",
     "importWithErrors": "Import selesai dengan beberapa error",
     "failedToImport": "Gagal meng-import brand"
   },

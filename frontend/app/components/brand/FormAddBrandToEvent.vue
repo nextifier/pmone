@@ -34,8 +34,8 @@
                     @select="selectedBrand = brand"
                   >
                     <img
-                      v-if="brand.brand_logo"
-                      :src="brand.brand_logo"
+                      v-if="brand.brand_logo?.thumbnail || brand.brand_logo?.sm"
+                      :src="brand.brand_logo.thumbnail || brand.brand_logo.sm"
                       class="size-6 rounded object-cover"
                       alt=""
                     />

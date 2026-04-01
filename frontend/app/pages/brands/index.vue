@@ -145,21 +145,31 @@
                   })
                 }}
               </p>
-              <div class="mt-3 flex justify-end gap-2">
+
+              <!-- Progress bar -->
+              <div v-if="deleteJob.processing.value" class="mt-3 space-y-2">
+                <div class="flex items-center justify-between text-sm tracking-tight">
+                  <span class="text-muted-foreground">{{ deleteJob.progress.value?.message }}</span>
+                  <span class="font-medium tabular-nums">{{ deleteJob.progress.value?.percentage ?? 0 }}%</span>
+                </div>
+                <Progress :model-value="deleteJob.progress.value?.percentage ?? 0" indicator-class="bg-destructive" />
+                <p v-if="deleteJob.progress.value?.total > 0" class="text-muted-foreground text-xs sm:text-sm tracking-tight tabular-nums">
+                  {{ deleteJob.progress.value?.processed ?? 0 }} / {{ deleteJob.progress.value?.total ?? 0 }}
+                </p>
+              </div>
+
+              <div v-else class="mt-3 flex justify-end gap-2">
                 <button
                   class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
                   @click="deleteDialogOpen = false"
-                  :disabled="deletePending"
                 >
                   {{ $t("common.cancel") }}
                 </button>
                 <button
                   @click="handleDeleteRows(selectedRows)"
-                  :disabled="deletePending"
-                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98"
                 >
-                  <Spinner v-if="deletePending" class="size-4 text-white" />
-                  <span v-else>{{ $t("common.delete") }}</span>
+                  {{ $t("common.delete") }}
                 </button>
               </div>
             </div>
@@ -177,6 +187,7 @@ import DialogResponsive from "@/components/DialogResponsive.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PopoverClose } from "reka-ui";
 import { defineComponent, resolveComponent } from "vue";
@@ -523,33 +534,57 @@ const handleExport = async () => {
   }
 };
 
-// Delete
+// Bulk delete (queued with progress)
 const deleteDialogOpen = ref(false);
-const deletePending = ref(false);
+const deleteJob = useJobProgress();
+
+// Prevent closing delete dialog while processing
+watch(deleteDialogOpen, (open) => {
+  if (!open && deleteJob.processing.value) {
+    deleteDialogOpen.value = true;
+  }
+});
+
+// Watch delete completion
+watch(
+  () => deleteJob.progress.value?.status,
+  (status) => {
+    if (status === "completed") {
+      toast.success(deleteJob.progress.value?.message || t("brands.deletedSuccess", { count: 0 }));
+      deleteDialogOpen.value = false;
+      deleteJob.reset();
+      refresh();
+      if (tableRef.value) {
+        tableRef.value.resetRowSelection();
+      }
+    }
+
+    if (status === "failed") {
+      toast.error(t("brands.failedToDelete"), {
+        description: deleteJob.progress.value?.error_message || "An error occurred",
+      });
+      deleteJob.reset();
+    }
+  },
+);
 
 const handleDeleteRows = async (selectedRows) => {
-  const slugs = selectedRows.map((row) => row.original.brand_slug);
+  const ids = selectedRows.map((row) => row.original.id);
   try {
-    deletePending.value = true;
-    await Promise.all(slugs.map((slug) => client(`/api/brands/${slug}`, { method: "DELETE" })));
-    await refresh();
-    deleteDialogOpen.value = false;
-    if (tableRef.value) {
-      tableRef.value.resetRowSelection();
-    }
-    toast.success(t("brands.deletedSuccess", { count: slugs.length }));
+    await deleteJob.startJob("/api/brands/bulk", {
+      method: "DELETE",
+      body: { ids },
+    });
   } catch (err) {
     toast.error(t("brands.failedToDelete"), {
       description: err?.data?.message || err?.message,
     });
-  } finally {
-    deletePending.value = false;
+    deleteJob.reset();
   }
 };
 
 const handleDeleteSingleRow = async (brandSlug) => {
   try {
-    deletePending.value = true;
     await client(`/api/brands/${brandSlug}`, { method: "DELETE" });
     await refresh();
     if (tableRef.value) {
@@ -560,8 +595,6 @@ const handleDeleteSingleRow = async (brandSlug) => {
     toast.error(t("brands.failedToDeleteSingle"), {
       description: err?.data?.message || err?.message,
     });
-  } finally {
-    deletePending.value = false;
   }
 };
 

@@ -9,7 +9,7 @@
         </p>
       </div>
 
-      <div class="ml-auto flex shrink-0 gap-2">
+      <div class="ml-auto flex flex-wrap gap-2">
         <!-- Categories -->
         <NuxtLink
           :to="`/projects/${route.params.username}/events/${route.params.eventSlug}/product-categories`"

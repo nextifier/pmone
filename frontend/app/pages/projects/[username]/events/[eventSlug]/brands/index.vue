@@ -2,13 +2,11 @@
   <div class="flex flex-col gap-y-6">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="space-y-1">
-        <h3 class="text-lg font-semibold tracking-tight">Brands</h3>
-        <p class="text-muted-foreground text-sm tracking-tight">
-          Manage exhibitor brands for this event.
-        </p>
+        <h3 class="page-title">Brands</h3>
+        <p class="page-description">Manage exhibitor brands for this event.</p>
       </div>
 
-      <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div v-if="!hasSelectedRows" class="ml-auto flex flex-wrap gap-1 sm:gap-2">
         <!-- Import -->
         <BrandImportDialog
           v-if="event?.can_edit"
@@ -47,7 +45,7 @@
         </Button>
       </div>
 
-      <div v-else-if="event?.can_edit" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div v-else-if="event?.can_edit" class="ml-auto flex flex-wrap gap-1 sm:gap-2">
         <button
           @click="clearSelection"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
@@ -71,7 +69,7 @@
       search-column="brand_name"
       search-placeholder="Search brands..."
       error-title="Error loading brands"
-      :initial-pagination="{ pageIndex: 0, pageSize: 15 }"
+      :initial-pagination="{ pageIndex: 0, pageSize: 50 }"
       :initial-sorting="[{ id: 'created_at', desc: true }]"
       :initial-column-visibility="{
         status: false,
@@ -117,20 +115,17 @@
       <template #actions="{ selectedRows }">
         <template v-if="selectedRows.length > 0 && event?.can_edit">
           <!-- Remove from event -->
-          <DialogResponsive v-model:open="removeDialogOpen" class="h-full">
+          <DialogResponsive v-model:open="removeDialogOpen">
             <template #trigger="{ open }">
-              <button
-                class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
-                @click="open()"
-              >
-                <Icon name="lucide:unlink" class="size-4 shrink-0" />
-                <span class="text-sm tracking-tight">Remove from event</span>
+              <Button variant="outline" size="sm" @click="open()">
+                <Icon name="hugeicons:unlink-02" class="size-4 shrink-0" />
+                Remove from event
                 <span
                   class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
                 >
                   {{ selectedRows.length }}
                 </span>
-              </button>
+              </Button>
             </template>
             <template #default>
               <div class="px-4 pb-10 md:px-6 md:py-5">
@@ -162,20 +157,17 @@
           </DialogResponsive>
 
           <!-- Delete permanently -->
-          <DialogResponsive v-model:open="permanentDeleteDialogOpen" class="h-full">
+          <DialogResponsive v-model:open="permanentDeleteDialogOpen">
             <template #trigger="{ open }">
-              <button
-                class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
-                @click="open()"
-              >
-                <Icon name="lucide:trash" class="size-4 shrink-0" />
-                <span class="text-sm tracking-tight">Delete permanently</span>
+              <Button variant="outline" size="sm" @click="open()">
+                <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
+                Delete permanently
                 <span
                   class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
                 >
                   {{ selectedRows.length }}
                 </span>
-              </button>
+              </Button>
             </template>
             <template #default>
               <div class="px-4 pb-10 md:px-6 md:py-5">
@@ -186,21 +178,31 @@
                   {{ selectedRows.length === 1 ? "brand" : "brands" }} from the system, including
                   all their data across all events.
                 </p>
-                <div class="mt-3 flex justify-end gap-2">
+
+                <!-- Progress bar -->
+                <div v-if="deleteJob.processing.value" class="mt-3 space-y-2">
+                  <div class="flex items-center justify-between text-sm tracking-tight">
+                    <span class="text-muted-foreground">{{ deleteJob.progress.value?.message }}</span>
+                    <span class="font-medium tabular-nums">{{ deleteJob.progress.value?.percentage ?? 0 }}%</span>
+                  </div>
+                  <Progress :model-value="deleteJob.progress.value?.percentage ?? 0" indicator-class="bg-destructive" />
+                  <p v-if="deleteJob.progress.value?.total > 0" class="text-muted-foreground text-xs sm:text-sm tracking-tight tabular-nums">
+                    {{ deleteJob.progress.value?.processed ?? 0 }} / {{ deleteJob.progress.value?.total ?? 0 }}
+                  </p>
+                </div>
+
+                <div v-else class="mt-3 flex justify-end gap-2">
                   <button
                     class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
                     @click="permanentDeleteDialogOpen = false"
-                    :disabled="permanentDeletePending"
                   >
                     Cancel
                   </button>
                   <button
                     @click="handlePermanentDeleteRows(selectedRows)"
-                    :disabled="permanentDeletePending"
-                    class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                    class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98"
                   >
-                    <Spinner v-if="permanentDeletePending" class="size-4 text-white" />
-                    <span v-else>Delete permanently</span>
+                    Delete permanently
                   </button>
                 </div>
               </div>
@@ -228,6 +230,7 @@ import DialogResponsive from "@/components/DialogResponsive.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PopoverClose } from "reka-ui";
 import { defineComponent, resolveComponent } from "vue";
@@ -542,30 +545,55 @@ const handleRemoveRows = async (selectedRows) => {
   }
 };
 
-// Permanent delete
+// Permanent delete (queued with progress)
 const permanentDeleteDialogOpen = ref(false);
-const permanentDeletePending = ref(false);
+const deleteJob = useJobProgress();
+
+// Prevent closing delete dialog while processing
+watch(permanentDeleteDialogOpen, (open) => {
+  if (!open && deleteJob.processing.value) {
+    permanentDeleteDialogOpen.value = true;
+  }
+});
+
+// Watch delete completion
+watch(
+  () => deleteJob.progress.value?.status,
+  (status) => {
+    if (status === "completed") {
+      toast.success(deleteJob.progress.value?.message || "Brands permanently deleted");
+      permanentDeleteDialogOpen.value = false;
+      deleteJob.reset();
+      refresh();
+      if (tableRef.value) {
+        tableRef.value.resetRowSelection();
+      }
+    }
+
+    if (status === "failed") {
+      toast.error("Failed to delete brands", {
+        description: deleteJob.progress.value?.error_message || "An error occurred",
+      });
+      deleteJob.reset();
+    }
+  },
+);
 
 const handlePermanentDeleteRows = async (selectedRows) => {
   const slugs = selectedRows.map((row) => row.original.brand_slug);
   try {
-    permanentDeletePending.value = true;
-    await client(
+    await deleteJob.startJob(
       `/api/projects/${route.params.username}/events/${route.params.eventSlug}/brands/bulk-permanent`,
-      { method: "DELETE", body: { slugs } }
+      {
+        method: "DELETE",
+        body: { slugs },
+      },
     );
-    await refresh();
-    permanentDeleteDialogOpen.value = false;
-    if (tableRef.value) {
-      tableRef.value.resetRowSelection();
-    }
-    toast.success(`${slugs.length} brand(s) permanently deleted`);
   } catch (err) {
     toast.error("Failed to delete brands", {
       description: err?.data?.message || err?.message || "An error occurred",
     });
-  } finally {
-    permanentDeletePending.value = false;
+    deleteJob.reset();
   }
 };
 

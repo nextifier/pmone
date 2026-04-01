@@ -95,10 +95,13 @@
     "downloadTemplateBtn": "下载模板",
     "uploadFile": "上传文件",
     "importBrands": "导入品牌",
+    "importing": "正在导入品牌...",
     "templateDownloaded": "模板下载成功",
     "failedToDownloadTemplate": "模板下载失败",
     "pleaseUploadFile": "请先上传文件",
     "importedSuccess": "品牌导入成功",
+    "importSuccess": "成功导入 {count} 个品牌",
+    "importSuccessGeneric": "品牌导入成功",
     "importWithErrors": "导入完成，但部分数据有误",
     "failedToImport": "品牌导入失败"
   },
