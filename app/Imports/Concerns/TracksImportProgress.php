@@ -47,11 +47,6 @@ trait TracksImportProgress
             return;
         }
 
-        // Update every 10 rows to avoid excessive cache writes
-        if ($processed % 10 !== 0) {
-            return;
-        }
-
         $data = Cache::get("import:{$this->importId}");
 
         if (! $data) {
@@ -59,6 +54,17 @@ trait TracksImportProgress
         }
 
         $totalRows = $data['total_rows'];
+
+        // Dynamic throttle: every item for small sets, every 5 for medium, every 10 for large
+        $interval = match (true) {
+            $totalRows <= 20 => 1,
+            $totalRows <= 100 => 5,
+            default => 10,
+        };
+
+        if ($processed % $interval !== 0) {
+            return;
+        }
         $percentage = $totalRows > 0 ? min(99, (int) round(($processed / $totalRows) * 100)) : 0;
 
         Cache::put("import:{$this->importId}", array_merge($data, [

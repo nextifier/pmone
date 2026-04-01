@@ -94,7 +94,7 @@ export function useImportProgress() {
           progress.value = data;
         }
       } catch (err: any) {
-        if (err.name === "AbortError") return;
+        if (err.name === "AbortError" || err.cause?.name === "AbortError") return;
         console.error("Failed to fetch import progress:", err);
       }
     }, 500);

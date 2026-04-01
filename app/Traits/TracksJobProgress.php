@@ -24,17 +24,12 @@ trait TracksJobProgress
     }
 
     /**
-     * Update progress. Throttled to every 10 items to avoid excessive cache writes.
+     * Update progress. Throttled dynamically based on total items.
      *
      * @param  array<string, mixed>  $extra
      */
     protected function updateProgress(int $processed, ?string $message = null, array $extra = []): void
     {
-        // Update every 10 items to avoid excessive cache writes
-        if ($processed % 10 !== 0) {
-            return;
-        }
-
         $data = Cache::get("job:{$this->jobId}");
 
         if (! $data) {
@@ -42,6 +37,17 @@ trait TracksJobProgress
         }
 
         $total = $data['total'];
+
+        // Dynamic throttle: every item for small sets, every 5 for medium, every 10 for large
+        $interval = match (true) {
+            $total <= 20 => 1,
+            $total <= 100 => 5,
+            default => 10,
+        };
+
+        if ($processed % $interval !== 0) {
+            return;
+        }
         $percentage = $total > 0 ? min(99, (int) round(($processed / $total) * 100)) : 0;
 
         Cache::put("job:{$this->jobId}", array_merge($data, $extra, [

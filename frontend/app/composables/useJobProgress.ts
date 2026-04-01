@@ -92,7 +92,7 @@ export function useJobProgress() {
           progress.value = data;
         }
       } catch (err: any) {
-        if (err.name === "AbortError") return;
+        if (err.name === "AbortError" || err.cause?.name === "AbortError") return;
         console.error("Failed to fetch job progress:", err);
       }
     }, 500);
