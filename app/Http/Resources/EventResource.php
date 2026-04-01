@@ -38,7 +38,7 @@ class EventResource extends JsonResource
             'order_form_content' => $this->order_form_content,
             'order_form_deadline' => $this->order_form_deadline?->toIso8601String(),
             'promotion_post_deadline' => $this->promotion_post_deadline?->toIso8601String(),
-            'saleable_area' => $this->saleable_area,
+            'saleable_area' => (float) $this->saleable_area,
             'normal_order_opens_at' => $this->normal_order_opens_at?->toIso8601String(),
             'normal_order_closes_at' => $this->normal_order_closes_at?->toIso8601String(),
             'onsite_order_opens_at' => $this->onsite_order_opens_at?->toIso8601String(),

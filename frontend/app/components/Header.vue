@@ -86,6 +86,9 @@
               v-ripple
             >
               <span>Dashboard</span>
+              <KbdGroup>
+                <Kbd>L</Kbd>
+              </KbdGroup>
             </Button>
             <AuthDropdownMenu />
           </template>
@@ -133,9 +136,7 @@ const { isAuthenticated } = useSanctumAuth();
 defineShortcuts({
   l: {
     handler: () => {
-      if (!isAuthenticated.value) {
-        router.push("/login");
-      }
+      router.push("/login");
     },
   },
 });

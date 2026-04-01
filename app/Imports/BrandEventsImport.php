@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Enums\BoothType;
+use App\Helpers\PhoneCountryHelper;
 use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\User;
@@ -45,14 +46,68 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
             $data['booth_type'] = strtolower(trim($data['booth_type']));
         }
 
-        // Normalize phone to string
+        // Normalize phone number to international format (+62...)
         if (isset($data['company_phone']) && ! is_null($data['company_phone'])) {
-            $data['company_phone'] = (string) $data['company_phone'];
+            $data['company_phone'] = PhoneCountryHelper::normalizePhoneNumber((string) $data['company_phone']);
         }
 
         // Normalize booth size to string
         if (isset($data['booth_size_sqm']) && ! is_null($data['booth_size_sqm'])) {
             $data['booth_size_sqm'] = (string) $data['booth_size_sqm'];
+        }
+
+        // Clean up and validate social media URLs - nullify invalid ones instead of failing the row
+        $socialPatterns = [
+            'instagram' => '/^https:\/\/(www\.)?instagram\.com\/.+/i',
+            'tiktok' => '/^https:\/\/(www\.)?tiktok\.com\/.+/i',
+            'facebook' => '/^https:\/\/(www\.)?(facebook\.com|fb\.com)\/.+/i',
+            'x' => '/^https:\/\/(www\.)?(x\.com|twitter\.com)\/.+/i',
+        ];
+
+        foreach (['instagram', 'tiktok', 'facebook', 'x', 'website'] as $field) {
+            if (! isset($data[$field]) || is_null($data[$field]) || trim($data[$field]) === '') {
+                $data[$field] = null;
+
+                continue;
+            }
+
+            $url = strtok(trim($data[$field]), '?');
+
+            // Validate as URL
+            if (! filter_var($url, FILTER_VALIDATE_URL)) {
+                $data[$field] = null;
+
+                continue;
+            }
+
+            // Validate platform-specific pattern
+            if (isset($socialPatterns[$field]) && ! preg_match($socialPatterns[$field], $url)) {
+                $data[$field] = null;
+
+                continue;
+            }
+
+            $data[$field] = $url;
+        }
+
+        // Validate brand_logo as URL - nullify if invalid
+        if (isset($data['brand_logo']) && ! is_null($data['brand_logo']) && trim($data['brand_logo']) !== '') {
+            if (! filter_var(trim($data['brand_logo']), FILTER_VALIDATE_URL)) {
+                $data['brand_logo'] = null;
+            } else {
+                $data['brand_logo'] = trim($data['brand_logo']);
+            }
+        }
+
+        // Validate numeric custom fields - nullify if invalid
+        if (isset($data['branch_total']) && ! is_null($data['branch_total'])) {
+            $val = (int) $data['branch_total'];
+            $data['branch_total'] = $val >= 0 ? (string) $val : null;
+        }
+
+        if (isset($data['establishment_year']) && ! is_null($data['establishment_year'])) {
+            $val = (int) $data['establishment_year'];
+            $data['establishment_year'] = ($val >= 1800 && $val <= (int) date('Y')) ? (string) $val : null;
         }
 
         return $data;
@@ -75,10 +130,51 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
                     'company_name' => ! empty($row['company_name']) ? trim($row['company_name']) : null,
                     'company_email' => ! empty($row['company_email']) ? trim($row['company_email']) : null,
                     'company_phone' => ! empty($row['company_phone']) ? trim($row['company_phone']) : null,
+                    'description' => ! empty($row['description']) ? trim($row['description']) : null,
+                    'custom_fields' => $this->buildCustomFields($row),
                 ]);
+            } else {
+                // Update existing brand fields if not yet filled
+                $updates = [];
+
+                if (empty($brand->description) && ! empty($row['description'])) {
+                    $updates['description'] = trim($row['description']);
+                }
+
+                $newCustomFields = $this->buildCustomFields($row);
+                if ($newCustomFields) {
+                    $existing = $brand->custom_fields ?? [];
+                    foreach ($newCustomFields as $key => $value) {
+                        if (empty($existing[$key])) {
+                            $existing[$key] = $value;
+                        }
+                    }
+                    $updates['custom_fields'] = $existing;
+                }
+
+                if (! empty($updates)) {
+                    $brand->update($updates);
+                }
             }
 
             $this->brandCache[$brandNameLower] = $brand->id;
+        }
+
+        // Import brand logo from URL if brand doesn't have one yet
+        if (! empty($row['brand_logo']) && ! $brand->hasMedia('brand_logo')) {
+            $this->importBrandLogo($brand, trim($row['brand_logo']));
+        }
+
+        // Create social links if brand doesn't have them yet
+        $this->createLinks($brand, $row);
+
+        // Sync business categories if provided
+        if (! empty($row['business_categories'])) {
+            $categories = array_map('trim', explode(',', $row['business_categories']));
+            $categories = array_filter($categories);
+            if (! empty($categories)) {
+                $brand->syncBusinessCategories($categories);
+            }
         }
 
         // Skip if brand already exists in this event
@@ -193,6 +289,60 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
             $normalized === 'draft' => 'draft',
             default => 'active',
         };
+    }
+
+    private function buildCustomFields(array $row): ?array
+    {
+        $customFields = [];
+
+        if (! empty($row['branch_total'])) {
+            $customFields['branch_total'] = (int) $row['branch_total'];
+        }
+
+        if (! empty($row['establishment_year'])) {
+            $customFields['establishment_year'] = (int) $row['establishment_year'];
+        }
+
+        return ! empty($customFields) ? $customFields : null;
+    }
+
+    private function importBrandLogo(Brand $brand, string $url): void
+    {
+        try {
+            $brand->addMediaFromUrl($url)
+                ->toMediaCollection('brand_logo');
+        } catch (\Exception $e) {
+            logger()->warning('Failed to import brand logo', [
+                'brand_id' => $brand->id,
+                'url' => $url,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    private function createLinks(Brand $brand, array $row): void
+    {
+        $linkMap = [
+            'website' => 'Website',
+            'instagram' => 'Instagram',
+            'tiktok' => 'TikTok',
+            'facebook' => 'Facebook',
+            'x' => 'X',
+        ];
+
+        $existingLabels = $brand->links()->pluck('label')->map(fn ($l) => strtolower($l))->toArray();
+        $order = $brand->links()->max('order') ?? -1;
+
+        foreach ($linkMap as $field => $label) {
+            if (! empty($row[$field]) && ! in_array(strtolower($label), $existingLabels)) {
+                $brand->links()->create([
+                    'label' => $label,
+                    'url' => trim($row[$field]),
+                    'order' => ++$order,
+                    'is_active' => true,
+                ]);
+            }
+        }
     }
 
     private function attachPicToBrand(Brand $brand, string $email): void
