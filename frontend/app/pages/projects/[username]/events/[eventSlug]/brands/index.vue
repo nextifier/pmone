@@ -115,53 +115,98 @@
       </template>
 
       <template #actions="{ selectedRows }">
-        <DialogResponsive
-          v-if="selectedRows.length > 0 && event?.can_edit"
-          v-model:open="deleteDialogOpen"
-          class="h-full"
-        >
-          <template #trigger="{ open }">
-            <button
-              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
-              @click="open()"
-            >
-              <Icon name="lucide:trash" class="size-4 shrink-0" />
-              <span class="text-sm tracking-tight">Delete</span>
-              <span
-                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
+        <template v-if="selectedRows.length > 0 && event?.can_edit">
+          <!-- Remove from event -->
+          <DialogResponsive v-model:open="removeDialogOpen" class="h-full">
+            <template #trigger="{ open }">
+              <button
+                class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
+                @click="open()"
               >
-                {{ selectedRows.length }}
-              </span>
-            </button>
-          </template>
-          <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
-              <p class="text-body mt-1.5 text-sm tracking-tight">
-                This action can't be undone. This will permanently remove
-                {{ selectedRows.length }} selected
-                {{ selectedRows.length === 1 ? "brand" : "brands" }} from this event.
-              </p>
-              <div class="mt-3 flex justify-end gap-2">
-                <button
-                  class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-                  @click="deleteDialogOpen = false"
-                  :disabled="deletePending"
+                <Icon name="lucide:unlink" class="size-4 shrink-0" />
+                <span class="text-sm tracking-tight">Remove from event</span>
+                <span
+                  class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
                 >
-                  Cancel
-                </button>
-                <button
-                  @click="handleDeleteRows(selectedRows)"
-                  :disabled="deletePending"
-                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <Spinner v-if="deletePending" class="size-4 text-white" />
-                  <span v-else>Delete</span>
-                </button>
+                  {{ selectedRows.length }}
+                </span>
+              </button>
+            </template>
+            <template #default>
+              <div class="px-4 pb-10 md:px-6 md:py-5">
+                <div class="page-title">Remove brands from this event?</div>
+                <p class="page-description mt-1.5">
+                  This will remove {{ selectedRows.length }} selected
+                  {{ selectedRows.length === 1 ? "brand" : "brands" }} from this event. The brands
+                  will still exist globally and can be added back later.
+                </p>
+                <div class="mt-3 flex justify-end gap-2">
+                  <button
+                    class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                    @click="removeDialogOpen = false"
+                    :disabled="removePending"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    @click="handleRemoveRows(selectedRows)"
+                    :disabled="removePending"
+                    class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Spinner v-if="removePending" class="size-4 text-white" />
+                    <span v-else>Remove</span>
+                  </button>
+                </div>
               </div>
-            </div>
-          </template>
-        </DialogResponsive>
+            </template>
+          </DialogResponsive>
+
+          <!-- Delete permanently -->
+          <DialogResponsive v-model:open="permanentDeleteDialogOpen" class="h-full">
+            <template #trigger="{ open }">
+              <button
+                class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
+                @click="open()"
+              >
+                <Icon name="lucide:trash" class="size-4 shrink-0" />
+                <span class="text-sm tracking-tight">Delete permanently</span>
+                <span
+                  class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
+                >
+                  {{ selectedRows.length }}
+                </span>
+              </button>
+            </template>
+            <template #default>
+              <div class="px-4 pb-10 md:px-6 md:py-5">
+                <div class="page-title">Delete brands permanently?</div>
+                <p class="page-description mt-1.5">
+                  This action can't be undone. This will permanently delete
+                  {{ selectedRows.length }} selected
+                  {{ selectedRows.length === 1 ? "brand" : "brands" }} from the system, including
+                  all their data across all events.
+                </p>
+                <div class="mt-3 flex justify-end gap-2">
+                  <button
+                    class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                    @click="permanentDeleteDialogOpen = false"
+                    :disabled="permanentDeletePending"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    @click="handlePermanentDeleteRows(selectedRows)"
+                    :disabled="permanentDeletePending"
+                    class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Spinner v-if="permanentDeletePending" class="size-4 text-white" />
+                    <span v-else>Delete permanently</span>
+                  </button>
+                </div>
+              </div>
+            </template>
+          </DialogResponsive>
+        </template>
       </template>
     </TableData>
 
@@ -470,40 +515,62 @@ const handleExport = async () => {
   }
 };
 
-// Delete
-const deleteDialogOpen = ref(false);
-const deletePending = ref(false);
+// Remove from event
+const removeDialogOpen = ref(false);
+const removePending = ref(false);
 
-const handleDeleteRows = async (selectedRows) => {
+const handleRemoveRows = async (selectedRows) => {
   const slugs = selectedRows.map((row) => row.original.brand_slug);
   try {
-    deletePending.value = true;
-    await Promise.all(
-      slugs.map((slug) =>
-        client(
-          `/api/projects/${route.params.username}/events/${route.params.eventSlug}/brands/${slug}`,
-          { method: "DELETE" }
-        )
-      )
+    removePending.value = true;
+    await client(
+      `/api/projects/${route.params.username}/events/${route.params.eventSlug}/brands/bulk`,
+      { method: "DELETE", body: { slugs } }
     );
     await refresh();
-    deleteDialogOpen.value = false;
+    removeDialogOpen.value = false;
     if (tableRef.value) {
       tableRef.value.resetRowSelection();
     }
-    toast.success(`${slugs.length} brand(s) removed successfully`);
+    toast.success(`${slugs.length} brand(s) removed from event`);
   } catch (err) {
     toast.error("Failed to remove brands", {
       description: err?.data?.message || err?.message || "An error occurred",
     });
   } finally {
-    deletePending.value = false;
+    removePending.value = false;
+  }
+};
+
+// Permanent delete
+const permanentDeleteDialogOpen = ref(false);
+const permanentDeletePending = ref(false);
+
+const handlePermanentDeleteRows = async (selectedRows) => {
+  const slugs = selectedRows.map((row) => row.original.brand_slug);
+  try {
+    permanentDeletePending.value = true;
+    await client(
+      `/api/projects/${route.params.username}/events/${route.params.eventSlug}/brands/bulk-permanent`,
+      { method: "DELETE", body: { slugs } }
+    );
+    await refresh();
+    permanentDeleteDialogOpen.value = false;
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
+    }
+    toast.success(`${slugs.length} brand(s) permanently deleted`);
+  } catch (err) {
+    toast.error("Failed to delete brands", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+  } finally {
+    permanentDeletePending.value = false;
   }
 };
 
 const handleDeleteSingleRow = async (brandSlug) => {
   try {
-    deletePending.value = true;
     await client(
       `/api/projects/${route.params.username}/events/${route.params.eventSlug}/brands/${brandSlug}`,
       { method: "DELETE" }
@@ -512,13 +579,11 @@ const handleDeleteSingleRow = async (brandSlug) => {
     if (tableRef.value) {
       tableRef.value.resetRowSelection();
     }
-    toast.success("Brand removed successfully");
+    toast.success("Brand removed from event");
   } catch (err) {
     toast.error("Failed to remove brand", {
       description: err?.data?.message || err?.message || "An error occurred",
     });
-  } finally {
-    deletePending.value = false;
   }
 };
 
@@ -627,14 +692,10 @@ const RowActions = defineComponent({
           {
             default: () =>
               h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
-                h(
-                  "div",
-                  { class: "text-primary text-lg font-semibold tracking-tight" },
-                  "Are you sure?"
-                ),
+                h("div", { class: "page-title" }, "Are you sure?"),
                 h(
                   "p",
-                  { class: "text-body mt-1.5 text-sm tracking-tight" },
+                  { class: "page-description mt-1.5" },
                   "This action can't be undone. This will remove this brand from the event."
                 ),
                 h("div", { class: "mt-3 flex justify-end gap-2" }, [

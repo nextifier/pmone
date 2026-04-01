@@ -16,7 +16,10 @@
         :show-logo="true"
         :show-status="true"
         :show-categories="true"
+        :show-links="true"
         :business-category-options="businessCategoryOptions"
+        :custom-field-definitions="customFieldDefinitions"
+        :custom-field-initial-values="customFieldValues"
         @saved="fetchBrand"
       />
 
@@ -92,6 +95,49 @@
                   Invite
                 </Button>
               </form>
+              <div class="mt-2 flex items-center gap-x-2">
+                <Checkbox id="send_invite_email" v-model="sendLoginEmail" />
+                <Label for="send_invite_email" class="text-sm font-normal">Send login email</Label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Brand Metadata -->
+      <div v-if="brand" class="frame">
+        <div class="frame-header">
+          <div class="frame-title">Brand Metadata</div>
+        </div>
+        <div class="frame-panel">
+          <div class="grid grid-cols-1 gap-y-4 sm:grid-cols-2">
+            <div>
+              <p class="text-muted-foreground text-xs sm:text-sm">ID</p>
+              <p class="font-mono text-sm">{{ brand.id }}</p>
+            </div>
+            <div>
+              <p class="text-muted-foreground text-xs sm:text-sm">ULID</p>
+              <p class="font-mono text-sm">{{ brand.ulid }}</p>
+            </div>
+            <div>
+              <p class="text-muted-foreground text-xs sm:text-sm">Created</p>
+              <p class="text-sm">
+                {{ brand.created_at ? $dayjs(brand.created_at).format("MMM D, YYYY [at] h:mm A") : "-" }}
+              </p>
+            </div>
+            <div>
+              <p class="text-muted-foreground text-xs sm:text-sm">Last Updated</p>
+              <p class="text-sm">
+                {{ brand.updated_at ? $dayjs(brand.updated_at).format("MMM D, YYYY [at] h:mm A") : "-" }}
+              </p>
+            </div>
+            <div v-if="brand.created_by">
+              <p class="text-muted-foreground text-xs sm:text-sm">Created By</p>
+              <p class="text-sm">{{ brand.created_by.name }}</p>
+            </div>
+            <div v-if="brand.updated_by">
+              <p class="text-muted-foreground text-xs sm:text-sm">Updated By</p>
+              <p class="text-sm">{{ brand.updated_by.name }}</p>
             </div>
           </div>
         </div>
@@ -113,11 +159,13 @@
 
 <script setup>
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "vue-sonner";
 
 const { t } = useI18n();
+const { $dayjs } = useNuxtApp();
 
 definePageMeta({
   middleware: ["sanctum:auth", "permission"],
@@ -136,6 +184,8 @@ const slug = route.params.slug;
 const pending = ref(true);
 const brand = ref(null);
 const businessCategoryOptions = ref([]);
+const customFieldDefinitions = ref([]);
+const customFieldValues = ref({});
 const members = ref([]);
 
 const fetchBrand = async () => {
@@ -144,6 +194,8 @@ const fetchBrand = async () => {
     brand.value = res.data;
     members.value = res.data?.members || [];
     businessCategoryOptions.value = res.business_category_options || [];
+    customFieldDefinitions.value = res.custom_field_definitions || [];
+    customFieldValues.value = res.data?.custom_fields || {};
   } catch (e) {
     console.error("Failed to fetch brand:", e);
   }
@@ -152,6 +204,7 @@ const fetchBrand = async () => {
 
 // Members
 const newMemberEmail = ref("");
+const sendLoginEmail = ref(false);
 const addingMember = ref(false);
 const removingMember = ref(null);
 
@@ -161,7 +214,10 @@ async function addMember() {
   try {
     const res = await client(`/api/brands/${slug}/members`, {
       method: "POST",
-      body: { email: newMemberEmail.value.trim() },
+      body: {
+        email: newMemberEmail.value.trim(),
+        send_login_email: sendLoginEmail.value,
+      },
     });
     members.value.push(res.data);
     newMemberEmail.value = "";

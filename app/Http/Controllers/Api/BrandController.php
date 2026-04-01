@@ -7,6 +7,8 @@ use App\Exports\BrandsTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Imports\BrandsImport;
 use App\Models\Brand;
+use App\Models\ProjectCustomField;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -77,7 +79,7 @@ class BrandController extends Controller
     {
         $this->authorizeExhibitorAccess($request->user(), $brand);
 
-        $brand->load(['media', 'tags', 'users.media', 'brandEvents.event.project']);
+        $brand->load(['media', 'tags', 'links', 'users.media', 'creator', 'updater', 'brandEvents.event.project']);
 
         // Collect business category options from all projects the brand participates in
         $projectIds = $brand->brandEvents->pluck('event.project.id')->filter()->unique();
@@ -95,6 +97,11 @@ class BrandController extends Controller
 
         $businessCategoryOptions = array_values(array_unique($businessCategoryOptions));
 
+        // Collect custom field definitions from all associated projects
+        $customFieldDefinitions = ProjectCustomField::whereIn('project_id', $projectIds)
+            ->ordered()
+            ->get();
+
         return response()->json([
             'data' => [
                 'id' => $brand->id,
@@ -111,14 +118,23 @@ class BrandController extends Controller
                 'visibility' => $brand->visibility,
                 'brand_logo' => $brand->brand_logo,
                 'business_categories' => $brand->business_categories_list,
+                'links' => $brand->links->map(fn ($link) => [
+                    'label' => $link->label,
+                    'url' => $link->url,
+                ]),
                 'members' => $brand->users->map(fn ($user) => [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
                     'avatar' => $user->relationLoaded('media') ? $user->getMediaUrls('profile_image') : null,
                 ]),
+                'created_at' => $brand->created_at,
+                'updated_at' => $brand->updated_at,
+                'created_by' => $brand->creator ? ['id' => $brand->creator->id, 'name' => $brand->creator->name] : null,
+                'updated_by' => $brand->updater ? ['id' => $brand->updater->id, 'name' => $brand->updater->name] : null,
             ],
             'business_category_options' => $businessCategoryOptions,
+            'custom_field_definitions' => $customFieldDefinitions,
         ]);
     }
 
@@ -141,10 +157,16 @@ class BrandController extends Controller
             'business_categories.*' => ['string', 'max:100'],
             'tmp_brand_logo' => ['nullable', 'string'],
             'delete_brand_logo' => ['nullable', 'boolean'],
+            'links' => ['nullable', 'array'],
+            'links.*.label' => ['required', 'string', 'max:100'],
+            'links.*.url' => ['required', 'string', 'max:500'],
+            'project_custom_fields' => ['nullable', 'array'],
         ]);
 
         $categories = $validated['business_categories'] ?? null;
-        unset($validated['business_categories'], $validated['tmp_brand_logo'], $validated['delete_brand_logo']);
+        $links = $validated['links'] ?? null;
+        $projectCustomFields = $validated['project_custom_fields'] ?? null;
+        unset($validated['business_categories'], $validated['tmp_brand_logo'], $validated['delete_brand_logo'], $validated['links'], $validated['project_custom_fields']);
 
         $brand->update($validated);
 
@@ -153,6 +175,34 @@ class BrandController extends Controller
         }
 
         $this->handleTemporaryUpload($request, $brand, 'tmp_brand_logo', 'brand_logo');
+
+        // Save project custom field values to brands.custom_fields
+        if ($projectCustomFields !== null) {
+            $projectIds = $brand->brandEvents()->with('event')->get()->pluck('event.project_id')->filter()->unique();
+            $customFieldDefinitions = ProjectCustomField::whereIn('project_id', $projectIds)->get();
+            $cleanedValues = $brand->custom_fields ?? [];
+
+            foreach ($customFieldDefinitions as $fieldDef) {
+                if (array_key_exists($fieldDef->key, $projectCustomFields)) {
+                    $cleanedValues[$fieldDef->key] = $projectCustomFields[$fieldDef->key];
+                }
+            }
+
+            $brand->update(['custom_fields' => $cleanedValues]);
+        }
+
+        // Sync links if provided
+        if ($links !== null) {
+            $brand->links()->delete();
+
+            foreach ($links as $index => $linkData) {
+                $brand->links()->create([
+                    'label' => $linkData['label'],
+                    'url' => $linkData['url'],
+                    'order' => $index,
+                ]);
+            }
+        }
 
         $brand->load('media');
 
@@ -175,6 +225,124 @@ class BrandController extends Controller
         $brand->delete();
 
         return response()->json(['message' => 'Brand deleted successfully']);
+    }
+
+    /**
+     * List trashed brands.
+     */
+    public function trash(Request $request): JsonResponse
+    {
+        $query = Brand::onlyTrashed()
+            ->with(['media', 'deleter'])
+            ->withCount(['brandEvents', 'users']);
+
+        $this->applyFilters($query, $request);
+
+        $sortField = $request->input('sort', '-deleted_at');
+        $direction = str_starts_with($sortField, '-') ? 'desc' : 'asc';
+        $field = ltrim($sortField, '-');
+
+        $trashFieldMap = [
+            'brand_name' => 'name',
+            'company_name' => 'company_name',
+            'status' => 'status',
+            'created_at' => 'created_at',
+            'deleted_at' => 'deleted_at',
+        ];
+
+        if (isset($trashFieldMap[$field])) {
+            $query->orderBy($trashFieldMap[$field], $direction);
+        } else {
+            $query->orderBy('deleted_at', 'desc');
+        }
+
+        $brands = $query->paginate($request->input('per_page', 15));
+
+        return response()->json([
+            'data' => $brands->map(fn (Brand $brand) => [
+                ...$this->transformBrandForTable($brand),
+                'deleted_at' => $brand->deleted_at?->toISOString(),
+                'deleter' => $brand->deleter ? ['name' => $brand->deleter->name] : null,
+            ]),
+            'meta' => [
+                'current_page' => $brands->currentPage(),
+                'last_page' => $brands->lastPage(),
+                'per_page' => $brands->perPage(),
+                'total' => $brands->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Restore a single trashed brand.
+     */
+    public function restore(string $id): JsonResponse
+    {
+        $brand = Brand::onlyTrashed()->findOrFail($id);
+        $brand->restore();
+
+        return response()->json(['message' => 'Brand restored successfully']);
+    }
+
+    /**
+     * Bulk restore trashed brands.
+     */
+    public function bulkRestore(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['required', 'integer'],
+        ]);
+
+        $restored = 0;
+        foreach ($validated['ids'] as $id) {
+            $brand = Brand::onlyTrashed()->find($id);
+            if ($brand) {
+                $brand->restore();
+                $restored++;
+            }
+        }
+
+        return response()->json([
+            'message' => "{$restored} brand(s) restored successfully",
+            'restored_count' => $restored,
+        ]);
+    }
+
+    /**
+     * Permanently delete a single trashed brand.
+     */
+    public function forceDestroy(string $id): JsonResponse
+    {
+        $brand = Brand::onlyTrashed()->findOrFail($id);
+        $brand->forceDelete();
+
+        return response()->json(['message' => 'Brand permanently deleted']);
+    }
+
+    /**
+     * Bulk permanently delete trashed brands.
+     */
+    public function bulkForceDestroy(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer'],
+        ]);
+
+        $deletedCount = 0;
+        foreach ($validated['ids'] as $id) {
+            $brand = Brand::onlyTrashed()->find($id);
+            if ($brand) {
+                $brand->forceDelete();
+                $deletedCount++;
+            }
+        }
+
+        return response()->json([
+            'message' => "{$deletedCount} brand(s) permanently deleted",
+            'deleted_count' => $deletedCount,
+        ]);
     }
 
     /**
@@ -373,10 +541,10 @@ class BrandController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        $user = \App\Models\User::whereRaw('LOWER(email) = ?', [strtolower(trim($validated['email']))])->first();
+        $user = User::whereRaw('LOWER(email) = ?', [strtolower(trim($validated['email']))])->first();
 
         if (! $user) {
-            $user = \App\Models\User::create([
+            $user = User::create([
                 'name' => Str::before($validated['email'], '@'),
                 'email' => $validated['email'],
                 'password' => bcrypt(Str::random(16)),
@@ -440,7 +608,7 @@ class BrandController extends Controller
     /**
      * Ensure non-staff users can only access their own brands.
      */
-    private function authorizeExhibitorAccess(\App\Models\User $user, Brand $brand): void
+    private function authorizeExhibitorAccess(User $user, Brand $brand): void
     {
         if ($user->hasRole(['master', 'admin', 'staff'])) {
             return;

@@ -1445,12 +1445,16 @@ class UserController extends Controller
         DB::table('task_user')->where('user_id', $userId)->delete();
         DB::table('brand_user')->where('user_id', $userId)->delete();
 
-        // Nullify foreign keys on audit columns
+        // Delete records where created_by is NOT NULL
+        DB::table('tasks')->where('created_by', $userId)->delete();
+        DB::table('forms')->where('created_by', $userId)->delete();
+
+        // Nullify foreign keys on audit columns (NO ACTION constraints)
         $nullifyTables = [
             'posts' => ['created_by', 'updated_by', 'deleted_by'],
             'projects' => ['created_by', 'updated_by', 'deleted_by'],
-            'tasks' => ['created_by', 'updated_by', 'deleted_by', 'assignee_id'],
-            'short_links' => ['user_id', 'created_by', 'updated_by', 'deleted_by'],
+            'tasks' => ['updated_by', 'deleted_by', 'assignee_id'],
+            'short_links' => ['created_by', 'updated_by', 'deleted_by'],
             'contact_form_submissions' => ['deleted_by'],
             'api_consumers' => ['created_by', 'updated_by', 'deleted_by'],
             'ga_properties' => ['created_by', 'updated_by', 'deleted_by'],
@@ -1460,6 +1464,9 @@ class UserController extends Controller
             'brands' => ['created_by', 'updated_by', 'deleted_by'],
             'brand_event' => ['sales_id'],
             'users' => ['created_by', 'updated_by', 'deleted_by'],
+            'link_pages' => ['created_by', 'updated_by', 'deleted_by'],
+            'link_page_items' => ['created_by', 'updated_by'],
+            'forms' => ['updated_by', 'deleted_by'],
         ];
 
         foreach ($nullifyTables as $table => $columns) {

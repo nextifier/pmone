@@ -6,7 +6,7 @@
         <div class="frame-title">{{ $t("brandsForm.brandInformation") }}</div>
       </div>
       <div class="frame-panel">
-        <div class="grid grid-cols-1 gap-y-6">
+        <div class="grid grid-cols-1 gap-y-4">
           <div v-if="showLogo" class="space-y-2">
             <Label>{{ $t("brandsForm.brandLogo") }}</Label>
             <InputFileImage
@@ -41,6 +41,27 @@
           </div>
 
           <div class="space-y-2">
+            <Label for="company_name">{{ $t("brandsForm.companyName") }}</Label>
+            <Input id="company_name" v-model="form.company_name" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="company_address">{{ $t("brandsForm.companyAddress") }}</Label>
+            <Textarea id="company_address" v-model="form.company_address" rows="2" />
+          </div>
+
+          <div class="grid grid-cols-1 gap-x-2 gap-y-4 sm:grid-cols-2">
+            <div class="space-y-2">
+              <Label for="company_email">{{ $t("brandsForm.companyEmail") }}</Label>
+              <Input id="company_email" v-model="form.company_email" type="email" />
+            </div>
+            <div class="space-y-2">
+              <Label for="company_phone">{{ $t("brandsForm.companyPhone") }}</Label>
+              <InputPhone v-model="form.company_phone" id="company_phone" />
+            </div>
+          </div>
+
+          <div class="space-y-2">
             <Label for="description">{{ $t("brandsForm.description") }}</Label>
             <TipTapEditor
               v-model="form.description"
@@ -51,6 +72,54 @@
               :placeholder="$t('brandsForm.writeBrandDescription')"
             />
           </div>
+
+          <!-- Custom Fields -->
+          <template v-if="customFieldDefinitions?.length">
+            <div v-for="field in customFieldDefinitions" :key="field.id" class="space-y-2">
+              <Label :for="`cf_${field.key}`">
+                {{ field.label }}
+                <span v-if="field.is_required" class="text-destructive">*</span>
+              </Label>
+
+              <Input
+                v-if="field.type === 'text'"
+                :id="`cf_${field.key}`"
+                v-model="customFieldValues[field.key]"
+              />
+              <Input
+                v-else-if="field.type === 'number'"
+                :id="`cf_${field.key}`"
+                v-model="customFieldValues[field.key]"
+                type="number"
+              />
+              <Textarea
+                v-else-if="field.type === 'textarea'"
+                :id="`cf_${field.key}`"
+                v-model="customFieldValues[field.key]"
+                rows="3"
+              />
+              <Select v-else-if="field.type === 'select'" v-model="customFieldValues[field.key]">
+                <SelectTrigger :id="`cf_${field.key}`" class="w-full">
+                  <SelectValue placeholder="Select..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="option in field.options" :key="option" :value="option">
+                    {{ option }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <Select v-else-if="field.type === 'year_select'" v-model="customFieldValues[field.key]">
+                <SelectTrigger :id="`cf_${field.key}`" class="w-full">
+                  <SelectValue placeholder="Select year..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="year in yearOptions" :key="year" :value="String(year)">
+                    {{ year }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </template>
 
           <div v-if="showStatus" class="space-y-2">
             <Label for="status">{{ $t("brandsForm.status") }}</Label>
@@ -68,98 +137,63 @@
       </div>
     </div>
 
-    <!-- Company Information -->
-    <div class="frame">
+    <!-- Links -->
+    <div v-if="showLinks" class="frame">
       <div class="frame-header">
-        <div class="frame-title">{{ $t("brandsForm.companyInformation") }}</div>
+        <div class="frame-title">Links</div>
       </div>
       <div class="frame-panel">
-        <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="company_name">{{ $t("brandsForm.companyName") }}</Label>
-            <Input id="company_name" v-model="form.company_name" />
-          </div>
+        <div class="grid grid-cols-1 gap-y-3">
+          <div v-if="brandLinks.length > 0" class="space-y-2">
+            <div v-for="(link, index) in brandLinks" :key="index" class="flex items-center gap-1.5">
+              <div class="min-w-28 sm:min-w-36">
+                <Select
+                  v-model="link.label"
+                  @update:model-value="(value) => handleLinkLabelChange(index, value)"
+                >
+                  <div v-if="link.isCustomLabel" class="relative">
+                    <Input
+                      v-model="link.label"
+                      type="text"
+                      placeholder="Enter custom label"
+                      class="pr-7"
+                    />
+                    <SelectTrigger
+                      class="absolute top-0 right-0 flex size-8 items-center justify-center border-transparent bg-transparent !p-0 [&_svg]:!m-0"
+                    />
+                  </div>
+                  <SelectTrigger v-else class="w-full">
+                    <SelectValue placeholder="Select label" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="label in PREDEFINED_LINK_LABELS" :key="label" :value="label">
+                      {{ label }}
+                    </SelectItem>
+                    <SelectItem value="Custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div class="space-y-2">
-            <Label for="company_address">{{ $t("brandsForm.companyAddress") }}</Label>
-            <Textarea id="company_address" v-model="form.company_address" rows="2" />
-          </div>
+              <InputLink v-model="link.url" :label="link.label" class="grow" />
 
-          <div class="grid grid-cols-1 gap-x-4 gap-y-6 lg:grid-cols-2">
-            <div class="space-y-2">
-              <Label for="company_email">{{ $t("brandsForm.companyEmail") }}</Label>
-              <Input id="company_email" v-model="form.company_email" type="email" />
+              <button
+                type="button"
+                @click="removeLink(index)"
+                class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+              >
+                <Icon name="hugeicons:delete-01" class="size-4" />
+              </button>
             </div>
-
-            <div class="space-y-2">
-              <Label for="company_phone">{{ $t("brandsForm.companyPhone") }}</Label>
-              <InputPhone v-model="form.company_phone" id="company_phone" />
-            </div>
           </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Project-Specific Information (Custom Fields) -->
-    <div v-if="customFieldDefinitions?.length" class="frame">
-      <div class="frame-header">
-        <div class="frame-title">{{ $t("brandsForm.projectSpecificInfo") }}</div>
-      </div>
-      <div class="frame-panel">
-        <div class="grid grid-cols-1 gap-y-6">
-          <div v-for="field in customFieldDefinitions" :key="field.id" class="space-y-2">
-            <Label :for="`cf_${field.key}`">
-              {{ field.label }}
-              <span v-if="field.is_required" class="text-destructive">*</span>
-            </Label>
-
-            <!-- Text -->
-            <Input
-              v-if="field.type === 'text'"
-              :id="`cf_${field.key}`"
-              v-model="customFieldValues[field.key]"
-            />
-
-            <!-- Number -->
-            <Input
-              v-else-if="field.type === 'number'"
-              :id="`cf_${field.key}`"
-              v-model="customFieldValues[field.key]"
-              type="number"
-            />
-
-            <!-- Textarea -->
-            <Textarea
-              v-else-if="field.type === 'textarea'"
-              :id="`cf_${field.key}`"
-              v-model="customFieldValues[field.key]"
-              rows="3"
-            />
-
-            <!-- Select -->
-            <Select v-else-if="field.type === 'select'" v-model="customFieldValues[field.key]">
-              <SelectTrigger :id="`cf_${field.key}`">
-                <SelectValue placeholder="Select..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="option in field.options" :key="option" :value="option">
-                  {{ option }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-
-            <!-- Year Select -->
-            <Select v-else-if="field.type === 'year_select'" v-model="customFieldValues[field.key]">
-              <SelectTrigger :id="`cf_${field.key}`">
-                <SelectValue placeholder="Select year..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="year in yearOptions" :key="year" :value="String(year)">
-                  {{ year }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <button
+            type="button"
+            @click="addLink"
+            class="text-primary hover:text-primary/80 flex items-center gap-x-1 py-1 text-sm font-medium tracking-tight transition"
+          >
+            <Icon name="hugeicons:add-01" class="size-4" />
+            Add Link
+          </button>
         </div>
       </div>
     </div>
@@ -167,7 +201,11 @@
     <div>
       <Button type="submit" :disabled="saving" size="sm">
         <Icon v-if="saving" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
-        {{ submitLabel }}
+        Save
+        <KbdGroup>
+          <Kbd>{{ metaSymbol }}</Kbd>
+          <Kbd>S</Kbd>
+        </KbdGroup>
       </Button>
     </div>
   </form>
@@ -200,8 +238,8 @@ const props = defineProps({
   showLogo: { type: Boolean, default: false },
   showStatus: { type: Boolean, default: false },
   showCategories: { type: Boolean, default: false },
+  showLinks: { type: Boolean, default: false },
   businessCategoryOptions: { type: Array, default: () => [] },
-  submitLabel: { type: String, default: "Save Brand" },
   customFieldDefinitions: { type: Array, default: () => [] },
   customFieldInitialValues: { type: Object, default: () => ({}) },
 });
@@ -209,6 +247,7 @@ const emit = defineEmits(["saved"]);
 const client = useSanctumClient();
 
 const saving = ref(false);
+const { metaSymbol } = useShortcuts();
 const logoFiles = ref([]);
 const deleteLogo = ref(false);
 
@@ -238,8 +277,49 @@ const selectedCategoryOptions = computed({
   },
 });
 
+// Links
+const PREDEFINED_LINK_LABELS = ["Website", "Instagram", "Facebook", "X", "TikTok", "LinkedIn", "YouTube"];
+
+const brandLinks = reactive(
+  (props.brand?.links || []).map((link) => ({
+    label: link.label || "",
+    url: link.url || "",
+    isCustomLabel: !PREDEFINED_LINK_LABELS.includes(link.label),
+  }))
+);
+
+function addLink() {
+  brandLinks.push({ label: "", url: "", isCustomLabel: false });
+}
+
+function removeLink(index) {
+  brandLinks.splice(index, 1);
+}
+
+function handleLinkLabelChange(index, value) {
+  if (value === "Custom") {
+    brandLinks[index].isCustomLabel = true;
+    brandLinks[index].label = "";
+  } else {
+    brandLinks[index].isCustomLabel = false;
+    brandLinks[index].label = value;
+  }
+}
+
 // Custom field values (reactive object keyed by field key)
-const customFieldValues = reactive({ ...props.customFieldInitialValues });
+const customFieldValues = reactive(
+  normalizeCustomFieldValues(props.customFieldInitialValues, props.customFieldDefinitions)
+);
+
+function normalizeCustomFieldValues(values, definitions) {
+  const result = { ...values };
+  for (const field of definitions || []) {
+    if (field.type === "year_select" && result[field.key] != null) {
+      result[field.key] = String(result[field.key]);
+    }
+  }
+  return result;
+}
 
 // Year options (current year down to 1950)
 const currentYear = new Date().getFullYear();
@@ -264,6 +344,18 @@ watch(
       form.description = newBrand.description || "";
       form.status = newBrand.status || "active";
       form.business_categories = newBrand.business_categories || [];
+
+      // Sync links
+      brandLinks.splice(0, brandLinks.length);
+      if (newBrand.links?.length) {
+        brandLinks.push(
+          ...newBrand.links.map((link) => ({
+            label: link.label || "",
+            url: link.url || "",
+            isCustomLabel: !PREDEFINED_LINK_LABELS.includes(link.label),
+          }))
+        );
+      }
     }
   }
 );
@@ -273,8 +365,9 @@ watch(
   () => props.customFieldInitialValues,
   (newValues) => {
     if (newValues) {
-      Object.keys(newValues).forEach((key) => {
-        customFieldValues[key] = newValues[key];
+      const normalized = normalizeCustomFieldValues(newValues, props.customFieldDefinitions);
+      Object.keys(normalized).forEach((key) => {
+        customFieldValues[key] = normalized[key];
       });
     }
   }
@@ -303,6 +396,13 @@ async function save() {
       }
     }
 
+    // Include links if shown
+    if (props.showLinks) {
+      body.links = brandLinks
+        .filter((link) => link.label && link.url)
+        .map((link) => ({ label: link.label, url: link.url }));
+    }
+
     // Include custom field values if definitions exist
     if (props.customFieldDefinitions?.length) {
       body.project_custom_fields = { ...customFieldValues };
@@ -324,4 +424,13 @@ async function save() {
     saving.value = false;
   }
 }
+
+defineShortcuts({
+  meta_s: {
+    usingInput: true,
+    handler: () => {
+      save();
+    },
+  },
+});
 </script>

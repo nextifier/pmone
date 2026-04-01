@@ -12,6 +12,7 @@ use App\Http\Resources\EventDocumentResource;
 use App\Http\Resources\EventDocumentSubmissionResource;
 use App\Http\Resources\PromotionPostResource;
 use App\Imports\BrandEventsImport;
+use App\Jobs\ProcessExcelImport;
 use App\Mail\ExhibitorInviteMail;
 use App\Models\Brand;
 use App\Models\BrandEvent;
@@ -25,6 +26,7 @@ use App\Notifications\PromotionPostUploadedNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -33,6 +35,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Tags\Tag;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class BrandEventController extends Controller
@@ -196,7 +200,7 @@ class BrandEventController extends Controller
             if ($existingBrandEvent) {
                 return response()->json([
                     'message' => 'Brand is already registered in this event.',
-                    'data' => new BrandEventResource($existingBrandEvent->load(['brand.media', 'brand.tags', 'brand.users.media', 'sales', 'promotionPosts.media'])),
+                    'data' => new BrandEventResource($existingBrandEvent->load(['brand.media', 'brand.tags', 'brand.links', 'brand.creator', 'brand.updater', 'brand.users.media', 'sales', 'promotionPosts.media'])),
                 ], 409);
             }
         } else {
@@ -252,7 +256,7 @@ class BrandEventController extends Controller
             }
         }
 
-        $brandEvent->load(['brand.media', 'brand.tags', 'brand.users.media', 'sales', 'promotionPosts.media']);
+        $brandEvent->load(['brand.media', 'brand.tags', 'brand.links', 'brand.creator', 'brand.updater', 'brand.users.media', 'sales', 'promotionPosts.media']);
 
         // Notify brand members about event invitation
         foreach ($brand->users as $brandUser) {
@@ -274,13 +278,13 @@ class BrandEventController extends Controller
         $event = $this->resolveEvent($project, $eventSlug);
         $brandEvent = $this->resolveBrandEvent($event, $brandSlug);
 
-        $brandEvent->load(['brand.media', 'brand.tags', 'brand.users.media', 'sales', 'promotionPosts.media']);
+        $brandEvent->load(['brand.media', 'brand.tags', 'brand.links', 'brand.creator', 'brand.updater', 'brand.users.media', 'sales', 'promotionPosts.media']);
 
         // Load custom field definitions and values
         $customFieldDefinitions = $project->customFields()->ordered()->get();
 
         // Load predefined business category options for this project
-        $businessCategoryOptions = \Spatie\Tags\Tag::withType("business_category:{$project->id}")
+        $businessCategoryOptions = Tag::withType("business_category:{$project->id}")
             ->ordered()
             ->pluck('name')
             ->toArray();
@@ -364,12 +368,14 @@ class BrandEventController extends Controller
             'status' => ['nullable', 'string', 'max:20'],
             'notes' => ['nullable', 'string'],
             'promotion_post_limit' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'fascia_name' => ['nullable', 'string', 'max:24'],
+            'badge_name' => ['nullable', 'string', 'max:255'],
             'custom_fields' => ['nullable', 'array'],
         ]);
 
         $brandEvent->update($validated);
 
-        $brandEvent->load(['brand.media', 'brand.tags', 'brand.users.media', 'sales', 'promotionPosts.media']);
+        $brandEvent->load(['brand.media', 'brand.tags', 'brand.links', 'brand.creator', 'brand.updater', 'brand.users.media', 'sales', 'promotionPosts.media']);
 
         return response()->json([
             'message' => 'Brand event updated successfully.',
@@ -404,6 +410,9 @@ class BrandEventController extends Controller
             'business_categories' => ['nullable', 'array'],
             'business_categories.*' => ['string'],
             'project_custom_fields' => ['nullable', 'array'],
+            'links' => ['nullable', 'array'],
+            'links.*.label' => ['required', 'string', 'max:100'],
+            'links.*.url' => ['required', 'string', 'max:500'],
         ]);
 
         // Update brand fields
@@ -444,13 +453,27 @@ class BrandEventController extends Controller
             $brand->update(['custom_fields' => $cleanedValues]);
         }
 
-        $brandEvent->load(['brand.media', 'brand.tags', 'brand.users.media', 'sales', 'promotionPosts.media']);
+        // Sync links if provided
+        if ($request->has('links') && is_array($request->links)) {
+            $brand->links()->delete();
+
+            foreach ($validated['links'] as $index => $linkData) {
+                $brand->links()->create([
+                    'label' => $linkData['label'],
+                    'url' => $linkData['url'],
+                    'order' => $index,
+                    'is_active' => true,
+                ]);
+            }
+        }
+
+        $brandEvent->load(['brand.media', 'brand.tags', 'brand.links', 'brand.creator', 'brand.updater', 'brand.users.media', 'sales', 'promotionPosts.media']);
 
         // Reload custom field data for response
         $customFieldDefinitions = $project->customFields()->ordered()->get();
 
         // Load predefined business category options for response
-        $businessCategoryOptions = \Spatie\Tags\Tag::withType("business_category:{$project->id}")
+        $businessCategoryOptions = Tag::withType("business_category:{$project->id}")
             ->ordered()
             ->pluck('name')
             ->toArray();
@@ -477,6 +500,71 @@ class BrandEventController extends Controller
 
         return response()->json([
             'message' => 'Brand removed from event successfully.',
+        ]);
+    }
+
+    /**
+     * Bulk remove brands from event (detach pivot).
+     */
+    public function bulkDestroy(Request $request, string $username, string $eventSlug): JsonResponse
+    {
+        $project = $this->resolveProject($username);
+        $event = $this->resolveEvent($project, $eventSlug);
+
+        $validated = $request->validate([
+            'slugs' => ['required', 'array'],
+            'slugs.*' => ['string'],
+        ]);
+
+        $brandEvents = BrandEvent::where('event_id', $event->id)
+            ->whereHas('brand', fn ($q) => $q->whereIn('slug', $validated['slugs']))
+            ->get();
+
+        $deletedCount = $brandEvents->count();
+        $brandEvents->each->delete();
+
+        return response()->json([
+            'message' => "{$deletedCount} brand(s) removed from event successfully.",
+        ]);
+    }
+
+    /**
+     * Bulk permanently delete brands (force delete, bypasses soft delete).
+     */
+    public function bulkPermanentDelete(Request $request, string $username, string $eventSlug): JsonResponse
+    {
+        $project = $this->resolveProject($username);
+        $event = $this->resolveEvent($project, $eventSlug);
+
+        $validated = $request->validate([
+            'slugs' => ['required', 'array'],
+            'slugs.*' => ['string'],
+        ]);
+
+        $brands = Brand::whereIn('slug', $validated['slugs'])
+            ->whereHas('events', fn ($q) => $q->where('events.id', $event->id))
+            ->get();
+
+        $deletedCount = 0;
+        $errors = [];
+
+        foreach ($brands as $brand) {
+            try {
+                $brand->forceDelete();
+                $deletedCount++;
+            } catch (\Exception $e) {
+                $errors[] = [
+                    'slug' => $brand->slug,
+                    'name' => $brand->name,
+                    'message' => $e->getMessage(),
+                ];
+            }
+        }
+
+        return response()->json([
+            'message' => "{$deletedCount} brand(s) permanently deleted.",
+            'deleted_count' => $deletedCount,
+            'errors' => $errors,
         ]);
     }
 
@@ -758,7 +846,7 @@ class BrandEventController extends Controller
             'media_ids.*' => ['integer'],
         ]);
 
-        \Spatie\MediaLibrary\MediaCollections\Models\Media::setNewOrder($validated['media_ids']);
+        Media::setNewOrder($validated['media_ids']);
 
         $post->load('media');
 
@@ -858,98 +946,61 @@ class BrandEventController extends Controller
             ], 422);
         }
 
-        $tempFolder = null;
+        $tempFolder = $request->input('file');
 
-        try {
-            $tempFolder = $request->input('file');
+        $metadataPath = "tmp/uploads/{$tempFolder}/metadata.json";
 
-            // Get file path from temporary storage
-            $metadataPath = "tmp/uploads/{$tempFolder}/metadata.json";
-
-            if (! Storage::disk('local')->exists($metadataPath)) {
-                return response()->json([
-                    'message' => 'File not found',
-                ], 404);
-            }
-
-            $metadata = json_decode(
-                Storage::disk('local')->get($metadataPath),
-                true
-            );
-
-            $filePath = "tmp/uploads/{$tempFolder}/{$metadata['original_name']}";
-
-            if (! Storage::disk('local')->exists($filePath)) {
-                return response()->json([
-                    'message' => 'File not found',
-                ], 404);
-            }
-
-            // Import brand events
-            $import = new BrandEventsImport($event->id);
-            Excel::import($import, Storage::disk('local')->path($filePath));
-
-            // Get import results
-            $failures = $import->getFailures();
-            $importedCount = $import->getImportedCount();
-            $skippedCount = $import->getSkippedCount();
-            $errorMessages = [];
-
-            foreach ($failures as $failure) {
-                $errorMessages[] = [
-                    'row' => $failure->row(),
-                    'attribute' => $failure->attribute(),
-                    'errors' => $failure->errors(),
-                    'values' => $failure->values(),
-                ];
-            }
-
-            if (count($errorMessages) > 0) {
-                return response()->json([
-                    'message' => 'Import completed with errors',
-                    'errors' => $errorMessages,
-                    'imported_count' => $importedCount,
-                    'skipped_count' => $skippedCount,
-                ], 422);
-            }
-
-            $message = "Brands imported successfully ({$importedCount} imported";
-            if ($skippedCount > 0) {
-                $message .= ", {$skippedCount} skipped (already in event)";
-            }
-            $message .= ')';
-
-            activity()
-                ->performedOn($event)
-                ->causedBy($request->user())
-                ->withProperties([
-                    'project_id' => $project->id,
-                    'imported_count' => $importedCount,
-                    'skipped_count' => $skippedCount,
-                ])
-                ->event('imported')
-                ->log("Imported {$importedCount} brands to event {$event->title}");
-
+        if (! Storage::disk('local')->exists($metadataPath)) {
             return response()->json([
-                'message' => $message,
-                'imported_count' => $importedCount,
-                'skipped_count' => $skippedCount,
-            ]);
-        } catch (\Exception $e) {
-            logger()->error('Brand event import failed', [
-                'error' => $e->getMessage(),
-            ]);
-
-            return response()->json([
-                'message' => 'Failed to import brands',
-                'error' => $e->getMessage(),
-            ], 500);
-        } finally {
-            // Always clean up temporary files
-            if ($tempFolder) {
-                Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
-            }
+                'message' => 'File not found',
+            ], 404);
         }
+
+        $metadata = json_decode(
+            Storage::disk('local')->get($metadataPath),
+            true
+        );
+
+        $filePath = "tmp/uploads/{$tempFolder}/{$metadata['original_name']}";
+
+        if (! Storage::disk('local')->exists($filePath)) {
+            return response()->json([
+                'message' => 'File not found',
+            ], 404);
+        }
+
+        $importId = Str::uuid()->toString();
+
+        Cache::put("import:{$importId}", [
+            'status' => 'pending',
+            'total_rows' => 0,
+            'processed_rows' => 0,
+            'imported_count' => 0,
+            'percentage' => 0,
+            'errors' => [],
+            'error_message' => null,
+        ], now()->addMinutes(30));
+
+        ProcessExcelImport::dispatch(
+            $importId,
+            Storage::disk('local')->path($filePath),
+            BrandEventsImport::class,
+            $tempFolder,
+            [$event->id],
+        );
+
+        activity()
+            ->performedOn($event)
+            ->causedBy($request->user())
+            ->withProperties([
+                'project_id' => $project->id,
+            ])
+            ->event('imported')
+            ->log("Started brand import for event {$event->title}");
+
+        return response()->json([
+            'import_id' => $importId,
+        ]);
     }
 
     /**

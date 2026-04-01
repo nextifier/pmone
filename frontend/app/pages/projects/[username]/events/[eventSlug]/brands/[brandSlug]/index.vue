@@ -27,6 +27,27 @@
 
             <div class="grid grid-cols-2 gap-x-2 gap-y-4">
               <div class="space-y-2">
+                <Label for="fascia_name">Fascia Name</Label>
+                <Input
+                  id="fascia_name"
+                  :model-value="boothForm.fascia_name"
+                  @update:model-value="(v) => (boothForm.fascia_name = v.toUpperCase())"
+                  maxlength="24"
+                  placeholder="Fascia name (max 24 chars)"
+                />
+              </div>
+              <div class="space-y-2">
+                <Label for="badge_name">Badge Name</Label>
+                <Input
+                  id="badge_name"
+                  v-model="boothForm.badge_name"
+                  placeholder="Badge name"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-x-2 gap-y-4">
+              <div class="space-y-2">
                 <Label>Sales</Label>
                 <Combobox v-model="boothForm.sales_id" :ignore-filter="true" :open-on-focus="true">
                   <ComboboxAnchor as-child class="w-full">
@@ -230,6 +251,67 @@
                 </Select>
               </div>
             </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- Links -->
+      <div class="frame">
+        <div class="frame-header">
+          <div class="frame-title">Links</div>
+        </div>
+        <div class="frame-panel">
+          <div class="grid grid-cols-1 gap-y-3">
+            <div v-if="brandLinks.length > 0" class="space-y-2">
+              <div v-for="(link, index) in brandLinks" :key="index" class="flex items-center gap-1.5">
+                <div class="min-w-28 sm:min-w-36">
+                  <Select
+                    v-model="link.label"
+                    @update:model-value="(value) => handleLinkLabelChange(index, value)"
+                  >
+                    <div v-if="link.isCustomLabel" class="relative">
+                      <Input
+                        v-model="link.label"
+                        type="text"
+                        placeholder="Enter custom label"
+                        class="pr-7"
+                      />
+                      <SelectTrigger
+                        class="absolute top-0 right-0 flex size-8 items-center justify-center border-transparent bg-transparent !p-0 [&_svg]:!m-0"
+                      />
+                    </div>
+                    <SelectTrigger v-else class="w-full">
+                      <SelectValue placeholder="Select label" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem v-for="label in PREDEFINED_LINK_LABELS" :key="label" :value="label">
+                        {{ label }}
+                      </SelectItem>
+                      <SelectItem value="Custom">Custom</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <InputLink v-model="link.url" :label="link.label" class="grow" />
+
+                <button
+                  type="button"
+                  @click="removeLink(index)"
+                  class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                >
+                  <Icon name="hugeicons:delete-01" class="size-4" />
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              @click="addLink"
+              class="text-primary hover:text-primary/80 flex items-center gap-x-1 py-1 text-sm font-medium tracking-tight transition"
+            >
+              <Icon name="hugeicons:add-01" class="size-4" />
+              Add Link
+            </button>
           </div>
         </div>
       </div>
@@ -445,6 +527,45 @@
         </div>
       </div>
     </div>
+
+    <!-- Brand Metadata -->
+    <div v-if="brandEvent" class="frame">
+      <div class="frame-header">
+        <div class="frame-title">Brand Metadata</div>
+      </div>
+      <div class="frame-panel">
+        <div class="grid grid-cols-1 gap-y-4 sm:grid-cols-2">
+          <div>
+            <p class="text-muted-foreground text-xs sm:text-sm">ID</p>
+            <p class="font-mono text-sm">{{ brandEvent.brand?.id }}</p>
+          </div>
+          <div>
+            <p class="text-muted-foreground text-xs sm:text-sm">ULID</p>
+            <p class="font-mono text-sm">{{ brandEvent.brand?.ulid }}</p>
+          </div>
+          <div>
+            <p class="text-muted-foreground text-xs sm:text-sm">Created</p>
+            <p class="text-sm">
+              {{ brandEvent.brand_created_at ? $dayjs(brandEvent.brand_created_at).format("MMM D, YYYY [at] h:mm A") : "-" }}
+            </p>
+          </div>
+          <div>
+            <p class="text-muted-foreground text-xs sm:text-sm">Last Updated</p>
+            <p class="text-sm">
+              {{ brandEvent.brand_updated_at ? $dayjs(brandEvent.brand_updated_at).format("MMM D, YYYY [at] h:mm A") : "-" }}
+            </p>
+          </div>
+          <div v-if="brandEvent.brand_created_by">
+            <p class="text-muted-foreground text-xs sm:text-sm">Created By</p>
+            <p class="text-sm">{{ brandEvent.brand_created_by.name }}</p>
+          </div>
+          <div v-if="brandEvent.brand_updated_by">
+            <p class="text-muted-foreground text-xs sm:text-sm">Updated By</p>
+            <p class="text-sm">{{ brandEvent.brand_updated_by.name }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -473,6 +594,7 @@ const emit = defineEmits(["refresh"]);
 
 const route = useRoute();
 const client = useSanctumClient();
+const { $dayjs } = useNuxtApp();
 const project = inject("project");
 const event = inject("event");
 
@@ -504,7 +626,19 @@ const selectedCategoryOptions = computed({
   },
 });
 
-const customFields = reactive({ ...props.customFieldValues });
+const customFields = reactive(
+  normalizeCustomFieldValues(props.customFieldValues, props.customFieldDefinitions)
+);
+
+function normalizeCustomFieldValues(values, definitions) {
+  const result = { ...values };
+  for (const field of definitions || []) {
+    if (field.type === "year_select" && result[field.key] != null) {
+      result[field.key] = String(result[field.key]);
+    }
+  }
+  return result;
+}
 
 const currentYear = new Date().getFullYear();
 const yearOptions = computed(() => {
@@ -519,10 +653,41 @@ const boothForm = reactive({
   booth_size: props.brandEvent?.booth_size || null,
   booth_price: props.brandEvent?.booth_price || null,
   booth_type: props.brandEvent?.booth_type || "",
+  fascia_name: props.brandEvent?.fascia_name || "",
+  badge_name: props.brandEvent?.badge_name || "",
   sales_id: props.brandEvent?.sales?.id || null,
   status: props.brandEvent?.status || "draft",
   notes: props.brandEvent?.notes || "",
 });
+
+// Links
+const PREDEFINED_LINK_LABELS = ["Website", "Instagram", "Facebook", "X", "TikTok", "LinkedIn", "YouTube"];
+
+const brandLinks = reactive(
+  (props.brandEvent?.brand?.links || []).map((link) => ({
+    label: link.label || "",
+    url: link.url || "",
+    isCustomLabel: !PREDEFINED_LINK_LABELS.includes(link.label),
+  }))
+);
+
+function addLink() {
+  brandLinks.push({ label: "", url: "", isCustomLabel: false });
+}
+
+function removeLink(index) {
+  brandLinks.splice(index, 1);
+}
+
+function handleLinkLabelChange(index, value) {
+  if (value === "Custom") {
+    brandLinks[index].isCustomLabel = true;
+    brandLinks[index].label = "";
+  } else {
+    brandLinks[index].isCustomLabel = false;
+    brandLinks[index].label = value;
+  }
+}
 
 const members = computed(() => project.value?.members || []);
 const salesSearch = ref("");
@@ -553,9 +718,23 @@ watch(
       boothForm.booth_size = val.booth_size || null;
       boothForm.booth_price = val.booth_price || null;
       boothForm.booth_type = val.booth_type || "";
+      boothForm.fascia_name = val.fascia_name || "";
+      boothForm.badge_name = val.badge_name || "";
       boothForm.sales_id = val.sales?.id || null;
       boothForm.status = val.status || "draft";
       boothForm.notes = val.notes || "";
+
+      // Sync links
+      brandLinks.splice(0, brandLinks.length);
+      if (val.brand?.links?.length) {
+        brandLinks.push(
+          ...val.brand.links.map((link) => ({
+            label: link.label || "",
+            url: link.url || "",
+            isCustomLabel: !PREDEFINED_LINK_LABELS.includes(link.label),
+          }))
+        );
+      }
     }
   }
 );
@@ -564,8 +743,9 @@ watch(
   () => props.customFieldValues,
   (val) => {
     if (val) {
-      Object.keys(val).forEach((key) => {
-        customFields[key] = val[key];
+      const normalized = normalizeCustomFieldValues(val, props.customFieldDefinitions);
+      Object.keys(normalized).forEach((key) => {
+        customFields[key] = normalized[key];
       });
     }
   }
@@ -593,6 +773,11 @@ async function handleSubmit() {
     if (props.customFieldDefinitions?.length) {
       brandBody.project_custom_fields = { ...customFields };
     }
+
+    // Include links (filter out empty ones)
+    brandBody.links = brandLinks
+      .filter((link) => link.label && link.url)
+      .map((link) => ({ label: link.label, url: link.url }));
 
     const boothBody = { ...boothForm };
     if (!boothBody.booth_type) boothBody.booth_type = null;

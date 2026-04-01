@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Imports\Concerns\TracksImportProgress;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
@@ -29,13 +30,14 @@ class ProcessExcelImport implements ShouldQueue
         public string $filePath,
         public string $importClass,
         public string $tempFolder,
+        public array $constructorArgs = [],
     ) {}
 
     public function handle(): void
     {
         try {
-            /** @var \App\Imports\Concerns\TracksImportProgress $import */
-            $import = new $this->importClass;
+            /** @var TracksImportProgress $import */
+            $import = new $this->importClass(...$this->constructorArgs);
             $import->setImportId($this->importId);
 
             Excel::import($import, $this->filePath);

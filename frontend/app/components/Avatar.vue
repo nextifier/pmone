@@ -12,7 +12,7 @@
       v-if="model?.profile_image"
       :src="model.profile_image[size] || model.profile_image.sm"
       :alt="model?.name"
-      :class="['size-full object-cover select-none', rounded]"
+      :class="['size-full object-contain select-none', rounded]"
       width="100"
       height="100"
       loading="lazy"
@@ -20,7 +20,10 @@
     />
     <span
       v-else
-      :class="['initial text-[45cqw] font-medium tracking-tight', colorful ? 'text-white' : 'text-muted-foreground']"
+      :class="[
+        'initial text-[45cqw] font-medium tracking-tight',
+        colorful ? 'text-white' : 'text-muted-foreground',
+      ]"
     >
       {{
         (() => {

@@ -98,5 +98,15 @@ watch(
       autocapitalize="none"
       class="pl-0!"
     />
+    <InputGroupAddon align="inline-end" class="has-[>a]:mr-[-0.45rem]">
+      <Button
+        :to="modelValue || undefined"
+        variant="ghost"
+        :disabled="!modelValue"
+        class="size-6 rounded-[calc(var(--radius)-5px)] p-0 text-sm shadow-none"
+      >
+        <Icon name="hugeicons:arrow-up-right-01" class="size-3.5" />
+      </Button>
+    </InputGroupAddon>
   </InputGroup>
 </template>

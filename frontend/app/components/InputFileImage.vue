@@ -13,7 +13,7 @@
       <img
         :src="imageUrl"
         alt=""
-        class="border-border size-full rounded-lg border object-cover"
+        class="border-border size-full rounded-lg border object-contain"
         loading="lazy"
       />
 

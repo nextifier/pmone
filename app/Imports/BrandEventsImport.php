@@ -13,13 +13,15 @@ use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Events\BeforeImport;
 use Maatwebsite\Excel\Validators\Failure;
 
-class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadingRow, WithValidation
+class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEvents, WithHeadingRow, WithValidation
 {
-    use Importable;
+    use Concerns\TracksImportProgress, Importable;
 
     protected array $failures = [];
 
@@ -62,9 +64,11 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
             'tiktok' => '/^https:\/\/(www\.)?tiktok\.com\/.+/i',
             'facebook' => '/^https:\/\/(www\.)?(facebook\.com|fb\.com)\/.+/i',
             'x' => '/^https:\/\/(www\.)?(x\.com|twitter\.com)\/.+/i',
+            'linkedin' => '/^https:\/\/(www\.)?linkedin\.com\/.+/i',
+            'youtube' => '/^https:\/\/(www\.)?(youtube\.com|youtu\.be)\/.+/i',
         ];
 
-        foreach (['instagram', 'tiktok', 'facebook', 'x', 'website'] as $field) {
+        foreach (['instagram', 'tiktok', 'facebook', 'x', 'linkedin', 'youtube', 'website'] as $field) {
             if (! isset($data[$field]) || is_null($data[$field]) || trim($data[$field]) === '') {
                 $data[$field] = null;
 
@@ -184,6 +188,7 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
 
         if ($existingBrandEvent) {
             $this->skippedCount++;
+            $this->updateProgress($this->importedCount + $this->skippedCount);
 
             return null;
         }
@@ -210,6 +215,7 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
         }
 
         $this->importedCount++;
+        $this->updateProgress($this->importedCount + $this->skippedCount);
 
         return $brandEvent;
     }
@@ -226,6 +232,10 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
             'booth_size_sqm' => ['nullable', 'numeric', 'min:0'],
             'booth_type' => ['nullable', 'string'],
             'status' => ['nullable', 'string'],
+            'linkedin' => ['nullable', 'string', 'max:500'],
+            'youtube' => ['nullable', 'string', 'max:500'],
+            'business_concept' => ['nullable', 'string', 'max:5000'],
+            'investment_fee' => ['nullable', 'string', 'max:255'],
         ];
     }
 
@@ -257,6 +267,13 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
     public function getSkippedCount(): int
     {
         return $this->skippedCount;
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            BeforeImport::class => fn (BeforeImport $event) => $this->initProgressTracking($event),
+        ];
     }
 
     private function resolveBoothType(?string $value): ?BoothType
@@ -303,6 +320,14 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
             $customFields['establishment_year'] = (int) $row['establishment_year'];
         }
 
+        if (! empty($row['business_concept'])) {
+            $customFields['business_concept'] = trim($row['business_concept']);
+        }
+
+        if (! empty($row['investment_fee'])) {
+            $customFields['investment_fee'] = trim($row['investment_fee']);
+        }
+
         return ! empty($customFields) ? $customFields : null;
     }
 
@@ -328,6 +353,8 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
             'tiktok' => 'TikTok',
             'facebook' => 'Facebook',
             'x' => 'X',
+            'linkedin' => 'LinkedIn',
+            'youtube' => 'YouTube',
         ];
 
         $existingLabels = $brand->links()->pluck('label')->map(fn ($l) => strtolower($l))->toArray();

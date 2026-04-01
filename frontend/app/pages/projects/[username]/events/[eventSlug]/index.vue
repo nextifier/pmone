@@ -98,13 +98,6 @@
             <Icon name="hugeicons:edit-02" class="size-4" />
             <span>Edit Details</span>
           </NuxtLink>
-          <NuxtLink
-            :to="`${base}/settings`"
-            class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98"
-          >
-            <Icon name="hugeicons:settings-02" class="size-4" />
-            <span>Settings</span>
-          </NuxtLink>
         </div>
       </div>
     </div>

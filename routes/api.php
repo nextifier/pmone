@@ -258,6 +258,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/export', [BrandEventController::class, 'export'])->name('brand-events.export');
         Route::get('/import/template', [BrandEventController::class, 'downloadTemplate'])->name('brand-events.import.template');
         Route::post('/import', [BrandEventController::class, 'import'])->name('brand-events.import');
+        Route::delete('/bulk', [BrandEventController::class, 'bulkDestroy'])->name('brand-events.bulk-destroy');
+        Route::delete('/bulk-permanent', [BrandEventController::class, 'bulkPermanentDelete'])->name('brand-events.bulk-permanent-delete');
         Route::post('/update-order', [BrandEventController::class, 'updateOrder'])->name('brand-events.update-order');
         Route::get('/{brandSlug}', [BrandEventController::class, 'show'])->name('brand-events.show');
         Route::put('/{brandSlug}', [BrandEventController::class, 'update'])->name('brand-events.update');
@@ -294,6 +296,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/brands/{brand}/members', [BrandController::class, 'members'])->middleware('can:brands.read')->name('brands.members.index');
     Route::post('/brands/{brand}/members', [BrandController::class, 'addMember'])->middleware('can:brands.update')->name('brands.members.store');
     Route::delete('/brands/{brand}/members/{userId}', [BrandController::class, 'removeMember'])->middleware('can:brands.update')->name('brands.members.destroy');
+
+    // Brand trash routes
+    Route::get('/brands-trash', [BrandController::class, 'trash'])->middleware('can:brands.delete')->name('brands.trash');
+    Route::post('/brands-trash/restore/bulk', [BrandController::class, 'bulkRestore'])->middleware('can:brands.delete')->name('brands.bulk-restore');
+    Route::post('/brands-trash/{id}/restore', [BrandController::class, 'restore'])->middleware('can:brands.delete')->name('brands.restore');
+    Route::delete('/brands-trash/bulk', [BrandController::class, 'bulkForceDestroy'])->middleware('can:brands.delete')->name('brands.bulk-force-delete');
+    Route::delete('/brands-trash/{id}', [BrandController::class, 'forceDestroy'])->middleware('can:brands.delete')->name('brands.force-delete');
 
     // Job progress tracking
     Route::get('/jobs/{jobId}/progress', [JobProgressController::class, 'show'])->name('jobs.progress');

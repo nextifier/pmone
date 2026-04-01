@@ -45,6 +45,12 @@ class BrandEventResource extends JsonResource
                 'visibility' => $brand->visibility,
                 'brand_logo' => $brand->relationLoaded('media') ? $brand->brand_logo : null,
                 'business_categories' => $brand->relationLoaded('tags') ? $brand->business_categories_list : [],
+                'links' => $brand->relationLoaded('links') ? $brand->links->map(fn ($link) => [
+                    'id' => $link->id,
+                    'label' => $link->label,
+                    'url' => $link->url,
+                    'order' => $link->order,
+                ]) : [],
             ],
 
             'sales' => $this->whenLoaded('sales', fn () => [
@@ -67,6 +73,17 @@ class BrandEventResource extends JsonResource
             'can_edit' => auth()->user()?->can('update', $this->resource),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
+
+            'brand_created_by' => $brand->relationLoaded('creator') && $brand->creator ? [
+                'id' => $brand->creator->id,
+                'name' => $brand->creator->name,
+            ] : null,
+            'brand_updated_by' => $brand->relationLoaded('updater') && $brand->updater ? [
+                'id' => $brand->updater->id,
+                'name' => $brand->updater->name,
+            ] : null,
+            'brand_created_at' => $brand->created_at?->toISOString(),
+            'brand_updated_at' => $brand->updated_at?->toISOString(),
         ];
     }
 }
