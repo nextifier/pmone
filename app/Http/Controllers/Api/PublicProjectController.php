@@ -9,6 +9,8 @@ use App\Http\Resources\EventIndexResource;
 use App\Http\Resources\EventResource;
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\PromotionPostResource;
+use App\Http\Resources\PublicBrandDetailResource;
+use App\Http\Resources\PublicBrandIndexResource;
 use App\Models\BrandEvent;
 use App\Models\Event;
 use App\Models\Project;
@@ -89,6 +91,7 @@ class PublicProjectController extends Controller
 
         $query = BrandEvent::query()
             ->with(['brand.media', 'brand.tags'])
+            ->whereHas('brand')
             ->where('event_id', $event->id)
             ->where('status', 'active')
             ->ordered();
@@ -158,6 +161,209 @@ class PublicProjectController extends Controller
                 'total' => $posts->total(),
             ],
         ]);
+    }
+
+    /**
+     * List brands from the active event for a project.
+     */
+    public function activeBrands(Request $request, string $username): JsonResponse
+    {
+        $event = $this->findActiveEvent($username);
+
+        if (! $event) {
+            return response()->json([
+                'data' => [],
+                'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 200, 'total' => 0],
+            ]);
+        }
+
+        $query = BrandEvent::query()
+            ->with(['brand.media', 'brand.tags', 'brand.links', 'promotionPosts.media', 'event'])
+            ->whereHas('brand')
+            ->where('event_id', $event->id)
+            ->where('status', 'active')
+            ->ordered();
+
+        if ($search = $request->input('search')) {
+            $query->whereHas('brand', function ($q) use ($search) {
+                $q->where('name', 'ilike', "%{$search}%")
+                    ->orWhere('company_name', 'ilike', "%{$search}%");
+            });
+        }
+
+        $brandEvents = $query->paginate($request->input('per_page', 200));
+
+        return response()->json([
+            'data' => PublicBrandIndexResource::collection($brandEvents->items()),
+            'meta' => [
+                'current_page' => $brandEvents->currentPage(),
+                'last_page' => $brandEvents->lastPage(),
+                'per_page' => $brandEvents->perPage(),
+                'total' => $brandEvents->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Get single brand detail from the active event for a project.
+     */
+    public function activeBrand(string $username, string $brandSlug): JsonResponse
+    {
+        $event = $this->findActiveEvent($username);
+
+        if (! $event) {
+            abort(404);
+        }
+
+        $brandEvent = BrandEvent::query()
+            ->with(['brand.media', 'brand.tags', 'brand.links', 'promotionPosts.media', 'event'])
+            ->where('event_id', $event->id)
+            ->where('status', 'active')
+            ->whereHas('brand', fn ($q) => $q->where('slug', $brandSlug))
+            ->firstOrFail();
+
+        return response()->json([
+            'data' => new PublicBrandDetailResource($brandEvent),
+        ]);
+    }
+
+    /**
+     * List published editions for a project.
+     */
+    public function publishedEditions(string $username): JsonResponse
+    {
+        $project = $this->findProject($username);
+
+        $events = Event::query()
+            ->where('project_id', $project->id)
+            ->published()
+            ->orderByDesc('edition_number')
+            ->get();
+
+        return response()->json([
+            'data' => $events->map(fn (Event $e) => [
+                'slug' => $e->slug,
+                'edition_number' => $e->edition_number,
+                'edition_label' => $e->edition_number_with_ordinal,
+                'title' => $e->title,
+                'is_active' => $e->is_active,
+                'date_label' => $this->formatEditionDate($e),
+            ])->values(),
+        ]);
+    }
+
+    /**
+     * List brands for a specific edition of a project.
+     */
+    public function brandsByEdition(Request $request, string $username, int $editionNumber): JsonResponse
+    {
+        $event = $this->findEventByEdition($username, $editionNumber);
+
+        $query = BrandEvent::query()
+            ->with(['brand.media', 'brand.tags', 'brand.links', 'promotionPosts.media', 'event'])
+            ->whereHas('brand')
+            ->where('event_id', $event->id)
+            ->where('status', 'active')
+            ->ordered();
+
+        if ($search = $request->input('search')) {
+            $query->whereHas('brand', function ($q) use ($search) {
+                $q->where('name', 'ilike', "%{$search}%")
+                    ->orWhere('company_name', 'ilike', "%{$search}%");
+            });
+        }
+
+        $brandEvents = $query->paginate($request->input('per_page', 200));
+
+        return response()->json([
+            'data' => PublicBrandIndexResource::collection($brandEvents->items()),
+            'meta' => [
+                'current_page' => $brandEvents->currentPage(),
+                'last_page' => $brandEvents->lastPage(),
+                'per_page' => $brandEvents->perPage(),
+                'total' => $brandEvents->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Get single brand detail for a specific edition.
+     */
+    public function brandByEdition(string $username, int $editionNumber, string $brandSlug): JsonResponse
+    {
+        $event = $this->findEventByEdition($username, $editionNumber);
+
+        $brandEvent = BrandEvent::query()
+            ->with(['brand.media', 'brand.tags', 'brand.links', 'promotionPosts.media', 'event'])
+            ->where('event_id', $event->id)
+            ->where('status', 'active')
+            ->whereHas('brand', fn ($q) => $q->where('slug', $brandSlug))
+            ->firstOrFail();
+
+        return response()->json([
+            'data' => new PublicBrandDetailResource($brandEvent),
+        ]);
+    }
+
+    /**
+     * Find a published event by edition number within a project.
+     */
+    private function findEventByEdition(string $username, int $editionNumber): Event
+    {
+        $project = $this->findProject($username);
+
+        return Event::query()
+            ->where('project_id', $project->id)
+            ->where('edition_number', $editionNumber)
+            ->published()
+            ->firstOrFail();
+    }
+
+    /**
+     * Format edition date without day names.
+     */
+    private function formatEditionDate(Event $event): ?string
+    {
+        if (! $event->start_date) {
+            return null;
+        }
+
+        $start = $event->start_date;
+
+        if (! $event->end_date || $start->isSameDay($event->end_date)) {
+            return $start->format('M j, Y');
+        }
+
+        $end = $event->end_date;
+
+        if ($start->year !== $end->year) {
+            return $start->format('M j, Y').' - '.$end->format('M j, Y');
+        }
+
+        if ($start->month !== $end->month) {
+            return $start->format('M j').' - '.$end->format('M j, Y');
+        }
+
+        return $start->format('M j').'-'.$end->format('j, Y');
+    }
+
+    /**
+     * Find the active event for a project, fallback to latest published event.
+     */
+    private function findActiveEvent(string $username): ?Event
+    {
+        $project = $this->findProject($username);
+
+        return Event::query()
+            ->where('project_id', $project->id)
+            ->where('is_active', true)
+            ->published()
+            ->first()
+            ?? Event::query()
+                ->where('project_id', $project->id)
+                ->published()
+                ->orderByDesc('edition_number')
+                ->first();
     }
 
     /**

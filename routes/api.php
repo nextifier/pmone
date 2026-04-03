@@ -700,6 +700,18 @@ Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
         ->middleware(CacheResponse::for(86400, 'events'));
     Route::get('/{username}/events/{eventSlug}', [PublicProjectController::class, 'event'])
         ->middleware(CacheResponse::for(86400, 'events'));
+    Route::get('/{username}/editions', [PublicProjectController::class, 'publishedEditions'])
+        ->middleware(CacheResponse::for(86400, 'events'));
+    Route::get('/{username}/editions/{editionNumber}/brands', [PublicProjectController::class, 'brandsByEdition'])
+        ->where('editionNumber', '[0-9]+')
+        ->middleware(CacheResponse::for(86400, 'brands'));
+    Route::get('/{username}/editions/{editionNumber}/brands/{brandSlug}', [PublicProjectController::class, 'brandByEdition'])
+        ->where('editionNumber', '[0-9]+')
+        ->middleware(CacheResponse::for(86400, 'brands'));
+    Route::get('/{username}/brands', [PublicProjectController::class, 'activeBrands'])
+        ->middleware(CacheResponse::for(86400, 'brands'));
+    Route::get('/{username}/brands/{brandSlug}', [PublicProjectController::class, 'activeBrand'])
+        ->middleware(CacheResponse::for(86400, 'brands'));
     Route::get('/{username}/events/{eventSlug}/brands', [PublicProjectController::class, 'brands'])
         ->middleware(CacheResponse::for(86400, 'brands'));
     Route::get('/{username}/events/{eventSlug}/brands/{brandSlug}', [PublicProjectController::class, 'brand'])
