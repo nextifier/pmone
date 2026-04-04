@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 class EventController extends Controller
 {
@@ -427,6 +428,9 @@ class EventController extends Controller
 
         // Activate selected event
         $event->update(['is_active' => true]);
+
+        // Clear brands and promotion-posts caches since they depend on which event is active
+        ResponseCache::clear(['brands', 'promotion-posts']);
 
         return response()->json([
             'message' => 'Event set as active edition successfully',

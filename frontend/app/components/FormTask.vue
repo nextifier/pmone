@@ -94,7 +94,7 @@
         <!-- Estimated Start -->
         <div class="space-y-2">
           <Label for="estimated_start_at">Start Time</Label>
-          <DateTimePicker
+          <DatePicker with-time
             v-model="form.estimated_start_at"
             placeholder="Select start time"
             :default-hour="9"
@@ -107,7 +107,7 @@
         <!-- Estimated Completion -->
         <div class="space-y-2">
           <Label for="estimated_completion_at">Completion Time</Label>
-          <DateTimePicker
+          <DatePicker with-time
             v-model="form.estimated_completion_at"
             placeholder="Select completion time"
             :default-hour="17"
@@ -246,7 +246,7 @@
 
 <script setup>
 import Avatar from "@/components/Avatar.vue";
-import DateTimePicker from "@/components/DateTimePicker.vue";
+
 import TipTapEditor from "@/components/TipTapEditor.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

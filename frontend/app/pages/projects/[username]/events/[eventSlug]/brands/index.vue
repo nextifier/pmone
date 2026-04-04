@@ -157,7 +157,7 @@
           </DialogResponsive>
 
           <!-- Delete permanently -->
-          <DialogResponsive v-model:open="permanentDeleteDialogOpen">
+          <DialogResponsive v-if="canDeletePermanently" v-model:open="permanentDeleteDialogOpen">
             <template #trigger="{ open }">
               <Button variant="outline" size="sm" @click="open()">
                 <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
@@ -242,6 +242,8 @@ const route = useRoute();
 const { $dayjs } = useNuxtApp();
 
 const client = useSanctumClient();
+const { hasAnyRole } = usePermission();
+const canDeletePermanently = computed(() => hasAnyRole(["master", "admin"]));
 const showAddDialog = ref(false);
 
 defineShortcuts({

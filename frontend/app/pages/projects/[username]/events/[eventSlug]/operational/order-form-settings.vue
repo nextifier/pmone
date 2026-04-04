@@ -66,7 +66,7 @@
         <div class="grid grid-cols-2 gap-x-2 gap-y-6">
           <div class="space-y-2">
             <Label for="order_form_deadline">Order Form Deadline</Label>
-            <DateTimePicker
+            <DatePicker with-time
               v-model="form.order_form_deadline"
               placeholder="No deadline"
               :default-hour="23"
@@ -79,7 +79,7 @@
           </div>
           <div class="space-y-2">
             <Label for="promotion_post_deadline">Promotion Post Deadline</Label>
-            <DateTimePicker
+            <DatePicker with-time
               v-model="form.promotion_post_deadline"
               placeholder="No deadline"
               :default-hour="23"
@@ -106,7 +106,7 @@
         <div class="grid grid-cols-2 gap-x-2 gap-y-6">
           <div class="space-y-2">
             <Label for="normal_order_opens_at">Normal Order Opens</Label>
-            <DateTimePicker
+            <DatePicker with-time
               v-model="form.normal_order_opens_at"
               placeholder="Not set"
               :default-hour="0"
@@ -116,7 +116,7 @@
           </div>
           <div class="space-y-2">
             <Label for="normal_order_closes_at">Normal Order Closes</Label>
-            <DateTimePicker
+            <DatePicker with-time
               v-model="form.normal_order_closes_at"
               placeholder="Not set"
               :default-hour="23"
@@ -129,7 +129,7 @@
         <div class="grid grid-cols-2 gap-x-2 gap-y-6">
           <div class="space-y-2">
             <Label for="onsite_order_opens_at">Onsite Order Opens</Label>
-            <DateTimePicker
+            <DatePicker with-time
               v-model="form.onsite_order_opens_at"
               placeholder="Not set"
               :default-hour="0"
@@ -139,7 +139,7 @@
           </div>
           <div class="space-y-2">
             <Label for="onsite_order_closes_at">Onsite Order Closes</Label>
-            <DateTimePicker
+            <DatePicker with-time
               v-model="form.onsite_order_closes_at"
               placeholder="Not set"
               :default-hour="23"
@@ -479,7 +479,7 @@
 </template>
 
 <script setup>
-import DateTimePicker from "@/components/DateTimePicker.vue";
+
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import TipTapEditor from "@/components/TipTapEditor.vue";
 import { Badge } from "@/components/ui/badge";

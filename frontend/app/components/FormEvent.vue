@@ -25,7 +25,7 @@
     <div class="grid grid-cols-2 gap-x-2 gap-y-6">
       <div class="space-y-2">
         <Label for="start_date">Start Date & Time</Label>
-        <DateTimePicker
+        <DatePicker with-time
           v-model="form.start_date"
           placeholder="Select start date & time"
           :default-hour="10"
@@ -34,7 +34,7 @@
       </div>
       <div class="space-y-2">
         <Label for="end_date">End Date & Time</Label>
-        <DateTimePicker
+        <DatePicker with-time
           v-model="form.end_date"
           placeholder="Select end date & time"
           :default-hour="18"
@@ -145,7 +145,7 @@
 </template>
 
 <script setup>
-import DateTimePicker from "@/components/DateTimePicker.vue";
+
 import TipTapEditor from "@/components/TipTapEditor.vue";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

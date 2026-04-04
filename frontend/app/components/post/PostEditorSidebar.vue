@@ -70,7 +70,7 @@
           <!-- Publish Date (only if published_at exists) -->
           <div v-if="editor.form.published_at" class="space-y-2">
             <Label class="text-xs">Publish Date</Label>
-            <DateTimePicker
+            <DatePicker with-time
               v-model="publishDateTime"
               :disabled="editor.form.status === 'draft'"
               placeholder="Not scheduled"

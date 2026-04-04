@@ -81,33 +81,11 @@
 
           <div class="space-y-2">
             <Label for="birth_date">Birth Date</Label>
-            <Popover>
-              <PopoverTrigger as-child>
-                <Button
-                  variant="outline"
-                  :class="
-                    cn(
-                      'w-full justify-start text-left font-normal',
-                      !form.birth_date && 'text-muted-foreground'
-                    )
-                  "
-                >
-                  <Icon name="hugeicons:calendar-04" class="size-4" />
-                  {{
-                    form.birth_date
-                      ? df.format(form.birth_date.toDate(getLocalTimeZone()))
-                      : "Pick your birth date"
-                  }}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent class="w-auto p-0">
-                <CalendarMonthYearSelect
-                  v-model="form.birth_date"
-                  :disable-future-dates="true"
-                  initial-focus
-                />
-              </PopoverContent>
-            </Popover>
+            <DatePicker
+              v-model="form.birth_date"
+              disable-future-dates
+              placeholder="Pick your birth date"
+            />
             <InputErrorMessage :errors="errors.birth_date" />
           </div>
 
@@ -320,11 +298,11 @@
 </template>
 
 <script setup>
+import ProjectMultiSelect from "@/components/project/MultiSelect.vue";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -333,9 +311,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import ProjectMultiSelect from "@/components/project/MultiSelect.vue";
 import { cn } from "@/lib/utils";
-import { DateFormatter, getLocalTimeZone } from "@internationalized/date";
 import { toast } from "vue-sonner";
 
 const { metaSymbol } = useShortcuts();
@@ -354,10 +330,6 @@ const FILE_STATUS = {
   PROCESSING: 3,
 };
 
-const df = new DateFormatter("en-US", {
-  dateStyle: "long",
-});
-
 // Helper functions
 function createEmptyForm() {
   return {
@@ -367,7 +339,7 @@ function createEmptyForm() {
     password: "",
     title: "",
     phone: "",
-    birth_date: "",
+    birth_date: null,
     gender: "",
     bio: "",
     status: "active",
@@ -380,7 +352,7 @@ function createEmptyForm() {
 
 function formatBirthDate(date) {
   if (!date) return null;
-  return `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
 const props = defineProps({
@@ -556,14 +528,14 @@ async function populateForm(data) {
 
   // Handle birth_date
   if (data.birth_date) {
-    const { parseDate } = await import("@internationalized/date");
     try {
-      form.birth_date = parseDate(data.birth_date);
+      const [y, m, d] = data.birth_date.split("-").map(Number);
+      form.birth_date = new Date(y, m - 1, d);
     } catch {
-      form.birth_date = "";
+      form.birth_date = null;
     }
   } else {
-    form.birth_date = "";
+    form.birth_date = null;
   }
 
   // Clear file uploads and reset delete flags

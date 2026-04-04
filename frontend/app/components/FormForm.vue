@@ -136,7 +136,7 @@
       <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div class="space-y-2">
           <label for="opens_at" class="text-sm font-medium">Opens At</label>
-          <DateTimePicker
+          <DatePicker with-time
             v-model="formData.opens_at"
             placeholder="Select open date"
             :default-hour="0"
@@ -147,7 +147,7 @@
 
         <div class="space-y-2">
           <label for="closes_at" class="text-sm font-medium">Closes At</label>
-          <DateTimePicker
+          <DatePicker with-time
             v-model="formData.closes_at"
             placeholder="Select close date"
             :default-hour="23"
@@ -262,7 +262,7 @@
 
 <script setup>
 import Avatar from "@/components/Avatar.vue";
-import DateTimePicker from "@/components/DateTimePicker.vue";
+
 import { toLocalDateTimeString } from "@/lib/utils";
 import InputFileImage from "@/components/InputFileImage.vue";
 import TipTapEditor from "@/components/TipTapEditor.vue";

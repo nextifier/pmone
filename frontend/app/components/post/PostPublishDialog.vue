@@ -63,72 +63,27 @@
             v-if="showSchedulePicker"
             class="bg-muted/50 space-y-4 rounded-lg border p-4"
           >
-            <!-- Date Picker -->
             <div class="space-y-2">
-              <Label class="text-xs font-medium">Date</Label>
-              <Popover v-model:open="datePickerOpen">
-                <PopoverTrigger as-child>
-                  <Button
-                    variant="outline"
-                    :class="
-                      cn(
-                        'w-full justify-start text-left font-normal',
-                        !scheduledDate && 'text-muted-foreground'
-                      )
-                    "
-                  >
-                    <Icon name="hugeicons:calendar-04" class="mr-2 size-4" />
-                    {{ scheduledDate ? formatDate(scheduledDate) : "Pick a date" }}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent class="w-auto p-0" align="start">
-                  <Calendar
-                    v-model="scheduledDate"
-                    :min-value="todayDate"
-                    initial-focus
-                    @update:model-value="datePickerOpen = false"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <!-- Time Picker -->
-            <div class="space-y-2">
-              <Label class="text-xs font-medium">Time</Label>
-              <div class="flex items-center gap-2">
-                <Select v-model="scheduledHour">
-                  <SelectTrigger class="w-20">
-                    <SelectValue placeholder="Hour" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem v-for="h in hours" :key="h" :value="h">
-                      {{ h.toString().padStart(2, "0") }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <span class="text-muted-foreground">:</span>
-                <Select v-model="scheduledMinute">
-                  <SelectTrigger class="w-20">
-                    <SelectValue placeholder="Min" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem v-for="m in minutes" :key="m" :value="m">
-                      {{ m.toString().padStart(2, "0") }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Label class="text-xs font-medium">Date & Time</Label>
+              <DatePicker
+                v-model="scheduledDateTime"
+                with-time
+                disable-past-dates
+                placeholder="Pick date and time"
+                :default-hour="new Date().getHours()"
+                :default-minute="0"
+              />
             </div>
 
             <!-- Schedule Button -->
             <Button
               type="button"
               @click="handleSchedule"
-              :disabled="!scheduledDate"
+              :disabled="!scheduledDateTime"
               class="w-full"
             >
               <Icon name="hugeicons:calendar-check-out-02" class="mr-2 size-4" />
-              Schedule for {{ scheduledDateTimeFormatted }}
+              Schedule{{ scheduledDateTime ? ` for ${formatScheduledDateTime(scheduledDateTime)}` : "" }}
             </Button>
           </div>
         </Transition>
@@ -143,19 +98,8 @@
 </template>
 
 <script setup lang="ts">
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { CalendarDate, getLocalTimeZone, today, type DateValue } from "@internationalized/date";
 
 const props = defineProps<{
   open: boolean;
@@ -172,38 +116,16 @@ const isOpen = computed({
 });
 
 const showSchedulePicker = ref(false);
-const datePickerOpen = ref(false);
+const scheduledDateTime = ref<Date | null>(null);
 
-const todayDate = today(getLocalTimeZone());
-const now = new Date();
-
-const scheduledDate = ref<DateValue | undefined>();
-const scheduledHour = ref(now.getHours());
-const scheduledMinute = ref(0);
-
-const hours = Array.from({ length: 24 }, (_, i) => i);
-const minutes = Array.from({ length: 60 }, (_, i) => i);
-
-function formatDate(date: DateValue): string {
-  return date.toDate(getLocalTimeZone()).toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-const scheduledDateTimeFormatted = computed(() => {
-  if (!scheduledDate.value) return "";
-  const date = scheduledDate.value.toDate(getLocalTimeZone());
-  date.setHours(scheduledHour.value, scheduledMinute.value, 0, 0);
+function formatScheduledDateTime(date: Date): string {
   return date.toLocaleString("en-US", {
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
   });
-});
+}
 
 function handlePublishNow() {
   emit("publish");
@@ -211,10 +133,8 @@ function handlePublishNow() {
 }
 
 function handleSchedule() {
-  if (!scheduledDate.value) return;
-  const date = scheduledDate.value.toDate(getLocalTimeZone());
-  date.setHours(scheduledHour.value, scheduledMinute.value, 0, 0);
-  emit("publish", date);
+  if (!scheduledDateTime.value) return;
+  emit("publish", scheduledDateTime.value);
   isOpen.value = false;
 }
 
@@ -222,9 +142,7 @@ function handleSchedule() {
 watch(isOpen, (value) => {
   if (!value) {
     showSchedulePicker.value = false;
-    scheduledDate.value = undefined;
-    scheduledHour.value = new Date().getHours();
-    scheduledMinute.value = 0;
+    scheduledDateTime.value = null;
   }
 });
 </script>

@@ -69,7 +69,7 @@
     <!-- Submission Deadline -->
     <div class="space-y-2">
       <Label for="submission_deadline">Submission Deadline</Label>
-      <DateTimePicker
+      <DatePicker with-time
         v-model="form.submission_deadline"
         placeholder="No deadline"
         :default-hour="23"
@@ -234,7 +234,7 @@
 </template>
 
 <script setup>
-import DateTimePicker from "@/components/DateTimePicker.vue";
+
 import InputFile from "@/components/InputFile.vue";
 import TipTapEditor from "@/components/TipTapEditor.vue";
 import { Button } from "@/components/ui/button";
