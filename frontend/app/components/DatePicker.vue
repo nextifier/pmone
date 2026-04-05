@@ -28,12 +28,31 @@
       />
 
       <!-- Time section -->
-      <div v-if="withTime" class="border-border flex items-center gap-2 border-t p-2.5">
-        <Input
-          type="time"
-          v-model="timeValue"
-          class="bg-background h-8 appearance-none text-sm [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-        />
+      <div
+        v-if="withTime"
+        class="border-border flex items-center justify-center gap-2 border-t px-2.5 py-2"
+      >
+        <Select v-model="selectedHour">
+          <SelectTrigger size="sm" class="bg-card">
+            <SelectValue placeholder="HH" />
+          </SelectTrigger>
+          <SelectContent class="min-w-0!">
+            <SelectItem v-for="h in hours" :key="h" :value="h" class="py-1">
+              {{ String(h).padStart(2, "0") }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <span class="text-muted-foreground text-sm">:</span>
+        <Select v-model="selectedMinute">
+          <SelectTrigger size="sm" class="bg-card">
+            <SelectValue placeholder="MM" />
+          </SelectTrigger>
+          <SelectContent class="!min-w-0">
+            <SelectItem v-for="m in minutes" :key="m" :value="m" class="py-1">
+              {{ String(m).padStart(2, "0") }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <!-- Actions -->
@@ -53,8 +72,14 @@
 <script setup lang="ts">
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
   CalendarDate,
@@ -100,7 +125,11 @@ const df = new DateFormatter("en-US", { dateStyle: "long" });
 
 // Internal state
 const selectedDate = ref<DateValue | undefined>();
-const timeValue = ref(formatTime(props.defaultHour, props.defaultMinute));
+const selectedHour = ref(props.defaultHour);
+const selectedMinute = ref(props.defaultMinute);
+
+const hours = Array.from({ length: 24 }, (_, i) => i);
+const minutes = Array.from({ length: 60 }, (_, i) => i);
 
 // Calendar constraints
 const calendarMinValue = computed(() => (props.disablePastDates ? todayDate : undefined));
@@ -114,8 +143,9 @@ const displayText = computed(() => {
       month: "short",
       day: "numeric",
       year: "numeric",
-      hour: "numeric",
+      hour: "2-digit",
       minute: "2-digit",
+      hour12: false,
     });
   }
   return df.format(props.modelValue);
@@ -133,11 +163,13 @@ function syncFromModelValue(value: Date | null | undefined) {
     const date = new Date(value);
     selectedDate.value = new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
     if (props.withTime) {
-      timeValue.value = formatTime(date.getHours(), date.getMinutes());
+      selectedHour.value = date.getHours();
+      selectedMinute.value = date.getMinutes();
     }
   } else {
     selectedDate.value = undefined;
-    timeValue.value = formatTime(props.defaultHour, props.defaultMinute);
+    selectedHour.value = props.defaultHour;
+    selectedMinute.value = props.defaultMinute;
   }
 }
 
@@ -154,8 +186,7 @@ function onDateSelect(value: DateValue) {
 function apply() {
   if (!selectedDate.value) return;
   const date = selectedDate.value.toDate(getLocalTimeZone());
-  const [hours, minutes] = timeValue.value.split(":").map(Number);
-  date.setHours(hours, minutes, 0, 0);
+  date.setHours(selectedHour.value, selectedMinute.value, 0, 0);
   emit("update:modelValue", date);
   isOpen.value = false;
 }
@@ -164,9 +195,5 @@ function apply() {
 function clear() {
   emit("update:modelValue", null);
   isOpen.value = false;
-}
-
-function formatTime(hours: number, minutes: number): string {
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 </script>

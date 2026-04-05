@@ -109,7 +109,7 @@ const years = computed(() => {
     <CalendarHeader class="gap-1">
       <CalendarPrevButton class="static left-auto size-8 border-0 shadow-none" />
       <Select v-model="displayMonth">
-        <SelectTrigger size="sm" class="dark:bg-input/30 tracking-tight">
+        <SelectTrigger size="sm" class="bg-card tracking-tight">
           <SelectValue />
         </SelectTrigger>
         <SelectContent class="tracking-tight">
@@ -119,7 +119,7 @@ const years = computed(() => {
         </SelectContent>
       </Select>
       <Select v-model="displayYear">
-        <SelectTrigger size="sm" class="dark:bg-input/30 tracking-tight">
+        <SelectTrigger size="sm" class="bg-card tracking-tight">
           <SelectValue />
         </SelectTrigger>
         <SelectContent class="tracking-tight">
