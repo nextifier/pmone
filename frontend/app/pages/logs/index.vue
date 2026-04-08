@@ -45,8 +45,56 @@
               </span>
             </button>
           </PopoverTrigger>
-          <PopoverContent class="w-auto min-w-52 p-3" align="start">
+          <PopoverContent class="w-auto min-w-60 p-3" align="start">
             <div class="space-y-4">
+              <!-- User filter -->
+              <div v-if="causerOptions.length > 0" class="space-y-2.5">
+                <div class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+                  User
+                </div>
+                <Select
+                  :modelValue="selectedCauserId"
+                  @update:modelValue="onCauserChange"
+                >
+                  <SelectTrigger size="sm" class="w-full">
+                    <SelectValue placeholder="All users" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All users</SelectItem>
+                    <SelectItem
+                      v-for="causer in causerOptions"
+                      :key="causer.id"
+                      :value="String(causer.id)"
+                    >
+                      {{ causer.name }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <!-- Date range filter -->
+              <div class="space-y-2.5">
+                <div class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+                  Date Range
+                </div>
+                <div class="flex flex-col gap-y-2">
+                  <DatePicker
+                    :modelValue="dateFrom"
+                    placeholder="From date"
+                    :disableFutureDates="true"
+                    @update:modelValue="onDateFromChange"
+                  />
+                  <DatePicker
+                    :modelValue="dateTo"
+                    placeholder="To date"
+                    :disableFutureDates="true"
+                    @update:modelValue="onDateToChange"
+                  />
+                </div>
+              </div>
+
+              <div v-if="logNameOptions.length > 0" class="border-t" />
+
               <div v-if="logNameOptions.length > 0" class="space-y-2.5">
                 <div class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
                   Log Name
@@ -72,7 +120,7 @@
                 </div>
               </div>
 
-              <div v-if="logNameOptions.length > 0 && eventOptions.length > 0" class="border-t" />
+              <div v-if="eventOptions.length > 0" class="border-t" />
 
               <div v-if="eventOptions.length > 0" class="space-y-2.5">
                 <div class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
@@ -98,6 +146,15 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Clear filters -->
+              <button
+                v-if="totalActiveFilters > 0"
+                class="text-muted-foreground hover:text-foreground w-full border-t pt-3 text-center text-xs tracking-tight"
+                @click="clearFilters"
+              >
+                Clear all filters
+              </button>
             </div>
           </PopoverContent>
         </Popover>
@@ -138,10 +195,18 @@
 </template>
 
 <script setup>
+import DatePicker from "@/components/DatePicker.vue";
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -171,12 +236,20 @@ const page = ref(1);
 const perPage = ref(50);
 const selectedLogNames = ref([]);
 const selectedEvents = ref([]);
+const selectedCauserId = ref("");
+const dateFrom = ref(null);
+const dateTo = ref(null);
 const logNameOptions = ref([]);
 const eventOptions = ref([]);
+const causerOptions = ref([]);
 
-const totalActiveFilters = computed(
-  () => selectedLogNames.value.length + selectedEvents.value.length
-);
+const totalActiveFilters = computed(() => {
+  let count = selectedLogNames.value.length + selectedEvents.value.length;
+  if (selectedCauserId.value) count++;
+  if (dateFrom.value) count++;
+  if (dateTo.value) count++;
+  return count;
+});
 
 async function fetchActivities() {
   loading.value = true;
@@ -187,6 +260,15 @@ async function fetchActivities() {
     if (search.value) params.append("search", search.value);
     if (selectedLogNames.value.length) params.append("log_name", selectedLogNames.value.join(","));
     if (selectedEvents.value.length) params.append("event", selectedEvents.value.join(","));
+    if (selectedCauserId.value) params.append("causer_id", selectedCauserId.value);
+    if (dateFrom.value) {
+      const d = new Date(dateFrom.value);
+      params.append("from", d.toISOString().split("T")[0]);
+    }
+    if (dateTo.value) {
+      const d = new Date(dateTo.value);
+      params.append("to", d.toISOString().split("T")[0]);
+    }
 
     const res = await client(`/api/logs?${params.toString()}`);
     activities.value = res.data || [];
@@ -201,12 +283,14 @@ async function fetchActivities() {
 
 async function loadFilterOptions() {
   try {
-    const [logNamesRes, eventsRes] = await Promise.all([
+    const [logNamesRes, eventsRes, causersRes] = await Promise.all([
       client("/api/logs/log-names"),
       client("/api/logs/events"),
+      client("/api/logs/causers"),
     ]);
     logNameOptions.value = logNamesRes.data || [];
     eventOptions.value = eventsRes.data || [];
+    causerOptions.value = causersRes.data || [];
   } catch (err) {
     console.error("Error loading filter options:", err);
   }
@@ -236,6 +320,34 @@ function toggleFilter(type, value, checked) {
   } else {
     target.value = target.value.filter((v) => v !== value);
   }
+  page.value = 1;
+  fetchActivities();
+}
+
+function onCauserChange(value) {
+  selectedCauserId.value = value === "all" ? "" : value;
+  page.value = 1;
+  fetchActivities();
+}
+
+function onDateFromChange(value) {
+  dateFrom.value = value;
+  page.value = 1;
+  fetchActivities();
+}
+
+function onDateToChange(value) {
+  dateTo.value = value;
+  page.value = 1;
+  fetchActivities();
+}
+
+function clearFilters() {
+  selectedLogNames.value = [];
+  selectedEvents.value = [];
+  selectedCauserId.value = "";
+  dateFrom.value = null;
+  dateTo.value = null;
   page.value = 1;
   fetchActivities();
 }

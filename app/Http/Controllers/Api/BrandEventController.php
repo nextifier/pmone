@@ -36,6 +36,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Tags\Tag;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -983,14 +984,24 @@ class BrandEventController extends Controller
             [$event->id],
         );
 
-        activity()
-            ->performedOn($event)
-            ->causedBy($request->user())
-            ->withProperties([
-                'project_id' => $project->id,
-            ])
-            ->event('imported')
-            ->log("Started brand import for event {$event->title}");
+        // Prevent duplicate log entries (e.g. double-click on import button)
+        $recentDuplicate = Activity::where('event', 'imported')
+            ->where('subject_type', $event->getMorphClass())
+            ->where('subject_id', $event->id)
+            ->where('causer_id', $request->user()->id)
+            ->where('created_at', '>=', now()->subMinutes(1))
+            ->exists();
+
+        if (! $recentDuplicate) {
+            activity()
+                ->performedOn($event)
+                ->causedBy($request->user())
+                ->withProperties([
+                    'project_id' => $project->id,
+                ])
+                ->event('imported')
+                ->log("Started brand import for event {$event->title}");
+        }
 
         return response()->json([
             'import_id' => $importId,

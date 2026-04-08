@@ -437,6 +437,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/', [LogController::class, 'index']);
         Route::get('/log-names', [LogController::class, 'logNames']);
         Route::get('/events', [LogController::class, 'events']);
+        Route::get('/causers', [LogController::class, 'causers']);
         Route::delete('/clear', [LogController::class, 'clear']);
     });
 

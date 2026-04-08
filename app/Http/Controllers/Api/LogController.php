@@ -24,6 +24,9 @@ class LogController extends Controller
         $search = $request->input('search');
         $logName = $request->input('log_name');
         $event = $request->input('event');
+        $causerId = $request->input('causer_id');
+        $from = $request->input('from');
+        $to = $request->input('to');
 
         $query = Activity::with(['causer', 'causer.media', 'subject'])
             ->orderBy('created_at', 'desc');
@@ -45,11 +48,41 @@ class LogController extends Controller
         }
 
         if ($logName) {
-            $query->where('log_name', $logName);
+            $logNames = is_array($logName) ? $logName : explode(',', $logName);
+            $logNames = array_filter($logNames);
+
+            if (count($logNames) > 1) {
+                $query->whereIn('log_name', $logNames);
+            } elseif (count($logNames) === 1) {
+                $query->where('log_name', $logNames[0]);
+            }
         }
 
         if ($event) {
-            $query->where('event', $event);
+            $events = is_array($event) ? $event : explode(',', $event);
+            $events = array_filter($events);
+
+            if (count($events) > 1) {
+                $query->whereIn('event', $events);
+            } elseif (count($events) === 1) {
+                $query->where('event', $events[0]);
+            }
+        }
+
+        if ($causerId) {
+            if ($causerId === 'system') {
+                $query->whereNull('causer_id');
+            } else {
+                $query->where('causer_id', $causerId);
+            }
+        }
+
+        if ($from) {
+            $query->whereDate('created_at', '>=', $from);
+        }
+
+        if ($to) {
+            $query->whereDate('created_at', '<=', $to);
         }
 
         $activities = $query->paginate($perPage);
@@ -99,6 +132,36 @@ class LogController extends Controller
         ]);
     }
 
+    public function causers(Request $request): JsonResponse
+    {
+        if (! $request->user()->hasRole(['master', 'admin'])) {
+            return response()->json([
+                'message' => 'Unauthorized. Only master and admin roles can access logs.',
+            ], 403);
+        }
+
+        $causers = Activity::whereNotNull('causer_id')
+            ->with('causer:id,name')
+            ->select('causer_id')
+            ->distinct()
+            ->get()
+            ->map(fn ($a) => $a->causer ? ['id' => $a->causer->id, 'name' => $a->causer->name] : null)
+            ->filter()
+            ->unique('id')
+            ->sortBy('name')
+            ->values();
+
+        // Prepend "System" option for activities without a causer
+        $hasSystemActivities = Activity::whereNull('causer_id')->exists();
+        if ($hasSystemActivities) {
+            $causers->prepend(['id' => 'system', 'name' => 'System']);
+        }
+
+        return response()->json([
+            'data' => $causers,
+        ]);
+    }
+
     public function clear(Request $request): JsonResponse
     {
         if (! $request->user()->hasRole('master')) {
@@ -138,6 +201,7 @@ class LogController extends Controller
             'subject_type' => $activity->subject_type ? class_basename($activity->subject_type) : null,
             'subject_id' => $activity->subject_id,
             'subject_name' => self::getSubjectName($activity),
+            'subject_url' => self::getSubjectUrl($activity),
             'causer_id' => $activity->causer_id,
             'causer_name' => $activity->causer?->name ?? 'System',
             'causer' => $activity->causer ? [
@@ -174,8 +238,69 @@ class LogController extends Controller
             return $subject->name;
         }
 
+        // BrandEvent: get name from related Brand
+        if ($subjectType === 'BrandEvent') {
+            return $subject->brand?->name;
+        }
+
+        // ContactFormSubmission: use subject field or extract name from form_data
+        if ($subjectType === 'ContactFormSubmission') {
+            if ($subject->subject) {
+                return $subject->subject;
+            }
+            $formData = $subject->form_data ?? [];
+
+            return $formData['name'] ?? $formData['email'] ?? null;
+        }
+
         // Other models: prefer title, then name, then slug
         return $subject->title ?? $subject->name ?? $subject->slug ?? null;
+    }
+
+    private static function getSubjectUrl(Activity $activity): ?string
+    {
+        if (! $activity->subject_type || ! $activity->subject) {
+            return null;
+        }
+
+        $subject = $activity->subject;
+        $subjectType = class_basename($activity->subject_type);
+
+        return match ($subjectType) {
+            'Post' => $subject->slug ? "/posts/{$subject->slug}/edit" : null,
+            'Brand' => $subject->slug ? "/brands/{$subject->slug}" : null,
+            'User' => $subject->username ? "/users?search={$subject->username}" : null,
+            'BrandEvent' => self::getBrandEventUrl($subject),
+            'Event' => self::getEventUrl($subject),
+            'Contact' => $subject->ulid ? "/contacts?search={$subject->name}" : null,
+            'ShortLink' => $subject->slug ? "/link-pages/{$subject->linkPage?->slug}" : null,
+            default => null,
+        };
+    }
+
+    private static function getBrandEventUrl(mixed $subject): ?string
+    {
+        $event = $subject->event;
+        $brand = $subject->brand;
+        if (! $event || ! $brand) {
+            return null;
+        }
+        $project = $event->project;
+        if (! $project) {
+            return null;
+        }
+
+        return "/projects/{$project->username}/events/{$event->slug}/brands/{$brand->slug}";
+    }
+
+    private static function getEventUrl(mixed $subject): ?string
+    {
+        $project = $subject->project;
+        if (! $project) {
+            return null;
+        }
+
+        return "/projects/{$project->username}/events/{$subject->slug}";
     }
 
     private static function generateHumanDescription(Activity $activity): string
@@ -183,6 +308,10 @@ class LogController extends Controller
         $userName = $activity->causer?->name ?? 'System';
         $subjectType = $activity->subject_type ? class_basename($activity->subject_type) : null;
         $subjectName = self::getSubjectName($activity);
+        // Truncate long subject names in description (full name available in subject_name field)
+        if ($subjectName && mb_strlen($subjectName) > 80) {
+            $subjectName = mb_substr($subjectName, 0, 77).'...';
+        }
         $event = $activity->event;
         $description = $activity->description;
         $isSelf = $activity->causer_id && $activity->subject_id && $activity->causer_id === $activity->subject_id && $subjectType === 'User';
@@ -465,9 +594,16 @@ class LogController extends Controller
                 continue;
             }
 
+            $oldValue = $old[$field] ?? null;
+
+            // Skip changes where old and new are effectively the same
+            if (self::isEffectivelySame($oldValue, $newValue)) {
+                continue;
+            }
+
             $changes[] = [
                 'field' => str_replace('_', ' ', $field),
-                'old' => $old[$field] ?? null,
+                'old' => $oldValue,
                 'new' => $newValue,
             ];
         }
@@ -479,6 +615,10 @@ class LogController extends Controller
                 if (in_array($key, $skip)) {
                     continue;
                 }
+                // Skip null/empty values for custom events too
+                if ($value === null || $value === '') {
+                    continue;
+                }
                 $changes[] = [
                     'field' => str_replace('_', ' ', $key),
                     'old' => null,
@@ -488,5 +628,19 @@ class LogController extends Controller
         }
 
         return $changes;
+    }
+
+    /**
+     * Check if two values are effectively the same (both empty/null or equal).
+     */
+    private static function isEffectivelySame(mixed $old, mixed $new): bool
+    {
+        // Both null or empty string
+        if (($old === null || $old === '') && ($new === null || $new === '')) {
+            return true;
+        }
+
+        // Loose comparison for type juggling (e.g. "1" vs 1)
+        return $old == $new;
     }
 }
