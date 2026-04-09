@@ -3,6 +3,7 @@ interface ImportProgress {
   total_rows: number;
   processed_rows: number;
   imported_count: number;
+  skipped_count: number;
   percentage: number;
   errors: Array<{
     row: number;
@@ -31,6 +32,7 @@ export function useImportProgress() {
       total_rows: 0,
       processed_rows: 0,
       imported_count: 0,
+      skipped_count: 0,
       percentage: 0,
       errors: [],
       error_message: null,

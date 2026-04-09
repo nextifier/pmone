@@ -226,7 +226,7 @@ const refresh = fetchEvents;
 // Status badge config
 const statusConfig = {
   ongoing: { label: "Ongoing", class: "text-destructive-foreground" },
-  upcoming: { label: "Upcoming", class: "text-info-foreground" },
+  upcoming: { label: "Upcoming", class: "text-foreground" },
   completed: { label: "Completed", class: "text-success-foreground" },
   no_date: { label: "No date", class: "text-muted-foreground" },
 };

@@ -43,7 +43,7 @@
           </span>
           <span
             v-if="event.is_active"
-            class="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium tracking-tight text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+            class="border-border text-muted-foreground shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium tracking-tight capitalize"
           >
             Active Edition
           </span>

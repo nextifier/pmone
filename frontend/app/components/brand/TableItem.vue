@@ -7,6 +7,7 @@
       :model="{ name: brand.brand_name, profile_image: brand.brand_logo }"
       class="size-10"
       rounded="rounded-lg"
+      :colorful="false"
     />
 
     <div class="flex flex-col items-start gap-y-0.5 overflow-hidden">

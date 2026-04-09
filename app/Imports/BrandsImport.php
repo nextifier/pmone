@@ -10,13 +10,14 @@ use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Events\BeforeImport;
 use Maatwebsite\Excel\Validators\Failure;
 
-class BrandsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEvents, WithHeadingRow, WithValidation
+class BrandsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEvents, WithHeadingRow, WithMultipleSheets, WithValidation
 {
-    use Importable, TracksImportProgress;
+    use Concerns\ImportsFirstSheetOnly, Importable, TracksImportProgress;
 
     protected array $failures = [];
 
@@ -24,6 +25,11 @@ class BrandsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEvent
 
     public function prepareForValidation($data, $index)
     {
+        // Trim email fields
+        if (isset($data['company_email']) && is_string($data['company_email'])) {
+            $data['company_email'] = trim($data['company_email']);
+        }
+
         if (isset($data['company_phone']) && ! is_null($data['company_phone'])) {
             $data['company_phone'] = (string) $data['company_phone'];
         }

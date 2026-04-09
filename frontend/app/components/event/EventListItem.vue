@@ -1,9 +1,9 @@
 <template>
-  <div class="grid w-full grid-cols-1 items-start gap-3 rounded-lg py-8 lg:grid-cols-2">
-    <div class="flex items-center gap-x-2.5 sm:gap-x-4">
+  <div class="grid w-full grid-cols-1 items-start gap-4 rounded-lg lg:grid-cols-2">
+    <div class="flex items-start gap-x-2.5 sm:items-center sm:gap-x-4">
       <NuxtLink :to="eventLink" class="shrink-0">
         <div
-          class="bg-muted border-border aspect-4/5 w-24 overflow-hidden rounded-md border sm:w-40"
+          class="bg-muted border-border aspect-4/5 w-26 overflow-hidden rounded-md border sm:w-40"
         >
           <img
             v-if="event.poster_image"
@@ -20,13 +20,13 @@
         </div>
       </NuxtLink>
 
-      <div class="flex flex-col items-start gap-y-1.5">
+      <div class="flex flex-col items-start gap-y-1.5 pt-2 sm:pt-0">
         <div class="flex items-center gap-2" :class="{ 'flex-wrap': wrapBadges }">
           <!-- Time status badge -->
           <span
             v-if="event.time_status === 'upcoming' && event.start_date"
             v-tippy="$dayjs(event.start_date).format('MMMM D, YYYY')"
-            class="text-info-foreground shrink-0 text-xs leading-none font-medium tracking-tight sm:text-sm"
+            class="text-foreground shrink-0 text-xs leading-none font-medium tracking-tight sm:text-sm"
           >
             Starts {{ $dayjs(event.start_date).fromNow() }}
           </span>
@@ -48,12 +48,14 @@
         </div>
 
         <NuxtLink :to="eventLink">
-          <h3 class="page-title">
+          <h3
+            class="text-foreground text-lg leading-tight! font-medium tracking-tighter text-balance sm:text-xl"
+          >
             {{ event.title }}
           </h3>
         </NuxtLink>
 
-        <div class="flex flex-col items-start gap-y-1.5 text-xs tracking-tight sm:text-sm">
+        <div class="flex flex-col items-start gap-y-1.5 text-sm tracking-tight">
           <span v-if="event.date_label" class="flex items-center gap-x-1.5">
             <Icon name="hugeicons:calendar-03" class="size-4 shrink-0" />
             <span class="line-clamp-1">{{ event.date_label }}</span>
@@ -73,7 +75,7 @@
       :event="event"
       :brands-link="`/projects/${event.project_username}/events/${event.slug}/brands`"
       :orders-link="`/projects/${event.project_username}/events/${event.slug}/operational/orders`"
-      chart-class="lg:max-w-[90%]"
+      chart-class="max-w-[240px]"
     />
   </div>
 </template>
@@ -116,7 +118,7 @@ const statusConfig: Record<string, { label: string; class: string }> = {
   },
   upcoming: {
     label: "Upcoming",
-    class: "text-info-foreground",
+    class: "text-foreground",
   },
   completed: {
     label: "Completed",

@@ -11,12 +11,13 @@ use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Validators\Failure;
 
-class ContactFormSubmissionsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadingRow, WithValidation
+class ContactFormSubmissionsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadingRow, WithMultipleSheets, WithValidation
 {
-    use Importable;
+    use Concerns\ImportsFirstSheetOnly, Importable;
 
     protected array $failures = [];
 
@@ -27,6 +28,11 @@ class ContactFormSubmissionsImport implements SkipsEmptyRows, SkipsOnFailure, To
 
     public function prepareForValidation($data, $index)
     {
+        // Trim email field
+        if (isset($data['email']) && is_string($data['email'])) {
+            $data['email'] = trim($data['email']);
+        }
+
         // Normalize optional fields - treat "-" as null
         $optionalFields = ['brand_name', 'phone', 'subject', 'status', 'created_at'];
         foreach ($optionalFields as $field) {

@@ -116,7 +116,7 @@ const props = defineProps({
   eventSlug: { type: String, required: true },
 });
 
-const emit = defineEmits(["imported"]);
+const emit = defineEmits(["imported", "importErrors"]);
 
 const isOpen = ref(false);
 const uploadedFiles = ref([]);
@@ -148,19 +148,22 @@ watch(
         toast.success("Import completed with errors", {
           description: `${p.imported_count} brand(s) imported, ${errorCount} row(s) failed`,
         });
-        console.table(p.errors);
+        emit("importErrors", { errors: p.errors, importedCount: p.imported_count || 0, skippedCount: p.skipped_count || 0 });
+        isOpen.value = false;
+        uploadedFiles.value = [];
+        reset();
+        emit("imported");
       } else {
+        const parts = [`${p.imported_count} brand(s) imported`];
+        if (p.skipped_count > 0) parts.push(`${p.skipped_count} skipped (already exist)`);
         toast.success("Brands imported successfully", {
-          description: p.imported_count
-            ? `${p.imported_count} brand(s) imported`
-            : undefined,
+          description: parts.join(', '),
         });
+        isOpen.value = false;
+        uploadedFiles.value = [];
+        reset();
+        emit("imported");
       }
-
-      isOpen.value = false;
-      uploadedFiles.value = [];
-      reset();
-      emit("imported");
     }
 
     if (status === "failed") {

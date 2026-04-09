@@ -10,12 +10,13 @@ use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Validators\Failure;
 
-class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadingRow, WithValidation
+class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadingRow, WithMultipleSheets, WithValidation
 {
-    use Importable;
+    use Concerns\ImportsFirstSheetOnly, Importable;
 
     protected array $failures = [];
 
@@ -25,6 +26,11 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
 
     public function prepareForValidation($data, $index)
     {
+        // Trim email field
+        if (isset($data['email']) && is_string($data['email'])) {
+            $data['email'] = trim($data['email']);
+        }
+
         // Normalize phone to string
         if (isset($data['phone']) && ! is_null($data['phone'])) {
             $data['phone'] = (string) $data['phone'];

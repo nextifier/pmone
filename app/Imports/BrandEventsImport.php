@@ -15,13 +15,14 @@ use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Events\BeforeImport;
 use Maatwebsite\Excel\Validators\Failure;
 
-class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEvents, WithHeadingRow, WithValidation
+class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEvents, WithHeadingRow, WithMultipleSheets, WithValidation
 {
-    use Concerns\TracksImportProgress, Importable;
+    use Concerns\ImportsFirstSheetOnly, Concerns\TracksImportProgress, Importable;
 
     protected array $failures = [];
 
@@ -38,6 +39,13 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
 
     public function prepareForValidation($data, $index): array
     {
+        // Trim email fields
+        foreach (['company_email', 'pic_email'] as $field) {
+            if (isset($data[$field]) && is_string($data[$field])) {
+                $data[$field] = trim($data[$field]);
+            }
+        }
+
         // Normalize status to lowercase
         if (isset($data['status']) && ! is_null($data['status'])) {
             $data['status'] = strtolower(trim($data['status']));

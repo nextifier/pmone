@@ -13,6 +13,7 @@
           :username="route.params.username"
           :event-slug="route.params.eventSlug"
           @imported="refresh()"
+          @import-errors="handleImportErrors"
         >
           <template #trigger="{ open }">
             <button
@@ -53,6 +54,53 @@
           <Icon name="lucide:x" class="size-4 shrink-0" />
           <span>Clear selection</span>
         </button>
+      </div>
+    </div>
+
+    <!-- Import errors -->
+    <div v-if="importResult" class="bg-card rounded-lg border p-4">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-start gap-3">
+          <Icon
+            name="lucide:triangle-alert"
+            class="text-destructive-foreground mt-0.5 size-5 shrink-0"
+          />
+          <div class="space-y-1">
+            <p class="text-base font-medium tracking-tight">Import completed with errors</p>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              {{ importResult.importedCount }} brand(s) imported successfully,
+              {{ importResult.grouped.length }} row(s) failed validation.<template
+                v-if="importResult.skippedCount > 0"
+              >
+                {{ importResult.skippedCount }} row(s) skipped (already exist).</template
+              >
+            </p>
+          </div>
+        </div>
+        <div class="flex shrink-0 items-center gap-1">
+          <ButtonCopy :text="importErrorsText" />
+          <button
+            @click="importResult = null"
+            class="text-muted-foreground hover:text-foreground flex size-7 items-center justify-center rounded-lg"
+          >
+            <Icon name="lucide:x" class="size-4" />
+          </button>
+        </div>
+      </div>
+
+      <div class="divide-border mt-3 divide-y">
+        <div
+          v-for="group in importResult.grouped"
+          :key="group.row"
+          class="px-3 py-2.5 text-sm tracking-tight"
+        >
+          <p class="font-medium">
+            Row {{ group.row }}<template v-if="group.name"> - {{ group.name }}</template>
+          </p>
+          <ul class="text-destructive-foreground mt-1 list-inside list-disc space-y-0.5">
+            <li v-for="msg in group.messages" :key="msg">{{ msg }}</li>
+          </ul>
+        </div>
       </div>
     </div>
 
@@ -182,12 +230,23 @@
                 <!-- Progress bar -->
                 <div v-if="deleteJob.processing.value" class="mt-3 space-y-2">
                   <div class="flex items-center justify-between text-sm tracking-tight">
-                    <span class="text-muted-foreground">{{ deleteJob.progress.value?.message }}</span>
-                    <span class="font-medium tabular-nums">{{ deleteJob.progress.value?.percentage ?? 0 }}%</span>
+                    <span class="text-muted-foreground">{{
+                      deleteJob.progress.value?.message
+                    }}</span>
+                    <span class="font-medium tabular-nums"
+                      >{{ deleteJob.progress.value?.percentage ?? 0 }}%</span
+                    >
                   </div>
-                  <Progress :model-value="deleteJob.progress.value?.percentage ?? 0" indicator-class="bg-destructive" />
-                  <p v-if="deleteJob.progress.value?.total > 0" class="text-muted-foreground text-xs sm:text-sm tracking-tight tabular-nums">
-                    {{ deleteJob.progress.value?.processed ?? 0 }} / {{ deleteJob.progress.value?.total ?? 0 }}
+                  <Progress
+                    :model-value="deleteJob.progress.value?.percentage ?? 0"
+                    indicator-class="bg-destructive"
+                  />
+                  <p
+                    v-if="deleteJob.progress.value?.total > 0"
+                    class="text-muted-foreground text-xs tracking-tight tabular-nums sm:text-sm"
+                  >
+                    {{ deleteJob.progress.value?.processed ?? 0 }} /
+                    {{ deleteJob.progress.value?.total ?? 0 }}
                   </p>
                 </div>
 
@@ -230,8 +289,8 @@ import DialogResponsive from "@/components/DialogResponsive.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Progress } from "@/components/ui/progress";
 import { PopoverClose } from "reka-ui";
 import { defineComponent, resolveComponent } from "vue";
 import { toast } from "vue-sonner";
@@ -245,6 +304,36 @@ const client = useSanctumClient();
 const { hasAnyRole } = usePermission();
 const canDeletePermanently = computed(() => hasAnyRole(["master", "admin"]));
 const showAddDialog = ref(false);
+const importResult = ref(null);
+
+const importErrorsText = computed(() => {
+  if (!importResult.value) return "";
+  const r = importResult.value;
+  let summary = `Import completed with errors\n\n${r.importedCount} brand(s) imported successfully, ${r.grouped.length} row(s) failed validation.`;
+  if (r.skippedCount > 0) summary += ` ${r.skippedCount} row(s) skipped (already exist).`;
+  const details = r.grouped
+    .map((group) => {
+      const label = `Row ${group.row}${group.name ? ` - ${group.name}` : ""}`;
+      return `${label}\n${group.messages.map((m) => `  - ${m}`).join("\n")}`;
+    })
+    .join("\n\n");
+  return `${summary}\n\n${details}`;
+});
+
+const handleImportErrors = ({ errors, importedCount, skippedCount = 0 }) => {
+  const map = new Map();
+  for (const error of errors) {
+    if (!map.has(error.row)) {
+      map.set(error.row, {
+        row: error.row,
+        name: error.values?.brand_name || error.values?.name || "",
+        messages: [],
+      });
+    }
+    map.get(error.row).messages.push(...error.errors);
+  }
+  importResult.value = { importedCount, skippedCount, grouped: Array.from(map.values()) };
+};
 
 defineShortcuts({
   n: {
@@ -578,7 +667,7 @@ watch(
       });
       deleteJob.reset();
     }
-  },
+  }
 );
 
 const handlePermanentDeleteRows = async (selectedRows) => {
@@ -589,7 +678,7 @@ const handlePermanentDeleteRows = async (selectedRows) => {
       {
         method: "DELETE",
         body: { slugs },
-      },
+      }
     );
   } catch (err) {
     toast.error("Failed to delete brands", {

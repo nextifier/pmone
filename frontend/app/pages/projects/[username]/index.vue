@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-y-6 pb-16">
+  <div class="flex flex-col gap-y-6">
     <!-- Header -->
     <div class="flex items-center justify-between">
       <h3 class="page-title">Events</h3>
@@ -50,10 +50,10 @@
 
     <!-- Events List -->
     <template v-else>
-      <div v-if="events.length" class="grid grid-cols-1">
+      <div v-if="events.length" class="grid grid-cols-1 gap-y-10">
         <EventListItem v-for="event in events" :key="event.id" :event="event" wrap-badges>
           <template #status="{ event: ev }">
-            <div class="mt-2 flex items-center gap-x-2">
+            <div class="mt-1 flex items-center gap-x-2">
               <Button :to="`/projects/${username}/events/${ev.slug}`" size="sm">
                 View Event
                 <Icon name="lucide:arrow-right" class="size-3.5" />
@@ -69,7 +69,7 @@
                 Active
               </Button>
               <Button
-                v-else-if="ev.can_edit"
+                v-else-if="isAdminOrMaster"
                 variant="outline"
                 size="sm"
                 :disabled="settingActiveId === ev.id"

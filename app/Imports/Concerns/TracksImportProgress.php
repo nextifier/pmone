@@ -22,10 +22,9 @@ trait TracksImportProgress
             return;
         }
 
-        $totalRows = 0;
-        foreach ($event->getReader()->getTotalRows() as $sheetRows) {
-            $totalRows += $sheetRows;
-        }
+        // Only count rows from the first sheet
+        $sheetRows = $event->getReader()->getTotalRows();
+        $totalRows = reset($sheetRows) ?: 0;
 
         // Subtract 1 for header row
         $totalRows = max(0, $totalRows - 1);

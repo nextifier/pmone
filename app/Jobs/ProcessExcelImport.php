@@ -58,10 +58,15 @@ class ProcessExcelImport implements ShouldQueue
                 ? $import->getImportedCount()
                 : 0;
 
+            $skippedCount = method_exists($import, 'getSkippedCount')
+                ? $import->getSkippedCount()
+                : 0;
+
             $this->updateCache([
                 'status' => 'completed',
                 'processed_rows' => Cache::get("import:{$this->importId}")['total_rows'] ?? 0,
                 'imported_count' => $importedCount,
+                'skipped_count' => $skippedCount,
                 'percentage' => 100,
                 'errors' => $errors,
             ]);
@@ -95,6 +100,7 @@ class ProcessExcelImport implements ShouldQueue
             'total_rows' => 0,
             'processed_rows' => 0,
             'imported_count' => 0,
+            'skipped_count' => 0,
             'percentage' => 0,
             'errors' => [],
             'error_message' => null,
