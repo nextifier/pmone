@@ -80,13 +80,30 @@
 
         <!-- Action Buttons -->
         <div v-if="event.can_edit" class="mt-3 flex flex-wrap items-center gap-2">
-          <NuxtLink
-            :to="`${base}/details`"
-            class="hover:bg-primary/80 bg-primary text-primary-foreground flex items-center gap-x-1.5 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98"
-          >
+          <Button :to="`${base}/details`" size="sm">
             <Icon name="hugeicons:edit-02" class="size-4" />
-            <span>Edit Details</span>
-          </NuxtLink>
+            Edit Details
+          </Button>
+          <Button
+            v-if="event.is_active"
+            variant="outline"
+            size="sm"
+            disabled
+            class="disabled:opacity-100"
+          >
+            <span class="size-2 shrink-0 rounded-full bg-green-500" />
+            Active
+          </Button>
+          <Button
+            v-else-if="isAdminOrMaster"
+            variant="outline"
+            size="sm"
+            :disabled="settingActive"
+            @click="handleSetActive"
+          >
+            <Icon name="lucide:check" class="size-3.5" />
+            Set as active
+          </Button>
         </div>
       </div>
     </div>
@@ -100,12 +117,14 @@
         {
           label: 'Operational',
           icon: 'hugeicons:briefcase-01',
+          iconColor: 'text-sky-500',
           description: 'Orders, products, and order form settings',
           to: `${base}/operational/orders`,
         },
         {
           label: 'Content',
           icon: 'hugeicons:note-01',
+          iconColor: 'text-rose-500',
           description: 'Rundown, programs, FAQ, and more',
           to: `${base}/content/rundown`,
         },
@@ -117,14 +136,35 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
+import { toast } from "vue-sonner";
+
 const props = defineProps({
   event: Object,
   project: Object,
 });
 
 const route = useRoute();
+const client = useSanctumClient();
+const { isAdminOrMaster } = usePermission();
 
 const base = computed(() => `/projects/${route.params.username}/events/${route.params.eventSlug}`);
+const settingActive = ref(false);
+
+async function handleSetActive() {
+  settingActive.value = true;
+  try {
+    await client(`/api/projects/${route.params.username}/events/${route.params.eventSlug}/set-active`, {
+      method: "POST",
+    });
+    toast.success(`${props.event.title} set as active edition`);
+    await refreshNuxtData(`event-${route.params.username}-${route.params.eventSlug}`);
+  } catch (e) {
+    toast.error(e?.data?.message || "Failed to set as active");
+  } finally {
+    settingActive.value = false;
+  }
+}
 
 const metaItems = computed(() =>
   [

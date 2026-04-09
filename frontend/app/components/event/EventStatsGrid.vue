@@ -34,7 +34,7 @@
       :to="card.to"
       class="bg-card border-border hover:bg-muted flex flex-col gap-y-2 rounded-xl border px-4 py-5"
     >
-      <Icon :name="card.icon" class="text-muted-foreground size-5" />
+      <Icon :name="card.icon" class="size-5" :class="card.iconColor ?? 'text-muted-foreground'" />
       <div class="min-w-0">
         <p class="text-sm font-medium tracking-tight">{{ card.label }}</p>
         <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">

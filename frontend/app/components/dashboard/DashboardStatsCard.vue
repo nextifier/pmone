@@ -75,7 +75,7 @@ const containerClass = computed(() => {
 
     <!-- Content -->
     <template v-else>
-      <Icon :name="icon" class="text-muted-foreground size-5" />
+      <Icon :name="icon" class="size-5" :class="iconColor" />
 
       <div class="min-w-0">
         <span class="text-foreground text-sm font-medium tracking-tight">{{ title }}</span>
