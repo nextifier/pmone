@@ -14,12 +14,8 @@
     </template>
 
     <!-- Events List -->
-    <div v-else class="divide-border grid grid-cols-1 divide-y border-y">
-      <EventListItem
-        v-for="event in events"
-        :key="event.id"
-        :event="event"
-      />
+    <div v-else class="grid grid-cols-1 gap-y-10">
+      <EventListItem v-for="event in events" :key="event.id" :event="event" />
     </div>
   </div>
 </template>

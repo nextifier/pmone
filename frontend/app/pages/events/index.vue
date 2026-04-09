@@ -304,9 +304,12 @@ const columns = [
                     "span",
                     {
                       class:
-                        "shrink-0 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+                        "inline-flex shrink-0 items-center gap-x-1.5 text-xs font-medium tracking-tight text-muted-foreground",
                     },
-                    "Active"
+                    [
+                      h("span", { class: "size-2 rounded-full bg-green-500" }),
+                      "Active",
+                    ]
                   ),
                 ]
               : []),
