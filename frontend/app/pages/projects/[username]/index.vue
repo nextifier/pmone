@@ -1,22 +1,19 @@
 <template>
-  <div
-    class="mx-auto flex flex-col gap-y-6 pb-16 lg:max-w-4xl xl:max-w-6xl"
-  >
+  <div class="flex flex-col gap-y-6 pb-16">
     <!-- Header -->
     <div class="flex items-center justify-between">
       <h3 class="page-title">Events</h3>
-      <NuxtLink
+      <Button
         v-if="project?.is_member || isAdminOrMaster"
-        :to="`/projects/${route.params.username}/events/create`"
-        data-variant="default"
-        class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-3.5 py-2 text-sm font-medium tracking-tight transition active:scale-98"
+        :to="`/projects/${username}/events/create`"
+        size="sm"
       >
         <Icon name="hugeicons:add-01" class="size-4" />
         <span>New Event</span>
         <KbdGroup>
           <Kbd>N</Kbd>
         </KbdGroup>
-      </NuxtLink>
+      </Button>
     </div>
 
     <!-- Search & Filter -->
@@ -53,33 +50,35 @@
 
     <!-- Events List -->
     <template v-else>
-      <div v-if="events.length" class="divide-border grid grid-cols-1 divide-y border-y">
-        <EventListItem
-          v-for="event in events"
-          :key="event.id"
-          :event="event"
-          wrap-badges
-        >
-          <template #badges="{ event: ev }">
-            <span
-              v-if="ev.is_active"
-              class="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-            >
-              Active
-            </span>
-          </template>
-
-          <template #actions="{ event: ev }">
-            <button
-              v-if="!ev.is_active && ev.can_edit"
-              type="button"
-              :disabled="settingActiveId === ev.id"
-              class="text-muted-foreground hover:text-foreground ml-[6.5rem] flex w-fit items-center gap-x-1 rounded px-1.5 py-0.5 text-xs font-medium tracking-tight transition hover:bg-emerald-100 hover:text-emerald-700 sm:ml-44 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400"
-              @click="handleSetActive(ev)"
-            >
-              <Icon name="hugeicons:tick-02" class="size-3.5" />
-              Set as active
-            </button>
+      <div v-if="events.length" class="grid grid-cols-1">
+        <EventListItem v-for="event in events" :key="event.id" :event="event" wrap-badges>
+          <template #status="{ event: ev }">
+            <div class="mt-2 flex items-center gap-x-2">
+              <Button :to="`/projects/${username}/events/${ev.slug}`" size="sm">
+                View Event
+                <Icon name="lucide:arrow-right" class="size-3.5" />
+              </Button>
+              <Button
+                v-if="ev.is_active"
+                variant="outline"
+                size="sm"
+                disabled
+                class="disabled:opacity-100"
+              >
+                <span class="size-2 shrink-0 rounded-full bg-green-500" />
+                Active
+              </Button>
+              <Button
+                v-else-if="ev.can_edit"
+                variant="outline"
+                size="sm"
+                :disabled="settingActiveId === ev.id"
+                @click="handleSetActive(ev)"
+              >
+                <Icon name="lucide:check" class="size-3.5" />
+                Set as active
+              </Button>
+            </div>
           </template>
         </EventListItem>
       </div>
@@ -93,7 +92,11 @@
           <div class="space-y-1">
             <p class="font-medium tracking-tight">No events found</p>
             <p class="text-muted-foreground text-sm tracking-tight">
-              {{ search || statusFilter !== "all" ? "Try adjusting your filters." : "Create your first event edition." }}
+              {{
+                search || statusFilter !== "all"
+                  ? "Try adjusting your filters."
+                  : "Create your first event edition."
+              }}
             </p>
           </div>
         </div>
@@ -103,7 +106,7 @@
 </template>
 
 <script setup>
-import { toast } from "vue-sonner";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -111,6 +114,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "vue-sonner";
 
 const props = defineProps({
   project: Object,
@@ -121,19 +125,21 @@ const router = useRouter();
 const client = useSanctumClient();
 const { isAdminOrMaster } = usePermission();
 
+const username = computed(() => route.params.username);
+const search = ref("");
+const statusFilter = ref("all");
+const settingActiveId = ref(null);
+
 defineShortcuts({
   n: {
-    handler: () => {
-      router.push(`/projects/${route.params.username}/events/create`);
-    },
+    handler: () => router.push(`/projects/${username.value}/events/create`),
   },
 });
-const settingActiveId = ref(null);
 
 async function handleSetActive(event) {
   settingActiveId.value = event.id;
   try {
-    await client(`/api/projects/${route.params.username}/events/${event.slug}/set-active`, {
+    await client(`/api/projects/${username.value}/events/${event.slug}/set-active`, {
       method: "POST",
     });
     toast.success(`${event.title} set as active edition`);
@@ -145,9 +151,6 @@ async function handleSetActive(event) {
   }
 }
 
-const search = ref("");
-const statusFilter = ref("all");
-
 const apiUrl = computed(() => {
   const params = new URLSearchParams();
   params.set("per_page", "50");
@@ -156,14 +159,18 @@ const apiUrl = computed(() => {
     params.set("filter[search]", search.value);
   }
 
-  if (statusFilter.value && statusFilter.value !== "all") {
+  if (statusFilter.value !== "all") {
     params.set("filter[status]", statusFilter.value);
   }
 
-  return `/api/projects/${route.params.username}/events?${params.toString()}`;
+  return `/api/projects/${username.value}/events?${params.toString()}`;
 });
 
-const { data: eventsResponse, pending: loading, refresh: refreshEvents } = await useLazySanctumFetch(apiUrl, {
+const {
+  data: eventsResponse,
+  pending: loading,
+  refresh: refreshEvents,
+} = await useLazySanctumFetch(apiUrl, {
   key: `events-${route.params.username}`,
   watch: [apiUrl],
 });

@@ -192,6 +192,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Events (cross-project listing)
     Route::get('/events', [EventController::class, 'all'])->name('events.all');
 
+    // Events trash (global cross-project)
+    Route::get('/events-trash', [EventController::class, 'allTrash'])->middleware('can:events.delete')->name('events.all-trash');
+    Route::post('/events-trash/restore/bulk', [EventController::class, 'bulkRestore'])->middleware('can:events.delete')->name('events.bulk-restore');
+    Route::post('/events-trash/{id}/restore', [EventController::class, 'restoreById'])->middleware('can:events.delete')->name('events.restore-by-id');
+    Route::delete('/events-trash/bulk', [EventController::class, 'bulkForceDestroy'])->middleware('can:events.delete')->name('events.bulk-force-delete');
+    Route::delete('/events-trash/{id}', [EventController::class, 'forceDestroyById'])->middleware('can:events.delete')->name('events.force-destroy-by-id');
+
     // Event management endpoints (nested under projects)
     Route::prefix('projects/{username}/events')->group(function () {
         Route::get('/', [EventController::class, 'index'])->name('events.index');

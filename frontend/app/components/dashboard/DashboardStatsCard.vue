@@ -53,9 +53,9 @@ const componentIs = computed(() => (props.href ? resolveComponent("NuxtLink") : 
 
 const containerClass = computed(() => {
   const base =
-    "bg-card group relative flex flex-col items-start gap-y-2 rounded-lg border px-3.5 py-3";
+    "bg-card group relative flex flex-col items-start gap-y-2 rounded-xl border px-3 py-4 sm:px-4 sm:py-5";
   if (props.href) {
-    return `${base} cursor-pointer hover:bg-muted/50`;
+    return `${base} cursor-pointer hover:bg-muted`;
   }
   return base;
 });
@@ -65,7 +65,7 @@ const containerClass = computed(() => {
   <component :is="componentIs" :to="href" :class="containerClass">
     <!-- Loading -->
     <template v-if="loading">
-      <Skeleton class="size-8 shrink-0 rounded-lg" />
+      <Skeleton class="size-5 shrink-0 rounded" />
       <div class="space-y-1">
         <Skeleton class="h-3 w-16" />
         <Skeleton class="h-2.5 w-24" />
@@ -75,21 +75,19 @@ const containerClass = computed(() => {
 
     <!-- Content -->
     <template v-else>
-      <div class="flex size-8 shrink-0 items-center justify-center rounded-lg" :class="iconBgClass">
-        <Icon :name="icon" class="size-4" :class="iconColor" />
-      </div>
+      <Icon :name="icon" class="text-muted-foreground size-5" />
 
       <div class="min-w-0">
         <span class="text-foreground text-sm font-medium tracking-tight">{{ title }}</span>
-        <p v-if="description" class="text-muted-foreground text-xs tracking-tight">
+        <p v-if="description" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
           {{ description }}
         </p>
       </div>
 
-      <div class="flex w-full items-center justify-between gap-2">
+      <div class="-mb-2 flex w-full items-center justify-between gap-2">
         <div class="flex items-baseline gap-1.5">
           <NumberFlow
-            class="text-foreground text-2xl leading-tight font-medium tracking-tighter"
+            class="text-foreground text-lg leading-tight font-medium tracking-tighter sm:text-xl"
             :value="Number(value) || 0"
             :format="format ?? { notation: 'compact' }"
           />

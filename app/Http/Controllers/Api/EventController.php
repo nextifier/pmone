@@ -45,7 +45,7 @@ class EventController extends Controller
     public function all(Request $request): JsonResponse
     {
         $query = Event::query()->withoutTrashed()->reorder()
-            ->with('project:id,name,username')
+            ->with(['project:id,name,username', 'media'])
             ->withCount('brandEvents')
             ->withSum([
                 'brandEvents as booked_area' => fn ($q) => $q->whereNotNull('booth_size'),
@@ -142,7 +142,7 @@ class EventController extends Controller
         $this->authorize('viewAny', [Event::class, $project]);
 
         $query = $project->events()->withoutTrashed()->reorder()
-            ->with('project:id,username')
+            ->with(['project:id,username', 'media'])
             ->withCount('brandEvents')
             ->withSum([
                 'brandEvents as booked_area' => fn ($q) => $q->whereNotNull('booth_size'),
@@ -449,6 +449,114 @@ class EventController extends Controller
 
         return response()->json([
             'message' => 'Event permanently deleted',
+        ]);
+    }
+
+    public function allTrash(Request $request): JsonResponse
+    {
+        $query = Event::onlyTrashed()
+            ->with(['project:id,name,username', 'deleter:id,name']);
+
+        if ($request->has('filter_search')) {
+            $search = $request->input('filter_search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'ilike', "%{$search}%")
+                    ->orWhere('location', 'ilike', "%{$search}%");
+            });
+        }
+
+        // Sorting
+        $sortParam = $request->input('sort', '-deleted_at');
+        $sortDirection = str_starts_with($sortParam, '-') ? 'desc' : 'asc';
+        $sortField = ltrim($sortParam, '-');
+
+        $allowedSorts = ['title', 'deleted_at', 'start_date'];
+        if (in_array($sortField, $allowedSorts)) {
+            $query->orderBy($sortField, $sortDirection);
+        } else {
+            $query->orderBy('deleted_at', 'desc');
+        }
+
+        $events = $query->paginate($request->input('per_page', 15));
+
+        return response()->json([
+            'data' => EventIndexResource::collection($events->items()),
+            'meta' => [
+                'current_page' => $events->currentPage(),
+                'last_page' => $events->lastPage(),
+                'per_page' => $events->perPage(),
+                'total' => $events->total(),
+            ],
+        ]);
+    }
+
+    public function restoreById(int $id): JsonResponse
+    {
+        $event = Event::onlyTrashed()->findOrFail($id);
+
+        $this->authorize('restore', $event);
+
+        $event->restore();
+
+        return response()->json([
+            'message' => 'Event restored successfully',
+        ]);
+    }
+
+    public function forceDestroyById(int $id): JsonResponse
+    {
+        $event = Event::onlyTrashed()->findOrFail($id);
+
+        $this->authorize('forceDelete', $event);
+
+        $event->forceDelete();
+
+        return response()->json([
+            'message' => 'Event permanently deleted',
+        ]);
+    }
+
+    public function bulkRestore(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['required', 'integer'],
+        ]);
+
+        $restored = 0;
+        foreach ($validated['ids'] as $id) {
+            $event = Event::onlyTrashed()->find($id);
+            if ($event) {
+                $event->restore();
+                $restored++;
+            }
+        }
+
+        return response()->json([
+            'message' => "{$restored} event(s) restored successfully",
+            'restored_count' => $restored,
+        ]);
+    }
+
+    public function bulkForceDestroy(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer'],
+        ]);
+
+        $deletedCount = 0;
+        foreach ($validated['ids'] as $id) {
+            $event = Event::onlyTrashed()->find($id);
+            if ($event) {
+                $event->forceDelete();
+                $deletedCount++;
+            }
+        }
+
+        return response()->json([
+            'message' => "{$deletedCount} event(s) permanently deleted",
+            'deleted_count' => $deletedCount,
         ]);
     }
 

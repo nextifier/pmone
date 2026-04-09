@@ -39,18 +39,24 @@ class EventIndexResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
+            'deleter' => $this->whenLoaded('deleter', fn () => [
+                'id' => $this->deleter->id,
+                'name' => $this->deleter->name,
+            ]),
+            'project_username' => $this->when(
+                $this->resource->relationLoaded('project'),
+                fn () => $this->project?->username
+            ),
+            'project_name' => $this->when(
+                $this->resource->relationLoaded('project'),
+                fn () => $this->project?->name
+            ),
         ];
 
         // Include stats when aggregates are loaded (via withCount/withSum)
         if (array_key_exists('brand_events_count', $this->resource->getAttributes())) {
             $data = array_merge($data, [
                 'time_status' => $this->computeTimeStatus(),
-                'project_username' => $this->resource->relationLoaded('project')
-                    ? $this->project?->username
-                    : null,
-                'project_name' => $this->resource->relationLoaded('project')
-                    ? $this->project?->name
-                    : null,
                 'brand_events_count' => (int) ($this->brand_events_count ?? 0),
                 'saleable_area' => (float) ($this->saleable_area ?? 0),
                 'booked_area' => (float) ($this->booked_area ?? 0),

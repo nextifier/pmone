@@ -7,6 +7,16 @@
         <h1 class="page-title">Events</h1>
       </div>
 
+      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+        <NuxtLink
+          v-if="canDelete"
+          to="/events/trash"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+        >
+          <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
+          <span>Trash</span>
+        </NuxtLink>
+      </div>
     </div>
 
     <TableData
@@ -114,6 +124,7 @@ const isExhibitor = computed(() => hasRole("exhibitor") && !isStaffOrAbove.value
 const { $dayjs } = useNuxtApp();
 
 const canCreate = computed(() => hasPermission("events.create"));
+const canDelete = computed(() => hasPermission("events.delete"));
 
 // Table state
 const columnFilters = ref([]);

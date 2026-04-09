@@ -177,8 +177,8 @@ function createEmptyForm() {
     location: "",
     location_link: "",
     hall: "",
-    status: "draft",
-    visibility: "private",
+    status: "published",
+    visibility: "public",
     custom_fields: {},
   };
 }
@@ -277,8 +277,8 @@ function populateForm(data) {
   form.location = data.location || "";
   form.location_link = data.location_link || "";
   form.hall = data.hall || "";
-  form.status = data.status || "draft";
-  form.visibility = data.visibility || "private";
+  form.status = data.status || "published";
+  form.visibility = data.visibility || "public";
   form.custom_fields = data.custom_fields || {};
 
   imageFiles.value.poster_image = [];

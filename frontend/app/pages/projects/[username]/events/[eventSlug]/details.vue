@@ -183,7 +183,7 @@ async function handleDelete() {
     });
 
     toast.success("Event deleted");
-    router.push(`/projects/${route.params.username}/events`);
+    router.push(`/projects/${route.params.username}`);
   } catch (error) {
     toast.error(error.response?._data?.message || "Failed to delete event");
   } finally {
