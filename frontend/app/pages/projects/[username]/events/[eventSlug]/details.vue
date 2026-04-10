@@ -81,7 +81,7 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium tracking-tight">Delete Event</p>
-            <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
+            <p class="text-muted-foreground text-xs tracking-tight text-balance sm:text-sm">
               Move this event to trash. It can be restored later.
             </p>
           </div>
@@ -89,7 +89,7 @@
             type="button"
             :disabled="deleteLoading"
             @click="deleteDialogOpen = true"
-            class="bg-destructive hover:bg-destructive/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white transition disabled:opacity-50"
+            class="bg-destructive hover:bg-destructive/80 flex shrink-0 items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white transition disabled:opacity-50"
           >
             <Spinner v-if="deleteLoading" />
             {{ deleteLoading ? "Deleting.." : "Delete Event" }}

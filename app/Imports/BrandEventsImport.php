@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Enums\BoothType;
+use App\Helpers\LinkNormalizer;
 use App\Helpers\PhoneCountryHelper;
 use App\Models\Brand;
 use App\Models\BrandEvent;
@@ -39,8 +40,15 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
 
     public function prepareForValidation($data, $index): array
     {
-        // Trim email fields
+        // Normalize email fields (trim + lowercase)
         foreach (['company_email', 'pic_email'] as $field) {
+            if (isset($data[$field]) && is_string($data[$field])) {
+                $data[$field] = strtolower(trim($data[$field]));
+            }
+        }
+
+        // Trim name fields
+        foreach (['brand_name', 'company_name'] as $field) {
             if (isset($data[$field]) && is_string($data[$field])) {
                 $data[$field] = trim($data[$field]);
             }
@@ -372,7 +380,7 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
             if (! empty($row[$field]) && ! in_array(strtolower($label), $existingLabels)) {
                 $brand->links()->create([
                     'label' => $label,
-                    'url' => trim($row[$field]),
+                    'url' => LinkNormalizer::normalize(trim($row[$field]), $label),
                     'order' => ++$order,
                     'is_active' => true,
                 ]);

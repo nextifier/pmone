@@ -306,6 +306,62 @@ class PublicProjectController extends Controller
     }
 
     /**
+     * List partner categories with partners for an event.
+     */
+    public function partners(string $username, string $eventSlug): JsonResponse
+    {
+        $event = $this->findEvent($username, $eventSlug);
+
+        $categories = $event->partnerCategories()
+            ->with(['partners' => fn ($q) => $q->active()->with('media')])
+            ->ordered()
+            ->get();
+
+        $data = $categories
+            ->filter(fn ($cat) => $cat->partners->isNotEmpty())
+            ->values()
+            ->map(fn ($cat) => [
+                'category' => $cat->name,
+                'no_container' => $cat->no_container,
+                'partners' => $cat->partners->map(fn ($partner) => [
+                    'name' => $partner->name,
+                    'logo' => $partner->partner_logo,
+                    'link' => $partner->website_url,
+                ]),
+            ]);
+
+        return response()->json(['data' => $data]);
+    }
+
+    /**
+     * List partner categories with partners for a specific edition.
+     */
+    public function partnersByEdition(string $username, int $editionNumber): JsonResponse
+    {
+        $event = $this->findEventByEdition($username, $editionNumber);
+
+        $categories = $event->partnerCategories()
+            ->with(['partners' => fn ($q) => $q->active()->with('media')])
+            ->ordered()
+            ->get();
+
+        $data = $categories
+            ->filter(fn ($cat) => $cat->partners->isNotEmpty())
+            ->values()
+            ->map(fn ($cat) => [
+                'category' => $cat->name,
+                'no_container' => $cat->no_container,
+                'partners' => $cat->partners->map(fn ($partner) => [
+                    'name' => $partner->name,
+                    'logo' => $partner->partner_logo,
+                    'link' => $partner->website_url,
+                ]),
+            ]);
+
+        return response()->json(['data' => $data]);
+    }
+
+    /**
      * Find a published event by edition number within a project.
      */
     private function findEventByEdition(string $username, int $editionNumber): Event

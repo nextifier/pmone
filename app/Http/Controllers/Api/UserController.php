@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Exports\UsersExport;
 use App\Exports\UsersTemplateExport;
+use App\Helpers\LinkSyncHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
@@ -14,12 +15,15 @@ use App\Http\Resources\UserResource;
 use App\Imports\UsersImport;
 use App\Models\User;
 use App\Notifications\UserRoleChangedNotification;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -257,7 +261,7 @@ class UserController extends Controller
                 }
 
                 // Auto-create Email and WhatsApp links
-                \App\Helpers\LinkSyncHelper::syncUserContactLinks($user);
+                LinkSyncHelper::syncUserContactLinks($user);
 
                 // Handle profile image upload from temporary storage
                 $this->handleTemporaryUpload($request, $user, 'tmp_profile_image', 'profile_image');
@@ -271,7 +275,7 @@ class UserController extends Controller
                     'message' => 'User created successfully',
                     'data' => new UserResource($user),
                 ], 201);
-            } catch (\Illuminate\Database\QueryException $e) {
+            } catch (QueryException $e) {
                 // Check if it's a duplicate username error (PostgreSQL error code 23505)
                 if ($e->getCode() === '23505' && str_contains($e->getMessage(), 'users_username_unique')) {
                     $attempt++;
@@ -381,7 +385,7 @@ class UserController extends Controller
                 // Create new links with order (skip Email/WhatsApp from form)
                 foreach ($linksData as $index => $linkData) {
                     // Skip if trying to create Email or WhatsApp link manually
-                    if (\App\Helpers\LinkSyncHelper::isContactLink($linkData['label'])) {
+                    if (LinkSyncHelper::isContactLink($linkData['label'])) {
                         continue;
                     }
 
@@ -395,7 +399,7 @@ class UserController extends Controller
             }
 
             // Auto-sync Email and WhatsApp links
-            \App\Helpers\LinkSyncHelper::syncUserContactLinks($user);
+            LinkSyncHelper::syncUserContactLinks($user);
 
             // Sync projects if provided
             if ($request->has('project_ids')) {
@@ -629,7 +633,7 @@ class UserController extends Controller
             // Create new links with order (skip Email/WhatsApp from form)
             foreach ($linksData as $index => $linkData) {
                 // Skip if trying to create Email or WhatsApp link manually
-                if (\App\Helpers\LinkSyncHelper::isContactLink($linkData['label'])) {
+                if (LinkSyncHelper::isContactLink($linkData['label'])) {
                     continue;
                 }
 
@@ -642,7 +646,7 @@ class UserController extends Controller
             }
 
             // Auto-sync Email and WhatsApp links
-            \App\Helpers\LinkSyncHelper::syncUserContactLinks($user);
+            LinkSyncHelper::syncUserContactLinks($user);
 
             // Load fresh links
             $user->load('links');
@@ -674,7 +678,7 @@ class UserController extends Controller
 
         $validator = Validator::make($request->all(), [
             'name' => ['sometimes', 'string', 'max:255'],
-            'username' => ['sometimes', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._]+$/', 'unique:users,username,'.$user->id],
+            'username' => ['sometimes', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._\-\']+$/', 'unique:users,username,'.$user->id],
             'email' => ['sometimes', 'email', 'unique:users,email,'.$user->id],
             'phone' => ['nullable', 'string', 'max:20'],
             'title' => ['nullable', 'string', 'max:255'],
@@ -726,7 +730,7 @@ class UserController extends Controller
                 // Create new links with order (skip Email/WhatsApp from form)
                 foreach ($linksData as $index => $linkData) {
                     // Skip if trying to create Email or WhatsApp link manually
-                    if (\App\Helpers\LinkSyncHelper::isContactLink($linkData['label'])) {
+                    if (LinkSyncHelper::isContactLink($linkData['label'])) {
                         continue;
                     }
 
@@ -740,7 +744,7 @@ class UserController extends Controller
             }
 
             // Auto-sync Email and WhatsApp links
-            \App\Helpers\LinkSyncHelper::syncUserContactLinks($user);
+            LinkSyncHelper::syncUserContactLinks($user);
 
             // Handle profile image upload from temporary storage
             $this->handleTemporaryUpload($request, $user, 'tmp_profile_image', 'profile_image');
@@ -916,20 +920,20 @@ class UserController extends Controller
             // Get file path from temporary storage
             $metadataPath = "tmp/uploads/{$tempFolder}/metadata.json";
 
-            if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+            if (! Storage::disk('local')->exists($metadataPath)) {
                 return response()->json([
                     'message' => 'File not found',
                 ], 404);
             }
 
             $metadata = json_decode(
-                \Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath),
+                Storage::disk('local')->get($metadataPath),
                 true
             );
 
             $filePath = "tmp/uploads/{$tempFolder}/{$metadata['original_name']}";
 
-            if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($filePath)) {
+            if (! Storage::disk('local')->exists($filePath)) {
                 return response()->json([
                     'message' => 'File not found',
                 ], 404);
@@ -938,7 +942,7 @@ class UserController extends Controller
             // Import users
             $defaultRole = $request->input('default_role');
             $import = new UsersImport($defaultRole);
-            Excel::import($import, \Illuminate\Support\Facades\Storage::disk('local')->path($filePath));
+            Excel::import($import, Storage::disk('local')->path($filePath));
 
             // Get import results
             $failures = $import->getFailures();
@@ -987,7 +991,7 @@ class UserController extends Controller
         } finally {
             // Always clean up temporary files
             if ($tempFolder) {
-                \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
+                Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
             }
         }
     }
@@ -1018,25 +1022,25 @@ class UserController extends Controller
         }
 
         // If value doesn't start with 'tmp-', it's an existing media URL, skip
-        if (! \Illuminate\Support\Str::startsWith($value, 'tmp-')) {
+        if (! Str::startsWith($value, 'tmp-')) {
             return;
         }
 
         // Handle new upload from temporary storage
         $metadataPath = "tmp/uploads/{$value}/metadata.json";
 
-        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+        if (! Storage::disk('local')->exists($metadataPath)) {
             return;
         }
 
         $metadata = json_decode(
-            \Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath),
+            Storage::disk('local')->get($metadataPath),
             true
         );
 
         $filePath = "tmp/uploads/{$value}/{$metadata['original_name']}";
 
-        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($filePath)) {
+        if (! Storage::disk('local')->exists($filePath)) {
             return;
         }
 
@@ -1044,11 +1048,11 @@ class UserController extends Controller
         $user->clearMediaCollection($collection);
 
         // Add new media
-        $user->addMedia(\Illuminate\Support\Facades\Storage::disk('local')->path($filePath))
+        $user->addMedia(Storage::disk('local')->path($filePath))
             ->toMediaCollection($collection);
 
         // Clean up temporary files
-        \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
+        Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
     }
 
     public function restore(Request $request, int $id): JsonResponse

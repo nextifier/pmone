@@ -2,12 +2,13 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ * @extends Factory<User>
  */
 class UserFactory extends Factory
 {
@@ -24,7 +25,10 @@ class UserFactory extends Factory
     public function definition(): array
     {
         $name = fake()->name();
-        $username = strtolower(str_replace(' ', '.', $name)).'.'.fake()->unique()->randomNumber(3);
+        $username = strtolower(str_replace(' ', '.', $name));
+        $username = preg_replace("/[^a-z0-9._\-']/", '', $username);
+        $username = preg_replace('/\.{2,}/', '.', $username); // collapse double dots
+        $username = trim($username, '.').'.'.fake()->unique()->randomNumber(3);
 
         return [
             'name' => $name,

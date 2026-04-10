@@ -28,6 +28,10 @@ class BrandEventIndexResource extends JsonResource
             'brand_logo' => $brand?->relationLoaded('media') ? $brand->brand_logo : null,
             'business_categories' => $brand?->relationLoaded('tags') ? $brand->business_categories_list : [],
             'promotion_posts_count' => $this->promotion_posts_count ?? 0,
+            'links' => $brand?->relationLoaded('links') ? $brand->links->map(fn ($link) => [
+                'label' => $link->label,
+                'url' => $link->url,
+            ])->values() : [],
             'sales' => $this->whenLoaded('sales', fn () => [
                 'id' => $this->sales->id,
                 'name' => $this->sales->name,

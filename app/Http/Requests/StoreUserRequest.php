@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Helpers\LinkNormalizer;
 use App\Models\ShortLink;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreUserRequest extends FormRequest
@@ -31,13 +32,13 @@ class StoreUserRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
             'name' => ['nullable', 'string', 'max:255'],
-            'username' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._]+$/', 'unique:users,username', function ($attribute, $value, $fail) {
+            'username' => ['nullable', 'string', 'max:255', "regex:/^[a-zA-Z0-9._\\-']+$/", 'unique:users,username', function ($attribute, $value, $fail) {
                 if ($value && ShortLink::where('slug', $value)->exists()) {
                     $fail('This username is already in use as a short link slug.');
                 }
@@ -77,7 +78,7 @@ class StoreUserRequest extends FormRequest
             'email.email' => 'Please enter a valid email address.',
             'email.unique' => 'This email address is already registered.',
             'username.unique' => 'This username is already taken.',
-            'username.regex' => 'Username can only contain letters, numbers, dots, and underscores.',
+            'username.regex' => 'Username can only contain letters, numbers, dots, underscores, hyphens, and apostrophes.',
             'password.min' => 'Password must be at least 8 characters long.',
             'birth_date.before' => 'Birth date must be before today.',
             'gender.in' => 'Please select a valid gender option.',

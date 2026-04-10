@@ -46,6 +46,19 @@ class ContactsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEve
             $data['phones'] = ! empty($phones) ? implode(', ', $phones) : null;
         }
 
+        // Normalize email addresses (lowercase)
+        if (isset($data['emails']) && is_string($data['emails']) && trim($data['emails']) !== '') {
+            $emails = array_map(fn ($e) => strtolower(trim($e)), explode(',', $data['emails']));
+            $data['emails'] = implode(', ', array_filter($emails));
+        }
+
+        // Trim name and company_name
+        foreach (['name', 'company_name', 'job_title'] as $field) {
+            if (isset($data[$field]) && is_string($data[$field])) {
+                $data[$field] = trim($data[$field]);
+            }
+        }
+
         if (isset($data['status']) && ! is_null($data['status'])) {
             $data['status'] = strtolower(trim($data['status']));
         }

@@ -133,6 +133,14 @@ class Contact extends Model
         return 'ulid';
     }
 
+    /**
+     * Set the contact's name (normalize to title case).
+     */
+    public function setNameAttribute(string $value): void
+    {
+        $this->attributes['name'] = Str::title(strtolower(trim($value)));
+    }
+
     protected static function boot(): void
     {
         parent::boot();

@@ -120,8 +120,6 @@
       :initial-pagination="{ pageIndex: 0, pageSize: 50 }"
       :initial-sorting="[{ id: 'created_at', desc: true }]"
       :initial-column-visibility="{
-        status: false,
-        business_categories: false,
         order_column: false,
       }"
       :show-add-button="false"
@@ -162,6 +160,30 @@
 
       <template #actions="{ selectedRows }">
         <template v-if="selectedRows.length > 0 && event?.can_edit">
+          <!-- Bulk Status Update -->
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" :disabled="bulkStatusUpdating">
+                <Spinner v-if="bulkStatusUpdating" class="size-4 shrink-0" />
+                <Icon v-else name="hugeicons:task-edit-01" class="size-4 shrink-0" />
+                Status
+                <Icon name="lucide:chevron-down" class="size-3 opacity-60" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" class="w-40">
+              <DropdownMenuItem
+                v-for="s in brandEventStatuses"
+                :key="s.value"
+                :disabled="bulkStatusUpdating"
+                class="gap-x-2"
+                @click="handleBulkStatusUpdate(selectedRows, s.value)"
+              >
+                <span :class="s.dot" class="size-2 rounded-full" />
+                {{ s.label }}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <!-- Remove from event -->
           <DialogResponsive v-model:open="removeDialogOpen">
             <template #trigger="{ open }">
@@ -283,11 +305,18 @@
 </template>
 
 <script setup>
+import BrandEventStatusDropdown from "@/components/brand/EventStatusDropdown.vue";
 import BrandImportDialog from "@/components/brand/EventBrandImportDialog.vue";
 import BrandTableItem from "@/components/brand/TableItem.vue";
 import DialogResponsive from "@/components/DialogResponsive.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
@@ -453,17 +482,13 @@ const columns = [
   {
     header: "Status",
     accessorKey: "status",
-    cell: ({ row }) => {
-      const status = row.getValue("status");
-      return h(
-        "span",
-        {
-          class: "inline-flex items-center text-sm text-muted-foreground tracking-tight capitalize",
-        },
-        status
-      );
-    },
-    size: 100,
+    cell: ({ row }) =>
+      h(BrandEventStatusDropdown, {
+        status: row.getValue("status"),
+        disabled: statusUpdating.value === row.original.id,
+        onUpdate: (newStatus) => handleStatusUpdate(row.original.id, newStatus),
+      }),
+    size: 120,
     filterFn: (row, columnId, filterValue) => {
       if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
       return filterValue.includes(row.getValue(columnId));
@@ -474,10 +499,24 @@ const columns = [
     accessorKey: "booth_number",
     cell: ({ row }) => {
       const booth = row.getValue("booth_number");
-      if (!booth) return h("span", { class: "text-muted-foreground text-sm" }, "-");
+      if (!booth) return h("span", { class: "text-sm" }, "-");
       return h("div", { class: "text-sm tracking-tight" }, booth);
     },
     size: 100,
+  },
+  {
+    header: "Categories",
+    accessorKey: "business_categories",
+    cell: ({ row }) => {
+      const cats = row.getValue("business_categories") || [];
+      if (!cats.length) return h("span", { class: "text-sm" }, "-");
+      return h(
+        "div",
+        { class: "line-clamp-1 text-sm tracking-tight" },
+        cats.join(", ")
+      );
+    },
+    size: 150,
   },
   {
     header: "Promo Posts",
@@ -494,39 +533,14 @@ const columns = [
     enableHiding: false,
   },
   {
-    header: "Categories",
-    accessorKey: "business_categories",
-    cell: ({ row }) => {
-      const cats = row.getValue("business_categories") || [];
-      if (!cats.length) return h("span", { class: "text-muted-foreground text-sm" }, "-");
-      return h(
-        "div",
-        { class: "text-muted-foreground line-clamp-1 text-xs tracking-tight" },
-        cats.join(", ")
-      );
-    },
-    size: 150,
-  },
-  {
-    header: "Sales",
-    accessorKey: "sales",
-    cell: ({ row }) => {
-      const sales = row.getValue("sales");
-      if (!sales) return h("span", { class: "text-muted-foreground text-sm" }, "-");
-      return h("span", { class: "text-muted-foreground text-sm tracking-tight" }, sales.name);
-    },
-    size: 120,
-    enableSorting: false,
-  },
-  {
     header: "Added",
     accessorKey: "created_at",
     cell: ({ row }) => {
       const date = row.getValue("created_at");
-      if (!date) return h("span", { class: "text-muted-foreground text-sm" }, "-");
+      if (!date) return h("span", { class: "text-sm" }, "-");
       return h(
         "div",
-        { class: "text-sm text-muted-foreground tracking-tight" },
+        { class: "text-sm tracking-tight" },
         $dayjs(date).fromNow()
       );
     },
@@ -536,7 +550,7 @@ const columns = [
     id: "actions",
     header: () => h("span", { class: "sr-only" }, "Actions"),
     cell: ({ row }) => h(RowActions, { brand: row.original, canEdit: props.event?.can_edit }),
-    size: 60,
+    size: 80,
     enableHiding: false,
   },
 ];
@@ -688,6 +702,65 @@ const handlePermanentDeleteRows = async (selectedRows) => {
   }
 };
 
+// Status update handlers
+const statusUpdating = ref(null);
+const bulkStatusUpdating = ref(false);
+
+const handleStatusUpdate = async (brandId, newStatus) => {
+  const brand = data.value.find((b) => b.id === brandId);
+  if (!brand) return;
+
+  statusUpdating.value = brandId;
+  try {
+    await client(
+      `/api/projects/${route.params.username}/events/${route.params.eventSlug}/brands/${brand.brand_slug}`,
+      {
+        method: "PUT",
+        body: { status: newStatus },
+      }
+    );
+    toast.success("Status updated");
+    await refresh();
+  } catch (err) {
+    toast.error("Failed to update status", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+  } finally {
+    statusUpdating.value = null;
+  }
+};
+
+const brandEventStatuses = [
+  { value: "active", label: "Active", dot: "bg-success" },
+  { value: "draft", label: "Draft", dot: "bg-warning" },
+  { value: "cancelled", label: "Cancelled", dot: "bg-destructive" },
+];
+
+const handleBulkStatusUpdate = async (selectedRows, newStatus) => {
+  bulkStatusUpdating.value = true;
+  try {
+    await Promise.all(
+      selectedRows.map((row) =>
+        client(
+          `/api/projects/${route.params.username}/events/${route.params.eventSlug}/brands/${row.original.brand_slug}`,
+          {
+            method: "PUT",
+            body: { status: newStatus },
+          }
+        )
+      )
+    );
+    toast.success(`${selectedRows.length} brand(s) status updated`);
+    await refresh();
+  } catch (err) {
+    toast.error("Failed to update status", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+  } finally {
+    bulkStatusUpdating.value = false;
+  }
+};
+
 const handleDeleteSingleRow = async (brandSlug) => {
   try {
     await client(
@@ -716,8 +789,28 @@ const RowActions = defineComponent({
     const dialogOpen = ref(false);
     const singleDeletePending = ref(false);
 
+    const instagramUrl = computed(() => {
+      const links = props.brand.links || [];
+      const igLink = links.find((l) => l.url?.includes("instagram.com"));
+      return igLink?.url || null;
+    });
+
     return () =>
-      h("div", { class: "flex justify-end" }, [
+      h("div", { class: "flex items-center justify-end gap-x-1" }, [
+        // Instagram button
+        instagramUrl.value
+          ? h(
+              "a",
+              {
+                href: instagramUrl.value,
+                target: "_blank",
+                rel: "noopener noreferrer",
+                class:
+                  "hover:bg-muted inline-flex size-8 items-center justify-center rounded-md transition",
+              },
+              [h(resolveComponent("Icon"), { name: "hugeicons:instagram", class: "size-4" })]
+            )
+          : null,
         h(
           Popover,
           {},
@@ -732,7 +825,7 @@ const RowActions = defineComponent({
                       "button",
                       {
                         class:
-                          "hover:bg-muted data-[state=open]:bg-muted inline-flex size-8 items-center justify-center rounded-md",
+                          "hover:bg-muted data-[state=open]:bg-muted inline-flex size-8 items-center justify-center rounded-md transition",
                       },
                       [h(resolveComponent("Icon"), { name: "lucide:ellipsis", class: "size-4" })]
                     ),

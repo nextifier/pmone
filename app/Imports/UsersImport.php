@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Helpers\PhoneCountryHelper;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -26,14 +27,19 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
 
     public function prepareForValidation($data, $index)
     {
-        // Trim email field
+        // Normalize email (trim + lowercase)
         if (isset($data['email']) && is_string($data['email'])) {
-            $data['email'] = trim($data['email']);
+            $data['email'] = strtolower(trim($data['email']));
         }
 
-        // Normalize phone to string
+        // Normalize phone number to international format
         if (isset($data['phone']) && ! is_null($data['phone'])) {
-            $data['phone'] = (string) $data['phone'];
+            $data['phone'] = PhoneCountryHelper::normalizePhoneNumber((string) $data['phone']);
+        }
+
+        // Trim name
+        if (isset($data['name']) && is_string($data['name'])) {
+            $data['name'] = trim($data['name']);
         }
 
         // Normalize roles to lowercase (handles comma-separated values)
@@ -126,7 +132,7 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['nullable', 'string', 'min:8'],
             'name' => ['nullable', 'string', 'max:255'],
-            'username' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._]+$/', 'unique:users,username'],
+            'username' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._\-\']+$/', 'unique:users,username'],
             'roles' => ['nullable', 'string'],
             'phone' => ['nullable', 'string', 'max:20'],
             'birth_date' => ['nullable', 'date', 'before:today'],

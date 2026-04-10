@@ -227,6 +227,15 @@ const navMainGroups = computed(() => {
     });
   }
 
+  // Partners - requires partners.read permission
+  if (hasPermission("partners.read")) {
+    coreItems.push({
+      label: "Partners",
+      path: "/partners",
+      iconName: "hugeicons:agreement-02",
+    });
+  }
+
   if (hasPermission("contacts.read")) {
     coreItems.push({
       label: "Contact List",

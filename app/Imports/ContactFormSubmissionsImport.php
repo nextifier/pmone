@@ -3,9 +3,11 @@
 namespace App\Imports;
 
 use App\Enums\ContactFormStatus;
+use App\Helpers\PhoneCountryHelper;
 use App\Models\ContactFormSubmission;
 use App\Models\Project;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
@@ -28,9 +30,14 @@ class ContactFormSubmissionsImport implements SkipsEmptyRows, SkipsOnFailure, To
 
     public function prepareForValidation($data, $index)
     {
-        // Trim email field
+        // Normalize email (trim + lowercase)
         if (isset($data['email']) && is_string($data['email'])) {
-            $data['email'] = trim($data['email']);
+            $data['email'] = strtolower(trim($data['email']));
+        }
+
+        // Trim name
+        if (isset($data['name']) && is_string($data['name'])) {
+            $data['name'] = trim($data['name']);
         }
 
         // Normalize optional fields - treat "-" as null
@@ -44,9 +51,9 @@ class ContactFormSubmissionsImport implements SkipsEmptyRows, SkipsOnFailure, To
             $data['status'] = strtolower(trim($data['status']));
         }
 
-        // Ensure phone is string (Excel might read as number)
+        // Normalize phone number to international format
         if (! is_null($data['phone'])) {
-            $data['phone'] = (string) $data['phone'];
+            $data['phone'] = PhoneCountryHelper::normalizePhoneNumber((string) $data['phone']);
         }
 
         return $data;
@@ -103,11 +110,11 @@ class ContactFormSubmissionsImport implements SkipsEmptyRows, SkipsOnFailure, To
         $formData = [];
 
         if (! empty($row['name'])) {
-            $formData['name'] = trim($row['name']);
+            $formData['name'] = Str::title(strtolower(trim($row['name'])));
         }
 
         if (! empty($row['email'])) {
-            $formData['email'] = trim($row['email']);
+            $formData['email'] = strtolower(trim($row['email']));
         }
 
         // Only add optional fields if they have actual values (not "-" or empty)

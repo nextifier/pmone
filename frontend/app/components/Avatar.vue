@@ -1,47 +1,53 @@
 <template>
   <div
     v-if="model"
-    :style="!model?.profile_image && colorful ? meshGradientStyle : undefined"
-    :class="[
-      'outline-primary/10 @container relative flex aspect-square shrink-0 items-center justify-center text-center outline -outline-offset-1',
-      !model?.profile_image && !colorful ? 'bg-muted' : '',
-      rounded,
-    ]"
+    class="relative shrink-0"
+    :class="gradientFrame ? 'before:gradient-insta before:absolute before:-inset-[4px] before:rounded-full before:bg-linear-to-tr before:content-[\'\']' : ''"
   >
-    <img
-      v-if="model?.profile_image"
-      :src="model.profile_image[size] || model.profile_image.sm"
-      :alt="model?.name"
-      :class="['size-full object-contain select-none', rounded]"
-      width="100"
-      height="100"
-      loading="lazy"
-      referrerPolicy="no-referrer"
-    />
-    <span
-      v-else
+    <div
+      :style="!model?.profile_image && colorful && !gradientFrame ? meshGradientStyle : undefined"
       :class="[
-        'initial text-[45cqw] font-medium tracking-tight',
-        colorful ? 'text-white' : 'text-muted-foreground',
+        'outline-primary/10 @container relative flex aspect-square shrink-0 items-center justify-center text-center outline -outline-offset-1',
+        !model?.profile_image && (!colorful || gradientFrame) ? 'bg-muted' : '',
+        gradientFrame ? 'ring-background bg-background z-10 overflow-hidden ring-2' : '',
+        rounded,
       ]"
     >
-      {{
-        (() => {
-          const names = model?.name?.split(" ") || [];
-          const first = names[0]?.[0]?.toUpperCase() || "";
-          const last =
-            names.length === 1
-              ? names[0]?.[1]?.toUpperCase() || ""
-              : names[names.length - 1]?.[0]?.toUpperCase() || "";
-          return first + last;
-        })()
-      }}
-    </span>
+      <img
+        v-if="model?.profile_image"
+        :src="model.profile_image[size] || model.profile_image.sm"
+        :alt="model?.name"
+        :class="['size-full object-contain select-none', rounded]"
+        width="100"
+        height="100"
+        loading="lazy"
+        referrerPolicy="no-referrer"
+      />
+      <span
+        v-else
+        :class="[
+          'initial text-[45cqw] font-light tracking-tight',
+          colorful && !gradientFrame ? 'text-white' : 'text-muted-foreground',
+        ]"
+      >
+        {{
+          (() => {
+            const names = model?.name?.split(" ") || [];
+            const first = names[0]?.[0]?.toUpperCase() || "";
+            const last =
+              names.length === 1
+                ? names[0]?.[1]?.toUpperCase() || ""
+                : names[names.length - 1]?.[0]?.toUpperCase() || "";
+            return first + last;
+          })()
+        }}
+      </span>
 
-    <span
-      v-if="showIndicator"
-      class="ring-background bg-success absolute -right-0.5 -bottom-0.5 size-2 rounded-full ring-2"
-    ></span>
+      <span
+        v-if="showIndicator"
+        class="ring-background bg-success absolute -right-0.5 -bottom-0.5 size-2 rounded-full ring-2"
+      ></span>
+    </div>
   </div>
 </template>
 
@@ -63,6 +69,10 @@ const props = defineProps({
   colorful: {
     type: Boolean,
     default: true,
+  },
+  gradientFrame: {
+    type: Boolean,
+    default: false,
   },
 });
 

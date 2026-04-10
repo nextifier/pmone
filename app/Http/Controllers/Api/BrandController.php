@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Exports\BrandsExport;
 use App\Exports\BrandsTemplateExport;
+use App\Helpers\LinkNormalizer;
+use App\Helpers\PhoneCountryHelper;
 use App\Http\Controllers\Controller;
 use App\Imports\BrandsImport;
 use App\Jobs\BulkSoftDeleteBrands;
@@ -166,6 +168,19 @@ class BrandController extends Controller
             'project_custom_fields' => ['nullable', 'array'],
         ]);
 
+        // Normalize input data
+        if (isset($validated['company_email'])) {
+            $validated['company_email'] = strtolower(trim($validated['company_email']));
+        }
+        if (isset($validated['company_phone']) && $validated['company_phone'] !== null) {
+            $validated['company_phone'] = PhoneCountryHelper::normalizePhoneNumber($validated['company_phone']);
+        }
+        foreach (['name', 'company_name'] as $field) {
+            if (isset($validated[$field])) {
+                $validated[$field] = trim($validated[$field]);
+            }
+        }
+
         $categories = $validated['business_categories'] ?? null;
         $links = $validated['links'] ?? null;
         $projectCustomFields = $validated['project_custom_fields'] ?? null;
@@ -196,6 +211,7 @@ class BrandController extends Controller
 
         // Sync links if provided
         if ($links !== null) {
+            $links = LinkNormalizer::normalizeAll($links);
             $brand->links()->delete();
 
             foreach ($links as $index => $linkData) {

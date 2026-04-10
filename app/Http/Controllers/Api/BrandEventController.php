@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Enums\BoothType;
 use App\Exports\BrandEventsExport;
 use App\Exports\BrandEventsTemplateExport;
+use App\Helpers\LinkNormalizer;
+use App\Helpers\PhoneCountryHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BrandEventIndexResource;
 use App\Http\Resources\BrandEventResource;
@@ -104,7 +106,7 @@ class BrandEventController extends Controller
         $project = $this->resolveProject($username);
         $event = $this->resolveEvent($project, $eventSlug);
 
-        $query = $event->brandEvents()->with(['brand.media', 'brand.tags', 'sales'])->withCount('promotionPosts');
+        $query = $event->brandEvents()->with(['brand.media', 'brand.tags', 'brand.links', 'sales'])->withCount('promotionPosts');
 
         // Search
         if ($request->has('filter.search')) {
@@ -417,6 +419,19 @@ class BrandEventController extends Controller
             'links.*.url' => ['required', 'string', 'max:500'],
         ]);
 
+        // Normalize input data
+        if (isset($validated['company_email'])) {
+            $validated['company_email'] = strtolower(trim($validated['company_email']));
+        }
+        if (isset($validated['company_phone']) && $validated['company_phone'] !== null) {
+            $validated['company_phone'] = PhoneCountryHelper::normalizePhoneNumber($validated['company_phone']);
+        }
+        foreach (['name', 'company_name'] as $field) {
+            if (isset($validated[$field])) {
+                $validated[$field] = trim($validated[$field]);
+            }
+        }
+
         // Update brand fields
         $brandFields = collect($validated)->only([
             'name', 'description', 'company_name', 'company_address',
@@ -457,9 +472,10 @@ class BrandEventController extends Controller
 
         // Sync links if provided
         if ($request->has('links') && is_array($request->links)) {
+            $normalizedLinks = LinkNormalizer::normalizeAll($validated['links']);
             $brand->links()->delete();
 
-            foreach ($validated['links'] as $index => $linkData) {
+            foreach ($normalizedLinks as $index => $linkData) {
                 $brand->links()->create([
                     'label' => $linkData['label'],
                     'url' => $linkData['url'],

@@ -2,8 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Helpers\PhoneCountryHelper;
 use App\Rules\HoneypotPassed;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 class ContactFormSubmitRequest extends FormRequest
 {
@@ -19,7 +22,7 @@ class ContactFormSubmitRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -81,6 +84,22 @@ class ContactFormSubmitRequest extends FormRequest
                     $sanitizedData[$key] = is_string($value) ? strip_tags(trim($value)) : $value;
                 }
             }
+
+            // Normalize person name to title case
+            if (isset($sanitizedData['name']) && is_string($sanitizedData['name'])) {
+                $sanitizedData['name'] = Str::title(strtolower($sanitizedData['name']));
+            }
+
+            // Normalize email to lowercase
+            if (isset($sanitizedData['email']) && is_string($sanitizedData['email'])) {
+                $sanitizedData['email'] = strtolower($sanitizedData['email']);
+            }
+
+            // Normalize phone number to international format
+            if (isset($sanitizedData['phone']) && is_string($sanitizedData['phone'])) {
+                $sanitizedData['phone'] = PhoneCountryHelper::normalizePhoneNumber($sanitizedData['phone']);
+            }
+
             $this->merge(['data' => $sanitizedData]);
         }
     }

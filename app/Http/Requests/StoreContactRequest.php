@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Enums\ContactStatus;
+use App\Helpers\PhoneCountryHelper;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreContactRequest extends FormRequest
@@ -15,10 +17,31 @@ class StoreContactRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('emails') && is_array($this->emails)) {
+            $this->merge([
+                'emails' => array_map(fn ($e) => strtolower(trim($e)), $this->emails),
+            ]);
+        }
+
+        if ($this->has('phones') && is_array($this->phones)) {
+            $this->merge([
+                'phones' => array_map(fn ($p) => PhoneCountryHelper::normalizePhoneNumber(trim($p)), $this->phones),
+            ]);
+        }
+
+        foreach (['name', 'job_title', 'company_name'] as $field) {
+            if ($this->has($field) && is_string($this->$field)) {
+                $this->merge([$field => trim($this->$field)]);
+            }
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {

@@ -460,6 +460,11 @@ class Event extends Model implements HasMedia, Sortable
         return $this->hasMany(BrandEvent::class)->ordered();
     }
 
+    public function partnerCategories(): HasMany
+    {
+        return $this->hasMany(PartnerCategory::class)->ordered();
+    }
+
     public function brands(): BelongsToMany
     {
         return $this->belongsToMany(Brand::class, 'brand_event')

@@ -28,6 +28,8 @@ use App\Http\Controllers\Api\LinkPageItemController;
 use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\PartnerCategoryController;
+use App\Http\Controllers\Api\PartnerController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\PostAutosaveController;
 use App\Http\Controllers\Api\PostController;
@@ -311,6 +313,41 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/brands-trash/{id}/restore', [BrandController::class, 'restore'])->middleware('can:brands.delete')->name('brands.restore');
     Route::delete('/brands-trash/bulk', [BrandController::class, 'bulkForceDestroy'])->middleware('can:brands.delete')->name('brands.bulk-force-delete');
     Route::delete('/brands-trash/{id}', [BrandController::class, 'forceDestroy'])->middleware('can:brands.delete')->name('brands.force-delete');
+
+    // Partner category management (nested under project events)
+    Route::prefix('projects/{username}/events/{eventSlug}/partner-categories')->group(function () {
+        Route::get('/', [PartnerCategoryController::class, 'index'])->name('partner-categories.index');
+        Route::post('/', [PartnerCategoryController::class, 'store'])->name('partner-categories.store');
+        Route::post('/copy-from-event', [PartnerCategoryController::class, 'copyFromEvent'])->name('partner-categories.copy-from-event');
+        Route::post('/update-order', [PartnerCategoryController::class, 'updateOrder'])->name('partner-categories.update-order');
+        Route::put('/{categorySlug}', [PartnerCategoryController::class, 'update'])->name('partner-categories.update');
+        Route::delete('/{categorySlug}', [PartnerCategoryController::class, 'destroy'])->name('partner-categories.destroy');
+        Route::post('/{categorySlug}/partners', [PartnerCategoryController::class, 'addPartner'])->name('partner-categories.add-partner');
+        Route::delete('/{categorySlug}/partners/{pivotId}', [PartnerCategoryController::class, 'removePartner'])->name('partner-categories.remove-partner');
+        Route::post('/{categorySlug}/partners/update-order', [PartnerCategoryController::class, 'updatePartnerOrder'])->name('partner-categories.update-partner-order');
+    });
+
+    // Events with partners (for copy-from-event dialog)
+    Route::get('/events-with-partners', [PartnerCategoryController::class, 'eventsWithPartners'])->name('events-with-partners');
+
+    // Global partner routes (staff+)
+    Route::get('/partners', [PartnerController::class, 'index'])->middleware('can:partners.read')->name('partners.list');
+    Route::post('/partners', [PartnerController::class, 'store'])->middleware('can:partners.create')->name('partners.store');
+    Route::get('/partners/export', [PartnerController::class, 'export'])->middleware('can:partners.read')->name('partners.export');
+    Route::get('/partners/import/template', [PartnerController::class, 'downloadTemplate'])->middleware('can:partners.create')->name('partners.import.template');
+    Route::post('/partners/import', [PartnerController::class, 'import'])->middleware('can:partners.create')->name('partners.import');
+    Route::get('/partners/search', [PartnerController::class, 'search'])->name('partners.search');
+    Route::get('/partners/{partner}', [PartnerController::class, 'show'])->middleware('can:partners.read')->name('partners.show');
+    Route::put('/partners/{partner}', [PartnerController::class, 'update'])->middleware('can:partners.update')->name('partners.update');
+    Route::delete('/partners/bulk', [PartnerController::class, 'bulkDestroy'])->middleware('can:partners.delete')->name('partners.bulk-destroy');
+    Route::delete('/partners/{partner}', [PartnerController::class, 'destroy'])->middleware('can:partners.delete')->name('partners.delete');
+
+    // Partner trash routes
+    Route::get('/partners-trash', [PartnerController::class, 'trash'])->middleware('can:partners.delete')->name('partners.trash');
+    Route::post('/partners-trash/restore/bulk', [PartnerController::class, 'bulkRestore'])->middleware('can:partners.delete')->name('partners.bulk-restore');
+    Route::post('/partners-trash/{id}/restore', [PartnerController::class, 'restore'])->middleware('can:partners.delete')->name('partners.restore');
+    Route::delete('/partners-trash/bulk', [PartnerController::class, 'bulkForceDestroy'])->middleware('can:partners.delete')->name('partners.bulk-force-delete');
+    Route::delete('/partners-trash/{id}', [PartnerController::class, 'forceDestroy'])->middleware('can:partners.delete')->name('partners.force-delete');
 
     // Job progress tracking
     Route::get('/jobs/{jobId}/progress', [JobProgressController::class, 'show'])->name('jobs.progress');
@@ -720,6 +757,11 @@ Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
         ->middleware(CacheResponse::for(86400, 'brands'));
     Route::get('/{username}/brands/{brandSlug}', [PublicProjectController::class, 'activeBrand'])
         ->middleware(CacheResponse::for(86400, 'brands'));
+    Route::get('/{username}/events/{eventSlug}/partners', [PublicProjectController::class, 'partners'])
+        ->middleware(CacheResponse::for(86400, 'partners'));
+    Route::get('/{username}/editions/{editionNumber}/partners', [PublicProjectController::class, 'partnersByEdition'])
+        ->where('editionNumber', '[0-9]+')
+        ->middleware(CacheResponse::for(86400, 'partners'));
     Route::get('/{username}/events/{eventSlug}/brands', [PublicProjectController::class, 'brands'])
         ->middleware(CacheResponse::for(86400, 'brands'));
     Route::get('/{username}/events/{eventSlug}/brands/{brandSlug}', [PublicProjectController::class, 'brand'])

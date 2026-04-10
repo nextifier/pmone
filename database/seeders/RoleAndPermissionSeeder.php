@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class RoleAndPermissionSeeder extends Seeder
 {
@@ -82,6 +83,11 @@ class RoleAndPermissionSeeder extends Seeder
             // Orders
             'orders.read',
             'orders.update',
+            // Partners
+            'partners.create',
+            'partners.read',
+            'partners.update',
+            'partners.delete',
             // Admin permissions
             'admin.view',
             'admin.settings',
@@ -104,6 +110,11 @@ class RoleAndPermissionSeeder extends Seeder
             'brands.read',
             'brands.update',
             'brands.delete',
+            // Partners
+            'partners.create',
+            'partners.read',
+            'partners.update',
+            'partners.delete',
             // Events & Orders
             'events.read',
             'event_products.read',
@@ -134,7 +145,7 @@ class RoleAndPermissionSeeder extends Seeder
     public function run(): void
     {
         // Reset cached roles and permissions
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         // Sync permissions from config
         $this->syncPermissionsFromConfig();

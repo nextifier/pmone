@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Helpers\PhoneCountryHelper;
 use App\Models\Project;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -24,19 +25,21 @@ class ProjectsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHea
 
     public function prepareForValidation($data, $index)
     {
-        // Trim email field
+        // Normalize email (trim + lowercase)
         if (isset($data['email']) && is_string($data['email'])) {
-            $data['email'] = trim($data['email']);
+            $data['email'] = strtolower(trim($data['email']));
         }
 
-        // Normalize phone sales to string
-        if (isset($data['phone_sales']) && ! is_null($data['phone_sales'])) {
-            $data['phone_sales'] = (string) $data['phone_sales'];
+        // Normalize phone numbers to international format
+        foreach (['phone_sales', 'phone_marketing'] as $field) {
+            if (isset($data[$field]) && ! is_null($data[$field])) {
+                $data[$field] = PhoneCountryHelper::normalizePhoneNumber((string) $data[$field]);
+            }
         }
 
-        // Normalize phone marketing to string
-        if (isset($data['phone_marketing']) && ! is_null($data['phone_marketing'])) {
-            $data['phone_marketing'] = (string) $data['phone_marketing'];
+        // Trim name
+        if (isset($data['name']) && is_string($data['name'])) {
+            $data['name'] = trim($data['name']);
         }
 
         // Normalize status to lowercase
@@ -110,7 +113,7 @@ class ProjectsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHea
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'username' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._]+$/', 'unique:projects,username'],
+            'username' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._\-\']+$/', 'unique:projects,username'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone_sales' => ['nullable', 'string', 'max:20'],
             'phone_marketing' => ['nullable', 'string', 'max:20'],

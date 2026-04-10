@@ -2,9 +2,8 @@
 
 namespace App\Imports;
 
-use App\Helpers\PhoneCountryHelper;
 use App\Imports\Concerns\TracksImportProgress;
-use App\Models\Brand;
+use App\Models\Partner;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
@@ -16,7 +15,7 @@ use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Events\BeforeImport;
 use Maatwebsite\Excel\Validators\Failure;
 
-class BrandsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEvents, WithHeadingRow, WithMultipleSheets, WithValidation
+class PartnersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEvents, WithHeadingRow, WithMultipleSheets, WithValidation
 {
     use Concerns\ImportsFirstSheetOnly, Importable, TracksImportProgress;
 
@@ -26,21 +25,13 @@ class BrandsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEvent
 
     public function prepareForValidation($data, $index)
     {
-        // Normalize email (trim + lowercase)
-        if (isset($data['company_email']) && is_string($data['company_email'])) {
-            $data['company_email'] = strtolower(trim($data['company_email']));
+        // Trim name
+        if (isset($data['name']) && is_string($data['name'])) {
+            $data['name'] = trim($data['name']);
         }
 
-        // Normalize phone number to international format
-        if (isset($data['company_phone']) && ! is_null($data['company_phone'])) {
-            $data['company_phone'] = PhoneCountryHelper::normalizePhoneNumber((string) $data['company_phone']);
-        }
-
-        // Trim name fields
-        foreach (['name', 'company_name'] as $field) {
-            if (isset($data[$field]) && is_string($data[$field])) {
-                $data[$field] = trim($data[$field]);
-            }
+        if (isset($data['website_url']) && is_string($data['website_url'])) {
+            $data['website_url'] = trim($data['website_url']);
         }
 
         if (isset($data['status']) && ! is_null($data['status'])) {
@@ -54,31 +45,19 @@ class BrandsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEvent
         return $data;
     }
 
-    public function model(array $row): ?Brand
+    public function model(array $row): ?Partner
     {
-        $brand = Brand::create([
+        $partner = Partner::create([
             'name' => $row['name'],
-            'company_name' => $row['company_name'] ?? null,
-            'company_email' => $row['company_email'] ?? null,
-            'company_phone' => $row['company_phone'] ?? null,
-            'company_address' => $row['company_address'] ?? null,
+            'website_url' => $row['website_url'] ?? null,
             'status' => $row['status'] ?? 'active',
             'visibility' => $row['visibility'] ?? 'public',
         ]);
 
-        // Sync business categories if provided
-        if (! empty($row['business_categories'])) {
-            $categories = array_map('trim', explode(',', $row['business_categories']));
-            $categories = array_filter($categories);
-            if (! empty($categories)) {
-                $brand->syncBusinessCategories($categories);
-            }
-        }
-
         $this->importedCount++;
         $this->updateProgress($this->importedCount);
 
-        return $brand;
+        return $partner;
     }
 
     public function registerEvents(): array
@@ -92,21 +71,17 @@ class BrandsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEvent
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'company_name' => ['nullable', 'string', 'max:255'],
-            'company_email' => ['nullable', 'email', 'max:255'],
-            'company_phone' => ['nullable', 'string', 'max:50'],
-            'company_address' => ['nullable', 'string', 'max:1000'],
+            'website_url' => ['nullable', 'string', 'url', 'max:500'],
             'status' => ['nullable', 'in:active,inactive'],
             'visibility' => ['nullable', 'in:public,private'],
-            'business_categories' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
     public function customValidationMessages(): array
     {
         return [
-            'name.required' => 'Brand name is required.',
-            'company_email.email' => 'Company email must be a valid email address.',
+            'name.required' => 'Partner name is required.',
+            'website_url.url' => 'Website URL must be a valid URL.',
             'status.in' => 'Status must be either "active" or "inactive".',
             'visibility.in' => 'Visibility must be either "public" or "private".',
         ];

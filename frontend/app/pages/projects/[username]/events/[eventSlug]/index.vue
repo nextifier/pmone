@@ -66,7 +66,7 @@
                 :href="meta.href"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-sm font-medium tracking-tight underline underline-offset-2"
+                class="text-sm font-medium tracking-tight"
               >
                 {{ meta.value }}
               </a>

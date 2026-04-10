@@ -61,7 +61,7 @@
           Public
         </span>
         <button
-          v-if="!event.is_active"
+          v-if="!event.is_active && isAdminOrMaster"
           type="button"
           :disabled="settingActive"
           @click.prevent="handleSetActive"
@@ -90,6 +90,7 @@ const props = defineProps({
 
 const emit = defineEmits(["active-changed"]);
 const client = useSanctumClient();
+const { isAdminOrMaster } = usePermission();
 const settingActive = ref(false);
 
 async function handleSetActive() {
