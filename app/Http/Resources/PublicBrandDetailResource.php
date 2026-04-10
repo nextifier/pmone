@@ -22,10 +22,14 @@ class PublicBrandDetailResource extends PublicBrandIndexResource
             return [];
         }
 
-        return $this->promotionPosts->map(fn ($post) => [
-            'image' => $post->relationLoaded('media') ? $post->post_image : null,
-            'caption' => $post->caption,
-            'created_at' => $post->created_at?->toISOString(),
-        ])->values()->toArray();
+        return $this->promotionPosts
+            ->filter(fn ($post) => $post->relationLoaded('media') && $post->hasMedia('post_image'))
+            ->map(fn ($post) => [
+                'images' => $post->post_images,
+                'caption' => $post->caption,
+                'created_at' => $post->created_at?->toISOString(),
+            ])
+            ->values()
+            ->toArray();
     }
 }

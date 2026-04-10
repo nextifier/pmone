@@ -51,8 +51,11 @@ class PublicBrandIndexResource extends JsonResource
             return [];
         }
 
-        return $this->promotionPosts->take(3)->map(fn ($post) => [
-            'image' => $post->relationLoaded('media') ? $post->post_image : null,
-        ])->values()->toArray();
+        return $this->promotionPosts
+            ->filter(fn ($post) => $post->relationLoaded('media') && $post->hasMedia('post_image'))
+            ->flatMap(fn ($post) => $post->post_images)
+            ->take(3)
+            ->values()
+            ->toArray();
     }
 }

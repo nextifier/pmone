@@ -72,7 +72,7 @@
             <!-- Group count badge -->
             <span
               v-if="group.count > 1"
-              class="bg-muted-foreground absolute -right-1 -bottom-1 flex size-4 items-center justify-center rounded-full text-[10px] font-medium text-white"
+              class="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-[10px] font-medium"
             >
               {{ group.count > 9 ? "9+" : group.count }}
             </span>
@@ -113,19 +113,14 @@
               </span>
               <span
                 v-tippy="
-                  group.activity.subject_name.length > 80
-                    ? group.activity.subject_name
-                    : undefined
+                  group.activity.subject_name.length > 80 ? group.activity.subject_name : undefined
                 "
                 class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm"
               >
                 {{ truncate(group.activity.subject_name, 80) }}
               </span>
             </NuxtLink>
-            <div
-              v-else-if="group.activity.subject_name"
-              class="mt-1 flex items-center gap-x-1.5"
-            >
+            <div v-else-if="group.activity.subject_name" class="mt-1 flex items-center gap-x-1.5">
               <span
                 class="bg-muted text-foreground inline-flex shrink-0 items-center rounded-md px-1.5 py-0.5 text-xs font-medium tracking-tight sm:text-sm"
               >
@@ -133,9 +128,7 @@
               </span>
               <span
                 v-tippy="
-                  group.activity.subject_name.length > 80
-                    ? group.activity.subject_name
-                    : undefined
+                  group.activity.subject_name.length > 80 ? group.activity.subject_name : undefined
                 "
                 class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm"
               >
@@ -239,19 +232,14 @@
                 </span>
                 <span
                   v-tippy="
-                    subActivity.subject_name.length > 80
-                      ? subActivity.subject_name
-                      : undefined
+                    subActivity.subject_name.length > 80 ? subActivity.subject_name : undefined
                   "
                   class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm"
                 >
                   {{ truncate(subActivity.subject_name, 80) }}
                 </span>
               </NuxtLink>
-              <div
-                v-else-if="subActivity.subject_name"
-                class="mt-1 flex items-center gap-x-1.5"
-              >
+              <div v-else-if="subActivity.subject_name" class="mt-1 flex items-center gap-x-1.5">
                 <span
                   class="bg-muted text-foreground inline-flex shrink-0 items-center rounded-md px-1.5 py-0.5 text-xs font-medium tracking-tight sm:text-sm"
                 >
@@ -259,9 +247,7 @@
                 </span>
                 <span
                   v-tippy="
-                    subActivity.subject_name.length > 80
-                      ? subActivity.subject_name
-                      : undefined
+                    subActivity.subject_name.length > 80 ? subActivity.subject_name : undefined
                   "
                   class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm"
                 >
