@@ -1,7 +1,7 @@
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 
-export { default as GlassButton } from "./GlassButton.vue";
+export { default as ButtonGlass } from "./ButtonGlass.vue";
 
 // Helpers
 const r = (s: string) => `rounded-${s} before:rounded-${s} after:rounded-${s}`;

@@ -786,7 +786,6 @@
 </template>
 
 <script setup>
-import ButtonCopy from "@/components/ButtonCopy.vue";
 import ContactImportDialog from "@/components/contact/ContactImportDialog.vue";
 import ContactTableItem from "@/components/contact/ContactTableItem.vue";
 import FormContact from "@/components/contact/FormContact.vue";

@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
     <!-- Back button -->
-    <BackButton destination="/link-pages" :forceDestination="true" />
+    <ButtonBack destination="/link-pages" :forceDestination="true" />
 
     <!-- Header -->
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">

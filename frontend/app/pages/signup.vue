@@ -113,7 +113,7 @@
               class="bg-primary text-primary-foreground hover:bg-primary/80 flex h-10 items-center justify-center gap-x-2 rounded-lg px-8 py-2 text-sm font-semibold tracking-tight ring-2 ring-offset-2 transition active:scale-95"
             >
               <span>{{ $t('auth.signUp') }}</span>
-              <LoadingSpinner v-if="loading" class="border-primary-foreground h-4" />
+              <Spinner v-if="loading" class="size-4 text-primary-foreground" />
             </button>
           </form>
 

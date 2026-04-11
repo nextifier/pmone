@@ -113,7 +113,6 @@
 <script setup>
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Spinner } from "@/components/ui/spinner";
 import { toast } from "vue-sonner";
 
 const props = defineProps({

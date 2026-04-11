@@ -226,9 +226,9 @@
       v-if="canCreate"
       class="xs:right-[calc(var(--spacing)*4+var(--scrollbar-width,0px))] fixed right-[calc(var(--spacing)*3+var(--scrollbar-width,0px))] bottom-8 z-50 sm:right-[calc(var(--spacing)*6+var(--scrollbar-width,0px))] sm:bottom-5 lg:bottom-12 xl:right-[calc(var(--spacing)*12+var(--scrollbar-width,0px))]"
     >
-      <GlassButton variant="default" size="icon-xl" @click="dialogs.openCreateDialog">
+      <ButtonGlass variant="default" size="icon-xl" @click="dialogs.openCreateDialog">
         <Icon name="hugeicons:plus-sign" class="size-5 shrink-0" />
-      </GlassButton>
+      </ButtonGlass>
     </div>
   </div>
 </template>
@@ -240,7 +240,6 @@ import TasksFilters from "@/components/task/TasksFilters.vue";
 import TasksHeader from "@/components/task/TasksHeader.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GlassButton } from "@/components/ui/glass-button";
 import { toast } from "vue-sonner";
 
 definePageMeta({

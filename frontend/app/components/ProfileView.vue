@@ -37,14 +37,14 @@
           />
         </div>
 
-        <BackButton v-if="showBackButton" v-slot="{ goBack }" :destination="backDestination">
+        <ButtonBack v-if="showButtonBack" v-slot="{ goBack }" :destination="backDestination">
           <button
             @click="goBack"
             class="absolute top-2.5 left-2.5 flex size-10 items-center justify-center rounded-full bg-white text-black shadow backdrop-blur-sm transition hover:bg-white/80 active:scale-98"
           >
             <Icon name="lucide:arrow-left" class="size-4 shrink-0" />
           </button>
-        </BackButton>
+        </ButtonBack>
       </div>
 
       <div class="-mt-12 flex grow flex-col justify-between gap-y-8 lg:-mt-16">
@@ -248,7 +248,7 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  showBackButton: {
+  showButtonBack: {
     type: Boolean,
     default: false,
   },

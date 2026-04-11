@@ -3,7 +3,7 @@
   <SidebarGroup>
     <SidebarMenu>
       <SidebarMenuItem>
-        <BackButton v-slot="{ goBack }" destination="/dashboard" :force-destination="true">
+        <ButtonBack v-slot="{ goBack }" destination="/dashboard" :force-destination="true">
           <SidebarMenuButton
             tooltip="Back to Dashboard"
             @click="
@@ -17,7 +17,7 @@
               <Kbd>B</Kbd>
             </KbdGroup>
           </SidebarMenuButton>
-        </BackButton>
+        </ButtonBack>
       </SidebarMenuItem>
       <SidebarMenuItem>
         <SidebarMenuButton

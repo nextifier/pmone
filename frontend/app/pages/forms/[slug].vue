@@ -29,7 +29,7 @@
     <template v-else-if="form">
       <!-- Header info -->
       <div class="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-4 sm:px-0">
-        <BackButton destination="/forms" />
+        <ButtonBack destination="/forms" />
         <h1 class="text-lg font-semibold tracking-tight">{{ form.title }}</h1>
         <Badge :variant="statusVariant(form.status)">
           {{ form.status.charAt(0).toUpperCase() + form.status.slice(1) }}

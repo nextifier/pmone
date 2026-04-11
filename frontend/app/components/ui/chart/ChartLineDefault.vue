@@ -61,16 +61,14 @@
 
 <script setup>
 import { VisAxis, VisLine, VisXYContainer } from "@unovis/vue";
-
+import { CurveType } from "@unovis/ts";
 import {
   ChartContainer,
   ChartCrosshair,
   ChartTooltip,
   ChartTooltipContent,
   componentToString,
-} from "@/components/ui/chart";
-
-import { CurveType } from "@unovis/ts";
+} from ".";
 
 const props = defineProps({
   data: {

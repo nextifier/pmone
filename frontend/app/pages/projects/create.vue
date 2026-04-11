@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto flex max-w-xl flex-col gap-y-5 pt-4 pb-16">
     <div class="flex flex-col items-start gap-y-5">
-      <BackButton destination="/projects" />
+      <ButtonBack destination="/projects" />
 
       <h1 class="page-title">Create New Project</h1>
     </div>

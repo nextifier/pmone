@@ -37,7 +37,7 @@
 
     <div v-if="pending" class="min-h-screen-offset grid place-items-center">
       <div class="flex items-center gap-2">
-        <LoadingSpinner class="border-primary size-4" />
+        <Spinner class="size-4" />
         <span class="tracking-tight">Loading</span>
       </div>
     </div>
@@ -46,7 +46,7 @@
       <div class="container-wider flex items-start justify-between gap-x-12">
         <main class="mx-auto w-full max-w-[38rem] py-4">
           <div class="flex items-center justify-between lg:-mx-3">
-            <BackButton />
+            <ButtonBack />
             <DialogShare :pageTitle="title" />
           </div>
 

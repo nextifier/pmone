@@ -12,7 +12,7 @@
     <template v-else>
       <div class="flex flex-col gap-y-6">
         <div class="flex w-full items-center justify-between">
-          <BackButton :destination="backDestination" />
+          <ButtonBack :destination="backDestination" />
 
           <div class="flex items-center gap-x-2">
             <button

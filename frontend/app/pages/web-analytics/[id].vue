@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen-offset mx-auto flex max-w-6xl flex-col gap-y-4 py-4">
     <div class="flex">
-      <BackButton destination="/web-analytics" />
+      <ButtonBack destination="/web-analytics" />
     </div>
     <div class="my-2 flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <ClientOnly>

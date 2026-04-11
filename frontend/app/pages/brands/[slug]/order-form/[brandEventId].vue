@@ -18,7 +18,7 @@
       <!-- Header -->
       <div class="space-y-1">
         <div class="mb-6 flex flex-col items-start gap-y-3">
-          <BackButton :show-label="true" />
+          <ButtonBack :show-label="true" />
         </div>
 
         <div class="text-muted-foreground flex flex-wrap items-center gap-x-2 text-sm">

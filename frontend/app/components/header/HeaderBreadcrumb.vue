@@ -1,6 +1,6 @@
 <template>
   <div class="-ml-2 flex grow items-center gap-x-2 overflow-hidden sm:ml-0 sm:gap-x-2.5">
-    <BackButton :destination="backDestination" :force-destination="forceBackDestination">
+    <ButtonBack :destination="backDestination" :force-destination="forceBackDestination">
       <template #default="{ goBack }">
         <button
           @click="goBack"
@@ -12,7 +12,7 @@
           </KbdGroup>
         </button>
       </template>
-    </BackButton>
+    </ButtonBack>
 
     <ClientOnly>
       <div

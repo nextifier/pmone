@@ -3,7 +3,7 @@
     <ErrorState v-if="error" :error="error" />
     <div v-else class="flex min-h-dvh items-center justify-center">
       <div class="flex items-center justify-center gap-x-1.5 font-medium tracking-tight">
-        <SpinnerAlt size="2rem" border-width="4px" />
+        <Spinner class="size-8" />
       </div>
     </div>
   </div>

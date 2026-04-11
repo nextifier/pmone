@@ -108,19 +108,6 @@
         </div>
       </div>
 
-      <!-- Loading/Success Feedback -->
-      <!-- <div v-if="isSyncing" class="text-muted-foreground flex items-center gap-x-1.5 text-sm">
-        <LoadingSpinner class="size-4" />
-        <span>Saving preferences..</span>
-      </div>
-
-      <div
-        v-if="lastUpdated"
-        class="flex items-center gap-x-1.5 text-sm tracking-tight text-green-700 dark:text-green-500"
-      >
-        <Icon name="lucide:check" class="size-4" />
-        <span>Preferences saved</span>
-      </div> -->
     </div>
   </div>
 </template>

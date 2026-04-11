@@ -15,11 +15,11 @@
       <div class="flex h-full items-center gap-x-4">
         <!-- Back Button -->
 
-        <BackButton v-slot="{ goBack }" destination="/posts" :force-destination="true">
+        <ButtonBack v-slot="{ goBack }" destination="/posts" :force-destination="true">
           <Button variant="ghost" size="iconSm" @click="goBack" class="-ml-2 sm:ml-0">
             <Icon name="lucide:arrow-left" class="size-5 shrink-0" />
           </Button>
-        </BackButton>
+        </ButtonBack>
 
         <!-- Autosave Status -->
         <div class="hidden items-center gap-x-2 lg:flex">

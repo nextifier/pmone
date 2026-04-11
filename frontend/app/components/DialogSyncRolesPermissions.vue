@@ -171,10 +171,8 @@
 </template>
 
 <script setup>
-import ButtonCopy from "@/components/ButtonCopy.vue";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "vue-sonner";
 

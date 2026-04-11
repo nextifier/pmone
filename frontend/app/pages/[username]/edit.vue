@@ -3,7 +3,7 @@
     <template v-if="user">
       <div class="flex flex-col gap-y-5">
         <div class="flex w-full items-center justify-between">
-          <BackButton destination="/users" />
+          <ButtonBack destination="/users" />
 
           <button
             @click="formUserRef?.handleSubmit()"

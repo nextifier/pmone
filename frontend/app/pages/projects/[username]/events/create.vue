@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto flex max-w-2xl flex-col gap-y-6">
     <div class="flex flex-col items-start">
-      <BackButton :destination="`/projects/${route.params.username}/events`" />
+      <ButtonBack :destination="`/projects/${route.params.username}/events`" />
       <h2 class="page-title mt-4">Create Event</h2>
       <p class="page-description mt-1.5">Create a new event edition for this project.</p>
     </div>

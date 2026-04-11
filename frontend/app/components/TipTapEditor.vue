@@ -204,7 +204,7 @@
         class="bg-background/80 absolute inset-0 flex items-center justify-center backdrop-blur-xs"
       >
         <div class="flex items-center gap-x-2 text-sm tracking-tight">
-          <LoadingSpinner class="border-primary size-4" />
+          <Spinner class="size-4" />
           <span>Uploading image...</span>
         </div>
       </div>

@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto max-w-xl space-y-9 pt-4 pb-16">
     <div class="flex flex-col items-start gap-y-6">
-      <BackButton destination="/ga-properties" />
+      <ButtonBack destination="/ga-properties" />
       <h1 class="page-title">Create GA4 Property</h1>
     </div>
 
