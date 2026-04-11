@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="loading" class="min-h-screen-offset grid place-items-center">
+    <div v-if="loading" class="grid min-h-dvh place-items-center">
       <div class="flex items-center gap-x-2">
         <Spinner class="size-4 shrink-0" />
         <span class="text-base tracking-tight">Loading</span>
@@ -9,10 +9,7 @@
 
     <ErrorState v-else-if="error" :error="error" />
 
-    <div
-      v-else-if="profile"
-      class="min-h-screen-offset mx-auto flex max-w-xl flex-col px-4 pb-16 sm:pt-4"
-    >
+    <div v-else-if="profile" class="mx-auto flex min-h-dvh max-w-xl flex-col px-4 pb-16 sm:pt-4">
       <div class="relative -mx-4">
         <div
           class="aspect-[3/1] overflow-hidden sm:rounded-xl"
@@ -67,7 +64,10 @@
                 />
               </div>
 
-              <div v-if="canEdit || canViewAnalytics || canViewTasks" class="flex flex-wrap justify-end gap-2">
+              <div
+                v-if="canEdit || canViewAnalytics || canViewTasks"
+                class="flex flex-wrap justify-end gap-2"
+              >
                 <NuxtLink
                   v-if="canEdit"
                   :to="editUrl"
@@ -88,7 +88,11 @@
 
                 <NuxtLink
                   v-if="canViewTasks"
-                  :to="profileType === 'project' ? `/projects/${profile.username}/tasks` : `/${profile.username}/tasks`"
+                  :to="
+                    profileType === 'project'
+                      ? `/projects/${profile.username}/tasks`
+                      : `/${profile.username}/tasks`
+                  "
                   class="bg-muted text-foreground hover:bg-border flex items-center justify-center gap-x-1.5 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight backdrop-blur-sm transition active:scale-98"
                 >
                   <Icon name="hugeicons:task-daily-01" class="size-4.5 shrink-0" />

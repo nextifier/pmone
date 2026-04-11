@@ -1,27 +1,20 @@
 <template>
   <div
-    class="relative mx-auto flex min-h-screen max-w-lg flex-col justify-between gap-y-8 pt-2 pb-16 sm:pt-4"
+    class="relative mx-auto flex min-h-dvh max-w-lg flex-col justify-between gap-y-8 pt-2 pb-12 sm:pt-4"
   >
-    <div class="absolute top-4 right-4 sm:top-6">
-      <Tippy>
-        <ColorModeToggle />
-        <template #content>
-          <span class="inline-flex items-center gap-x-1.5 tracking-tight">
-            <span>Light / Dark Mode</span>
-            <kbd class="keyboard-symbol">{{ metaSymbol }} D</kbd>
-          </span>
-        </template>
-      </Tippy>
-    </div>
     <!-- Title & Description -->
-    <div class="bg-muted mx-2 flex flex-col gap-y-1 rounded-2xl px-4 py-6 sm:px-6">
-      <h1 class="text-primary text-2xl leading-[1.2]! font-medium tracking-tighter text-balance">
-        {{ linkPage.title }}
-      </h1>
-      <p v-if="linkPage.description" class="text-body tracking-tight text-pretty">
-        {{ linkPage.description }}
-      </p>
+    <div class="flex items-start gap-x-2 p-4">
+      <div class="flex grow flex-col gap-y-1">
+        <h1 class="text-primary text-2xl leading-[1.2]! font-medium tracking-tighter text-balance">
+          {{ linkPage.title }}
+        </h1>
+        <p v-if="linkPage.description" class="text-body tracking-tight text-pretty">
+          {{ linkPage.description }}
+        </p>
+      </div>
+      <ColorModeToggle class="shrink-0" />
     </div>
+    <!-- <div></div> -->
 
     <!-- Links -->
     <div class="grid grid-cols-1 gap-y-2 px-4">
@@ -41,7 +34,7 @@
             class="w-full rounded-lg object-contain"
           />
         </div>
-        <div class="flex grow flex-col gap-y-1 text-center" :class="{ 'text-left': item.poster }">
+        <div class="flex grow flex-col gap-y-1" :class="{ 'py-2 pl-3': !item.poster }">
           <h2 class="text-base leading-tight! font-medium tracking-tighter">{{ item.label }}</h2>
           <p
             v-if="item.description"
