@@ -2,14 +2,19 @@
   <div
     v-if="model"
     class="relative shrink-0"
-    :class="gradientFrame ? 'before:gradient-insta before:absolute before:-inset-[4px] before:rounded-full before:bg-linear-to-tr before:content-[\'\']' : ''"
+    :class="[
+      gradientFrame
+        ? `${rounded} before:gradient-insta before:absolute before:-inset-1 before:rounded-[calc(var(--avatar-r)+0.25rem)] before:[corner-shape:inherit] before:bg-linear-to-tr before:content-['']`
+        : '',
+    ]"
+    :style="gradientFrame ? { '--avatar-r': radiusValue } : undefined"
   >
     <div
       :style="!model?.profile_image && colorful && !gradientFrame ? meshGradientStyle : undefined"
       :class="[
-        'outline-primary/10 @container relative flex aspect-square shrink-0 items-center justify-center text-center outline -outline-offset-1',
+        'outline-inside @container relative flex aspect-square shrink-0 items-center justify-center text-center',
         !model?.profile_image && (!colorful || gradientFrame) ? 'bg-muted' : '',
-        gradientFrame ? 'ring-background bg-background z-10 overflow-hidden ring-2' : '',
+        gradientFrame ? 'ring-background bg-background z-10 ring-2' : '',
         rounded,
       ]"
     >
@@ -74,6 +79,12 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+});
+
+const radiusValue = computed(() => {
+  if (props.rounded === "squircle" || props.rounded === "rounded-full") return "9999px";
+  const suffix = props.rounded.replace("rounded", "");
+  return `var(--radius${suffix})`;
 });
 
 const hue = computed(() => {

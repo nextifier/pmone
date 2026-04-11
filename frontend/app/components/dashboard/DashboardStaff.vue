@@ -6,7 +6,7 @@
 
     <DashboardMyProjects :projects="myProjects" :loading="loading" />
 
-    <DashboardAllEvents :events="allEvents" :loading="loading" />
+    <DashboardRecentEvents :events="allEvents" :loading="loading" />
   </div>
 </template>
 

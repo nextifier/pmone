@@ -9,7 +9,11 @@
       v-if="loading"
       class="*:bg-background relative grid grid-cols-2 gap-px p-px *:relative sm:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]"
     >
-      <div v-for="i in 8" :key="i" class="flex aspect-square flex-col items-center justify-center gap-y-2 p-4">
+      <div
+        v-for="i in 8"
+        :key="i"
+        class="flex aspect-square flex-col items-center justify-center gap-y-2 p-4"
+      >
         <Skeleton class="squircle size-20" />
         <Skeleton class="h-4 w-24" />
       </div>
@@ -29,14 +33,19 @@
       >
         <Avatar
           :model="{ name: project.name, profile_image: project.profile_image }"
-          class="squircle aspect-square size-20 overflow-hidden"
+          class="aspect-square size-20"
           size="md"
+          rounded="squircle"
         />
         <h3 class="line-clamp-2 text-base leading-tight font-medium tracking-tighter">
           {{ project.name }}
         </h3>
       </NuxtLink>
-      <div v-for="i in fillerCount" :key="`filler-${i}`" class="bg-pattern-diagonal aspect-square" />
+      <div
+        v-for="i in fillerCount"
+        :key="`filler-${i}`"
+        class="bg-pattern-diagonal aspect-square"
+      />
     </div>
   </div>
 </template>
@@ -66,18 +75,22 @@ const fillerCount = computed(() => {
 function detectColumns() {
   if (!gridRef.value) return;
   const style = getComputedStyle(gridRef.value);
-  columnCount.value = style.gridTemplateColumns.split(' ').length;
+  columnCount.value = style.gridTemplateColumns.split(" ").length;
 }
 
 let observer: ResizeObserver | null = null;
 
-watch(gridRef, (el) => {
-  observer?.disconnect();
-  if (!el) return;
-  detectColumns();
-  observer = new ResizeObserver(() => detectColumns());
-  observer.observe(el);
-}, { flush: 'post' });
+watch(
+  gridRef,
+  (el) => {
+    observer?.disconnect();
+    if (!el) return;
+    detectColumns();
+    observer = new ResizeObserver(() => detectColumns());
+    observer.observe(el);
+  },
+  { flush: "post" }
+);
 
 onBeforeUnmount(() => observer?.disconnect());
 </script>
