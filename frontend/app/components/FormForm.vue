@@ -261,7 +261,6 @@
 </template>
 
 <script setup>
-import Avatar from "@/components/Avatar.vue";
 
 import { toLocalDateTimeString } from "@/lib/utils";
 import InputFileImage from "@/components/InputFileImage.vue";

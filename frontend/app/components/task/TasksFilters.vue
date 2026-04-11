@@ -25,7 +25,7 @@
           class="bg-muted hover:bg-border absolute top-1/2 right-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full"
           aria-label="Clear search"
         >
-          <Icon name="hugeicons:cancel-01" class="size-3 shrink-0" />
+          <Icon name="lucide:x" class="size-3 shrink-0" />
         </button>
       </div>
 
@@ -99,22 +99,12 @@
     </div>
 
     <div class="flex h-8 justify-end gap-x-1 sm:gap-x-2">
-      <Button
-        v-if="hasActiveFilters"
-        variant="outline"
-        size="sm"
-        @click="clearFilters"
-      >
-        <Icon name="hugeicons:cancel-01" class="size-4 shrink-0" />
+      <Button v-if="hasActiveFilters" variant="outline" size="sm" @click="clearFilters">
+        <Icon name="lucide:x" class="size-4 shrink-0" />
         <span class="hidden sm:flex">Clear filters</span>
       </Button>
 
-      <Button
-        variant="outline"
-        size="sm"
-        :disabled="pending"
-        @click="$emit('refresh')"
-      >
+      <Button variant="outline" size="sm" :disabled="pending" @click="$emit('refresh')">
         <Icon
           name="hugeicons:reload"
           class="size-4 shrink-0"

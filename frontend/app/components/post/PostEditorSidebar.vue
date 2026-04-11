@@ -70,7 +70,8 @@
           <!-- Publish Date (only if published_at exists) -->
           <div v-if="editor.form.published_at" class="space-y-2">
             <Label class="text-xs">Publish Date</Label>
-            <DatePicker with-time
+            <DatePicker
+              with-time
               v-model="publishDateTime"
               :disabled="editor.form.status === 'draft'"
               placeholder="Not scheduled"
@@ -285,7 +286,7 @@
         "
         class="text-primary bg-muted hover:bg-border absolute top-3 right-4 flex size-8 items-center justify-center rounded-lg transition active:scale-98"
       >
-        <Icon name="hugeicons:cancel-01" class="size-4" />
+        <Icon name="lucide:x" class="size-4" />
       </button>
     </SidebarContent>
 
@@ -313,8 +314,8 @@ import {
   TagsInputItemText,
 } from "@/components/ui/tags-input";
 import { Textarea } from "@/components/ui/textarea";
-import { toLocalDateTimeString } from "@/lib/utils";
 import { usePostEditorOptional } from "@/composables/usePostEditor";
+import { toLocalDateTimeString } from "@/lib/utils";
 
 const props = defineProps({
   collapsible: {

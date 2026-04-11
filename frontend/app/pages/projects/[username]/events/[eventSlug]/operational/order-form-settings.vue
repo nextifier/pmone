@@ -480,7 +480,6 @@
 
 <script setup>
 
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import TipTapEditor from "@/components/TipTapEditor.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

@@ -87,7 +87,6 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import InputFile from "@/components/InputFile.vue";
 import { toast } from "vue-sonner";
 

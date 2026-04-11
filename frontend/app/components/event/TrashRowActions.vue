@@ -92,7 +92,6 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PopoverClose } from "reka-ui";
 import { toast } from "vue-sonner";

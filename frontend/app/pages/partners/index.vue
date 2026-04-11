@@ -231,7 +231,6 @@
 <script setup>
 import PartnerImportDialog from "@/components/partner/PartnerImportDialog.vue";
 import PartnerTableItem from "@/components/partner/TableItem.vue";
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import TableData from "@/components/TableData.vue";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";

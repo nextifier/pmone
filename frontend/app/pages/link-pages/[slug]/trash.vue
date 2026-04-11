@@ -122,7 +122,6 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({

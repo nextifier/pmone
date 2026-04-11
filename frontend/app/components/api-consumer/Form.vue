@@ -220,7 +220,6 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import { Switch } from "@/components/ui/switch";
 import {
   TagsInput,

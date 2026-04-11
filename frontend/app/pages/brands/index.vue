@@ -183,7 +183,6 @@
 <script setup>
 import BrandImportDialog from "@/components/brand/BrandImportDialog.vue";
 import BrandTableItem from "@/components/brand/TableItem.vue";
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";

@@ -237,7 +237,6 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import FilterSection from "@/components/inbox/FilterSection.vue";
 import OrderStatusDropdown from "@/components/order/StatusDropdown.vue";
 import TableData from "@/components/TableData.vue";

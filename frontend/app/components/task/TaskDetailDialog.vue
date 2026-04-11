@@ -175,7 +175,6 @@
 </template>
 
 <script setup>
-import Avatar from "@/components/Avatar.vue";
 import PriorityBars from "@/components/task/PriorityBars.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

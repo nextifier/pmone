@@ -220,7 +220,6 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import PostTableItem from "@/components/post/TableItem.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";

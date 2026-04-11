@@ -36,7 +36,7 @@
                 class="border-border data-[placeholder]:text-muted-foreground flex h-9 w-full items-center gap-1.5 rounded-md border bg-transparent px-3 text-sm tracking-tight shadow-xs"
               >
                 <template v-if="calculatorFrom">
-                  <FlagComponent :country="getCurrencyCountry(calculatorFrom)" />
+                  <Flag :country="getCurrencyCountry(calculatorFrom)" />
                   <span class="font-medium">{{ calculatorFrom }}</span>
                   <span class="text-muted-foreground truncate text-sm">{{
                     getCurrencyName(calculatorFrom)
@@ -68,7 +68,7 @@
                         }
                       "
                     >
-                      <FlagComponent :country="currency.country" :country-name="currency.name" />
+                      <Flag :country="currency.country" :country-name="currency.name" />
                       <span class="font-medium">{{ currency.code }}</span>
                       <span class="text-muted-foreground flex-1 truncate text-sm">{{
                         currency.name
@@ -107,7 +107,7 @@
                 class="border-border data-[placeholder]:text-muted-foreground flex h-9 w-full items-center gap-1.5 rounded-md border bg-transparent px-3 text-sm tracking-tight shadow-xs"
               >
                 <template v-if="calculatorTo">
-                  <FlagComponent :country="getCurrencyCountry(calculatorTo)" />
+                  <Flag :country="getCurrencyCountry(calculatorTo)" />
                   <span class="font-medium">{{ calculatorTo }}</span>
                   <span class="text-muted-foreground truncate text-sm">{{
                     getCurrencyName(calculatorTo)
@@ -139,7 +139,7 @@
                         }
                       "
                     >
-                      <FlagComponent :country="currency.country" :country-name="currency.name" />
+                      <Flag :country="currency.country" :country-name="currency.name" />
                       <span class="font-medium">{{ currency.code }}</span>
                       <span class="text-muted-foreground flex-1 truncate text-sm">{{
                         currency.name
@@ -193,7 +193,7 @@
             class="border-border hover:bg-muted flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
           >
             <span class="text-muted-foreground text-sm">Base:</span>
-            <FlagComponent
+            <Flag
               v-if="getCurrencyCountry(baseCurrency)"
               :country="getCurrencyCountry(baseCurrency)"
             />
@@ -220,7 +220,7 @@
                     }
                   "
                 >
-                  <FlagComponent :country="currency.country" :country-name="currency.name" />
+                  <Flag :country="currency.country" :country-name="currency.name" />
                   <span class="font-medium">{{ currency.code }}</span>
                   <span class="text-muted-foreground flex-1 truncate text-sm">{{
                     currency.name
@@ -319,7 +319,7 @@
             class="hover:border-primary/30 group flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors"
             @click="selectCurrency(rate.code)"
           >
-            <FlagComponent :country="rate.country" :country-name="rate.name" />
+            <Flag :country="rate.country" :country-name="rate.name" />
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-1.5">
                 <span class="text-sm font-medium tracking-tight">{{ rate.code }}</span>
@@ -361,7 +361,7 @@
             class="hover:border-primary/30 group flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors"
             @click="selectCurrency(rate.code)"
           >
-            <FlagComponent v-tippy="rate.name" :country="rate.country" :country-name="rate.name" />
+            <Flag v-tippy="rate.name" :country="rate.country" :country-name="rate.name" />
             <div class="min-w-0 flex-1 gap-y-1.5 tracking-tight">
               <div class="flex items-center gap-1.5">
                 <span v-tippy="rate.name" class="text-sm font-medium tracking-tight">{{
@@ -420,7 +420,7 @@
             class="hover:bg-muted/50 group flex cursor-pointer items-center gap-3 px-3 py-2.5 transition-colors"
             @click="selectCurrency(rate.code)"
           >
-            <FlagComponent :country="rate.country" :country-name="rate.name" />
+            <Flag :country="rate.country" :country-name="rate.name" />
             <div class="min-w-14">
               <span class="text-sm font-medium tracking-tight">{{ rate.code }}</span>
             </div>

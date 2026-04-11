@@ -21,7 +21,7 @@
           class="text-muted-foreground/70 hover:text-foreground ml-auto flex size-5 shrink-0 translate-x-1 items-center justify-center rounded-full"
           @click="dismissTip(tip.key)"
         >
-          <Icon name="hugeicons:cancel-01" class="size-3.5" />
+          <Icon name="lucide:x" class="size-3.5" />
         </button>
       </div>
     </div>

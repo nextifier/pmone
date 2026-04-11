@@ -90,7 +90,7 @@
 
           <!-- Video column -->
           <div class="flex-1">
-            <HomeBrowserMockup :title="feature.mockupUrl" />
+            <BrowserMockup :title="feature.mockupUrl" />
           </div>
         </div>
       </div>

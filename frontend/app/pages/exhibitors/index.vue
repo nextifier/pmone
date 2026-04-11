@@ -278,7 +278,6 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import TableData from "@/components/TableData.vue";
 import TableSwitch from "@/components/TableSwitch.vue";
 import { Checkbox } from "@/components/ui/checkbox";

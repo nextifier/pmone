@@ -195,8 +195,6 @@
 </template>
 
 <script setup>
-import DatePicker from "@/components/DatePicker.vue";
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

@@ -52,7 +52,7 @@
           @click="qrText = ''"
           class="border-border text-foreground hover:bg-muted flex items-center justify-center gap-x-1 rounded-lg border px-4 py-2 font-medium tracking-tight transition active:scale-98"
         >
-          <Icon name="hugeicons:cancel-01" class="size-4.5 shrink-0" />
+          <Icon name="lucide:x" class="size-4.5 shrink-0" />
           <span>Clear</span>
         </button>
       </div>

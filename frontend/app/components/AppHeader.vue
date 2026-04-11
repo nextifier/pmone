@@ -49,7 +49,7 @@
         <ColorModeToggle />
 
         <template v-if="isAuthenticated">
-          <NotificationBell />
+          <Notifications />
           <AuthDropdownMenu />
         </template>
 

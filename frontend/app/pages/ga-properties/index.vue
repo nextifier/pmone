@@ -151,7 +151,6 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import ImportDialog from "@/components/ga-property/ImportDialog.vue";
 import GaPropertyProfile from "@/components/ga-property/Profile.vue";
 import TableData from "@/components/TableData.vue";

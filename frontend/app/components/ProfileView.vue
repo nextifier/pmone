@@ -52,12 +52,14 @@
           <div class="flex flex-col items-start gap-y-2">
             <div class="relative flex w-full items-end justify-between gap-2">
               <div class="relative isolate">
-                <Avatar
-                  :model="profile"
-                  size="sm"
-                  rounded="rounded-full"
-                  class="ring-background size-24 ring-4 lg:size-32"
-                />
+                <div class="ring-background rounded-full ring-4">
+                  <Avatar
+                    :model="profile"
+                    size="sm"
+                    rounded="rounded-full"
+                    class="size-24 lg:size-32"
+                  />
+                </div>
 
                 <span
                   class="absolute top-1/2 right-0 z-[-1] size-8 translate-x-[calc(100%+0px)] -translate-y-full rounded-bl-[16px] bg-transparent shadow-[-16px_16px_0_var(--color-background)]"

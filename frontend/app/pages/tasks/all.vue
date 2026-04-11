@@ -205,7 +205,6 @@
 </template>
 
 <script setup>
-import Avatar from "@/components/Avatar.vue";
 import TaskCard from "@/components/task/TaskCard.vue";
 import TaskDialogs from "@/components/task/TaskDialogs.vue";
 import TasksFilters from "@/components/task/TasksFilters.vue";

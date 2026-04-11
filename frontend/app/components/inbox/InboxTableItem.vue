@@ -11,7 +11,7 @@
     </div>
 
     <div class="text-muted-foreground flex items-center gap-x-2 text-sm tracking-tight">
-      <FlagComponent
+      <Flag
         v-if="countryCode"
         v-tippy="countryName"
         :country="countryCode"
@@ -30,7 +30,6 @@
 </template>
 
 <script setup>
-import FlagComponent from "@/components/FlagComponent.vue";
 import { computed } from "vue";
 
 const props = defineProps({

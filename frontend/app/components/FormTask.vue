@@ -245,7 +245,6 @@
 </template>
 
 <script setup>
-import Avatar from "@/components/Avatar.vue";
 
 import TipTapEditor from "@/components/TipTapEditor.vue";
 import { Button } from "@/components/ui/button";

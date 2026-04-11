@@ -131,7 +131,6 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import FormTask from "@/components/FormTask.vue";
 import TaskDetailDialog from "@/components/task/TaskDetailDialog.vue";
 import { Button } from "@/components/ui/button";

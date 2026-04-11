@@ -308,7 +308,6 @@
 import BrandEventStatusDropdown from "@/components/brand/EventStatusDropdown.vue";
 import BrandImportDialog from "@/components/brand/EventBrandImportDialog.vue";
 import BrandTableItem from "@/components/brand/TableItem.vue";
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import {

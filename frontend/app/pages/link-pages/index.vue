@@ -153,7 +153,6 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import FormLinkPage from "@/components/link-page/FormLinkPage.vue";
 import LinkPageTableItem from "@/components/link-page/LinkPageTableItem.vue";
 import TableData from "@/components/TableData.vue";

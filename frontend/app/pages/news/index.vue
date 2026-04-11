@@ -17,7 +17,8 @@
                 placeholder="Search posts"
               />
 
-              <IconSearch
+              <Icon
+                name="hugeicons:search-01"
                 class="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-400 peer-focus:text-gray-400"
               />
 
@@ -37,7 +38,7 @@
                 "
                 class="absolute top-1/2 right-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full bg-gray-100 transition-colors peer-placeholder-shown:hidden hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800"
               >
-                <IconClose class="h-3" />
+                <Icon name="lucide:x" class="h-3" />
               </button>
             </div>
           </div>
@@ -94,7 +95,7 @@
             <div class="mt-6 flex items-center gap-3">
               <Button @click="currentPage = meta.last_page"> Go to last page </Button>
               <Button variant="outline" @click="currentPage = 1">
-                <IconChevronLeft class="size-4" />
+                <Icon name="lucide:chevron-left" class="size-4" />
                 Back to first page
               </Button>
             </div>
@@ -110,7 +111,7 @@
             <p class="mt-4 text-base tracking-tight sm:text-lg">Please come back later</p>
 
             <Button as="a" href="/" class="mt-4">
-              <IconChevronLeft class="size-4" />
+              <Icon name="lucide:chevron-left" class="size-4" />
               Back to Home
             </Button>
           </div>

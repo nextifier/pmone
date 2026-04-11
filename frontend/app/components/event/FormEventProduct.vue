@@ -142,7 +142,6 @@
 </template>
 
 <script setup>
-import InputNumber from "@/components/InputNumber.vue";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";

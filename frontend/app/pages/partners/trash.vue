@@ -150,7 +150,6 @@
 
 <script setup>
 import PartnerTrashRowActions from "@/components/partner/TrashRowActions.vue";
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { resolveComponent, resolveDirective, withDirectives } from "vue";

@@ -55,7 +55,7 @@
               </template>
               <template v-else-if="key === 'phone'">
                 <div class="flex items-center gap-2">
-                  <FlagComponent
+                  <Flag
                     v-if="getCountryFromPhone(value)"
                     v-tippy="getCountryFromPhone(value)?.name"
                     :country="getCountryFromPhone(value)?.code"
@@ -93,8 +93,6 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
-import FlagComponent from "@/components/FlagComponent.vue";
 import StatusDropdown from "@/components/inbox/StatusDropdown.vue";
 import { toast } from "vue-sonner";
 

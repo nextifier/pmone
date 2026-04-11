@@ -90,7 +90,6 @@
 </template>
 
 <script setup>
-import Avatar from "@/components/Avatar.vue";
 import PostTableItem from "@/components/post/TableItem.vue";
 import TableData from "@/components/TableData.vue";
 import { Checkbox } from "@/components/ui/checkbox";

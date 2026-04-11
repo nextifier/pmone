@@ -75,7 +75,6 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import QRCode from "@/components/QRCode.vue";
 import { useQRCode } from "@/composables/useQRCode";
 import { toast } from "vue-sonner";

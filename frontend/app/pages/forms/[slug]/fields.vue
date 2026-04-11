@@ -218,7 +218,6 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import FieldCard from "@/components/form-builder/FieldCard.vue";
 import FieldTypeSelector from "@/components/form-builder/FieldTypeSelector.vue";
 import { Switch } from "@/components/ui/switch";

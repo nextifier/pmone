@@ -259,7 +259,6 @@
 <script setup>
 import ContactTableItem from "@/components/contact/ContactTableItem.vue";
 import ContactTrashRowActions from "@/components/contact/TrashRowActions.vue";
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import TableData from "@/components/TableData.vue";
 import FilterSection from "@/components/user/FilterSection.vue";
 import { Checkbox } from "@/components/ui/checkbox";

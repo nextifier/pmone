@@ -197,7 +197,6 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import TableData from "@/components/TableData.vue";
 import FilterSection from "@/components/user/FilterSection.vue";
 import TrashRowActions from "@/components/user/TrashRowActions.vue";

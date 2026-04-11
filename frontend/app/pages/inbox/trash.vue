@@ -190,8 +190,6 @@
 </template>
 
 <script setup>
-import Avatar from "@/components/Avatar.vue";
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import InboxDetailDialog from "@/components/inbox/DetailDialog.vue";
 import InboxFilterSection from "@/components/inbox/FilterSection.vue";
 import InboxTableItem from "@/components/inbox/InboxTableItem.vue";

@@ -104,7 +104,6 @@
 </template>
 
 <script setup>
-import Avatar from "@/components/Avatar.vue";
 import PriorityBars from "@/components/task/PriorityBars.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import {

@@ -142,7 +142,6 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import ImportDialog from "@/components/project/ImportDialog.vue";
 import ProjectsFilters from "@/components/project/ProjectsFilters.vue";
 import ProjectsHeader from "@/components/project/ProjectsHeader.vue";

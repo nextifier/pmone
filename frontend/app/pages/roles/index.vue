@@ -106,7 +106,6 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import DialogSyncRolesPermissions from "@/components/DialogSyncRolesPermissions.vue";
 import RoleTableItem from "@/components/role/RoleTableItem.vue";
 import TableData from "@/components/TableData.vue";

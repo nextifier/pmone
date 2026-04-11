@@ -175,7 +175,6 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/DialogResponsive.vue";
 import ImportDialog from "@/components/short-link/ImportDialog.vue";
 import ShortLinkTableItem from "@/components/short-link/ShortLinkTableItem.vue";
 import TableData from "@/components/TableData.vue";
