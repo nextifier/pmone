@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive v-model:open="isOpen" dialog-max-width="28rem">
+  <DialogResponsive v-model:open="isOpen" dialog-max-width="32rem">
     <div class="px-4 pb-10 md:px-6 md:py-5">
       <div class="space-y-1">
         <h3 class="page-title">{{ mode === "create" ? "Shorten a Link" : "Edit Short Link" }}</h3>
@@ -55,11 +55,43 @@
             v-else-if="slugAvailable === false"
             class="text-destructive text-xs tracking-tight sm:text-sm"
           >
-            This slug is already taken.
+            This short link is already taken.
           </p>
-          <p v-else class="text-muted-foreground text-xs tracking-tight">
-            Letters, numbers, dots, underscores, and hyphens only.
-          </p>
+          <div v-else class="text-body space-y-2 tracking-tight sm:text-sm">
+            <div>
+              <p>Best practices:</p>
+              <ul class="list-disc pl-4">
+                <li>Jangan pakai huruf kapital, harus huruf kecil semua.</li>
+                <li>Kalo ada spasi antar kata, pisahkan pakai "-".</li>
+                <li>
+                  Kalo hanya untuk event tertentu, tambahin prefix nama event biar gak bentrok sama
+                  event lain.
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <p>Contoh:</p>
+              <ul class="list-disc pl-4">
+                <li>
+                  ❌ pmone.id/<span class="text-foreground">BookSpace</span> - Jangan pakai huruf
+                  besar.
+                </li>
+                <li>
+                  ❌ pmone.id/<span class="text-foreground">bookspace</span> - Susah dibaca tanpa
+                  pemisah.
+                </li>
+                <li>
+                  ⚠️ pmone.id/<span class="text-foreground">book-space</span> - Sudah oke, tapi bisa
+                  bentrok sama event lain.
+                </li>
+                <li>
+                  ✅ pmone.id/<span class="text-foreground">flei-book-space</span> - Perfect,
+                  spesifik per event.
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
 
         <div class="flex justify-end gap-2">

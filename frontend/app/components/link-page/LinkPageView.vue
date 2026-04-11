@@ -14,7 +14,6 @@
       </div>
       <ColorModeToggle class="shrink-0" />
     </div>
-    <!-- <div></div> -->
 
     <!-- Links -->
     <div class="grid grid-cols-1 gap-y-2 px-4">
