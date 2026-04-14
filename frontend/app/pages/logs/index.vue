@@ -7,15 +7,30 @@
         <h1 class="page-title">Activity Logs</h1>
       </div>
 
-      <button
-        v-if="user?.roles?.includes('master')"
-        @click="clearDialogOpen = true"
-        :disabled="clearing || loading"
-        class="border-border hover:bg-muted text-destructive-foreground flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        <Icon name="hugeicons:delete-02" class="size-4 shrink-0" />
-        <span>Clear All Logs</span>
-      </button>
+      <div class="flex items-center gap-x-2">
+        <button
+          @click="fetchActivities"
+          :disabled="loading || clearing"
+          class="border-border hover:bg-muted text-body flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Icon
+            name="hugeicons:reload"
+            class="size-4 shrink-0"
+            :class="{ 'animate-spin': loading }"
+          />
+          <span>Refresh</span>
+        </button>
+
+        <button
+          v-if="user?.roles?.includes('master')"
+          @click="clearDialogOpen = true"
+          :disabled="clearing || loading"
+          class="border-border hover:bg-muted text-destructive-foreground flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Icon name="hugeicons:delete-02" class="size-4 shrink-0" />
+          <span>Clear All Logs</span>
+        </button>
+      </div>
     </div>
 
     <!-- Activity Feed -->

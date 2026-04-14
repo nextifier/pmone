@@ -1,28 +1,29 @@
 <template>
   <div
     v-if="model"
+    v-tippy="tippyContent"
     class="relative shrink-0"
     :class="[
       gradientFrame
-        ? `${rounded} before:gradient-insta before:absolute before:-inset-1 before:rounded-[calc(var(--avatar-r)+0.25rem)] before:[corner-shape:inherit] before:bg-linear-to-tr before:content-['']`
+        ? `${effectiveRounded} before:gradient-insta before:absolute before:-inset-1 before:rounded-[calc(var(--avatar-r)+0.25rem)] before:[corner-shape:inherit] before:bg-linear-to-tr before:content-['']`
         : '',
     ]"
     :style="gradientFrame ? { '--avatar-r': radiusValue } : undefined"
   >
     <div
-      :style="!model?.profile_image && colorful && !gradientFrame ? meshGradientStyle : undefined"
+      :style="!model?.profile_image && effectiveColorful && !gradientFrame ? meshGradientStyle : undefined"
       :class="[
         'outline-inside @container relative flex aspect-square shrink-0 items-center justify-center text-center',
-        !model?.profile_image && (!colorful || gradientFrame) ? 'bg-muted' : '',
+        !model?.profile_image && (!effectiveColorful || gradientFrame) ? 'bg-muted' : '',
         gradientFrame ? 'ring-background bg-background z-10 ring-2' : '',
-        rounded,
+        effectiveRounded,
       ]"
     >
       <img
         v-if="model?.profile_image"
         :src="model.profile_image[size] || model.profile_image.sm"
         :alt="model?.name"
-        :class="['size-full object-contain select-none', rounded]"
+        :class="['size-full object-contain select-none', effectiveRounded]"
         width="100"
         height="100"
         loading="lazy"
@@ -31,8 +32,8 @@
       <span
         v-else
         :class="[
-          'initial text-[45cqw] font-light tracking-tight',
-          colorful && !gradientFrame ? 'text-white' : 'text-muted-foreground',
+          'initial text-[45cqw] font-light tracking-tight select-none',
+          effectiveColorful && !gradientFrame ? 'text-white' : 'text-muted-foreground',
         ]"
       >
         {{
@@ -57,6 +58,8 @@
 </template>
 
 <script setup>
+import { computed, inject } from "vue";
+
 const props = defineProps({
   model: Object,
   showIndicator: {
@@ -79,11 +82,41 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  circle: {
+    type: Boolean,
+    default: false,
+  },
+  noTooltip: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const avatarGroupContext = inject("avatarGroupContext", null);
+
+const effectiveColorful = computed(() =>
+  avatarGroupContext && avatarGroupContext.colorful !== undefined
+    ? avatarGroupContext.colorful
+    : props.colorful,
+);
+
+const effectiveRounded = computed(() => {
+  if (props.circle || avatarGroupContext?.circle) return "rounded-full";
+  return props.rounded;
+});
+
+const tippyContent = computed(() => {
+  if (props.noTooltip) return "";
+  if (avatarGroupContext?.showTooltip && props.model?.name) {
+    return props.model.name;
+  }
+  return "";
 });
 
 const radiusValue = computed(() => {
-  if (props.rounded === "squircle" || props.rounded === "rounded-full") return "9999px";
-  const suffix = props.rounded.replace("rounded", "");
+  const value = effectiveRounded.value;
+  if (value === "squircle" || value === "rounded-full") return "9999px";
+  const suffix = value.replace("rounded", "");
   return `var(--radius${suffix})`;
 });
 

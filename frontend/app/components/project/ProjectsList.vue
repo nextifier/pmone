@@ -100,20 +100,12 @@
 
           <div class="text-muted-foreground flex items-center gap-x-3 text-xs tracking-tight">
             <span v-if="project.members?.length" class="flex items-center gap-x-1">
-              <div class="relative z-20 flex -space-x-1.5">
-                <Avatar
-                  v-for="member in project.members.slice(0, 4)"
-                  :model="member"
-                  :key="member.id"
-                  class="ring-background size-6 shrink-0 overflow-hidden rounded-full! ring-1"
-                  v-tippy="member.name"
-                />
-                <span
-                  v-if="project.members_count && project.members_count > 4"
-                  class="ring-background bg-border text-muted-foreground relative flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full border text-center text-[10px] font-medium tracking-tighter ring-1"
-                  >+{{ project.members_count - 4 }}</span
-                >
-              </div>
+              <AvatarGroup
+                :items="project.members"
+                :size="1.5"
+                :max="4"
+                class="relative z-20"
+              />
               <span v-if="project.members_count"
                 >{{ project.members_count }} member{{ project.members_count > 1 ? "s" : "" }}</span
               >
