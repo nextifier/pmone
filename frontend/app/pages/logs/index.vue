@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-4xl space-y-6 pt-4 pb-16">
+  <div class="mx-auto max-w-xl space-y-6 pt-4 pb-16">
     <!-- Page Header -->
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-x-2.5">
@@ -95,10 +95,7 @@
                 <div class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
                   User
                 </div>
-                <Select
-                  :modelValue="selectedCauserId"
-                  @update:modelValue="onCauserChange"
-                >
+                <Select :modelValue="selectedCauserId" @update:modelValue="onCauserChange">
                   <SelectTrigger size="sm" class="w-full">
                     <SelectValue placeholder="All users" />
                   </SelectTrigger>
@@ -336,7 +333,9 @@ const activePreset = computed(() => {
 
 function applyDatePreset(preset) {
   const today = $dayjs().startOf("day");
-  const from = preset.startOfMonth ? today.startOf("month") : today.subtract(preset.fromOffset, "day");
+  const from = preset.startOfMonth
+    ? today.startOf("month")
+    : today.subtract(preset.fromOffset, "day");
   dateFrom.value = from.toDate();
   dateTo.value = today.toDate();
   page.value = 1;

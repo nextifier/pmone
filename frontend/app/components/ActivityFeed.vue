@@ -80,9 +80,15 @@
             <div class="relative">
               <div
                 v-if="!group.activity.causer"
-                class="bg-muted outline-inside text-muted-foreground mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full"
+                class="bg-muted outline-inside text-muted-foreground relative mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full"
               >
-                <Icon name="hugeicons:ai-setting" class="size-5 shrink-0" />
+                <Icon name="hugeicons:installing-updates-02" class="size-5 shrink-0" />
+                <span
+                  :class="[
+                    'ring-background absolute -right-0.5 -bottom-0.5 size-2 rounded-full ring-2',
+                    eventIndicatorBg(group.activity),
+                  ]"
+                ></span>
               </div>
               <Avatar
                 v-else
@@ -90,6 +96,7 @@
                 size="sm"
                 rounded="rounded-full"
                 class="mt-0.5 size-8 shrink-0"
+                :indicator="eventIndicator(group.activity)"
               />
               <!-- Group count badge -->
               <span
@@ -103,17 +110,33 @@
             <!-- Content -->
             <div class="min-w-0 flex-1 pt-0.5">
               <div class="flex items-start justify-between gap-x-3">
-                <p class="text-foreground text-sm leading-snug tracking-tight">
-                  <span class="font-medium">{{ group.activity.causer_name }}</span>
-                  {{ truncate(descriptionWithoutCauser(group.activity), 120) }}
+                <component
+                  :is="group.activity.subject_url ? NuxtLink : 'p'"
+                  :to="group.activity.subject_url || undefined"
+                  :class="[
+                    'text-foreground text-sm leading-snug tracking-tight',
+                    group.activity.subject_url && 'hover:underline',
+                  ]"
+                >
+                  <span class="font-medium">{{ group.activity.causer_name }}</span
+                  ><template v-for="(part, i) in descriptionParts(group.activity)" :key="i"
+                    ><span v-if="part.quoted" class="text-foreground font-medium tracking-tight">{{
+                      part.text
+                    }}</span
+                    ><template v-else>{{ part.text }}</template></template
+                  ><Icon
+                    v-if="group.activity.subject_url"
+                    name="hugeicons:arrow-up-right-03"
+                    class="ml-0.5 inline size-3 shrink-0 align-middle"
+                  />
                   <button
                     v-if="group.count > 1"
                     class="text-muted-foreground hover:text-foreground ml-0.5 text-xs tracking-tight"
-                    @click="toggleGroup(group.id)"
+                    @click.prevent.stop="toggleGroup(group.id)"
                   >
                     {{ expandedGroups.has(group.id) ? "(collapse)" : `(+${group.count - 1} more)` }}
                   </button>
-                </p>
+                </component>
                 <span
                   v-tippy="$dayjs(group.activity.created_at).format('MMMM D, YYYY [at] h:mm A')"
                   class="text-muted-foreground shrink-0 text-xs tracking-tight sm:text-sm"
@@ -129,12 +152,8 @@
                 class="mt-1 flex w-fit items-center gap-x-1.5 transition-opacity hover:opacity-70"
               >
                 <span
-                  class="text-foreground inline-flex shrink-0 items-center gap-x-1 text-xs font-medium tracking-tight sm:text-sm"
+                  class="text-foreground inline-flex shrink-0 items-center text-xs font-medium tracking-tight sm:text-sm"
                 >
-                  <Icon
-                    :name="eventMeta(group.activity).icon"
-                    :class="[eventMeta(group.activity).class, 'size-3.5 shrink-0']"
-                  />
                   {{ group.activity.subject_type }}
                 </span>
                 <span
@@ -150,12 +169,8 @@
               </NuxtLink>
               <div v-else-if="group.activity.subject_name" class="mt-1 flex items-center gap-x-1.5">
                 <span
-                  class="text-foreground inline-flex shrink-0 items-center gap-x-1 text-xs font-medium tracking-tight sm:text-sm"
+                  class="text-foreground inline-flex shrink-0 items-center text-xs font-medium tracking-tight sm:text-sm"
                 >
-                  <Icon
-                    :name="eventMeta(group.activity).icon"
-                    :class="[eventMeta(group.activity).class, 'size-3.5 shrink-0']"
-                  />
                   {{ group.activity.subject_type }}
                 </span>
                 <span
@@ -226,9 +241,15 @@
               <!-- Avatar -->
               <div
                 v-if="!subActivity.causer"
-                class="bg-muted text-muted-foreground mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full"
+                class="bg-muted text-muted-foreground relative mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full"
               >
                 <Icon name="hugeicons:ai-setting" class="size-5 shrink-0" />
+                <span
+                  :class="[
+                    'ring-background absolute -right-0.5 -bottom-0.5 size-2 rounded-full ring-2',
+                    eventIndicatorBg(subActivity),
+                  ]"
+                ></span>
               </div>
               <Avatar
                 v-else
@@ -236,15 +257,33 @@
                 size="sm"
                 rounded="rounded-full"
                 class="mt-0.5 size-8 shrink-0"
+                :indicator="eventIndicator(subActivity)"
               />
 
               <!-- Content -->
               <div class="min-w-0 flex-1 pt-0.5">
                 <div class="flex items-start justify-between gap-x-3">
-                  <p class="text-foreground text-sm leading-snug tracking-tight">
-                    <span class="font-medium">{{ subActivity.causer_name }}</span>
-                    {{ truncate(descriptionWithoutCauser(subActivity), 120) }}
-                  </p>
+                  <component
+                    :is="subActivity.subject_url ? NuxtLink : 'p'"
+                    :to="subActivity.subject_url || undefined"
+                    :class="[
+                      'text-foreground text-sm leading-snug tracking-tight',
+                      subActivity.subject_url && 'hover:underline',
+                    ]"
+                  >
+                    <span class="font-medium">{{ subActivity.causer_name }}</span
+                    ><template v-for="(part, i) in descriptionParts(subActivity)" :key="i"
+                      ><span
+                        v-if="part.quoted"
+                        class="text-foreground font-medium tracking-tight"
+                        >{{ part.text }}</span
+                      ><template v-else>{{ part.text }}</template></template
+                    ><Icon
+                      v-if="subActivity.subject_url"
+                      name="hugeicons:arrow-up-right-03"
+                      class="ml-0.5 inline size-3.5 shrink-0 align-middle"
+                    />
+                  </component>
                   <span
                     v-tippy="$dayjs(subActivity.created_at).format('MMMM D, YYYY [at] h:mm A')"
                     class="text-muted-foreground shrink-0 text-xs tracking-tight sm:text-sm"
@@ -260,12 +299,8 @@
                   class="mt-1 flex w-fit items-center gap-x-1.5 transition-opacity hover:opacity-70"
                 >
                   <span
-                    class="text-foreground inline-flex shrink-0 items-center gap-x-1 text-xs font-medium tracking-tight sm:text-sm"
+                    class="text-foreground inline-flex shrink-0 items-center text-xs font-medium tracking-tight sm:text-sm"
                   >
-                    <Icon
-                      :name="eventMeta(subActivity).icon"
-                      :class="[eventMeta(subActivity).class, 'size-3.5 shrink-0']"
-                    />
                     {{ subActivity.subject_type }}
                   </span>
                   <span
@@ -279,12 +314,8 @@
                 </NuxtLink>
                 <div v-else-if="subActivity.subject_name" class="mt-1 flex items-center gap-x-1.5">
                   <span
-                    class="text-foreground inline-flex shrink-0 items-center gap-x-1 text-xs font-medium tracking-tight sm:text-sm"
+                    class="text-foreground inline-flex shrink-0 items-center text-xs font-medium tracking-tight sm:text-sm"
                   >
-                    <Icon
-                      :name="eventMeta(subActivity).icon"
-                      :class="[eventMeta(subActivity).class, 'size-3.5 shrink-0']"
-                    />
                     {{ subActivity.subject_type }}
                   </span>
                   <span
@@ -300,7 +331,7 @@
                 <!-- Changes -->
                 <div
                   v-if="subActivity.changes?.length && subActivity.event === 'updated'"
-                  class="mt-2 flex flex-col gap-y-1"
+                  class="mt-1 flex flex-col gap-y-1"
                 >
                   <div
                     v-for="change in subActivity.changes"
@@ -348,8 +379,9 @@
     >
       <div class="flex items-center justify-between gap-x-4">
         <div class="text-muted-foreground text-sm tracking-tight">
-          Showing {{ paginationInfo.from }} to {{ paginationInfo.to }} of
-          {{ paginationInfo.total }} results.
+          Showing {{ paginationInfo.from.toLocaleString() }} to
+          {{ paginationInfo.to.toLocaleString() }} of
+          {{ paginationInfo.total.toLocaleString() }} results.
         </div>
         <Spinner v-if="loading" />
       </div>
@@ -460,6 +492,8 @@ watch(
 
 const skeletonCount = computed(() => Math.min(props.perPage, 10));
 
+const NuxtLink = resolveComponent("NuxtLink");
+
 // Group consecutive similar activities
 const expandedGroups = ref(new Set());
 
@@ -517,14 +551,41 @@ const sectionedGroups = computed(() => {
   return sections;
 });
 
-const EVENT_META = {
-  created: { icon: "hugeicons:plus-sign", class: "text-success-foreground" },
-  updated: { icon: "hugeicons:edit-02", class: "text-info-foreground" },
-  deleted: { icon: "hugeicons:delete-01", class: "text-destructive-foreground" },
-  restored: { icon: "hugeicons:refresh", class: "text-warning-foreground" },
+const EVENT_INDICATOR = {
+  created: "success",
+  updated: "info",
+  deleted: "destructive",
+  restored: "warning",
 };
-const DEFAULT_EVENT_META = { icon: "hugeicons:activity-03", class: "text-muted-foreground" };
-const eventMeta = (activity) => EVENT_META[activity?.event] || DEFAULT_EVENT_META;
+const eventIndicator = (activity) => EVENT_INDICATOR[activity?.event] || "muted";
+
+const INDICATOR_BG = {
+  success: "bg-success",
+  info: "bg-info",
+  warning: "bg-warning",
+  destructive: "bg-destructive",
+  muted: "bg-gray-500",
+};
+const eventIndicatorBg = (activity) => INDICATOR_BG[eventIndicator(activity)];
+
+const descriptionParts = (activity) => {
+  const text = truncate(descriptionWithoutCauser(activity), 120) || "";
+  const parts = [];
+  const regex = /"([^"]+)"/g;
+  let last = 0;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > last) {
+      parts.push({ text: text.slice(last, match.index), quoted: false });
+    }
+    parts.push({ text: match[1], quoted: true });
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) {
+    parts.push({ text: text.slice(last), quoted: false });
+  }
+  return parts;
+};
 
 const toggleGroup = (groupId) => {
   if (expandedGroups.value.has(groupId)) {
@@ -559,10 +620,8 @@ const handlePageSizeChange = (value) => {
 const descriptionWithoutCauser = (activity) => {
   const desc = activity.human_description || "";
   const name = activity.causer_name || "";
-  if (name && desc.startsWith(name)) {
-    return desc.slice(name.length);
-  }
-  return desc;
+  const rest = name && desc.startsWith(name) ? desc.slice(name.length) : desc;
+  return rest ? " " + rest.trimStart() : "";
 };
 
 const isDatetimeString = (value) => {

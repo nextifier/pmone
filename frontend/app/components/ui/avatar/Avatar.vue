@@ -54,8 +54,11 @@
       </span>
 
       <span
-        v-if="showIndicator"
-        class="ring-background bg-success absolute -right-0.5 -bottom-0.5 size-2 rounded-full ring-2"
+        v-if="indicator"
+        :class="[
+          'ring-background absolute -right-0.5 -bottom-0.5 size-2 rounded-full ring-2',
+          indicatorClass,
+        ]"
       ></span>
     </div>
   </div>
@@ -66,9 +69,11 @@ import { computed, inject } from "vue";
 
 const props = defineProps({
   model: Object,
-  showIndicator: {
-    type: Boolean,
-    default: false,
+  indicator: {
+    type: String,
+    default: null,
+    validator: (v) =>
+      v === null || ["success", "info", "warning", "destructive", "muted"].includes(v),
   },
   size: {
     type: String,
@@ -97,6 +102,17 @@ const props = defineProps({
 });
 
 const avatarGroupContext = inject("avatarGroupContext", null);
+
+const indicatorClass = computed(() => {
+  const map = {
+    success: "bg-success",
+    info: "bg-info",
+    warning: "bg-warning",
+    destructive: "bg-destructive",
+    muted: "bg-gray-500",
+  };
+  return map[props.indicator] || "";
+});
 
 const effectiveColorful = computed(() =>
   avatarGroupContext && avatarGroupContext.colorful !== undefined

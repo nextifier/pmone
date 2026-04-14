@@ -409,7 +409,9 @@ class LogController extends Controller
                 return "{$userName} removed {$memberName} from members";
 
             case 'imported':
-                return $description ?: "{$userName} imported data";
+                return $description
+                    ? "{$userName} ".lcfirst($description)
+                    : "{$userName} imported data";
 
             case 'role_created':
                 $roleName = $activity->properties['role_name'] ?? $subjectName ?? 'unknown';
@@ -482,16 +484,21 @@ class LogController extends Controller
                     : "{$userName} changed password for {$subjectName}";
 
             default:
-                if ($description === 'User logged in') {
-                    return "{$userName} logged in";
-                }
+                $aliases = [
+                    'Magic link requested' => 'requested a magic link',
+                    'Password reset' => 'reset their password',
+                    'Password changed' => 'changed their password',
+                    'Activity logs cleared' => 'cleared all activity logs',
+                ];
 
-                if ($description === 'Activity logs cleared') {
-                    return "{$userName} cleared all activity logs";
+                if ($description && isset($aliases[$description])) {
+                    return "{$userName} {$aliases[$description]}";
                 }
 
                 if ($description) {
-                    return $description;
+                    $clean = preg_replace('/^User\s+/i', '', $description);
+
+                    return "{$userName} ".lcfirst($clean);
                 }
 
                 return "{$userName} performed an action";

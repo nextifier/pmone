@@ -2,7 +2,7 @@
   <Popover>
     <PopoverTrigger as-child>
       <button class="rounded-full">
-        <Avatar :model="user" class="size-8" :showIndicator="true" />
+        <Avatar :model="user" class="size-8" indicator="success" />
       </button>
     </PopoverTrigger>
     <PopoverContent class="flex w-56 flex-col gap-y-1 rounded-lg px-0 py-1" align="end">

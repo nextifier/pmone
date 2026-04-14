@@ -232,7 +232,7 @@ const navMainGroups = computed(() => {
     coreItems.push({
       label: "Partners",
       path: "/partners",
-      iconName: "hugeicons:agreement-02",
+      iconName: "hugeicons:dim-sum-02",
     });
   }
 
