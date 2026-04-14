@@ -3,7 +3,7 @@
     <!-- Page Header -->
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-x-2.5">
-        <Icon name="hugeicons:analytics-02" class="text-primary size-5 sm:size-6" />
+        <Icon name="hugeicons:analytics-02" class="text-primary size-5 shrink-0 sm:size-6" />
         <h1 class="page-title">Activity Logs</h1>
       </div>
 
@@ -11,7 +11,7 @@
         <button
           @click="fetchActivities"
           :disabled="loading || clearing"
-          class="border-border hover:bg-muted text-body flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+          class="border-border hover:bg-muted text-body flex items-center gap-x-1.5 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Icon
             name="hugeicons:reload"
@@ -19,6 +19,9 @@
             :class="{ 'animate-spin': loading }"
           />
           <span>Refresh</span>
+          <KbdGroup class="hidden sm:flex">
+            <Kbd>R</Kbd>
+          </KbdGroup>
         </button>
 
         <button
@@ -39,11 +42,36 @@
       :meta="meta"
       :loading="loading"
       :per-page="perPage"
+      :initial-search="search"
       search-placeholder="Search in description, user, or event..."
       @search="onSearch"
       @page="onPage"
       @per-page-change="onPerPageChange"
     >
+      <template v-if="activeChips.length > 0" #chips>
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            v-for="chip in activeChips"
+            :key="chip.key"
+            type="button"
+            class="bg-muted hover:bg-muted/70 text-foreground flex items-center gap-x-1.5 rounded-full py-1 pr-1 pl-2.5 text-xs tracking-tight active:scale-98"
+            @click="chip.clear"
+          >
+            <span class="text-muted-foreground">{{ chip.label }}:</span>
+            <span class="font-medium">{{ chip.value }}</span>
+            <Icon
+              name="hugeicons:cancel-01"
+              class="text-muted-foreground hover:text-foreground size-3.5 shrink-0"
+            />
+          </button>
+          <button
+            class="text-muted-foreground hover:text-foreground text-xs tracking-tight underline"
+            @click="clearFilters"
+          >
+            Clear all
+          </button>
+        </div>
+      </template>
       <template #filters>
         <Popover>
           <PopoverTrigger asChild>
@@ -54,7 +82,7 @@
               <span class="hidden sm:flex">Filter</span>
               <span
                 v-if="totalActiveFilters > 0"
-                class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
+                class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-xs font-medium tracking-tight"
               >
                 {{ totalActiveFilters }}
               </span>
@@ -91,6 +119,18 @@
               <div class="space-y-2.5">
                 <div class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
                   Date Range
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <button
+                    v-for="preset in datePresets"
+                    :key="preset.label"
+                    type="button"
+                    class="hover:bg-muted border-border rounded-md border px-2 py-0.5 text-xs tracking-tight active:scale-98"
+                    :class="{ 'bg-muted': activePreset === preset.label }"
+                    @click="applyDatePreset(preset)"
+                  >
+                    {{ preset.label }}
+                  </button>
                 </div>
                 <div class="flex flex-col gap-y-2">
                   <DatePicker
@@ -211,6 +251,7 @@
 
 <script setup>
 import { Checkbox } from "@/components/ui/checkbox";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -236,6 +277,9 @@ usePageMeta(null, { title: "Activity Logs" });
 
 const { user } = useSanctumAuth();
 const client = useSanctumClient();
+const { $dayjs } = useNuxtApp();
+const route = useRoute();
+const router = useRouter();
 
 const activities = ref([]);
 const meta = ref(null);
@@ -243,15 +287,18 @@ const loading = ref(true);
 const clearing = ref(false);
 const clearDialogOpen = ref(false);
 
-// Filters
-const search = ref("");
-const page = ref(1);
-const perPage = ref(50);
-const selectedLogNames = ref([]);
-const selectedEvents = ref([]);
-const selectedCauserId = ref("");
-const dateFrom = ref(null);
-const dateTo = ref(null);
+const q = route.query;
+const parseList = (v) => (typeof v === "string" && v.length ? v.split(",") : []);
+
+// Filters (hydrated from URL query)
+const search = ref(typeof q.search === "string" ? q.search : "");
+const page = ref(q.page ? Number(q.page) : 1);
+const perPage = ref(q.per_page ? Number(q.per_page) : 50);
+const selectedLogNames = ref(parseList(q.log_name));
+const selectedEvents = ref(parseList(q.event));
+const selectedCauserId = ref(typeof q.causer_id === "string" ? q.causer_id : "");
+const dateFrom = ref(typeof q.from === "string" ? $dayjs(q.from).toDate() : null);
+const dateTo = ref(typeof q.to === "string" ? $dayjs(q.to).toDate() : null);
 const logNameOptions = ref([]);
 const eventOptions = ref([]);
 const causerOptions = ref([]);
@@ -264,7 +311,110 @@ const totalActiveFilters = computed(() => {
   return count;
 });
 
+const datePresets = [
+  { label: "Today", fromOffset: 0 },
+  { label: "7d", fromOffset: 6 },
+  { label: "30d", fromOffset: 29 },
+  { label: "This month", startOfMonth: true },
+];
+
+const activePreset = computed(() => {
+  if (!dateFrom.value || !dateTo.value) return null;
+  const today = $dayjs().startOf("day");
+  const from = $dayjs(dateFrom.value).startOf("day");
+  const to = $dayjs(dateTo.value).startOf("day");
+  if (!to.isSame(today)) return null;
+  for (const preset of datePresets) {
+    if (preset.startOfMonth) {
+      if (from.isSame(today.startOf("month"))) return preset.label;
+    } else if (from.isSame(today.subtract(preset.fromOffset, "day"))) {
+      return preset.label;
+    }
+  }
+  return null;
+});
+
+function applyDatePreset(preset) {
+  const today = $dayjs().startOf("day");
+  const from = preset.startOfMonth ? today.startOf("month") : today.subtract(preset.fromOffset, "day");
+  dateFrom.value = from.toDate();
+  dateTo.value = today.toDate();
+  page.value = 1;
+  fetchActivities();
+}
+
+const causerName = computed(() => {
+  if (!selectedCauserId.value) return "";
+  const c = causerOptions.value.find((x) => String(x.id) === String(selectedCauserId.value));
+  return c?.name || selectedCauserId.value;
+});
+
+const activeChips = computed(() => {
+  const chips = [];
+  if (selectedCauserId.value) {
+    chips.push({
+      key: "causer",
+      label: "User",
+      value: causerName.value,
+      clear: () => onCauserChange("all"),
+    });
+  }
+  if (dateFrom.value || dateTo.value) {
+    const fmt = (d) => (d ? $dayjs(d).format("MMM D") : "…");
+    chips.push({
+      key: "date",
+      label: "Date",
+      value: `${fmt(dateFrom.value)} - ${fmt(dateTo.value)}`,
+      clear: () => {
+        dateFrom.value = null;
+        dateTo.value = null;
+        page.value = 1;
+        fetchActivities();
+      },
+    });
+  }
+  for (const name of selectedLogNames.value) {
+    chips.push({
+      key: `log_name:${name}`,
+      label: "Log",
+      value: name,
+      clear: () => toggleFilter("log_name", name, false),
+    });
+  }
+  for (const ev of selectedEvents.value) {
+    chips.push({
+      key: `event:${ev}`,
+      label: "Event",
+      value: ev,
+      clear: () => toggleFilter("event", ev, false),
+    });
+  }
+  if (search.value) {
+    chips.push({
+      key: "search",
+      label: "Search",
+      value: search.value,
+      clear: () => onSearch(""),
+    });
+  }
+  return chips;
+});
+
+function syncUrl() {
+  const query = {};
+  if (search.value) query.search = search.value;
+  if (page.value > 1) query.page = String(page.value);
+  if (perPage.value !== 50) query.per_page = String(perPage.value);
+  if (selectedLogNames.value.length) query.log_name = selectedLogNames.value.join(",");
+  if (selectedEvents.value.length) query.event = selectedEvents.value.join(",");
+  if (selectedCauserId.value) query.causer_id = selectedCauserId.value;
+  if (dateFrom.value) query.from = $dayjs(dateFrom.value).format("YYYY-MM-DD");
+  if (dateTo.value) query.to = $dayjs(dateTo.value).format("YYYY-MM-DD");
+  router.replace({ query });
+}
+
 async function fetchActivities() {
+  syncUrl();
   loading.value = true;
   try {
     const params = new URLSearchParams();
@@ -275,12 +425,10 @@ async function fetchActivities() {
     if (selectedEvents.value.length) params.append("event", selectedEvents.value.join(","));
     if (selectedCauserId.value) params.append("causer_id", selectedCauserId.value);
     if (dateFrom.value) {
-      const d = new Date(dateFrom.value);
-      params.append("from", d.toISOString().split("T")[0]);
+      params.append("from", $dayjs(dateFrom.value).format("YYYY-MM-DD"));
     }
     if (dateTo.value) {
-      const d = new Date(dateTo.value);
-      params.append("to", d.toISOString().split("T")[0]);
+      params.append("to", $dayjs(dateTo.value).format("YYYY-MM-DD"));
     }
 
     const res = await client(`/api/logs?${params.toString()}`);
@@ -356,6 +504,7 @@ function onDateToChange(value) {
 }
 
 function clearFilters() {
+  search.value = "";
   selectedLogNames.value = [];
   selectedEvents.value = [];
   selectedCauserId.value = "";
@@ -386,5 +535,15 @@ const clearLogs = async () => {
 onMounted(() => {
   fetchActivities();
   loadFilterOptions();
+});
+
+defineShortcuts({
+  r: {
+    handler: () => {
+      if (!loading.value && !clearing.value) {
+        fetchActivities();
+      }
+    },
+  },
 });
 </script>

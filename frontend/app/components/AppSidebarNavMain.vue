@@ -346,6 +346,23 @@ const navMainGroups = computed(() => {
     });
   }
 
+  // Activity Logs - requires admin.logs permission
+  if (hasPermission("admin.logs")) {
+    adminItems.push({
+      label: "Activity Logs",
+      path: "/logs",
+      iconName: "hugeicons:activity-03",
+    });
+  }
+
+  if (hasPermission("users.read")) {
+    adminItems.push({
+      label: "Exhibitor PICs",
+      path: "/exhibitors",
+      iconName: "hugeicons:location-user-04",
+    });
+  }
+
   // Roles - requires roles.read permission
   if (hasPermission("roles.read")) {
     adminItems.push({
@@ -379,15 +396,6 @@ const navMainGroups = computed(() => {
       label: "Google Analytics Properties",
       path: "/ga-properties",
       iconName: "hugeicons:analytics-01",
-    });
-  }
-
-  // Activity Logs - requires admin.logs permission
-  if (hasPermission("admin.logs")) {
-    adminItems.push({
-      label: "Activity Logs",
-      path: "/logs",
-      iconName: "hugeicons:activity-03",
     });
   }
 

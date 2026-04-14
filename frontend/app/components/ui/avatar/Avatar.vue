@@ -5,13 +5,15 @@
     class="relative shrink-0"
     :class="[
       gradientFrame
-        ? `${effectiveRounded} before:gradient-insta before:absolute before:-inset-1 before:rounded-[calc(var(--avatar-r)+0.25rem)] before:[corner-shape:inherit] before:bg-linear-to-tr before:content-['']`
+        ? `${effectiveRounded} before:gradient-insta before:absolute before:-inset-1 before:rounded-[calc(var(--avatar-r)+0.25rem)] before:bg-linear-to-tr before:content-[''] before:[corner-shape:inherit]`
         : '',
     ]"
     :style="gradientFrame ? { '--avatar-r': radiusValue } : undefined"
   >
     <div
-      :style="!model?.profile_image && effectiveColorful && !gradientFrame ? meshGradientStyle : undefined"
+      :style="
+        !model?.profile_image && effectiveColorful && !gradientFrame ? meshGradientStyle : undefined
+      "
       :class="[
         'outline-inside @container relative flex aspect-square shrink-0 items-center justify-center text-center',
         !model?.profile_image && (!effectiveColorful || gradientFrame) ? 'bg-muted' : '',
@@ -32,8 +34,10 @@
       <span
         v-else
         :class="[
-          'initial text-[45cqw] font-light tracking-tight select-none',
-          effectiveColorful && !gradientFrame ? 'text-white' : 'text-muted-foreground',
+          'initial text-[45cqw] tracking-tight select-none',
+          effectiveColorful && !gradientFrame
+            ? 'font-medium text-white'
+            : 'text-muted-foreground font-light',
         ]"
       >
         {{
@@ -97,7 +101,7 @@ const avatarGroupContext = inject("avatarGroupContext", null);
 const effectiveColorful = computed(() =>
   avatarGroupContext && avatarGroupContext.colorful !== undefined
     ? avatarGroupContext.colorful
-    : props.colorful,
+    : props.colorful
 );
 
 const effectiveRounded = computed(() => {

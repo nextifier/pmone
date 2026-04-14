@@ -196,8 +196,6 @@ class LogController extends Controller
             'description' => $activity->description,
             'human_description' => self::generateHumanDescription($activity),
             'event' => $activity->event,
-            'icon' => self::getEventIcon($activity->event),
-            'color' => self::getEventColor($activity->event),
             'subject_type' => $activity->subject_type ? class_basename($activity->subject_type) : null,
             'subject_id' => $activity->subject_id,
             'subject_name' => self::getSubjectName($activity),
@@ -243,6 +241,11 @@ class LogController extends Controller
             return $subject->brand?->name;
         }
 
+        // PromotionPost: use related brand name
+        if ($subjectType === 'PromotionPost') {
+            return $subject->brandEvent?->brand?->name;
+        }
+
         // ContactFormSubmission: use subject field or extract name from form_data
         if ($subjectType === 'ContactFormSubmission') {
             if ($subject->subject) {
@@ -274,8 +277,37 @@ class LogController extends Controller
             'Event' => self::getEventUrl($subject),
             'Contact' => $subject->ulid ? "/contacts?search={$subject->name}" : null,
             'ShortLink' => $subject->slug ? "/link-pages/{$subject->linkPage?->slug}" : null,
+            'PromotionPost' => self::getPromotionPostUrl($subject),
+            'LinkPage' => $subject->slug ? "/link-pages/{$subject->slug}" : null,
+            'Task' => '/tasks',
+            'Project' => $subject->username ? "/projects/{$subject->username}" : null,
+            'EventProduct' => self::getEventProductUrl($subject),
             default => null,
         };
+    }
+
+    private static function getPromotionPostUrl(mixed $subject): ?string
+    {
+        $brandEvent = $subject->brandEvent;
+        $brand = $brandEvent?->brand;
+        $event = $brandEvent?->event;
+        $project = $event?->project;
+        if (! $brand?->slug || ! $event?->slug || ! $project?->username) {
+            return null;
+        }
+
+        return "/projects/{$project->username}/events/{$event->slug}/brands/{$brand->slug}/marketing";
+    }
+
+    private static function getEventProductUrl(mixed $subject): ?string
+    {
+        $event = $subject->event;
+        $project = $event?->project;
+        if (! $event || ! $project) {
+            return null;
+        }
+
+        return "/projects/{$project->username}/events/{$event->slug}/operational/products";
     }
 
     private static function getBrandEventUrl(mixed $subject): ?string
@@ -528,52 +560,6 @@ class LogController extends Controller
         ];
 
         return $map[$className] ?? strtolower(preg_replace('/(?<!^)[A-Z]/', ' $0', $className));
-    }
-
-    private static function getEventIcon(?string $event = null): string
-    {
-        return match ($event) {
-            'created' => 'hugeicons:add-circle',
-            'updated' => 'hugeicons:edit-02',
-            'deleted' => 'hugeicons:delete-02',
-            'restored' => 'hugeicons:refresh',
-            'member_added' => 'hugeicons:user-add-01',
-            'member_removed' => 'hugeicons:user-remove-01',
-            'imported' => 'hugeicons:file-import',
-            'exported' => 'hugeicons:file-export',
-            'role_created', 'role_updated', 'role_deleted' => 'hugeicons:shield-01',
-            'role_assigned' => 'hugeicons:user-shield-01',
-            'bulk_deleted', 'bulk_force_deleted' => 'hugeicons:delete-02',
-            'bulk_restored' => 'hugeicons:refresh',
-            'bulk_status_updated' => 'hugeicons:edit-02',
-            'api_key_regenerated' => 'hugeicons:key-01',
-            'password_changed' => 'hugeicons:lock',
-            default => 'hugeicons:activity-01',
-        };
-    }
-
-    private static function getEventColor(?string $event = null): string
-    {
-        return match ($event) {
-            'created' => 'green',
-            'updated' => 'blue',
-            'deleted' => 'red',
-            'restored' => 'amber',
-            'member_added' => 'green',
-            'member_removed' => 'red',
-            'imported' => 'purple',
-            'exported' => 'purple',
-            'role_created' => 'green',
-            'role_updated' => 'blue',
-            'role_deleted' => 'red',
-            'role_assigned' => 'blue',
-            'bulk_deleted', 'bulk_force_deleted' => 'red',
-            'bulk_restored' => 'amber',
-            'bulk_status_updated' => 'blue',
-            'api_key_regenerated' => 'amber',
-            'password_changed' => 'amber',
-            default => 'zinc',
-        };
     }
 
     /**
