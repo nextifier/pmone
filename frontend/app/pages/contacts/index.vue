@@ -1143,19 +1143,22 @@ defineShortcuts({
   },
 });
 
-const processedOpenUlids = new Set();
+// Auto-open detail from query param (e.g. from log link)
+const processedUlids = new Set();
+
 async function openFromQueryParam(ulid) {
-  if (!ulid || processedOpenUlids.has(ulid)) return;
-  processedOpenUlids.add(ulid);
+  if (!ulid || processedUlids.has(ulid)) return;
+  processedUlids.add(ulid);
+
+  // Remove query param BEFORE opening dialog to prevent history.back() from re-triggering
   router.replace({ path: route.path, query: { ...route.query, open: undefined } });
+
   await openEditDialog({ ulid });
 }
 
 onMounted(() => openFromQueryParam(route.query.open));
-watch(
-  () => route.query.open,
-  (val) => openFromQueryParam(val),
-);
+
+watch(() => route.query.open, (newVal) => openFromQueryParam(newVal));
 
 // Table columns
 const columns = computed(() => [

@@ -271,13 +271,13 @@ class LogController extends Controller
 
         return match ($subjectType) {
             'Post' => $subject->slug ? "/posts/{$subject->slug}/edit" : null,
-            'Brand' => $subject->slug ? "/brands/{$subject->slug}" : null,
+            'Brand' => '/brands',
             'User' => $subject->username ? "/users?search={$subject->username}" : null,
             'BrandEvent' => self::getBrandEventUrl($subject),
             'Event' => self::getEventUrl($subject),
             'Contact' => $subject->ulid ? "/contacts?open={$subject->ulid}" : null,
             'ContactFormSubmission' => $subject->ulid ? "/inbox?open={$subject->ulid}" : null,
-            'ShortLink' => $subject->slug ? "/link-pages/{$subject->linkPage?->slug}" : null,
+            'ShortLink' => $subject->slug ? "/links/{$subject->slug}" : null,
             'PromotionPost' => self::getPromotionPostUrl($subject),
             'LinkPage' => $subject->slug ? "/link-pages/{$subject->slug}" : null,
             'Task' => '/tasks',
