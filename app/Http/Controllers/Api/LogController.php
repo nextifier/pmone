@@ -275,7 +275,8 @@ class LogController extends Controller
             'User' => $subject->username ? "/users?search={$subject->username}" : null,
             'BrandEvent' => self::getBrandEventUrl($subject),
             'Event' => self::getEventUrl($subject),
-            'Contact' => $subject->ulid ? "/contacts?search={$subject->name}" : null,
+            'Contact' => $subject->ulid ? "/contacts?open={$subject->ulid}" : null,
+            'ContactFormSubmission' => $subject->ulid ? "/inbox?open={$subject->ulid}" : null,
             'ShortLink' => $subject->slug ? "/link-pages/{$subject->linkPage?->slug}" : null,
             'PromotionPost' => self::getPromotionPostUrl($subject),
             'LinkPage' => $subject->slug ? "/link-pages/{$subject->slug}" : null,
@@ -350,6 +351,13 @@ class LogController extends Controller
 
         switch ($event) {
             case 'created':
+                if ($subjectType === 'BrandEvent' && $activity->subject) {
+                    $brandName = $activity->subject->brand?->name;
+                    $eventTitle = $activity->subject->event?->title;
+                    if ($brandName && $eventTitle) {
+                        return "{$userName} added brand \"{$brandName}\" to event \"{$eventTitle}\"";
+                    }
+                }
                 $modelLabel = $subjectType ? self::humanizeModelName($subjectType) : 'record';
                 if ($subjectName) {
                     return "{$userName} created {$modelLabel} \"{$subjectName}\"";

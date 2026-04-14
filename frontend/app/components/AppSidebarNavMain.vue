@@ -338,12 +338,6 @@ const navMainGroups = computed(() => {
       path: "/users",
       iconName: "hugeicons:user-group",
     });
-
-    adminItems.push({
-      label: "Exhibitor PICs",
-      path: "/exhibitors",
-      iconName: "hugeicons:location-user-04",
-    });
   }
 
   // Activity Logs - requires admin.logs permission

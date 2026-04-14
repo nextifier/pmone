@@ -818,6 +818,7 @@ usePageMeta(null, {
 const { $dayjs } = useNuxtApp();
 const client = useSanctumClient();
 const route = useRoute();
+const router = useRouter();
 const { hasPermission, isAdminOrMaster } = usePermission();
 const canCreate = computed(() => hasPermission("contacts.create"));
 const canUpdate = computed(() => hasPermission("contacts.update"));
@@ -1141,6 +1142,20 @@ defineShortcuts({
     whenever: [computed(() => route.path === "/contacts")],
   },
 });
+
+const processedOpenUlids = new Set();
+async function openFromQueryParam(ulid) {
+  if (!ulid || processedOpenUlids.has(ulid)) return;
+  processedOpenUlids.add(ulid);
+  router.replace({ path: route.path, query: { ...route.query, open: undefined } });
+  await openEditDialog({ ulid });
+}
+
+onMounted(() => openFromQueryParam(route.query.open));
+watch(
+  () => route.query.open,
+  (val) => openFromQueryParam(val),
+);
 
 // Table columns
 const columns = computed(() => [
