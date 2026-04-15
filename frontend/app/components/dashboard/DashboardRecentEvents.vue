@@ -3,7 +3,9 @@
     <h3 class="page-title">Recents Events</h3>
 
     <!-- Loading -->
-    <EventListSkeleton v-if="loading" />
+    <div v-if="loading" class="grid grid-cols-1 gap-y-10">
+      <EventListItem v-for="i in 3" :key="i" skeleton />
+    </div>
 
     <!-- Empty -->
     <template v-else-if="!events || events.length === 0">

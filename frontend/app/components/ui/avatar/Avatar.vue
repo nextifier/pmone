@@ -73,7 +73,7 @@ const props = defineProps({
     type: String,
     default: null,
     validator: (v) =>
-      v === null || ["success", "info", "warning", "destructive", "muted"].includes(v),
+      v === null || ["success", "info", "warning", "destructive", "primary"].includes(v),
   },
   size: {
     type: String,
@@ -105,11 +105,11 @@ const avatarGroupContext = inject("avatarGroupContext", null);
 
 const indicatorClass = computed(() => {
   const map = {
-    success: "bg-success",
+    primary: "bg-primary",
     info: "bg-info",
+    success: "bg-success",
     warning: "bg-warning",
     destructive: "bg-destructive",
-    muted: "bg-gray-500",
   };
   return map[props.indicator] || "";
 });

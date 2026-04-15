@@ -1,28 +1,28 @@
 <template>
   <div class="flex flex-col gap-y-4">
     <!-- Search & Filters -->
-    <div class="flex flex-wrap items-center gap-2">
+    <div class="flex flex-wrap items-center gap-1.5">
       <div class="relative min-w-0 flex-1">
         <Icon
           name="hugeicons:search-01"
           class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 shrink-0 -translate-y-1/2"
         />
-        <input
+        <Input
           v-model="searchQuery"
           type="text"
           :placeholder="searchPlaceholder"
-          class="border-input bg-background placeholder:text-muted-foreground focus:ring-ring h-9 w-full rounded-lg border py-0 pr-9 pl-9 text-sm tracking-tight outline-none focus:ring-1"
+          class="rounded-lg pr-9 pl-9"
           @input="debouncedSearch"
         />
-        <button
+        <Button
           v-if="searchQuery"
-          type="button"
-          class="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 flex size-5 -translate-y-1/2 items-center justify-center rounded"
+          variant="ghost"
+          class="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 size-5 -translate-y-1/2 rounded p-0 hover:bg-transparent"
           aria-label="Clear search"
           @click="clearSearch"
         >
           <Icon name="hugeicons:cancel-01" class="size-4 shrink-0" />
-        </button>
+        </Button>
       </div>
 
       <slot name="filters" />
@@ -80,10 +80,11 @@
             <div class="relative">
               <div
                 v-if="!group.activity.causer"
-                class="bg-muted outline-inside text-muted-foreground relative mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full"
+                class="outline-inside text-muted-foreground squircle relative mt-0.5 flex size-8 shrink-0 items-center justify-center"
               >
-                <Icon name="hugeicons:installing-updates-02" class="size-5 shrink-0" />
+                <Icon name="hugeicons:ai-setting" class="size-4.5 shrink-0" />
                 <span
+                  v-if="eventIndicator(group.activity)"
                   :class="[
                     'ring-background absolute -right-0.5 -bottom-0.5 size-2 rounded-full ring-2',
                     eventIndicatorBg(group.activity),
@@ -94,7 +95,7 @@
                 v-else
                 :model="group.activity.causer"
                 size="sm"
-                rounded="rounded-full"
+                rounded="squircle"
                 class="mt-0.5 size-8 shrink-0"
                 :indicator="eventIndicator(group.activity)"
               />
@@ -129,13 +130,14 @@
                     name="hugeicons:arrow-up-right-03"
                     class="ml-0.5 inline size-3 shrink-0 align-middle"
                   />
-                  <button
+                  <Button
                     v-if="group.count > 1"
-                    class="text-muted-foreground hover:text-foreground ml-0.5 text-xs tracking-tight"
+                    variant="link"
+                    class="text-muted-foreground hover:text-foreground ml-0.5 inline h-auto p-0 text-xs font-normal no-underline hover:no-underline"
                     @click.prevent.stop="toggleGroup(group.id)"
                   >
                     {{ expandedGroups.has(group.id) ? "(collapse)" : `(+${group.count - 1} more)` }}
-                  </button>
+                  </Button>
                 </component>
                 <span
                   v-tippy="$dayjs(group.activity.created_at).format('MMMM D, YYYY [at] h:mm A')"
@@ -149,7 +151,7 @@
               <NuxtLink
                 v-if="group.activity.subject_name && group.activity.subject_url"
                 :to="group.activity.subject_url"
-                class="mt-1 flex w-fit items-center gap-x-1.5 transition-opacity hover:opacity-70"
+                class="mt-1 flex max-w-full items-center gap-x-1.5 transition-opacity hover:opacity-70"
               >
                 <span
                   class="text-foreground inline-flex shrink-0 items-center text-xs font-medium tracking-tight sm:text-sm"
@@ -162,7 +164,7 @@
                       ? group.activity.subject_name
                       : undefined
                   "
-                  class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm"
+                  class="text-muted-foreground min-w-0 truncate text-xs tracking-tight sm:text-sm"
                 >
                   {{ truncate(group.activity.subject_name, 80) }}
                 </span>
@@ -179,7 +181,7 @@
                       ? group.activity.subject_name
                       : undefined
                   "
-                  class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm"
+                  class="text-muted-foreground min-w-0 truncate text-xs tracking-tight sm:text-sm"
                 >
                   {{ truncate(group.activity.subject_name, 80) }}
                 </span>
@@ -188,7 +190,7 @@
               <!-- Changes -->
               <div
                 v-if="group.activity.changes?.length && group.activity.event === 'updated'"
-                class="mt-2 flex flex-col gap-y-1"
+                class="mt-1 flex flex-col gap-y-1"
               >
                 <div
                   v-for="change in group.activity.changes"
@@ -245,6 +247,7 @@
               >
                 <Icon name="hugeicons:ai-setting" class="size-5 shrink-0" />
                 <span
+                  v-if="eventIndicator(subActivity)"
                   :class="[
                     'ring-background absolute -right-0.5 -bottom-0.5 size-2 rounded-full ring-2',
                     eventIndicatorBg(subActivity),
@@ -255,7 +258,7 @@
                 v-else
                 :model="subActivity.causer"
                 size="sm"
-                rounded="rounded-full"
+                rounded="squircle"
                 class="mt-0.5 size-8 shrink-0"
                 :indicator="eventIndicator(subActivity)"
               />
@@ -296,7 +299,7 @@
                 <NuxtLink
                   v-if="subActivity.subject_name && subActivity.subject_url"
                   :to="subActivity.subject_url"
-                  class="mt-1 flex w-fit items-center gap-x-1.5 transition-opacity hover:opacity-70"
+                  class="mt-1 flex max-w-full items-center gap-x-1.5 transition-opacity hover:opacity-70"
                 >
                   <span
                     class="text-foreground inline-flex shrink-0 items-center text-xs font-medium tracking-tight sm:text-sm"
@@ -307,7 +310,7 @@
                     v-tippy="
                       subActivity.subject_name.length > 80 ? subActivity.subject_name : undefined
                     "
-                    class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm"
+                    class="text-muted-foreground min-w-0 truncate text-xs tracking-tight sm:text-sm"
                   >
                     {{ truncate(subActivity.subject_name, 80) }}
                   </span>
@@ -322,7 +325,7 @@
                     v-tippy="
                       subActivity.subject_name.length > 80 ? subActivity.subject_name : undefined
                     "
-                    class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm"
+                    class="text-muted-foreground min-w-0 truncate text-xs tracking-tight sm:text-sm"
                   >
                     {{ truncate(subActivity.subject_name, 80) }}
                   </span>
@@ -411,40 +414,48 @@
           >
             <PaginationContent>
               <PaginationFirst asChild>
-                <button
-                  class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                <Button
+                  variant="outline"
+                  size="iconSm"
+                  class="shrink-0 active:scale-98"
                   :disabled="!canGoPrevious"
                   @click="$emit('page', 1)"
                 >
                   <Icon name="lucide:chevron-first" class="size-4 shrink-0" />
-                </button>
+                </Button>
               </PaginationFirst>
               <PaginationPrevious asChild>
-                <button
-                  class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                <Button
+                  variant="outline"
+                  size="iconSm"
+                  class="shrink-0 active:scale-98"
                   :disabled="!canGoPrevious"
                   @click="$emit('page', meta.current_page - 1)"
                 >
                   <Icon name="lucide:chevron-left" class="size-4 shrink-0" />
-                </button>
+                </Button>
               </PaginationPrevious>
               <PaginationNext asChild>
-                <button
-                  class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                <Button
+                  variant="outline"
+                  size="iconSm"
+                  class="shrink-0 active:scale-98"
                   :disabled="!canGoNext"
                   @click="$emit('page', meta.current_page + 1)"
                 >
                   <Icon name="lucide:chevron-right" class="size-4 shrink-0" />
-                </button>
+                </Button>
               </PaginationNext>
               <PaginationLast asChild>
-                <button
-                  class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                <Button
+                  variant="outline"
+                  size="iconSm"
+                  class="shrink-0 active:scale-98"
                   :disabled="!canGoNext"
                   @click="$emit('page', meta.last_page)"
                 >
                   <Icon name="lucide:chevron-last" class="size-4 shrink-0" />
-                </button>
+                </Button>
               </PaginationLast>
             </PaginationContent>
           </Pagination>
@@ -557,14 +568,14 @@ const EVENT_INDICATOR = {
   deleted: "destructive",
   restored: "warning",
 };
-const eventIndicator = (activity) => EVENT_INDICATOR[activity?.event] || "muted";
+const eventIndicator = (activity) => EVENT_INDICATOR[activity?.event] || null;
 
 const INDICATOR_BG = {
-  success: "bg-success",
+  primary: "bg-primary",
   info: "bg-info",
+  success: "bg-success",
   warning: "bg-warning",
   destructive: "bg-destructive",
-  muted: "bg-gray-500",
 };
 const eventIndicatorBg = (activity) => INDICATOR_BG[eventIndicator(activity)];
 

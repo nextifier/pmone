@@ -338,18 +338,7 @@ const navMainGroups = computed(() => {
       path: "/users",
       iconName: "hugeicons:user-group",
     });
-  }
 
-  // Activity Logs - requires admin.logs permission
-  if (hasPermission("admin.logs")) {
-    adminItems.push({
-      label: "Activity Logs",
-      path: "/logs",
-      iconName: "hugeicons:activity-03",
-    });
-  }
-
-  if (hasPermission("users.read")) {
     adminItems.push({
       label: "Exhibitor PICs",
       path: "/exhibitors",
@@ -372,6 +361,15 @@ const navMainGroups = computed(() => {
       label: "Permissions",
       path: "/permissions",
       iconName: "hugeicons:shield-key",
+    });
+  }
+
+  // Activity Logs - requires admin.logs permission
+  if (hasPermission("admin.logs")) {
+    adminItems.push({
+      label: "Activity Logs",
+      path: "/logs",
+      iconName: "hugeicons:activity-03",
     });
   }
 

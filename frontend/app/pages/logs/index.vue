@@ -7,32 +7,36 @@
         <h1 class="page-title">Activity Logs</h1>
       </div>
 
-      <div class="flex items-center gap-x-2">
-        <button
-          @click="fetchActivities"
+      <div class="flex items-center gap-x-1.5">
+        <Button
+          variant="outline"
+          size="sm"
+          class="active:scale-98 max-sm:size-8 max-sm:px-0"
           :disabled="loading || clearing"
-          class="border-border hover:bg-muted text-body flex items-center gap-x-1.5 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+          @click="fetchActivities"
         >
           <Icon
             name="hugeicons:reload"
             class="size-4 shrink-0"
             :class="{ 'animate-spin': loading }"
           />
-          <span>Refresh</span>
+          <span class="hidden sm:flex">Refresh</span>
           <KbdGroup class="hidden sm:flex">
             <Kbd>R</Kbd>
           </KbdGroup>
-        </button>
+        </Button>
 
-        <button
+        <Button
           v-if="user?.roles?.includes('master')"
-          @click="clearDialogOpen = true"
+          variant="outline-destructive"
+          size="sm"
+          class="active:scale-98"
           :disabled="clearing || loading"
-          class="border-border hover:bg-muted text-destructive-foreground flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+          @click="clearDialogOpen = true"
         >
           <Icon name="hugeicons:delete-02" class="size-4 shrink-0" />
           <span>Clear All Logs</span>
-        </button>
+        </Button>
       </div>
     </div>
 
@@ -50,11 +54,11 @@
     >
       <template v-if="activeChips.length > 0" #chips>
         <div class="flex flex-wrap items-center gap-2">
-          <button
+          <Button
             v-for="chip in activeChips"
             :key="chip.key"
-            type="button"
-            class="bg-muted hover:bg-muted/70 text-foreground flex items-center gap-x-1.5 rounded-full py-1 pr-1 pl-2.5 text-xs tracking-tight active:scale-98"
+            variant="ghost"
+            class="bg-muted hover:bg-muted/70 text-foreground h-auto gap-x-1.5 rounded-full px-0 py-1 pr-1 pl-2.5 text-xs font-normal active:scale-98"
             @click="chip.clear"
           >
             <span class="text-muted-foreground">{{ chip.label }}:</span>
@@ -63,20 +67,23 @@
               name="hugeicons:cancel-01"
               class="text-muted-foreground hover:text-foreground size-3.5 shrink-0"
             />
-          </button>
-          <button
-            class="text-muted-foreground hover:text-foreground text-xs tracking-tight underline"
+          </Button>
+          <Button
+            variant="link"
+            class="text-muted-foreground hover:text-foreground h-auto px-0 text-xs underline"
             @click="clearFilters"
           >
             Clear all
-          </button>
+          </Button>
         </div>
       </template>
       <template #filters>
         <Popover>
           <PopoverTrigger asChild>
-            <button
-              class="hover:bg-muted relative flex h-9 shrink-0 items-center gap-x-1.5 rounded-lg border px-2.5 text-sm tracking-tight active:scale-98"
+            <Button
+              variant="outline"
+              size="default"
+              class="relative shrink-0 rounded-lg active:scale-98 max-sm:w-9 max-sm:px-0"
             >
               <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
               <span class="hidden sm:flex">Filter</span>
@@ -86,9 +93,9 @@
               >
                 {{ totalActiveFilters }}
               </span>
-            </button>
+            </Button>
           </PopoverTrigger>
-          <PopoverContent class="w-auto min-w-60 p-3" align="start">
+          <PopoverContent class="w-auto min-w-60 p-3" align="end">
             <div class="space-y-4">
               <!-- User filter -->
               <div v-if="causerOptions.length > 0" class="space-y-2.5">
@@ -118,16 +125,16 @@
                   Date Range
                 </div>
                 <div class="flex flex-wrap gap-1.5">
-                  <button
+                  <Button
                     v-for="preset in datePresets"
                     :key="preset.label"
-                    type="button"
-                    class="hover:bg-muted border-border rounded-md border px-2 py-0.5 text-xs tracking-tight active:scale-98"
+                    variant="outline"
+                    class="h-auto px-2 py-0.5 text-xs font-normal active:scale-98"
                     :class="{ 'bg-muted': activePreset === preset.label }"
                     @click="applyDatePreset(preset)"
                   >
                     {{ preset.label }}
-                  </button>
+                  </Button>
                 </div>
                 <div class="flex flex-col gap-y-2">
                   <DatePicker
@@ -200,13 +207,14 @@
               </div>
 
               <!-- Clear filters -->
-              <button
+              <Button
                 v-if="totalActiveFilters > 0"
-                class="text-muted-foreground hover:text-foreground w-full border-t pt-3 text-center text-xs tracking-tight"
+                variant="ghost"
+                class="text-muted-foreground hover:text-foreground h-auto w-full rounded-none border-t pt-3 text-center text-xs font-normal hover:bg-transparent"
                 @click="clearFilters"
               >
                 Clear all filters
-              </button>
+              </Button>
             </div>
           </PopoverContent>
         </Popover>
@@ -224,21 +232,23 @@
             This will permanently delete all log entries. This action cannot be undone.
           </p>
           <div class="mt-3 flex justify-end gap-2">
-            <button
-              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+            <Button
+              variant="outline"
+              class="rounded-lg active:scale-98"
               :disabled="clearing"
               @click="clearDialogOpen = false"
             >
               Cancel
-            </button>
-            <button
-              class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+            </Button>
+            <Button
+              variant="destructive"
+              class="rounded-lg active:scale-98"
               :disabled="clearing"
               @click="clearLogs"
             >
               <Spinner v-if="clearing" class="size-4 text-white" />
               <span v-else>Clear All Logs</span>
-            </button>
+            </Button>
           </div>
         </div>
       </template>

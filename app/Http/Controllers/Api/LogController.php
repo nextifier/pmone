@@ -271,7 +271,7 @@ class LogController extends Controller
 
         return match ($subjectType) {
             'Post' => $subject->slug ? "/posts/{$subject->slug}/edit" : null,
-            'Brand' => '/brands',
+            'Brand' => $subject->slug ? "/brands/{$subject->slug}/edit" : null,
             'User' => $subject->username ? "/users?search={$subject->username}" : null,
             'BrandEvent' => self::getBrandEventUrl($subject),
             'Event' => self::getEventUrl($subject),

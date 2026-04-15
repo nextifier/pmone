@@ -1,5 +1,40 @@
 <template>
-  <div class="grid w-full grid-cols-1 items-start gap-4 rounded-lg lg:grid-cols-2">
+  <div
+    v-if="skeleton"
+    class="grid w-full grid-cols-1 items-start gap-4 rounded-lg lg:grid-cols-2"
+  >
+    <div class="flex items-center gap-x-2.5 sm:gap-x-4">
+      <Skeleton class="aspect-4/5 w-26 shrink-0 rounded-md sm:w-40" />
+      <div class="flex flex-col gap-y-2">
+        <Skeleton class="h-3.5 w-24" />
+        <Skeleton class="h-4 w-48 sm:w-64" />
+        <div class="flex flex-col gap-y-1.5">
+          <Skeleton class="h-3.5 w-40" />
+          <Skeleton class="h-3.5 w-52" />
+        </div>
+      </div>
+    </div>
+    <div class="grid grow-0 grid-cols-2 gap-2">
+      <div
+        v-for="i in 3"
+        :key="i"
+        class="flex flex-col items-start gap-y-2 rounded-lg border px-3.5 py-3"
+      >
+        <Skeleton class="size-8 rounded-lg" />
+        <div class="space-y-1">
+          <Skeleton class="h-3.5 w-16" />
+          <Skeleton class="h-3 w-24" />
+        </div>
+        <Skeleton class="h-7 w-20" />
+      </div>
+      <Skeleton class="min-h-32 rounded-lg" />
+    </div>
+  </div>
+
+  <div
+    v-else-if="event"
+    class="grid w-full grid-cols-1 items-start gap-4 rounded-lg lg:grid-cols-2"
+  >
     <div class="flex items-start gap-x-2.5 sm:items-center sm:gap-x-4">
       <NuxtLink :to="eventLink" class="shrink-0">
         <div
@@ -103,12 +138,13 @@ interface EventItem {
 }
 
 const props = defineProps<{
-  event: EventItem;
+  event?: EventItem;
   wrapBadges?: boolean;
+  skeleton?: boolean;
 }>();
 
-const eventLink = computed(
-  () => `/projects/${props.event.project_username}/events/${props.event.slug}`
+const eventLink = computed(() =>
+  props.event ? `/projects/${props.event.project_username}/events/${props.event.slug}` : "#"
 );
 
 const statusConfig: Record<string, { label: string; class: string }> = {

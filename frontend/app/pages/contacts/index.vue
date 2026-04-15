@@ -1151,7 +1151,7 @@ async function openFromQueryParam(ulid) {
   processedUlids.add(ulid);
 
   // Remove query param BEFORE opening dialog to prevent history.back() from re-triggering
-  router.replace({ path: route.path, query: { ...route.query, open: undefined } });
+  await router.replace({ path: route.path, query: { ...route.query, open: undefined } });
 
   await openEditDialog({ ulid });
 }
