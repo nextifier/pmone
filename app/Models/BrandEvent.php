@@ -6,6 +6,7 @@ use App\Enums\BoothType;
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -110,6 +111,13 @@ class BrandEvent extends Model implements HasMedia, Sortable
         'order_column_name' => 'order_column',
         'sort_when_creating' => true,
     ];
+
+    protected function boothNumber(): Attribute
+    {
+        return Attribute::make(
+            set: fn (?string $value) => $value ? collect(preg_split('/[\s,]+/', trim($value)))->filter()->implode(', ') : null,
+        );
+    }
 
     protected function casts(): array
     {

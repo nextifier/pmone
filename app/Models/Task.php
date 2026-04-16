@@ -239,6 +239,17 @@ class Task extends Model implements HasMedia
                 $model->completed_at = null;
             }
 
+            // Re-assign order_column when status changes
+            if ($model->isDirty('status')) {
+                if ($model->status === self::STATUS_COMPLETED) {
+                    // Completed: place at the beginning (lowest order)
+                    $model->order_column = (int) static::min('order_column') - 1;
+                } else {
+                    // To Do / In Progress: place at the end (highest order)
+                    $model->order_column = (int) static::max('order_column') + 1;
+                }
+            }
+
             if (auth()->check()) {
                 $model->updated_by = auth()->id();
             }

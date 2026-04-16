@@ -158,7 +158,7 @@
         <div class="border-border bg-card rounded-xl border">
           <div class="flex flex-col divide-y">
             <!-- In Progress Section -->
-            <div v-if="inProgressTasks.length > 0" class="flex flex-col gap-y-4 px-3 py-5">
+            <div v-if="inProgressTasks.length > 0 || canCreate" class="flex flex-col gap-y-4 px-3 py-5">
               <div class="flex items-center gap-x-2">
                 <Icon name="hugeicons:loading-03" class="text-info-foreground size-4.5" />
                 <span class="text-sm font-medium tracking-tight">In Progress</span>
@@ -166,7 +166,7 @@
                   {{ inProgressTasks.length }}
                 </Badge>
               </div>
-              <div ref="inProgressListEl" class="space-y-4">
+              <div v-if="inProgressTasks.length > 0" ref="inProgressListEl" class="space-y-4">
                 <TaskCard
                   v-for="task in inProgressTasks"
                   :key="task.id"
@@ -179,6 +179,25 @@
                   @view="dialogs.openDetailDialog"
                   @edit="dialogs.openEditDialog"
                 />
+              </div>
+
+              <!-- Quick Add In Progress -->
+              <div v-if="canCreate" class="flex items-start gap-x-3.25 pl-6.25">
+                <Icon
+                  name="hugeicons:plus-sign"
+                  class="text-muted-foreground mt-1 size-4.5 shrink-0"
+                />
+                <textarea
+                  ref="quickAddInProgressInputEl"
+                  v-model="quickAddInProgressTitle"
+                  rows="1"
+                  placeholder="Add task..."
+                  class="text-foreground placeholder:text-muted-foreground/60 mt-px field-sizing-content min-h-0 w-full resize-none rounded-xs bg-transparent text-base tracking-tight outline-none"
+                  @keydown.enter.prevent="handleQuickAddInProgress"
+                  @blur="handleQuickAddInProgress"
+                  :disabled="quickAddInProgressLoading"
+                />
+                <Spinner v-if="quickAddInProgressLoading" class="mt-1.5 size-4 shrink-0" />
               </div>
             </div>
 
@@ -228,7 +247,7 @@
 
             <!-- Empty pending -->
             <div
-              v-if="pendingTasks.length === 0 && !quickAddTitle"
+              v-if="pendingTasks.length === 0 && !quickAddTitle && !quickAddInProgressTitle"
               class="flex flex-col items-center justify-center py-8 text-center"
             >
               <Icon name="hugeicons:task-daily-01" class="text-muted-foreground/50 mb-2 size-8" />
@@ -317,6 +336,7 @@ import TasksHeader from "@/components/task/TasksHeader.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import autoAnimate from "@formkit/auto-animate";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -393,11 +413,7 @@ const populateLists = (tasks) => {
     .sort((a, b) => (a.order_column || 0) - (b.order_column || 0));
   completedTasksList.value = tasks
     .filter((t) => t.status === "completed")
-    .sort((a, b) => {
-      const dateA = a.completed_at ? new Date(a.completed_at) : new Date(0);
-      const dateB = b.completed_at ? new Date(b.completed_at) : new Date(0);
-      return dateB - dateA;
-    });
+    .sort((a, b) => (a.order_column || 0) - (b.order_column || 0));
 };
 
 // Sync API data to writable refs
@@ -507,22 +523,61 @@ const updateTaskOrder = async (tasksList) => {
   }
 };
 
+// Auto-animate with enable/disable control for sortable compatibility
+const autoAnimateControllers = ref([]);
+const isDragging = ref(false);
+
+// Apply auto-animate to list elements when they become available
+const initAutoAnimate = (el) => {
+  if (!el) return null;
+  return autoAnimate(el, { disrespectUserMotionPreference: true });
+};
+
+watch(
+  [inProgressListEl, todoListEl, completedListEl],
+  ([ipEl, tdEl, cpEl]) => {
+    autoAnimateControllers.value = [ipEl, tdEl, cpEl]
+      .filter(Boolean)
+      .map(initAutoAnimate)
+      .filter(Boolean);
+  },
+  { flush: "post" }
+);
+
+const disableAllAnimations = () => {
+  isDragging.value = true;
+  autoAnimateControllers.value.forEach((c) => c.disable());
+};
+
+const enableAllAnimations = () => {
+  isDragging.value = false;
+  autoAnimateControllers.value.forEach((c) => c.enable());
+};
+
 // Sortable with proper instance lifecycle (composable handles watch + destroy)
 const sortableEnabled = computed(() => !hasActiveFilters.value);
+
+const sortableCallbacks = {
+  onStart: disableAllAnimations,
+  onEnd: enableAllAnimations,
+};
 
 useSortableList(todoListEl, todoTasksList, {
   onReorder: () => updateTaskOrder(todoTasksList),
   enabled: sortableEnabled,
+  sortableOptions: sortableCallbacks,
 });
 
 useSortableList(inProgressListEl, inProgressTasksList, {
   onReorder: () => updateTaskOrder(inProgressTasksList),
   enabled: sortableEnabled,
+  sortableOptions: sortableCallbacks,
 });
 
 useSortableList(completedListEl, completedTasksList, {
   onReorder: () => updateTaskOrder(completedTasksList),
   enabled: sortableEnabled,
+  sortableOptions: sortableCallbacks,
 });
 
 // Update task status with optimistic update
@@ -558,7 +613,12 @@ const handleUpdateStatus = async (task, newStatus) => {
     status: newStatus,
     completed_at: newStatus === "completed" ? new Date().toISOString() : null,
   };
-  targetList.value.push(updatedTask);
+  // Completed: newest first (unshift), others: append to end (push)
+  if (newStatus === "completed") {
+    targetList.value.unshift(updatedTask);
+  } else {
+    targetList.value.push(updatedTask);
+  }
 
   const statusLabels = {
     completed: "completed",
@@ -644,6 +704,40 @@ const handleQuickAdd = async () => {
     toast.error(err.response?._data?.message || "Failed to create task");
   } finally {
     quickAddLoading.value = false;
+  }
+};
+
+// ============ Quick Add In Progress Task ============
+const quickAddInProgressInputEl = ref(null);
+const quickAddInProgressTitle = ref("");
+const quickAddInProgressLoading = ref(false);
+
+const handleQuickAddInProgress = async () => {
+  const title = quickAddInProgressTitle.value.trim();
+  if (!title || quickAddInProgressLoading.value) return;
+
+  quickAddInProgressLoading.value = true;
+  try {
+    const response = await client("/api/tasks", {
+      method: "POST",
+      body: {
+        title,
+        status: "in_progress",
+        visibility: "public",
+        assignee_id: currentUser.value?.id,
+      },
+    });
+
+    quickAddInProgressTitle.value = "";
+
+    inProgressTasksList.value.push(response.data);
+    toast.success("Task created");
+    nextTick(() => quickAddInProgressInputEl.value?.focus());
+  } catch (err) {
+    console.error("Failed to create task:", err);
+    toast.error(err.response?._data?.message || "Failed to create task");
+  } finally {
+    quickAddInProgressLoading.value = false;
   }
 };
 

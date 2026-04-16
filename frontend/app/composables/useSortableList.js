@@ -23,9 +23,16 @@ export function useSortableList(elementRef, data, options = {}) {
     dragClass: "sortable-drag",
     disabled: enabled ? !unref(enabled) : false,
     ...sortableOptions,
-    onEnd: async () => {
+    onStart: (evt) => {
+      if (sortableOptions.onStart) sortableOptions.onStart(evt);
+    },
+    onEnd: async (evt) => {
       await nextTick();
       if (onReorder) await onReorder();
+      // Re-enable after DOM has fully settled (next animation frame)
+      requestAnimationFrame(() => {
+        if (sortableOptions.onEnd) sortableOptions.onEnd(evt);
+      });
     },
   });
 
