@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 class EventConjunctionController extends Controller
 {
@@ -74,6 +75,8 @@ class EventConjunctionController extends Controller
             }
         }
 
+        ResponseCache::clear(['brands']);
+
         return response()->json(['message' => 'Conjunction event added.'], 201);
     }
 
@@ -90,6 +93,8 @@ class EventConjunctionController extends Controller
         // Remove reverse direction
         $conjunctionEvent = Event::find($conjunctionEventId);
         $conjunctionEvent?->conjunctionEvents()->detach($event->id);
+
+        ResponseCache::clear(['brands']);
 
         return response()->json(['message' => 'Conjunction event removed.']);
     }
@@ -111,6 +116,8 @@ class EventConjunctionController extends Controller
                 'order_column' => $index + 1,
             ]);
         }
+
+        ResponseCache::clear(['brands']);
 
         return response()->json(['message' => 'Order updated.']);
     }

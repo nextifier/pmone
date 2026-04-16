@@ -122,58 +122,50 @@ usePageMeta(null, { title: "Card Concave" });
       </div>
     </section>
 
-    <!-- Bordered -->
+    <!-- No Border variant -->
     <section class="mb-12">
-      <h2 class="mb-1.5 text-xl font-medium tracking-tighter">Bordered</h2>
+      <h2 class="mb-1.5 text-xl font-medium tracking-tighter">Without Border</h2>
       <p class="text-muted-foreground mb-4 text-sm tracking-tight sm:text-base">
-        The <code class="bg-muted rounded px-1 py-0.5 text-xs">bordered</code> prop adds a border
-        effect around the entire concave shape using drop-shadow.
+        Use <code class="bg-muted rounded px-1 py-0.5 text-xs">:bordered="false"</code> to remove
+        the border and shadow. Best on colored backgrounds.
       </p>
-      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <CardConcave bordered body-class="px-4 pt-10 pb-4">
+      <div
+        class="grid gap-6 rounded-xl bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 p-6 sm:grid-cols-3 dark:from-blue-950 dark:via-purple-950 dark:to-pink-950"
+      >
+        <CardConcave :bordered="false" body-class="px-4 pt-10 pb-4">
           <template #protrusion>
             <div
-              class="bg-card flex size-full items-center justify-center rounded-full border text-sm font-semibold tracking-tight"
+              class="bg-primary text-primary-foreground flex size-full items-center justify-center rounded-full text-sm font-semibold tracking-tight"
             >
-              AB
+              A
             </div>
           </template>
-          <h3 class="text-sm font-medium tracking-tight sm:text-base">With Border</h3>
+          <h3 class="text-sm font-medium tracking-tight sm:text-base">No Border</h3>
           <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-            Default border color
+            Card on colored background
           </p>
         </CardConcave>
-
-        <CardConcave bordered body-class="px-4 pt-10 pb-4" position="top-center">
+        <CardConcave :bordered="false" position="top-center" body-class="px-4 pt-10 pb-4 text-center">
           <template #protrusion>
             <div
-              class="bg-card flex size-full items-center justify-center rounded-full border text-sm font-semibold tracking-tight"
+              class="bg-warning text-warning-foreground flex size-full items-center justify-center rounded-full text-sm font-semibold tracking-tight"
             >
-              CD
+              B
             </div>
           </template>
-          <h3 class="text-center text-sm font-medium tracking-tight sm:text-base">
-            Center + Border
-          </h3>
-          <p class="text-muted-foreground text-center text-xs tracking-tight sm:text-sm">
-            Centered with border
-          </p>
+          <h3 class="text-sm font-medium tracking-tight sm:text-base">No Border</h3>
+          <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Center position</p>
         </CardConcave>
-
-        <CardConcave bordered body-class="px-4 pt-10 pb-4" position="top-right">
+        <CardConcave :bordered="false" position="top-right" body-class="px-4 pt-10 pb-4 text-right">
           <template #protrusion>
             <div
-              class="bg-card flex size-full items-center justify-center rounded-full border text-sm font-semibold tracking-tight"
+              class="bg-destructive text-destructive-foreground flex size-full items-center justify-center rounded-full text-sm font-semibold tracking-tight"
             >
-              EF
+              C
             </div>
           </template>
-          <h3 class="text-right text-sm font-medium tracking-tight sm:text-base">
-            Right + Border
-          </h3>
-          <p class="text-muted-foreground text-right text-xs tracking-tight sm:text-sm">
-            Right-aligned with border
-          </p>
+          <h3 class="text-sm font-medium tracking-tight sm:text-base">No Border</h3>
+          <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Right position</p>
         </CardConcave>
       </div>
     </section>
@@ -192,14 +184,7 @@ usePageMeta(null, { title: "Card Concave" });
           <span class="text-muted-foreground mb-2 block text-xs tracking-tight sm:text-sm">
             Large protrusion (5rem)
           </span>
-          <CardConcave
-            size="5rem"
-            offset="1.5rem"
-            gap="4px"
-            :blur-radius="10"
-            bordered
-            body-class="px-4 pt-14 pb-4"
-          >
+          <CardConcave size="5rem" offset="1.5rem" gap="4px" :blur-radius="7" body-class="px-4 pt-14 pb-4">
             <template #protrusion>
               <div
                 class="bg-primary text-primary-foreground flex size-full items-center justify-center rounded-full text-lg font-semibold tracking-tighter"
@@ -209,7 +194,7 @@ usePageMeta(null, { title: "Card Concave" });
             </template>
             <h3 class="text-sm font-medium tracking-tight sm:text-base">Large Logo</h3>
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-              5rem protrusion with blur-radius 10
+              5rem protrusion with blur-radius 7
             </p>
           </CardConcave>
         </div>
@@ -217,14 +202,7 @@ usePageMeta(null, { title: "Card Concave" });
           <span class="text-muted-foreground mb-2 block text-xs tracking-tight sm:text-sm">
             Small protrusion (2.5rem)
           </span>
-          <CardConcave
-            size="2.5rem"
-            offset="1rem"
-            gap="2px"
-            :blur-radius="6"
-            bordered
-            body-class="px-4 pt-7 pb-4"
-          >
+          <CardConcave size="2.5rem" offset="1rem" gap="2px" :blur-radius="4" body-class="px-4 pt-7 pb-4">
             <template #protrusion>
               <div
                 class="bg-destructive text-destructive-foreground flex size-full items-center justify-center rounded-full text-xs font-semibold tracking-tight"
@@ -234,7 +212,7 @@ usePageMeta(null, { title: "Card Concave" });
             </template>
             <h3 class="text-sm font-medium tracking-tight sm:text-base">Small Logo</h3>
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-              2.5rem protrusion with blur-radius 6
+              2.5rem protrusion with blur-radius 4
             </p>
           </CardConcave>
         </div>
@@ -242,13 +220,7 @@ usePageMeta(null, { title: "Card Concave" });
           <span class="text-muted-foreground mb-2 block text-xs tracking-tight sm:text-sm">
             Large gap (8px) + large radius
           </span>
-          <CardConcave
-            gap="8px"
-            radius="1rem"
-            :blur-radius="12"
-            bordered
-            body-class="px-4 pt-10 pb-4"
-          >
+          <CardConcave gap="8px" radius="1rem" :blur-radius="8" body-class="px-4 pt-10 pb-4">
             <template #protrusion>
               <div
                 class="bg-warning text-warning-foreground flex size-full items-center justify-center rounded-full text-sm font-semibold tracking-tight"
@@ -258,7 +230,7 @@ usePageMeta(null, { title: "Card Concave" });
             </template>
             <h3 class="text-sm font-medium tracking-tight sm:text-base">Wide Gap</h3>
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-              8px gap, 1rem radius, blur-radius 12
+              8px gap, 1rem radius, blur-radius 8
             </p>
           </CardConcave>
         </div>
@@ -279,7 +251,7 @@ usePageMeta(null, { title: "Card Concave" });
           <span class="text-muted-foreground mb-3 block text-xs tracking-tight sm:text-sm">
             Red background
           </span>
-          <CardConcave bordered body-class="px-4 pt-10 pb-4">
+          <CardConcave body-class="px-4 pt-10 pb-4">
             <template #protrusion>
               <div
                 class="bg-card flex size-full items-center justify-center rounded-full border text-sm font-semibold tracking-tight"
@@ -298,7 +270,7 @@ usePageMeta(null, { title: "Card Concave" });
           <span class="text-muted-foreground mb-3 block text-xs tracking-tight sm:text-sm">
             Blue background
           </span>
-          <CardConcave bordered body-class="px-4 pt-10 pb-4" position="top-center">
+          <CardConcave body-class="px-4 pt-10 pb-4" position="top-center">
             <template #protrusion>
               <div
                 class="bg-card flex size-full items-center justify-center rounded-full border text-sm font-semibold tracking-tight"
@@ -319,7 +291,7 @@ usePageMeta(null, { title: "Card Concave" });
           <span class="text-muted-foreground mb-3 block text-xs tracking-tight sm:text-sm">
             Green background
           </span>
-          <CardConcave bordered body-class="px-4 pt-10 pb-4" position="top-right">
+          <CardConcave body-class="px-4 pt-10 pb-4" position="top-right">
             <template #protrusion>
               <div
                 class="bg-card flex size-full items-center justify-center rounded-full border text-sm font-semibold tracking-tight"
@@ -345,7 +317,7 @@ usePageMeta(null, { title: "Card Concave" });
         <div
           class="grid gap-6 rounded-xl bg-gradient-to-r from-purple-200 via-pink-200 to-orange-200 p-6 sm:grid-cols-3 dark:from-purple-950 dark:via-pink-950 dark:to-orange-950"
         >
-          <CardConcave bordered body-class="px-4 pt-10 pb-4">
+          <CardConcave body-class="px-4 pt-10 pb-4">
             <template #protrusion>
               <div
                 class="bg-card flex size-full items-center justify-center rounded-full border text-sm font-semibold tracking-tight"
@@ -358,7 +330,7 @@ usePageMeta(null, { title: "Card Concave" });
               Gradient visible in gap
             </p>
           </CardConcave>
-          <CardConcave bordered body-class="px-4 pt-10 pb-4" position="top-center">
+          <CardConcave body-class="px-4 pt-10 pb-4" position="top-center">
             <template #protrusion>
               <div
                 class="bg-card flex size-full items-center justify-center rounded-full border text-sm font-semibold tracking-tight"
@@ -373,7 +345,7 @@ usePageMeta(null, { title: "Card Concave" });
               Center position
             </p>
           </CardConcave>
-          <CardConcave bordered body-class="px-4 pt-10 pb-4" position="top-right">
+          <CardConcave body-class="px-4 pt-10 pb-4" position="top-right">
             <template #protrusion>
               <div
                 class="bg-card flex size-full items-center justify-center rounded-full border text-sm font-semibold tracking-tight"
@@ -391,18 +363,22 @@ usePageMeta(null, { title: "Card Concave" });
         </div>
       </div>
 
-      <!-- Image background -->
+      <!-- Checkerboard transparency test -->
       <div>
         <span class="text-muted-foreground mb-3 block text-xs tracking-tight sm:text-sm">
-          Image background
+          Checkerboard (like image editors)
         </span>
         <div
-          class="grid gap-6 rounded-xl bg-cover bg-center p-6 sm:grid-cols-3"
+          class="grid gap-6 rounded-xl p-6 sm:grid-cols-3"
           style="
-            background-image: url('https://images.unsplash.com/photo-1557683316-973673baf926?w=1200&q=80');
+            background-image: repeating-conic-gradient(
+              hsl(var(--muted)) 0% 25%,
+              hsl(var(--muted-foreground) / 0.15) 0% 50%
+            );
+            background-size: 16px 16px;
           "
         >
-          <CardConcave bordered body-class="px-4 pt-10 pb-4">
+          <CardConcave body-class="px-4 pt-10 pb-4">
             <template #protrusion>
               <div
                 class="bg-card flex size-full items-center justify-center rounded-full border text-sm font-semibold tracking-tight"
@@ -410,12 +386,12 @@ usePageMeta(null, { title: "Card Concave" });
                 A
               </div>
             </template>
-            <h3 class="text-sm font-medium tracking-tight sm:text-base">Image BG Test</h3>
+            <h3 class="text-sm font-medium tracking-tight sm:text-base">Checkerboard</h3>
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-              Image visible in gap
+              Pattern visible in gap
             </p>
           </CardConcave>
-          <CardConcave bordered body-class="px-4 pt-10 pb-4" position="top-center">
+          <CardConcave body-class="px-4 pt-10 pb-4" position="top-center">
             <template #protrusion>
               <div
                 class="bg-card flex size-full items-center justify-center rounded-full border text-sm font-semibold tracking-tight"
@@ -424,13 +400,13 @@ usePageMeta(null, { title: "Card Concave" });
               </div>
             </template>
             <h3 class="text-center text-sm font-medium tracking-tight sm:text-base">
-              Image BG Test
+              Checkerboard
             </h3>
             <p class="text-muted-foreground text-center text-xs tracking-tight sm:text-sm">
               Center position
             </p>
           </CardConcave>
-          <CardConcave bordered body-class="px-4 pt-10 pb-4" position="top-right">
+          <CardConcave body-class="px-4 pt-10 pb-4" position="top-right">
             <template #protrusion>
               <div
                 class="bg-card flex size-full items-center justify-center rounded-full border text-sm font-semibold tracking-tight"
@@ -439,71 +415,13 @@ usePageMeta(null, { title: "Card Concave" });
               </div>
             </template>
             <h3 class="text-right text-sm font-medium tracking-tight sm:text-base">
-              Image BG Test
+              Checkerboard
             </h3>
             <p class="text-muted-foreground text-right text-xs tracking-tight sm:text-sm">
               Right position
             </p>
           </CardConcave>
         </div>
-      </div>
-    </section>
-
-    <!-- Checkerboard transparency test -->
-    <section class="mb-12">
-      <h2 class="mb-1.5 text-xl font-medium tracking-tighter">Checkerboard Test</h2>
-      <p class="text-muted-foreground mb-4 text-sm tracking-tight sm:text-base">
-        Classic checkerboard pattern to verify true transparency - like in image editors.
-      </p>
-      <div
-        class="grid gap-6 rounded-xl p-6 sm:grid-cols-3"
-        style="
-          background-image: repeating-conic-gradient(
-            hsl(var(--muted)) 0% 25%,
-            hsl(var(--muted-foreground) / 0.15) 0% 50%
-          );
-          background-size: 16px 16px;
-        "
-      >
-        <CardConcave bordered body-class="px-4 pt-10 pb-4">
-          <template #protrusion>
-            <div
-              class="bg-card flex size-full items-center justify-center rounded-full border text-sm font-semibold tracking-tight"
-            >
-              A
-            </div>
-          </template>
-          <h3 class="text-sm font-medium tracking-tight sm:text-base">Checkerboard</h3>
-          <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-            Pattern visible in gap
-          </p>
-        </CardConcave>
-        <CardConcave bordered body-class="px-4 pt-10 pb-4" position="top-center">
-          <template #protrusion>
-            <div
-              class="bg-card flex size-full items-center justify-center rounded-full border text-sm font-semibold tracking-tight"
-            >
-              B
-            </div>
-          </template>
-          <h3 class="text-center text-sm font-medium tracking-tight sm:text-base">Checkerboard</h3>
-          <p class="text-muted-foreground text-center text-xs tracking-tight sm:text-sm">
-            Center position
-          </p>
-        </CardConcave>
-        <CardConcave bordered body-class="px-4 pt-10 pb-4" position="top-right">
-          <template #protrusion>
-            <div
-              class="bg-card flex size-full items-center justify-center rounded-full border text-sm font-semibold tracking-tight"
-            >
-              C
-            </div>
-          </template>
-          <h3 class="text-right text-sm font-medium tracking-tight sm:text-base">Checkerboard</h3>
-          <p class="text-muted-foreground text-right text-xs tracking-tight sm:text-sm">
-            Right position
-          </p>
-        </CardConcave>
       </div>
     </section>
 
@@ -524,7 +442,6 @@ usePageMeta(null, { title: "Card Concave" });
             { initials: 'CB', name: 'Cafe Bombom', category: 'Food & Beverage', booth: 'F-06', color: 'bg-primary' },
           ]"
           :key="brand.initials"
-          bordered
           body-class="px-4 pt-10 pb-4"
         >
           <template #protrusion>

@@ -22,9 +22,9 @@ export interface CardConcaveProps {
   multiplier?: number
   /** SVG filter blur radius. Higher = smoother/larger concave corners. */
   blurRadius?: number
-  /** Show a border effect around the concave shape */
+  /** Show border + shadow around the concave shape (default: true) */
   bordered?: boolean
-  /** Border color (CSS value). Only used when bordered is true. */
+  /** Border color (CSS value) */
   borderColor?: string
 }
 
@@ -35,9 +35,9 @@ const props = withDefaults(defineProps<CardConcaveProps>(), {
   gap: "3px",
   radius: "0.75rem",
   multiplier: 10,
-  blurRadius: 8,
-  bordered: false,
-  borderColor: "hsl(var(--border))",
+  blurRadius: 5,
+  bordered: true,
+  borderColor: "var(--color-border)",
 })
 
 const slots = useSlots()
@@ -60,7 +60,14 @@ const containerStyle = computed<Record<string, string>>(() => {
     "--cc-m": String(props.multiplier),
   }
   if (props.bordered) {
-    style.filter = `drop-shadow(0 0 0.5px ${props.borderColor}) drop-shadow(0 0 0.5px ${props.borderColor})`
+    // Stacked drop-shadows to create a visible ~1px border + subtle shadow
+    style.filter = [
+      `drop-shadow(0 0 0.4px ${props.borderColor})`,
+      `drop-shadow(0 0 0.4px ${props.borderColor})`,
+      `drop-shadow(0 0 0.4px ${props.borderColor})`,
+      `drop-shadow(0 1px 3px rgba(0,0,0,0.08))`,
+      `drop-shadow(0 1px 2px rgba(0,0,0,0.06))`,
+    ].join(" ")
   }
   return style
 })
@@ -167,7 +174,7 @@ const protrusionStyle = computed<Record<string, string>>(() => {
 
         <!-- Card body: content with lighten blend over back layer -->
         <div
-          :class="cn('bg-card relative', bodyClass)"
+          :class="cn('bg-card text-card-foreground relative', bodyClass)"
           :style="{
             zIndex: 1,
             opacity: `calc(1 - 1 / var(--cc-m))`,
@@ -187,7 +194,7 @@ const protrusionStyle = computed<Record<string, string>>(() => {
     <!-- Fallback: no protrusion, render as simple card -->
     <template v-else>
       <div
-        :class="cn('bg-card', bodyClass)"
+        :class="cn('bg-card text-card-foreground', bodyClass)"
         :style="{ borderRadius: 'var(--cc-radius)' }"
       >
         <slot />
