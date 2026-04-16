@@ -16,19 +16,19 @@
   <!-- Loading Skeleton -->
   <div v-else-if="isInitialLoading" class="divide-border frame divide-y border">
     <div
-      v-for="i in 3"
+      v-for="i in 15"
       :key="`skeleton-${i}`"
       class="bg-background flex items-center gap-x-1 px-3 py-4 first:rounded-t-xl last:rounded-b-xl sm:gap-x-2"
     >
       <div class="flex w-full items-center gap-x-1.5 sm:gap-x-2">
         <Skeleton class="squircle size-12 shrink-0" />
         <div class="flex grow flex-col gap-y-2">
-          <Skeleton class="h-4 w-36" />
+          <Skeleton class="h-4" :class="[i % 3 === 0 ? 'w-28' : i % 2 === 0 ? 'w-40' : 'w-36']" />
           <div class="flex items-center gap-x-2">
             <div class="flex -space-x-1.5">
-              <Skeleton v-for="j in 3" :key="j" class="size-6 rounded-full" />
+              <Skeleton v-for="j in (i % 3 === 0 ? 2 : i % 2 === 0 ? 4 : 3)" :key="j" class="size-6 rounded-full" />
             </div>
-            <Skeleton class="h-3 w-20" />
+            <Skeleton class="h-3" :class="[i % 2 === 0 ? 'w-24' : 'w-20']" />
           </div>
         </div>
       </div>

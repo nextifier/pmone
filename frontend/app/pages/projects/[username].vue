@@ -1,10 +1,68 @@
 <template>
   <div class="flex flex-col pb-16 sm:container">
     <template v-if="initialLoading">
-      <div class="flex items-center justify-center py-20">
+      <!-- TabNav Skeleton -->
+      <nav
+        class="bg-background relative -mx-4 flex gap-x-5 px-4 sm:mx-0 sm:px-0"
+      >
+        <div v-for="i in 5" :key="`tab-${i}`" class="flex shrink-0 items-center gap-x-1.5 py-3">
+          <Skeleton class="size-4 rounded" />
+          <Skeleton class="h-4 rounded" :class="[i === 1 ? 'w-16' : i === 2 ? 'w-16' : i === 3 ? 'w-18' : i === 4 ? 'w-14' : 'w-16']" />
+        </div>
+      </nav>
+
+      <!-- Overview Content Skeleton -->
+      <div class="flex flex-col gap-y-6 pt-6">
+        <!-- Header -->
+        <div class="flex items-center justify-between">
+          <Skeleton class="h-7 w-20" />
+          <Skeleton class="h-8 w-28 rounded-md" />
+        </div>
+
+        <!-- Search & Filter -->
         <div class="flex items-center gap-x-2">
-          <Spinner class="size-4 shrink-0" />
-          <span class="text-base tracking-tight">Loading</span>
+          <Skeleton class="h-9 flex-1 rounded-lg" />
+          <Skeleton class="h-9 w-36 rounded-lg" />
+        </div>
+
+        <!-- Event List Items Skeleton -->
+        <div class="grid grid-cols-1 gap-y-10">
+          <div
+            v-for="i in 4"
+            :key="`event-${i}`"
+            class="grid w-full grid-cols-1 items-start gap-4 rounded-lg lg:grid-cols-2"
+          >
+            <div class="flex items-center gap-x-2.5 sm:gap-x-4">
+              <Skeleton class="aspect-4/5 w-26 shrink-0 rounded-md sm:w-40" />
+              <div class="flex flex-col gap-y-2">
+                <Skeleton class="h-3.5" :class="[i % 2 === 0 ? 'w-20' : 'w-28']" />
+                <Skeleton class="h-4" :class="[i % 3 === 0 ? 'w-40 sm:w-52' : 'w-48 sm:w-64']" />
+                <div class="flex flex-col gap-y-1.5">
+                  <Skeleton class="h-3.5" :class="[i % 2 === 0 ? 'w-36' : 'w-44']" />
+                  <Skeleton class="h-3.5" :class="[i % 2 === 0 ? 'w-48' : 'w-40']" />
+                </div>
+                <div class="mt-1 flex items-center gap-x-2">
+                  <Skeleton class="h-8 w-24 rounded-md" />
+                  <Skeleton class="h-8 w-20 rounded-md" />
+                </div>
+              </div>
+            </div>
+            <div class="grid grow-0 grid-cols-2 gap-2">
+              <div
+                v-for="j in 3"
+                :key="`stat-${i}-${j}`"
+                class="flex flex-col items-start gap-y-2 rounded-lg border px-3.5 py-3"
+              >
+                <Skeleton class="size-8 rounded-lg" />
+                <div class="space-y-1">
+                  <Skeleton class="h-3.5 w-16" />
+                  <Skeleton class="h-3 w-24" />
+                </div>
+                <Skeleton class="h-7 w-20" />
+              </div>
+              <Skeleton class="min-h-32 rounded-lg" />
+            </div>
+          </div>
         </div>
       </div>
     </template>
@@ -39,6 +97,8 @@
 </template>
 
 <script setup>
+import { Skeleton } from "@/components/ui/skeleton";
+
 definePageMeta({
   layout: "app",
   middleware: ["sanctum:auth"],

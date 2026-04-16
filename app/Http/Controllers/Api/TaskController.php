@@ -13,6 +13,7 @@ use App\Notifications\TaskStatusChangedNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class TaskController extends Controller
 {
@@ -32,16 +33,10 @@ class TaskController extends Controller
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
 
-        $tasks = $query->paginate($request->input('per_page', 15));
+        $tasks = $query->get();
 
         return response()->json([
-            'data' => TaskResource::collection($tasks->items()),
-            'meta' => [
-                'current_page' => $tasks->currentPage(),
-                'last_page' => $tasks->lastPage(),
-                'per_page' => $tasks->perPage(),
-                'total' => $tasks->total(),
-            ],
+            'data' => TaskResource::collection($tasks),
         ]);
     }
 
@@ -518,15 +513,15 @@ class TaskController extends Controller
             try {
                 $metadataPath = "tmp/uploads/{$folder}/metadata.json";
 
-                if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+                if (! Storage::disk('local')->exists($metadataPath)) {
                     continue;
                 }
 
-                $metadata = json_decode(\Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath), true);
+                $metadata = json_decode(Storage::disk('local')->get($metadataPath), true);
                 $filename = $metadata['original_name'];
                 $tempFilePath = "tmp/uploads/{$folder}/{$filename}";
 
-                if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($tempFilePath)) {
+                if (! Storage::disk('local')->exists($tempFilePath)) {
                     continue;
                 }
 
@@ -553,7 +548,7 @@ class TaskController extends Controller
                 $content = str_replace($fullImgTag, $responsiveImg, $content);
 
                 // Clean up temporary storage
-                \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$folder}");
+                Storage::disk('local')->deleteDirectory("tmp/uploads/{$folder}");
             } catch (\Exception $e) {
                 logger()->warning('Failed to process content image', [
                     'folder' => $folder,

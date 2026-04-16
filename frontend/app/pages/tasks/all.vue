@@ -22,8 +22,103 @@
       @refresh="refresh"
     />
 
-    <!-- Loading State -->
-    <LoadingState v-if="pending && !response?.data" label="Loading data.." class="my-6 border-0" />
+    <!-- Loading Skeleton -->
+    <template v-if="pending && !response?.data">
+      <!-- Skeleton: 4 user groups -->
+      <div v-for="g in 4" :key="`group-${g}`" class="border-border bg-card rounded-xl border">
+        <!-- Accordion header skeleton -->
+        <div class="flex items-center gap-3 px-4 py-4">
+          <Skeleton class="size-9 shrink-0 rounded-full" />
+          <div class="flex flex-col gap-y-1">
+            <Skeleton class="h-5 w-28" />
+            <Skeleton class="h-3.5 w-16" />
+          </div>
+        </div>
+
+        <!-- Accordion content skeleton (open for first 2 groups) -->
+        <div v-if="g <= 3" class="px-4 pb-4">
+          <div class="grid grid-cols-1 items-start gap-x-3 gap-y-5 pt-2 lg:grid-cols-2">
+            <!-- Left Column: Active tasks -->
+            <div class="border-border bg-card rounded-xl border">
+              <div class="flex flex-col divide-y">
+                <!-- In Progress -->
+                <div class="flex flex-col gap-y-4 px-3 py-5">
+                  <div class="flex items-center gap-x-2">
+                    <Skeleton class="size-4.5 rounded-full" />
+                    <Skeleton class="h-4 w-20" />
+                    <Skeleton class="h-4 w-5 rounded-full" />
+                  </div>
+                  <div class="space-y-4">
+                    <div v-for="i in (g === 1 ? 3 : g === 2 ? 2 : 1)" :key="`gip-${g}-${i}`" class="flex items-start gap-x-2">
+                      <Skeleton class="h-7 w-4.5 shrink-0" />
+                      <Skeleton class="mt-0.5 size-4 shrink-0 rounded-sm" />
+                      <div class="mx-1.5 min-w-0 grow space-y-2">
+                        <Skeleton class="h-5" :class="i % 2 === 0 ? 'w-3/5' : 'w-4/5'" />
+                        <div class="flex items-center gap-x-3">
+                          <Skeleton class="h-3.5 w-14" />
+                          <Skeleton class="h-3.5 w-20" />
+                        </div>
+                      </div>
+                      <Skeleton class="size-7 shrink-0 rounded-full" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- To Do -->
+                <div class="flex flex-col gap-y-4 px-3 py-5">
+                  <div class="flex items-center gap-x-2">
+                    <Skeleton class="size-4.5 rounded-full" />
+                    <Skeleton class="h-4 w-12" />
+                    <Skeleton class="h-4 w-5 rounded-full" />
+                  </div>
+                  <div class="space-y-4">
+                    <div v-for="i in (g === 1 ? 6 : g === 2 ? 5 : 3)" :key="`gtodo-${g}-${i}`" class="flex items-start gap-x-2">
+                      <Skeleton class="h-7 w-4.5 shrink-0" />
+                      <Skeleton class="mt-0.5 size-4 shrink-0 rounded-sm" />
+                      <div class="mx-1.5 min-w-0 grow space-y-2">
+                        <Skeleton class="h-5" :class="[i % 3 === 0 ? 'w-2/5' : i % 2 === 0 ? 'w-3/5' : 'w-4/5']" />
+                        <div class="flex items-center gap-x-3">
+                          <Skeleton class="h-3.5 w-16" />
+                          <Skeleton class="h-3.5 w-24" />
+                        </div>
+                      </div>
+                      <Skeleton class="size-7 shrink-0 rounded-full" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Completed -->
+            <div class="border-border bg-card rounded-xl border">
+              <div class="flex flex-col divide-y">
+                <div class="flex flex-col gap-y-4 px-3 py-5">
+                  <div class="flex items-center gap-x-2">
+                    <Skeleton class="size-4.5 rounded-full" />
+                    <Skeleton class="h-4 w-20" />
+                    <Skeleton class="h-4 w-5 rounded-full" />
+                  </div>
+                  <div class="space-y-4">
+                    <div v-for="i in (g === 1 ? 5 : g === 2 ? 3 : 2)" :key="`gdone-${g}-${i}`" class="flex items-start gap-x-2">
+                      <Skeleton class="h-7 w-4.5 shrink-0" />
+                      <Skeleton class="mt-0.5 size-4 shrink-0 rounded-sm" />
+                      <div class="mx-1.5 min-w-0 grow space-y-2">
+                        <Skeleton class="h-5" :class="[i % 3 === 1 ? 'w-4/5' : i % 2 === 0 ? 'w-2/5' : 'w-3/5']" />
+                        <div class="flex items-center gap-x-3">
+                          <Skeleton class="h-3.5 w-16" />
+                          <Skeleton class="h-3.5 w-20" />
+                        </div>
+                      </div>
+                      <Skeleton class="size-7 shrink-0 rounded-full" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
 
     <!-- Error State -->
     <div v-else-if="error" class="border-border bg-card rounded-lg border p-12 text-center">
@@ -217,6 +312,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "vue-sonner";
 
 definePageMeta({

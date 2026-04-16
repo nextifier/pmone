@@ -32,12 +32,88 @@
       </template>
     </TasksFilters>
 
-    <!-- Loading State -->
-    <LoadingState
-      v-if="pending && !tasksResponse?.data"
-      label="Loading data.."
-      class="my-6 border-0"
-    />
+    <!-- Loading Skeleton -->
+    <template v-if="pending && !tasksResponse?.data">
+      <div class="grid grid-cols-1 items-start gap-x-3 gap-y-5 lg:grid-cols-2">
+        <!-- Left Column Skeleton: In Progress + To Do -->
+        <div class="border-border bg-card rounded-xl border">
+          <div class="flex flex-col divide-y">
+            <!-- In Progress Skeleton -->
+            <div class="flex flex-col gap-y-4 px-3 py-5">
+              <div class="flex items-center gap-x-2">
+                <Skeleton class="size-4.5 rounded-full" />
+                <Skeleton class="h-4 w-20" />
+                <Skeleton class="h-4 w-5 rounded-full" />
+              </div>
+              <div class="space-y-4">
+                <div v-for="i in 5" :key="`ip-${i}`" class="flex items-start gap-x-2">
+                  <Skeleton class="h-7 w-4.5 shrink-0" />
+                  <Skeleton class="mt-0.5 size-4 shrink-0 rounded-sm" />
+                  <div class="mx-1.5 min-w-0 grow space-y-2">
+                    <Skeleton class="h-5" :class="i === 2 ? 'w-3/5' : i === 3 ? 'w-2/5' : 'w-4/5'" />
+                    <div class="flex items-center gap-x-3">
+                      <Skeleton class="h-3.5 w-16" />
+                      <Skeleton class="h-3.5 w-20" />
+                    </div>
+                  </div>
+                  <Skeleton class="size-7 shrink-0 rounded-full" />
+                </div>
+              </div>
+            </div>
+
+            <!-- To Do Skeleton -->
+            <div class="flex flex-col gap-y-4 px-3 py-5">
+              <div class="flex items-center gap-x-2">
+                <Skeleton class="size-4.5 rounded-full" />
+                <Skeleton class="h-4 w-12" />
+                <Skeleton class="h-4 w-5 rounded-full" />
+              </div>
+              <div class="space-y-4">
+                <div v-for="i in 8" :key="`todo-${i}`" class="flex items-start gap-x-2">
+                  <Skeleton class="h-7 w-4.5 shrink-0" />
+                  <Skeleton class="mt-0.5 size-4 shrink-0 rounded-sm" />
+                  <div class="mx-1.5 min-w-0 grow space-y-2">
+                    <Skeleton class="h-5" :class="[i % 3 === 0 ? 'w-2/5' : i % 2 === 0 ? 'w-3/5' : 'w-4/5']" />
+                    <div class="flex items-center gap-x-3">
+                      <Skeleton class="h-3.5 w-14" />
+                      <Skeleton class="h-3.5 w-24" />
+                    </div>
+                  </div>
+                  <Skeleton class="size-7 shrink-0 rounded-full" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column Skeleton: Completed -->
+        <div class="border-border bg-card rounded-xl border">
+          <div class="flex flex-col divide-y">
+            <div class="flex flex-col gap-y-4 px-3 py-5">
+              <div class="flex items-center gap-x-2">
+                <Skeleton class="size-4.5 rounded-full" />
+                <Skeleton class="h-4 w-20" />
+                <Skeleton class="h-4 w-5 rounded-full" />
+              </div>
+              <div class="space-y-4">
+                <div v-for="i in 7" :key="`done-${i}`" class="flex items-start gap-x-2">
+                  <Skeleton class="h-7 w-4.5 shrink-0" />
+                  <Skeleton class="mt-0.5 size-4 shrink-0 rounded-sm" />
+                  <div class="mx-1.5 min-w-0 grow space-y-2">
+                    <Skeleton class="h-5" :class="[i % 3 === 1 ? 'w-4/5' : i % 2 === 0 ? 'w-2/5' : 'w-3/5']" />
+                    <div class="flex items-center gap-x-3">
+                      <Skeleton class="h-3.5 w-16" />
+                      <Skeleton class="h-3.5 w-20" />
+                    </div>
+                  </div>
+                  <Skeleton class="size-7 shrink-0 rounded-full" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
 
     <!-- Error State -->
     <div v-else-if="error" class="border-border bg-card rounded-lg border p-12 text-center">
@@ -240,6 +316,7 @@ import TasksFilters from "@/components/task/TasksFilters.vue";
 import TasksHeader from "@/components/task/TasksHeader.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -297,7 +374,7 @@ const {
   pending,
   error,
   refresh: fetchRefresh,
-} = await useLazySanctumFetch("/api/tasks?per_page=100&sort_by=order_column&sort_order=asc", {
+} = await useLazySanctumFetch("/api/tasks?sort_by=order_column&sort_order=asc", {
   key: "tasks-list",
 });
 
