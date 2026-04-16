@@ -157,6 +157,22 @@ class Task extends Model implements HasMedia
 
     public const SHARED_ROLE_EDITOR = 'editor';
 
+    // Status-scoped order_column ranges to prevent cross-status collisions
+    public const ORDER_OFFSET_COMPLETED = 0;
+
+    public const ORDER_OFFSET_IN_PROGRESS = 1_000_000;
+
+    public const ORDER_OFFSET_TODO = 2_000_000;
+
+    public static function orderOffsetForStatus(string $status): int
+    {
+        return match ($status) {
+            self::STATUS_COMPLETED => self::ORDER_OFFSET_COMPLETED,
+            self::STATUS_IN_PROGRESS => self::ORDER_OFFSET_IN_PROGRESS,
+            default => self::ORDER_OFFSET_TODO,
+        };
+    }
+
     // Helper methods to get allowed values
     public static function allowedStatuses(): array
     {
@@ -222,9 +238,11 @@ class Task extends Model implements HasMedia
                 $model->created_by = auth()->id();
             }
 
-            // Auto-set order_column to max + 1 so new tasks appear at the bottom
+            // Auto-set order_column scoped per status to prevent cross-status collisions
             if (empty($model->order_column)) {
-                $model->order_column = (int) static::max('order_column') + 1;
+                $offset = self::orderOffsetForStatus($model->status ?? self::STATUS_TODO);
+                $maxForStatus = (int) static::where('status', $model->status ?? self::STATUS_TODO)->max('order_column');
+                $model->order_column = max($maxForStatus + 1, $offset + 1);
             }
         });
 
@@ -239,15 +257,11 @@ class Task extends Model implements HasMedia
                 $model->completed_at = null;
             }
 
-            // Re-assign order_column when status changes
+            // Re-assign order_column scoped per status when status changes
             if ($model->isDirty('status')) {
-                if ($model->status === self::STATUS_COMPLETED) {
-                    // Completed: place at the beginning (lowest order)
-                    $model->order_column = (int) static::min('order_column') - 1;
-                } else {
-                    // To Do / In Progress: place at the end (highest order)
-                    $model->order_column = (int) static::max('order_column') + 1;
-                }
+                $offset = self::orderOffsetForStatus($model->status);
+                $maxForStatus = (int) static::where('status', $model->status)->max('order_column');
+                $model->order_column = max($maxForStatus + 1, $offset + 1);
             }
 
             if (auth()->check()) {

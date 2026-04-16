@@ -20,10 +20,11 @@
     </div>
 
     <!-- Projects -->
-    <div
+    <GridFill
       v-else
-      ref="gridRef"
-      class="bg-border *:bg-background relative grid grid-cols-2 gap-px p-px *:relative *:[--pattern-fg:var(--color-primary)]/10 sm:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]"
+      :count="projects.length"
+      filler-class="bg-pattern-diagonal aspect-square"
+      class="*:[--pattern-fg:var(--color-primary)]/10"
     >
       <NuxtLink
         v-for="project in projects"
@@ -41,12 +42,7 @@
           {{ project.name }}
         </h3>
       </NuxtLink>
-      <div
-        v-for="i in fillerCount"
-        :key="`filler-${i}`"
-        class="bg-pattern-diagonal aspect-square"
-      />
-    </div>
+    </GridFill>
   </div>
 </template>
 
@@ -58,39 +54,8 @@ interface ProjectItem {
   profile_image: Record<string, string> | null;
 }
 
-const props = defineProps<{
+defineProps<{
   projects: ProjectItem[];
   loading?: boolean;
 }>();
-
-const gridRef = ref<HTMLElement | null>(null);
-const columnCount = ref(0);
-
-const fillerCount = computed(() => {
-  if (!columnCount.value || props.projects.length === 0) return 0;
-  const remainder = props.projects.length % columnCount.value;
-  return remainder === 0 ? 0 : columnCount.value - remainder;
-});
-
-function detectColumns() {
-  if (!gridRef.value) return;
-  const style = getComputedStyle(gridRef.value);
-  columnCount.value = style.gridTemplateColumns.split(" ").length;
-}
-
-let observer: ResizeObserver | null = null;
-
-watch(
-  gridRef,
-  (el) => {
-    observer?.disconnect();
-    if (!el) return;
-    detectColumns();
-    observer = new ResizeObserver(() => detectColumns());
-    observer.observe(el);
-  },
-  { flush: "post" }
-);
-
-onBeforeUnmount(() => observer?.disconnect());
 </script>

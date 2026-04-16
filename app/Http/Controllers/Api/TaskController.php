@@ -448,7 +448,11 @@ class TaskController extends Controller
             'orders' => ['required', 'array'],
             'orders.*.id' => ['required', 'integer', 'exists:tasks,id'],
             'orders.*.order' => ['required', 'integer', 'min:1'],
+            'status' => ['sometimes', 'string', 'in:todo,in_progress,completed'],
         ]);
+
+        // Status-based offset to prevent cross-status order_column collisions
+        $offset = isset($validated['status']) ? Task::orderOffsetForStatus($validated['status']) : 0;
 
         $cases = [];
         $ids = [];
@@ -457,7 +461,7 @@ class TaskController extends Controller
         foreach ($validated['orders'] as $orderData) {
             $cases[] = 'WHEN id = ? THEN ?::integer';
             $params[] = $orderData['id'];
-            $params[] = $orderData['order'];
+            $params[] = $orderData['order'] + $offset;
             $ids[] = $orderData['id'];
         }
 
@@ -737,6 +741,11 @@ class TaskController extends Controller
 
         if (in_array($sortBy, $allowedSortFields)) {
             $query->orderBy($sortBy, $sortOrder === 'asc' ? 'asc' : 'desc');
+
+            // Tiebreaker sort for deterministic ordering when order_column values collide
+            if ($sortBy === 'order_column') {
+                $query->orderBy('id', 'asc');
+            }
         }
     }
 }

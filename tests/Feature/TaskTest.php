@@ -291,10 +291,10 @@ test('task filters work correctly', function () {
     // Filter by status
     $response = $this->getJson('/api/tasks?filter_status=todo');
     $response->assertSuccessful();
-    expect($response->json('meta.total'))->toBeGreaterThanOrEqual(1);
+    expect(count($response->json('data')))->toBeGreaterThanOrEqual(1);
 
     // Filter by priority
     $response = $this->getJson('/api/tasks?filter_priority=high');
     $response->assertSuccessful();
-    expect($response->json('meta.total'))->toBeGreaterThanOrEqual(1);
+    expect(count($response->json('data')))->toBeGreaterThanOrEqual(1);
 });

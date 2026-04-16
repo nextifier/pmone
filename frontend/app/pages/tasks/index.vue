@@ -407,13 +407,13 @@ const completedTasksList = ref([]);
 const populateLists = (tasks) => {
   inProgressTasksList.value = tasks
     .filter((t) => t.status === "in_progress")
-    .sort((a, b) => (a.order_column || 0) - (b.order_column || 0));
+    .sort((a, b) => (a.order_column || 0) - (b.order_column || 0) || a.id - b.id);
   todoTasksList.value = tasks
     .filter((t) => t.status === "todo")
-    .sort((a, b) => (a.order_column || 0) - (b.order_column || 0));
+    .sort((a, b) => (a.order_column || 0) - (b.order_column || 0) || a.id - b.id);
   completedTasksList.value = tasks
     .filter((t) => t.status === "completed")
-    .sort((a, b) => (a.order_column || 0) - (b.order_column || 0));
+    .sort((a, b) => (b.order_column || 0) - (a.order_column || 0) || b.id - a.id);
 };
 
 // Sync API data to writable refs
@@ -495,12 +495,19 @@ const inProgressListEl = ref(null);
 const completedListEl = ref(null);
 const isSyncing = ref(false);
 
-const updateTaskOrder = async (tasksList) => {
+const STATUS_OFFSETS = {
+  completed: 0,
+  in_progress: 1_000_000,
+  todo: 2_000_000,
+};
+
+const updateTaskOrder = async (tasksList, status) => {
   if (isSyncing.value) return;
 
   try {
     isSyncing.value = true;
 
+    const offset = STATUS_OFFSETS[status] || 0;
     const orders = tasksList.value.map((task, index) => ({
       id: task.id,
       order: index + 1,
@@ -508,11 +515,11 @@ const updateTaskOrder = async (tasksList) => {
 
     await client("/api/tasks/update-order", {
       method: "POST",
-      body: { orders },
+      body: { orders, status },
     });
 
     tasksList.value.forEach((task, index) => {
-      task.order_column = index + 1;
+      task.order_column = index + 1 + offset;
     });
   } catch (err) {
     console.error("Failed to update task order:", err);
@@ -563,19 +570,19 @@ const sortableCallbacks = {
 };
 
 useSortableList(todoListEl, todoTasksList, {
-  onReorder: () => updateTaskOrder(todoTasksList),
+  onReorder: () => updateTaskOrder(todoTasksList, "todo"),
   enabled: sortableEnabled,
   sortableOptions: sortableCallbacks,
 });
 
 useSortableList(inProgressListEl, inProgressTasksList, {
-  onReorder: () => updateTaskOrder(inProgressTasksList),
+  onReorder: () => updateTaskOrder(inProgressTasksList, "in_progress"),
   enabled: sortableEnabled,
   sortableOptions: sortableCallbacks,
 });
 
 useSortableList(completedListEl, completedTasksList, {
-  onReorder: () => updateTaskOrder(completedTasksList),
+  onReorder: () => updateTaskOrder(completedTasksList, "completed"),
   enabled: sortableEnabled,
   sortableOptions: sortableCallbacks,
 });
