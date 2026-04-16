@@ -72,6 +72,9 @@
       </div>
     </div>
 
+    <!-- Conjunction Events -->
+    <EventConjunctionManager v-if="event" :event="event" />
+
     <!-- Danger Zone -->
     <div v-if="event && event.can_delete" class="frame border-destructive/30">
       <div class="frame-header">

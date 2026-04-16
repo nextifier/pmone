@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ContactFormController;
 use App\Http\Controllers\Api\ContactFormSubmissionController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\EventConjunctionController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\EventDocumentController;
 use App\Http\Controllers\Api\EventProductCategoryController;
@@ -325,6 +326,15 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::post('/{categorySlug}/partners', [PartnerCategoryController::class, 'addPartner'])->name('partner-categories.add-partner');
         Route::delete('/{categorySlug}/partners/{pivotId}', [PartnerCategoryController::class, 'removePartner'])->name('partner-categories.remove-partner');
         Route::post('/{categorySlug}/partners/update-order', [PartnerCategoryController::class, 'updatePartnerOrder'])->name('partner-categories.update-partner-order');
+    });
+
+    // Event conjunction management (nested under events)
+    Route::prefix('projects/{username}/events/{eventSlug}/conjunctions')->group(function () {
+        Route::get('/', [EventConjunctionController::class, 'index'])->name('event-conjunctions.index');
+        Route::get('/available', [EventConjunctionController::class, 'available'])->name('event-conjunctions.available');
+        Route::post('/', [EventConjunctionController::class, 'store'])->name('event-conjunctions.store');
+        Route::post('/reorder', [EventConjunctionController::class, 'reorder'])->name('event-conjunctions.reorder');
+        Route::delete('/{conjunctionEventId}', [EventConjunctionController::class, 'destroy'])->name('event-conjunctions.destroy');
     });
 
     // Events with partners (for copy-from-event dialog)
@@ -752,6 +762,8 @@ Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
         ->middleware(CacheResponse::for(86400, 'brands'));
     Route::get('/{username}/editions/{editionNumber}/brands/{brandSlug}', [PublicProjectController::class, 'brandByEdition'])
         ->where('editionNumber', '[0-9]+')
+        ->middleware(CacheResponse::for(86400, 'brands'));
+    Route::get('/{username}/brands-with-conjunctions', [PublicProjectController::class, 'activeBrandsWithConjunctions'])
         ->middleware(CacheResponse::for(86400, 'brands'));
     Route::get('/{username}/brands', [PublicProjectController::class, 'activeBrands'])
         ->middleware(CacheResponse::for(86400, 'brands'));

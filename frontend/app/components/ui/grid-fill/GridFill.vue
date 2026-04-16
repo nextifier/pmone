@@ -4,6 +4,16 @@ import { useResizeObserver } from "@vueuse/core"
 import { cn } from "@/lib/utils"
 
 type Breakpoint = "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl"
+type Rounded = "sm" | "md" | "lg" | "xl" | "2xl" | "3xl"
+
+const roundedClass: Record<Rounded, string> = {
+  sm: "rounded-sm overflow-hidden",
+  md: "rounded-md overflow-hidden",
+  lg: "rounded-lg overflow-hidden",
+  xl: "rounded-xl overflow-hidden",
+  "2xl": "rounded-2xl overflow-hidden",
+  "3xl": "rounded-3xl overflow-hidden",
+}
 
 const breakpointAutoFitClass: Record<Breakpoint, string> = {
   xs: "xs:grid-cols-[var(--grid-fill-cols-auto)]",
@@ -23,6 +33,7 @@ const props = withDefaults(
     minColWidth?: string | false
     cols?: number
     breakpoint?: Breakpoint
+    rounded?: Rounded
   }>(),
   {
     fillerClass: "bg-pattern-diagonal",
@@ -67,10 +78,11 @@ useResizeObserver(gridRef, () => detectColumns())
     :style="gridStyle"
     :class="
       cn(
-        'bg-border *:bg-background relative grid gap-px p-px *:relative',
+        'bg-border *:bg-background relative grid gap-px border border-border *:relative',
         minColWidth !== false
           ? ['grid-cols-[var(--grid-fill-cols)]', breakpointAutoFitClass[breakpoint]]
           : 'grid-cols-[var(--grid-fill-cols)]',
+        rounded && roundedClass[rounded],
         props.class,
       )
     "

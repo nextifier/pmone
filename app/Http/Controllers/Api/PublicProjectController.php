@@ -205,7 +205,61 @@ class PublicProjectController extends Controller
     }
 
     /**
+     * List brands from the active event and its conjunction events for a project.
+     */
+    public function activeBrandsWithConjunctions(Request $request, string $username): JsonResponse
+    {
+        $event = $this->findActiveEvent($username);
+
+        if (! $event) {
+            return response()->json([
+                'data' => ['groups' => []],
+            ]);
+        }
+
+        $event->load('conjunctionEvents.project');
+
+        $groups = [];
+
+        // Primary event brands
+        $groups[] = $this->buildBrandGroup($event, isPrimary: true);
+
+        // Conjunction event brands
+        foreach ($event->conjunctionEvents as $conjunctionEvent) {
+            $groups[] = $this->buildBrandGroup($conjunctionEvent, isPrimary: false);
+        }
+
+        return response()->json([
+            'data' => ['groups' => $groups],
+        ]);
+    }
+
+    /**
+     * Build a brand group array for an event.
+     */
+    private function buildBrandGroup(Event $event, bool $isPrimary): array
+    {
+        $brandEvents = BrandEvent::query()
+            ->with(['brand.media', 'brand.tags', 'brand.links', 'promotionPosts.media'])
+            ->whereHas('brand')
+            ->where('event_id', $event->id)
+            ->where('status', 'active')
+            ->ordered()
+            ->get();
+
+        return [
+            'event_title' => $event->title,
+            'project_username' => $event->project?->username,
+            'project_name' => $event->project?->name,
+            'is_primary' => $isPrimary,
+            'brands_count' => $brandEvents->count(),
+            'brands' => PublicBrandIndexResource::collection($brandEvents)->resolve(),
+        ];
+    }
+
+    /**
      * Get single brand detail from the active event for a project.
+     * Falls back to conjunction events if brand is not found in the primary event.
      */
     public function activeBrand(string $username, string $brandSlug): JsonResponse
     {
@@ -220,7 +274,25 @@ class PublicProjectController extends Controller
             ->where('event_id', $event->id)
             ->where('status', 'active')
             ->whereHas('brand', fn ($q) => $q->where('slug', $brandSlug))
-            ->firstOrFail();
+            ->first();
+
+        // Fallback: search in conjunction events
+        if (! $brandEvent) {
+            $conjunctionEventIds = $event->conjunctionEvents()->pluck('events.id');
+
+            if ($conjunctionEventIds->isNotEmpty()) {
+                $brandEvent = BrandEvent::query()
+                    ->with(['brand.media', 'brand.tags', 'brand.links', 'promotionPosts.media', 'event'])
+                    ->whereIn('event_id', $conjunctionEventIds)
+                    ->where('status', 'active')
+                    ->whereHas('brand', fn ($q) => $q->where('slug', $brandSlug))
+                    ->first();
+            }
+        }
+
+        if (! $brandEvent) {
+            abort(404);
+        }
 
         return response()->json([
             'data' => new PublicBrandDetailResource($brandEvent),

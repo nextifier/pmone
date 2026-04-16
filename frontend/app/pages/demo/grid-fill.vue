@@ -246,6 +246,102 @@ const minColWidths = ["120px", "150px", "180px", "220px", "280px"];
       </GridFill>
     </section>
 
+    <!-- Rounded -->
+    <section class="mb-12">
+      <h2 class="mb-1.5 text-xl font-medium tracking-tighter">Rounded</h2>
+      <p class="text-muted-foreground mb-4 text-sm tracking-tight sm:text-base">
+        Use the
+        <code class="bg-muted rounded px-1 py-0.5 text-xs">rounded</code> prop to apply consistent
+        rounded corners. Accepts: sm, md, lg, xl, 2xl, 3xl.
+      </p>
+      <div class="grid gap-6 sm:grid-cols-2">
+        <div>
+          <span class="text-muted-foreground mb-2 block text-xs tracking-tight sm:text-sm">
+            rounded-lg
+          </span>
+          <GridFill :count="5" rounded="lg">
+            <div
+              v-for="i in 5"
+              :key="i"
+              class="flex aspect-square flex-col items-center justify-center gap-y-1"
+            >
+              <div
+                class="bg-muted flex size-12 items-center justify-center rounded-lg text-lg font-medium tracking-tighter"
+              >
+                {{ i }}
+              </div>
+              <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                Item {{ i }}
+              </span>
+            </div>
+          </GridFill>
+        </div>
+        <div>
+          <span class="text-muted-foreground mb-2 block text-xs tracking-tight sm:text-sm">
+            rounded-xl
+          </span>
+          <GridFill :count="5" rounded="xl">
+            <div
+              v-for="i in 5"
+              :key="i"
+              class="flex aspect-square flex-col items-center justify-center gap-y-1"
+            >
+              <div
+                class="bg-muted flex size-12 items-center justify-center rounded-lg text-lg font-medium tracking-tighter"
+              >
+                {{ i }}
+              </div>
+              <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                Item {{ i }}
+              </span>
+            </div>
+          </GridFill>
+        </div>
+        <div>
+          <span class="text-muted-foreground mb-2 block text-xs tracking-tight sm:text-sm">
+            rounded-2xl
+          </span>
+          <GridFill :count="5" rounded="2xl">
+            <div
+              v-for="i in 5"
+              :key="i"
+              class="flex aspect-square flex-col items-center justify-center gap-y-1"
+            >
+              <div
+                class="bg-muted flex size-12 items-center justify-center rounded-lg text-lg font-medium tracking-tighter"
+              >
+                {{ i }}
+              </div>
+              <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                Item {{ i }}
+              </span>
+            </div>
+          </GridFill>
+        </div>
+        <div>
+          <span class="text-muted-foreground mb-2 block text-xs tracking-tight sm:text-sm">
+            no rounding (default)
+          </span>
+          <GridFill :count="5">
+            <div
+              v-for="i in 5"
+              :key="i"
+              class="flex aspect-square flex-col items-center justify-center gap-y-1"
+            >
+              <div
+                class="bg-muted flex size-12 items-center justify-center rounded-lg text-lg font-medium tracking-tighter"
+              >
+                {{ i }}
+              </div>
+              <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                Item {{ i }}
+              </span>
+            </div>
+          </GridFill>
+        </div>
+      </div>
+    </section>
+
     <!-- Non-square Items -->
     <section class="mb-12">
       <h2 class="mb-1.5 text-xl font-medium tracking-tighter">Non-square Items</h2>

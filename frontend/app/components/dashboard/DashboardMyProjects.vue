@@ -23,6 +23,7 @@
     <GridFill
       v-else
       :count="projects.length"
+      rounded="xl"
       filler-class="bg-pattern-diagonal aspect-square"
       class="*:[--pattern-fg:var(--color-primary)]/10"
     >
