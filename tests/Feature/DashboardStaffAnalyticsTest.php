@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\ContactFormStatus;
 use App\Models\ContactFormSubmission;
 use App\Models\GaProperty;
 use App\Models\Project;
@@ -47,17 +46,35 @@ it('returns analytics structure for a project member', function () {
     expect($data['inquiries_per_day'][5])->toMatchArray(['date' => now()->subDays(1)->toDateString(), 'count' => 1]);
     expect($data['inquiries_per_day'][4])->toMatchArray(['date' => now()->subDays(2)->toDateString(), 'count' => 3]);
 
-    expect($data['inquiries_by_status'])->toMatchArray([
-        ContactFormStatus::New->value => 3,
-        ContactFormStatus::InProgress->value => 0,
-        ContactFormStatus::Completed->value => 1,
-        ContactFormStatus::Archived->value => 0,
-    ]);
+    expect($data['inquiries_by_project'])->toBeArray();
+    expect(count($data['inquiries_by_project']))->toBeLessThanOrEqual(4);
+    expect($data['inquiries_by_project'][0])->toHaveKeys(['project_id', 'name', 'count']);
+    expect($data['inquiries_by_project'][0]['project_id'])->toBe($this->project->id);
+    expect($data['inquiries_by_project'][0]['count'])->toBe(4);
 
     expect($data['visitors_per_month'])->toHaveCount(6);
-    expect($data['sessions_per_month'])->toHaveCount(6);
     expect($data['visitors_per_month'][0])->toHaveKeys(['month', 'active_users']);
-    expect($data['sessions_per_month'][0])->toHaveKeys(['month', 'sessions']);
+    expect($data)->not->toHaveKey('sessions_per_month');
+});
+
+it('returns top 4 projects by inquiry count', function () {
+    $projects = Project::factory()->count(6)->create();
+    $counts = [10, 8, 6, 4, 2, 1];
+
+    foreach ($projects as $index => $project) {
+        ContactFormSubmission::factory()->count($counts[$index])->create([
+            'project_id' => $project->id,
+        ]);
+    }
+
+    actingAs($this->member);
+
+    $data = getJson(route('dashboard.staff-analytics', ['project_id' => $this->project->id]))
+        ->assertSuccessful()
+        ->json('data');
+
+    expect($data['inquiries_by_project'])->toHaveCount(4);
+    expect(array_column($data['inquiries_by_project'], 'count'))->toBe([10, 8, 6, 4]);
 });
 
 it('returns zeroed GA metrics when the project has no active GA properties', function () {
@@ -68,7 +85,6 @@ it('returns zeroed GA metrics when the project has no active GA properties', fun
         ->json('data');
 
     expect(array_column($data['visitors_per_month'], 'active_users'))->each->toBe(0);
-    expect(array_column($data['sessions_per_month'], 'sessions'))->each->toBe(0);
 });
 
 it('rolls up GA daily rows into the six most recent months', function () {
@@ -103,12 +119,9 @@ it('rolls up GA daily rows into the six most recent months', function () {
         ->json('data');
 
     $visitorsByMonth = collect($data['visitors_per_month'])->keyBy('month');
-    $sessionsByMonth = collect($data['sessions_per_month'])->keyBy('month');
 
     expect($visitorsByMonth[$thisMonth]['active_users'])->toBe(75);
     expect($visitorsByMonth[$lastMonth]['active_users'])->toBe(10);
-    expect($sessionsByMonth[$thisMonth]['sessions'])->toBe(130);
-    expect($sessionsByMonth[$lastMonth]['sessions'])->toBe(20);
 });
 
 it('forbids non-members without the analytics.view permission', function () {

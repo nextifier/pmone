@@ -2,10 +2,7 @@
   <Card>
     <CardHeader>
       <CardTitle>Inquiries (last 7 days)</CardTitle>
-      <CardDescription>
-        <template v-if="loading">Loading…</template>
-        <template v-else>{{ total }} total {{ total === 1 ? "inquiry" : "inquiries" }}</template>
-      </CardDescription>
+      <CardDescription>{{ dateRangeLabel }}</CardDescription>
     </CardHeader>
     <CardContent>
       <Skeleton v-if="loading" class="h-[250px] w-full" />
@@ -15,14 +12,13 @@
       >
         No inquiries in the last 7 days.
       </div>
-      <ChartContainer v-else :config="chartConfig" class="h-[250px] w-full" cursor>
+      <ChartContainer v-else :config="chartConfig">
         <VisXYContainer :data="chartData" :margin="{ left: -24 }" :y-domain="[0, undefined]">
           <VisGroupedBar
             :x="(d) => d.timestamp"
             :y="(d) => d.count"
             :color="chartConfig.count.color"
-            :rounded-corners="6"
-            :bar-padding="0.2"
+            :rounded-corners="10"
           />
           <VisAxis
             type="x"
@@ -40,12 +36,28 @@
         </VisXYContainer>
       </ChartContainer>
     </CardContent>
+    <CardFooter v-if="!loading && hasData" class="flex-col items-start gap-2 text-sm">
+      <div class="flex items-center gap-2 font-medium tracking-tight">
+        {{ total }} inquiries this week
+        <Icon :name="trendIcon" class="size-4" />
+      </div>
+      <div class="tracking-tight text-muted-foreground">
+        Showing inquiries submitted in the last 7 days
+      </div>
+    </CardFooter>
   </Card>
 </template>
 
 <script setup>
 import { VisAxis, VisGroupedBar, VisXYContainer } from "@unovis/vue";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartCrosshair,
@@ -83,6 +95,22 @@ const chartData = computed(() =>
 const total = computed(() => chartData.value.reduce((sum, row) => sum + (row.count || 0), 0));
 
 const hasData = computed(() => chartData.value.length > 0);
+
+const dateRangeLabel = computed(() => {
+  if (!chartData.value.length) return "";
+  const first = new Date(chartData.value[0].timestamp);
+  const last = new Date(chartData.value[chartData.value.length - 1].timestamp);
+  const formatter = (date, opts) => date.toLocaleDateString("en-US", opts);
+  const sameYear = first.getFullYear() === last.getFullYear();
+  return `${formatter(first, { month: "short", day: "numeric" })} - ${formatter(last, sameYear ? { month: "short", day: "numeric", year: "numeric" } : { month: "short", day: "numeric", year: "numeric" })}`;
+});
+
+const trendIcon = computed(() => {
+  const half = Math.floor(chartData.value.length / 2);
+  const first = chartData.value.slice(0, half).reduce((s, r) => s + r.count, 0);
+  const last = chartData.value.slice(half).reduce((s, r) => s + r.count, 0);
+  return last >= first ? "hugeicons:chart-increase" : "hugeicons:chart-decrease";
+});
 
 const formatDayLabel = (d) => {
   const date = new Date(d);

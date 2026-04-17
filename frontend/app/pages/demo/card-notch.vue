@@ -1,15 +1,31 @@
 <script setup lang="ts">
+import type { Position } from "@/components/ui/card-notch";
+
 definePageMeta({ layout: "default" });
 usePageMeta(null, { title: "Card Notch" });
 
-const positions = [
+const brands = [
+  { name: "Air Minum Biru", category: "Retail & Wholesales", booth: "-" },
+  { name: "Burger Bangor", category: "Food & Beverage", booth: "A-03" },
+  { name: "Cheezy Coin", category: "Entertainment", booth: "-" },
+  { name: "DJ Juice", category: "Food & Beverage", booth: "-" },
+  { name: "Farmakita", category: "Health & Wellness", booth: "-" },
+  { name: "Cafe Bombom", category: "Food & Beverage", booth: "F-06" },
+];
+
+const buttonClicks = ref(0);
+const onCardClick = () => {
+  buttonClicks.value++;
+};
+
+const positions: { value: Position; label: string; bodyClass: string }[] = [
   { value: "top-left", label: "top-left", bodyClass: "p-5 pt-20" },
   { value: "top-center", label: "top-center", bodyClass: "p-5 pt-20 text-center" },
   { value: "top-right", label: "top-right", bodyClass: "p-5 pt-20 text-right" },
   { value: "bottom-left", label: "bottom-left", bodyClass: "p-5 pb-20" },
   { value: "bottom-center", label: "bottom-center", bodyClass: "p-5 pb-20 text-center" },
   { value: "bottom-right", label: "bottom-right (default)", bodyClass: "p-5 pb-20 text-right" },
-] as const;
+];
 </script>
 
 <template>
@@ -29,21 +45,129 @@ const positions = [
         Default position: notch element at bottom-right with a cutout at the junction.
       </p>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <CardNotch
-          v-for="item in [
-            { name: 'Air Minum Biru', category: 'Retail & Wholesales' },
-            { name: 'Burger Bangor', category: 'Food & Beverage' },
-            { name: 'Cheezy Coin', category: 'Entertainment' },
-          ]"
-          :key="item.name"
-          body-class="p-5 pb-20"
-        >
+        <CardNotch v-for="item in brands.slice(0, 3)" :key="item.name" body-class="p-5 pb-20">
           <template #notch>
             <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
           </template>
           <h3 class="text-sm font-medium tracking-tight sm:text-base">{{ item.name }}</h3>
           <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">{{ item.category }}</p>
         </CardNotch>
+      </div>
+    </section>
+
+    <!-- Plain Card (no notch) -->
+    <section class="mb-12">
+      <h2 class="mb-1.5 text-xl font-medium tracking-tighter">Plain Card (No Notch)</h2>
+      <p class="text-muted-foreground mb-4 text-sm tracking-tight sm:text-base">
+        Without <code class="bg-muted rounded px-1 py-0.5 text-xs">#notch</code> slot and without
+        <code class="bg-muted rounded px-1 py-0.5 text-xs">notched</code> prop, CardNotch falls
+        back to a plain rounded card - reusable as a regular card component.
+      </p>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <CardNotch v-for="item in brands.slice(0, 3)" :key="item.name" body-class="p-5">
+          <h3 class="text-sm font-medium tracking-tight sm:text-base">{{ item.name }}</h3>
+          <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">{{ item.category }}</p>
+        </CardNotch>
+      </div>
+    </section>
+
+    <!-- As NuxtLink -->
+    <section class="mb-12">
+      <h2 class="mb-1.5 text-xl font-medium tracking-tighter">As NuxtLink</h2>
+      <p class="text-muted-foreground mb-4 text-sm tracking-tight sm:text-base">
+        Pass <code class="bg-muted rounded px-1 py-0.5 text-xs">to</code> or
+        <code class="bg-muted rounded px-1 py-0.5 text-xs">href</code> to render the card as a
+        NuxtLink. Hover state + focus ring auto-enable. External URLs (<code
+          class="bg-muted rounded px-1 py-0.5 text-xs"
+          >https://</code
+        >) auto-apply <code class="bg-muted rounded px-1 py-0.5 text-xs">target="_blank"</code> +
+        <code class="bg-muted rounded px-1 py-0.5 text-xs">rel="noopener noreferrer"</code>.
+      </p>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <CardNotch to="/demo/card-notch" body-class="p-5 pb-20">
+          <template #notch>
+            <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
+          </template>
+          <h3 class="text-sm font-medium tracking-tight sm:text-base">Internal Route</h3>
+          <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+            to="/demo/card-notch"
+          </p>
+        </CardNotch>
+        <CardNotch href="https://nuxt.com" body-class="p-5 pb-20">
+          <template #notch>
+            <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
+          </template>
+          <h3 class="text-sm font-medium tracking-tight sm:text-base">External Link</h3>
+          <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+            href="https://nuxt.com"
+          </p>
+        </CardNotch>
+        <CardNotch as="button" body-class="p-5 pb-20" @click="onCardClick">
+          <template #notch>
+            <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
+          </template>
+          <h3 class="text-sm font-medium tracking-tight sm:text-base">As Button</h3>
+          <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+            as="button" clicked {{ buttonClicks }}x
+          </p>
+        </CardNotch>
+      </div>
+    </section>
+
+    <!-- Auto Padding -->
+    <section class="mb-12">
+      <h2 class="mb-1.5 text-xl font-medium tracking-tighter">Auto Padding</h2>
+      <p class="text-muted-foreground mb-4 text-sm tracking-tight sm:text-base">
+        Use <code class="bg-muted rounded px-1 py-0.5 text-xs">auto-pad</code> to let the card
+        reserve space for the notch automatically - no manual
+        <code class="bg-muted rounded px-1 py-0.5 text-xs">pb-*</code> in body-class needed.
+      </p>
+      <div class="grid gap-6 sm:grid-cols-2">
+        <div>
+          <span class="text-muted-foreground mb-2 block text-xs tracking-tight sm:text-sm">
+            Manual padding (body-class="p-5 pb-20")
+          </span>
+          <CardNotch body-class="p-5 pb-20">
+            <template #notch>
+              <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
+            </template>
+            <h3 class="text-sm font-medium tracking-tight sm:text-base">Manual</h3>
+            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+              Consumer computes notch clearance
+            </p>
+          </CardNotch>
+        </div>
+        <div>
+          <span class="text-muted-foreground mb-2 block text-xs tracking-tight sm:text-sm">
+            Auto (auto-pad + body-class="p-5")
+          </span>
+          <CardNotch auto-pad body-class="p-5">
+            <template #notch>
+              <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
+            </template>
+            <h3 class="text-sm font-medium tracking-tight sm:text-base">Auto</h3>
+            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+              Card reserves space for notch
+            </p>
+          </CardNotch>
+        </div>
+      </div>
+
+      <div class="mt-6 grid gap-6 sm:grid-cols-3">
+        <div v-for="np in ['0px', '0.75rem', '1.5rem']" :key="np">
+          <span class="text-muted-foreground mb-2 block text-xs tracking-tight sm:text-sm">
+            notch-padding="{{ np }}"
+          </span>
+          <CardNotch auto-pad :notch-padding="np" body-class="p-5">
+            <template #notch>
+              <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
+            </template>
+            <h3 class="text-sm font-medium tracking-tight sm:text-base">Padding {{ np }}</h3>
+            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+              Breathing room above notch
+            </p>
+          </CardNotch>
+        </div>
       </div>
     </section>
 
@@ -157,11 +281,7 @@ const positions = [
       </p>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <CardNotch
-          v-for="item in [
-            { name: 'Air Minum Biru', category: 'Retail & Wholesales' },
-            { name: 'Burger Bangor', category: 'Food & Beverage' },
-            { name: 'Cheezy Coin', category: 'Entertainment' },
-          ]"
+          v-for="item in brands.slice(0, 3)"
           :key="item.name"
           :bordered="false"
           card-bg="color-mix(in oklab, var(--color-muted) 70%, transparent)"
@@ -286,18 +406,13 @@ const positions = [
       <h2 class="mb-1.5 text-xl font-medium tracking-tighter">Brand Card Simulation</h2>
       <p class="text-muted-foreground mb-4 text-sm tracking-tight sm:text-base">
         Simulating the BrandCard use case with logo, name, category, and metadata.
+        <code class="bg-muted rounded px-1 py-0.5 text-xs">auto-pad</code> reserves notch space.
       </p>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <CardNotch
-          v-for="brand in [
-            { name: 'Air Minum Biru', category: 'Retail & Wholesales', booth: '-' },
-            { name: 'Burger Bangor', category: 'Food & Beverage', booth: 'A-03' },
-            { name: 'Cheezy Coin', category: 'Entertainment', booth: '-' },
-            { name: 'DJ Juice', category: 'Food & Beverage', booth: '-' },
-            { name: 'Farmakita', category: 'Health & Wellness', booth: '-' },
-            { name: 'Cafe Bombom', category: 'Food & Beverage', booth: 'F-06' },
-          ]"
+          v-for="brand in brands"
           :key="brand.name"
+          auto-pad
           body-class="flex flex-col gap-3 p-5"
         >
           <template #notch>
@@ -315,7 +430,6 @@ const positions = [
           </div>
           <div class="mt-auto flex items-end justify-between pt-3">
             <span class="text-muted-foreground text-xs tracking-tight">Created 3 days ago</span>
-            <span class="size-14 shrink-0" />
           </div>
         </CardNotch>
       </div>
@@ -327,8 +441,8 @@ const positions = [
     >
       <h2 class="mb-1.5 text-xl font-medium tracking-tighter">Brand List Skeleton</h2>
       <p class="text-muted-foreground mb-4 text-sm tracking-tight sm:text-base">
-        Skeleton loading state. Gradient background shows true transparency between card and
-        notch. Plain divs (no animation) for performance with many items.
+        Skeleton loading state. Uses <code class="bg-muted rounded px-1 py-0.5 text-xs">:notched</code>
+        to enable the cutout without a slot. Gradient background proves true gap transparency.
       </p>
       <div
         class="grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] sm:gap-x-4"
@@ -336,11 +450,11 @@ const positions = [
         <CardNotch
           v-for="index in 16"
           :key="index"
+          notched
+          auto-pad
           :bordered="false"
           body-class="flex flex-col gap-4 p-4 sm:p-5"
         >
-          <template #notch><span /></template>
-
           <div class="flex flex-col items-center gap-x-2 gap-y-3 sm:flex-row">
             <span class="bg-muted block size-20 shrink-0 rounded-full sm:size-18" />
             <div class="flex w-full flex-col items-center gap-y-2 sm:items-start">
@@ -371,7 +485,6 @@ const positions = [
 
           <div class="mt-auto flex items-end justify-between pt-8 sm:pt-4">
             <span class="bg-muted block h-3 w-16 rounded-md sm:w-28" />
-            <div class="size-14 shrink-0" />
           </div>
         </CardNotch>
       </div>

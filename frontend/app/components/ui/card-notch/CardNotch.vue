@@ -1,5 +1,10 @@
 <template>
-  <div :class="cn('relative', props.class)" :style="containerStyle">
+  <component
+    :is="rootTag"
+    v-bind="rootBindings"
+    :class="rootClass"
+    :style="containerStyle"
+  >
     <svg
       v-if="hasNotch && pathD"
       :width="width"
@@ -41,12 +46,15 @@
         <slot name="notch" />
       </div>
     </div>
-  </div>
+  </component>
 </template>
 
 <script setup lang="ts">
 import { cn } from "@/lib/utils";
+import { useId } from "reka-ui";
+import { computed, onBeforeUnmount, onMounted, ref, resolveComponent, useSlots, watch } from "vue";
 import type { HTMLAttributes } from "vue";
+import type { RouteLocationRaw } from "vue-router";
 
 type Position =
   | "top-left"
@@ -67,6 +75,15 @@ export interface CardNotchProps {
   borderColor?: string;
   borderWidth?: string;
   cardBg?: string;
+  notched?: boolean;
+  autoPad?: boolean;
+  notchPadding?: string;
+  to?: RouteLocationRaw | string;
+  href?: string;
+  as?: "div" | "button" | "a";
+  interactive?: boolean;
+  target?: string;
+  rel?: string;
 }
 
 const props = withDefaults(defineProps<CardNotchProps>(), {
@@ -78,24 +95,21 @@ const props = withDefaults(defineProps<CardNotchProps>(), {
   borderColor: "var(--color-primary)",
   borderWidth: "1px",
   cardBg: "var(--color-card)",
+  autoPad: false,
+  notchPadding: "0.75rem",
 });
 
-const borderWidthPx = ref(0);
-
 const slots = useSlots();
-const hasNotch = computed(() => !!slots.notch);
-let __cnId = 0;
-if (typeof window !== "undefined") {
-  __cnId = (window as unknown as { __cnCounter?: number }).__cnCounter =
-    ((window as unknown as { __cnCounter?: number }).__cnCounter ?? 0) + 1;
-}
-const clipId = `cn-clip-${__cnId}`;
+const hasNotch = computed(() => props.notched || !!slots.notch);
+
+const clipId = `cn-clip-${useId().replace(/:/g, "")}`;
 
 const bodyEl = ref<HTMLElement | null>(null);
 const width = ref(0);
 const height = ref(0);
 
 let resizeObserver: ResizeObserver | null = null;
+let rafId = 0;
 
 const measureBody = () => {
   if (!bodyEl.value) return;
@@ -104,10 +118,18 @@ const measureBody = () => {
   height.value = rect.height;
 };
 
+const scheduleMeasure = () => {
+  if (rafId) return;
+  rafId = requestAnimationFrame(() => {
+    rafId = 0;
+    measureBody();
+  });
+};
+
 onMounted(() => {
   measureBody();
   if (bodyEl.value && typeof ResizeObserver !== "undefined") {
-    resizeObserver = new ResizeObserver(measureBody);
+    resizeObserver = new ResizeObserver(scheduleMeasure);
     resizeObserver.observe(bodyEl.value);
   }
 });
@@ -115,14 +137,23 @@ onMounted(() => {
 onBeforeUnmount(() => {
   resizeObserver?.disconnect();
   resizeObserver = null;
+  if (rafId) cancelAnimationFrame(rafId);
 });
 
 const sizePx = ref(0);
 const gapPx = ref(0);
 const radiusPx = ref(0);
+const borderWidthPx = ref(0);
+
+const pxLiteral = /^-?\d+(\.\d+)?px$/;
+const pxCache = new Map<string, number>();
 
 const parsePx = (value: string): number => {
-  if (typeof window === "undefined" || !value) return 0;
+  if (!value) return 0;
+  if (pxLiteral.test(value)) return parseFloat(value);
+  if (typeof window === "undefined") return 0;
+  const cached = pxCache.get(value);
+  if (cached !== undefined) return cached;
   const div = document.createElement("div");
   div.style.position = "absolute";
   div.style.visibility = "hidden";
@@ -130,7 +161,9 @@ const parsePx = (value: string): number => {
   document.body.appendChild(div);
   const px = parseFloat(getComputedStyle(div).width);
   document.body.removeChild(div);
-  return Number.isFinite(px) ? px : 0;
+  const resolved = Number.isFinite(px) ? px : 0;
+  pxCache.set(value, resolved);
+  return resolved;
 };
 
 const updateMeasurements = () => {
@@ -146,18 +179,40 @@ watch(
   updateMeasurements,
 );
 
-const containerStyle = computed<Record<string, string>>(() => ({
-  "--cn-size": props.size,
-  "--cn-gap": props.gap,
-  "--cn-radius": props.radius,
-}));
-
 const isBottom = computed(() => props.position.startsWith("bottom"));
 const isCenter = computed(() => props.position.endsWith("center"));
 const hSide = computed(
   () => props.position.split("-")[1] as "left" | "center" | "right",
 );
 
+const autoPadValue = computed(() =>
+  props.autoPad && hasNotch.value
+    ? `calc(${props.size} + ${props.gap} + ${props.notchPadding})`
+    : "0px",
+);
+
+const containerStyle = computed<Record<string, string>>(() => ({
+  "--cn-size": props.size,
+  "--cn-gap": props.gap,
+  "--cn-radius": props.radius,
+}));
+
+/**
+ * SVG path geometry (origin top-left, +x right, +y down):
+ *   S  = notch diameter (sizePx)
+ *   G  = gap between card edge and notch circle (gapPx)
+ *   R  = card outer corner radius, clamped to min(w,h)/2
+ *   N  = S + G (total offset along notch-bearing axes)
+ *   C  = S/2 + G (radius of arc carved into card to clear the notch)
+ *   OR = outer corner radius at the notch side, clamped so paths don't overlap
+ *
+ * Paths trace the full outline clockwise, subbing a concave C-radius arc
+ * where the notch sits. Corners adjacent to the notch use OR instead of R
+ * so they shrink gracefully when the card is tight.
+ *
+ * The *-center variants share ORc (S/2) plus symmetric join points
+ * (Ax/Jx Left/Right) around the card's horizontal midline.
+ */
 const pathD = computed(() => {
   const w = width.value;
   const h = height.value;
@@ -170,11 +225,11 @@ const pathD = computed(() => {
   const N = S + G;
   const C = S / 2 + G;
   const R = Math.min(Rraw, Math.min(w, h) / 2);
-  const notchR = C;
   const OR = Math.max(0, Math.min(R, N - C, w - R - N, h - R - N));
 
   const p = props.position;
 
+  // bottom-right: start top-left, run clockwise, carve notch in bottom-right zone.
   if (p === "bottom-right") {
     return (
       `M ${R} 0 H ${w - R} A ${R} ${R} 0 0 1 ${w} ${R} ` +
@@ -186,6 +241,7 @@ const pathD = computed(() => {
     );
   }
 
+  // bottom-left: clockwise, notch carved in bottom-left zone.
   if (p === "bottom-left") {
     return (
       `M ${R} 0 H ${w - R} A ${R} ${R} 0 0 1 ${w} ${R} ` +
@@ -197,6 +253,7 @@ const pathD = computed(() => {
     );
   }
 
+  // top-right: clockwise, notch carved in top-right zone.
   if (p === "top-right") {
     return (
       `M ${R} 0 H ${w - N - OR} A ${OR} ${OR} 0 0 1 ${w - N} ${OR} ` +
@@ -208,6 +265,7 @@ const pathD = computed(() => {
     );
   }
 
+  // top-left: clockwise starting past the notch, loop around, carve top-left.
   if (p === "top-left") {
     return (
       `M ${N + OR} 0 H ${w - R} A ${R} ${R} 0 0 1 ${w} ${R} ` +
@@ -219,12 +277,14 @@ const pathD = computed(() => {
     );
   }
 
+  // *-center shared geometry: join points & outer radius around midline.
   const ORc = S / 2;
   const AxLeft = w / 2 - C - ORc;
   const AxRight = w / 2 + C + ORc;
   const JxLeft = w / 2 - C;
   const JxRight = w / 2 + C;
 
+  // top-center: two outer arcs flank a concave notch arc at top midline.
   if (p === "top-center") {
     const Jy = S / 2;
     return (
@@ -239,6 +299,7 @@ const pathD = computed(() => {
     );
   }
 
+  // bottom-center: mirror of top-center along bottom midline.
   if (p === "bottom-center") {
     const Jy = h - S / 2;
     return (
@@ -256,16 +317,7 @@ const pathD = computed(() => {
   return "";
 });
 
-const bodyStyle = computed<Record<string, string>>(() => {
-  if (hasNotch.value && pathD.value) {
-    return {
-      clipPath: `path('${pathD.value}')`,
-      background: "transparent",
-    };
-  }
-  if (hasNotch.value) {
-    return { background: "transparent" };
-  }
+const fallbackCardStyle = (): Record<string, string> => {
   const style: Record<string, string> = {
     borderRadius: "var(--cn-radius)",
     background: props.cardBg,
@@ -274,6 +326,24 @@ const bodyStyle = computed<Record<string, string>>(() => {
     style.boxShadow = `0 0 0 ${props.borderWidth} ${props.borderColor}`;
   }
   return style;
+};
+
+const bodyStyle = computed<Record<string, string>>(() => {
+  const pad: Record<string, string> =
+    props.autoPad && hasNotch.value
+      ? { [isBottom.value ? "paddingBottom" : "paddingTop"]: autoPadValue.value }
+      : {};
+  if (hasNotch.value && pathD.value) {
+    return {
+      ...pad,
+      clipPath: `path('${pathD.value}')`,
+      background: "transparent",
+    };
+  }
+  if (hasNotch.value) {
+    return { ...pad, ...fallbackCardStyle() };
+  }
+  return { ...pad, ...fallbackCardStyle() };
 });
 
 const notchInnerStyle = computed<Record<string, string>>(() => {
@@ -303,4 +373,52 @@ const notchStyle = computed<Record<string, string>>(() => {
   }
   return style;
 });
+
+const isLink = computed(() => props.to !== undefined || props.href !== undefined);
+const isButton = computed(() => props.as === "button");
+const isInteractive = computed(
+  () => props.interactive || isLink.value || isButton.value,
+);
+
+const externalPattern = /^(https?:)?\/\//;
+const isExternal = computed(() => {
+  const target = typeof props.to === "string" ? props.to : props.href;
+  return typeof target === "string" && externalPattern.test(target);
+});
+
+const NuxtLink = resolveComponent("NuxtLink");
+
+const rootTag = computed(() => {
+  if (isLink.value) return NuxtLink;
+  if (isButton.value) return "button";
+  return props.as ?? "div";
+});
+
+const rootBindings = computed<Record<string, unknown>>(() => {
+  const bindings: Record<string, unknown> = {};
+  if (isLink.value) {
+    if (props.to !== undefined) bindings.to = props.to;
+    if (props.href !== undefined) bindings.href = props.href;
+    if (isExternal.value) {
+      bindings.target = props.target ?? "_blank";
+      bindings.rel = props.rel ?? "noopener noreferrer";
+    } else {
+      if (props.target !== undefined) bindings.target = props.target;
+      if (props.rel !== undefined) bindings.rel = props.rel;
+    }
+  } else if (isButton.value) {
+    bindings.type = "button";
+  }
+  return bindings;
+});
+
+const rootClass = computed(() =>
+  cn(
+    "relative block",
+    isInteractive.value &&
+      "cursor-pointer transition-transform duration-200 ease-out hover:scale-[1.015] active:scale-[0.995] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary focus-visible:rounded-[var(--cn-radius)]",
+    isButton.value && "w-full text-left",
+    props.class,
+  ),
+);
 </script>

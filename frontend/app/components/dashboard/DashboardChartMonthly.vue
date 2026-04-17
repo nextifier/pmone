@@ -15,8 +15,13 @@
       >
         {{ emptyText }}
       </div>
-      <ChartContainer v-else :config="chartConfig" class="h-[250px] w-full" cursor>
-        <VisXYContainer :data="chartData" :margin="{ left: -24 }" :y-domain="[0, undefined]">
+      <ChartContainer v-else :config="chartConfig" :cursor="variant === 'line'">
+        <VisXYContainer
+          :data="chartData"
+          :margin="variant === 'horizontal-bar' ? { left: 8, right: 8 } : { left: -24 }"
+          :y-domain="variant === 'horizontal-bar' ? undefined : [0, undefined]"
+          :x-domain="variant === 'horizontal-bar' ? [0, undefined] : undefined"
+        >
           <VisGroupedBar
             v-if="variant === 'bar'"
             :x="(d) => d.timestamp"
@@ -24,6 +29,15 @@
             :color="color"
             :rounded-corners="6"
             :bar-padding="0.2"
+          />
+          <VisGroupedBar
+            v-else-if="variant === 'horizontal-bar'"
+            :x="(d) => d.timestamp"
+            :y="accessor"
+            :color="color"
+            :rounded-corners="5"
+            :bar-padding="0.05"
+            :orientation="Orientation.Horizontal"
           />
           <VisLine
             v-else
@@ -34,6 +48,7 @@
             :curve-type="CurveType.CatmullRom"
           />
           <VisAxis
+            v-if="variant !== 'horizontal-bar'"
             type="x"
             :x="(d) => d.timestamp"
             :tick-line="false"
@@ -44,11 +59,22 @@
             :tick-format="formatMonthLabel"
           />
           <VisAxis
+            v-if="variant !== 'horizontal-bar'"
             type="y"
             :num-ticks="3"
             :tick-line="false"
             :domain-line="false"
             :tick-format="formatCompactNumber"
+          />
+          <VisAxis
+            v-else
+            type="y"
+            :tick-line="false"
+            :domain-line="false"
+            :grid-line="false"
+            :num-ticks="chartData.length"
+            :tick-values="chartData.map((d) => d.timestamp)"
+            :tick-format="formatMonthLabel"
           />
           <ChartTooltip />
           <ChartCrosshair :template="tooltipTemplate" :color="variant === 'line' ? color : '#0000'" />
@@ -59,7 +85,7 @@
 </template>
 
 <script setup>
-import { CurveType } from "@unovis/ts";
+import { CurveType, Orientation } from "@unovis/ts";
 import { VisAxis, VisGroupedBar, VisLine, VisXYContainer } from "@unovis/vue";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {

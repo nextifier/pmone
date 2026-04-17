@@ -139,11 +139,11 @@
     --sidebar-border: var(--color-gray-200);
     --sidebar-ring: var(--color-gray-400);
 
-    --chart-1: var(--color-emerald-500);
-    --chart-2: var(--color-indigo-500);
-    --chart-3: var(--color-yellow-400);
-    --chart-4: var(--color-orange-500);
-    --chart-5: var(--color-rose-500);
+    --chart-1: var(--color-gray-900);
+    --chart-2: var(--color-gray-600);
+    --chart-3: var(--color-gray-400);
+    --chart-4: var(--color-gray-300);
+    --chart-5: var(--color-gray-200);
 
     --radius: 0.625rem;
   }
@@ -195,11 +195,11 @@
     --sidebar-border: var(--color-gray-800);
     --sidebar-ring: var(--color-gray-600);
 
-    --chart-1: var(--color-emerald-500);
-    --chart-2: var(--color-indigo-500);
-    --chart-3: var(--color-yellow-400);
-    --chart-4: var(--color-orange-500);
-    --chart-5: var(--color-rose-500);
+    --chart-1: var(--color-gray-100);
+    --chart-2: var(--color-gray-400);
+    --chart-3: var(--color-gray-500);
+    --chart-4: var(--color-gray-700);
+    --chart-5: var(--color-gray-800);
   }
 }
 

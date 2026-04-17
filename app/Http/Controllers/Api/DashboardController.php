@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\ContactFormStatus;
 use App\Http\Controllers\Controller;
 use App\Models\ContactFormSubmission;
 use App\Models\Event;
@@ -311,14 +310,11 @@ class DashboardController extends Controller
             abort(403, 'Unauthorized to view analytics for this project.');
         }
 
-        [$visitorsPerMonth, $sessionsPerMonth] = $this->gaMonthlyMetrics($project->id);
-
         return response()->json([
             'data' => [
                 'inquiries_per_day' => $this->inquiriesPerDay($project->id),
-                'inquiries_by_status' => $this->inquiriesByStatus($project->id),
-                'visitors_per_month' => $visitorsPerMonth,
-                'sessions_per_month' => $sessionsPerMonth,
+                'inquiries_by_project' => $this->inquiriesByProject(),
+                'visitors_per_month' => $this->gaActiveUsersPerMonth($project->id),
             ],
         ]);
     }
@@ -355,40 +351,40 @@ class DashboardController extends Controller
         return $result;
     }
 
-    protected function inquiriesByStatus(int $projectId): array
+    /**
+     * @return array<int, array{project_id: int, name: string, count: int}>
+     */
+    protected function inquiriesByProject(): array
     {
-        $counts = ContactFormSubmission::query()
-            ->forProject($projectId)
-            ->selectRaw('status, COUNT(*) as count')
-            ->groupBy('status')
-            ->pluck('count', 'status');
-
-        $result = [];
-
-        foreach (ContactFormStatus::cases() as $case) {
-            $result[$case->value] = (int) ($counts[$case->value] ?? 0);
-        }
-
-        return $result;
+        return ContactFormSubmission::query()
+            ->join('projects', 'contact_form_submissions.project_id', '=', 'projects.id')
+            ->selectRaw('projects.id as project_id, projects.name, COUNT(*) as count')
+            ->groupBy('projects.id', 'projects.name')
+            ->orderByDesc('count')
+            ->limit(4)
+            ->get()
+            ->map(fn ($row) => [
+                'project_id' => (int) $row->project_id,
+                'name' => (string) $row->name,
+                'count' => (int) $row->count,
+            ])
+            ->all();
     }
 
     /**
-     * @return array{0: array<int, array{month: string, active_users: int}>, 1: array<int, array{month: string, sessions: int}>}
+     * @return array<int, array{month: string, active_users: int}>
      */
-    protected function gaMonthlyMetrics(int $projectId): array
+    protected function gaActiveUsersPerMonth(int $projectId): array
     {
         $now = now();
         $start = $now->copy()->subMonths(5)->startOfMonth();
         $end = $now->copy()->endOfMonth();
 
         $activeUsersByMonth = [];
-        $sessionsByMonth = [];
         $cursor = $start->copy();
 
         while ($cursor->lte($end)) {
-            $monthKey = $cursor->format('Y-m');
-            $activeUsersByMonth[$monthKey] = 0;
-            $sessionsByMonth[$monthKey] = 0;
+            $activeUsersByMonth[$cursor->format('Y-m')] = 0;
             $cursor->addMonth();
         }
 
@@ -415,30 +411,13 @@ class DashboardController extends Controller
                     }
 
                     $activeUsersByMonth[$monthKey] += (int) ($row['activeUsers'] ?? 0);
-                    $sessionsByMonth[$monthKey] += (int) ($row['sessions'] ?? 0);
                 }
             }
         }
 
-        return [
-            $this->formatMonthlySeries($activeUsersByMonth, 'active_users'),
-            $this->formatMonthlySeries($sessionsByMonth, 'sessions'),
-        ];
-    }
-
-    /**
-     * @param  array<string, int>  $months
-     * @return array<int, array<string, int|string>>
-     */
-    protected function formatMonthlySeries(array $months, string $valueKey): array
-    {
         $result = [];
-
-        foreach ($months as $month => $value) {
-            $result[] = [
-                'month' => $month,
-                $valueKey => $value,
-            ];
+        foreach ($activeUsersByMonth as $month => $value) {
+            $result[] = ['month' => $month, 'active_users' => $value];
         }
 
         return $result;
