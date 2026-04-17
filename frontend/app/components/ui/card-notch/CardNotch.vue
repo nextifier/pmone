@@ -1,7 +1,7 @@
 <template>
   <div :class="cn('relative', props.class)" :style="containerStyle">
     <svg
-      v-if="hasProtrusion && pathD"
+      v-if="hasNotch && pathD"
       :width="width"
       :height="height"
       :viewBox="`0 0 ${width} ${height}`"
@@ -33,12 +33,12 @@
       <slot />
     </div>
 
-    <div v-if="hasProtrusion" :style="protrusionStyle">
+    <div v-if="hasNotch" :style="notchStyle">
       <div
         class="flex size-full items-center justify-center rounded-full"
-        :style="protrusionInnerStyle"
+        :style="notchInnerStyle"
       >
-        <slot name="protrusion" />
+        <slot name="notch" />
       </div>
     </div>
   </div>
@@ -56,7 +56,7 @@ type Position =
   | "bottom-center"
   | "bottom-right";
 
-export interface CardConcaveProps {
+export interface CardNotchProps {
   class?: HTMLAttributes["class"];
   bodyClass?: HTMLAttributes["class"];
   position?: Position;
@@ -69,7 +69,7 @@ export interface CardConcaveProps {
   cardBg?: string;
 }
 
-const props = withDefaults(defineProps<CardConcaveProps>(), {
+const props = withDefaults(defineProps<CardNotchProps>(), {
   position: "bottom-right",
   size: "3.5rem",
   gap: "8px",
@@ -83,13 +83,13 @@ const props = withDefaults(defineProps<CardConcaveProps>(), {
 const borderWidthPx = ref(0);
 
 const slots = useSlots();
-const hasProtrusion = computed(() => !!slots.protrusion);
-let __ccId = 0;
+const hasNotch = computed(() => !!slots.notch);
+let __cnId = 0;
 if (typeof window !== "undefined") {
-  __ccId = (window as unknown as { __ccCounter?: number }).__ccCounter =
-    ((window as unknown as { __ccCounter?: number }).__ccCounter ?? 0) + 1;
+  __cnId = (window as unknown as { __cnCounter?: number }).__cnCounter =
+    ((window as unknown as { __cnCounter?: number }).__cnCounter ?? 0) + 1;
 }
-const clipId = `cc-clip-${__ccId}`;
+const clipId = `cn-clip-${__cnId}`;
 
 const bodyEl = ref<HTMLElement | null>(null);
 const width = ref(0);
@@ -147,9 +147,9 @@ watch(
 );
 
 const containerStyle = computed<Record<string, string>>(() => ({
-  "--cc-size": props.size,
-  "--cc-gap": props.gap,
-  "--cc-radius": props.radius,
+  "--cn-size": props.size,
+  "--cn-gap": props.gap,
+  "--cn-radius": props.radius,
 }));
 
 const isBottom = computed(() => props.position.startsWith("bottom"));
@@ -165,12 +165,12 @@ const pathD = computed(() => {
   const G = gapPx.value;
   const Rraw = radiusPx.value;
 
-  if (!hasProtrusion.value || !w || !h || !S) return "";
+  if (!hasNotch.value || !w || !h || !S) return "";
 
   const N = S + G;
   const C = S / 2 + G;
   const R = Math.min(Rraw, Math.min(w, h) / 2);
-  const cutR = C;
+  const notchR = C;
   const OR = Math.max(0, Math.min(R, N - C, w - R - N, h - R - N));
 
   const p = props.position;
@@ -257,17 +257,17 @@ const pathD = computed(() => {
 });
 
 const bodyStyle = computed<Record<string, string>>(() => {
-  if (hasProtrusion.value && pathD.value) {
+  if (hasNotch.value && pathD.value) {
     return {
       clipPath: `path('${pathD.value}')`,
       background: "transparent",
     };
   }
-  if (hasProtrusion.value) {
+  if (hasNotch.value) {
     return { background: "transparent" };
   }
   const style: Record<string, string> = {
-    borderRadius: "var(--cc-radius)",
+    borderRadius: "var(--cn-radius)",
     background: props.cardBg,
   };
   if (props.bordered) {
@@ -276,7 +276,7 @@ const bodyStyle = computed<Record<string, string>>(() => {
   return style;
 });
 
-const protrusionInnerStyle = computed<Record<string, string>>(() => {
+const notchInnerStyle = computed<Record<string, string>>(() => {
   const style: Record<string, string> = { background: props.cardBg };
   if (props.bordered) {
     style.boxShadow = `0 0 0 ${props.borderWidth} ${props.borderColor}`;
@@ -284,11 +284,11 @@ const protrusionInnerStyle = computed<Record<string, string>>(() => {
   return style;
 });
 
-const protrusionStyle = computed<Record<string, string>>(() => {
+const notchStyle = computed<Record<string, string>>(() => {
   const style: Record<string, string> = {
     position: "absolute",
-    width: "var(--cc-size)",
-    height: "var(--cc-size)",
+    width: "var(--cn-size)",
+    height: "var(--cn-size)",
     zIndex: "2",
   };
   if (isBottom.value) style.bottom = "0";

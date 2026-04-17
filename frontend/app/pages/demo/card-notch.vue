@@ -1,6 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ layout: "default" });
-usePageMeta(null, { title: "Card Concave" });
+usePageMeta(null, { title: "Card Notch" });
 
 const positions = [
   { value: "top-left", label: "top-left", bodyClass: "p-5 pt-20" },
@@ -15,10 +15,10 @@ const positions = [
 <template>
   <div class="container overflow-hidden pt-4 pb-24">
     <div class="mb-10 flex flex-col gap-y-2.5 lg:items-center lg:text-center">
-      <h1 class="text-4xl font-medium tracking-tighter sm:text-5xl">Card Concave</h1>
+      <h1 class="text-4xl font-medium tracking-tighter sm:text-5xl">Card Notch</h1>
       <p class="text-muted-foreground max-w-3xl text-base tracking-tight text-pretty sm:text-lg">
-        Card with true transparent concave rounding where a protruding element meets the card body.
-        Uses SVG clip-path for crisp, pixel-perfect concave corners - no images, no hacks.
+        Card with a true transparent notched cutout where a circular element meets the card body.
+        Uses SVG clip-path for crisp, pixel-perfect corners - no images, no hacks.
       </p>
     </div>
 
@@ -26,10 +26,10 @@ const positions = [
     <section class="mb-12">
       <h2 class="mb-1.5 text-xl font-medium tracking-tighter">Basic</h2>
       <p class="text-muted-foreground mb-4 text-sm tracking-tight sm:text-base">
-        Default position: protruding element at bottom-right with concave rounding at the junction.
+        Default position: notch element at bottom-right with a cutout at the junction.
       </p>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <CardConcave
+        <CardNotch
           v-for="item in [
             { name: 'Air Minum Biru', category: 'Retail & Wholesales' },
             { name: 'Burger Bangor', category: 'Food & Beverage' },
@@ -38,12 +38,12 @@ const positions = [
           :key="item.name"
           body-class="p-5 pb-20"
         >
-          <template #protrusion>
+          <template #notch>
             <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
           </template>
           <h3 class="text-sm font-medium tracking-tight sm:text-base">{{ item.name }}</h3>
           <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">{{ item.category }}</p>
-        </CardConcave>
+        </CardNotch>
       </div>
     </section>
 
@@ -51,7 +51,7 @@ const positions = [
     <section class="mb-12">
       <h2 class="mb-1.5 text-xl font-medium tracking-tighter">Positions</h2>
       <p class="text-muted-foreground mb-4 text-sm tracking-tight sm:text-base">
-        Protruding element supports six positions: top-left, top-center, top-right, bottom-left,
+        Notch element supports six positions: top-left, top-center, top-right, bottom-left,
         bottom-center, and bottom-right.
       </p>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -59,15 +59,15 @@ const positions = [
           <span class="text-muted-foreground mb-2 block text-xs tracking-tight sm:text-sm">
             {{ pos.label }}
           </span>
-          <CardConcave :position="pos.value" :body-class="pos.bodyClass">
-            <template #protrusion>
+          <CardNotch :position="pos.value" :body-class="pos.bodyClass">
+            <template #notch>
               <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
             </template>
             <h3 class="text-sm font-medium tracking-tight sm:text-base">{{ pos.value }}</h3>
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-              Protrusion position
+              Notch position
             </p>
-          </CardConcave>
+          </CardNotch>
         </div>
       </div>
     </section>
@@ -82,15 +82,15 @@ const positions = [
       <div
         class="grid gap-6 rounded-xl bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 p-6 sm:grid-cols-3 dark:from-blue-950 dark:via-purple-950 dark:to-pink-950"
       >
-        <CardConcave v-for="i in 3" :key="i" :bordered="false" body-class="p-5 pb-20">
-          <template #protrusion>
+        <CardNotch v-for="i in 3" :key="i" :bordered="false" body-class="p-5 pb-20">
+          <template #notch>
             <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
           </template>
           <h3 class="text-sm font-medium tracking-tight sm:text-base">No Border</h3>
           <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
             Card on colored background
           </p>
-        </CardConcave>
+        </CardNotch>
       </div>
     </section>
 
@@ -105,45 +105,45 @@ const positions = [
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <div>
           <span class="text-muted-foreground mb-2 block text-xs tracking-tight sm:text-sm">
-            Large protrusion (5rem)
+            Large notch (5rem)
           </span>
-          <CardConcave size="5rem" gap="4px" body-class="p-5 pb-28">
-            <template #protrusion>
+          <CardNotch size="5rem" gap="4px" body-class="p-5 pb-28">
+            <template #notch>
               <Icon name="hugeicons:arrow-up-right-03" class="size-7" />
             </template>
             <h3 class="text-sm font-medium tracking-tight sm:text-base">Large Logo</h3>
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-              5rem protrusion, 4px gap
+              5rem notch, 4px gap
             </p>
-          </CardConcave>
+          </CardNotch>
         </div>
         <div>
           <span class="text-muted-foreground mb-2 block text-xs tracking-tight sm:text-sm">
-            Small protrusion (2.5rem)
+            Small notch (2.5rem)
           </span>
-          <CardConcave size="2.5rem" gap="2px" body-class="p-5 pb-14">
-            <template #protrusion>
+          <CardNotch size="2.5rem" gap="2px" body-class="p-5 pb-14">
+            <template #notch>
               <Icon name="hugeicons:arrow-up-right-03" class="size-4" />
             </template>
             <h3 class="text-sm font-medium tracking-tight sm:text-base">Small Logo</h3>
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-              2.5rem protrusion, 2px gap
+              2.5rem notch, 2px gap
             </p>
-          </CardConcave>
+          </CardNotch>
         </div>
         <div>
           <span class="text-muted-foreground mb-2 block text-xs tracking-tight sm:text-sm">
             Wide gap + smaller radius
           </span>
-          <CardConcave gap="12px" radius="1rem" body-class="p-5 pb-20">
-            <template #protrusion>
+          <CardNotch gap="12px" radius="1rem" body-class="p-5 pb-20">
+            <template #notch>
               <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
             </template>
             <h3 class="text-sm font-medium tracking-tight sm:text-base">Wide Gap</h3>
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
               12px gap, 1rem radius
             </p>
-          </CardConcave>
+          </CardNotch>
         </div>
       </div>
     </section>
@@ -156,7 +156,7 @@ const positions = [
         <code class="bg-muted rounded px-1 py-0.5 text-xs">card-bg</code> for subtle muted cards.
       </p>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <CardConcave
+        <CardNotch
           v-for="item in [
             { name: 'Air Minum Biru', category: 'Retail & Wholesales' },
             { name: 'Burger Bangor', category: 'Food & Beverage' },
@@ -167,12 +167,12 @@ const positions = [
           card-bg="color-mix(in oklab, var(--color-muted) 70%, transparent)"
           body-class="p-5 pb-20"
         >
-          <template #protrusion>
+          <template #notch>
             <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
           </template>
           <h3 class="text-sm font-medium tracking-tight sm:text-base">{{ item.name }}</h3>
           <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">{{ item.category }}</p>
-        </CardConcave>
+        </CardNotch>
       </div>
     </section>
 
@@ -189,41 +189,41 @@ const positions = [
           <span class="text-muted-foreground mb-2 block text-xs tracking-tight sm:text-sm">
             Thicker border (2px)
           </span>
-          <CardConcave border-width="2px" body-class="p-5 pb-20">
-            <template #protrusion>
+          <CardNotch border-width="2px" body-class="p-5 pb-20">
+            <template #notch>
               <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
             </template>
             <h3 class="text-sm font-medium tracking-tight sm:text-base">Thicker Border</h3>
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
               border-width="2px"
             </p>
-          </CardConcave>
+          </CardNotch>
         </div>
         <div>
           <span class="text-muted-foreground mb-2 block text-xs tracking-tight sm:text-sm">
             Destructive color
           </span>
-          <CardConcave border-color="var(--color-destructive)" body-class="p-5 pb-20">
-            <template #protrusion>
+          <CardNotch border-color="var(--color-destructive)" body-class="p-5 pb-20">
+            <template #notch>
               <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
             </template>
             <h3 class="text-sm font-medium tracking-tight sm:text-base">Destructive</h3>
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
               border-color="var(--color-destructive)"
             </p>
-          </CardConcave>
+          </CardNotch>
         </div>
         <div>
           <span class="text-muted-foreground mb-2 block text-xs tracking-tight sm:text-sm">
             Thick + colored
           </span>
-          <CardConcave border-width="3px" border-color="var(--color-info)" body-class="p-5 pb-20">
-            <template #protrusion>
+          <CardNotch border-width="3px" border-color="var(--color-info)" body-class="p-5 pb-20">
+            <template #notch>
               <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
             </template>
             <h3 class="text-sm font-medium tracking-tight sm:text-base">Combined</h3>
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">3px info color</p>
-          </CardConcave>
+          </CardNotch>
         </div>
       </div>
     </section>
@@ -232,7 +232,7 @@ const positions = [
     <section class="mb-12">
       <h2 class="mb-1.5 text-xl font-medium tracking-tighter">Transparency Test</h2>
       <p class="text-muted-foreground mb-4 text-sm tracking-tight sm:text-base">
-        Cards on different backgrounds to prove the gap between card and protrusion is truly
+        Cards on different backgrounds to prove the gap between card and notch is truly
         transparent - not faked with box-shadow or pseudo-elements.
       </p>
 
@@ -249,15 +249,15 @@ const positions = [
           <span class="text-muted-foreground mb-3 block text-xs tracking-tight sm:text-sm">
             {{ bg.label }} background
           </span>
-          <CardConcave :bordered="false" body-class="p-5 pb-20">
-            <template #protrusion>
+          <CardNotch :bordered="false" body-class="p-5 pb-20">
+            <template #notch>
               <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
             </template>
             <h3 class="text-sm font-medium tracking-tight sm:text-base">True Transparency</h3>
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
               {{ bg.label }} shows through
             </p>
-          </CardConcave>
+          </CardNotch>
         </div>
       </div>
 
@@ -268,15 +268,15 @@ const positions = [
         <div
           class="grid gap-6 rounded-xl bg-gradient-to-r from-purple-200 via-pink-200 to-orange-200 p-6 sm:grid-cols-3 dark:from-purple-950 dark:via-pink-950 dark:to-orange-950"
         >
-          <CardConcave v-for="i in 3" :key="i" :bordered="false" body-class="p-5 pb-20">
-            <template #protrusion>
+          <CardNotch v-for="i in 3" :key="i" :bordered="false" body-class="p-5 pb-20">
+            <template #notch>
               <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
             </template>
             <h3 class="text-sm font-medium tracking-tight sm:text-base">Gradient Test</h3>
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
               Gradient visible in gap
             </p>
-          </CardConcave>
+          </CardNotch>
         </div>
       </div>
     </section>
@@ -288,7 +288,7 @@ const positions = [
         Simulating the BrandCard use case with logo, name, category, and metadata.
       </p>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <CardConcave
+        <CardNotch
           v-for="brand in [
             { name: 'Air Minum Biru', category: 'Retail & Wholesales', booth: '-' },
             { name: 'Burger Bangor', category: 'Food & Beverage', booth: 'A-03' },
@@ -300,7 +300,7 @@ const positions = [
           :key="brand.name"
           body-class="flex flex-col gap-3 p-5"
         >
-          <template #protrusion>
+          <template #notch>
             <Icon name="hugeicons:arrow-up-right-03" class="size-5" />
           </template>
           <div>
@@ -317,7 +317,7 @@ const positions = [
             <span class="text-muted-foreground text-xs tracking-tight">Created 3 days ago</span>
             <span class="size-14 shrink-0" />
           </div>
-        </CardConcave>
+        </CardNotch>
       </div>
     </section>
 
@@ -328,18 +328,18 @@ const positions = [
       <h2 class="mb-1.5 text-xl font-medium tracking-tighter">Brand List Skeleton</h2>
       <p class="text-muted-foreground mb-4 text-sm tracking-tight sm:text-base">
         Skeleton loading state. Gradient background shows true transparency between card and
-        protrusion. Plain divs (no animation) for performance with many items.
+        notch. Plain divs (no animation) for performance with many items.
       </p>
       <div
         class="grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] sm:gap-x-4"
       >
-        <CardConcave
+        <CardNotch
           v-for="index in 16"
           :key="index"
           :bordered="false"
           body-class="flex flex-col gap-4 p-4 sm:p-5"
         >
-          <template #protrusion><span /></template>
+          <template #notch><span /></template>
 
           <div class="flex flex-col items-center gap-x-2 gap-y-3 sm:flex-row">
             <span class="bg-muted block size-20 shrink-0 rounded-full sm:size-18" />
@@ -373,7 +373,7 @@ const positions = [
             <span class="bg-muted block h-3 w-16 rounded-md sm:w-28" />
             <div class="size-14 shrink-0" />
           </div>
-        </CardConcave>
+        </CardNotch>
       </div>
     </section>
   </div>
