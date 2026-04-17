@@ -1,204 +1,306 @@
+<template>
+  <div :class="cn('relative', props.class)" :style="containerStyle">
+    <svg
+      v-if="hasProtrusion && pathD"
+      :width="width"
+      :height="height"
+      :viewBox="`0 0 ${width} ${height}`"
+      class="pointer-events-none absolute inset-0"
+      aria-hidden="true"
+      shape-rendering="geometricPrecision"
+    >
+      <defs>
+        <clipPath :id="clipId">
+          <path :d="pathD" />
+        </clipPath>
+      </defs>
+      <path :d="pathD" :fill="props.cardBg" />
+      <path
+        v-if="props.bordered"
+        :d="pathD"
+        fill="none"
+        :stroke="props.borderColor"
+        :stroke-width="borderWidthPx * 2"
+        :clip-path="`url(#${clipId})`"
+      />
+    </svg>
+
+    <div
+      ref="bodyEl"
+      :class="cn('text-card-foreground relative', bodyClass)"
+      :style="bodyStyle"
+    >
+      <slot />
+    </div>
+
+    <div v-if="hasProtrusion" :style="protrusionStyle">
+      <div
+        class="flex size-full items-center justify-center rounded-full"
+        :style="protrusionInnerStyle"
+      >
+        <slot name="protrusion" />
+      </div>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
+import type { HTMLAttributes } from "vue";
+
+type Position =
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right";
 
 export interface CardConcaveProps {
-  class?: HTMLAttributes["class"]
-  /** Classes for the card body area */
-  bodyClass?: HTMLAttributes["class"]
-  /** Position of the protruding element */
-  position?: "top-left" | "top-center" | "top-right"
-  /** Diameter of the protruding element (CSS value) */
-  size?: string
-  /** How much protrudes outside the card body (CSS value). Defaults to half of size. */
-  overflow?: string
-  /** Distance from the card edge to the protrusion (CSS value) */
-  offset?: string
-  /** Gap between the protrusion circle and the card body edge (CSS value) */
-  gap?: string
-  /** Card body border radius (CSS value) */
-  radius?: string
-  /** SVG filter multiplier. Higher = sharper shape edges. */
-  multiplier?: number
-  /** SVG filter blur radius. Higher = smoother/larger concave corners. */
-  blurRadius?: number
-  /** Show border + shadow around the concave shape (default: true) */
-  bordered?: boolean
-  /** Border color (CSS value) */
-  borderColor?: string
+  class?: HTMLAttributes["class"];
+  bodyClass?: HTMLAttributes["class"];
+  position?: Position;
+  size?: string;
+  gap?: string;
+  radius?: string;
+  bordered?: boolean;
+  borderColor?: string;
+  borderWidth?: string;
+  cardBg?: string;
 }
 
 const props = withDefaults(defineProps<CardConcaveProps>(), {
-  position: "top-left",
+  position: "bottom-right",
   size: "3.5rem",
-  offset: "1.5rem",
-  gap: "3px",
-  radius: "0.75rem",
-  multiplier: 10,
-  blurRadius: 5,
+  gap: "8px",
+  radius: "1.5rem",
   bordered: true,
-  borderColor: "var(--color-border)",
-})
+  borderColor: "var(--color-primary)",
+  borderWidth: "1px",
+  cardBg: "var(--color-card)",
+});
 
-const slots = useSlots()
-const hasProtrusion = computed(() => !!slots.protrusion)
+const borderWidthPx = ref(0);
 
-const uid = useId()
-const shapeId = `cc-shape-${uid}`
-const roundId = `cc-round-${uid}`
+const slots = useSlots();
+const hasProtrusion = computed(() => !!slots.protrusion);
+let __ccId = 0;
+if (typeof window !== "undefined") {
+  __ccId = (window as unknown as { __ccCounter?: number }).__ccCounter =
+    ((window as unknown as { __ccCounter?: number }).__ccCounter ?? 0) + 1;
+}
+const clipId = `cc-clip-${__ccId}`;
 
-const shapeTableValues = computed(() => `0 ${0.5 * props.multiplier} 0`)
-const roundTableValues = computed(() => `${-props.blurRadius} ${props.blurRadius + 1}`)
+const bodyEl = ref<HTMLElement | null>(null);
+const width = ref(0);
+const height = ref(0);
 
-const containerStyle = computed<Record<string, string>>(() => {
-  const style: Record<string, string> = {
-    "--cc-size": props.size,
-    "--cc-overflow": props.overflow || `calc(${props.size} / 2)`,
-    "--cc-offset": props.offset,
-    "--cc-gap": props.gap,
-    "--cc-radius": props.radius,
-    "--cc-m": String(props.multiplier),
+let resizeObserver: ResizeObserver | null = null;
+
+const measureBody = () => {
+  if (!bodyEl.value) return;
+  const rect = bodyEl.value.getBoundingClientRect();
+  width.value = rect.width;
+  height.value = rect.height;
+};
+
+onMounted(() => {
+  measureBody();
+  if (bodyEl.value && typeof ResizeObserver !== "undefined") {
+    resizeObserver = new ResizeObserver(measureBody);
+    resizeObserver.observe(bodyEl.value);
   }
+});
+
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect();
+  resizeObserver = null;
+});
+
+const sizePx = ref(0);
+const gapPx = ref(0);
+const radiusPx = ref(0);
+
+const parsePx = (value: string): number => {
+  if (typeof window === "undefined" || !value) return 0;
+  const div = document.createElement("div");
+  div.style.position = "absolute";
+  div.style.visibility = "hidden";
+  div.style.width = value;
+  document.body.appendChild(div);
+  const px = parseFloat(getComputedStyle(div).width);
+  document.body.removeChild(div);
+  return Number.isFinite(px) ? px : 0;
+};
+
+const updateMeasurements = () => {
+  sizePx.value = parsePx(props.size);
+  gapPx.value = parsePx(props.gap);
+  radiusPx.value = parsePx(props.radius);
+  borderWidthPx.value = parsePx(props.borderWidth);
+};
+
+onMounted(updateMeasurements);
+watch(
+  () => [props.size, props.gap, props.radius, props.borderWidth],
+  updateMeasurements,
+);
+
+const containerStyle = computed<Record<string, string>>(() => ({
+  "--cc-size": props.size,
+  "--cc-gap": props.gap,
+  "--cc-radius": props.radius,
+}));
+
+const isBottom = computed(() => props.position.startsWith("bottom"));
+const isCenter = computed(() => props.position.endsWith("center"));
+const hSide = computed(
+  () => props.position.split("-")[1] as "left" | "center" | "right",
+);
+
+const pathD = computed(() => {
+  const w = width.value;
+  const h = height.value;
+  const S = sizePx.value;
+  const G = gapPx.value;
+  const Rraw = radiusPx.value;
+
+  if (!hasProtrusion.value || !w || !h || !S) return "";
+
+  const N = S + G;
+  const C = S / 2 + G;
+  const R = Math.min(Rraw, Math.min(w, h) / 2);
+  const cutR = C;
+  const OR = Math.max(0, Math.min(R, N - C, w - R - N, h - R - N));
+
+  const p = props.position;
+
+  if (p === "bottom-right") {
+    return (
+      `M ${R} 0 H ${w - R} A ${R} ${R} 0 0 1 ${w} ${R} ` +
+      `V ${h - N - OR} A ${OR} ${OR} 0 0 1 ${w - OR} ${h - N} ` +
+      `H ${w - N + C} A ${C} ${C} 0 0 0 ${w - N} ${h - N + C} ` +
+      `V ${h - OR} A ${OR} ${OR} 0 0 1 ${w - N - OR} ${h} ` +
+      `H ${R} A ${R} ${R} 0 0 1 0 ${h - R} ` +
+      `V ${R} A ${R} ${R} 0 0 1 ${R} 0 Z`
+    );
+  }
+
+  if (p === "bottom-left") {
+    return (
+      `M ${R} 0 H ${w - R} A ${R} ${R} 0 0 1 ${w} ${R} ` +
+      `V ${h - R} A ${R} ${R} 0 0 1 ${w - R} ${h} ` +
+      `H ${N + OR} A ${OR} ${OR} 0 0 1 ${N} ${h - OR} ` +
+      `V ${h - N + C} A ${C} ${C} 0 0 0 ${N - C} ${h - N} ` +
+      `H ${OR} A ${OR} ${OR} 0 0 1 0 ${h - N - OR} ` +
+      `V ${R} A ${R} ${R} 0 0 1 ${R} 0 Z`
+    );
+  }
+
+  if (p === "top-right") {
+    return (
+      `M ${R} 0 H ${w - N - OR} A ${OR} ${OR} 0 0 1 ${w - N} ${OR} ` +
+      `V ${N - C} A ${C} ${C} 0 0 0 ${w - N + C} ${N} ` +
+      `H ${w - OR} A ${OR} ${OR} 0 0 1 ${w} ${N + OR} ` +
+      `V ${h - R} A ${R} ${R} 0 0 1 ${w - R} ${h} ` +
+      `H ${R} A ${R} ${R} 0 0 1 0 ${h - R} ` +
+      `V ${R} A ${R} ${R} 0 0 1 ${R} 0 Z`
+    );
+  }
+
+  if (p === "top-left") {
+    return (
+      `M ${N + OR} 0 H ${w - R} A ${R} ${R} 0 0 1 ${w} ${R} ` +
+      `V ${h - R} A ${R} ${R} 0 0 1 ${w - R} ${h} ` +
+      `H ${R} A ${R} ${R} 0 0 1 0 ${h - R} ` +
+      `V ${N + OR} A ${OR} ${OR} 0 0 1 ${OR} ${N} ` +
+      `H ${N - C} A ${C} ${C} 0 0 0 ${N} ${N - C} ` +
+      `V ${OR} A ${OR} ${OR} 0 0 1 ${N + OR} 0 Z`
+    );
+  }
+
+  const ORc = S / 2;
+  const AxLeft = w / 2 - C - ORc;
+  const AxRight = w / 2 + C + ORc;
+  const JxLeft = w / 2 - C;
+  const JxRight = w / 2 + C;
+
+  if (p === "top-center") {
+    const Jy = S / 2;
+    return (
+      `M ${R} 0 H ${AxLeft} ` +
+      `A ${ORc} ${ORc} 0 0 1 ${JxLeft} ${Jy} ` +
+      `A ${C} ${C} 0 0 0 ${JxRight} ${Jy} ` +
+      `A ${ORc} ${ORc} 0 0 1 ${AxRight} 0 ` +
+      `H ${w - R} A ${R} ${R} 0 0 1 ${w} ${R} ` +
+      `V ${h - R} A ${R} ${R} 0 0 1 ${w - R} ${h} ` +
+      `H ${R} A ${R} ${R} 0 0 1 0 ${h - R} ` +
+      `V ${R} A ${R} ${R} 0 0 1 ${R} 0 Z`
+    );
+  }
+
+  if (p === "bottom-center") {
+    const Jy = h - S / 2;
+    return (
+      `M ${R} 0 H ${w - R} A ${R} ${R} 0 0 1 ${w} ${R} ` +
+      `V ${h - R} A ${R} ${R} 0 0 1 ${w - R} ${h} ` +
+      `H ${AxRight} ` +
+      `A ${ORc} ${ORc} 0 0 1 ${JxRight} ${Jy} ` +
+      `A ${C} ${C} 0 0 0 ${JxLeft} ${Jy} ` +
+      `A ${ORc} ${ORc} 0 0 1 ${AxLeft} ${h} ` +
+      `H ${R} A ${R} ${R} 0 0 1 0 ${h - R} ` +
+      `V ${R} A ${R} ${R} 0 0 1 ${R} 0 Z`
+    );
+  }
+
+  return "";
+});
+
+const bodyStyle = computed<Record<string, string>>(() => {
+  if (hasProtrusion.value && pathD.value) {
+    return {
+      clipPath: `path('${pathD.value}')`,
+      background: "transparent",
+    };
+  }
+  if (hasProtrusion.value) {
+    return { background: "transparent" };
+  }
+  const style: Record<string, string> = {
+    borderRadius: "var(--cc-radius)",
+    background: props.cardBg,
+  };
   if (props.bordered) {
-    // Stacked drop-shadows to create a visible ~1px border + subtle shadow
-    style.filter = [
-      `drop-shadow(0 0 0.4px ${props.borderColor})`,
-      `drop-shadow(0 0 0.4px ${props.borderColor})`,
-      `drop-shadow(0 0 0.4px ${props.borderColor})`,
-      `drop-shadow(0 1px 3px rgba(0,0,0,0.08))`,
-      `drop-shadow(0 1px 2px rgba(0,0,0,0.06))`,
-    ].join(" ")
+    style.boxShadow = `0 0 0 ${props.borderWidth} ${props.borderColor}`;
   }
-  return style
-})
+  return style;
+});
 
-const cutoutStyle = computed<Record<string, string>>(() => {
-  const style: Record<string, string> = {
-    position: "absolute",
-    width: "calc(var(--cc-size) + var(--cc-gap) * 2)",
-    height: "calc(var(--cc-size) + var(--cc-gap) * 2)",
-    borderRadius: "50%",
-    background: "black",
-    top: "calc(-1 * var(--cc-gap))",
+const protrusionInnerStyle = computed<Record<string, string>>(() => {
+  const style: Record<string, string> = { background: props.cardBg };
+  if (props.bordered) {
+    style.boxShadow = `0 0 0 ${props.borderWidth} ${props.borderColor}`;
   }
-
-  switch (props.position) {
-    case "top-left":
-      style.left = "calc(var(--cc-offset) - var(--cc-gap))"
-      break
-    case "top-center":
-      style.left = "50%"
-      style.transform = "translateX(-50%)"
-      break
-    case "top-right":
-      style.right = "calc(var(--cc-offset) - var(--cc-gap))"
-      break
-  }
-  return style
-})
+  return style;
+});
 
 const protrusionStyle = computed<Record<string, string>>(() => {
   const style: Record<string, string> = {
     position: "absolute",
-    top: "0",
     width: "var(--cc-size)",
     height: "var(--cc-size)",
     zIndex: "2",
+  };
+  if (isBottom.value) style.bottom = "0";
+  else style.top = "0";
+  if (isCenter.value) {
+    style.left = "50%";
+    style.transform = "translateX(-50%)";
+  } else if (hSide.value === "left") {
+    style.left = "0";
+  } else {
+    style.right = "0";
   }
-
-  switch (props.position) {
-    case "top-left":
-      style.left = "var(--cc-offset)"
-      break
-    case "top-center":
-      style.left = "50%"
-      style.transform = "translateX(-50%)"
-      break
-    case "top-right":
-      style.right = "var(--cc-offset)"
-      break
-  }
-  return style
-})
+  return style;
+});
 </script>
-
-<template>
-  <div :class="cn('relative', props.class)" :style="containerStyle">
-    <template v-if="hasProtrusion">
-      <!-- SVG Filters for concave rounding effect -->
-      <svg
-        aria-hidden="true"
-        width="0"
-        height="0"
-        style="position: fixed; pointer-events: none"
-      >
-        <defs>
-          <filter :id="shapeId">
-            <feComponentTransfer>
-              <feFuncA type="table" :tableValues="shapeTableValues" />
-            </feComponentTransfer>
-          </filter>
-          <filter :id="roundId">
-            <feGaussianBlur :stdDeviation="props.blurRadius" />
-            <feComponentTransfer>
-              <feFuncA type="table" :tableValues="roundTableValues" />
-            </feComponentTransfer>
-            <feComposite in="SourceGraphic" operator="in" />
-          </filter>
-        </defs>
-      </svg>
-
-      <!-- Filtered wrapper: creates the concave-rounded card shape -->
-      <div
-        :style="{
-          paddingTop: 'var(--cc-overflow)',
-          clipPath: 'inset(-2em)',
-          filter: `url(#${shapeId}) url(#${roundId})`,
-          isolation: 'isolate',
-        }"
-      >
-        <!-- Back layer: black shapes that define card outline + protrusion cutout -->
-        <div class="pointer-events-none absolute inset-0">
-          <!-- Card frame: outline goes OUTSIDE, leaving inside transparent -->
-          <div
-            class="absolute inset-x-0 bottom-0"
-            style="outline: solid 9em black"
-            :style="{
-              top: 'var(--cc-overflow)',
-              borderRadius: 'var(--cc-radius)',
-            }"
-          />
-          <!-- Protrusion cutout: black circle that becomes transparent after filter -->
-          <div :style="cutoutStyle" />
-        </div>
-
-        <!-- Card body: content with lighten blend over back layer -->
-        <div
-          :class="cn('bg-card text-card-foreground relative', bodyClass)"
-          :style="{
-            zIndex: 1,
-            opacity: `calc(1 - 1 / var(--cc-m))`,
-            mixBlendMode: 'lighten',
-          }"
-        >
-          <slot />
-        </div>
-      </div>
-
-      <!-- Protruding element: outside the filter, sits visually in the concave notch -->
-      <div :style="protrusionStyle">
-        <slot name="protrusion" />
-      </div>
-    </template>
-
-    <!-- Fallback: no protrusion, render as simple card -->
-    <template v-else>
-      <div
-        :class="cn('bg-card text-card-foreground', bodyClass)"
-        :style="{ borderRadius: 'var(--cc-radius)' }"
-      >
-        <slot />
-      </div>
-    </template>
-  </div>
-</template>
