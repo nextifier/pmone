@@ -3,25 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\ContactFormSubmission;
 use App\Models\Event;
-use App\Models\GaProperty;
 use App\Models\Order;
 use App\Models\Post;
-use App\Models\Project;
 use App\Models\Visit;
-use App\Services\GoogleAnalytics\AnalyticsService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    public function __construct(
-        protected AnalyticsService $analyticsService
-    ) {}
-
     /**
      * Get navigation data for header switcher (projects + events).
      */
@@ -293,133 +284,5 @@ class DashboardController extends Controller
                 'top_posts' => $topPosts,
             ],
         ]);
-    }
-
-    public function staffAnalytics(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'project_id' => ['required', 'integer'],
-        ]);
-
-        $user = $request->user();
-        $project = Project::findOrFail($validated['project_id']);
-
-        $isMember = $project->members()->where('user_id', $user->id)->exists();
-
-        if (! $isMember && ! $user->hasPermissionTo('analytics.view')) {
-            abort(403, 'Unauthorized to view analytics for this project.');
-        }
-
-        return response()->json([
-            'data' => [
-                'inquiries_per_day' => $this->inquiriesPerDay($project->id),
-                'inquiries_by_project' => $this->inquiriesByProject(),
-                'visitors_per_month' => $this->gaActiveUsersPerMonth($project->id),
-            ],
-        ]);
-    }
-
-    /**
-     * @return array<int, array{date: string, count: int}>
-     */
-    protected function inquiriesPerDay(int $projectId): array
-    {
-        $now = now();
-        $start = $now->copy()->subDays(6)->startOfDay();
-        $end = $now->copy()->endOfDay();
-
-        $grouped = ContactFormSubmission::query()
-            ->forProject($projectId)
-            ->whereBetween('created_at', [$start, $end])
-            ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as count'))
-            ->groupBy('date')
-            ->get()
-            ->keyBy('date');
-
-        $result = [];
-        $cursor = $start->copy();
-
-        while ($cursor->lte($end)) {
-            $dateKey = $cursor->toDateString();
-            $result[] = [
-                'date' => $dateKey,
-                'count' => (int) ($grouped[$dateKey]->count ?? 0),
-            ];
-            $cursor->addDay();
-        }
-
-        return $result;
-    }
-
-    /**
-     * @return array<int, array{project_id: int, name: string, count: int}>
-     */
-    protected function inquiriesByProject(): array
-    {
-        return ContactFormSubmission::query()
-            ->join('projects', 'contact_form_submissions.project_id', '=', 'projects.id')
-            ->selectRaw('projects.id as project_id, projects.name, COUNT(*) as count')
-            ->groupBy('projects.id', 'projects.name')
-            ->orderByDesc('count')
-            ->limit(4)
-            ->get()
-            ->map(fn ($row) => [
-                'project_id' => (int) $row->project_id,
-                'name' => (string) $row->name,
-                'count' => (int) $row->count,
-            ])
-            ->all();
-    }
-
-    /**
-     * @return array<int, array{month: string, active_users: int}>
-     */
-    protected function gaActiveUsersPerMonth(int $projectId): array
-    {
-        $now = now();
-        $start = $now->copy()->subMonths(5)->startOfMonth();
-        $end = $now->copy()->endOfMonth();
-
-        $activeUsersByMonth = [];
-        $cursor = $start->copy();
-
-        while ($cursor->lte($end)) {
-            $activeUsersByMonth[$cursor->format('Y-m')] = 0;
-            $cursor->addMonth();
-        }
-
-        $propertyIds = GaProperty::query()
-            ->where('project_id', $projectId)
-            ->active()
-            ->pluck('property_id')
-            ->all();
-
-        if (! empty($propertyIds)) {
-            $period = $this->analyticsService->createPeriodFromDates(
-                $start->toDateString(),
-                $end->toDateString()
-            );
-
-            $analytics = $this->analyticsService->getAggregatedAnalytics($period, $propertyIds);
-
-            foreach ($analytics['property_breakdown'] ?? [] as $property) {
-                foreach ($property['rows'] ?? [] as $row) {
-                    $monthKey = substr((string) ($row['date'] ?? ''), 0, 7);
-
-                    if (! array_key_exists($monthKey, $activeUsersByMonth)) {
-                        continue;
-                    }
-
-                    $activeUsersByMonth[$monthKey] += (int) ($row['activeUsers'] ?? 0);
-                }
-            }
-        }
-
-        $result = [];
-        foreach ($activeUsersByMonth as $month => $value) {
-            $result[] = ['month' => $month, 'active_users' => $value];
-        }
-
-        return $result;
     }
 }

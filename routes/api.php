@@ -63,7 +63,6 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('dashboard')->group(func
     Route::get('/navigation', [DashboardController::class, 'navigation'])->name('dashboard.navigation');
     Route::get('/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
     Route::get('/writer-stats', [DashboardController::class, 'writerStats'])->name('dashboard.writer-stats');
-    Route::get('/staff-analytics', [DashboardController::class, 'staffAnalytics'])->name('dashboard.staff-analytics');
 });
 
 // Protected API routes (authenticated + verified)
