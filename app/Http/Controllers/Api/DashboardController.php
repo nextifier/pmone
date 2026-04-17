@@ -2,17 +2,27 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\ContactFormStatus;
 use App\Http\Controllers\Controller;
+use App\Models\ContactFormSubmission;
 use App\Models\Event;
+use App\Models\GaProperty;
 use App\Models\Order;
 use App\Models\Post;
+use App\Models\Project;
 use App\Models\Visit;
+use App\Services\GoogleAnalytics\AnalyticsService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    public function __construct(
+        protected AnalyticsService $analyticsService
+    ) {}
+
     /**
      * Get navigation data for header switcher (projects + events).
      */
@@ -284,5 +294,153 @@ class DashboardController extends Controller
                 'top_posts' => $topPosts,
             ],
         ]);
+    }
+
+    public function staffAnalytics(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'project_id' => ['required', 'integer'],
+        ]);
+
+        $user = $request->user();
+        $project = Project::findOrFail($validated['project_id']);
+
+        $isMember = $project->members()->where('user_id', $user->id)->exists();
+
+        if (! $isMember && ! $user->hasPermissionTo('analytics.view')) {
+            abort(403, 'Unauthorized to view analytics for this project.');
+        }
+
+        [$visitorsPerMonth, $sessionsPerMonth] = $this->gaMonthlyMetrics($project->id);
+
+        return response()->json([
+            'data' => [
+                'inquiries_per_day' => $this->inquiriesPerDay($project->id),
+                'inquiries_by_status' => $this->inquiriesByStatus($project->id),
+                'visitors_per_month' => $visitorsPerMonth,
+                'sessions_per_month' => $sessionsPerMonth,
+            ],
+        ]);
+    }
+
+    /**
+     * @return array<int, array{date: string, count: int}>
+     */
+    protected function inquiriesPerDay(int $projectId): array
+    {
+        $now = now();
+        $start = $now->copy()->subDays(6)->startOfDay();
+        $end = $now->copy()->endOfDay();
+
+        $grouped = ContactFormSubmission::query()
+            ->forProject($projectId)
+            ->whereBetween('created_at', [$start, $end])
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as count'))
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+
+        $result = [];
+        $cursor = $start->copy();
+
+        while ($cursor->lte($end)) {
+            $dateKey = $cursor->toDateString();
+            $result[] = [
+                'date' => $dateKey,
+                'count' => (int) ($grouped[$dateKey]->count ?? 0),
+            ];
+            $cursor->addDay();
+        }
+
+        return $result;
+    }
+
+    protected function inquiriesByStatus(int $projectId): array
+    {
+        $counts = ContactFormSubmission::query()
+            ->forProject($projectId)
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
+        $result = [];
+
+        foreach (ContactFormStatus::cases() as $case) {
+            $result[$case->value] = (int) ($counts[$case->value] ?? 0);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return array{0: array<int, array{month: string, active_users: int}>, 1: array<int, array{month: string, sessions: int}>}
+     */
+    protected function gaMonthlyMetrics(int $projectId): array
+    {
+        $now = now();
+        $start = $now->copy()->subMonths(5)->startOfMonth();
+        $end = $now->copy()->endOfMonth();
+
+        $activeUsersByMonth = [];
+        $sessionsByMonth = [];
+        $cursor = $start->copy();
+
+        while ($cursor->lte($end)) {
+            $monthKey = $cursor->format('Y-m');
+            $activeUsersByMonth[$monthKey] = 0;
+            $sessionsByMonth[$monthKey] = 0;
+            $cursor->addMonth();
+        }
+
+        $propertyIds = GaProperty::query()
+            ->where('project_id', $projectId)
+            ->active()
+            ->pluck('property_id')
+            ->all();
+
+        if (! empty($propertyIds)) {
+            $period = $this->analyticsService->createPeriodFromDates(
+                $start->toDateString(),
+                $end->toDateString()
+            );
+
+            $analytics = $this->analyticsService->getAggregatedAnalytics($period, $propertyIds);
+
+            foreach ($analytics['property_breakdown'] ?? [] as $property) {
+                foreach ($property['rows'] ?? [] as $row) {
+                    $monthKey = substr((string) ($row['date'] ?? ''), 0, 7);
+
+                    if (! array_key_exists($monthKey, $activeUsersByMonth)) {
+                        continue;
+                    }
+
+                    $activeUsersByMonth[$monthKey] += (int) ($row['activeUsers'] ?? 0);
+                    $sessionsByMonth[$monthKey] += (int) ($row['sessions'] ?? 0);
+                }
+            }
+        }
+
+        return [
+            $this->formatMonthlySeries($activeUsersByMonth, 'active_users'),
+            $this->formatMonthlySeries($sessionsByMonth, 'sessions'),
+        ];
+    }
+
+    /**
+     * @param  array<string, int>  $months
+     * @return array<int, array<string, int|string>>
+     */
+    protected function formatMonthlySeries(array $months, string $valueKey): array
+    {
+        $result = [];
+
+        foreach ($months as $month => $value) {
+            $result[] = [
+                'month' => $month,
+                $valueKey => $value,
+            ];
+        }
+
+        return $result;
     }
 }

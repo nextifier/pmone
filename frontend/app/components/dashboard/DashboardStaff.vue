@@ -6,6 +6,8 @@
 
     <DashboardMyProjects :projects="myProjects" :loading="loading" />
 
+    <DashboardStaffAnalytics v-if="!loading && myProjects.length > 0" :projects="myProjects" />
+
     <DashboardRecentEvents :events="allEvents" :loading="loading" />
   </div>
 </template>
