@@ -75,6 +75,45 @@
     <!-- Conjunction Events -->
     <EventConjunctionManager v-if="event" :event="event" />
 
+    <!-- Hotel Reservation Branding Override -->
+    <div v-if="event && canEditBranding" class="frame">
+      <div class="frame-header">
+        <div class="frame-title">Hotel Reservation Branding</div>
+      </div>
+      <div class="frame-panel space-y-5">
+        <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
+          Override global branding for this event's Hotel Reservation Invoice & Receipt PDF. Useful for white-label events. Leave disabled to fall back to global branding.
+        </p>
+
+        <div class="flex items-center gap-3 rounded-md border p-3">
+          <Switch v-model="brandingEnabled" />
+          <div class="text-sm tracking-tight">
+            <span class="font-medium">Use custom branding</span>
+            <p class="text-muted-foreground text-xs sm:text-sm">{{ brandingEnabled ? "Custom branding will be used for this event." : "Falls back to global branding." }}</p>
+          </div>
+        </div>
+
+        <BrandingForm
+          v-if="brandingEnabled && !brandingLoading"
+          :model-value="brandingDraft"
+          :saving="brandingSaving"
+          submit-label="Save Branding"
+          @submit="handleBrandingSubmit"
+        />
+
+        <div v-else-if="brandingEnabled && brandingLoading" class="flex justify-center py-4">
+          <Spinner class="size-5" />
+        </div>
+
+        <div v-else class="flex justify-end">
+          <Button variant="outline" :disabled="brandingSaving" @click="clearBranding">
+            <Icon v-if="brandingSaving" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
+            Clear Custom Branding
+          </Button>
+        </div>
+      </div>
+    </div>
+
     <!-- Danger Zone -->
     <div v-if="event && event.can_delete" class="frame border-destructive/30">
       <div class="frame-header">
@@ -133,6 +172,9 @@
 </template>
 
 <script setup>
+import BrandingForm from "@/components/branding/BrandingForm.vue";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
@@ -150,6 +192,67 @@ const deleteLoading = ref(false);
 const deleteDialogOpen = ref(false);
 
 const base = computed(() => `/projects/${route.params.username}/events/${route.params.eventSlug}`);
+
+// Branding override
+const { hasPermission } = usePermission();
+const canEditBranding = computed(() => hasPermission("events.update_branding"));
+
+const brandingEnabled = ref(false);
+const brandingDraft = ref({});
+const brandingLoading = ref(false);
+const brandingSaving = ref(false);
+
+watch(
+  () => props.event?.id,
+  async (eventId) => {
+    if (!eventId || !canEditBranding.value) return;
+    brandingLoading.value = true;
+    try {
+      const res = await client(`/api/events/${eventId}/branding`);
+      const value = res?.branding;
+      brandingEnabled.value = value !== null && value !== undefined;
+      brandingDraft.value = value ?? {};
+    } catch (err) {
+      // silent - allow user to enable later
+    } finally {
+      brandingLoading.value = false;
+    }
+  },
+  { immediate: true }
+);
+
+const handleBrandingSubmit = async (payload) => {
+  brandingSaving.value = true;
+  try {
+    const res = await client(`/api/events/${props.event.id}/branding`, {
+      method: "PUT",
+      body: { branding: payload },
+    });
+    brandingDraft.value = res?.branding ?? payload;
+    brandingEnabled.value = true;
+    toast.success("Event branding saved");
+  } catch (err) {
+    toast.error("Failed to save branding", { description: err?.data?.message || err?.message });
+  } finally {
+    brandingSaving.value = false;
+  }
+};
+
+const clearBranding = async () => {
+  brandingSaving.value = true;
+  try {
+    await client(`/api/events/${props.event.id}/branding`, {
+      method: "PUT",
+      body: { branding: null },
+    });
+    brandingDraft.value = {};
+    toast.success("Custom branding cleared. Using global branding.");
+  } catch (err) {
+    toast.error("Failed to clear branding", { description: err?.data?.message || err?.message });
+  } finally {
+    brandingSaving.value = false;
+  }
+};
 
 async function handleUpdate(payload) {
   loading.value = true;

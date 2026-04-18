@@ -410,25 +410,32 @@ const navMainGroups = computed(() => {
   }
 
   // Settings - always available
+  const settingsItems = [
+    {
+      label: "Profile",
+      path: "/settings/profile",
+    },
+    {
+      label: "Password",
+      path: "/settings/password",
+    },
+    {
+      label: "Appearance",
+      path: "/settings/appearance",
+    },
+  ];
+  if (hasPermission("app_settings.update")) {
+    settingsItems.push({
+      label: "Branding",
+      path: "/settings/branding",
+    });
+  }
   adminItems.push({
     label: "Settings",
     path: "/settings",
     iconName: "hugeicons:settings-01",
     isActive: false,
-    items: [
-      {
-        label: "Profile",
-        path: "/settings/profile",
-      },
-      {
-        label: "Password",
-        path: "/settings/password",
-      },
-      {
-        label: "Appearance",
-        path: "/settings/appearance",
-      },
-    ],
+    items: settingsItems,
   });
 
   if (adminItems.length > 0) {

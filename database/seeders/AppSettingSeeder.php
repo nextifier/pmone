@@ -22,9 +22,9 @@ class AppSettingSeeder extends Seeder
             'bank_accounts' => [
                 ['bank_name' => 'BCA', 'account_number' => '0000000000', 'account_name' => 'PT PM One'],
             ],
-            'footer_note' => 'Terima kasih atas kepercayaan Anda.',
+            'footer_note' => 'Thank you for your business.',
             'primary_color' => '#0F172A',
-        ], 'PM One global branding (logo, company info, bank accounts) untuk Invoice & Receipt PDF.');
+        ], 'PM One global branding (logo, company info, bank accounts) for Invoice & Receipt PDF.');
 
         $this->command->info('Seeded global branding settings.');
     }

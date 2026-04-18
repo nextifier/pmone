@@ -3,7 +3,7 @@
     <div class="space-y-3 max-w-2xl">
       <h1 class="text-2xl sm:text-3xl font-semibold tracking-tighter">Hotel Accommodation</h1>
       <p class="text-muted-foreground text-sm sm:text-base tracking-tight">
-        Pilih hotel partner kami dan booking dengan mudah. Pembayaran aman via Xendit dan voucher check-in akan kami kirim langsung ke email Anda.
+        Browse our partner hotels and book in minutes. Secure payment via Xendit, and your check-in voucher will be sent directly to your email.
       </p>
     </div>
 
@@ -37,9 +37,9 @@
           <h3 class="text-base font-semibold tracking-tight">{{ hotel.name }}</h3>
           <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">{{ [hotel.address, hotel.city].filter(Boolean).join(", ") }}</p>
           <p v-if="cheapestRate(hotel)" class="text-sm tracking-tight pt-1">
-            <span class="text-muted-foreground">Mulai dari</span>
+            <span class="text-muted-foreground">From</span>
             <span class="font-medium ml-1">Rp {{ formatRupiah(cheapestRate(hotel)) }}</span>
-            <span class="text-muted-foreground">/ malam</span>
+            <span class="text-muted-foreground">/ night</span>
           </p>
         </div>
       </NuxtLink>

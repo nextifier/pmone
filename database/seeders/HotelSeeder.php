@@ -16,7 +16,7 @@ class HotelSeeder extends Seeder
             [
                 'name' => 'Grand Mercure Jakarta Kemayoran',
                 'slug' => 'grand-mercure-jakarta-kemayoran',
-                'description' => 'Hotel bintang 4 di kawasan Kemayoran, dekat venue JIExpo.',
+                'description' => '4-star hotel in Kemayoran district, near the JIExpo venue.',
                 'address' => 'Jl. H. Benyamin Suaeb, Kemayoran',
                 'city' => 'Jakarta',
                 'commission_rate' => 10.00,
@@ -37,7 +37,7 @@ class HotelSeeder extends Seeder
             [
                 'name' => 'Holiday Inn Jakarta Kemayoran',
                 'slug' => 'holiday-inn-jakarta-kemayoran',
-                'description' => 'Akomodasi modern dengan akses mudah ke pusat ekshibisi.',
+                'description' => 'Modern accommodation with easy access to the exhibition center.',
                 'address' => 'Jl. Angkasa Mulia, Kemayoran',
                 'city' => 'Jakarta',
                 'commission_rate' => 12.00,

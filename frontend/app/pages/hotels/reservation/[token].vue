@@ -44,7 +44,7 @@
             <div>
               <p class="font-medium">{{ item.room_type_name }}</p>
               <p class="text-muted-foreground text-xs">
-                {{ item.check_in_date }} → {{ item.check_out_date }} · {{ item.nights }} malam · {{ item.qty }} kamar
+                {{ item.check_in_date }} → {{ item.check_out_date }} · {{ item.nights }} night(s) · {{ item.qty }} room(s)
               </p>
             </div>
             <p class="font-medium tabular-nums">Rp {{ formatRupiah(item.subtotal) }}</p>
@@ -72,7 +72,7 @@
 
       <div v-if="reservation.status === 'pending_payment' && reservation.payment_url" class="rounded-lg border p-5 space-y-3">
         <h2 class="text-base font-semibold tracking-tight">Payment Pending</h2>
-        <p class="text-sm tracking-tight">Pembayaran belum diterima. Silakan lanjutkan via Xendit:</p>
+        <p class="text-sm tracking-tight">Payment has not been received yet. Please continue via Xendit:</p>
         <a :href="reservation.payment_url" class="bg-primary text-primary-foreground inline-block rounded-md px-4 py-2 text-sm font-medium tracking-tight hover:bg-primary/90">
           Pay Now
         </a>
@@ -80,7 +80,7 @@
 
       <div class="rounded-lg border p-5 space-y-2">
         <h2 class="text-base font-semibold tracking-tight">Need Help?</h2>
-        <p class="text-sm tracking-tight">Hubungi tim PM One:</p>
+        <p class="text-sm tracking-tight">Contact PM One support:</p>
         <p class="text-sm tracking-tight">
           <span class="text-muted-foreground">Email:</span> <a :href="`mailto:${reservation.hotel?.contact_email || 'support@pmone.id'}`" class="text-primary hover:underline">{{ reservation.hotel?.contact_email || 'support@pmone.id' }}</a>
         </p>
