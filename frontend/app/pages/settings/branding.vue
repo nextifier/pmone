@@ -54,11 +54,12 @@ onMounted(async () => {
 const handleSubmit = async (payload) => {
   saving.value = true;
   try {
+    const { tmp_logo, delete_logo, ...value } = payload;
     const res = await client("/api/app-settings/branding", {
       method: "PUT",
-      body: { value: payload },
+      body: { value, tmp_logo, delete_logo },
     });
-    branding.value = res?.value ?? payload;
+    branding.value = res?.value ?? value;
     toast.success("Branding saved");
   } catch (err) {
     toast.error("Failed to save branding", { description: err?.data?.message || err?.message });

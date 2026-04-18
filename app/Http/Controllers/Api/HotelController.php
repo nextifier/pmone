@@ -7,18 +7,21 @@ use App\Http\Requests\Hotel\StoreHotelRequest;
 use App\Http\Requests\Hotel\UpdateHotelRequest;
 use App\Http\Resources\HotelIndexResource;
 use App\Http\Resources\HotelResource;
+use App\Models\Event;
 use App\Models\Hotel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class HotelController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, Event $event): JsonResponse
     {
         $query = Hotel::query()
+            ->where('event_id', $event->id)
             ->with(['media'])
             ->withCount(['roomTypes', 'reservations']);
 
@@ -39,8 +42,10 @@ class HotelController extends Controller
         ]);
     }
 
-    public function show(Hotel $hotel): JsonResponse
+    public function show(Event $event, Hotel $hotel): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
+
         $hotel->load(['media', 'creator', 'updater'])
             ->loadCount(['roomTypes', 'reservations']);
 
@@ -49,9 +54,10 @@ class HotelController extends Controller
         ]);
     }
 
-    public function store(StoreHotelRequest $request): JsonResponse
+    public function store(StoreHotelRequest $request, Event $event): JsonResponse
     {
         $data = $request->safe()->except(['tmp_featured', 'gallery_files']);
+        $data['event_id'] = $event->id;
 
         $hotel = Hotel::create($data);
 
@@ -66,8 +72,10 @@ class HotelController extends Controller
         ], 201);
     }
 
-    public function update(UpdateHotelRequest $request, Hotel $hotel): JsonResponse
+    public function update(UpdateHotelRequest $request, Event $event, Hotel $hotel): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
+
         $data = $request->safe()->except(['tmp_featured', 'delete_featured', 'gallery_files']);
 
         $hotel->update($data);
@@ -83,17 +91,20 @@ class HotelController extends Controller
         ]);
     }
 
-    public function destroy(Hotel $hotel): JsonResponse
+    public function destroy(Event $event, Hotel $hotel): JsonResponse
     {
         $this->authorizeAction('hotels.delete');
+        $this->ensureHotelBelongsToEvent($event, $hotel);
 
         $hotel->delete();
 
         return response()->json(['message' => 'Hotel deleted successfully']);
     }
 
-    public function reorderMedia(Request $request, Hotel $hotel, string $collection): JsonResponse
+    public function reorderMedia(Request $request, Event $event, Hotel $hotel, string $collection): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
+
         $request->validate([
             'media_ids' => ['required', 'array'],
             'media_ids.*' => ['integer'],
@@ -117,9 +128,10 @@ class HotelController extends Controller
         return response()->json(['message' => 'Order updated']);
     }
 
-    public function trash(Request $request): JsonResponse
+    public function trash(Request $request, Event $event): JsonResponse
     {
         $query = Hotel::onlyTrashed()
+            ->where('event_id', $event->id)
             ->with(['media', 'deleter']);
 
         $this->applyFilters($query, $request);
@@ -138,20 +150,31 @@ class HotelController extends Controller
         ]);
     }
 
-    public function restore(int $id): JsonResponse
+    public function restore(Event $event, int $id): JsonResponse
     {
-        $hotel = Hotel::onlyTrashed()->findOrFail($id);
+        $hotel = Hotel::onlyTrashed()
+            ->where('event_id', $event->id)
+            ->findOrFail($id);
         $hotel->restore();
 
         return response()->json(['message' => 'Hotel restored successfully']);
     }
 
-    public function forceDestroy(int $id): JsonResponse
+    public function forceDestroy(Event $event, int $id): JsonResponse
     {
-        $hotel = Hotel::onlyTrashed()->findOrFail($id);
+        $hotel = Hotel::onlyTrashed()
+            ->where('event_id', $event->id)
+            ->findOrFail($id);
         $hotel->forceDelete();
 
         return response()->json(['message' => 'Hotel permanently deleted']);
+    }
+
+    private function ensureHotelBelongsToEvent(Event $event, Hotel $hotel): void
+    {
+        if ($hotel->event_id !== $event->id) {
+            throw new NotFoundHttpException('Hotel not found in this event.');
+        }
     }
 
     private function authorizeAction(string $permission): void

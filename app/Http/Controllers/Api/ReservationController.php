@@ -14,6 +14,8 @@ use App\Http\Resources\ReservationResource;
 use App\Jobs\Reservation\ProcessXenditRefundJob;
 use App\Jobs\Reservation\SendCancellationJob;
 use App\Jobs\Reservation\SendHotelVoucherJob;
+use App\Models\Event;
+use App\Models\Hotel;
 use App\Models\Reservation;
 use App\Services\Reservation\DocumentService;
 use App\Services\Reservation\ReservationService;
@@ -30,9 +32,10 @@ class ReservationController extends Controller
         protected DocumentService $documents,
     ) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, Event $event): JsonResponse
     {
         $query = Reservation::query()
+            ->where('event_id', $event->id)
             ->with(['hotel', 'event', 'items', 'media']);
 
         $this->applyFilters($query, $request);
@@ -51,8 +54,10 @@ class ReservationController extends Controller
         ]);
     }
 
-    public function show(Reservation $reservation): JsonResponse
+    public function show(Event $event, Reservation $reservation): JsonResponse
     {
+        $this->ensureReservationBelongsToEvent($event, $reservation);
+
         $reservation->load([
             'hotel', 'event',
             'items.roomType',
@@ -63,8 +68,10 @@ class ReservationController extends Controller
         return response()->json(['data' => (new ReservationResource($reservation))->resolve()]);
     }
 
-    public function destroy(Reservation $reservation): JsonResponse
+    public function destroy(Event $event, Reservation $reservation): JsonResponse
     {
+        $this->ensureReservationBelongsToEvent($event, $reservation);
+
         if (! auth()->user()?->can('reservations.delete')) {
             abort(403);
         }
@@ -74,10 +81,16 @@ class ReservationController extends Controller
         return response()->json(['message' => 'Reservation deleted successfully']);
     }
 
-    public function storeManual(StoreManualReservationRequest $request): JsonResponse
+    public function storeManual(StoreManualReservationRequest $request, Event $event): JsonResponse
     {
         $data = $request->validated();
         $data['source'] = ReservationSource::AdminManual;
+
+        // Ensure hotel belongs to the route event
+        $hotel = Hotel::where('id', $data['hotel_id'])
+            ->where('event_id', $event->id)
+            ->firstOrFail();
+        $data['event_id'] = $event->id;
 
         $mode = $data['payment_mode'] ?? 'xendit';
         unset($data['payment_mode']);
@@ -98,8 +111,10 @@ class ReservationController extends Controller
         ], 201);
     }
 
-    public function uploadVoucher(UploadVoucherRequest $request, Reservation $reservation): JsonResponse
+    public function uploadVoucher(UploadVoucherRequest $request, Event $event, Reservation $reservation): JsonResponse
     {
+        $this->ensureReservationBelongsToEvent($event, $reservation);
+
         $reservation->clearMediaCollection('voucher');
         $reservation->addMediaFromRequest('voucher')->toMediaCollection('voucher');
 
@@ -112,8 +127,10 @@ class ReservationController extends Controller
         ]);
     }
 
-    public function deleteVoucher(Reservation $reservation): JsonResponse
+    public function deleteVoucher(Event $event, Reservation $reservation): JsonResponse
     {
+        $this->ensureReservationBelongsToEvent($event, $reservation);
+
         if (! auth()->user()?->can('reservations.upload_voucher')) {
             abort(403);
         }
@@ -123,8 +140,10 @@ class ReservationController extends Controller
         return response()->json(['message' => 'Voucher deleted']);
     }
 
-    public function sendVoucher(Reservation $reservation): JsonResponse
+    public function sendVoucher(Event $event, Reservation $reservation): JsonResponse
     {
+        $this->ensureReservationBelongsToEvent($event, $reservation);
+
         if (! auth()->user()?->can('reservations.send_voucher')) {
             abort(403);
         }
@@ -138,8 +157,10 @@ class ReservationController extends Controller
         return response()->json(['message' => 'Voucher email queued']);
     }
 
-    public function cancel(CancelReservationRequest $request, Reservation $reservation): JsonResponse
+    public function cancel(CancelReservationRequest $request, Event $event, Reservation $reservation): JsonResponse
     {
+        $this->ensureReservationBelongsToEvent($event, $reservation);
+
         $data = $request->validated();
         $refundAmount = $data['refund_amount'] ?? $this->reservations->calculateRefund($reservation);
 
@@ -163,7 +184,7 @@ class ReservationController extends Controller
         ]);
     }
 
-    public function export(Request $request): BinaryFileResponse
+    public function export(Request $request, Event $event): BinaryFileResponse
     {
         if (! auth()->user()?->can('reservations.export')) {
             abort(403);
@@ -172,7 +193,7 @@ class ReservationController extends Controller
         $filters = array_filter([
             'search' => $request->input('filter_search'),
             'status' => $request->input('filter_status'),
-            'event_id' => $request->input('filter_event_id'),
+            'event_id' => $event->id,
             'hotel_id' => $request->input('filter_hotel_id'),
             'date_from' => $request->input('filter_date_from'),
             'date_to' => $request->input('filter_date_to'),
@@ -185,8 +206,10 @@ class ReservationController extends Controller
         return Excel::download(new ReservationsExport($filters ?: null, $sort), $filename);
     }
 
-    public function invoicePdf(Reservation $reservation): Response
+    public function invoicePdf(Event $event, Reservation $reservation): Response
     {
+        $this->ensureReservationBelongsToEvent($event, $reservation);
+
         if (! auth()->user()?->can('reservations.view_documents')) {
             abort(403);
         }
@@ -194,8 +217,10 @@ class ReservationController extends Controller
         return $this->documents->renderInvoicePdf($reservation);
     }
 
-    public function receiptPdf(Reservation $reservation): Response
+    public function receiptPdf(Event $event, Reservation $reservation): Response
     {
+        $this->ensureReservationBelongsToEvent($event, $reservation);
+
         if (! auth()->user()?->can('reservations.view_documents')) {
             abort(403);
         }
@@ -205,6 +230,11 @@ class ReservationController extends Controller
         }
 
         return $this->documents->renderReceiptPdf($reservation);
+    }
+
+    private function ensureReservationBelongsToEvent(Event $event, Reservation $reservation): void
+    {
+        abort_if($reservation->event_id !== $event->id, 404);
     }
 
     private function applyFilters($query, Request $request): void
@@ -224,10 +254,6 @@ class ReservationController extends Controller
 
         if ($hotelId = $request->input('filter_hotel_id')) {
             $query->where('hotel_id', $hotelId);
-        }
-
-        if ($eventId = $request->input('filter_event_id')) {
-            $query->where('event_id', $eventId);
         }
 
         if ($from = $request->input('filter_date_from')) {

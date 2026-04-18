@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\Event;
 use App\Models\Hotel;
 use App\Models\HotelEventAllotment;
 use App\Models\RoomType;
@@ -19,7 +18,6 @@ class HotelEventAllotmentFactory extends Factory
         $end = (clone $start)->modify('+'.fake()->numberBetween(2, 5).' days');
 
         return [
-            'event_id' => Event::factory(),
             'hotel_id' => Hotel::factory(),
             'room_type_id' => RoomType::factory(),
             'quantity' => fake()->numberBetween(5, 30),

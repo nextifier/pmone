@@ -28,14 +28,13 @@ beforeEach(function () {
     $this->headers = ['X-API-Key' => $this->consumer->api_key];
 
     $this->project = Project::factory()->create(['status' => 'active']);
-    $this->event = Event::factory()->create(['project_id' => $this->project->id]);
-    $this->hotel = Hotel::factory()->create(['tax_percentage' => 11, 'service_charge_percentage' => 5]);
+    $this->event = Event::factory()->create(['project_id' => $this->project->id, 'is_active' => true]);
+    $this->hotel = Hotel::factory()->for($this->event)->create(['tax_percentage' => 11, 'service_charge_percentage' => 5]);
     $this->roomType = RoomType::factory()->create([
         'hotel_id' => $this->hotel->id,
         'base_rate' => 1000000,
     ]);
     HotelEventAllotment::factory()->create([
-        'event_id' => $this->event->id,
         'hotel_id' => $this->hotel->id,
         'room_type_id' => $this->roomType->id,
         'quantity' => 5,
@@ -52,8 +51,8 @@ test('public can list active hotels', function () {
     expect(count($response->json('data')))->toBeGreaterThanOrEqual(1);
 });
 
-test('public can show hotel by slug', function () {
-    $response = $this->getJson("/api/public/hotels/{$this->hotel->slug}", $this->headers);
+test('public can show hotel by event+hotel slug', function () {
+    $response = $this->getJson("/api/public/events/{$this->event->slug}/hotels/{$this->hotel->slug}", $this->headers);
 
     $response->assertSuccessful()
         ->assertJsonPath('data.slug', $this->hotel->slug);
@@ -61,7 +60,6 @@ test('public can show hotel by slug', function () {
 
 test('public availability check returns available count', function () {
     $response = $this->postJson('/api/public/hotels/availability', [
-        'event_id' => $this->event->id,
         'hotel_id' => $this->hotel->id,
         'room_type_id' => $this->roomType->id,
         'check_in_date' => '2026-06-02',
@@ -85,7 +83,6 @@ test('public reservation creation creates pending_payment reservation', function
     $this->app->instance(XenditService::class, $xendit);
 
     $payload = [
-        'event_id' => $this->event->id,
         'hotel_id' => $this->hotel->id,
         'guest_name' => 'John Doe',
         'guest_email' => 'john@example.com',
@@ -114,6 +111,7 @@ test('public reservation creation creates pending_payment reservation', function
     $this->assertDatabaseHas('reservations', [
         'guest_email' => 'john@example.com',
         'xendit_invoice_id' => 'inv_test_123',
+        'event_id' => $this->event->id,
     ]);
 });
 
@@ -144,7 +142,6 @@ test('reservation fails when no allotment available', function () {
     $this->app->instance(XenditService::class, $xendit);
 
     $response = $this->postJson('/api/public/reservations', [
-        'event_id' => $this->event->id,
         'hotel_id' => $this->hotel->id,
         'guest_name' => 'X',
         'guest_email' => 'x@test.com',
@@ -171,7 +168,6 @@ test('availability decreases after reservation is created', function () {
 
     $service = app(ReservationService::class);
     $service->createReservation([
-        'event_id' => $this->event->id,
         'hotel_id' => $this->hotel->id,
         'guest_name' => 'A',
         'guest_email' => 'a@test.com',

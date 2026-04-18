@@ -14,6 +14,11 @@
     </div>
 
     <div v-else class="mt-6 space-y-8">
+      <div v-if="hotel.event" class="text-muted-foreground text-xs sm:text-sm tracking-tight">
+        <span>{{ hotel.event.title }}</span>
+        <span v-if="hotel.event.start_date || hotel.event.end_date"> · {{ formatEventDates(hotel.event) }}</span>
+      </div>
+
       <HotelDetailHeader :hotel="hotel" />
 
       <section class="grid gap-6 lg:grid-cols-[1fr_360px]">
@@ -26,7 +31,6 @@
           <BookingSummary
             v-model:check-in="checkInDate"
             v-model:check-out="checkOutDate"
-            :min-check-in="minCheckIn"
             :summary="summary"
             :tax-percentage="hotel.tax_percentage"
             :service-percentage="hotel.service_charge_percentage"
@@ -65,29 +69,38 @@ definePageMeta({
 });
 
 const route = useRoute();
-const slug = computed(() => route.params.hotelSlug);
+const eventSlug = computed(() => route.params.eventSlug);
+const hotelSlug = computed(() => route.params.hotelSlug);
 
-const { data, pending } = await useLazyAsyncData(() => `public-hotel-${slug.value}`, () => $fetch(`/api/accommodation/hotels/${slug.value}`));
+const { data, pending } = await useLazyAsyncData(
+  () => `public-hotel-${eventSlug.value}-${hotelSlug.value}`,
+  () => $fetch(`/api/accommodation/events/${eventSlug.value}/hotels/${hotelSlug.value}`),
+);
 
 const hotel = computed(() => data.value?.data);
 
 usePageMeta(null, {
-  title: computed(() => `${hotel.value?.name ?? "Hotel"} · Accommodation`),
+  title: computed(() => `${hotel.value?.name ?? "Hotel"} · ${hotel.value?.event?.title ?? "Accommodation"}`),
 });
 
 const today = new Date();
-const minCheckIn = today.toISOString().slice(0, 10);
 const tomorrow = new Date(today.getTime() + 86400000);
 const dayAfter = new Date(today.getTime() + 2 * 86400000);
-const checkInDate = ref(tomorrow.toISOString().slice(0, 10));
-const checkOutDate = ref(dayAfter.toISOString().slice(0, 10));
+const checkInDate = ref(tomorrow);
+const checkOutDate = ref(dayAfter);
 
 const selectedRoomQty = ref({});
 const selectedTransfers = ref({});
 
+const toIsoDate = (d) => {
+  if (!d) return null;
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
 const nights = computed(() => {
   if (!checkInDate.value || !checkOutDate.value) return 0;
-  const ms = new Date(checkOutDate.value).getTime() - new Date(checkInDate.value).getTime();
+  const ms = checkOutDate.value.getTime() - checkInDate.value.getTime();
   return Math.max(0, Math.round(ms / 86400000));
 });
 
@@ -114,17 +127,26 @@ const canProceed = computed(() => summary.value.total > 0 && nights.value > 0);
 const formDialogOpen = ref(false);
 const saving = ref(false);
 
+const formatEventDates = (ev) => {
+  const fmt = (d) => d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
+  if (ev.start_date && ev.end_date) return `${fmt(ev.start_date)} – ${fmt(ev.end_date)}`;
+  return fmt(ev.start_date || ev.end_date);
+};
+
 const handleSubmit = async (guestPayload) => {
   saving.value = true;
   try {
+    const checkIn = toIsoDate(checkInDate.value);
+    const checkOut = toIsoDate(checkOutDate.value);
+
     const items = [];
     for (const room of hotel.value.room_types ?? []) {
       const qty = Number(selectedRoomQty.value[room.id]) || 0;
       if (qty > 0) {
         items.push({
           room_type_id: room.id,
-          check_in_date: checkInDate.value,
-          check_out_date: checkOutDate.value,
+          check_in_date: checkIn,
+          check_out_date: checkOut,
           qty,
         });
       }
@@ -136,7 +158,7 @@ const handleSubmit = async (guestPayload) => {
         transfers.push({
           transfer_option_id: opt.id,
           direction: opt.direction === "both" ? "in" : opt.direction,
-          transfer_date: checkInDate.value,
+          transfer_date: checkIn,
           pax_count: 1,
           price: opt.price,
         });

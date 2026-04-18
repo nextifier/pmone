@@ -224,11 +224,12 @@ watch(
 const handleBrandingSubmit = async (payload) => {
   brandingSaving.value = true;
   try {
+    const { tmp_logo, delete_logo, ...branding } = payload;
     const res = await client(`/api/events/${props.event.id}/branding`, {
       method: "PUT",
-      body: { branding: payload },
+      body: { branding, tmp_logo, delete_logo },
     });
-    brandingDraft.value = res?.branding ?? payload;
+    brandingDraft.value = res?.branding ?? branding;
     brandingEnabled.value = true;
     toast.success("Event branding saved");
   } catch (err) {

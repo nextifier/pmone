@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Allotment\StoreAllotmentRequest;
 use App\Http\Requests\Allotment\UpdateAllotmentRequest;
 use App\Http\Resources\AllotmentResource;
+use App\Models\Event;
 use App\Models\Hotel;
 use App\Models\HotelEventAllotment;
 use Illuminate\Http\JsonResponse;
@@ -13,13 +14,11 @@ use Illuminate\Http\Request;
 
 class AllotmentController extends Controller
 {
-    public function index(Request $request, Hotel $hotel): JsonResponse
+    public function index(Request $request, Event $event, Hotel $hotel): JsonResponse
     {
-        $query = $hotel->allotments()->with(['event', 'roomType']);
+        $this->ensureHotelBelongsToEvent($event, $hotel);
 
-        if ($eventId = $request->input('filter_event_id')) {
-            $query->where('event_id', $eventId);
-        }
+        $query = $hotel->allotments()->with(['roomType']);
 
         if ($roomTypeId = $request->input('filter_room_type_id')) {
             $query->where('room_type_id', $roomTypeId);
@@ -42,22 +41,25 @@ class AllotmentController extends Controller
         ]);
     }
 
-    public function show(Hotel $hotel, HotelEventAllotment $allotment): JsonResponse
+    public function show(Event $event, Hotel $hotel, HotelEventAllotment $allotment): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
         abort_if($allotment->hotel_id !== $hotel->id, 404);
 
-        $allotment->load(['event', 'roomType', 'hotel']);
+        $allotment->load(['roomType', 'hotel']);
 
         return response()->json(['data' => (new AllotmentResource($allotment))->resolve()]);
     }
 
-    public function store(StoreAllotmentRequest $request, Hotel $hotel): JsonResponse
+    public function store(StoreAllotmentRequest $request, Event $event, Hotel $hotel): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
+
         $data = $request->validated();
         $data['hotel_id'] = $hotel->id;
 
         $allotment = HotelEventAllotment::create($data);
-        $allotment->load(['event', 'roomType']);
+        $allotment->load(['roomType']);
 
         return response()->json([
             'data' => (new AllotmentResource($allotment))->resolve(),
@@ -65,12 +67,13 @@ class AllotmentController extends Controller
         ], 201);
     }
 
-    public function update(UpdateAllotmentRequest $request, Hotel $hotel, HotelEventAllotment $allotment): JsonResponse
+    public function update(UpdateAllotmentRequest $request, Event $event, Hotel $hotel, HotelEventAllotment $allotment): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
         abort_if($allotment->hotel_id !== $hotel->id, 404);
 
         $allotment->update($request->validated());
-        $allotment->load(['event', 'roomType']);
+        $allotment->load(['roomType']);
 
         return response()->json([
             'data' => (new AllotmentResource($allotment))->resolve(),
@@ -78,8 +81,9 @@ class AllotmentController extends Controller
         ]);
     }
 
-    public function destroy(Hotel $hotel, HotelEventAllotment $allotment): JsonResponse
+    public function destroy(Event $event, Hotel $hotel, HotelEventAllotment $allotment): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
         abort_if($allotment->hotel_id !== $hotel->id, 404);
 
         if (! auth()->user()?->can('allotments.delete')) {
@@ -89,5 +93,10 @@ class AllotmentController extends Controller
         $allotment->delete();
 
         return response()->json(['message' => 'Allotment deleted successfully']);
+    }
+
+    private function ensureHotelBelongsToEvent(Event $event, Hotel $hotel): void
+    {
+        abort_if($hotel->event_id !== $event->id, 404);
     }
 }

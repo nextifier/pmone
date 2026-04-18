@@ -23,30 +23,46 @@ class PublicHotelController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $eventId = $request->input('event_id');
-        $checkIn = $request->input('check_in_date');
-        $checkOut = $request->input('check_out_date');
+        $query = Hotel::query()
+            ->active()
+            ->with([
+                'event:id,slug,title,project_id,start_date,end_date,is_active',
+                'event.project:id,username,name',
+                'media',
+                'roomTypes' => fn ($q) => $q->active(),
+            ])
+            ->whereHas('event', function ($q) use ($request) {
+                $includeInactive = $request->boolean('include_inactive');
 
-        if ($eventId && $checkIn && $checkOut) {
-            $hotels = $this->allotments->getAvailableHotelsForEvent((int) $eventId, $checkIn, $checkOut);
-        } else {
-            $hotels = Hotel::query()
-                ->active()
-                ->with(['media', 'roomTypes' => fn ($q) => $q->active()])
-                ->get();
-        }
+                if (! $includeInactive) {
+                    $q->where('is_active', true);
+                }
+
+                if ($eventSlug = $request->input('event_slug')) {
+                    $q->where('slug', $eventSlug);
+                }
+
+                if ($projectSlug = $request->input('project_slug')) {
+                    $q->whereHas('project', fn ($p) => $p->where('username', $projectSlug));
+                }
+            });
+
+        $hotels = $query->get();
 
         return response()->json([
             'data' => PublicHotelResource::collection($hotels)->resolve(),
         ]);
     }
 
-    public function show(string $slug): JsonResponse
+    public function show(string $eventSlug, string $hotelSlug): JsonResponse
     {
         $hotel = Hotel::query()
             ->active()
-            ->where('slug', $slug)
+            ->where('slug', $hotelSlug)
+            ->whereHas('event', fn ($q) => $q->where('slug', $eventSlug))
             ->with([
+                'event:id,slug,title,project_id,start_date,end_date,is_active',
+                'event.project:id,username,name',
                 'media',
                 'roomTypes' => fn ($q) => $q->active()->with('media'),
                 'transferOptions' => fn ($q) => $q->active(),
@@ -64,16 +80,16 @@ class PublicHotelController extends Controller
     {
         $data = $request->validated();
 
+        $hotel = Hotel::find($data['hotel_id']);
+        $roomType = RoomType::find($data['room_type_id']);
+
         $available = $this->reservations->checkAvailability(
-            $data['event_id'] ?? null,
+            $hotel?->event_id,
             $data['hotel_id'],
             $data['room_type_id'],
             $data['check_in_date'],
             $data['check_out_date'],
         );
-
-        $hotel = Hotel::find($data['hotel_id']);
-        $roomType = RoomType::find($data['room_type_id']);
 
         $base = (float) $roomType->base_rate;
         $taxRate = (float) ($hotel->tax_percentage ?? 0) / 100;

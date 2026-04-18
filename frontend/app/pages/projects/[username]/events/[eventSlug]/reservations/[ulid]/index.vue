@@ -1,8 +1,8 @@
 <template>
-  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl">
+  <div class="mx-auto space-y-6 pb-16 lg:max-w-4xl">
     <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-x-2.5 min-w-0">
-        <NuxtLink to="/reservations" class="hover:bg-muted text-muted-foreground inline-flex size-8 items-center justify-center rounded-md shrink-0">
+        <NuxtLink :to="`${eventBase}/reservations`" class="hover:bg-muted text-muted-foreground inline-flex size-8 items-center justify-center rounded-md shrink-0">
           <Icon name="lucide:arrow-left" class="size-4" />
         </NuxtLink>
         <h1 class="page-title font-mono text-base sm:text-lg">{{ reservation?.reservation_number ?? "Reservation" }}</h1>
@@ -17,7 +17,6 @@
     </div>
 
     <div v-else-if="reservation" class="space-y-6">
-      <!-- Action buttons per status -->
       <div v-if="['paid', 'voucher_sent'].includes(reservation.status)" class="flex flex-wrap gap-2">
         <DialogResponsive v-model:open="voucherDialogOpen" :overflow-content="true" dialog-max-width="28rem">
           <template #trigger="{ open }">
@@ -29,7 +28,7 @@
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
               <h3 class="text-lg font-semibold tracking-tight">Upload Voucher</h3>
-              <p class="text-muted-foreground text-sm tracking-tight mt-1">PDF, JPG, atau PNG. Max 20MB.</p>
+              <p class="text-muted-foreground text-sm tracking-tight mt-1">PDF, JPG, or PNG. Max 20MB.</p>
               <form @submit.prevent="handleVoucherUpload" class="mt-4 space-y-3">
                 <input ref="fileInput" type="file" accept=".pdf,image/jpeg,image/png" class="block w-full text-sm" required />
                 <div class="flex justify-end gap-2">
@@ -62,18 +61,17 @@
         </Button>
       </div>
 
-      <!-- Documents -->
       <div v-if="reservation.can_view_documents" class="rounded-md border p-4 flex flex-wrap items-center gap-3">
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium tracking-tight">Documents</p>
           <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Invoice & Receipt PDF</p>
         </div>
-        <a :href="`${apiBase}/api/reservations/${reservation.ulid}/invoice.pdf`" target="_blank" class="border-border hover:bg-muted rounded-md border px-3 py-1.5 text-sm tracking-tight">
+        <a :href="`${apiBase}/api/events/${event.id}/reservations/${reservation.ulid}/invoice.pdf`" target="_blank" class="border-border hover:bg-muted rounded-md border px-3 py-1.5 text-sm tracking-tight">
           Invoice PDF
         </a>
         <a
           v-if="['paid', 'voucher_sent'].includes(reservation.status)"
-          :href="`${apiBase}/api/reservations/${reservation.ulid}/receipt.pdf`"
+          :href="`${apiBase}/api/events/${event.id}/reservations/${reservation.ulid}/receipt.pdf`"
           target="_blank"
           class="border-border hover:bg-muted rounded-md border px-3 py-1.5 text-sm tracking-tight"
         >
@@ -81,7 +79,6 @@
         </a>
       </div>
 
-      <!-- Voucher file -->
       <div v-if="reservation.voucher" class="rounded-md border p-4 flex items-center gap-3">
         <Icon name="lucide:file" class="size-5 text-muted-foreground shrink-0" />
         <div class="flex-1 min-w-0">
@@ -91,7 +88,6 @@
         <a :href="reservation.voucher.url" target="_blank" class="text-primary text-sm hover:underline">View</a>
       </div>
 
-      <!-- Guest -->
       <div class="rounded-md border p-4 space-y-3">
         <h2 class="text-base font-semibold tracking-tight">Guest Information</h2>
         <div class="grid grid-cols-2 gap-3 text-sm tracking-tight">
@@ -108,7 +104,6 @@
         </div>
       </div>
 
-      <!-- Booking -->
       <div class="rounded-md border p-4 space-y-3">
         <h2 class="text-base font-semibold tracking-tight">Booking</h2>
         <p class="text-sm tracking-tight"><span class="text-muted-foreground">Hotel:</span> {{ reservation.hotel?.name }}</p>
@@ -144,7 +139,6 @@
         </div>
       </div>
 
-      <!-- Payment info -->
       <div class="rounded-md border p-4 space-y-2 text-sm tracking-tight">
         <h2 class="text-base font-semibold tracking-tight">Payment</h2>
         <div class="grid grid-cols-2 gap-2">
@@ -154,7 +148,6 @@
         </div>
       </div>
 
-      <!-- Cancel dialog -->
       <DialogResponsive v-model:open="cancelDialogOpen" :overflow-content="true" dialog-max-width="28rem">
         <template #default>
           <div class="px-4 pb-10 md:px-6 md:py-5">
@@ -204,15 +197,25 @@ definePageMeta({
   layout: "app",
 });
 
+const props = defineProps({
+  event: Object,
+  project: Object,
+});
+
 const route = useRoute();
 const ulid = computed(() => route.params.ulid);
 const client = useSanctumClient();
 const config = useRuntimeConfig();
 const apiBase = config.public.apiUrl;
 
-const { data, pending, refresh } = await useLazySanctumFetch(() => `/api/reservations/${ulid.value}`, {
-  key: () => `reservation-${ulid.value}`,
-});
+const eventBase = computed(
+  () => `/projects/${route.params.username}/events/${route.params.eventSlug}`
+);
+
+const { data, pending, refresh } = await useLazySanctumFetch(
+  () => `/api/events/${props.event?.id}/reservations/${ulid.value}`,
+  { key: () => `reservation-${props.event?.id}-${ulid.value}` }
+);
 
 const reservation = computed(() => data.value?.data);
 
@@ -236,7 +239,6 @@ const statusBadge = computed(() => {
   return map[reservation.value?.status] || "bg-muted text-muted-foreground";
 });
 
-// Voucher upload
 const voucherDialogOpen = ref(false);
 const fileInput = ref(null);
 const uploading = ref(false);
@@ -248,7 +250,7 @@ const handleVoucherUpload = async () => {
   try {
     const formData = new FormData();
     formData.append("voucher", file);
-    await client(`/api/reservations/${ulid.value}/voucher`, { method: "POST", body: formData });
+    await client(`/api/events/${props.event.id}/reservations/${ulid.value}/voucher`, { method: "POST", body: formData });
     toast.success("Voucher uploaded");
     voucherDialogOpen.value = false;
     await refresh();
@@ -259,12 +261,11 @@ const handleVoucherUpload = async () => {
   }
 };
 
-// Send voucher
 const sendingVoucher = ref(false);
 const handleSendVoucher = async () => {
   sendingVoucher.value = true;
   try {
-    await client(`/api/reservations/${ulid.value}/send-voucher`, { method: "POST" });
+    await client(`/api/events/${props.event.id}/reservations/${ulid.value}/send-voucher`, { method: "POST" });
     toast.success("Voucher email queued");
     await refresh();
   } catch (err) {
@@ -274,7 +275,6 @@ const handleSendVoucher = async () => {
   }
 };
 
-// Cancel
 const cancelDialogOpen = ref(false);
 const cancelling = ref(false);
 const cancelForm = reactive({
@@ -282,7 +282,7 @@ const cancelForm = reactive({
   refund_amount: null,
   process_refund: true,
 });
-const autoRefund = computed(() => 0); // Could be calculated client-side based on first check-in date
+const autoRefund = computed(() => 0);
 
 const handleCancel = async () => {
   cancelling.value = true;
@@ -294,7 +294,7 @@ const handleCancel = async () => {
     if (cancelForm.refund_amount !== null && cancelForm.refund_amount !== "") {
       payload.refund_amount = cancelForm.refund_amount;
     }
-    await client(`/api/reservations/${ulid.value}/cancel`, { method: "POST", body: payload });
+    await client(`/api/events/${props.event.id}/reservations/${ulid.value}/cancel`, { method: "POST", body: payload });
     toast.success("Reservation cancelled");
     cancelDialogOpen.value = false;
     await refresh();

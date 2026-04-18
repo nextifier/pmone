@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 /**
  * @property-read User|null $creator
@@ -19,9 +21,10 @@ use Illuminate\Support\Str;
  *
  * @mixin \Eloquent
  */
-class AppSetting extends Model
+class AppSetting extends Model implements HasMedia
 {
     use HasFactory;
+    use InteractsWithMedia;
 
     protected $fillable = [
         'key',
@@ -100,6 +103,13 @@ class AppSetting extends Model
     protected static function cacheKey(string $key): string
     {
         return "app_setting:{$key}";
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('branding_logo')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml']);
     }
 
     public function creator(): BelongsTo

@@ -12,6 +12,7 @@ class HotelIndexResource extends JsonResource
         return [
             'id' => $this->id,
             'ulid' => $this->ulid,
+            'event_id' => $this->event_id,
             'slug' => $this->slug,
             'name' => $this->name,
             'city' => $this->city,

@@ -15,9 +15,9 @@ class AllotmentService
     {
         return Hotel::query()
             ->active()
-            ->whereHas('allotments', function ($q) use ($eventId, $checkIn, $checkOut) {
+            ->where('event_id', $eventId)
+            ->whereHas('allotments', function ($q) use ($checkIn, $checkOut) {
                 $q->active()
-                    ->where('event_id', $eventId)
                     ->where('start_date', '<=', $checkIn)
                     ->where('end_date', '>=', $checkOut);
             })

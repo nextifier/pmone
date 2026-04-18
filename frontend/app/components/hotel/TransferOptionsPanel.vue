@@ -125,15 +125,18 @@ import { computed, reactive, ref } from "vue";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
+  eventId: { type: [Number, String], required: true },
   hotelSlug: { type: String, required: true },
 });
+
+const baseUrl = computed(() => `/api/events/${props.eventId}/hotels/${props.hotelSlug}/transfer-options`);
 
 const client = useSanctumClient();
 const { hasPermission } = usePermission();
 const canEdit = computed(() => hasPermission("hotels.update"));
 
-const { data, pending, refresh } = await useLazySanctumFetch(() => `/api/hotels/${props.hotelSlug}/transfer-options?per_page=50`, {
-  key: () => `hotel-${props.hotelSlug}-transfers`,
+const { data, pending, refresh } = await useLazySanctumFetch(() => `${baseUrl.value}?per_page=50`, {
+  key: () => `hotel-${props.eventId}-${props.hotelSlug}-transfers`,
 });
 
 const options = computed(() => data.value?.data ?? []);
@@ -186,10 +189,10 @@ const handleSubmit = async () => {
   try {
     const payload = { ...form };
     if (editing.value) {
-      await client(`/api/hotels/${props.hotelSlug}/transfer-options/${editing.value.id}`, { method: "PUT", body: payload });
+      await client(`${baseUrl.value}/${editing.value.id}`, { method: "PUT", body: payload });
       toast.success("Transfer option updated");
     } else {
-      await client(`/api/hotels/${props.hotelSlug}/transfer-options`, { method: "POST", body: payload });
+      await client(baseUrl.value, { method: "POST", body: payload });
       toast.success("Transfer option created");
     }
     dialogOpen.value = false;
@@ -214,7 +217,7 @@ const handleDelete = async () => {
   if (!deletingItem.value) return;
   deleting.value = true;
   try {
-    await client(`/api/hotels/${props.hotelSlug}/transfer-options/${deletingItem.value.id}`, { method: "DELETE" });
+    await client(`${baseUrl.value}/${deletingItem.value.id}`, { method: "DELETE" });
     toast.success("Transfer option deleted");
     deleteDialogOpen.value = false;
     await refresh();

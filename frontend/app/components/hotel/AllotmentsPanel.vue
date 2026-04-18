@@ -19,7 +19,6 @@
       <table class="w-full text-sm tracking-tight">
         <thead class="bg-muted">
           <tr class="text-left">
-            <th class="px-3 py-2">Event</th>
             <th class="px-3 py-2">Room Type</th>
             <th class="px-3 py-2">Date Range</th>
             <th class="px-3 py-2 text-right">Quantity</th>
@@ -30,7 +29,6 @@
         </thead>
         <tbody>
           <tr v-for="a in allotments" :key="a.id" class="border-t">
-            <td class="px-3 py-2">{{ a.event?.title || "-" }}</td>
             <td class="px-3 py-2">{{ a.room_type?.name || "-" }}</td>
             <td class="px-3 py-2 whitespace-nowrap">{{ a.start_date }} → {{ a.end_date }}</td>
             <td class="px-3 py-2 text-right tabular-nums">{{ a.quantity }}</td>
@@ -61,14 +59,6 @@
           <h3 class="text-lg font-semibold tracking-tight">{{ editing ? "Edit Allotment" : "Add Allotment" }}</h3>
 
           <form @submit.prevent="handleSubmit" class="mt-4 space-y-3">
-            <div class="space-y-2">
-              <Label>Event<span class="text-destructive">*</span></Label>
-              <select v-model.number="form.event_id" required class="border-input w-full rounded-md border px-3 py-2 text-sm tracking-tight">
-                <option :value="null" disabled>Select event</option>
-                <option v-for="ev in events" :key="ev.id" :value="ev.id">{{ ev.title }}</option>
-              </select>
-            </div>
-
             <div class="space-y-2">
               <Label>Room Type<span class="text-destructive">*</span></Label>
               <select v-model.number="form.room_type_id" required class="border-input w-full rounded-md border px-3 py-2 text-sm tracking-tight">
@@ -160,27 +150,26 @@ import { computed, reactive, ref } from "vue";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
+  eventId: { type: [Number, String], required: true },
   hotelSlug: { type: String, required: true },
 });
+
+const baseUrl = computed(() => `/api/events/${props.eventId}/hotels/${props.hotelSlug}/allotments`);
+const roomsUrl = computed(() => `/api/events/${props.eventId}/hotels/${props.hotelSlug}/room-types`);
 
 const client = useSanctumClient();
 const { hasPermission } = usePermission();
 const canCreate = computed(() => hasPermission("allotments.create"));
 const canDelete = computed(() => hasPermission("allotments.delete"));
 
-const { data, pending, refresh } = await useLazySanctumFetch(() => `/api/hotels/${props.hotelSlug}/allotments?per_page=50`, {
-  key: () => `hotel-${props.hotelSlug}-allotments`,
+const { data, pending, refresh } = await useLazySanctumFetch(() => `${baseUrl.value}?per_page=50`, {
+  key: () => `hotel-${props.eventId}-${props.hotelSlug}-allotments`,
 });
 
 const allotments = computed(() => data.value?.data ?? []);
 
-const { data: eventsData } = await useLazySanctumFetch("/api/events?per_page=200", {
-  key: "events-for-allotments",
-});
-const events = computed(() => eventsData.value?.data ?? []);
-
-const { data: roomsData } = await useLazySanctumFetch(() => `/api/hotels/${props.hotelSlug}/room-types?per_page=100`, {
-  key: () => `hotel-${props.hotelSlug}-rooms-for-allotments`,
+const { data: roomsData } = await useLazySanctumFetch(() => `${roomsUrl.value}?per_page=100`, {
+  key: () => `hotel-${props.eventId}-${props.hotelSlug}-rooms-for-allotments`,
 });
 const roomTypes = computed(() => roomsData.value?.data ?? []);
 
@@ -189,7 +178,6 @@ const editing = ref(null);
 const saving = ref(false);
 
 const form = reactive({
-  event_id: null,
   room_type_id: null,
   start_date: "",
   end_date: "",
@@ -202,7 +190,6 @@ const form = reactive({
 
 const resetForm = () => {
   Object.assign(form, {
-    event_id: null,
     room_type_id: null,
     start_date: "",
     end_date: "",
@@ -223,7 +210,6 @@ const openCreateDialog = () => {
 const openEditDialog = (a) => {
   editing.value = a;
   Object.assign(form, {
-    event_id: a.event_id,
     room_type_id: a.room_type_id,
     start_date: a.start_date,
     end_date: a.end_date,
@@ -248,10 +234,10 @@ const handleSubmit = async () => {
     }
 
     if (editing.value) {
-      await client(`/api/hotels/${props.hotelSlug}/allotments/${editing.value.id}`, { method: "PUT", body: payload });
+      await client(`${baseUrl.value}/${editing.value.id}`, { method: "PUT", body: payload });
       toast.success("Allotment updated");
     } else {
-      await client(`/api/hotels/${props.hotelSlug}/allotments`, { method: "POST", body: payload });
+      await client(baseUrl.value, { method: "POST", body: payload });
       toast.success("Allotment created");
     }
     dialogOpen.value = false;
@@ -276,7 +262,7 @@ const handleDelete = async () => {
   if (!deletingItem.value) return;
   deleting.value = true;
   try {
-    await client(`/api/hotels/${props.hotelSlug}/allotments/${deletingItem.value.id}`, { method: "DELETE" });
+    await client(`${baseUrl.value}/${deletingItem.value.id}`, { method: "DELETE" });
     toast.success("Allotment deleted");
     deleteDialogOpen.value = false;
     await refresh();

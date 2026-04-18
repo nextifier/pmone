@@ -1,13 +1,13 @@
 <template>
-  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl">
+  <div class="mx-auto space-y-6 pb-16 lg:max-w-4xl">
     <div class="flex items-center gap-x-2.5">
-      <NuxtLink to="/hotels" class="hover:bg-muted text-muted-foreground inline-flex size-8 items-center justify-center rounded-md">
+      <NuxtLink :to="`${eventBase}/hotels`" class="hover:bg-muted text-muted-foreground inline-flex size-8 items-center justify-center rounded-md">
         <Icon name="lucide:arrow-left" class="size-4" />
       </NuxtLink>
       <h1 class="page-title">Add Hotel</h1>
     </div>
 
-    <HotelForm :saving="saving" submit-label="Create Hotel" @submit="handleSubmit" @cancel="navigateTo('/hotels')" />
+    <HotelForm :saving="saving" submit-label="Create Hotel" @submit="handleSubmit" @cancel="navigateTo(`${eventBase}/hotels`)" />
   </div>
 </template>
 
@@ -21,8 +21,19 @@ definePageMeta({
   layout: "app",
 });
 
+const props = defineProps({
+  event: Object,
+  project: Object,
+});
+
+const route = useRoute();
+
+const eventBase = computed(
+  () => `/projects/${route.params.username}/events/${route.params.eventSlug}`
+);
+
 usePageMeta(null, {
-  title: "Add Hotel · Hotels",
+  title: computed(() => `Add Hotel · ${props.event?.title || "Event"}`),
 });
 
 const client = useSanctumClient();
@@ -31,12 +42,12 @@ const saving = ref(false);
 const handleSubmit = async (payload) => {
   saving.value = true;
   try {
-    const response = await client("/api/hotels", {
+    const response = await client(`/api/events/${props.event.id}/hotels`, {
       method: "POST",
       body: payload,
     });
     toast.success("Hotel created");
-    await navigateTo(`/hotels/${response.data.slug}`);
+    await navigateTo(`${eventBase.value}/hotels/${response.data.slug}`);
   } catch (err) {
     toast.error("Failed to create hotel", {
       description: err?.data?.message || err?.message,

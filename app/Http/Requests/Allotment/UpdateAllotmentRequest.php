@@ -14,7 +14,6 @@ class UpdateAllotmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'event_id' => ['sometimes', 'exists:events,id'],
             'room_type_id' => ['sometimes', 'exists:room_types,id'],
             'quantity' => ['sometimes', 'integer', 'min:1'],
             'start_date' => ['sometimes', 'date'],

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\HotelTransferOption\StoreHotelTransferOptionRequest;
 use App\Http\Requests\HotelTransferOption\UpdateHotelTransferOptionRequest;
 use App\Http\Resources\HotelTransferOptionResource;
+use App\Models\Event;
 use App\Models\Hotel;
 use App\Models\HotelTransferOption;
 use Illuminate\Http\JsonResponse;
@@ -13,8 +14,10 @@ use Illuminate\Http\Request;
 
 class HotelTransferOptionController extends Controller
 {
-    public function index(Request $request, Hotel $hotel): JsonResponse
+    public function index(Request $request, Event $event, Hotel $hotel): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
+
         $query = $hotel->transferOptions();
 
         if ($direction = $request->input('filter_direction')) {
@@ -38,15 +41,18 @@ class HotelTransferOptionController extends Controller
         ]);
     }
 
-    public function show(Hotel $hotel, HotelTransferOption $transferOption): JsonResponse
+    public function show(Event $event, Hotel $hotel, HotelTransferOption $transferOption): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
         abort_if($transferOption->hotel_id !== $hotel->id, 404);
 
         return response()->json(['data' => (new HotelTransferOptionResource($transferOption))->resolve()]);
     }
 
-    public function store(StoreHotelTransferOptionRequest $request, Hotel $hotel): JsonResponse
+    public function store(StoreHotelTransferOptionRequest $request, Event $event, Hotel $hotel): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
+
         $data = $request->validated();
         $data['hotel_id'] = $hotel->id;
 
@@ -58,8 +64,9 @@ class HotelTransferOptionController extends Controller
         ], 201);
     }
 
-    public function update(UpdateHotelTransferOptionRequest $request, Hotel $hotel, HotelTransferOption $transferOption): JsonResponse
+    public function update(UpdateHotelTransferOptionRequest $request, Event $event, Hotel $hotel, HotelTransferOption $transferOption): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
         abort_if($transferOption->hotel_id !== $hotel->id, 404);
 
         $transferOption->update($request->validated());
@@ -70,8 +77,9 @@ class HotelTransferOptionController extends Controller
         ]);
     }
 
-    public function destroy(Hotel $hotel, HotelTransferOption $transferOption): JsonResponse
+    public function destroy(Event $event, Hotel $hotel, HotelTransferOption $transferOption): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
         abort_if($transferOption->hotel_id !== $hotel->id, 404);
 
         if (! auth()->user()?->can('hotels.update')) {
@@ -81,5 +89,10 @@ class HotelTransferOptionController extends Controller
         $transferOption->delete();
 
         return response()->json(['message' => 'Transfer option deleted successfully']);
+    }
+
+    private function ensureHotelBelongsToEvent(Event $event, Hotel $hotel): void
+    {
+        abort_if($hotel->event_id !== $event->id, 404);
     }
 }

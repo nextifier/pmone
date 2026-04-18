@@ -12,6 +12,19 @@ class PublicHotelResource extends JsonResource
         return [
             'id' => $this->id,
             'slug' => $this->slug,
+            'event' => $this->whenLoaded('event', fn () => [
+                'id' => $this->event->id,
+                'slug' => $this->event->slug,
+                'title' => $this->event->title,
+                'start_date' => $this->event->start_date?->toIso8601String(),
+                'end_date' => $this->event->end_date?->toIso8601String(),
+                'is_active' => (bool) $this->event->is_active,
+                'project' => $this->event->relationLoaded('project') ? [
+                    'id' => $this->event->project?->id,
+                    'username' => $this->event->project?->username,
+                    'name' => $this->event->project?->name,
+                ] : null,
+            ]),
             'name' => $this->name,
             'description' => $this->description,
             'address' => $this->address,

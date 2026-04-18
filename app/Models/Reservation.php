@@ -141,6 +141,10 @@ class Reservation extends Model implements HasMedia
                 $model->ulid = (string) Str::ulid();
             }
 
+            if (empty($model->event_id) && $model->hotel_id) {
+                $model->event_id = Hotel::query()->whereKey($model->hotel_id)->value('event_id');
+            }
+
             if (auth()->check()) {
                 $model->created_by = auth()->id();
             }

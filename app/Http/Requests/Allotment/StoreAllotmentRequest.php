@@ -14,7 +14,6 @@ class StoreAllotmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'event_id' => ['required', 'exists:events,id'],
             'room_type_id' => ['required', 'exists:room_types,id'],
             'quantity' => ['required', 'integer', 'min:1'],
             'start_date' => ['required', 'date'],
@@ -29,7 +28,6 @@ class StoreAllotmentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'event_id.required' => 'Event is required for allotment.',
             'end_date.after_or_equal' => 'End date must be on or after start date.',
         ];
     }

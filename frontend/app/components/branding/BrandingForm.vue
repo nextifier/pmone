@@ -15,11 +15,16 @@
       </div>
 
       <div class="space-y-2">
-        <Label>Logo URL</Label>
-        <Input v-model="form.logo_url" type="url" placeholder="https://pmone.id/logo.png" />
+        <Label>Logo</Label>
         <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
-          Public URL of company logo. Will appear on Invoice & Receipt PDF header.
+          Company logo for Invoice & Receipt PDF header. JPG/PNG/WebP/SVG, max 5MB.
         </p>
+        <InputFileImage
+          v-model="logoFiles"
+          v-model:delete-flag="deleteLogo"
+          :initial-image="form.logo_url"
+          container-class="relative isolate aspect-3/2 max-w-xs"
+        />
       </div>
 
       <div class="space-y-2">
@@ -127,7 +132,8 @@
 </template>
 
 <script setup>
-import { reactive, watch } from "vue";
+import { reactive, ref, watch } from "vue";
+import InputFileImage from "@/components/InputFileImage.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -141,6 +147,9 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:modelValue", "submit", "cancel"]);
+
+const logoFiles = ref([]);
+const deleteLogo = ref(false);
 
 const blank = () => ({
   logo_url: "",
@@ -171,6 +180,8 @@ watch(
         }))
       : [];
     Object.assign(form, next);
+    logoFiles.value = [];
+    deleteLogo.value = false;
   },
   { immediate: true, deep: true }
 );
@@ -185,6 +196,9 @@ const removeBankAccount = (idx) => {
 
 const handleSubmit = () => {
   const payload = JSON.parse(JSON.stringify(form));
+  const tmp = logoFiles.value?.[0];
+  payload.tmp_logo = typeof tmp === "string" && tmp.startsWith("tmp-") ? tmp : null;
+  payload.delete_logo = !!deleteLogo.value;
   emit("update:modelValue", payload);
   emit("submit", payload);
 };

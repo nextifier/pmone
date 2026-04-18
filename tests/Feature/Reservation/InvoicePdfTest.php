@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\AppSetting;
+use App\Models\Event;
 use App\Models\Hotel;
 use App\Models\Reservation;
 use App\Models\ReservationItem;
@@ -29,7 +30,8 @@ beforeEach(function () {
         'email' => 'test@pmone.id',
     ]);
 
-    $this->hotel = Hotel::factory()->create();
+    $this->event = Event::factory()->create();
+    $this->hotel = Hotel::factory()->for($this->event)->create();
     $this->room = RoomType::factory()->create(['hotel_id' => $this->hotel->id]);
 });
 
@@ -40,7 +42,7 @@ test('admin can download invoice pdf', function () {
         'room_type_id' => $this->room->id,
     ]);
 
-    $response = $this->get("/api/reservations/{$reservation->ulid}/invoice.pdf");
+    $response = $this->get("/api/events/{$this->event->id}/reservations/{$reservation->ulid}/invoice.pdf");
 
     $response->assertSuccessful();
     expect($response->headers->get('Content-Type'))->toContain('application/pdf');
@@ -53,7 +55,7 @@ test('admin cannot download receipt before payment', function () {
         'room_type_id' => $this->room->id,
     ]);
 
-    $response = $this->get("/api/reservations/{$reservation->ulid}/receipt.pdf");
+    $response = $this->get("/api/events/{$this->event->id}/reservations/{$reservation->ulid}/receipt.pdf");
 
     $response->assertStatus(422);
 });
@@ -65,7 +67,7 @@ test('admin can download receipt after payment', function () {
         'room_type_id' => $this->room->id,
     ]);
 
-    $response = $this->get("/api/reservations/{$reservation->ulid}/receipt.pdf");
+    $response = $this->get("/api/events/{$this->event->id}/reservations/{$reservation->ulid}/receipt.pdf");
 
     $response->assertSuccessful();
     expect($response->headers->get('Content-Type'))->toContain('application/pdf');

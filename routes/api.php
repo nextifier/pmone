@@ -731,136 +731,139 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('api-consumers')->group(
     Route::get('/{apiConsumer}/analytics', [ApiConsumerController::class, 'analytics'])->name('api-consumers.analytics');
 });
 
-// Hotel & Reservation management endpoints (authenticated + verified)
-Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+// Hotel & Reservation management endpoints (nested under event, authenticated + verified)
+Route::middleware(['auth:sanctum', 'verified'])->prefix('events/{event}')->group(function () {
     // Hotels CRUD
     Route::prefix('hotels')->group(function () {
         Route::get('/', [HotelController::class, 'index'])
             ->middleware('can:hotels.read')
-            ->name('hotels.index');
+            ->name('events.hotels.index');
         Route::post('/', [HotelController::class, 'store'])
             ->middleware('can:hotels.create')
-            ->name('hotels.store');
+            ->name('events.hotels.store');
         Route::get('/trash', [HotelController::class, 'trash'])
             ->middleware('can:hotels.delete')
-            ->name('hotels.trash');
+            ->name('events.hotels.trash');
         Route::post('/trash/{id}/restore', [HotelController::class, 'restore'])
             ->middleware('can:hotels.delete')
-            ->name('hotels.restore');
+            ->name('events.hotels.restore');
         Route::delete('/trash/{id}', [HotelController::class, 'forceDestroy'])
             ->middleware('can:hotels.delete')
-            ->name('hotels.force-destroy');
+            ->name('events.hotels.force-destroy');
         Route::get('/{hotel}', [HotelController::class, 'show'])
             ->middleware('can:hotels.read')
-            ->name('hotels.show');
+            ->name('events.hotels.show');
         Route::put('/{hotel}', [HotelController::class, 'update'])
             ->middleware('can:hotels.update')
-            ->name('hotels.update');
+            ->name('events.hotels.update');
         Route::delete('/{hotel}', [HotelController::class, 'destroy'])
             ->middleware('can:hotels.delete')
-            ->name('hotels.destroy');
+            ->name('events.hotels.destroy');
         Route::post('/{hotel}/media/{collection}/reorder', [HotelController::class, 'reorderMedia'])
             ->middleware('can:hotels.update')
-            ->name('hotels.media.reorder');
+            ->name('events.hotels.media.reorder');
 
         // Nested room types
         Route::prefix('/{hotel}/room-types')->group(function () {
             Route::get('/', [RoomTypeController::class, 'index'])
                 ->middleware('can:room_types.read')
-                ->name('hotels.room-types.index');
+                ->name('events.hotels.room-types.index');
             Route::post('/', [RoomTypeController::class, 'store'])
                 ->middleware('can:room_types.create')
-                ->name('hotels.room-types.store');
+                ->name('events.hotels.room-types.store');
             Route::get('/{roomType}', [RoomTypeController::class, 'show'])
                 ->middleware('can:room_types.read')
-                ->name('hotels.room-types.show');
+                ->name('events.hotels.room-types.show');
             Route::put('/{roomType}', [RoomTypeController::class, 'update'])
                 ->middleware('can:room_types.update')
-                ->name('hotels.room-types.update');
+                ->name('events.hotels.room-types.update');
             Route::delete('/{roomType}', [RoomTypeController::class, 'destroy'])
                 ->middleware('can:room_types.delete')
-                ->name('hotels.room-types.destroy');
+                ->name('events.hotels.room-types.destroy');
             Route::post('/{roomType}/media/reorder', [RoomTypeController::class, 'reorderMedia'])
                 ->middleware('can:room_types.update')
-                ->name('hotels.room-types.media.reorder');
+                ->name('events.hotels.room-types.media.reorder');
         });
 
         // Nested allotments
         Route::prefix('/{hotel}/allotments')->group(function () {
             Route::get('/', [AllotmentController::class, 'index'])
                 ->middleware('can:allotments.read')
-                ->name('hotels.allotments.index');
+                ->name('events.hotels.allotments.index');
             Route::post('/', [AllotmentController::class, 'store'])
                 ->middleware('can:allotments.create')
-                ->name('hotels.allotments.store');
+                ->name('events.hotels.allotments.store');
             Route::get('/{allotment}', [AllotmentController::class, 'show'])
                 ->middleware('can:allotments.read')
-                ->name('hotels.allotments.show');
+                ->name('events.hotels.allotments.show');
             Route::put('/{allotment}', [AllotmentController::class, 'update'])
                 ->middleware('can:allotments.update')
-                ->name('hotels.allotments.update');
+                ->name('events.hotels.allotments.update');
             Route::delete('/{allotment}', [AllotmentController::class, 'destroy'])
                 ->middleware('can:allotments.delete')
-                ->name('hotels.allotments.destroy');
+                ->name('events.hotels.allotments.destroy');
         });
 
         // Nested transfer options
         Route::prefix('/{hotel}/transfer-options')->group(function () {
             Route::get('/', [HotelTransferOptionController::class, 'index'])
                 ->middleware('can:hotels.read')
-                ->name('hotels.transfer-options.index');
+                ->name('events.hotels.transfer-options.index');
             Route::post('/', [HotelTransferOptionController::class, 'store'])
                 ->middleware('can:hotels.update')
-                ->name('hotels.transfer-options.store');
+                ->name('events.hotels.transfer-options.store');
             Route::get('/{transferOption}', [HotelTransferOptionController::class, 'show'])
                 ->middleware('can:hotels.read')
-                ->name('hotels.transfer-options.show');
+                ->name('events.hotels.transfer-options.show');
             Route::put('/{transferOption}', [HotelTransferOptionController::class, 'update'])
                 ->middleware('can:hotels.update')
-                ->name('hotels.transfer-options.update');
+                ->name('events.hotels.transfer-options.update');
             Route::delete('/{transferOption}', [HotelTransferOptionController::class, 'destroy'])
                 ->middleware('can:hotels.update')
-                ->name('hotels.transfer-options.destroy');
+                ->name('events.hotels.transfer-options.destroy');
         });
     });
 
-    // Reservations (admin)
+    // Reservations (admin, nested under event)
     Route::prefix('reservations')->group(function () {
         Route::get('/', [ReservationController::class, 'index'])
             ->middleware('can:reservations.read')
-            ->name('reservations.index');
+            ->name('events.reservations.index');
         Route::get('/export', [ReservationController::class, 'export'])
             ->middleware('can:reservations.export')
-            ->name('reservations.export');
+            ->name('events.reservations.export');
         Route::post('/manual', [ReservationController::class, 'storeManual'])
             ->middleware('can:reservations.manual_entry')
-            ->name('reservations.store-manual');
+            ->name('events.reservations.store-manual');
         Route::get('/{reservation}', [ReservationController::class, 'show'])
             ->middleware('can:reservations.read')
-            ->name('reservations.show');
+            ->name('events.reservations.show');
         Route::delete('/{reservation}', [ReservationController::class, 'destroy'])
             ->middleware('can:reservations.delete')
-            ->name('reservations.destroy');
+            ->name('events.reservations.destroy');
         Route::post('/{reservation}/voucher', [ReservationController::class, 'uploadVoucher'])
             ->middleware('can:reservations.upload_voucher')
-            ->name('reservations.upload-voucher');
+            ->name('events.reservations.upload-voucher');
         Route::delete('/{reservation}/voucher', [ReservationController::class, 'deleteVoucher'])
             ->middleware('can:reservations.upload_voucher')
-            ->name('reservations.delete-voucher');
+            ->name('events.reservations.delete-voucher');
         Route::post('/{reservation}/send-voucher', [ReservationController::class, 'sendVoucher'])
             ->middleware('can:reservations.send_voucher')
-            ->name('reservations.send-voucher');
+            ->name('events.reservations.send-voucher');
         Route::post('/{reservation}/cancel', [ReservationController::class, 'cancel'])
             ->middleware('can:reservations.cancel')
-            ->name('reservations.cancel');
+            ->name('events.reservations.cancel');
         Route::get('/{reservation}/invoice.pdf', [ReservationController::class, 'invoicePdf'])
             ->middleware('can:reservations.view_documents')
-            ->name('reservations.invoice-pdf');
+            ->name('events.reservations.invoice-pdf');
         Route::get('/{reservation}/receipt.pdf', [ReservationController::class, 'receiptPdf'])
             ->middleware('can:reservations.view_documents')
-            ->name('reservations.receipt-pdf');
+            ->name('events.reservations.receipt-pdf');
     });
+});
 
+// App Settings + Event Branding (root-level, authenticated + verified)
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // App Settings (branding global)
     Route::get('/app-settings/{key}', [AppSettingController::class, 'show'])->name('app-settings.show');
     Route::put('/app-settings/{key}', [AppSettingController::class, 'update'])
@@ -952,8 +955,8 @@ Route::prefix('exchange-rates')->middleware('throttle:api')->group(function () {
 // Public Hotel Reservation API endpoints (API key authentication)
 Route::middleware(['api.key'])->prefix('public')->group(function () {
     Route::get('/hotels', [PublicHotelController::class, 'index']);
-    Route::get('/hotels/{slug}', [PublicHotelController::class, 'show']);
     Route::post('/hotels/availability', [PublicHotelController::class, 'availability']);
+    Route::get('/events/{eventSlug}/hotels/{hotelSlug}', [PublicHotelController::class, 'show']);
     Route::post('/reservations', [PublicReservationController::class, 'store']);
     Route::get('/reservations/magic/{token}', [PublicReservationController::class, 'showByMagicLink']);
     Route::get('/reservations/magic/{token}/invoice.pdf', [PublicReservationController::class, 'invoicePdfByMagicLink']);

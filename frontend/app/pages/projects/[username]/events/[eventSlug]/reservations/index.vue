@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-5xl xl:max-w-7xl">
+  <div class="space-y-6 pb-16">
     <div class="flex flex-col gap-x-2.5 gap-y-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:calendar-02" class="size-5 sm:size-6" />
@@ -16,15 +16,6 @@
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
           <span>Export</span>
         </button>
-
-        <NuxtLink
-          v-if="canCreate"
-          to="/reservations/create"
-          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
-        >
-          <Icon name="lucide:plus" class="size-4 shrink-0" />
-          <span>Manual Entry</span>
-        </NuxtLink>
       </div>
     </div>
 
@@ -84,7 +75,7 @@
             <td class="px-3 py-2 text-right tabular-nums">Rp {{ formatRupiah(r.total_amount) }}</td>
             <td class="px-3 py-2 text-muted-foreground">{{ formatDate(r.created_at) }}</td>
             <td class="px-3 py-2">
-              <NuxtLink :to="`/reservations/${r.ulid}`" class="text-primary hover:underline text-xs sm:text-sm">View</NuxtLink>
+              <NuxtLink :to="`${eventBase}/reservations/${r.ulid}`" class="text-primary hover:underline text-xs sm:text-sm">View</NuxtLink>
             </td>
           </tr>
         </tbody>
@@ -111,11 +102,20 @@ definePageMeta({
   layout: "app",
 });
 
-usePageMeta(null, { title: "Reservations" });
+const props = defineProps({
+  event: Object,
+  project: Object,
+});
+
+const route = useRoute();
+
+const eventBase = computed(
+  () => `/projects/${route.params.username}/events/${route.params.eventSlug}`
+);
+
+usePageMeta(null, { title: computed(() => `Reservations · ${props.event?.title || "Event"}`) });
 
 const client = useSanctumClient();
-const { hasPermission } = usePermission();
-const canCreate = computed(() => hasPermission("reservations.manual_entry"));
 
 const filters = reactive({ search: "", status: "" });
 const page = ref(1);
@@ -129,10 +129,10 @@ const buildQuery = () => {
   return params.toString();
 };
 
-const { data, pending, refresh } = await useLazySanctumFetch(() => `/api/reservations?${buildQuery()}`, {
-  key: "reservations-list",
-  watch: false,
-});
+const { data, pending, refresh } = await useLazySanctumFetch(
+  () => `/api/events/${props.event?.id}/reservations?${buildQuery()}`,
+  { key: () => `reservations-list-${props.event?.id}`, watch: false }
+);
 
 watch([filters, page], () => refresh(), { deep: true });
 
@@ -161,7 +161,7 @@ const handleExport = async () => {
     const params = new URLSearchParams();
     if (filters.search) params.append("filter_search", filters.search);
     if (filters.status) params.append("filter_status", filters.status);
-    const blob = await client(`/api/reservations/export?${params.toString()}`, { responseType: "blob" });
+    const blob = await client(`/api/events/${props.event.id}/reservations/export?${params.toString()}`, { responseType: "blob" });
     const url = URL.createObjectURL(new Blob([blob], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
     const a = document.createElement("a");
     a.href = url;

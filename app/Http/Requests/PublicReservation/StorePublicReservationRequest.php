@@ -17,7 +17,6 @@ class StorePublicReservationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'event_id' => ['nullable', 'exists:events,id'],
             'hotel_id' => ['required', 'exists:hotels,id'],
 
             'guest_name' => ['required', 'string', 'max:255'],

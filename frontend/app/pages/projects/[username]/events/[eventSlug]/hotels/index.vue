@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
+  <div class="space-y-6 pb-16">
     <div class="flex flex-col gap-x-2.5 gap-y-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:building-01" class="size-5 sm:size-6" />
@@ -9,7 +9,7 @@
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <NuxtLink
           v-if="canCreate"
-          to="/hotels/create"
+          :to="`${eventBase}/hotels/create`"
           class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
         >
           <Icon name="lucide:plus" class="size-4 shrink-0" />
@@ -32,7 +32,7 @@
       <NuxtLink
         v-for="hotel in hotels"
         :key="hotel.id"
-        :to="`/hotels/${hotel.slug}`"
+        :to="`${eventBase}/hotels/${hotel.slug}`"
         class="bg-card hover:bg-muted/50 group rounded-lg border p-4 transition tracking-tight"
       >
         <div class="bg-muted aspect-3/2 mb-3 overflow-hidden rounded-md">
@@ -72,23 +72,34 @@
 </template>
 
 <script setup>
-
 definePageMeta({
   middleware: ["sanctum:auth", "permission"],
   permissions: ["hotels.read"],
   layout: "app",
 });
 
+const props = defineProps({
+  event: Object,
+  project: Object,
+});
+
+const route = useRoute();
+
+const eventBase = computed(
+  () => `/projects/${route.params.username}/events/${route.params.eventSlug}`
+);
+
 usePageMeta(null, {
-  title: "Hotels",
+  title: computed(() => `Hotels · ${props.event?.title || "Event"}`),
 });
 
 const { hasPermission } = usePermission();
 const canCreate = computed(() => hasPermission("hotels.create"));
 
-const { data, pending, error, refresh } = await useLazySanctumFetch("/api/hotels?per_page=50", {
-  key: "hotels-list",
-});
+const { data, pending, error, refresh } = await useLazySanctumFetch(
+  () => `/api/events/${props.event?.id}/hotels?per_page=50`,
+  { key: () => `hotels-list-${props.event?.id}` }
+);
 
 const hotels = computed(() => data.value?.data ?? []);
 </script>

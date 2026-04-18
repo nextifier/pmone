@@ -150,16 +150,19 @@ import { computed, reactive, ref } from "vue";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
+  eventId: { type: [Number, String], required: true },
   hotelSlug: { type: String, required: true },
 });
+
+const baseUrl = computed(() => `/api/events/${props.eventId}/hotels/${props.hotelSlug}/room-types`);
 
 const client = useSanctumClient();
 const { hasPermission } = usePermission();
 const canCreate = computed(() => hasPermission("room_types.create"));
 const canDelete = computed(() => hasPermission("room_types.delete"));
 
-const { data, pending, refresh } = await useLazySanctumFetch(() => `/api/hotels/${props.hotelSlug}/room-types?per_page=50`, {
-  key: () => `hotel-${props.hotelSlug}-rooms`,
+const { data, pending, refresh } = await useLazySanctumFetch(() => `${baseUrl.value}?per_page=50`, {
+  key: () => `hotel-${props.eventId}-${props.hotelSlug}-rooms`,
 });
 
 const rooms = computed(() => data.value?.data ?? []);
@@ -227,10 +230,10 @@ const handleSubmit = async () => {
     };
 
     if (editingRoom.value) {
-      await client(`/api/hotels/${props.hotelSlug}/room-types/${editingRoom.value.slug}`, { method: "PUT", body: payload });
+      await client(`${baseUrl.value}/${editingRoom.value.slug}`, { method: "PUT", body: payload });
       toast.success("Room type updated");
     } else {
-      await client(`/api/hotels/${props.hotelSlug}/room-types`, { method: "POST", body: payload });
+      await client(baseUrl.value, { method: "POST", body: payload });
       toast.success("Room type created");
     }
 
@@ -256,7 +259,7 @@ const handleDelete = async () => {
   if (!deletingRoom.value) return;
   deleting.value = true;
   try {
-    await client(`/api/hotels/${props.hotelSlug}/room-types/${deletingRoom.value.slug}`, { method: "DELETE" });
+    await client(`${baseUrl.value}/${deletingRoom.value.slug}`, { method: "DELETE" });
     toast.success("Room type deleted");
     deleteDialogOpen.value = false;
     await refresh();

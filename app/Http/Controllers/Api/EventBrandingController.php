@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Traits\HandlesTmpMediaUpload;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class EventBrandingController extends Controller
 {
+    use HandlesTmpMediaUpload;
+
     public function show(Event $event): JsonResponse
     {
         return response()->json([
@@ -40,9 +43,27 @@ class EventBrandingController extends Controller
             'branding.bank_accounts.*.account_name' => ['required_with:branding.bank_accounts', 'string', 'max:255'],
             'branding.footer_note' => ['nullable', 'string', 'max:1000'],
             'branding.primary_color' => ['nullable', 'string', 'max:20'],
+            'tmp_logo' => ['nullable', 'string', 'starts_with:tmp-'],
+            'delete_logo' => ['nullable', 'boolean'],
         ]);
 
-        $event->update(['branding' => $data['branding'] ?? null]);
+        $branding = $data['branding'] ?? null;
+
+        if ($branding !== null) {
+            if ($request->boolean('delete_logo')) {
+                $event->clearMediaCollection('branding_logo');
+                $branding['logo_url'] = null;
+            }
+
+            if ($tmp = $request->input('tmp_logo')) {
+                $this->moveTempToMediaCollection($event, $tmp, 'branding_logo');
+                $branding['logo_url'] = $event->getFirstMediaUrl('branding_logo');
+            }
+        } else {
+            $event->clearMediaCollection('branding_logo');
+        }
+
+        $event->update(['branding' => $branding]);
 
         return response()->json([
             'event_id' => $event->id,

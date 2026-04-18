@@ -14,7 +14,6 @@ class CheckAvailabilityRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'event_id' => ['nullable', 'exists:events,id'],
             'hotel_id' => ['required', 'exists:hotels,id'],
             'room_type_id' => ['required', 'exists:room_types,id'],
             'check_in_date' => ['required', 'date'],

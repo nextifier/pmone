@@ -5,7 +5,6 @@
     <DateRangeSelector
       :check-in="checkIn"
       :check-out="checkOut"
-      :min-check-in="minCheckIn"
       @update:check-in="$emit('update:checkIn', $event)"
       @update:check-out="$emit('update:checkOut', $event)"
     />
@@ -44,9 +43,8 @@ import DateRangeSelector from "./DateRangeSelector.vue";
 import { Button } from "@/components/ui/button";
 
 defineProps({
-  checkIn: { type: String, default: "" },
-  checkOut: { type: String, default: "" },
-  minCheckIn: { type: String, default: "" },
+  checkIn: { type: Date, default: null },
+  checkOut: { type: Date, default: null },
   summary: { type: Object, required: true },
   taxPercentage: { type: [Number, String], default: 0 },
   servicePercentage: { type: [Number, String], default: 0 },

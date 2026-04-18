@@ -2,21 +2,19 @@
   <div class="grid grid-cols-2 gap-3">
     <div class="space-y-2">
       <Label>Check-in</Label>
-      <Input
+      <DatePicker
         :model-value="checkIn"
-        type="date"
-        :min="minCheckIn"
-        required
+        placeholder="Select check-in"
+        disable-past-dates
         @update:model-value="$emit('update:checkIn', $event)"
       />
     </div>
     <div class="space-y-2">
       <Label>Check-out</Label>
-      <Input
+      <DatePicker
         :model-value="checkOut"
-        type="date"
-        :min="checkIn || minCheckIn"
-        required
+        placeholder="Select check-out"
+        disable-past-dates
         @update:model-value="$emit('update:checkOut', $event)"
       />
     </div>
@@ -24,13 +22,12 @@
 </template>
 
 <script setup>
-import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 
 defineProps({
-  checkIn: { type: String, default: "" },
-  checkOut: { type: String, default: "" },
-  minCheckIn: { type: String, default: "" },
+  checkIn: { type: Date, default: null },
+  checkOut: { type: Date, default: null },
 });
 
 defineEmits(["update:checkIn", "update:checkOut"]);

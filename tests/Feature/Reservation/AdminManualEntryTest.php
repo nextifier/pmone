@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\ReservationStatus;
+use App\Models\Event;
 use App\Models\Hotel;
 use App\Models\RoomType;
 use App\Models\User;
@@ -22,7 +23,8 @@ beforeEach(function () {
     $this->user->assignRole('master');
     $this->actingAs($this->user);
 
-    $this->hotel = Hotel::factory()->create();
+    $this->event = Event::factory()->create();
+    $this->hotel = Hotel::factory()->for($this->event)->create();
     $this->room = RoomType::factory()->create(['hotel_id' => $this->hotel->id, 'base_rate' => 1000000]);
 });
 
@@ -45,7 +47,7 @@ test('admin can create reservation with skip_payment mode', function () {
         'payment_mode' => 'skip',
     ];
 
-    $response = $this->postJson('/api/reservations/manual', $payload);
+    $response = $this->postJson("/api/events/{$this->event->id}/reservations/manual", $payload);
 
     $response->assertStatus(201)
         ->assertJsonPath('data.status', 'paid');
@@ -54,6 +56,7 @@ test('admin can create reservation with skip_payment mode', function () {
         'guest_email' => 'manual@test.com',
         'status' => ReservationStatus::Paid->value,
         'source' => 'admin_manual',
+        'event_id' => $this->event->id,
     ]);
 });
 
@@ -76,7 +79,7 @@ test('admin can create reservation with manual_paid mode', function () {
         'payment_mode' => 'manual_paid',
     ];
 
-    $response = $this->postJson('/api/reservations/manual', $payload);
+    $response = $this->postJson("/api/events/{$this->event->id}/reservations/manual", $payload);
 
     $response->assertStatus(201)
         ->assertJsonPath('data.status', 'paid')

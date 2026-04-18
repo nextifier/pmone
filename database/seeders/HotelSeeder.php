@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\TransferDirection;
+use App\Models\Event;
 use App\Models\Hotel;
 use App\Models\HotelTransferOption;
 use App\Models\RoomType;
@@ -12,6 +13,15 @@ class HotelSeeder extends Seeder
 {
     public function run(): void
     {
+        $event = Event::where('is_active', true)->first() ?? Event::first();
+
+        if (! $event) {
+            $this->command->warn('No Event found in database. Skipping HotelSeeder.');
+            $this->command->warn('Create at least one Event first, then re-run: php artisan db:seed --class=HotelSeeder');
+
+            return;
+        }
+
         $hotels = [
             [
                 'name' => 'Grand Mercure Jakarta Kemayoran',
@@ -60,7 +70,12 @@ class HotelSeeder extends Seeder
             $transfers = $payload['transfers'];
             unset($payload['rooms'], $payload['transfers']);
 
-            $hotel = Hotel::firstOrCreate(['slug' => $payload['slug']], $payload);
+            $payload['event_id'] = $event->id;
+
+            $hotel = Hotel::firstOrCreate(
+                ['event_id' => $event->id, 'slug' => $payload['slug']],
+                $payload
+            );
 
             foreach ($rooms as $room) {
                 RoomType::firstOrCreate(
@@ -80,7 +95,7 @@ class HotelSeeder extends Seeder
                 );
             }
 
-            $this->command->info("Seeded hotel: {$hotel->name}");
+            $this->command->info("Seeded hotel: {$hotel->name} (event: {$event->title})");
         }
     }
 }

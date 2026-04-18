@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Event;
 use App\Models\Hotel;
 use App\Models\Reservation;
 use App\Models\User;
@@ -24,14 +25,14 @@ beforeEach(function () {
 });
 
 test('admin can upload voucher pdf', function () {
-    $hotel = Hotel::factory()->create();
+    $event = Event::factory()->create();
+    $hotel = Hotel::factory()->for($event)->create();
     $reservation = Reservation::factory()->paid()->create(['hotel_id' => $hotel->id]);
 
-    // Use real PDF header so the file isn't detected as application/x-empty
     $pdfContent = "%PDF-1.4\n".str_repeat('a', 1024)."\n%%EOF";
     $file = UploadedFile::fake()->createWithContent('voucher.pdf', $pdfContent);
 
-    $response = $this->post("/api/reservations/{$reservation->ulid}/voucher", [
+    $response = $this->post("/api/events/{$event->id}/reservations/{$reservation->ulid}/voucher", [
         'voucher' => $file,
     ]);
 
@@ -41,12 +42,13 @@ test('admin can upload voucher pdf', function () {
 });
 
 test('admin cannot upload non-pdf-image file', function () {
-    $hotel = Hotel::factory()->create();
+    $event = Event::factory()->create();
+    $hotel = Hotel::factory()->for($event)->create();
     $reservation = Reservation::factory()->paid()->create(['hotel_id' => $hotel->id]);
 
     $file = UploadedFile::fake()->create('voucher.txt', 100, 'text/plain');
 
-    $response = $this->post("/api/reservations/{$reservation->ulid}/voucher", [
+    $response = $this->post("/api/events/{$event->id}/reservations/{$reservation->ulid}/voucher", [
         'voucher' => $file,
     ]);
 
@@ -56,10 +58,11 @@ test('admin cannot upload non-pdf-image file', function () {
 test('send voucher requires voucher to be uploaded first', function () {
     Queue::fake();
 
-    $hotel = Hotel::factory()->create();
+    $event = Event::factory()->create();
+    $hotel = Hotel::factory()->for($event)->create();
     $reservation = Reservation::factory()->paid()->create(['hotel_id' => $hotel->id]);
 
-    $response = $this->postJson("/api/reservations/{$reservation->ulid}/send-voucher");
+    $response = $this->postJson("/api/events/{$event->id}/reservations/{$reservation->ulid}/send-voucher");
 
     $response->assertStatus(422);
 });

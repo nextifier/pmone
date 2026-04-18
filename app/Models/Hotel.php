@@ -60,6 +60,7 @@ class Hotel extends Model implements HasMedia
     use SoftDeletes;
 
     protected $fillable = [
+        'event_id',
         'slug',
         'name',
         'description',
@@ -97,6 +98,15 @@ class Hotel extends Model implements HasMedia
                 'source' => 'name',
             ],
         ];
+    }
+
+    public function scopeWithUniqueSlugConstraints(Builder $query, Model $model, string $attribute, array $config, string $slug): Builder
+    {
+        if (! empty($model->event_id)) {
+            $query->where('event_id', $model->event_id);
+        }
+
+        return $query;
     }
 
     protected static function boot(): void
@@ -191,6 +201,11 @@ class Hotel extends Model implements HasMedia
                 'max_size' => 20480,
             ],
         ];
+    }
+
+    public function event(): BelongsTo
+    {
+        return $this->belongsTo(Event::class);
     }
 
     public function roomTypes(): HasMany

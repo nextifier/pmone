@@ -23,7 +23,6 @@ class ReservationFactory extends Factory
 
         return [
             'reservation_number' => 'HTL-'.now()->format('Ymd').'-'.strtoupper(Str::random(4)),
-            'event_id' => null,
             'hotel_id' => Hotel::factory(),
             'status' => ReservationStatus::PendingPayment,
             'payment_expires_at' => now()->addHours(24),

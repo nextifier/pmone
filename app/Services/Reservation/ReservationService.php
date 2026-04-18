@@ -36,29 +36,22 @@ class ReservationService
             ->where('start_date', '<=', $checkIn)
             ->where('end_date', '>=', $checkOut);
 
-        if ($eventId !== null) {
-            $allotmentQuery->where('event_id', $eventId);
-        }
-
+        $hasAllotment = $allotmentQuery->exists();
         $totalQuantity = (int) $allotmentQuery->sum('quantity');
 
-        // No allotment + no event -> standalone booking, treat as unlimited.
-        // No allotment + event tied -> not available (event requires allotment).
-        if ($totalQuantity === 0) {
-            return $eventId !== null ? 0 : PHP_INT_MAX;
+        // No allotment row at all -> treat as unlimited (hotel without allotment acts as open booking).
+        if (! $hasAllotment) {
+            return PHP_INT_MAX;
         }
 
         $committed = (int) ReservationItem::query()
-            ->whereHas('reservation', function ($q) use ($hotelId, $eventId) {
+            ->whereHas('reservation', function ($q) use ($hotelId) {
                 $q->where('hotel_id', $hotelId)
                     ->whereIn('status', [
                         ReservationStatus::PendingPayment->value,
                         ReservationStatus::Paid->value,
                         ReservationStatus::VoucherSent->value,
                     ]);
-                if ($eventId !== null) {
-                    $q->where('event_id', $eventId);
-                }
             })
             ->where('room_type_id', $roomTypeId)
             ->where(function ($q) use ($checkIn, $checkOut) {
@@ -77,6 +70,9 @@ class ReservationService
     {
         return DB::transaction(function () use ($data, $xendit) {
             $hotel = Hotel::query()->findOrFail($data['hotel_id']);
+
+            // Always derive event_id from hotel (hotels are event-scoped).
+            $data['event_id'] = $hotel->event_id;
 
             $items = $data['items'] ?? [];
             $transfers = $data['transfers'] ?? [];
@@ -123,7 +119,6 @@ class ReservationService
                     ->active()
                     ->where('hotel_id', $hotel->id)
                     ->where('room_type_id', $roomType->id)
-                    ->when(($data['event_id'] ?? null) !== null, fn ($q) => $q->where('event_id', $data['event_id']))
                     ->where('start_date', '<=', $checkIn->toDateString())
                     ->where('end_date', '>=', $checkOut->toDateString())
                     ->lockForUpdate()
@@ -172,7 +167,7 @@ class ReservationService
 
             $reservation = Reservation::create([
                 'reservation_number' => $this->generateReservationNumber(),
-                'event_id' => $data['event_id'] ?? null,
+                'event_id' => $data['event_id'],
                 'hotel_id' => $hotel->id,
                 'status' => $data['status'] ?? ReservationStatus::PendingPayment,
                 'payment_expires_at' => now()->addSeconds(config('xendit.invoice_duration', 86400)),

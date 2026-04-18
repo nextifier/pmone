@@ -244,23 +244,8 @@ const navMainGroups = computed(() => {
     });
   }
 
-  // Hotels - requires hotels.read permission
-  if (hasPermission("hotels.read")) {
-    coreItems.push({
-      label: "Hotels",
-      path: "/hotels",
-      iconName: "hugeicons:building-01",
-    });
-  }
-
-  // Reservations - requires reservations.read permission
-  if (hasPermission("reservations.read")) {
-    coreItems.push({
-      label: "Reservations",
-      path: "/reservations",
-      iconName: "hugeicons:calendar-02",
-    });
-  }
+  // Hotels & Reservations are now nested under event detail page
+  // (accessible via /projects/{username}/events/{eventSlug}/hotels and /reservations)
 
   // Tools section
   const toolsItems = [];

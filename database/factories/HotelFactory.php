@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Event;
 use App\Models\Hotel;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -15,6 +16,7 @@ class HotelFactory extends Factory
         $name = fake()->company().' Hotel';
 
         return [
+            'event_id' => Event::factory(),
             'name' => $name,
             'description' => fake()->paragraph(),
             'address' => fake()->streetAddress(),

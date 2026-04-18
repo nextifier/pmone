@@ -1,8 +1,8 @@
 <template>
-  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-5xl xl:max-w-6xl">
+  <div class="mx-auto space-y-6 pb-16 lg:max-w-5xl xl:max-w-6xl">
     <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-x-2.5 min-w-0">
-        <NuxtLink to="/hotels" class="hover:bg-muted text-muted-foreground inline-flex size-8 items-center justify-center rounded-md shrink-0">
+        <NuxtLink :to="`${eventBase}/hotels`" class="hover:bg-muted text-muted-foreground inline-flex size-8 items-center justify-center rounded-md shrink-0">
           <Icon name="lucide:arrow-left" class="size-4" />
         </NuxtLink>
         <h1 class="page-title truncate">{{ hotel?.name ?? "Hotel" }}</h1>
@@ -10,7 +10,7 @@
 
       <NuxtLink
         v-if="canEdit && hotel"
-        :to="`/hotels/${slug}/edit`"
+        :to="`${eventBase}/hotels/${hotelSlug}/edit`"
         class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2.5 py-1.5 text-sm tracking-tight active:scale-98"
       >
         <Icon name="lucide:pencil" class="size-4 shrink-0" />
@@ -75,15 +75,15 @@
         </TabsContent>
 
         <TabsContent value="rooms" class="pt-4">
-          <RoomTypesPanel :hotel-slug="slug" />
+          <RoomTypesPanel :event-id="event.id" :hotel-slug="hotelSlug" />
         </TabsContent>
 
         <TabsContent value="allotments" class="pt-4">
-          <AllotmentsPanel :hotel-slug="slug" />
+          <AllotmentsPanel :event-id="event.id" :hotel-slug="hotelSlug" />
         </TabsContent>
 
         <TabsContent value="transfers" class="pt-4">
-          <TransferOptionsPanel :hotel-slug="slug" />
+          <TransferOptionsPanel :event-id="event.id" :hotel-slug="hotelSlug" />
         </TabsContent>
       </Tabs>
     </div>
@@ -102,15 +102,25 @@ definePageMeta({
   layout: "app",
 });
 
+const props = defineProps({
+  event: Object,
+  project: Object,
+});
+
 const route = useRoute();
-const slug = computed(() => route.params.slug);
+const hotelSlug = computed(() => route.params.hotelSlug);
+
+const eventBase = computed(
+  () => `/projects/${route.params.username}/events/${route.params.eventSlug}`
+);
 
 const { hasPermission } = usePermission();
 const canEdit = computed(() => hasPermission("hotels.update"));
 
-const { data, pending } = await useLazySanctumFetch(() => `/api/hotels/${slug.value}`, {
-  key: () => `hotel-detail-${slug.value}`,
-});
+const { data, pending } = await useLazySanctumFetch(
+  () => `/api/events/${props.event?.id}/hotels/${hotelSlug.value}`,
+  { key: () => `hotel-detail-${props.event?.id}-${hotelSlug.value}` }
+);
 
 const hotel = computed(() => data.value?.data);
 

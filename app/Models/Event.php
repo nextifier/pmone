@@ -328,6 +328,22 @@ class Event extends Model implements HasMedia, Sortable
                 $model->clearMediaCollection();
             }
         });
+
+        static::deleted(function ($model) {
+            if ($model->isForceDeleting()) {
+                return;
+            }
+
+            Hotel::where('event_id', $model->id)->get()->each->delete();
+        });
+
+        static::restored(function ($model) {
+            Hotel::onlyTrashed()
+                ->where('event_id', $model->id)
+                ->get()
+                ->each
+                ->restore();
+        });
     }
 
     public function getActivitylogOptions(): LogOptions
@@ -427,6 +443,10 @@ class Event extends Model implements HasMedia, Sortable
                 'single_file' => false,
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'],
                 'max_size' => 20480,
+            ],
+            'branding_logo' => [
+                'single_file' => true,
+                'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
             ],
         ];
     }

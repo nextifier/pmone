@@ -12,7 +12,6 @@ class AllotmentResource extends JsonResource
         return [
             'id' => $this->id,
             'ulid' => $this->ulid,
-            'event_id' => $this->event_id,
             'hotel_id' => $this->hotel_id,
             'room_type_id' => $this->room_type_id,
             'quantity' => (int) $this->quantity,
@@ -22,11 +21,6 @@ class AllotmentResource extends JsonResource
             'surcharge_type' => $this->surcharge_type,
             'surcharge_amount' => $this->surcharge_amount !== null ? (float) $this->surcharge_amount : null,
             'is_active' => $this->is_active,
-            'event' => $this->whenLoaded('event', fn () => [
-                'id' => $this->event->id,
-                'title' => $this->event->title,
-                'slug' => $this->event->slug,
-            ]),
             'room_type' => $this->whenLoaded('roomType', fn () => [
                 'id' => $this->roomType->id,
                 'name' => $this->roomType->name,

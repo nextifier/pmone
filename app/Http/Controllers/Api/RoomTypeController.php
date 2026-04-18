@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\RoomType\StoreRoomTypeRequest;
 use App\Http\Requests\RoomType\UpdateRoomTypeRequest;
 use App\Http\Resources\RoomTypeResource;
+use App\Models\Event;
 use App\Models\Hotel;
 use App\Models\RoomType;
 use Illuminate\Http\JsonResponse;
@@ -16,8 +17,10 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class RoomTypeController extends Controller
 {
-    public function index(Request $request, Hotel $hotel): JsonResponse
+    public function index(Request $request, Event $event, Hotel $hotel): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
+
         $query = $hotel->roomTypes()->with(['media']);
 
         if ($search = $request->input('filter_search')) {
@@ -41,8 +44,9 @@ class RoomTypeController extends Controller
         ]);
     }
 
-    public function show(Hotel $hotel, RoomType $roomType): JsonResponse
+    public function show(Event $event, Hotel $hotel, RoomType $roomType): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
         abort_if($roomType->hotel_id !== $hotel->id, 404);
 
         $roomType->load(['media', 'hotel']);
@@ -50,8 +54,10 @@ class RoomTypeController extends Controller
         return response()->json(['data' => (new RoomTypeResource($roomType))->resolve()]);
     }
 
-    public function store(StoreRoomTypeRequest $request, Hotel $hotel): JsonResponse
+    public function store(StoreRoomTypeRequest $request, Event $event, Hotel $hotel): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
+
         $data = $request->safe()->except(['gallery_files']);
         $data['hotel_id'] = $hotel->id;
 
@@ -67,8 +73,9 @@ class RoomTypeController extends Controller
         ], 201);
     }
 
-    public function update(UpdateRoomTypeRequest $request, Hotel $hotel, RoomType $roomType): JsonResponse
+    public function update(UpdateRoomTypeRequest $request, Event $event, Hotel $hotel, RoomType $roomType): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
         abort_if($roomType->hotel_id !== $hotel->id, 404);
 
         $data = $request->safe()->except(['gallery_files']);
@@ -85,8 +92,9 @@ class RoomTypeController extends Controller
         ]);
     }
 
-    public function destroy(Hotel $hotel, RoomType $roomType): JsonResponse
+    public function destroy(Event $event, Hotel $hotel, RoomType $roomType): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
         abort_if($roomType->hotel_id !== $hotel->id, 404);
 
         if (! auth()->user()?->can('room_types.delete')) {
@@ -98,8 +106,9 @@ class RoomTypeController extends Controller
         return response()->json(['message' => 'Room type deleted successfully']);
     }
 
-    public function reorderMedia(Request $request, Hotel $hotel, RoomType $roomType): JsonResponse
+    public function reorderMedia(Request $request, Event $event, Hotel $hotel, RoomType $roomType): JsonResponse
     {
+        $this->ensureHotelBelongsToEvent($event, $hotel);
         abort_if($roomType->hotel_id !== $hotel->id, 404);
 
         $request->validate([
@@ -118,6 +127,11 @@ class RoomTypeController extends Controller
         Media::setNewOrder($valid);
 
         return response()->json(['message' => 'Order updated']);
+    }
+
+    private function ensureHotelBelongsToEvent(Event $event, Hotel $hotel): void
+    {
+        abort_if($hotel->event_id !== $event->id, 404);
     }
 
     private function handleGalleryUpload(Request $request, RoomType $roomType): void

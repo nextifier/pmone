@@ -177,12 +177,25 @@ onBeforeUnmount(() => {
 const eventBase = computed(
   () => `/projects/${route.params.username}/events/${route.params.eventSlug}`
 );
-const eventTabs = computed(() => [
-  { label: "Overview", icon: "hugeicons:dashboard-circle", to: eventBase.value, exact: true },
-  { label: "Brands", icon: "hugeicons:store-02", to: `${eventBase.value}/brands` },
-  { label: "Operational", icon: "hugeicons:briefcase-01", to: `${eventBase.value}/operational/orders`, activeFor: [`${eventBase.value}/operational`] },
-  { label: "Content", icon: "hugeicons:note-01", to: `${eventBase.value}/content/rundown` },
-]);
+const { hasPermission } = usePermission();
+
+const eventTabs = computed(() => {
+  const tabs = [
+    { label: "Overview", icon: "hugeicons:dashboard-circle", to: eventBase.value, exact: true },
+    { label: "Brands", icon: "hugeicons:store-02", to: `${eventBase.value}/brands` },
+    { label: "Operational", icon: "hugeicons:briefcase-01", to: `${eventBase.value}/operational/orders`, activeFor: [`${eventBase.value}/operational`] },
+    { label: "Content", icon: "hugeicons:note-01", to: `${eventBase.value}/content/rundown` },
+  ];
+
+  if (hasPermission("hotels.read")) {
+    tabs.push({ label: "Hotels", icon: "hugeicons:building-01", to: `${eventBase.value}/hotels` });
+  }
+  if (hasPermission("reservations.read")) {
+    tabs.push({ label: "Reservations", icon: "hugeicons:calendar-02", to: `${eventBase.value}/reservations` });
+  }
+
+  return tabs;
+});
 
 const contentArea = ref(null);
 const swipeEnabled = computed(() => !isOperationalPage.value && !isContentPage.value && !isBrandPage.value);

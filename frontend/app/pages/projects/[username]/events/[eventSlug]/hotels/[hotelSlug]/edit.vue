@@ -1,7 +1,7 @@
 <template>
-  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl">
+  <div class="mx-auto space-y-6 pb-16 lg:max-w-4xl">
     <div class="flex items-center gap-x-2.5">
-      <NuxtLink :to="`/hotels/${slug}`" class="hover:bg-muted text-muted-foreground inline-flex size-8 items-center justify-center rounded-md">
+      <NuxtLink :to="`${eventBase}/hotels/${hotelSlug}`" class="hover:bg-muted text-muted-foreground inline-flex size-8 items-center justify-center rounded-md">
         <Icon name="lucide:arrow-left" class="size-4" />
       </NuxtLink>
       <h1 class="page-title">Edit Hotel</h1>
@@ -17,7 +17,7 @@
       :saving="saving"
       submit-label="Save Changes"
       @submit="handleSubmit"
-      @cancel="navigateTo(`/hotels/${slug}`)"
+      @cancel="navigateTo(`${eventBase}/hotels/${hotelSlug}`)"
     />
   </div>
 </template>
@@ -32,8 +32,17 @@ definePageMeta({
   layout: "app",
 });
 
+const props = defineProps({
+  event: Object,
+  project: Object,
+});
+
 const route = useRoute();
-const slug = computed(() => route.params.slug);
+const hotelSlug = computed(() => route.params.hotelSlug);
+
+const eventBase = computed(
+  () => `/projects/${route.params.username}/events/${route.params.eventSlug}`
+);
 
 usePageMeta(null, {
   title: computed(() => `Edit · ${hotel.value?.name ?? "Hotel"}`),
@@ -42,21 +51,22 @@ usePageMeta(null, {
 const client = useSanctumClient();
 const saving = ref(false);
 
-const { data, pending } = await useLazySanctumFetch(() => `/api/hotels/${slug.value}`, {
-  key: () => `hotel-${slug.value}`,
-});
+const { data, pending } = await useLazySanctumFetch(
+  () => `/api/events/${props.event?.id}/hotels/${hotelSlug.value}`,
+  { key: () => `hotel-${props.event?.id}-${hotelSlug.value}` }
+);
 
 const hotel = computed(() => data.value?.data);
 
 const handleSubmit = async (payload) => {
   saving.value = true;
   try {
-    const response = await client(`/api/hotels/${slug.value}`, {
+    const response = await client(`/api/events/${props.event.id}/hotels/${hotelSlug.value}`, {
       method: "PUT",
       body: payload,
     });
     toast.success("Hotel updated");
-    await navigateTo(`/hotels/${response.data.slug}`);
+    await navigateTo(`${eventBase.value}/hotels/${response.data.slug}`);
   } catch (err) {
     toast.error("Failed to update hotel", {
       description: err?.data?.message || err?.message,

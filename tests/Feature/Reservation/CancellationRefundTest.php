@@ -94,7 +94,7 @@ test('admin can cancel reservation with custom refund amount', function () {
         'xendit_invoice_id' => 'inv_test',
     ]);
 
-    $response = $this->postJson("/api/reservations/{$reservation->ulid}/cancel", [
+    $response = $this->postJson("/api/events/{$hotel->event_id}/reservations/{$reservation->ulid}/cancel", [
         'reason' => 'Customer requested refund',
         'refund_amount' => 750000,
         'process_refund' => true,

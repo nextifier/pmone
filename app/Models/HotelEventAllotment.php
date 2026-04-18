@@ -42,7 +42,6 @@ class HotelEventAllotment extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'event_id',
         'hotel_id',
         'room_type_id',
         'quantity',
@@ -100,11 +99,6 @@ class HotelEventAllotment extends Model
             ->logOnly(['quantity', 'start_date', 'end_date', 'release_at', 'is_active'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
-    }
-
-    public function event(): BelongsTo
-    {
-        return $this->belongsTo(Event::class);
     }
 
     public function hotel(): BelongsTo
