@@ -40,7 +40,7 @@ class ReservationResource extends JsonResource
                 'subtotal_transfer' => (float) $this->subtotal_transfer,
                 'surcharge' => (float) $this->surcharge_amount,
                 'tax' => (float) $this->tax_amount,
-                'service_charge' => (float) $this->service_charge_amount,
+                'service' => (float) $this->service_charge_amount,
                 'discount' => (float) $this->discount_amount,
                 'total' => (float) $this->total_amount,
                 'refund' => $this->refund_amount !== null ? (float) $this->refund_amount : null,

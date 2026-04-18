@@ -59,7 +59,7 @@ class PublicHotelController extends Controller
         $hotel = Hotel::query()
             ->active()
             ->where('slug', $hotelSlug)
-            ->whereHas('event', fn ($q) => $q->where('slug', $eventSlug))
+            ->whereHas('event', fn ($q) => $q->where('slug', $eventSlug)->where('is_active', true))
             ->with([
                 'event:id,slug,title,project_id,start_date,end_date,is_active',
                 'event.project:id,username,name',

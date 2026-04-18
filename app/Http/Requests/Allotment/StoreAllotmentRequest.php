@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Allotment;
 
+use App\Models\HotelEventAllotment;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreAllotmentRequest extends FormRequest
@@ -30,5 +32,33 @@ class StoreAllotmentRequest extends FormRequest
         return [
             'end_date.after_or_equal' => 'End date must be on or after start date.',
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
+            $hotel = $this->route('hotel');
+            if (! $hotel) {
+                return;
+            }
+
+            $overlap = HotelEventAllotment::query()
+                ->where('hotel_id', $hotel->id)
+                ->where('room_type_id', $this->input('room_type_id'))
+                ->where('start_date', '<=', $this->input('end_date'))
+                ->where('end_date', '>=', $this->input('start_date'))
+                ->exists();
+
+            if ($overlap) {
+                $validator->errors()->add(
+                    'start_date',
+                    'Allotment date range overlaps with an existing allotment for this room type.'
+                );
+            }
+        });
     }
 }

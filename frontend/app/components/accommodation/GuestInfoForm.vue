@@ -87,6 +87,17 @@ const form = reactive({
 const acceptTerms = ref(false);
 
 const handleSubmit = () => {
-  emit("submit", { ...form, accept_terms: acceptTerms.value });
+  emit("submit", {
+    guest_name: form.name,
+    guest_email: form.email,
+    guest_phone: form.phone,
+    guest_identity_type: form.identity_type,
+    guest_identity_number: form.identity_number,
+    guest_nationality: form.nationality,
+    guest_company: form.company,
+    guest_address: form.address,
+    special_request: form.special_request,
+    accept_terms: acceptTerms.value,
+  });
 };
 </script>

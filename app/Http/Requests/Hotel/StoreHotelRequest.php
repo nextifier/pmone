@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Hotel;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreHotelRequest extends FormRequest
 {
@@ -13,9 +14,16 @@ class StoreHotelRequest extends FormRequest
 
     public function rules(): array
     {
+        $eventId = $this->route('event')?->id;
+
         return [
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:255', 'unique:hotels,slug'],
+            'slug' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('hotels', 'slug')->where(fn ($q) => $q->where('event_id', $eventId)),
+            ],
             'description' => ['nullable', 'string', 'max:10000'],
             'address' => ['nullable', 'string', 'max:500'],
             'city' => ['nullable', 'string', 'max:100'],

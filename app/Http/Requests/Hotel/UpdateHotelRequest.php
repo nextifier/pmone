@@ -15,10 +15,18 @@ class UpdateHotelRequest extends FormRequest
     public function rules(): array
     {
         $hotelId = $this->route('hotel')?->id;
+        $eventId = $this->route('event')?->id;
 
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'slug' => ['sometimes', 'string', 'max:255', Rule::unique('hotels', 'slug')->ignore($hotelId)],
+            'slug' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('hotels', 'slug')
+                    ->ignore($hotelId)
+                    ->where(fn ($q) => $q->where('event_id', $eventId)),
+            ],
             'description' => ['nullable', 'string', 'max:10000'],
             'address' => ['nullable', 'string', 'max:500'],
             'city' => ['nullable', 'string', 'max:100'],

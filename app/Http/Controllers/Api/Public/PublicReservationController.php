@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Public;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PublicReservation\StorePublicReservationRequest;
 use App\Http\Resources\PublicReservationResource;
+use App\Models\Hotel;
 use App\Models\Reservation;
 use App\Services\Reservation\DocumentService;
 use App\Services\Reservation\ReservationService;
@@ -23,6 +24,9 @@ class PublicReservationController extends Controller
         $data = $request->validated();
         $data['ip_address'] = $request->ip();
         $data['user_agent'] = $request->userAgent();
+
+        $hotel = Hotel::with('event')->findOrFail($data['hotel_id']);
+        abort_if(! $hotel->event?->is_active, 422, 'This event is no longer accepting reservations.');
 
         $reservation = $this->reservations->createReservation($data);
 

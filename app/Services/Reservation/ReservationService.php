@@ -103,6 +103,16 @@ class ReservationService
 
                 $qty = (int) ($item['qty'] ?? 1);
 
+                // Acquire lock on overlapping allotments BEFORE availability check to prevent race condition.
+                HotelEventAllotment::query()
+                    ->active()
+                    ->where('hotel_id', $hotel->id)
+                    ->where('room_type_id', $roomType->id)
+                    ->where('start_date', '<=', $checkIn->toDateString())
+                    ->where('end_date', '>=', $checkOut->toDateString())
+                    ->lockForUpdate()
+                    ->get();
+
                 $available = $this->checkAvailability(
                     $data['event_id'] ?? null,
                     $hotel->id,
@@ -121,7 +131,6 @@ class ReservationService
                     ->where('room_type_id', $roomType->id)
                     ->where('start_date', '<=', $checkIn->toDateString())
                     ->where('end_date', '>=', $checkOut->toDateString())
-                    ->lockForUpdate()
                     ->first();
 
                 $rate = (float) $roomType->base_rate;
