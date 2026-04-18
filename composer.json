@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.2",
         "aws/aws-sdk-php": "^3.356",
+        "barryvdh/laravel-dompdf": "^3.1",
         "fakerphp/faker": "^1.23",
         "google/analytics-data": "^0.22.3",
         "laravel/ai": "^0.2.6",
@@ -32,7 +33,8 @@
         "spatie/laravel-query-builder": "^6.4",
         "spatie/laravel-responsecache": "^8.3",
         "spatie/laravel-tags": "^4.11",
-        "spatie/laravel-translatable": "^6.13"
+        "spatie/laravel-translatable": "^6.13",
+        "xendit/xendit-php": "^7.0"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.7",

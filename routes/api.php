@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\AiChatController;
+use App\Http\Controllers\Api\AllotmentController;
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AnalyticsSyncLogController;
 use App\Http\Controllers\Api\ApiConsumerController;
+use App\Http\Controllers\Api\AppSettingController;
 use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Api\BrandEventController;
 use App\Http\Controllers\Api\ContactBusinessCategoryController;
@@ -11,6 +13,7 @@ use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ContactFormController;
 use App\Http\Controllers\Api\ContactFormSubmissionController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\EventBrandingController;
 use App\Http\Controllers\Api\EventConjunctionController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\EventDocumentController;
@@ -22,6 +25,8 @@ use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\FormFieldController;
 use App\Http\Controllers\Api\FormResponseController;
 use App\Http\Controllers\Api\GoogleAnalyticsController;
+use App\Http\Controllers\Api\HotelController;
+use App\Http\Controllers\Api\HotelTransferOptionController;
 use App\Http\Controllers\Api\ImportProgressController;
 use App\Http\Controllers\Api\JobProgressController;
 use App\Http\Controllers\Api\LinkPageController;
@@ -39,11 +44,15 @@ use App\Http\Controllers\Api\ProjectActivityController;
 use App\Http\Controllers\Api\ProjectBusinessCategoryController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ProjectCustomFieldController;
+use App\Http\Controllers\Api\Public\PublicHotelController;
+use App\Http\Controllers\Api\Public\PublicReservationController;
 use App\Http\Controllers\Api\PublicBlogController;
 use App\Http\Controllers\Api\PublicFormController;
 use App\Http\Controllers\Api\PublicProjectController;
+use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\RolesPermissionsSyncController;
+use App\Http\Controllers\Api\RoomTypeController;
 use App\Http\Controllers\Api\SheetsController;
 use App\Http\Controllers\Api\ShortLinkController;
 use App\Http\Controllers\Api\TagController;
@@ -51,6 +60,7 @@ use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TemporaryUploadController;
 use App\Http\Controllers\Api\TrackingController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\Webhook\XenditWebhookController;
 use App\Http\Controllers\MediaController;
 use Illuminate\Support\Facades\Route;
 use Spatie\ResponseCache\Middlewares\CacheResponse;
@@ -721,6 +731,149 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('api-consumers')->group(
     Route::get('/{apiConsumer}/analytics', [ApiConsumerController::class, 'analytics'])->name('api-consumers.analytics');
 });
 
+// Hotel & Reservation management endpoints (authenticated + verified)
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    // Hotels CRUD
+    Route::prefix('hotels')->group(function () {
+        Route::get('/', [HotelController::class, 'index'])
+            ->middleware('can:hotels.read')
+            ->name('hotels.index');
+        Route::post('/', [HotelController::class, 'store'])
+            ->middleware('can:hotels.create')
+            ->name('hotels.store');
+        Route::get('/trash', [HotelController::class, 'trash'])
+            ->middleware('can:hotels.delete')
+            ->name('hotels.trash');
+        Route::post('/trash/{id}/restore', [HotelController::class, 'restore'])
+            ->middleware('can:hotels.delete')
+            ->name('hotels.restore');
+        Route::delete('/trash/{id}', [HotelController::class, 'forceDestroy'])
+            ->middleware('can:hotels.delete')
+            ->name('hotels.force-destroy');
+        Route::get('/{hotel}', [HotelController::class, 'show'])
+            ->middleware('can:hotels.read')
+            ->name('hotels.show');
+        Route::put('/{hotel}', [HotelController::class, 'update'])
+            ->middleware('can:hotels.update')
+            ->name('hotels.update');
+        Route::delete('/{hotel}', [HotelController::class, 'destroy'])
+            ->middleware('can:hotels.delete')
+            ->name('hotels.destroy');
+        Route::post('/{hotel}/media/{collection}/reorder', [HotelController::class, 'reorderMedia'])
+            ->middleware('can:hotels.update')
+            ->name('hotels.media.reorder');
+
+        // Nested room types
+        Route::prefix('/{hotel}/room-types')->group(function () {
+            Route::get('/', [RoomTypeController::class, 'index'])
+                ->middleware('can:room_types.read')
+                ->name('hotels.room-types.index');
+            Route::post('/', [RoomTypeController::class, 'store'])
+                ->middleware('can:room_types.create')
+                ->name('hotels.room-types.store');
+            Route::get('/{roomType}', [RoomTypeController::class, 'show'])
+                ->middleware('can:room_types.read')
+                ->name('hotels.room-types.show');
+            Route::put('/{roomType}', [RoomTypeController::class, 'update'])
+                ->middleware('can:room_types.update')
+                ->name('hotels.room-types.update');
+            Route::delete('/{roomType}', [RoomTypeController::class, 'destroy'])
+                ->middleware('can:room_types.delete')
+                ->name('hotels.room-types.destroy');
+            Route::post('/{roomType}/media/reorder', [RoomTypeController::class, 'reorderMedia'])
+                ->middleware('can:room_types.update')
+                ->name('hotels.room-types.media.reorder');
+        });
+
+        // Nested allotments
+        Route::prefix('/{hotel}/allotments')->group(function () {
+            Route::get('/', [AllotmentController::class, 'index'])
+                ->middleware('can:allotments.read')
+                ->name('hotels.allotments.index');
+            Route::post('/', [AllotmentController::class, 'store'])
+                ->middleware('can:allotments.create')
+                ->name('hotels.allotments.store');
+            Route::get('/{allotment}', [AllotmentController::class, 'show'])
+                ->middleware('can:allotments.read')
+                ->name('hotels.allotments.show');
+            Route::put('/{allotment}', [AllotmentController::class, 'update'])
+                ->middleware('can:allotments.update')
+                ->name('hotels.allotments.update');
+            Route::delete('/{allotment}', [AllotmentController::class, 'destroy'])
+                ->middleware('can:allotments.delete')
+                ->name('hotels.allotments.destroy');
+        });
+
+        // Nested transfer options
+        Route::prefix('/{hotel}/transfer-options')->group(function () {
+            Route::get('/', [HotelTransferOptionController::class, 'index'])
+                ->middleware('can:hotels.read')
+                ->name('hotels.transfer-options.index');
+            Route::post('/', [HotelTransferOptionController::class, 'store'])
+                ->middleware('can:hotels.update')
+                ->name('hotels.transfer-options.store');
+            Route::get('/{transferOption}', [HotelTransferOptionController::class, 'show'])
+                ->middleware('can:hotels.read')
+                ->name('hotels.transfer-options.show');
+            Route::put('/{transferOption}', [HotelTransferOptionController::class, 'update'])
+                ->middleware('can:hotels.update')
+                ->name('hotels.transfer-options.update');
+            Route::delete('/{transferOption}', [HotelTransferOptionController::class, 'destroy'])
+                ->middleware('can:hotels.update')
+                ->name('hotels.transfer-options.destroy');
+        });
+    });
+
+    // Reservations (admin)
+    Route::prefix('reservations')->group(function () {
+        Route::get('/', [ReservationController::class, 'index'])
+            ->middleware('can:reservations.read')
+            ->name('reservations.index');
+        Route::get('/export', [ReservationController::class, 'export'])
+            ->middleware('can:reservations.export')
+            ->name('reservations.export');
+        Route::post('/manual', [ReservationController::class, 'storeManual'])
+            ->middleware('can:reservations.manual_entry')
+            ->name('reservations.store-manual');
+        Route::get('/{reservation}', [ReservationController::class, 'show'])
+            ->middleware('can:reservations.read')
+            ->name('reservations.show');
+        Route::delete('/{reservation}', [ReservationController::class, 'destroy'])
+            ->middleware('can:reservations.delete')
+            ->name('reservations.destroy');
+        Route::post('/{reservation}/voucher', [ReservationController::class, 'uploadVoucher'])
+            ->middleware('can:reservations.upload_voucher')
+            ->name('reservations.upload-voucher');
+        Route::delete('/{reservation}/voucher', [ReservationController::class, 'deleteVoucher'])
+            ->middleware('can:reservations.upload_voucher')
+            ->name('reservations.delete-voucher');
+        Route::post('/{reservation}/send-voucher', [ReservationController::class, 'sendVoucher'])
+            ->middleware('can:reservations.send_voucher')
+            ->name('reservations.send-voucher');
+        Route::post('/{reservation}/cancel', [ReservationController::class, 'cancel'])
+            ->middleware('can:reservations.cancel')
+            ->name('reservations.cancel');
+        Route::get('/{reservation}/invoice.pdf', [ReservationController::class, 'invoicePdf'])
+            ->middleware('can:reservations.view_documents')
+            ->name('reservations.invoice-pdf');
+        Route::get('/{reservation}/receipt.pdf', [ReservationController::class, 'receiptPdf'])
+            ->middleware('can:reservations.view_documents')
+            ->name('reservations.receipt-pdf');
+    });
+
+    // App Settings (branding global)
+    Route::get('/app-settings/{key}', [AppSettingController::class, 'show'])->name('app-settings.show');
+    Route::put('/app-settings/{key}', [AppSettingController::class, 'update'])
+        ->middleware('can:app_settings.update')
+        ->name('app-settings.update');
+
+    // Event Branding (per-event override)
+    Route::get('/events/{event}/branding', [EventBrandingController::class, 'show'])->name('events.branding.show');
+    Route::put('/events/{event}/branding', [EventBrandingController::class, 'update'])
+        ->middleware('can:events.update_branding')
+        ->name('events.branding.update');
+});
+
 // Public Blog API endpoints (API key authentication for consumption by multiple websites)
 Route::middleware(['api.key'])->prefix('public/blog')->group(function () {
     // Posts endpoints
@@ -795,3 +948,17 @@ Route::prefix('exchange-rates')->middleware('throttle:api')->group(function () {
     Route::get('/{currency}', [ExchangeRateController::class, 'show'])
         ->middleware(CacheResponse::for(3600, 'exchange-rates'));
 });
+
+// Public Hotel Reservation API endpoints (API key authentication)
+Route::middleware(['api.key'])->prefix('public')->group(function () {
+    Route::get('/hotels', [PublicHotelController::class, 'index']);
+    Route::get('/hotels/{slug}', [PublicHotelController::class, 'show']);
+    Route::post('/hotels/availability', [PublicHotelController::class, 'availability']);
+    Route::post('/reservations', [PublicReservationController::class, 'store']);
+    Route::get('/reservations/magic/{token}', [PublicReservationController::class, 'showByMagicLink']);
+    Route::get('/reservations/magic/{token}/invoice.pdf', [PublicReservationController::class, 'invoicePdfByMagicLink']);
+    Route::get('/reservations/magic/{token}/receipt.pdf', [PublicReservationController::class, 'receiptPdfByMagicLink']);
+});
+
+// Xendit webhook (no auth - signature verified in controller)
+Route::post('/webhooks/xendit/invoice', [XenditWebhookController::class, 'invoice']);

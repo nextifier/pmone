@@ -1,5 +1,7 @@
 <?php
 
+use App\Jobs\Hotel\ReleaseExpiredAllotmentsJob;
+use App\Jobs\Reservation\ExpireUnpaidReservationsJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -30,3 +32,7 @@ Schedule::call(function () {
         }
     }
 })->hourly();
+
+// Hotel reservation scheduled jobs
+Schedule::job(new ExpireUnpaidReservationsJob)->everyFifteenMinutes();
+Schedule::job(new ReleaseExpiredAllotmentsJob)->dailyAt('00:30');

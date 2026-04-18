@@ -48,6 +48,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property-read User|null $updater
  *
  * @method static \Database\Factories\EventDocumentFactory factory($count = null, $state = [])
+ * @method static Builder<static>|EventDocument findSimilarSlugs(string $attribute, array $config, string $slug)
  * @method static Builder<static>|EventDocument newModelQuery()
  * @method static Builder<static>|EventDocument newQuery()
  * @method static Builder<static>|EventDocument ordered(string $direction = 'asc')
@@ -71,6 +72,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|EventDocument whereUlid($value)
  * @method static Builder<static>|EventDocument whereUpdatedAt($value)
  * @method static Builder<static>|EventDocument whereUpdatedBy($value)
+ * @method static Builder<static>|EventDocument withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
  *
  * @mixin \Eloquent
  */

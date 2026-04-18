@@ -89,12 +89,15 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property-read int|null $media_count
  * @property-read Collection<int, Order> $orders
  * @property-read int|null $orders_count
+ * @property-read Collection<int, PartnerCategory> $partnerCategories
+ * @property-read int|null $partner_categories_count
  * @property-read Project|null $project
  * @property-read User|null $updater
  *
  * @method static Builder<static>|Event active()
  * @method static Builder<static>|Event byStatus(string $status)
  * @method static \Database\Factories\EventFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Event findSimilarSlugs(string $attribute, array $config, string $slug)
  * @method static Builder<static>|Event newModelQuery()
  * @method static Builder<static>|Event newQuery()
  * @method static Builder<static>|Event onlyTrashed()
@@ -136,6 +139,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|Event whereUpdatedBy($value)
  * @method static Builder<static>|Event whereVisibility($value)
  * @method static Builder<static>|Event withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Event withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
  * @method static Builder<static>|Event withoutTrashed()
  *
  * @mixin \Eloquent
@@ -167,6 +171,7 @@ class Event extends Model implements HasMedia, Sortable
         'visibility',
         'settings',
         'custom_fields',
+        'branding',
         'order_form_content',
         'order_form_deadline',
         'promotion_post_deadline',
@@ -196,6 +201,7 @@ class Event extends Model implements HasMedia, Sortable
         return [
             'settings' => 'array',
             'custom_fields' => 'array',
+            'branding' => 'array',
             'start_date' => 'datetime',
             'end_date' => 'datetime',
             'edition_number' => 'integer',

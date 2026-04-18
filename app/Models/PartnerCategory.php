@@ -25,10 +25,30 @@ use Spatie\EloquentSortable\SortableTrait;
  * @property int|null $updated_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Event $event
- * @property-read Collection<int, Partner> $partners
  * @property-read User|null $creator
+ * @property-read Event|null $event
+ * @property-read Collection<int, Partner> $partners
+ * @property-read int|null $partners_count
  * @property-read User|null $updater
+ *
+ * @method static Builder<static>|PartnerCategory findSimilarSlugs(string $attribute, array $config, string $slug)
+ * @method static Builder<static>|PartnerCategory newModelQuery()
+ * @method static Builder<static>|PartnerCategory newQuery()
+ * @method static Builder<static>|PartnerCategory ordered(string $direction = 'asc')
+ * @method static Builder<static>|PartnerCategory query()
+ * @method static Builder<static>|PartnerCategory whereCreatedAt($value)
+ * @method static Builder<static>|PartnerCategory whereCreatedBy($value)
+ * @method static Builder<static>|PartnerCategory whereEventId($value)
+ * @method static Builder<static>|PartnerCategory whereId($value)
+ * @method static Builder<static>|PartnerCategory whereName($value)
+ * @method static Builder<static>|PartnerCategory whereNoContainer($value)
+ * @method static Builder<static>|PartnerCategory whereOrderColumn($value)
+ * @method static Builder<static>|PartnerCategory whereSlug($value)
+ * @method static Builder<static>|PartnerCategory whereUpdatedAt($value)
+ * @method static Builder<static>|PartnerCategory whereUpdatedBy($value)
+ * @method static Builder<static>|PartnerCategory withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
+ *
+ * @mixin \Eloquent
  */
 class PartnerCategory extends Model implements Sortable
 {

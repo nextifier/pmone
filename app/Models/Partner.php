@@ -14,11 +14,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
@@ -37,11 +39,46 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
  * @property-read User|null $creator
- * @property-read User|null $updater
  * @property-read User|null $deleter
  * @property-read array|null $partner_logo
+ * @property-read MediaCollection<int, Media> $media
+ * @property-read int|null $media_count
  * @property-read Collection<int, PartnerCategory> $partnerCategories
+ * @property-read int|null $partner_categories_count
+ * @property-read User|null $updater
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner active()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner byStatus(string $status)
+ * @method static \Database\Factories\PartnerFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner findSimilarSlugs(string $attribute, array $config, string $slug)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner ordered(string $direction = 'asc')
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner whereDeletedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner whereOrderColumn($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner whereSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner whereUlid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner whereUpdatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner whereVisibility($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner whereWebsiteUrl($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 class Partner extends Model implements HasMedia, Sortable
 {

@@ -38,6 +38,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property-read User|null $updater
  *
  * @method static \Database\Factories\EventProductCategoryFactory factory($count = null, $state = [])
+ * @method static Builder<static>|EventProductCategory findSimilarSlugs(string $attribute, array $config, string $slug)
  * @method static Builder<static>|EventProductCategory newModelQuery()
  * @method static Builder<static>|EventProductCategory newQuery()
  * @method static Builder<static>|EventProductCategory ordered(string $direction = 'asc')
@@ -52,6 +53,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|EventProductCategory whereTitle($value)
  * @method static Builder<static>|EventProductCategory whereUpdatedAt($value)
  * @method static Builder<static>|EventProductCategory whereUpdatedBy($value)
+ * @method static Builder<static>|EventProductCategory withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
  *
  * @mixin \Eloquent
  */

@@ -27,6 +27,12 @@ class ApiConsumerSeeder extends Seeder
             'allowed_origins' => ['https://news.example.com'],
             'rate_limit' => 150,
         ],
+        [
+            'name' => 'PM One Frontend',
+            'website_url' => 'https://pmone.id',
+            'allowed_origins' => ['https://pmone.id', 'http://localhost:3000', 'http://pmone.test'],
+            'rate_limit' => 600,
+        ],
     ];
 
     public function run(): void

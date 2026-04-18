@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\ApiConsumer;
+use App\Models\AppSetting;
 use App\Models\Brand;
 use App\Models\Contact;
 use App\Models\ContactFormSubmission;
@@ -9,11 +10,15 @@ use App\Models\EventDocument;
 use App\Models\EventProduct;
 use App\Models\EventProductCategory;
 use App\Models\Form;
+use App\Models\Hotel;
+use App\Models\HotelEventAllotment;
 use App\Models\LinkPage;
 use App\Models\Order;
 use App\Models\Partner;
 use App\Models\Post;
 use App\Models\Project;
+use App\Models\Reservation;
+use App\Models\RoomType;
 use App\Models\ShortLink;
 use App\Models\Task;
 use App\Models\User;
@@ -158,6 +163,36 @@ return [
             'model' => Contact::class,
             'actions' => ['create', 'read', 'update', 'delete'],
         ],
+        'hotels' => [
+            'label' => 'Hotels',
+            'description' => 'Manage hotel partners and room inventory',
+            'model' => Hotel::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'room_types' => [
+            'label' => 'Room Types',
+            'description' => 'Manage hotel room types',
+            'model' => RoomType::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'allotments' => [
+            'label' => 'Hotel Allotments',
+            'description' => 'Manage hotel room allotments per event',
+            'model' => HotelEventAllotment::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'reservations' => [
+            'label' => 'Hotel Reservations',
+            'description' => 'Manage hotel reservations',
+            'model' => Reservation::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'app_settings' => [
+            'label' => 'Application Settings',
+            'description' => 'Manage global application settings (branding, etc.)',
+            'model' => AppSetting::class,
+            'actions' => ['read', 'update'],
+        ],
     ],
 
     /*
@@ -195,6 +230,26 @@ return [
                 'operational' => 'Operational department access',
                 'project-coordinator' => 'Project coordinator access',
                 'finance' => 'Finance department access',
+            ],
+        ],
+        'hotel_reservations' => [
+            'label' => 'Hotel Reservations Operations',
+            'description' => 'Reservation workflow actions (voucher, cancel, refund, export, documents)',
+            'permissions' => [
+                'reservations.upload_voucher' => 'Upload voucher file from hotel partner',
+                'reservations.send_voucher' => 'Send voucher email to guest',
+                'reservations.cancel' => 'Cancel reservation',
+                'reservations.refund' => 'Process refund',
+                'reservations.manual_entry' => 'Create reservation manually from admin',
+                'reservations.export' => 'Export reservations to Excel',
+                'reservations.view_documents' => 'Download invoice and receipt PDFs',
+            ],
+        ],
+        'event_branding' => [
+            'label' => 'Event Branding',
+            'description' => 'Override branding per event (used in invoices and receipts)',
+            'permissions' => [
+                'events.update_branding' => 'Update event branding settings',
             ],
         ],
     ],
