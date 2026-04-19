@@ -57,8 +57,9 @@
             <p class="font-semibold">Price updated</p>
             <p class="mt-1">
               The hotel rate has changed since you started booking. New total:
-              <strong>Rp {{ formatRupiah(summary.total) }}</strong>. Please review before continuing.
+              <strong>Rp {{ formatRupiah(summary.total) }}</strong>. Please accept the new price to continue.
             </p>
+            <Button size="sm" class="mt-3" @click="acceptNewPrice">Accept new price</Button>
           </div>
 
           <GuestInfoForm
@@ -66,6 +67,7 @@
             v-model:accept-terms="acceptTerms"
             :saving="saving"
             :errors="errors"
+            :disabled="priceDrift"
             @submit="handleSubmit"
             @cancel="handleCancel"
           />
@@ -163,11 +165,32 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
 import { ButtonBack } from "@/components/ui/button-back";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBookingSession } from "@/composables/useBookingSession";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { toast } from "vue-sonner";
+
+const ALLOWED_PAYMENT_HOSTS = [
+  "checkout.xendit.co",
+  "checkout-staging.xendit.co",
+  "invoice.xendit.co",
+  "invoice-staging.xendit.co",
+];
+
+function isAllowedPaymentUrl(url) {
+  if (!url || typeof url !== "string") return false;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:") return false;
+    return ALLOWED_PAYMENT_HOSTS.some(
+      (host) => parsed.hostname === host || parsed.hostname.endsWith(`.${host}`),
+    );
+  } catch {
+    return false;
+  }
+}
 
 definePageMeta({
   layout: "public",
@@ -325,13 +348,61 @@ function handleCancel() {
   router.push(`/accommodation/${eventSlug.value}/${hotelSlug.value}`);
 }
 
+function acceptNewPrice() {
+  sessionTotal.value = summary.value.total;
+}
+
+async function recheckAvailability() {
+  if (!hotel.value) return true;
+  const lines = selectedRoomLines.value;
+  for (const line of lines) {
+    try {
+      const res = await $fetch("/api/accommodation/availability", {
+        method: "POST",
+        body: {
+          hotel_id: hotel.value.id,
+          room_type_id: line.id,
+          check_in_date: state.value.checkIn,
+          check_out_date: state.value.checkOut,
+          qty: line.qty,
+        },
+      });
+      const available = Number(res?.data?.available ?? 0);
+      if (available < line.qty) {
+        toast.error("Room no longer available", {
+          description: `${line.name}: only ${available} left. Please adjust your selection.`,
+        });
+        return false;
+      }
+    } catch (err) {
+      toast.error("Availability check failed", {
+        description: err?.data?.message || err?.message || "Please try again.",
+      });
+      return false;
+    }
+  }
+  return true;
+}
+
 async function handleSubmit(guestPayload) {
   if (!hotel.value) return;
+  if (priceDrift.value) {
+    toast.error("Price has changed", {
+      description: "Please accept the new price before continuing.",
+    });
+    return;
+  }
 
   errors.value = {};
   saving.value = true;
 
   try {
+    const ok = await recheckAvailability();
+    if (!ok) {
+      saving.value = false;
+      return;
+    }
+
     const items = selectedRoomLines.value.map((line) => ({
       room_type_id: line.id,
       check_in_date: state.value.checkIn,
@@ -364,8 +435,15 @@ async function handleSubmit(guestPayload) {
 
     clear();
 
-    if (response?.data?.payment_url) {
-      window.location.href = response.data.payment_url;
+    const paymentUrl = response?.data?.payment_url;
+    if (paymentUrl) {
+      if (!isAllowedPaymentUrl(paymentUrl)) {
+        toast.error("Payment redirect blocked", {
+          description: "Payment URL is not from a trusted provider. Please contact support.",
+        });
+        return;
+      }
+      window.location.href = paymentUrl;
     } else if (response?.data?.magic_link_token) {
       await navigateTo(`/hotels/reservation/${response.data.magic_link_token}`);
     }

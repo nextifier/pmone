@@ -1,6 +1,15 @@
 <template>
   <div class="space-y-4">
-    <h2 class="text-lg font-semibold tracking-tight">Available Rooms</h2>
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold tracking-tight">Available Rooms</h2>
+      <span
+        v-if="checking"
+        class="text-muted-foreground text-xs tracking-tight"
+        aria-live="polite"
+      >
+        Checking availability…
+      </span>
+    </div>
 
     <div
       v-if="!rooms?.length"
@@ -25,7 +34,13 @@
                 idx === 0 ? 'col-span-2 row-span-2 aspect-auto' : '',
               ]"
             >
-              <img :src="img.md || img.url" :alt="room.name" class="size-full object-cover" />
+              <img
+                :src="img.md || img.url"
+                :alt="room.name"
+                class="size-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
             </div>
           </div>
         </div>
@@ -50,12 +65,21 @@
             <PriceDisplay :base-rate="room.base_rate" :all-in-rate="room.all_in_rate" />
           </div>
 
+          <div
+            v-if="availabilityLabel(room)"
+            class="text-xs tracking-tight"
+            :class="availabilityClass(room)"
+          >
+            {{ availabilityLabel(room) }}
+          </div>
+
           <div class="flex items-center justify-between gap-3 border-t pt-3">
             <Label class="text-xs sm:text-sm tracking-tight">Quantity</Label>
             <NumberField
               :model-value="modelValue[room.id] ?? 0"
               :min="0"
-              :max="20"
+              :max="maxFor(room)"
+              :disabled="maxFor(room) === 0"
               class="w-32"
               @update:model-value="updateQty(room.id, $event)"
             >
@@ -86,9 +110,34 @@ import {
 const props = defineProps({
   rooms: { type: Array, default: () => [] },
   modelValue: { type: Object, default: () => ({}) },
+  availability: { type: Object, default: () => ({}) },
+  checking: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["update:modelValue"]);
+
+const DEFAULT_MAX = 20;
+
+const maxFor = (room) => {
+  const avail = props.availability?.[room.id];
+  if (avail == null) return DEFAULT_MAX;
+  return Math.max(0, Math.min(DEFAULT_MAX, Number(avail)));
+};
+
+const availabilityLabel = (room) => {
+  const avail = props.availability?.[room.id];
+  if (avail == null) return "";
+  if (avail === 0) return "Sold out";
+  if (avail <= 3) return `Only ${avail} left`;
+  return "";
+};
+
+const availabilityClass = (room) => {
+  const avail = props.availability?.[room.id];
+  if (avail === 0) return "text-destructive font-medium";
+  if (avail != null && avail <= 3) return "text-warning font-medium";
+  return "text-muted-foreground";
+};
 
 const updateQty = (roomId, value) => {
   emit("update:modelValue", { ...props.modelValue, [roomId]: Number(value) || 0 });
