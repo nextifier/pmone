@@ -21,6 +21,8 @@ use App\Services\Reservation\DocumentService;
 use App\Services\Reservation\ReservationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -115,8 +117,14 @@ class ReservationController extends Controller
     {
         $this->ensureReservationBelongsToEvent($event, $reservation);
 
-        $reservation->clearMediaCollection('voucher');
-        $reservation->addMediaFromRequest('voucher')->toMediaCollection('voucher');
+        $tmpFolder = $request->input('tmp_voucher');
+
+        if (is_string($tmpFolder) && Str::startsWith($tmpFolder, 'tmp-')) {
+            $this->attachTempVoucher($reservation, $tmpFolder);
+        } else {
+            $reservation->clearMediaCollection('voucher');
+            $reservation->addMediaFromRequest('voucher')->toMediaCollection('voucher');
+        }
 
         return response()->json([
             'message' => 'Voucher uploaded successfully',
@@ -125,6 +133,27 @@ class ReservationController extends Controller
                 'url' => $reservation->getFirstMediaUrl('voucher'),
             ],
         ]);
+    }
+
+    private function attachTempVoucher(Reservation $reservation, string $tmpFolder): void
+    {
+        $metadataPath = "tmp/uploads/{$tmpFolder}/metadata.json";
+
+        if (! Storage::disk('local')->exists($metadataPath)) {
+            abort(422, 'Temporary voucher file not found.');
+        }
+
+        $metadata = json_decode(Storage::disk('local')->get($metadataPath), true);
+        $filePath = "tmp/uploads/{$tmpFolder}/{$metadata['original_name']}";
+
+        if (! Storage::disk('local')->exists($filePath)) {
+            abort(422, 'Temporary voucher file is missing.');
+        }
+
+        $reservation->clearMediaCollection('voucher');
+        $reservation->addMedia(Storage::disk('local')->path($filePath))->toMediaCollection('voucher');
+
+        Storage::disk('local')->deleteDirectory("tmp/uploads/{$tmpFolder}");
     }
 
     public function deleteVoucher(Event $event, Reservation $reservation): JsonResponse

@@ -26,7 +26,6 @@ class StorePublicReservationRequest extends FormRequest
             'guest_identity_number' => ['required', 'string', 'max:100'],
             'guest_nationality' => ['nullable', 'string', 'max:100'],
             'guest_company' => ['nullable', 'string', 'max:255'],
-            'guest_address' => ['nullable', 'string', 'max:1000'],
             'special_request' => ['nullable', 'string', 'max:2000'],
 
             'items' => ['required', 'array', 'min:1'],

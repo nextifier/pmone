@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -51,6 +52,42 @@ test('admin cannot upload non-pdf-image file', function () {
     $response = $this->post("/api/events/{$event->id}/reservations/{$reservation->ulid}/voucher", [
         'voucher' => $file,
     ]);
+
+    $response->assertStatus(422);
+});
+
+test('admin can upload voucher via tmp_voucher reference', function () {
+    $event = Event::factory()->create();
+    $hotel = Hotel::factory()->for($event)->create();
+    $reservation = Reservation::factory()->paid()->create(['hotel_id' => $hotel->id]);
+
+    $folder = 'tmp-'.uniqid();
+    $filename = 'voucher.pdf';
+    $pdfContent = "%PDF-1.4\n".str_repeat('a', 1024)."\n%%EOF";
+
+    Storage::disk('local')->put("tmp/uploads/{$folder}/{$filename}", $pdfContent);
+    Storage::disk('local')->put("tmp/uploads/{$folder}/metadata.json", json_encode([
+        'original_name' => $filename,
+        'mime_type' => 'application/pdf',
+        'size' => strlen($pdfContent),
+        'uploaded_at' => now()->toISOString(),
+    ]));
+
+    $response = $this->postJson("/api/events/{$event->id}/reservations/{$reservation->ulid}/voucher", [
+        'tmp_voucher' => $folder,
+    ]);
+
+    $response->assertSuccessful();
+    expect($reservation->fresh()->hasMedia('voucher'))->toBeTrue();
+    expect(Storage::disk('local')->exists("tmp/uploads/{$folder}"))->toBeFalse();
+});
+
+test('upload voucher fails when neither file nor tmp_voucher provided', function () {
+    $event = Event::factory()->create();
+    $hotel = Hotel::factory()->for($event)->create();
+    $reservation = Reservation::factory()->paid()->create(['hotel_id' => $hotel->id]);
+
+    $response = $this->postJson("/api/events/{$event->id}/reservations/{$reservation->ulid}/voucher", []);
 
     $response->assertStatus(422);
 });

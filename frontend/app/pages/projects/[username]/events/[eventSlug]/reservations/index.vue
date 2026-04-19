@@ -26,15 +26,20 @@
       </div>
       <div class="space-y-1">
         <Label class="text-xs">Status</Label>
-        <select v-model="filters.status" class="border-input rounded-md border px-3 py-2 text-sm tracking-tight">
-          <option value="">All</option>
-          <option value="pending_payment">Pending Payment</option>
-          <option value="paid">Paid</option>
-          <option value="voucher_sent">Voucher Sent</option>
-          <option value="expired">Expired</option>
-          <option value="cancelled">Cancelled</option>
-          <option value="refunded">Refunded</option>
-        </select>
+        <Select v-model="filters.status">
+          <SelectTrigger class="w-48">
+            <SelectValue placeholder="All" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="pending_payment">Pending Payment</SelectItem>
+            <SelectItem value="paid">Paid</SelectItem>
+            <SelectItem value="voucher_sent">Voucher Sent</SelectItem>
+            <SelectItem value="expired">Expired</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="refunded">Refunded</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
 
@@ -93,6 +98,13 @@
 <script setup>
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { computed, reactive, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 
@@ -117,7 +129,7 @@ usePageMeta(null, { title: computed(() => `Reservations · ${props.event?.title 
 
 const client = useSanctumClient();
 
-const filters = reactive({ search: "", status: "" });
+const filters = reactive({ search: "", status: "all" });
 const page = ref(1);
 
 const buildQuery = () => {
@@ -125,7 +137,9 @@ const buildQuery = () => {
   params.append("page", page.value);
   params.append("per_page", "20");
   if (filters.search) params.append("filter_search", filters.search);
-  if (filters.status) params.append("filter_status", filters.status);
+  if (filters.status && filters.status !== "all") {
+    params.append("filter_status", filters.status);
+  }
   return params.toString();
 };
 
@@ -160,7 +174,9 @@ const handleExport = async () => {
   try {
     const params = new URLSearchParams();
     if (filters.search) params.append("filter_search", filters.search);
-    if (filters.status) params.append("filter_status", filters.status);
+    if (filters.status && filters.status !== "all") {
+      params.append("filter_status", filters.status);
+    }
     const blob = await client(`/api/events/${props.event.id}/reservations/export?${params.toString()}`, { responseType: "blob" });
     const url = URL.createObjectURL(new Blob([blob], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
     const a = document.createElement("a");

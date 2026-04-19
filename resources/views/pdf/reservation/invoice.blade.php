@@ -34,7 +34,6 @@
         @if ($r->guest_company)<div>{{ $r->guest_company }}</div>@endif
         <div>{{ $r->guest_email }}</div>
         <div>{{ $r->guest_phone }}</div>
-        @if ($r->guest_address)<div>{{ $r->guest_address }}</div>@endif
     </div>
     <div class="info-cell">
         <div class="section-title">Reservation</div>

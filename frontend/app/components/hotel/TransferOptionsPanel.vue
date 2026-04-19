@@ -56,12 +56,17 @@
 
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-2">
-                <Label>Direction<span class="text-destructive">*</span></Label>
-                <select v-model="form.direction" required class="border-input w-full rounded-md border px-3 py-2 text-sm tracking-tight">
-                  <option value="in">Arrival (In)</option>
-                  <option value="out">Departure (Out)</option>
-                  <option value="both">Both Ways</option>
-                </select>
+                <Label for="transfer_direction">Direction<span class="text-destructive">*</span></Label>
+                <Select v-model="form.direction">
+                  <SelectTrigger id="transfer_direction" class="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="in">Arrival (In)</SelectItem>
+                    <SelectItem value="out">Departure (Out)</SelectItem>
+                    <SelectItem value="both">Both Ways</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div class="space-y-2">
                 <Label>Vehicle Type</Label>
@@ -88,7 +93,7 @@
             <div class="flex justify-end gap-2 pt-2">
               <Button variant="outline" type="button" @click="dialogOpen = false">Cancel</Button>
               <Button type="submit" :disabled="saving">
-                <Icon v-if="saving" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
+                <Spinner v-if="saving" />
                 {{ editing ? "Save Changes" : "Create" }}
               </Button>
             </div>
@@ -105,8 +110,8 @@
           <div class="mt-3 flex justify-end gap-2">
             <Button variant="outline" type="button" @click="deleteDialogOpen = false">Cancel</Button>
             <Button variant="destructive" :disabled="deleting" @click="handleDelete">
-              <Icon v-if="deleting" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
-              Delete
+              <Spinner v-if="deleting" />
+              {{ deleting ? "Deleting..." : "Delete" }}
             </Button>
           </div>
         </div>
@@ -121,6 +126,14 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import { computed, reactive, ref } from "vue";
 import { toast } from "vue-sonner";
 

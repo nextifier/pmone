@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Reservation;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UploadVoucherRequest extends FormRequest
@@ -14,7 +15,8 @@ class UploadVoucherRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'voucher' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:20480'],
+            'voucher' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:20480'],
+            'tmp_voucher' => ['nullable', 'string', 'starts_with:tmp-'],
         ];
     }
 
@@ -24,5 +26,14 @@ class UploadVoucherRequest extends FormRequest
             'voucher.mimes' => 'Voucher file must be PDF, JPG, or PNG.',
             'voucher.max' => 'Voucher file must not exceed 20MB.',
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            if (! $this->hasFile('voucher') && ! $this->filled('tmp_voucher')) {
+                $validator->errors()->add('voucher', 'A voucher file is required.');
+            }
+        });
     }
 }

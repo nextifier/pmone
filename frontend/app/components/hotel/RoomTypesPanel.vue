@@ -110,7 +110,7 @@
             <div class="flex justify-end gap-2 pt-2">
               <Button variant="outline" type="button" @click="dialogOpen = false">Cancel</Button>
               <Button type="submit" :disabled="saving">
-                <Icon v-if="saving" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
+                <Spinner v-if="saving" />
                 {{ editingRoom ? "Save Changes" : "Create" }}
               </Button>
             </div>
@@ -129,8 +129,8 @@
           <div class="mt-3 flex justify-end gap-2">
             <Button variant="outline" type="button" @click="deleteDialogOpen = false">Cancel</Button>
             <Button variant="destructive" :disabled="deleting" @click="handleDelete">
-              <Icon v-if="deleting" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
-              Delete
+              <Spinner v-if="deleting" />
+              {{ deleting ? "Deleting..." : "Delete" }}
             </Button>
           </div>
         </div>
@@ -145,6 +145,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { computed, reactive, ref } from "vue";
 import { toast } from "vue-sonner";

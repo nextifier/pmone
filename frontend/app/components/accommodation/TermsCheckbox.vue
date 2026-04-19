@@ -7,9 +7,9 @@
     />
     <span>
       I agree to the
-      <NuxtLink to="/terms" target="_blank" class="text-primary hover:underline">terms & conditions</NuxtLink>
+      <NuxtLink to="/terms" target="_blank" class="text-primary underline">terms & conditions</NuxtLink>
       and
-      <NuxtLink to="/privacy" target="_blank" class="text-primary hover:underline">privacy policy</NuxtLink>.
+      <NuxtLink to="/privacy" target="_blank" class="text-primary underline">privacy policy</NuxtLink>.
     </span>
   </label>
 </template>

@@ -85,7 +85,6 @@ class Reservation extends Model implements HasMedia
         'guest_identity_number',
         'guest_nationality',
         'guest_company',
-        'guest_address',
         'special_request',
         'subtotal_rooms',
         'subtotal_transfer',

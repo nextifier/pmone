@@ -32,7 +32,6 @@ class ReservationResource extends JsonResource
                 'identity_number' => $this->guest_identity_number,
                 'nationality' => $this->guest_nationality,
                 'company' => $this->guest_company,
-                'address' => $this->guest_address,
             ],
             'special_request' => $this->special_request,
             'amounts' => [

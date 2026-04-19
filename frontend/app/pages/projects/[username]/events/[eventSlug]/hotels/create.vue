@@ -7,7 +7,13 @@
       <h1 class="page-title">Add Hotel</h1>
     </div>
 
-    <HotelForm :saving="saving" submit-label="Create Hotel" @submit="handleSubmit" @cancel="navigateTo(`${eventBase}/hotels`)" />
+    <HotelForm
+      :saving="saving"
+      :errors="errors"
+      submit-label="Create Hotel"
+      @submit="handleSubmit"
+      @cancel="navigateTo(`${eventBase}/hotels`)"
+    />
   </div>
 </template>
 
@@ -38,9 +44,11 @@ usePageMeta(null, {
 
 const client = useSanctumClient();
 const saving = ref(false);
+const errors = ref({});
 
 const handleSubmit = async (payload) => {
   saving.value = true;
+  errors.value = {};
   try {
     const response = await client(`/api/events/${props.event.id}/hotels`, {
       method: "POST",
@@ -49,6 +57,9 @@ const handleSubmit = async (payload) => {
     toast.success("Hotel created");
     await navigateTo(`${eventBase.value}/hotels/${response.data.slug}`);
   } catch (err) {
+    if (err?.response?.status === 422 && err?.data?.errors) {
+      errors.value = err.data.errors;
+    }
     toast.error("Failed to create hotel", {
       description: err?.data?.message || err?.message,
     });

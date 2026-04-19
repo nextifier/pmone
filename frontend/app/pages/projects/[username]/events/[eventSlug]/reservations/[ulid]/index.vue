@@ -29,13 +29,20 @@
             <div class="px-4 pb-10 md:px-6 md:py-5">
               <h3 class="text-lg font-semibold tracking-tight">Upload Voucher</h3>
               <p class="text-muted-foreground text-sm tracking-tight mt-1">PDF, JPG, or PNG. Max 20MB.</p>
-              <form @submit.prevent="handleVoucherUpload" class="mt-4 space-y-3">
-                <input ref="fileInput" type="file" accept=".pdf,image/jpeg,image/png" class="block w-full text-sm" required />
+              <form @submit.prevent="handleVoucherUpload" class="mt-4 space-y-4">
+                <div class="space-y-2">
+                  <Label>Voucher File<span class="text-destructive">*</span></Label>
+                  <InputFile
+                    v-model="voucherFiles"
+                    :max-file-size="'20MB'"
+                    :accepted-file-types="['application/pdf', 'image/jpeg', 'image/png']"
+                  />
+                </div>
                 <div class="flex justify-end gap-2">
                   <Button type="button" variant="outline" @click="voucherDialogOpen = false">Cancel</Button>
-                  <Button type="submit" :disabled="uploading">
-                    <Icon v-if="uploading" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
-                    Upload
+                  <Button type="submit" :disabled="uploading || !voucherFiles.length">
+                    <Spinner v-if="uploading" />
+                    {{ uploading ? "Uploading..." : "Upload" }}
                   </Button>
                 </div>
               </form>
@@ -169,8 +176,8 @@
               <div class="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="outline" @click="cancelDialogOpen = false">Cancel</Button>
                 <Button type="submit" variant="destructive" :disabled="cancelling">
-                  <Icon v-if="cancelling" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
-                  Confirm Cancellation
+                  <Spinner v-if="cancelling" />
+                  {{ cancelling ? "Processing..." : "Confirm Cancellation" }}
                 </Button>
               </div>
             </form>
@@ -183,10 +190,12 @@
 
 <script setup>
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import InputFile from "@/components/InputFile.vue";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { computed, reactive, ref } from "vue";
 import { toast } from "vue-sonner";
@@ -240,19 +249,21 @@ const statusBadge = computed(() => {
 });
 
 const voucherDialogOpen = ref(false);
-const fileInput = ref(null);
+const voucherFiles = ref([]);
 const uploading = ref(false);
 
 const handleVoucherUpload = async () => {
-  const file = fileInput.value?.files?.[0];
-  if (!file) return;
+  const tmpVoucher = voucherFiles.value?.[0];
+  if (!tmpVoucher || !String(tmpVoucher).startsWith("tmp-")) return;
   uploading.value = true;
   try {
-    const formData = new FormData();
-    formData.append("voucher", file);
-    await client(`/api/events/${props.event.id}/reservations/${ulid.value}/voucher`, { method: "POST", body: formData });
+    await client(`/api/events/${props.event.id}/reservations/${ulid.value}/voucher`, {
+      method: "POST",
+      body: { tmp_voucher: tmpVoucher },
+    });
     toast.success("Voucher uploaded");
     voucherDialogOpen.value = false;
+    voucherFiles.value = [];
     await refresh();
   } catch (err) {
     toast.error("Upload failed", { description: err?.data?.message || err?.message });

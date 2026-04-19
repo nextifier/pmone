@@ -60,11 +60,17 @@
 
           <form @submit.prevent="handleSubmit" class="mt-4 space-y-3">
             <div class="space-y-2">
-              <Label>Room Type<span class="text-destructive">*</span></Label>
-              <select v-model.number="form.room_type_id" required class="border-input w-full rounded-md border px-3 py-2 text-sm tracking-tight">
-                <option :value="null" disabled>Select room type</option>
-                <option v-for="r in roomTypes" :key="r.id" :value="r.id">{{ r.name }}</option>
-              </select>
+              <Label for="allotment_room_type">Room Type<span class="text-destructive">*</span></Label>
+              <Select :model-value="form.room_type_id ? String(form.room_type_id) : undefined" @update:model-value="(v) => (form.room_type_id = v ? Number(v) : null)">
+                <SelectTrigger id="allotment_room_type" class="w-full">
+                  <SelectValue placeholder="Select room type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="r in roomTypes" :key="r.id" :value="String(r.id)">
+                    {{ r.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
@@ -85,12 +91,17 @@
 
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-2">
-                <Label>Surcharge Type</Label>
-                <select v-model="form.surcharge_type" class="border-input w-full rounded-md border px-3 py-2 text-sm tracking-tight">
-                  <option :value="null">None</option>
-                  <option value="fixed">Fixed (IDR)</option>
-                  <option value="percentage">Percentage (%)</option>
-                </select>
+                <Label for="surcharge_type">Surcharge Type</Label>
+                <Select :model-value="form.surcharge_type ?? 'none'" @update:model-value="(v) => (form.surcharge_type = v === 'none' ? null : v)">
+                  <SelectTrigger id="surcharge_type" class="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="fixed">Fixed (IDR)</SelectItem>
+                    <SelectItem value="percentage">Percentage (%)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div class="space-y-2">
                 <Label>Surcharge Amount</Label>
@@ -111,7 +122,7 @@
             <div class="flex justify-end gap-2 pt-2">
               <Button variant="outline" type="button" @click="dialogOpen = false">Cancel</Button>
               <Button type="submit" :disabled="saving">
-                <Icon v-if="saving" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
+                <Spinner v-if="saving" />
                 {{ editing ? "Save Changes" : "Create" }}
               </Button>
             </div>
@@ -130,8 +141,8 @@
           <div class="mt-3 flex justify-end gap-2">
             <Button variant="outline" type="button" @click="deleteDialogOpen = false">Cancel</Button>
             <Button variant="destructive" :disabled="deleting" @click="handleDelete">
-              <Icon v-if="deleting" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
-              Delete
+              <Spinner v-if="deleting" />
+              {{ deleting ? "Deleting..." : "Delete" }}
             </Button>
           </div>
         </div>
@@ -146,6 +157,14 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import { computed, reactive, ref } from "vue";
 import { toast } from "vue-sonner";
 

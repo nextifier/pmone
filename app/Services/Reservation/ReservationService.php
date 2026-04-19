@@ -187,7 +187,6 @@ class ReservationService
                 'guest_identity_number' => $data['guest_identity_number'],
                 'guest_nationality' => $data['guest_nationality'] ?? null,
                 'guest_company' => $data['guest_company'] ?? null,
-                'guest_address' => $data['guest_address'] ?? null,
                 'special_request' => $data['special_request'] ?? null,
                 'subtotal_rooms' => $subtotalRooms,
                 'subtotal_transfer' => $subtotalTransfer,
