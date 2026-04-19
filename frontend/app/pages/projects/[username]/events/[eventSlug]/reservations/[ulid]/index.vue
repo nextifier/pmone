@@ -167,7 +167,7 @@
               <div class="space-y-2">
                 <Label>Refund Amount (override auto-calc)</Label>
                 <Input v-model.number="cancelForm.refund_amount" type="number" min="0" :placeholder="`Auto: Rp ${formatRupiah(autoRefund)}`" />
-                <p class="text-muted-foreground text-xs">H-14: 100%, H-7..H-13: 50%, H&lt;7: 0%</p>
+                <p class="text-muted-foreground text-xs">{{ refundPolicyText }}</p>
               </div>
               <label class="flex items-center gap-2 text-sm tracking-tight">
                 <Checkbox v-model="cancelForm.process_refund" />
@@ -243,7 +243,7 @@ const statusBadge = computed(() => {
     voucher_sent: "bg-success/15 text-success-foreground",
     expired: "bg-muted text-muted-foreground",
     cancelled: "bg-destructive/15 text-destructive",
-    refunded: "bg-destructive/15 text-destructive",
+    refunded: "bg-muted text-muted-foreground border border-destructive/30",
   };
   return map[reservation.value?.status] || "bg-muted text-muted-foreground";
 });
@@ -293,7 +293,43 @@ const cancelForm = reactive({
   refund_amount: null,
   process_refund: true,
 });
-const autoRefund = computed(() => 0);
+
+const earliestCheckIn = computed(() => {
+  const items = reservation.value?.items ?? [];
+  if (!items.length) return null;
+  return items
+    .map((i) => i.check_in_date)
+    .filter(Boolean)
+    .sort()[0];
+});
+
+const daysUntilCheckIn = computed(() => {
+  if (!earliestCheckIn.value) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const checkIn = new Date(earliestCheckIn.value);
+  checkIn.setHours(0, 0, 0, 0);
+  if (Number.isNaN(checkIn.getTime())) return null;
+  return Math.round((checkIn.getTime() - today.getTime()) / 86400000);
+});
+
+const autoRefund = computed(() => {
+  const total = Number(reservation.value?.amounts?.total) || 0;
+  const days = daysUntilCheckIn.value;
+  if (days === null) return 0;
+  if (days >= 14) return Math.round(total * 100) / 100;
+  if (days >= 7) return Math.round(total * 50) / 100;
+  return 0;
+});
+
+const refundPolicyText = computed(() => {
+  const days = daysUntilCheckIn.value;
+  if (days === null) return "H-14: 100%, H-7 to H-13: 50%, H<7: 0%";
+  if (days >= 14) return `H-${days}: 100% refund`;
+  if (days >= 7) return `H-${days}: 50% refund`;
+  if (days >= 0) return `H-${days}: no refund (within 7 days of check-in)`;
+  return "Check-in date has passed: no refund";
+});
 
 const handleCancel = async () => {
   cancelling.value = true;
