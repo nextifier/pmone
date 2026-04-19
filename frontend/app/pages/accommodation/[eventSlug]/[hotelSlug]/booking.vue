@@ -154,6 +154,26 @@
         </div>
       </template>
     </ClientOnly>
+
+    <DialogResponsive v-model:open="paymentDialogOpen" :overflow-content="true" dialog-max-width="28rem">
+      <template #default>
+        <div class="px-4 pb-8 md:px-6 md:py-5 space-y-3">
+          <h3 class="text-lg font-semibold tracking-tight">Redirect to Payment</h3>
+          <p class="text-sm tracking-tight text-muted-foreground">
+            You will be redirected to <strong>Xendit</strong> to complete the payment of
+            <strong class="text-foreground">Rp {{ formatRupiah(summary.total) }}</strong>.
+            Do not close your browser until you return to the confirmation page.
+          </p>
+          <div class="flex justify-end gap-2 pt-1">
+            <Button variant="outline" size="sm" :disabled="redirecting" @click="cancelPayment">Cancel</Button>
+            <Button size="sm" :disabled="redirecting" @click="confirmPayment">
+              <Spinner v-if="redirecting" />
+              {{ redirecting ? 'Redirecting…' : 'Continue to Payment' }}
+            </Button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
   </div>
 </template>
 
@@ -170,10 +190,22 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { ButtonBack } from "@/components/ui/button-back";
+import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { useBookingSession } from "@/composables/useBookingSession";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { toast } from "vue-sonner";
+
+function trackEvent(event, payload = {}) {
+  if (typeof window === "undefined") return;
+  try {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ event, ...payload });
+  } catch {
+    // ignore
+  }
+}
 
 const ALLOWED_PAYMENT_HOSTS = [
   "checkout.xendit.co",
@@ -351,8 +383,39 @@ function handleCancel() {
   router.push(`/accommodation/${eventSlug.value}/${hotelSlug.value}`);
 }
 
+const paymentDialogOpen = ref(false);
+const redirecting = ref(false);
+const pendingPaymentUrl = ref(null);
+const pendingMagicToken = ref(null);
+
 function acceptNewPrice() {
   sessionTotal.value = summary.value.total;
+}
+
+function cancelPayment() {
+  if (redirecting.value) return;
+  paymentDialogOpen.value = false;
+  if (pendingMagicToken.value) {
+    const token = pendingMagicToken.value;
+    pendingMagicToken.value = null;
+    pendingPaymentUrl.value = null;
+    navigateTo(`/hotels/reservation/${token}`);
+  }
+}
+
+function confirmPayment() {
+  if (!pendingPaymentUrl.value) return;
+  if (!isAllowedPaymentUrl(pendingPaymentUrl.value)) {
+    toast.error("Payment redirect blocked", {
+      description: "Payment URL is not from a trusted provider.",
+    });
+    return;
+  }
+  trackEvent("payment_initiated", {
+    host: new URL(pendingPaymentUrl.value).hostname,
+  });
+  redirecting.value = true;
+  window.location.href = pendingPaymentUrl.value;
 }
 
 async function recheckAvailability() {
@@ -431,6 +494,12 @@ async function handleSubmit(guestPayload) {
       transfers,
     };
 
+    trackEvent("booking_submitted", {
+      hotel_id: hotel.value.id,
+      total: summary.value.total,
+      nights: nights.value,
+    });
+
     const response = await $fetch("/api/accommodation/book", {
       method: "POST",
       body: payload,
@@ -438,7 +507,14 @@ async function handleSubmit(guestPayload) {
 
     clear();
 
+    trackEvent("booking_created", {
+      reservation_number: response?.data?.reservation_number,
+      total: summary.value.total,
+    });
+
     const paymentUrl = response?.data?.payment_url;
+    const magicToken = response?.data?.magic_link_token;
+
     if (paymentUrl) {
       if (!isAllowedPaymentUrl(paymentUrl)) {
         toast.error("Payment redirect blocked", {
@@ -446,9 +522,11 @@ async function handleSubmit(guestPayload) {
         });
         return;
       }
-      window.location.href = paymentUrl;
-    } else if (response?.data?.magic_link_token) {
-      await navigateTo(`/hotels/reservation/${response.data.magic_link_token}`);
+      pendingPaymentUrl.value = paymentUrl;
+      pendingMagicToken.value = magicToken ?? null;
+      paymentDialogOpen.value = true;
+    } else if (magicToken) {
+      await navigateTo(`/hotels/reservation/${magicToken}`);
     }
   } catch (err) {
     if (err?.response?.status === 422 && err?.data?.errors) {

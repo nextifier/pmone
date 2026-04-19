@@ -155,6 +155,38 @@
         </div>
       </div>
 
+      <div class="rounded-md border p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-semibold tracking-tight">Activity</h2>
+          <button
+            type="button"
+            class="text-primary text-xs hover:underline"
+            :disabled="loadingActivity"
+            @click="loadActivity"
+          >
+            {{ activity.length ? 'Refresh' : 'Load history' }}
+          </button>
+        </div>
+        <div v-if="loadingActivity" class="text-muted-foreground text-xs tracking-tight">Loading activity…</div>
+        <div v-else-if="activity.length" class="space-y-2">
+          <div
+            v-for="entry in activity"
+            :key="entry.id"
+            class="flex gap-3 items-start pb-2 border-b last:border-b-0 last:pb-0"
+          >
+            <div class="size-2 rounded-full mt-1.5 shrink-0" :class="activityDotClass(entry)"></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs sm:text-sm tracking-tight">
+                <span class="font-medium">{{ activityLabel(entry) }}</span>
+                <span v-if="entry.causer" class="text-muted-foreground"> by {{ entry.causer.name }}</span>
+              </p>
+              <p class="text-muted-foreground text-xs tracking-tight">{{ formatDateTime(entry.created_at) }}</p>
+            </div>
+          </div>
+        </div>
+        <p v-else class="text-muted-foreground text-xs tracking-tight">No activity recorded yet.</p>
+      </div>
+
       <DialogResponsive v-model:open="cancelDialogOpen" :overflow-content="true" dialog-max-width="28rem">
         <template #default>
           <div class="px-4 pb-10 md:px-6 md:py-5">
@@ -345,10 +377,50 @@ const handleCancel = async () => {
     toast.success("Reservation cancelled");
     cancelDialogOpen.value = false;
     await refresh();
+    await loadActivity();
   } catch (err) {
     toast.error("Cancel failed", { description: err?.data?.message || err?.message });
   } finally {
     cancelling.value = false;
   }
+};
+
+const activity = ref([]);
+const loadingActivity = ref(false);
+
+const loadActivity = async () => {
+  loadingActivity.value = true;
+  try {
+    const res = await client(
+      `/api/events/${props.event.id}/reservations/${ulid.value}/activity`
+    );
+    activity.value = res?.data ?? [];
+  } catch (err) {
+    toast.error("Could not load activity", { description: err?.data?.message || err?.message });
+  } finally {
+    loadingActivity.value = false;
+  }
+};
+
+const activityLabel = (entry) => {
+  const changes = entry.changes ?? {};
+  if ("status" in changes) {
+    return `Status changed to ${changes.status}`;
+  }
+  if ("paid_at" in changes) return "Marked as paid";
+  if ("cancelled_at" in changes) return "Cancelled";
+  if ("refunded_at" in changes) return "Refunded";
+  if ("voucher_sent_at" in changes) return "Voucher sent";
+  if ("total_amount" in changes) return `Total updated to Rp ${formatRupiah(changes.total_amount)}`;
+  return entry.description || "Updated";
+};
+
+const activityDotClass = (entry) => {
+  const changes = entry.changes ?? {};
+  if (changes.status === "cancelled" || changes.status === "refunded") return "bg-destructive";
+  if (changes.status === "paid" || "paid_at" in changes) return "bg-success";
+  if (changes.status === "voucher_sent") return "bg-info";
+  if (changes.status === "expired") return "bg-muted-foreground";
+  return "bg-muted-foreground/50";
 };
 </script>
