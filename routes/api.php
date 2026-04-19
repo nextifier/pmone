@@ -859,6 +859,9 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('events/{event}')->group
         Route::get('/{reservation}/receipt.pdf', [ReservationController::class, 'receiptPdf'])
             ->middleware('can:reservations.view_documents')
             ->name('events.reservations.receipt-pdf');
+        Route::get('/{reservation}/activity', [ReservationController::class, 'activityLog'])
+            ->middleware('can:reservations.read')
+            ->name('events.reservations.activity');
     });
 });
 
