@@ -29,6 +29,64 @@
             />
             <InputErrorMessage :errors="errors.description" />
           </div>
+
+          <div class="grid gap-4 lg:grid-cols-2">
+            <div class="space-y-2">
+              <Label for="star_rating">Star Rating</Label>
+              <Select
+                :model-value="form.star_rating ? String(form.star_rating) : 'none'"
+                @update:model-value="(v) => (form.star_rating = v === 'none' ? null : Number(v))"
+              >
+                <SelectTrigger id="star_rating" class="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No rating</SelectItem>
+                  <SelectItem value="1">1 Star</SelectItem>
+                  <SelectItem value="2">2 Stars</SelectItem>
+                  <SelectItem value="3">3 Stars</SelectItem>
+                  <SelectItem value="4">4 Stars</SelectItem>
+                  <SelectItem value="5">5 Stars</SelectItem>
+                </SelectContent>
+              </Select>
+              <InputErrorMessage :errors="errors.star_rating" />
+            </div>
+            <div class="space-y-2">
+              <Label for="category">Category</Label>
+              <Select
+                :model-value="form.category || 'none'"
+                @update:model-value="(v) => (form.category = v === 'none' ? null : v)"
+              >
+                <SelectTrigger id="category" class="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Uncategorized</SelectItem>
+                  <SelectItem value="business">Business</SelectItem>
+                  <SelectItem value="resort">Resort</SelectItem>
+                  <SelectItem value="boutique">Boutique</SelectItem>
+                  <SelectItem value="budget">Budget</SelectItem>
+                  <SelectItem value="luxury">Luxury</SelectItem>
+                </SelectContent>
+              </Select>
+              <InputErrorMessage :errors="errors.category" />
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <Label>Facilities</Label>
+            <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
+              Type and press Enter to add. Examples: WiFi, Swimming Pool, Gym, Restaurant.
+            </p>
+            <TagsInput v-model="form.facilities" class="text-sm">
+              <TagsInputItem v-for="tag in form.facilities" :key="tag" :value="tag">
+                <TagsInputItemText />
+                <TagsInputItemDelete />
+              </TagsInputItem>
+              <TagsInputInput placeholder="Add facility..." />
+            </TagsInput>
+            <InputErrorMessage :errors="errors.facilities" />
+          </div>
         </div>
       </div>
     </div>
@@ -58,6 +116,34 @@
             <InputErrorMessage :errors="errors.address" />
           </div>
 
+          <div class="space-y-2">
+            <Label for="google_maps_link">Google Maps Link</Label>
+            <Input
+              id="google_maps_link"
+              v-model="form.google_maps_link"
+              type="url"
+              placeholder="https://maps.app.goo.gl/..."
+            />
+            <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
+              Paste the share link from Google Maps. Used for the "Get Directions" button.
+            </p>
+            <InputErrorMessage :errors="errors.google_maps_link" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="google_maps_embed_src">Google Maps Embed Src</Label>
+            <Textarea
+              id="google_maps_embed_src"
+              v-model="form.google_maps_embed_src"
+              rows="3"
+              placeholder='https://www.google.com/maps/embed?pb=...'
+            />
+            <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
+              From Google Maps → Share → Embed a map, copy the <code>src</code> value of the iframe.
+            </p>
+            <InputErrorMessage :errors="errors.google_maps_embed_src" />
+          </div>
+
           <div class="grid gap-4 lg:grid-cols-2">
             <div class="space-y-2">
               <Label for="contact_email">Contact Email</Label>
@@ -74,6 +160,70 @@
               <InputPhone id="contact_phone" v-model="form.contact_phone" />
               <InputErrorMessage :errors="errors.contact_phone" />
             </div>
+          </div>
+
+          <div class="space-y-2">
+            <Label for="website_url">Website URL</Label>
+            <Input
+              id="website_url"
+              v-model="form.website_url"
+              type="url"
+              placeholder="https://www.hotel.com"
+            />
+            <InputErrorMessage :errors="errors.website_url" />
+          </div>
+
+          <div class="grid gap-4 lg:grid-cols-2">
+            <div class="space-y-2">
+              <Label for="nearest_airport">Nearest Airport</Label>
+              <Input
+                id="nearest_airport"
+                v-model="form.nearest_airport"
+                placeholder="CGK - Soekarno Hatta"
+              />
+              <InputErrorMessage :errors="errors.nearest_airport" />
+            </div>
+            <div class="space-y-2">
+              <Label for="airport_distance_km">Airport Distance (km)</Label>
+              <Input
+                id="airport_distance_km"
+                v-model.number="form.airport_distance_km"
+                type="number"
+                min="0"
+                max="9999"
+              />
+              <InputErrorMessage :errors="errors.airport_distance_km" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="frame">
+      <div class="frame-header">
+        <div class="frame-title">Policies</div>
+      </div>
+      <div class="frame-panel">
+        <div class="grid grid-cols-1 gap-y-6">
+          <div class="space-y-2">
+            <Label for="cancellation_policy">Cancellation Policy</Label>
+            <Textarea
+              id="cancellation_policy"
+              v-model="form.cancellation_policy"
+              rows="3"
+              placeholder="Free cancellation up to 7 days before check-in..."
+            />
+            <InputErrorMessage :errors="errors.cancellation_policy" />
+          </div>
+          <div class="space-y-2">
+            <Label for="children_policy">Children Policy</Label>
+            <Textarea
+              id="children_policy"
+              v-model="form.children_policy"
+              rows="3"
+              placeholder="Children under 12 stay free with existing bed..."
+            />
+            <InputErrorMessage :errors="errors.children_policy" />
           </div>
         </div>
       </div>
@@ -203,7 +353,21 @@ import { Input } from "@/components/ui/input";
 import { InputErrorMessage } from "@/components/ui/input-error-message";
 import { InputPhone } from "@/components/ui/input-phone";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  TagsInput,
+  TagsInputInput,
+  TagsInputItem,
+  TagsInputItemDelete,
+  TagsInputItemText,
+} from "@/components/ui/tags-input";
 import { Textarea } from "@/components/ui/textarea";
 
 const props = defineProps({
@@ -219,11 +383,21 @@ const form = reactive({
   name: "",
   slug: "",
   description: "",
+  star_rating: null,
+  category: null,
   address: "",
   city: "",
   country: "Indonesia",
+  google_maps_link: "",
+  google_maps_embed_src: "",
+  facilities: [],
   contact_email: "",
   contact_phone: "",
+  website_url: "",
+  cancellation_policy: "",
+  children_policy: "",
+  nearest_airport: "",
+  airport_distance_km: null,
   commission_rate: 0,
   tax_percentage: 11,
   service_charge_percentage: 0,
@@ -244,11 +418,21 @@ watch(
       name: val.name ?? "",
       slug: val.slug ?? "",
       description: val.description ?? "",
+      star_rating: val.star_rating ?? null,
+      category: val.category ?? null,
       address: val.address ?? "",
       city: val.city ?? "",
       country: val.country ?? "Indonesia",
+      google_maps_link: val.google_maps_link ?? "",
+      google_maps_embed_src: val.google_maps_embed_src ?? "",
+      facilities: Array.isArray(val.facilities) ? [...val.facilities] : [],
       contact_email: val.contact_email ?? "",
       contact_phone: val.contact_phone ?? "",
+      website_url: val.website_url ?? "",
+      cancellation_policy: val.cancellation_policy ?? "",
+      children_policy: val.children_policy ?? "",
+      nearest_airport: val.nearest_airport ?? "",
+      airport_distance_km: val.airport_distance_km ?? null,
       commission_rate: val.commission_rate ?? 0,
       tax_percentage: val.tax_percentage ?? 11,
       service_charge_percentage: val.service_charge_percentage ?? 0,

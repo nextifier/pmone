@@ -63,10 +63,13 @@ class RoomType extends Model implements HasMedia
         'description',
         'max_pax',
         'bed_type',
+        'view_type',
         'area_sqm',
         'base_rate',
         'breakfast_included',
+        'smoking_allowed',
         'amenities',
+        'cancellation_policy',
         'is_active',
     ];
 
@@ -77,6 +80,7 @@ class RoomType extends Model implements HasMedia
             'area_sqm' => 'decimal:2',
             'base_rate' => 'decimal:2',
             'breakfast_included' => 'boolean',
+            'smoking_allowed' => 'boolean',
             'amenities' => 'array',
             'is_active' => 'boolean',
         ];

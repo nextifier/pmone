@@ -36,11 +36,36 @@
             <img :src="hotel.featured.lg" :alt="hotel.name" class="aspect-video w-full object-cover" />
           </div>
 
+          <div v-if="hotel.star_rating" class="flex items-center gap-0.5">
+            <Icon
+              v-for="n in 5"
+              :key="n"
+              :name="n <= hotel.star_rating ? 'material-symbols:star-rounded' : 'material-symbols:star-outline-rounded'"
+              :class="[
+                'size-5',
+                n <= hotel.star_rating ? 'text-warning' : 'text-muted-foreground/40',
+              ]"
+            />
+            <span class="text-muted-foreground text-sm tracking-tight ml-1.5">
+              {{ hotel.star_rating }}-star hotel
+            </span>
+          </div>
+
           <div class="grid gap-4 sm:grid-cols-2">
             <div class="rounded-md border p-4">
               <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Location</p>
               <p class="text-sm tracking-tight mt-1">{{ hotel.address || "-" }}</p>
               <p class="text-sm tracking-tight">{{ [hotel.city, hotel.country].filter(Boolean).join(", ") }}</p>
+              <a
+                v-if="hotel.google_maps_link"
+                :href="hotel.google_maps_link"
+                target="_blank"
+                rel="noopener"
+                class="text-primary text-xs tracking-tight mt-2 inline-flex items-center gap-1 hover:underline"
+              >
+                <Icon name="hugeicons:location-04" class="size-3.5" />
+                Open in Google Maps
+              </a>
             </div>
             <div class="rounded-md border p-4">
               <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Contact</p>
@@ -62,6 +87,29 @@
           <div v-if="hotel.description" class="rounded-md border p-4">
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight mb-2">Description</p>
             <p class="text-sm tracking-tight whitespace-pre-line">{{ hotel.description }}</p>
+          </div>
+
+          <div v-if="hotel.facilities?.length" class="rounded-md border p-4">
+            <p class="text-muted-foreground text-xs sm:text-sm tracking-tight mb-2">Facilities ({{ hotel.facilities.length }})</p>
+            <div class="flex flex-wrap gap-1.5">
+              <span
+                v-for="facility in hotel.facilities"
+                :key="facility"
+                class="bg-muted rounded-full px-3 py-1 text-xs sm:text-sm tracking-tight"
+              >
+                {{ facility }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="hotel.google_maps_embed_src" class="rounded-md border overflow-hidden">
+            <iframe
+              :src="hotel.google_maps_embed_src"
+              class="aspect-video w-full"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              allowfullscreen
+            />
           </div>
 
           <div v-if="hotel.gallery?.length" class="space-y-2">

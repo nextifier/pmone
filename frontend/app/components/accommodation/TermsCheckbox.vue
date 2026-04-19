@@ -2,7 +2,6 @@
   <label class="flex items-start gap-2 text-sm tracking-tight pt-2">
     <Checkbox
       :model-value="modelValue"
-      required
       @update:model-value="$emit('update:modelValue', $event)"
     />
     <span>

@@ -19,8 +19,19 @@
       <div
         v-for="room in rooms"
         :key="room.id"
-        class="border rounded-md p-4 space-y-2"
+        class="border rounded-md p-4 space-y-3"
       >
+        <div
+          v-if="room.gallery?.length"
+          class="bg-muted aspect-3/2 overflow-hidden rounded"
+        >
+          <img
+            :src="room.gallery[0].md || room.gallery[0].url"
+            :alt="room.name"
+            class="size-full object-cover"
+          />
+        </div>
+
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
             <h3 class="text-sm font-semibold tracking-tight truncate">{{ room.name }}</h3>
@@ -87,19 +98,80 @@
             </div>
 
             <div class="space-y-2">
+              <Label for="view_type">View Type</Label>
+              <Select
+                :model-value="form.view_type || 'none'"
+                @update:model-value="(v) => (form.view_type = v === 'none' ? null : v)"
+              >
+                <SelectTrigger id="view_type" class="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No view</SelectItem>
+                  <SelectItem value="city">City View</SelectItem>
+                  <SelectItem value="sea">Sea View</SelectItem>
+                  <SelectItem value="garden">Garden View</SelectItem>
+                  <SelectItem value="pool">Pool View</SelectItem>
+                  <SelectItem value="mountain">Mountain View</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div class="space-y-2">
               <Label>Description</Label>
               <Textarea v-model="form.description" rows="3" />
             </div>
 
             <div class="space-y-2">
-              <Label>Amenities (comma separated)</Label>
-              <Input v-model="amenitiesInput" placeholder="WiFi, AC, TV, Minibar" />
+              <Label>Cancellation Policy</Label>
+              <Textarea v-model="form.cancellation_policy" rows="2" placeholder="Free cancellation up to X days..." />
             </div>
 
-            <div class="flex items-center justify-between gap-3">
+            <div class="space-y-2">
+              <Label>Room Facilities</Label>
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Type and press Enter. Examples: WiFi, AC, TV, Minibar, Bathtub, Safe.
+              </p>
+              <TagsInput v-model="form.amenities" class="text-sm">
+                <TagsInputItem v-for="tag in form.amenities" :key="tag" :value="tag">
+                  <TagsInputItemText />
+                  <TagsInputItemDelete />
+                </TagsInputItem>
+                <TagsInputInput placeholder="Add facility..." />
+              </TagsInput>
+            </div>
+
+            <div class="space-y-2">
+              <Label>Room Gallery</Label>
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Up to 20 images. JPG/PNG/WebP, max 20MB each.
+              </p>
+              <InputFile
+                v-model="galleryFiles"
+                allow-multiple
+                :max-files="20"
+                :max-file-size="'20MB'"
+                :accepted-file-types="['image/jpeg', 'image/png', 'image/webp']"
+              />
+              <div v-if="editingRoom?.gallery?.length" class="grid grid-cols-4 gap-2 pt-2">
+                <div
+                  v-for="img in editingRoom.gallery"
+                  :key="img.id"
+                  class="bg-muted aspect-square overflow-hidden rounded"
+                >
+                  <img :src="img.sm || img.url" :alt="editingRoom.name" class="size-full object-cover" />
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
               <label class="flex items-center gap-2 text-sm tracking-tight">
                 <Checkbox v-model="form.breakfast_included" />
                 <span>Breakfast included</span>
+              </label>
+              <label class="flex items-center gap-2 text-sm tracking-tight">
+                <Checkbox v-model="form.smoking_allowed" />
+                <span>Smoking allowed</span>
               </label>
               <label class="flex items-center gap-2 text-sm tracking-tight">
                 <Checkbox v-model="form.is_active" />
@@ -141,11 +213,26 @@
 
 <script setup>
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import InputFile from "@/components/InputFile.vue";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  TagsInput,
+  TagsInputInput,
+  TagsInputItem,
+  TagsInputItemDelete,
+  TagsInputItemText,
+} from "@/components/ui/tags-input";
 import { Textarea } from "@/components/ui/textarea";
 import { computed, reactive, ref } from "vue";
 import { toast } from "vue-sonner";
@@ -171,16 +258,20 @@ const rooms = computed(() => data.value?.data ?? []);
 const dialogOpen = ref(false);
 const editingRoom = ref(null);
 const saving = ref(false);
-const amenitiesInput = ref("");
+const galleryFiles = ref([]);
 
 const form = reactive({
   name: "",
   max_pax: 2,
   bed_type: "",
+  view_type: null,
   base_rate: 0,
   area_sqm: null,
   description: "",
+  amenities: [],
+  cancellation_policy: "",
   breakfast_included: true,
+  smoking_allowed: false,
   is_active: true,
 });
 
@@ -189,13 +280,17 @@ const resetForm = () => {
     name: "",
     max_pax: 2,
     bed_type: "",
+    view_type: null,
     base_rate: 0,
     area_sqm: null,
     description: "",
+    amenities: [],
+    cancellation_policy: "",
     breakfast_included: true,
+    smoking_allowed: false,
     is_active: true,
   });
-  amenitiesInput.value = "";
+  galleryFiles.value = [];
 };
 
 const openCreateDialog = () => {
@@ -210,25 +305,30 @@ const openEditDialog = (room) => {
     name: room.name,
     max_pax: room.max_pax,
     bed_type: room.bed_type || "",
+    view_type: room.view_type || null,
     base_rate: room.base_rate,
     area_sqm: room.area_sqm,
     description: room.description || "",
+    amenities: Array.isArray(room.amenities) ? [...room.amenities] : [],
+    cancellation_policy: room.cancellation_policy || "",
     breakfast_included: room.breakfast_included,
+    smoking_allowed: room.smoking_allowed ?? false,
     is_active: room.is_active,
   });
-  amenitiesInput.value = (room.amenities ?? []).join(", ");
+  galleryFiles.value = [];
   dialogOpen.value = true;
 };
 
 const handleSubmit = async () => {
   saving.value = true;
   try {
-    const payload = {
-      ...form,
-      amenities: amenitiesInput.value
-        ? amenitiesInput.value.split(",").map((s) => s.trim()).filter(Boolean)
-        : [],
-    };
+    const payload = { ...form };
+
+    if (Array.isArray(galleryFiles.value) && galleryFiles.value.length > 0) {
+      payload.gallery_files = galleryFiles.value.filter(
+        (f) => typeof f === "string" && f.startsWith("tmp-"),
+      );
+    }
 
     if (editingRoom.value) {
       await client(`${baseUrl.value}/${editingRoom.value.slug}`, { method: "PUT", body: payload });

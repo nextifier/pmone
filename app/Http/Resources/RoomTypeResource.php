@@ -18,10 +18,13 @@ class RoomTypeResource extends JsonResource
             'description' => $this->description,
             'max_pax' => (int) $this->max_pax,
             'bed_type' => $this->bed_type,
+            'view_type' => $this->view_type,
             'area_sqm' => $this->area_sqm !== null ? (float) $this->area_sqm : null,
             'base_rate' => (float) $this->base_rate,
             'breakfast_included' => $this->breakfast_included,
+            'smoking_allowed' => (bool) $this->smoking_allowed,
             'amenities' => $this->amenities ?? [],
+            'cancellation_policy' => $this->cancellation_policy,
             'is_active' => $this->is_active,
             'gallery' => $this->getMedia('gallery')->map(fn ($media) => [
                 'id' => $media->id,
