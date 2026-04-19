@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-5xl px-4 pt-4 pb-24 sm:pb-16 space-y-6">
+  <div class="mx-auto max-w-5xl space-y-6 px-4 pt-4 pb-24 sm:pb-16">
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
@@ -9,11 +9,11 @@
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbPage>{{ hotel?.event?.title ?? "Event" }}</BreadcrumbPage>
+          <BreadcrumbPage>{{ hotel?.event?.title ?? 'Event' }}</BreadcrumbPage>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbPage>{{ hotel?.name ?? "Hotel" }}</BreadcrumbPage>
+          <BreadcrumbPage>{{ hotel?.name ?? 'Hotel' }}</BreadcrumbPage>
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
@@ -43,7 +43,7 @@
 
     <ClientOnly v-else>
       <div class="space-y-6">
-        <div v-if="hotel.event" class="text-muted-foreground text-xs sm:text-sm tracking-tight">
+        <div v-if="hotel.event" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
           <span>{{ hotel.event.title }}</span>
           <span v-if="hotel.event.start_date || hotel.event.end_date">
             · {{ formatEventDates(hotel.event) }}
@@ -79,12 +79,13 @@
           <div class="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
             <div class="min-w-0">
               <p class="text-muted-foreground text-xs tracking-tight">Total</p>
-              <p class="font-semibold tabular-nums tracking-tight">
+              <p class="font-semibold tracking-tight tabular-nums">
                 Rp {{ formatRupiah(summary.total) }}
               </p>
               <p v-if="nights > 0" class="text-muted-foreground text-xs tracking-tight">
-                {{ nights }} night{{ nights > 1 ? "s" : "" }} ·
-                {{ totalRoomsSelected }} room{{ totalRoomsSelected > 1 ? "s" : "" }}
+                {{ nights }} night{{ nights > 1 ? 's' : '' }} · {{ totalRoomsSelected }} room{{
+                  totalRoomsSelected > 1 ? 's' : ''
+                }}
               </p>
             </div>
             <Button :disabled="!canProceed" @click="openMobileSummary = true">Continue</Button>
@@ -99,7 +100,7 @@
           <template #default>
             <div class="px-4 pb-6 md:px-6 md:py-5">
               <h3 class="text-lg font-semibold tracking-tight">Booking Summary</h3>
-              <p class="text-muted-foreground text-sm tracking-tight mt-1">
+              <p class="text-muted-foreground mt-1 text-sm tracking-tight">
                 Review your selection before continuing.
               </p>
               <div class="mt-4">
@@ -141,180 +142,211 @@
 </template>
 
 <script setup>
-import HotelDetailHeader from "@/components/accommodation/HotelDetailHeader.vue";
-import RoomTypeSelector from "@/components/accommodation/RoomTypeSelector.vue";
-import TransferSelector from "@/components/accommodation/TransferSelector.vue";
-import BookingSummary from "@/components/accommodation/BookingSummary.vue";
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import HotelDetailHeader from '@/components/accommodation/HotelDetailHeader.vue'
+import RoomTypeSelector from '@/components/accommodation/RoomTypeSelector.vue'
+import TransferSelector from '@/components/accommodation/TransferSelector.vue'
+import BookingSummary from '@/components/accommodation/BookingSummary.vue'
+import DialogResponsive from '@/components/ui/dialog-responsive/DialogResponsive.vue'
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useBookingSession } from "@/composables/useBookingSession";
-import { computed, onMounted, ref, watch } from "vue";
+  BreadcrumbSeparator
+} from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useBookingSession } from '@/composables/useBookingSession'
+import { computed, onMounted, ref, watch } from 'vue'
 
 definePageMeta({
-  layout: "public",
-});
+  layout: 'public'
+})
 
-const route = useRoute();
-const router = useRouter();
-const eventSlug = computed(() => route.params.eventSlug);
-const hotelSlug = computed(() => route.params.hotelSlug);
+const route = useRoute()
+const router = useRouter()
+const eventSlug = computed(() => route.params.eventSlug)
+const hotelSlug = computed(() => route.params.hotelSlug)
 
 const { data, pending } = await useLazyAsyncData(
   () => `public-hotel-${eventSlug.value}-${hotelSlug.value}`,
-  () => $fetch(`/api/accommodation/events/${eventSlug.value}/hotels/${hotelSlug.value}`),
-);
+  () => $fetch(`/api/accommodation/events/${eventSlug.value}/hotels/${hotelSlug.value}`)
+)
 
-const hotel = computed(() => data.value?.data);
+const hotel = computed(() => data.value?.data)
 
 usePageMeta(null, {
-  title: computed(() => `${hotel.value?.name ?? "Hotel"} · ${hotel.value?.event?.title ?? "Accommodation"}`),
-});
+  title: computed(
+    () => `${hotel.value?.name ?? 'Hotel'} · ${hotel.value?.event?.title ?? 'Accommodation'}`
+  )
+})
 
-const { state, hydrate, set } = useBookingSession();
+const { state, hydrate, set } = useBookingSession()
 
-const today = new Date();
-today.setHours(0, 0, 0, 0);
-const tomorrow = new Date(today.getTime() + 86400000);
-const dayAfter = new Date(today.getTime() + 2 * 86400000);
+const today = new Date()
+today.setHours(0, 0, 0, 0)
+const tomorrow = new Date(today.getTime() + 86400000)
+const dayAfter = new Date(today.getTime() + 2 * 86400000)
 
 const parseIso = (iso) => {
-  if (!iso) return null;
-  const [y, m, d] = iso.split("-").map(Number);
-  if (!y || !m || !d) return null;
-  const date = new Date(y, m - 1, d);
-  return Number.isNaN(date.getTime()) ? null : date;
-};
+  if (!iso) return null
+  const [y, m, d] = iso.split('-').map(Number)
+  if (!y || !m || !d) return null
+  const date = new Date(y, m - 1, d)
+  return Number.isNaN(date.getTime()) ? null : date
+}
 
 const toIsoDate = (date) => {
-  if (!date) return null;
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-};
+  if (!date) return null
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+}
 
-const checkInDate = ref(tomorrow);
-const checkOutDate = ref(dayAfter);
-const selectedRoomQty = ref({});
-const selectedTransfers = ref({});
-const openMobileSummary = ref(false);
-const syncing = ref(false);
+const checkInDate = ref(tomorrow)
+const checkOutDate = ref(dayAfter)
+const selectedRoomQty = ref({})
+const selectedTransfers = ref({})
+const openMobileSummary = ref(false)
+const syncing = ref(false)
+const restoredFromSession = ref(false)
+
+function applyEventDefaults() {
+  const eventStartRaw = hotel.value?.event?.start_date
+  const eventEndRaw = hotel.value?.event?.end_date
+  if (!eventStartRaw || !eventEndRaw) return
+  const start = new Date(eventStartRaw)
+  const end = new Date(eventEndRaw)
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return
+  start.setHours(0, 0, 0, 0)
+  end.setHours(0, 0, 0, 0)
+  if (end.getTime() < today.getTime()) return
+  checkInDate.value = start.getTime() < today.getTime() ? tomorrow : start
+  checkOutDate.value =
+    end.getTime() <= checkInDate.value.getTime()
+      ? new Date(checkInDate.value.getTime() + 86400000)
+      : end
+}
 
 onMounted(() => {
-  hydrate();
-  syncing.value = true;
+  hydrate()
+  syncing.value = true
   const sameSelection =
-    state.value.eventSlug === eventSlug.value && state.value.hotelSlug === hotelSlug.value;
+    state.value.eventSlug === eventSlug.value && state.value.hotelSlug === hotelSlug.value
 
   if (sameSelection) {
-    const savedIn = parseIso(state.value.checkIn);
-    const savedOut = parseIso(state.value.checkOut);
-    if (savedIn) checkInDate.value = savedIn;
-    if (savedOut) checkOutDate.value = savedOut;
-    selectedRoomQty.value = { ...(state.value.rooms || {}) };
-    selectedTransfers.value = { ...(state.value.transfers || {}) };
+    const savedIn = parseIso(state.value.checkIn)
+    const savedOut = parseIso(state.value.checkOut)
+    if (savedIn) checkInDate.value = savedIn
+    if (savedOut) checkOutDate.value = savedOut
+    selectedRoomQty.value = { ...(state.value.rooms || {}) }
+    selectedTransfers.value = { ...(state.value.transfers || {}) }
+    restoredFromSession.value = true
+  } else if (hotel.value) {
+    applyEventDefaults()
   }
 
-  syncing.value = false;
+  syncing.value = false
 
   set({
     checkIn: toIsoDate(checkInDate.value),
-    checkOut: toIsoDate(checkOutDate.value),
-  });
-});
+    checkOut: toIsoDate(checkOutDate.value)
+  })
+})
 
 watch(
   hotel,
   (value) => {
-    if (!value || !import.meta.client) return;
+    if (!value || !import.meta.client) return
+    if (!restoredFromSession.value) {
+      syncing.value = true
+      applyEventDefaults()
+      syncing.value = false
+    }
     set({
       hotelId: value.id,
       eventSlug: eventSlug.value,
       hotelSlug: hotelSlug.value,
-    });
+      checkIn: toIsoDate(checkInDate.value),
+      checkOut: toIsoDate(checkOutDate.value)
+    })
   },
-  { immediate: true },
-);
+  { immediate: true }
+)
 
 watch([checkInDate, checkOutDate], ([inDate, outDate]) => {
-  if (syncing.value) return;
+  if (syncing.value) return
   if (inDate && outDate && outDate.getTime() <= inDate.getTime()) {
-    checkOutDate.value = new Date(inDate.getTime() + 86400000);
-    return;
+    checkOutDate.value = new Date(inDate.getTime() + 86400000)
+    return
   }
-  set({ checkIn: toIsoDate(inDate), checkOut: toIsoDate(outDate) });
-});
+  set({ checkIn: toIsoDate(inDate), checkOut: toIsoDate(outDate) })
+})
 
 watch(
   selectedRoomQty,
   (value) => {
-    if (syncing.value) return;
-    set({ rooms: { ...value } });
+    if (syncing.value) return
+    set({ rooms: { ...value } })
   },
-  { deep: true },
-);
+  { deep: true }
+)
 
 watch(
   selectedTransfers,
   (value) => {
-    if (syncing.value) return;
-    set({ transfers: { ...value } });
+    if (syncing.value) return
+    set({ transfers: { ...value } })
   },
-  { deep: true },
-);
+  { deep: true }
+)
 
 const nights = computed(() => {
-  if (!checkInDate.value || !checkOutDate.value) return 0;
-  const ms = checkOutDate.value.getTime() - checkInDate.value.getTime();
-  return Math.max(0, Math.round(ms / 86400000));
-});
+  if (!checkInDate.value || !checkOutDate.value) return 0
+  const ms = checkOutDate.value.getTime() - checkInDate.value.getTime()
+  return Math.max(0, Math.round(ms / 86400000))
+})
 
 const totalRoomsSelected = computed(() =>
-  Object.values(selectedRoomQty.value).reduce((sum, qty) => sum + (Number(qty) || 0), 0),
-);
+  Object.values(selectedRoomQty.value).reduce((sum, qty) => sum + (Number(qty) || 0), 0)
+)
 
 const summary = computed(() => {
-  if (!hotel.value) return { rooms: 0, transfer: 0, tax: 0, service: 0, total: 0 };
-  let rooms = 0;
+  if (!hotel.value) return { rooms: 0, transfer: 0, tax: 0, service: 0, total: 0 }
+  let rooms = 0
   for (const room of hotel.value.room_types ?? []) {
-    const qty = Number(selectedRoomQty.value[room.id]) || 0;
-    rooms += room.base_rate * nights.value * qty;
+    const qty = Number(selectedRoomQty.value[room.id]) || 0
+    rooms += room.base_rate * nights.value * qty
   }
-  let transfer = 0;
+  let transfer = 0
   for (const opt of hotel.value.transfer_options ?? []) {
-    if (selectedTransfers.value[opt.id]) transfer += opt.price;
+    if (selectedTransfers.value[opt.id]) transfer += opt.price
   }
-  const taxBase = rooms + transfer;
-  const tax = Math.round(taxBase * (hotel.value.tax_percentage / 100) * 100) / 100;
-  const service =
-    Math.round(taxBase * (hotel.value.service_charge_percentage / 100) * 100) / 100;
-  const total = taxBase + tax + service;
-  return { rooms, transfer, tax, service, total };
-});
+  const taxBase = rooms + transfer
+  const tax = Math.round(taxBase * (hotel.value.tax_percentage / 100) * 100) / 100
+  const service = Math.round(taxBase * (hotel.value.service_charge_percentage / 100) * 100) / 100
+  const total = taxBase + tax + service
+  return { rooms, transfer, tax, service, total }
+})
 
 const canProceed = computed(
-  () => summary.value.total > 0 && nights.value > 0 && totalRoomsSelected.value > 0,
-);
+  () => summary.value.total > 0 && nights.value > 0 && totalRoomsSelected.value > 0
+)
 
 const goToBooking = () => {
-  if (!canProceed.value) return;
-  openMobileSummary.value = false;
-  router.push(`/accommodation/${eventSlug.value}/${hotelSlug.value}/booking`);
-};
+  if (!canProceed.value) return
+  openMobileSummary.value = false
+  router.push(`/accommodation/${eventSlug.value}/${hotelSlug.value}/booking`)
+}
 
-const formatRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
+const formatRupiah = (n) => new Intl.NumberFormat('id-ID').format(Number(n) || 0)
 
 const formatEventDates = (ev) => {
   const fmt = (d) =>
-    d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
-  if (ev.start_date && ev.end_date) return `${fmt(ev.start_date)} - ${fmt(ev.end_date)}`;
-  return fmt(ev.start_date || ev.end_date);
-};
+    d
+      ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+      : ''
+  if (ev.start_date && ev.end_date) return `${fmt(ev.start_date)} - ${fmt(ev.end_date)}`
+  return fmt(ev.start_date || ev.end_date)
+}
 </script>

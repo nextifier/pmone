@@ -84,117 +84,97 @@
       <Button type="button" variant="outline" @click="$emit('cancel')">Cancel</Button>
       <Button type="submit" :disabled="!accept || saving">
         <Spinner v-if="saving" />
-        {{ saving ? "Processing..." : "Confirm & Pay" }}
+        {{ saving ? 'Processing...' : 'Confirm & Pay' }}
       </Button>
     </div>
   </form>
 </template>
 
 <script setup>
-import TermsCheckbox from "./TermsCheckbox.vue";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
-import { Label } from "@/components/ui/label";
+import TermsCheckbox from './TermsCheckbox.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { InputErrorMessage } from '@/components/ui/input-error-message'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Spinner } from "@/components/ui/spinner";
-import { Textarea } from "@/components/ui/textarea";
-import { InputPhone } from "@/components/ui/input-phone";
-import { nextTick, reactive, ref, watch } from "vue";
+  SelectValue
+} from '@/components/ui/select'
+import { Spinner } from '@/components/ui/spinner'
+import { Textarea } from '@/components/ui/textarea'
+import { InputPhone } from '@/components/ui/input-phone'
+import { reactive, ref, watch } from 'vue'
 
 const props = defineProps({
   modelValue: {
     type: Object,
-    default: () => ({}),
+    default: () => ({})
   },
   acceptTerms: {
     type: Boolean,
-    default: false,
+    default: false
   },
   saving: {
     type: Boolean,
-    default: false,
+    default: false
   },
   errors: {
     type: Object,
-    default: () => ({}),
-  },
-});
+    default: () => ({})
+  }
+})
 
-const emit = defineEmits([
-  "update:modelValue",
-  "update:acceptTerms",
-  "submit",
-  "cancel",
-]);
+const emit = defineEmits(['update:modelValue', 'update:acceptTerms', 'submit', 'cancel'])
 
 const createDefault = () => ({
-  name: "",
-  email: "",
-  phone: "",
-  identity_type: "nik",
-  identity_number: "",
-  nationality: "Indonesia",
-  company: "",
-  special_request: "",
-});
+  name: '',
+  email: '',
+  phone: '',
+  identity_type: 'nik',
+  identity_number: '',
+  nationality: 'Indonesia',
+  company: '',
+  special_request: ''
+})
 
-const form = reactive({ ...createDefault(), ...(props.modelValue || {}) });
-const accept = ref(props.acceptTerms);
-let syncing = false;
+const form = reactive({ ...createDefault(), ...(props.modelValue || {}) })
+const accept = ref(props.acceptTerms)
 
 watch(
   () => props.modelValue,
   (val) => {
-    if (!val) return;
-    const keys = Object.keys(createDefault());
-    let changed = false;
+    if (!val) return
+    const keys = Object.keys(createDefault())
     for (const key of keys) {
-      const incoming = val[key] ?? createDefault()[key];
-      if (form[key] !== incoming) {
-        changed = true;
-        break;
-      }
+      const incoming = val[key] ?? createDefault()[key]
+      if (form[key] !== incoming) form[key] = incoming
     }
-    if (!changed) return;
-    syncing = true;
-    for (const key of keys) {
-      const incoming = val[key] ?? createDefault()[key];
-      if (form[key] !== incoming) form[key] = incoming;
-    }
-    nextTick(() => {
-      syncing = false;
-    });
   },
-  { deep: true },
-);
+  { deep: true }
+)
 
 watch(
   () => props.acceptTerms,
   (val) => {
-    if (accept.value !== val) accept.value = val;
-  },
-);
+    if (accept.value !== val) accept.value = val
+  }
+)
 
 watch(
   form,
   (val) => {
-    if (syncing) return;
-    emit("update:modelValue", { ...val });
+    emit('update:modelValue', { ...val })
   },
-  { deep: true, flush: "post" },
-);
+  { deep: true }
+)
 
-watch(accept, (val) => emit("update:acceptTerms", val));
+watch(accept, (val) => emit('update:acceptTerms', val))
 
 function handleSubmit() {
-  emit("submit", {
+  emit('submit', {
     guest_name: form.name,
     guest_email: form.email,
     guest_phone: form.phone,
@@ -203,7 +183,7 @@ function handleSubmit() {
     guest_nationality: form.nationality,
     guest_company: form.company,
     special_request: form.special_request,
-    accept_terms: accept.value,
-  });
+    accept_terms: accept.value
+  })
 }
 </script>
