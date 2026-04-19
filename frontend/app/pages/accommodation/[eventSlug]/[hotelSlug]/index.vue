@@ -61,6 +61,7 @@
               v-model="selectedRoomQty"
             />
             <TransferSelector :options="hotel.transfer_options" v-model="selectedTransfers" />
+            <CancellationPolicy :custom-policy="hotel.cancellation_policy" />
           </div>
 
           <aside class="hidden lg:block">
@@ -151,6 +152,7 @@ import HotelDetailHeader from '@/components/accommodation/HotelDetailHeader.vue'
 import RoomTypeSelector from '@/components/accommodation/RoomTypeSelector.vue'
 import TransferSelector from '@/components/accommodation/TransferSelector.vue'
 import BookingSummary from '@/components/accommodation/BookingSummary.vue'
+import CancellationPolicy from '@/components/accommodation/CancellationPolicy.vue'
 import DialogResponsive from '@/components/ui/dialog-responsive/DialogResponsive.vue'
 import {
   Breadcrumb,

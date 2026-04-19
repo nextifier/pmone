@@ -71,6 +71,8 @@
             @submit="handleSubmit"
             @cancel="handleCancel"
           />
+
+          <CancellationPolicy :custom-policy="hotel.cancellation_policy" />
         </div>
 
         <aside>
@@ -157,6 +159,7 @@
 
 <script setup>
 import GuestInfoForm from "@/components/accommodation/GuestInfoForm.vue";
+import CancellationPolicy from "@/components/accommodation/CancellationPolicy.vue";
 import {
   Breadcrumb,
   BreadcrumbItem,
