@@ -51,6 +51,8 @@
                 :src="hotel.featured.md"
                 :alt="hotel.name"
                 class="size-full object-cover transition group-hover:scale-[1.02]"
+                loading="lazy"
+                decoding="async"
               />
               <div v-else class="text-muted-foreground flex size-full items-center justify-center">
                 <Icon name="hugeicons:building-01" class="size-12" />
@@ -118,4 +120,22 @@ const formatEventDates = (ev) => {
   if (ev.start_date && ev.end_date) return `${fmt(ev.start_date)} - ${fmt(ev.end_date)}`;
   return fmt(ev.start_date || ev.end_date);
 };
+
+const breadcrumbJsonLd = computed(() => {
+  const items = [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: '/' },
+    { '@type': 'ListItem', position: 2, name: 'Accommodation', item: '/accommodation' },
+  ];
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items,
+  });
+});
+
+useHead({
+  script: computed(() => [
+    { type: 'application/ld+json', innerHTML: breadcrumbJsonLd.value, tagPosition: 'head' },
+  ]),
+});
 </script>

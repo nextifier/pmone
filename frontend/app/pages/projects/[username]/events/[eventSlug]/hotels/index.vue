@@ -18,6 +18,34 @@
       </div>
     </div>
 
+    <div class="flex flex-wrap items-center gap-2">
+      <Input
+        v-model="search"
+        type="search"
+        placeholder="Search name or city…"
+        class="w-full sm:w-64"
+      />
+      <Select v-model="statusFilter">
+        <SelectTrigger class="w-40"><SelectValue placeholder="Status" /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All statuses</SelectItem>
+          <SelectItem value="active">Active</SelectItem>
+          <SelectItem value="inactive">Inactive</SelectItem>
+        </SelectContent>
+      </Select>
+      <Select v-model="sort">
+        <SelectTrigger class="w-44"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="-created_at">Newest first</SelectItem>
+          <SelectItem value="created_at">Oldest first</SelectItem>
+          <SelectItem value="name">Name A-Z</SelectItem>
+          <SelectItem value="-name">Name Z-A</SelectItem>
+          <SelectItem value="city">City A-Z</SelectItem>
+        </SelectContent>
+      </Select>
+      <Button variant="ghost" size="sm" @click="resetFilters">Reset</Button>
+    </div>
+
     <div v-if="pending" class="flex justify-center py-10">
       <Spinner class="size-6" />
     </div>
@@ -25,7 +53,12 @@
     <div v-else-if="error" class="text-destructive text-sm tracking-tight">Failed to load hotels.</div>
 
     <div v-else-if="!hotels.length" class="text-muted-foreground rounded-md border border-dashed py-10 text-center text-sm tracking-tight">
-      No hotels yet. Add your first hotel to get started.
+      <template v-if="search || statusFilter !== 'all'">
+        No hotels match your filters.
+      </template>
+      <template v-else>
+        No hotels yet. Add your first hotel to get started.
+      </template>
     </div>
 
     <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -41,6 +74,8 @@
             :src="hotel.featured.md"
             :alt="hotel.name"
             class="size-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
           <div v-else class="text-muted-foreground flex size-full items-center justify-center">
             <Icon name="hugeicons:building-01" class="size-10" />
@@ -68,10 +103,44 @@
         </div>
       </NuxtLink>
     </div>
+
+    <div v-if="meta && meta.last_page > 1" class="flex items-center justify-center gap-2 pt-4">
+      <Button
+        variant="outline"
+        size="sm"
+        :disabled="currentPage <= 1"
+        @click="currentPage = currentPage - 1"
+      >
+        Previous
+      </Button>
+      <span class="text-muted-foreground text-sm tracking-tight">
+        Page {{ currentPage }} / {{ meta.last_page }}
+      </span>
+      <Button
+        variant="outline"
+        size="sm"
+        :disabled="currentPage >= meta.last_page"
+        @click="currentPage = currentPage + 1"
+      >
+        Next
+      </Button>
+    </div>
   </div>
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
+import { computed, ref, watch } from "vue";
+
 definePageMeta({
   middleware: ["sanctum:auth", "permission"],
   permissions: ["hotels.read"],
@@ -96,10 +165,49 @@ usePageMeta(null, {
 const { hasPermission } = usePermission();
 const canCreate = computed(() => hasPermission("hotels.create"));
 
-const { data, pending, error, refresh } = await useLazySanctumFetch(
-  () => `/api/events/${props.event?.id}/hotels?per_page=50`,
-  { key: () => `hotels-list-${props.event?.id}` }
-);
+const search = ref("");
+const statusFilter = ref("all");
+const sort = ref("-created_at");
+const currentPage = ref(1);
+const PER_PAGE = 24;
+
+let searchDebounce = null;
+const debouncedSearch = ref("");
+watch(search, (value) => {
+  if (searchDebounce) clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => {
+    debouncedSearch.value = value;
+    currentPage.value = 1;
+  }, 300);
+});
+
+watch([statusFilter, sort], () => {
+  currentPage.value = 1;
+});
+
+const queryUrl = computed(() => {
+  const params = new URLSearchParams();
+  params.set("per_page", String(PER_PAGE));
+  params.set("page", String(currentPage.value));
+  params.set("sort", sort.value);
+  if (debouncedSearch.value) params.set("filter_search", debouncedSearch.value);
+  if (statusFilter.value === "active") params.set("filter_is_active", "1");
+  if (statusFilter.value === "inactive") params.set("filter_is_active", "0");
+  return `/api/events/${props.event?.id}/hotels?${params.toString()}`;
+});
+
+const { data, pending, error } = await useLazySanctumFetch(() => queryUrl.value, {
+  key: () => `hotels-list-${props.event?.id}-${debouncedSearch.value}-${statusFilter.value}-${sort.value}-${currentPage.value}`,
+});
 
 const hotels = computed(() => data.value?.data ?? []);
+const meta = computed(() => data.value?.meta ?? null);
+
+const resetFilters = () => {
+  search.value = "";
+  debouncedSearch.value = "";
+  statusFilter.value = "all";
+  sort.value = "-created_at";
+  currentPage.value = 1;
+};
 </script>

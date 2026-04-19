@@ -4,6 +4,8 @@ namespace App\Http\Requests\PublicReservation;
 
 use App\Enums\IdentityType;
 use App\Enums\TransferDirection;
+use App\Models\HotelTransferOption;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
@@ -30,7 +32,7 @@ class StorePublicReservationRequest extends FormRequest
 
             'items' => ['required', 'array', 'min:1'],
             'items.*.room_type_id' => ['required', 'exists:room_types,id'],
-            'items.*.check_in_date' => ['required', 'date'],
+            'items.*.check_in_date' => ['required', 'date', 'after_or_equal:today'],
             'items.*.check_out_date' => ['required', 'date', 'after:items.*.check_in_date'],
             'items.*.qty' => ['required', 'integer', 'min:1', 'max:20'],
             'items.*.guest_name' => ['nullable', 'string', 'max:255'],
@@ -39,7 +41,7 @@ class StorePublicReservationRequest extends FormRequest
             'transfers' => ['nullable', 'array'],
             'transfers.*.transfer_option_id' => ['required_with:transfers', 'exists:hotel_transfer_options,id'],
             'transfers.*.direction' => ['required_with:transfers', new Enum(TransferDirection::class)],
-            'transfers.*.transfer_date' => ['required_with:transfers', 'date'],
+            'transfers.*.transfer_date' => ['required_with:transfers', 'date', 'after_or_equal:today'],
             'transfers.*.transfer_time' => ['nullable', 'date_format:H:i'],
             'transfers.*.pickup_location' => ['nullable', 'string', 'max:500'],
             'transfers.*.dropoff_location' => ['nullable', 'string', 'max:500'],
@@ -59,6 +61,48 @@ class StorePublicReservationRequest extends FormRequest
         return [
             'accept_terms.accepted' => 'You must accept the terms and conditions.',
             'items.required' => 'At least one room must be selected.',
+            'items.*.check_in_date.after_or_equal' => 'Check-in date cannot be in the past.',
+            'transfers.*.transfer_date.after_or_equal' => 'Transfer date cannot be in the past.',
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
+            $hotelId = $this->input('hotel_id');
+            $transfers = $this->input('transfers', []) ?? [];
+
+            if (empty($transfers)) {
+                return;
+            }
+
+            foreach ($transfers as $index => $transfer) {
+                $option = HotelTransferOption::query()
+                    ->where('id', $transfer['transfer_option_id'] ?? null)
+                    ->where('hotel_id', $hotelId)
+                    ->first();
+
+                if (! $option) {
+                    $validator->errors()->add(
+                        "transfers.{$index}.transfer_option_id",
+                        'Selected transfer option does not belong to this hotel.'
+                    );
+
+                    continue;
+                }
+
+                $paxCount = (int) ($transfer['pax_count'] ?? 0);
+                if ($option->max_pax && $paxCount > $option->max_pax) {
+                    $validator->errors()->add(
+                        "transfers.{$index}.pax_count",
+                        "Passenger count exceeds max capacity ({$option->max_pax}) for this transfer option."
+                    );
+                }
+            }
+        });
     }
 }

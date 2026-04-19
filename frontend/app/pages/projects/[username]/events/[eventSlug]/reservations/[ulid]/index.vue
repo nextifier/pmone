@@ -155,6 +155,38 @@
         </div>
       </div>
 
+      <div class="rounded-md border p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-semibold tracking-tight">Activity</h2>
+          <button
+            type="button"
+            class="text-primary text-xs hover:underline"
+            :disabled="loadingActivity"
+            @click="loadActivity"
+          >
+            {{ activity.length ? 'Refresh' : 'Load history' }}
+          </button>
+        </div>
+        <div v-if="loadingActivity" class="text-muted-foreground text-xs tracking-tight">Loading activity…</div>
+        <div v-else-if="activity.length" class="space-y-2">
+          <div
+            v-for="entry in activity"
+            :key="entry.id"
+            class="flex gap-3 items-start pb-2 border-b last:border-b-0 last:pb-0"
+          >
+            <div class="size-2 rounded-full mt-1.5 shrink-0" :class="activityDotClass(entry)"></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs sm:text-sm tracking-tight">
+                <span class="font-medium">{{ activityLabel(entry) }}</span>
+                <span v-if="entry.causer" class="text-muted-foreground"> by {{ entry.causer.name }}</span>
+              </p>
+              <p class="text-muted-foreground text-xs tracking-tight">{{ formatDateTime(entry.created_at) }}</p>
+            </div>
+          </div>
+        </div>
+        <p v-else class="text-muted-foreground text-xs tracking-tight">No activity recorded yet.</p>
+      </div>
+
       <DialogResponsive v-model:open="cancelDialogOpen" :overflow-content="true" dialog-max-width="28rem">
         <template #default>
           <div class="px-4 pb-10 md:px-6 md:py-5">
@@ -167,7 +199,7 @@
               <div class="space-y-2">
                 <Label>Refund Amount (override auto-calc)</Label>
                 <Input v-model.number="cancelForm.refund_amount" type="number" min="0" :placeholder="`Auto: Rp ${formatRupiah(autoRefund)}`" />
-                <p class="text-muted-foreground text-xs">H-14: 100%, H-7..H-13: 50%, H&lt;7: 0%</p>
+                <p class="text-muted-foreground text-xs">{{ refundPolicyText }}</p>
               </div>
               <label class="flex items-center gap-2 text-sm tracking-tight">
                 <Checkbox v-model="cancelForm.process_refund" />
@@ -243,7 +275,7 @@ const statusBadge = computed(() => {
     voucher_sent: "bg-success/15 text-success-foreground",
     expired: "bg-muted text-muted-foreground",
     cancelled: "bg-destructive/15 text-destructive",
-    refunded: "bg-destructive/15 text-destructive",
+    refunded: "bg-muted text-muted-foreground border border-destructive/30",
   };
   return map[reservation.value?.status] || "bg-muted text-muted-foreground";
 });
@@ -293,7 +325,43 @@ const cancelForm = reactive({
   refund_amount: null,
   process_refund: true,
 });
-const autoRefund = computed(() => 0);
+
+const earliestCheckIn = computed(() => {
+  const items = reservation.value?.items ?? [];
+  if (!items.length) return null;
+  return items
+    .map((i) => i.check_in_date)
+    .filter(Boolean)
+    .sort()[0];
+});
+
+const daysUntilCheckIn = computed(() => {
+  if (!earliestCheckIn.value) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const checkIn = new Date(earliestCheckIn.value);
+  checkIn.setHours(0, 0, 0, 0);
+  if (Number.isNaN(checkIn.getTime())) return null;
+  return Math.round((checkIn.getTime() - today.getTime()) / 86400000);
+});
+
+const autoRefund = computed(() => {
+  const total = Number(reservation.value?.amounts?.total) || 0;
+  const days = daysUntilCheckIn.value;
+  if (days === null) return 0;
+  if (days >= 14) return Math.round(total * 100) / 100;
+  if (days >= 7) return Math.round(total * 50) / 100;
+  return 0;
+});
+
+const refundPolicyText = computed(() => {
+  const days = daysUntilCheckIn.value;
+  if (days === null) return "H-14: 100%, H-7 to H-13: 50%, H<7: 0%";
+  if (days >= 14) return `H-${days}: 100% refund`;
+  if (days >= 7) return `H-${days}: 50% refund`;
+  if (days >= 0) return `H-${days}: no refund (within 7 days of check-in)`;
+  return "Check-in date has passed: no refund";
+});
 
 const handleCancel = async () => {
   cancelling.value = true;
@@ -309,10 +377,50 @@ const handleCancel = async () => {
     toast.success("Reservation cancelled");
     cancelDialogOpen.value = false;
     await refresh();
+    await loadActivity();
   } catch (err) {
     toast.error("Cancel failed", { description: err?.data?.message || err?.message });
   } finally {
     cancelling.value = false;
   }
+};
+
+const activity = ref([]);
+const loadingActivity = ref(false);
+
+const loadActivity = async () => {
+  loadingActivity.value = true;
+  try {
+    const res = await client(
+      `/api/events/${props.event.id}/reservations/${ulid.value}/activity`
+    );
+    activity.value = res?.data ?? [];
+  } catch (err) {
+    toast.error("Could not load activity", { description: err?.data?.message || err?.message });
+  } finally {
+    loadingActivity.value = false;
+  }
+};
+
+const activityLabel = (entry) => {
+  const changes = entry.changes ?? {};
+  if ("status" in changes) {
+    return `Status changed to ${changes.status}`;
+  }
+  if ("paid_at" in changes) return "Marked as paid";
+  if ("cancelled_at" in changes) return "Cancelled";
+  if ("refunded_at" in changes) return "Refunded";
+  if ("voucher_sent_at" in changes) return "Voucher sent";
+  if ("total_amount" in changes) return `Total updated to Rp ${formatRupiah(changes.total_amount)}`;
+  return entry.description || "Updated";
+};
+
+const activityDotClass = (entry) => {
+  const changes = entry.changes ?? {};
+  if (changes.status === "cancelled" || changes.status === "refunded") return "bg-destructive";
+  if (changes.status === "paid" || "paid_at" in changes) return "bg-success";
+  if (changes.status === "voucher_sent") return "bg-info";
+  if (changes.status === "expired") return "bg-muted-foreground";
+  return "bg-muted-foreground/50";
 };
 </script>

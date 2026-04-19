@@ -72,3 +72,55 @@ test('webhook returns 404 for unknown reservation', function () {
 
     $response->assertStatus(404);
 });
+
+test('webhook is idempotent when PAID event fires twice', function () {
+    $hotel = Hotel::factory()->create();
+    $reservation = Reservation::factory()->create([
+        'hotel_id' => $hotel->id,
+        'status' => ReservationStatus::PendingPayment,
+        'reservation_number' => 'HTL-20260101-CCCC',
+    ]);
+
+    $payload = [
+        'external_id' => 'HTL-20260101-CCCC',
+        'id' => 'inv_xendit_dup',
+        'status' => 'PAID',
+    ];
+    $headers = ['x-callback-token' => 'test-callback-token'];
+
+    $first = $this->postJson('/api/webhooks/xendit/invoice', $payload, $headers);
+    $first->assertSuccessful();
+
+    $reservation->refresh();
+    $paidAt = $reservation->paid_at;
+
+    $second = $this->postJson('/api/webhooks/xendit/invoice', $payload, $headers);
+    $second->assertSuccessful()
+        ->assertJsonPath('message', 'Reservation already paid');
+
+    $reservation->refresh();
+    expect($reservation->status)->toBe(ReservationStatus::Paid);
+    expect($reservation->paid_at->toIso8601String())->toBe($paidAt->toIso8601String());
+});
+
+test('webhook skips expire for already-paid reservation', function () {
+    $hotel = Hotel::factory()->create();
+    $reservation = Reservation::factory()->create([
+        'hotel_id' => $hotel->id,
+        'status' => ReservationStatus::Paid,
+        'paid_at' => now()->subMinutes(5),
+        'reservation_number' => 'HTL-20260101-DDDD',
+    ]);
+
+    $response = $this->postJson('/api/webhooks/xendit/invoice', [
+        'external_id' => 'HTL-20260101-DDDD',
+        'id' => 'inv_xendit_late',
+        'status' => 'EXPIRED',
+    ], ['x-callback-token' => 'test-callback-token']);
+
+    $response->assertSuccessful()
+        ->assertJsonPath('message', 'Reservation not eligible for expiry');
+
+    $reservation->refresh();
+    expect($reservation->status)->toBe(ReservationStatus::Paid);
+});

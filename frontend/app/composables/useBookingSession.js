@@ -1,6 +1,7 @@
 import { effectScope, ref, watch } from 'vue'
 
-const STORAGE_KEY = 'pmone.booking.v1'
+const STORAGE_KEY = 'pmone.booking.v2'
+const TTL_MS = 24 * 60 * 60 * 1000
 
 const defaultState = () => ({
   hotelId: null,
@@ -27,12 +28,26 @@ const state = ref(defaultState())
 const hydrated = ref(false)
 let persisting = false
 
+function clearStorage() {
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+    // Legacy cleanup for v1 session storage
+    sessionStorage.removeItem('pmone.booking.v1')
+  } catch {
+    // storage disabled — ignore
+  }
+}
+
 function load() {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY)
-    if (raw) {
-      state.value = { ...defaultState(), ...JSON.parse(raw) }
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return
+    const parsed = JSON.parse(raw)
+    if (!parsed?.savedAt || Date.now() - parsed.savedAt > TTL_MS) {
+      clearStorage()
+      return
     }
+    state.value = { ...defaultState(), ...(parsed.data || {}) }
   } catch {
     state.value = defaultState()
   }
@@ -43,7 +58,10 @@ function persist(value) {
   if (persistTimer) clearTimeout(persistTimer)
   persistTimer = setTimeout(() => {
     try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(value))
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ savedAt: Date.now(), data: value })
+      )
     } catch {
       // storage quota exceeded or disabled — ignore
     }
@@ -76,7 +94,7 @@ export function useBookingSession() {
   function clear() {
     state.value = defaultState()
     if (import.meta.client) {
-      sessionStorage.removeItem(STORAGE_KEY)
+      clearStorage()
     }
   }
 

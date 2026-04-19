@@ -54,8 +54,14 @@
 
         <section class="grid gap-6 lg:grid-cols-[1fr_360px]">
           <div class="space-y-6">
-            <RoomTypeSelector :rooms="hotel.room_types" v-model="selectedRoomQty" />
+            <RoomTypeSelector
+              :rooms="hotel.room_types"
+              :availability="availability"
+              :checking="checkingAvailability"
+              v-model="selectedRoomQty"
+            />
             <TransferSelector :options="hotel.transfer_options" v-model="selectedTransfers" />
+            <CancellationPolicy :custom-policy="hotel.cancellation_policy" />
           </div>
 
           <aside class="hidden lg:block">
@@ -146,6 +152,7 @@ import HotelDetailHeader from '@/components/accommodation/HotelDetailHeader.vue'
 import RoomTypeSelector from '@/components/accommodation/RoomTypeSelector.vue'
 import TransferSelector from '@/components/accommodation/TransferSelector.vue'
 import BookingSummary from '@/components/accommodation/BookingSummary.vue'
+import CancellationPolicy from '@/components/accommodation/CancellationPolicy.vue'
 import DialogResponsive from '@/components/ui/dialog-responsive/DialogResponsive.vue'
 import {
   Breadcrumb,
@@ -306,6 +313,67 @@ const nights = computed(() => {
   const ms = checkOutDate.value.getTime() - checkInDate.value.getTime()
   return Math.max(0, Math.round(ms / 86400000))
 })
+
+const availability = ref({})
+const checkingAvailability = ref(false)
+let availabilityReq = 0
+
+async function fetchAvailability() {
+  if (!hotel.value || nights.value < 1) return
+  const rooms = hotel.value.room_types ?? []
+  if (!rooms.length) return
+  const checkIn = toIsoDate(checkInDate.value)
+  const checkOut = toIsoDate(checkOutDate.value)
+  if (!checkIn || !checkOut) return
+
+  const reqId = ++availabilityReq
+  checkingAvailability.value = true
+  try {
+    const results = await Promise.all(
+      rooms.map((room) =>
+        $fetch('/api/accommodation/availability', {
+          method: 'POST',
+          body: {
+            hotel_id: hotel.value.id,
+            room_type_id: room.id,
+            check_in_date: checkIn,
+            check_out_date: checkOut,
+            qty: 1
+          }
+        })
+          .then((res) => ({ id: room.id, available: Number(res?.data?.available ?? 0) }))
+          .catch(() => ({ id: room.id, available: null }))
+      )
+    )
+    if (reqId !== availabilityReq) return
+    const map = {}
+    for (const r of results) map[r.id] = r.available
+    availability.value = map
+
+    // Clamp selected quantities to remaining availability
+    const next = { ...selectedRoomQty.value }
+    let changed = false
+    for (const [id, qty] of Object.entries(next)) {
+      const avail = map[id]
+      if (avail != null && Number(qty) > avail) {
+        next[id] = Math.max(0, avail)
+        changed = true
+      }
+    }
+    if (changed) selectedRoomQty.value = next
+  } finally {
+    if (reqId === availabilityReq) checkingAvailability.value = false
+  }
+}
+
+watch(
+  [hotel, checkInDate, checkOutDate],
+  () => {
+    if (syncing.value) return
+    fetchAvailability()
+  },
+  { flush: 'post' }
+)
 
 const totalRoomsSelected = computed(() =>
   Object.values(selectedRoomQty.value).reduce((sum, qty) => sum + (Number(qty) || 0), 0)

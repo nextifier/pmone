@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Webhook;
 
+use App\Enums\ReservationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Services\Reservation\ReservationService;
@@ -45,12 +46,20 @@ class XenditWebhookController extends Controller
         }
 
         if ($status === 'paid' || $status === 'settled') {
+            if ($reservation->status->isPaid()) {
+                return response()->json(['message' => 'Reservation already paid']);
+            }
+
             $this->reservations->markAsPaid($reservation, $invoiceId);
 
             return response()->json(['message' => 'Reservation marked as paid']);
         }
 
         if ($status === 'expired') {
+            if ($reservation->status !== ReservationStatus::PendingPayment) {
+                return response()->json(['message' => 'Reservation not eligible for expiry']);
+            }
+
             $this->reservations->expireReservation($reservation);
 
             return response()->json(['message' => 'Reservation expired']);

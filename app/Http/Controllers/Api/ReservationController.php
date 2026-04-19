@@ -70,6 +70,32 @@ class ReservationController extends Controller
         return response()->json(['data' => (new ReservationResource($reservation))->resolve()]);
     }
 
+    public function activityLog(Event $event, Reservation $reservation): JsonResponse
+    {
+        $this->ensureReservationBelongsToEvent($event, $reservation);
+
+        if (! auth()->user()?->can('reservations.read')) {
+            abort(403);
+        }
+
+        $activities = $reservation->activities()
+            ->with('causer:id,name')
+            ->orderByDesc('created_at')
+            ->limit(100)
+            ->get()
+            ->map(fn ($a) => [
+                'id' => $a->id,
+                'description' => $a->description,
+                'event' => $a->event,
+                'changes' => $a->properties['attributes'] ?? null,
+                'previous' => $a->properties['old'] ?? null,
+                'causer' => $a->causer ? ['id' => $a->causer->id, 'name' => $a->causer->name] : null,
+                'created_at' => $a->created_at?->toIso8601String(),
+            ]);
+
+        return response()->json(['data' => $activities]);
+    }
+
     public function destroy(Event $event, Reservation $reservation): JsonResponse
     {
         $this->ensureReservationBelongsToEvent($event, $reservation);
