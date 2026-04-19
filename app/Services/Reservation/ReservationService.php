@@ -305,7 +305,10 @@ class ReservationService
             return 0.0;
         }
 
-        $daysUntil = now()->startOfDay()->diffInDays(Carbon::parse($earliestCheckIn)->startOfDay(), false);
+        $timezone = config('app.timezone', 'Asia/Jakarta');
+        $today = Carbon::now($timezone)->startOfDay();
+        $checkInDay = Carbon::parse($earliestCheckIn, $timezone)->startOfDay();
+        $daysUntil = (int) $today->diffInDays($checkInDay, false);
         $total = (float) $reservation->total_amount;
 
         if ($daysUntil >= 14) {

@@ -955,12 +955,17 @@ Route::prefix('exchange-rates')->middleware('throttle:api')->group(function () {
 // Public Hotel Reservation API endpoints (API key authentication)
 Route::middleware(['api.key'])->prefix('public')->group(function () {
     Route::get('/hotels', [PublicHotelController::class, 'index']);
-    Route::post('/hotels/availability', [PublicHotelController::class, 'availability']);
+    Route::post('/hotels/availability', [PublicHotelController::class, 'availability'])
+        ->middleware('throttle:60,1');
     Route::get('/events/{eventSlug}/hotels/{hotelSlug}', [PublicHotelController::class, 'show']);
-    Route::post('/reservations', [PublicReservationController::class, 'store']);
-    Route::get('/reservations/magic/{token}', [PublicReservationController::class, 'showByMagicLink']);
-    Route::get('/reservations/magic/{token}/invoice.pdf', [PublicReservationController::class, 'invoicePdfByMagicLink']);
-    Route::get('/reservations/magic/{token}/receipt.pdf', [PublicReservationController::class, 'receiptPdfByMagicLink']);
+    Route::post('/reservations', [PublicReservationController::class, 'store'])
+        ->middleware('throttle:10,1');
+    Route::get('/reservations/magic/{token}', [PublicReservationController::class, 'showByMagicLink'])
+        ->middleware('throttle:30,1');
+    Route::get('/reservations/magic/{token}/invoice.pdf', [PublicReservationController::class, 'invoicePdfByMagicLink'])
+        ->middleware('throttle:30,1');
+    Route::get('/reservations/magic/{token}/receipt.pdf', [PublicReservationController::class, 'receiptPdfByMagicLink'])
+        ->middleware('throttle:30,1');
 });
 
 // Xendit webhook (no auth - signature verified in controller)
