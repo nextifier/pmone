@@ -38,12 +38,16 @@ function load() {
   }
 }
 
+let persistTimer = null;
 function persist(value) {
-  try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(value));
-  } catch {
-    // storage quota exceeded or disabled — ignore
-  }
+  if (persistTimer) clearTimeout(persistTimer);
+  persistTimer = setTimeout(() => {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+    } catch {
+      // storage quota exceeded or disabled — ignore
+    }
+  }, 300);
 }
 
 export function useBookingSession() {
@@ -51,7 +55,7 @@ export function useBookingSession() {
     if (!import.meta.client || hydrated.value) return;
     load();
     if (!persisting) {
-      watch(state, (value) => persist(value), { deep: true });
+      watch(state, (value) => persist(value), { deep: true, flush: "post" });
       persisting = true;
     }
     hydrated.value = true;

@@ -274,10 +274,10 @@ const isFormDirty = computed(() => {
 watch(
   guestModel,
   (value) => setGuest(value),
-  { deep: true },
+  { deep: true, flush: "post" },
 );
 
-watch(acceptTerms, (value) => set({ acceptTerms: value }));
+watch(acceptTerms, (value) => set({ acceptTerms: value }), { flush: "post" });
 
 function beforeUnloadHandler(event) {
   if (!isFormDirty.value || saving.value) return;

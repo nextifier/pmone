@@ -106,7 +106,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { InputPhone } from "@/components/ui/input-phone";
-import { reactive, ref, watch } from "vue";
+import { nextTick, reactive, ref, watch } from "vue";
 
 const props = defineProps({
   modelValue: {
@@ -147,11 +147,30 @@ const createDefault = () => ({
 
 const form = reactive({ ...createDefault(), ...(props.modelValue || {}) });
 const accept = ref(props.acceptTerms);
+let syncing = false;
 
 watch(
   () => props.modelValue,
   (val) => {
-    Object.assign(form, createDefault(), val || {});
+    if (!val) return;
+    const keys = Object.keys(createDefault());
+    let changed = false;
+    for (const key of keys) {
+      const incoming = val[key] ?? createDefault()[key];
+      if (form[key] !== incoming) {
+        changed = true;
+        break;
+      }
+    }
+    if (!changed) return;
+    syncing = true;
+    for (const key of keys) {
+      const incoming = val[key] ?? createDefault()[key];
+      if (form[key] !== incoming) form[key] = incoming;
+    }
+    nextTick(() => {
+      syncing = false;
+    });
   },
   { deep: true },
 );
@@ -159,16 +178,17 @@ watch(
 watch(
   () => props.acceptTerms,
   (val) => {
-    accept.value = val;
+    if (accept.value !== val) accept.value = val;
   },
 );
 
 watch(
   form,
   (val) => {
+    if (syncing) return;
     emit("update:modelValue", { ...val });
   },
-  { deep: true },
+  { deep: true, flush: "post" },
 );
 
 watch(accept, (val) => emit("update:acceptTerms", val));
