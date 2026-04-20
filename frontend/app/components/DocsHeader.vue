@@ -75,6 +75,7 @@
 </template>
 
 <script setup>
+import { ColorModeToggle } from "@/components/ui/color-mode-toggle";
 import { useSidebar } from "@/components/ui/sidebar/utils";
 
 const { toggleSidebar, open, isMobile } = useSidebar();

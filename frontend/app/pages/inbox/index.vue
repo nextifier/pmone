@@ -201,7 +201,7 @@ import InboxFilterSection from "@/components/inbox/FilterSection.vue";
 import InboxImportDialog from "@/components/inbox/ImportDialog.vue";
 import InboxTableItem from "@/components/inbox/InboxTableItem.vue";
 import StatusDropdown from "@/components/inbox/StatusDropdown.vue";
-import TableData from "@/components/TableData.vue";
+import { TableData } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,

@@ -125,6 +125,7 @@
 </template>
 
 <script setup>
+import { ColorModeToggle } from "@/components/ui/color-mode-toggle";
 const route = useRoute();
 const router = useRouter();
 const { metaSymbol } = useShortcuts();

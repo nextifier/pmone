@@ -239,7 +239,7 @@
 <script setup>
 import FilterSection from "@/components/inbox/FilterSection.vue";
 import OrderStatusDropdown from "@/components/order/StatusDropdown.vue";
-import TableData from "@/components/TableData.vue";
+import { TableData } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,

@@ -9,6 +9,7 @@
 </template>
 
 <script setup>
+import { TabNav } from "@/components/ui/tab-nav";
 definePageMeta({
   middleware: ["permission"],
   permissions: ["projects.update"],

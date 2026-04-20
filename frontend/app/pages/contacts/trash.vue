@@ -259,7 +259,7 @@
 <script setup>
 import ContactTableItem from "@/components/contact/ContactTableItem.vue";
 import ContactTrashRowActions from "@/components/contact/TrashRowActions.vue";
-import TableData from "@/components/TableData.vue";
+import { TableData } from "@/components/ui/table-data";
 import FilterSection from "@/components/user/FilterSection.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

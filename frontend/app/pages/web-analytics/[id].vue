@@ -266,7 +266,7 @@
 import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
 import AnalyticsDevicesList from "@/components/analytics/DevicesList.vue";
 import GaPropertyProfile from "@/components/ga-property/Profile.vue";
-import TableData from "@/components/TableData.vue";
+import { TableData } from "@/components/ui/table-data";
 import { Button } from "@/components/ui/button";
 import {
   Select,

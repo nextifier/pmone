@@ -183,7 +183,7 @@
 <script setup>
 import BrandImportDialog from "@/components/brand/BrandImportDialog.vue";
 import BrandTableItem from "@/components/brand/TableItem.vue";
-import TableData from "@/components/TableData.vue";
+import { TableData } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";

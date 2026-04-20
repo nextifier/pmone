@@ -231,7 +231,7 @@
 <script setup>
 import PartnerImportDialog from "@/components/partner/PartnerImportDialog.vue";
 import PartnerTableItem from "@/components/partner/TableItem.vue";
-import TableData from "@/components/TableData.vue";
+import { TableData } from "@/components/ui/table-data";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import InputFileImage from "@/components/InputFileImage.vue";

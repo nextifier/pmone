@@ -480,7 +480,7 @@
 
 <script setup>
 
-import TipTapEditor from "@/components/TipTapEditor.vue";
+import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

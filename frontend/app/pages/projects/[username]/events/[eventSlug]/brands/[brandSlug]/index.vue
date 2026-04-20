@@ -570,7 +570,7 @@
 </template>
 
 <script setup>
-import TipTapEditor from "@/components/TipTapEditor.vue";
+import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MultiSelect } from "@/components/ui/multi-select";

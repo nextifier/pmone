@@ -208,7 +208,7 @@
 </template>
 
 <script setup>
-import TableData from "@/components/TableData.vue";
+import { TableData } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { resolveComponent } from "vue";
 import { toast } from "vue-sonner";

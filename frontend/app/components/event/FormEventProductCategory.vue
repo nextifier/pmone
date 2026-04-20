@@ -79,7 +79,7 @@
 
 <script setup>
 import InputFile from "@/components/InputFile.vue";
-import TipTapEditor from "@/components/TipTapEditor.vue";
+import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

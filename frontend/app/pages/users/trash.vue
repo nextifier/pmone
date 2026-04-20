@@ -197,7 +197,7 @@
 </template>
 
 <script setup>
-import TableData from "@/components/TableData.vue";
+import { TableData } from "@/components/ui/table-data";
 import FilterSection from "@/components/user/FilterSection.vue";
 import TrashRowActions from "@/components/user/TrashRowActions.vue";
 import UserTableItem from "@/components/user/TableItem.vue";

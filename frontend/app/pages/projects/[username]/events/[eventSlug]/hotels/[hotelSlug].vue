@@ -125,6 +125,7 @@
 </template>
 
 <script setup>
+import { TabNav } from "@/components/ui/tab-nav";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 

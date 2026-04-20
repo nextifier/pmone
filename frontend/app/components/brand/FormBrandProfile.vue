@@ -212,7 +212,7 @@
 </template>
 
 <script setup>
-import TipTapEditor from "@/components/TipTapEditor.vue";
+import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { MultiSelect } from "@/components/ui/multi-select";
 import {
   Select,

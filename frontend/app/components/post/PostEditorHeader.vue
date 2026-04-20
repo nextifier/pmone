@@ -152,6 +152,7 @@
 </template>
 
 <script setup lang="ts">
+import { ColorModeToggle } from "@/components/ui/color-mode-toggle";
 import { useSidebar } from "@/components/ui/sidebar/utils";
 import { usePostEditor } from "@/composables/usePostEditor";
 

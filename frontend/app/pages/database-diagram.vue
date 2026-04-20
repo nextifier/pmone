@@ -284,6 +284,7 @@
 </template>
 
 <script setup>
+import { ColorModeToggle } from "@/components/ui/color-mode-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {

@@ -51,6 +51,7 @@
 </template>
 
 <script setup>
+import { ColorModeToggle } from "@/components/ui/color-mode-toggle";
 const props = defineProps({
   linkPage: { type: Object, required: true },
 });

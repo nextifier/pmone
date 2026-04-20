@@ -790,7 +790,7 @@ import ContactImportDialog from "@/components/contact/ContactImportDialog.vue";
 import ContactTableItem from "@/components/contact/ContactTableItem.vue";
 import FormContact from "@/components/contact/FormContact.vue";
 import ContactStatusDropdown from "@/components/contact/StatusDropdown.vue";
-import TableData from "@/components/TableData.vue";
+import { TableData } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,

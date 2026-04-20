@@ -187,7 +187,7 @@
 
 <script setup>
 import ShortLinkTableItem from "@/components/short-link/ShortLinkTableItem.vue";
-import TableData from "@/components/TableData.vue";
+import { TableData } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

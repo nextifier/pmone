@@ -39,7 +39,8 @@
 </template>
 
 <script setup>
-import { ColorModeThumbnailDark, ColorModeThumbnailLight } from "#components";
+import ColorModeThumbnailDark from "./ColorModeThumbnailDark.vue";
+import ColorModeThumbnailLight from "./ColorModeThumbnailLight.vue";
 
 const { colorMode, setTheme } = useThemeSync();
 

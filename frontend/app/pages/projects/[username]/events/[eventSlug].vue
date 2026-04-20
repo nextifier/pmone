@@ -117,6 +117,7 @@
 </template>
 
 <script setup>
+import { TabNav } from "@/components/ui/tab-nav";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const props = defineProps({

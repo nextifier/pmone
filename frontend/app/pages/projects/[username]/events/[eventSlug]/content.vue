@@ -9,6 +9,7 @@
 </template>
 
 <script setup>
+import { TabNav } from "@/components/ui/tab-nav";
 const props = defineProps({
   event: Object,
   project: Object,

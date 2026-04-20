@@ -188,6 +188,7 @@
 </template>
 
 <script setup>
+import { TableData } from "@/components/ui/table-data";
 import { Button } from "@/components/ui/button";
 import { useAnalyticsSync } from "~/composables/useAnalyticsSync";
 import { useAnalyticsSyncHistory } from "~/composables/useAnalyticsSyncHistory";

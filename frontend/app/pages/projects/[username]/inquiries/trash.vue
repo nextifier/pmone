@@ -189,7 +189,7 @@
 import InboxDetailDialog from "@/components/inbox/DetailDialog.vue";
 import InboxFilterSection from "@/components/inbox/FilterSection.vue";
 import InboxTableItem from "@/components/inbox/InboxTableItem.vue";
-import TableData from "@/components/TableData.vue";
+import { TableData } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PopoverClose } from "reka-ui";

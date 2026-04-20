@@ -55,6 +55,7 @@
 </template>
 
 <script setup>
+import { TabNav } from "@/components/ui/tab-nav";
 import { Badge } from "@/components/ui/badge";
 
 definePageMeta({

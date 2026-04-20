@@ -600,7 +600,7 @@ const handleImageUpload = async (event) => {
 </script>
 
 <style scoped>
-@reference "../assets/css/main.css";
+@reference "../../../assets/css/main.css";
 
 .tiptap-editor {
   @apply border-border rounded-lg border;

@@ -192,7 +192,7 @@
 </template>
 
 <script setup>
-import TableData from "@/components/TableData.vue";
+import { TableData } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import FilterSection from "@/components/user/FilterSection.vue";

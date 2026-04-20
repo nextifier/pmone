@@ -26,6 +26,7 @@
 </template>
 
 <script setup>
+import { TabNav } from "@/components/ui/tab-nav";
 defineProps({ event: Object, project: Object });
 
 const contentArea = ref(null);

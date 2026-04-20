@@ -81,6 +81,8 @@
 </template>
 
 <script setup>
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { ColorModeToggle } from "@/components/ui/color-mode-toggle";
 import { useSidebar } from "@/components/ui/sidebar/utils";
 
 defineProps({

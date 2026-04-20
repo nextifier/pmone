@@ -264,7 +264,7 @@
 
 import { toLocalDateTimeString } from "@/lib/utils";
 import InputFileImage from "@/components/InputFileImage.vue";
-import TipTapEditor from "@/components/TipTapEditor.vue";
+import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import {
   Select,
   SelectContent,

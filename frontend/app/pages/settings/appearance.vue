@@ -117,7 +117,7 @@ import {
   ColorModeThumbnailDark,
   ColorModeThumbnailLight,
   ColorModeThumbnailSystem,
-} from "#components";
+} from "@/components/ui/color-mode-buttons";
 import { toast } from "vue-sonner";
 
 definePageMeta({

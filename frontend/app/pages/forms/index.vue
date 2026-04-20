@@ -145,8 +145,8 @@
 </template>
 
 <script setup>
-import TableData from "@/components/TableData.vue";
-import TableSwitch from "@/components/TableSwitch.vue";
+import { TableData } from "@/components/ui/table-data";
+import { TableSwitch } from "@/components/ui/table-switch";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";

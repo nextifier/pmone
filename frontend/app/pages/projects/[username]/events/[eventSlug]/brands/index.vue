@@ -308,7 +308,7 @@
 import BrandEventStatusDropdown from "@/components/brand/EventStatusDropdown.vue";
 import BrandImportDialog from "@/components/brand/EventBrandImportDialog.vue";
 import BrandTableItem from "@/components/brand/TableItem.vue";
-import TableData from "@/components/TableData.vue";
+import { TableData } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,

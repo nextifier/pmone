@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import TableData from "@/components/TableData.vue";
+import { TableData } from "@/components/ui/table-data";
 
 definePageMeta({
   middleware: ["sanctum:auth"],

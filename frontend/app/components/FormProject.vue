@@ -425,6 +425,7 @@
 </template>
 
 <script setup>
+import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
