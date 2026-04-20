@@ -15,10 +15,13 @@ use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\EloquentSortable\Sortable;
+use Spatie\EloquentSortable\SortableTrait;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Tags\HasTags;
 
 /**
  * @property-read Collection<int, Activity> $activities
@@ -50,14 +53,16 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  *
  * @mixin \Eloquent
  */
-class Hotel extends Model implements HasMedia
+class Hotel extends Model implements HasMedia, Sortable
 {
     use HasFactory;
     use HasMediaManager;
     use HasSlug;
+    use HasTags;
     use InteractsWithMedia;
     use LogsActivity;
     use SoftDeletes;
+    use SortableTrait;
 
     protected $fillable = [
         'event_id',
@@ -65,42 +70,37 @@ class Hotel extends Model implements HasMedia
         'name',
         'description',
         'star_rating',
-        'category',
         'address',
         'city',
         'country',
-        'latitude',
-        'longitude',
         'google_maps_link',
         'google_maps_embed_src',
-        'facilities',
-        'check_in_time',
-        'check_out_time',
         'contact_email',
         'contact_phone',
-        'website_url',
         'cancellation_policy',
-        'children_policy',
-        'nearest_airport',
-        'airport_distance_km',
         'commission_rate',
         'tax_percentage',
         'service_charge_percentage',
         'is_active',
+        'settings',
+        'more_details',
+    ];
+
+    public array $sortable = [
+        'order_column_name' => 'order_column',
+        'sort_when_creating' => true,
     ];
 
     protected function casts(): array
     {
         return [
-            'latitude' => 'decimal:7',
-            'longitude' => 'decimal:7',
             'commission_rate' => 'decimal:2',
             'tax_percentage' => 'decimal:2',
             'service_charge_percentage' => 'decimal:2',
             'is_active' => 'boolean',
             'star_rating' => 'integer',
-            'facilities' => 'array',
-            'airport_distance_km' => 'integer',
+            'settings' => 'array',
+            'more_details' => 'array',
         ];
     }
 

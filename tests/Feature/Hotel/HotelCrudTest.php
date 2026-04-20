@@ -45,8 +45,6 @@ test('admin can create a hotel', function () {
         'city' => 'Jakarta',
         'commission_rate' => 12.5,
         'tax_percentage' => 11,
-        'check_in_time' => '14:00',
-        'check_out_time' => '12:00',
     ]);
 
     $response->assertStatus(201)

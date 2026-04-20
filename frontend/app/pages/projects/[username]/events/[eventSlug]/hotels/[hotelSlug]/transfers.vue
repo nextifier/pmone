@@ -1,9 +1,9 @@
 <template>
-  <RoomTypesPanel :event-id="event.id" :hotel-slug="hotelSlug" />
+  <TransferOptionsPanel :event-id="event.id" :hotel-slug="hotelSlug" />
 </template>
 
 <script setup>
-import RoomTypesPanel from "@/components/hotel/RoomTypesPanel.vue";
+import TransferOptionsPanel from "@/components/hotel/TransferOptionsPanel.vue";
 
 defineProps({
   event: Object,
@@ -14,5 +14,5 @@ defineProps({
 const route = useRoute();
 const hotelSlug = computed(() => route.params.hotelSlug);
 
-usePageMeta(null, { title: "Room Types · Hotel" });
+usePageMeta(null, { title: "Transfers · Hotel" });
 </script>

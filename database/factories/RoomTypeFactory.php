@@ -22,10 +22,6 @@ class RoomTypeFactory extends Factory
             'area_sqm' => fake()->randomFloat(2, 18, 60),
             'base_rate' => fake()->randomElement([850000, 1200000, 1500000, 2200000, 3500000]),
             'breakfast_included' => fake()->boolean(70),
-            'amenities' => fake()->randomElements(
-                ['WiFi', 'AC', 'TV', 'Minibar', 'Bathtub', 'Balcony', 'Safe Box', 'Coffee Maker'],
-                fake()->numberBetween(3, 6)
-            ),
             'is_active' => true,
         ];
     }

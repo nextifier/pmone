@@ -9,6 +9,7 @@ use App\Services\Reservation\ReservationService;
 use App\Services\Xendit\XenditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class XenditWebhookController extends Controller
@@ -35,36 +36,48 @@ class XenditWebhookController extends Controller
             return response()->json(['message' => 'Missing external_id'], 422);
         }
 
-        $reservation = Reservation::query()
-            ->where('reservation_number', $externalId)
-            ->first();
+        return DB::transaction(function () use ($externalId, $invoiceId, $status) {
+            $reservation = Reservation::query()
+                ->where('reservation_number', $externalId)
+                ->lockForUpdate()
+                ->first();
 
-        if (! $reservation) {
-            Log::warning('Xendit webhook: reservation not found', ['external_id' => $externalId]);
+            if (! $reservation) {
+                Log::warning('Xendit webhook: reservation not found', ['external_id' => $externalId]);
 
-            return response()->json(['message' => 'Reservation not found'], 404);
-        }
-
-        if ($status === 'paid' || $status === 'settled') {
-            if ($reservation->status->isPaid()) {
-                return response()->json(['message' => 'Reservation already paid']);
+                return response()->json(['message' => 'Reservation not found'], 404);
             }
 
-            $this->reservations->markAsPaid($reservation, $invoiceId);
+            if ($status === 'paid' || $status === 'settled') {
+                if ($reservation->status->isPaid()) {
+                    return response()->json(['message' => 'Reservation already paid']);
+                }
 
-            return response()->json(['message' => 'Reservation marked as paid']);
-        }
+                if ($reservation->status->isFinal()) {
+                    Log::warning('Xendit webhook: paid event for final-state reservation', [
+                        'reservation_id' => $reservation->id,
+                        'status' => $reservation->status->value,
+                    ]);
 
-        if ($status === 'expired') {
-            if ($reservation->status !== ReservationStatus::PendingPayment) {
-                return response()->json(['message' => 'Reservation not eligible for expiry']);
+                    return response()->json(['message' => 'Reservation already in final state'], 409);
+                }
+
+                $this->reservations->markAsPaid($reservation, $invoiceId);
+
+                return response()->json(['message' => 'Reservation marked as paid']);
             }
 
-            $this->reservations->expireReservation($reservation);
+            if ($status === 'expired') {
+                if ($reservation->status !== ReservationStatus::PendingPayment) {
+                    return response()->json(['message' => 'Reservation not eligible for expiry']);
+                }
 
-            return response()->json(['message' => 'Reservation expired']);
-        }
+                $this->reservations->expireReservation($reservation);
 
-        return response()->json(['message' => 'Webhook received but no action taken']);
+                return response()->json(['message' => 'Reservation expired']);
+            }
+
+            return response()->json(['message' => 'Webhook received but no action taken']);
+        });
     }
 }

@@ -56,15 +56,16 @@ class HotelController extends Controller
 
     public function store(StoreHotelRequest $request, Event $event): JsonResponse
     {
-        $data = $request->safe()->except(['tmp_featured', 'gallery_files']);
+        $data = $request->safe()->except(['tmp_featured', 'gallery_files', 'facilities']);
         $data['event_id'] = $event->id;
 
         $hotel = Hotel::create($data);
 
+        $this->syncFacilities($hotel, $request->input('facilities'));
         $this->handleFeaturedUpload($request, $hotel);
         $this->handleGalleryUpload($request, $hotel);
 
-        $hotel->load('media');
+        $hotel->load(['media', 'tags']);
 
         return response()->json([
             'data' => (new HotelResource($hotel))->resolve(),
@@ -76,19 +77,28 @@ class HotelController extends Controller
     {
         $this->ensureHotelBelongsToEvent($event, $hotel);
 
-        $data = $request->safe()->except(['tmp_featured', 'delete_featured', 'gallery_files']);
+        $data = $request->safe()->except(['tmp_featured', 'delete_featured', 'gallery_files', 'facilities']);
 
         $hotel->update($data);
+
+        if ($request->has('facilities')) {
+            $this->syncFacilities($hotel, $request->input('facilities'));
+        }
 
         $this->handleFeaturedUpload($request, $hotel);
         $this->handleGalleryUpload($request, $hotel);
 
-        $hotel->load('media');
+        $hotel->load(['media', 'tags']);
 
         return response()->json([
             'data' => (new HotelResource($hotel))->resolve(),
             'message' => 'Hotel updated successfully',
         ]);
+    }
+
+    private function syncFacilities(Hotel $hotel, ?array $facilities): void
+    {
+        $hotel->syncTagsWithType($facilities ?? [], 'hotel_facility');
     }
 
     public function destroy(Event $event, Hotel $hotel): JsonResponse

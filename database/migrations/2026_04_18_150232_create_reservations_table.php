@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('event_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('hotel_id')->constrained()->restrictOnDelete();
             $table->string('status', 30)->default('pending_payment');
-            $table->dateTime('payment_expires_at');
+            $table->dateTime('payment_expires_at')->nullable();
             $table->dateTime('paid_at')->nullable();
             $table->dateTime('voucher_sent_at')->nullable();
             $table->dateTime('cancelled_at')->nullable();

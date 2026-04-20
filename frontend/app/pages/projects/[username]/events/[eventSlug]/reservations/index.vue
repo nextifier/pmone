@@ -21,11 +21,11 @@
 
     <div class="flex flex-wrap gap-2 items-end">
       <div class="space-y-1">
-        <Label class="text-xs">Search</Label>
+        <Label class="text-xs sm:text-sm tracking-tight">Search</Label>
         <Input v-model="filters.search" placeholder="Number, name, email..." class="w-60" />
       </div>
       <div class="space-y-1">
-        <Label class="text-xs">Status</Label>
+        <Label class="text-xs sm:text-sm tracking-tight">Status</Label>
         <Select v-model="filters.status">
           <SelectTrigger class="w-48">
             <SelectValue placeholder="All" />
@@ -69,11 +69,11 @@
             <td class="px-3 py-2 font-mono text-xs sm:text-sm">{{ r.reservation_number }}</td>
             <td class="px-3 py-2">
               <div>{{ r.guest_name }}</div>
-              <div class="text-muted-foreground text-xs">{{ r.guest_email }}</div>
+              <div class="text-muted-foreground text-xs sm:text-sm tracking-tight">{{ r.guest_email }}</div>
             </td>
             <td class="px-3 py-2">{{ r.hotel?.name || "-" }}</td>
             <td class="px-3 py-2">
-              <span :class="['inline-flex items-center rounded-full px-2 py-0.5 text-xs tracking-tight', statusBadge(r.status)]">
+              <span :class="['inline-flex items-center rounded-full px-2 py-0.5 text-xs sm:text-sm tracking-tight', statusBadge(r.status)]">
                 {{ r.status_label }}
               </span>
             </td>

@@ -50,13 +50,13 @@
 
           <form @submit.prevent="handleSubmit" class="mt-4 space-y-3">
             <div class="space-y-2">
-              <Label>Label<span class="text-destructive">*</span></Label>
+              <Label>Label</Label>
               <Input v-model="form.label" required placeholder="Airport Sedan (CGK)" />
             </div>
 
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-2">
-                <Label for="transfer_direction">Direction<span class="text-destructive">*</span></Label>
+                <Label for="transfer_direction">Direction</Label>
                 <Select v-model="form.direction">
                   <SelectTrigger id="transfer_direction" class="w-full">
                     <SelectValue />
@@ -76,11 +76,11 @@
 
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-2">
-                <Label>Max Pax<span class="text-destructive">*</span></Label>
+                <Label>Max Pax</Label>
                 <Input v-model.number="form.max_pax" type="number" min="1" required />
               </div>
               <div class="space-y-2">
-                <Label>Price (IDR)<span class="text-destructive">*</span></Label>
+                <Label>Price (IDR)</Label>
                 <Input v-model.number="form.price" type="number" min="0" required />
               </div>
             </div>

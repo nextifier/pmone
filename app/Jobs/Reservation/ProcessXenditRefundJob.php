@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ProcessXenditRefundJob implements ShouldQueue
@@ -27,9 +28,23 @@ class ProcessXenditRefundJob implements ShouldQueue
 
     public function handle(XenditService $xendit): void
     {
-        $reservation = Reservation::query()->find($this->reservationId);
+        $reservation = DB::transaction(function () {
+            return Reservation::query()
+                ->whereKey($this->reservationId)
+                ->lockForUpdate()
+                ->first();
+        });
 
         if (! $reservation || ! $reservation->xendit_invoice_id) {
+            return;
+        }
+
+        if ($reservation->xendit_refund_id) {
+            Log::info('Xendit refund skipped (already refunded)', [
+                'reservation_id' => $reservation->id,
+                'xendit_refund_id' => $reservation->xendit_refund_id,
+            ]);
+
             return;
         }
 

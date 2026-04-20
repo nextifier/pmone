@@ -90,23 +90,23 @@
         <Icon name="lucide:file" class="size-5 text-muted-foreground shrink-0" />
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium tracking-tight truncate">{{ reservation.voucher.name }}</p>
-          <p class="text-muted-foreground text-xs">{{ formatBytes(reservation.voucher.size) }}</p>
+          <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">{{ formatBytes(reservation.voucher.size) }}</p>
         </div>
-        <a :href="reservation.voucher.url" target="_blank" class="text-primary text-sm hover:underline">View</a>
+        <a :href="reservation.voucher.url" target="_blank" rel="noopener" class="text-primary text-sm hover:underline">View</a>
       </div>
 
       <div class="rounded-md border p-4 space-y-3">
         <h2 class="text-base font-semibold tracking-tight">Guest Information</h2>
         <div class="grid grid-cols-2 gap-3 text-sm tracking-tight">
-          <div><p class="text-muted-foreground text-xs">Name</p>{{ reservation.guest.name }}</div>
-          <div><p class="text-muted-foreground text-xs">Email</p>{{ reservation.guest.email }}</div>
-          <div><p class="text-muted-foreground text-xs">Phone</p>{{ reservation.guest.phone }}</div>
-          <div><p class="text-muted-foreground text-xs">Identity</p>{{ reservation.guest.identity_type_label }}: {{ reservation.guest.identity_number }}</div>
-          <div v-if="reservation.guest.company"><p class="text-muted-foreground text-xs">Company</p>{{ reservation.guest.company }}</div>
-          <div v-if="reservation.guest.nationality"><p class="text-muted-foreground text-xs">Nationality</p>{{ reservation.guest.nationality }}</div>
+          <div><p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Name</p>{{ reservation.guest.name }}</div>
+          <div><p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Email</p>{{ reservation.guest.email }}</div>
+          <div><p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Phone</p>{{ reservation.guest.phone }}</div>
+          <div><p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Identity</p>{{ reservation.guest.identity_type_label }}: {{ reservation.guest.identity_number }}</div>
+          <div v-if="reservation.guest.company"><p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Company</p>{{ reservation.guest.company }}</div>
+          <div v-if="reservation.guest.nationality"><p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Nationality</p>{{ reservation.guest.nationality }}</div>
         </div>
         <div v-if="reservation.special_request" class="text-sm tracking-tight">
-          <p class="text-muted-foreground text-xs">Special Request</p>
+          <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Special Request</p>
           {{ reservation.special_request }}
         </div>
       </div>
@@ -117,7 +117,7 @@
         <p v-if="reservation.event" class="text-sm tracking-tight"><span class="text-muted-foreground">Event:</span> {{ reservation.event?.title }}</p>
 
         <table class="w-full text-sm tracking-tight">
-          <thead class="text-muted-foreground text-xs">
+          <thead class="text-muted-foreground text-xs sm:text-sm tracking-tight">
             <tr class="text-left border-b"><th class="py-1">Room</th><th class="py-1">Dates</th><th class="text-right py-1">Qty</th><th class="text-right py-1">Subtotal</th></tr>
           </thead>
           <tbody>
@@ -131,7 +131,7 @@
         </table>
 
         <div v-if="reservation.transfers?.length" class="border-t pt-2">
-          <p class="text-xs text-muted-foreground mb-1">Transfers</p>
+          <p class="text-xs sm:text-sm tracking-tight text-muted-foreground mb-1">Transfers</p>
           <div v-for="t in reservation.transfers" :key="t.id" class="flex justify-between text-sm tracking-tight py-0.5">
             <span>{{ t.direction_label }} - {{ t.transfer_date }}</span>
             <span class="tabular-nums">Rp {{ formatRupiah(t.price) }}</span>
@@ -149,9 +149,9 @@
       <div class="rounded-md border p-4 space-y-2 text-sm tracking-tight">
         <h2 class="text-base font-semibold tracking-tight">Payment</h2>
         <div class="grid grid-cols-2 gap-2">
-          <div><span class="text-muted-foreground text-xs">Method:</span> {{ reservation.payment.method_label || "-" }}</div>
-          <div v-if="reservation.paid_at"><span class="text-muted-foreground text-xs">Paid at:</span> {{ formatDateTime(reservation.paid_at) }}</div>
-          <div v-if="reservation.payment.xendit_invoice_id"><span class="text-muted-foreground text-xs">Xendit ID:</span> <span class="font-mono text-xs">{{ reservation.payment.xendit_invoice_id }}</span></div>
+          <div><span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Method:</span> {{ reservation.payment.method_label || "-" }}</div>
+          <div v-if="reservation.paid_at"><span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Paid at:</span> {{ formatDateTime(reservation.paid_at) }}</div>
+          <div v-if="reservation.payment.xendit_invoice_id"><span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Xendit ID:</span> <span class="font-mono text-xs sm:text-sm tracking-tight">{{ reservation.payment.xendit_invoice_id }}</span></div>
         </div>
       </div>
 
@@ -160,14 +160,14 @@
           <h2 class="text-base font-semibold tracking-tight">Activity</h2>
           <button
             type="button"
-            class="text-primary text-xs hover:underline"
+            class="text-primary text-xs sm:text-sm tracking-tight hover:underline"
             :disabled="loadingActivity"
             @click="loadActivity"
           >
             {{ activity.length ? 'Refresh' : 'Load history' }}
           </button>
         </div>
-        <div v-if="loadingActivity" class="text-muted-foreground text-xs tracking-tight">Loading activity…</div>
+        <div v-if="loadingActivity" class="text-muted-foreground text-xs sm:text-sm tracking-tight">Loading activity…</div>
         <div v-else-if="activity.length" class="space-y-2">
           <div
             v-for="entry in activity"
@@ -180,11 +180,11 @@
                 <span class="font-medium">{{ activityLabel(entry) }}</span>
                 <span v-if="entry.causer" class="text-muted-foreground"> by {{ entry.causer.name }}</span>
               </p>
-              <p class="text-muted-foreground text-xs tracking-tight">{{ formatDateTime(entry.created_at) }}</p>
+              <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">{{ formatDateTime(entry.created_at) }}</p>
             </div>
           </div>
         </div>
-        <p v-else class="text-muted-foreground text-xs tracking-tight">No activity recorded yet.</p>
+        <p v-else class="text-muted-foreground text-xs sm:text-sm tracking-tight">No activity recorded yet.</p>
       </div>
 
       <DialogResponsive v-model:open="cancelDialogOpen" :overflow-content="true" dialog-max-width="28rem">
@@ -199,7 +199,7 @@
               <div class="space-y-2">
                 <Label>Refund Amount (override auto-calc)</Label>
                 <Input v-model.number="cancelForm.refund_amount" type="number" min="0" :placeholder="`Auto: Rp ${formatRupiah(autoRefund)}`" />
-                <p class="text-muted-foreground text-xs">{{ refundPolicyText }}</p>
+                <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">{{ refundPolicyText }}</p>
               </div>
               <label class="flex items-center gap-2 text-sm tracking-tight">
                 <Checkbox v-model="cancelForm.process_refund" />

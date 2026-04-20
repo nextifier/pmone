@@ -58,14 +58,15 @@ class RoomTypeController extends Controller
     {
         $this->ensureHotelBelongsToEvent($event, $hotel);
 
-        $data = $request->safe()->except(['gallery_files']);
+        $data = $request->safe()->except(['gallery_files', 'amenities']);
         $data['hotel_id'] = $hotel->id;
 
         $roomType = RoomType::create($data);
 
+        $this->syncAmenities($roomType, $request->input('amenities'));
         $this->handleGalleryUpload($request, $roomType);
 
-        $roomType->load('media');
+        $roomType->load(['media', 'tags']);
 
         return response()->json([
             'data' => (new RoomTypeResource($roomType))->resolve(),
@@ -78,18 +79,27 @@ class RoomTypeController extends Controller
         $this->ensureHotelBelongsToEvent($event, $hotel);
         abort_if($roomType->hotel_id !== $hotel->id, 404);
 
-        $data = $request->safe()->except(['gallery_files']);
+        $data = $request->safe()->except(['gallery_files', 'amenities']);
 
         $roomType->update($data);
 
+        if ($request->has('amenities')) {
+            $this->syncAmenities($roomType, $request->input('amenities'));
+        }
+
         $this->handleGalleryUpload($request, $roomType);
 
-        $roomType->load('media');
+        $roomType->load(['media', 'tags']);
 
         return response()->json([
             'data' => (new RoomTypeResource($roomType))->resolve(),
             'message' => 'Room type updated successfully',
         ]);
+    }
+
+    private function syncAmenities(RoomType $roomType, ?array $amenities): void
+    {
+        $roomType->syncTagsWithType($amenities ?? [], 'room_amenity');
     }
 
     public function destroy(Event $event, Hotel $hotel, RoomType $roomType): JsonResponse

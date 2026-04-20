@@ -60,7 +60,7 @@
 
           <form @submit.prevent="handleSubmit" class="mt-4 space-y-3">
             <div class="space-y-2">
-              <Label for="allotment_room_type">Room Type<span class="text-destructive">*</span></Label>
+              <Label for="allotment_room_type">Room Type</Label>
               <Select :model-value="form.room_type_id ? String(form.room_type_id) : undefined" @update:model-value="(v) => (form.room_type_id = v ? Number(v) : null)">
                 <SelectTrigger id="allotment_room_type" class="w-full">
                   <SelectValue placeholder="Select room type" />
@@ -75,17 +75,17 @@
 
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-2">
-                <Label>Start Date<span class="text-destructive">*</span></Label>
+                <Label>Start Date</Label>
                 <Input v-model="form.start_date" type="date" required />
               </div>
               <div class="space-y-2">
-                <Label>End Date<span class="text-destructive">*</span></Label>
+                <Label>End Date</Label>
                 <Input v-model="form.end_date" type="date" required />
               </div>
             </div>
 
             <div class="space-y-2">
-              <Label>Quantity<span class="text-destructive">*</span></Label>
+              <Label>Quantity</Label>
               <Input v-model.number="form.quantity" type="number" min="1" required />
             </div>
 

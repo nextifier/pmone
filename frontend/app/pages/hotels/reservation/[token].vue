@@ -43,15 +43,15 @@
         <div class="frame-panel">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm tracking-tight">
             <div>
-              <p class="text-muted-foreground text-xs">Name</p>
+              <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Name</p>
               <p>{{ reservation.guest.name }}</p>
             </div>
             <div>
-              <p class="text-muted-foreground text-xs">Email</p>
+              <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Email</p>
               <p>{{ reservation.guest.email }}</p>
             </div>
             <div>
-              <p class="text-muted-foreground text-xs">Phone</p>
+              <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Phone</p>
               <p>{{ reservation.guest.phone }}</p>
             </div>
           </div>
@@ -71,7 +71,7 @@
             <div class="flex justify-between gap-3 text-sm tracking-tight">
               <div>
                 <p class="font-medium">{{ item.room_type_name }}</p>
-                <p class="text-muted-foreground text-xs">
+                <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
                   {{ item.check_in_date }} → {{ item.check_out_date }} · {{ item.nights }} night(s) · {{ item.qty }} room(s)
                 </p>
               </div>
@@ -88,7 +88,7 @@
             >
               <div>
                 <p>{{ t.direction }} · {{ t.transfer_date }}</p>
-                <p class="text-muted-foreground text-xs">
+                <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
                   {{ t.pickup_location || "-" }} → {{ t.dropoff_location || "-" }}
                 </p>
               </div>
@@ -130,11 +130,39 @@
           <p class="text-sm tracking-tight">
             Payment has not been received yet. Please continue via Xendit:
           </p>
+          <p v-if="expiresAtLabel" class="text-muted-foreground text-xs sm:text-sm tracking-tight">
+            Payment link expires on {{ expiresAtLabel }}.
+          </p>
           <a
             :href="reservation.payment_url"
             class="bg-primary text-primary-foreground inline-flex items-center rounded-md px-4 py-2 text-sm font-medium tracking-tight hover:bg-primary/90 active:scale-98"
           >
             Pay Now
+          </a>
+        </div>
+      </div>
+
+      <div class="frame">
+        <div class="frame-header">
+          <div class="frame-title">Documents</div>
+        </div>
+        <div class="frame-panel flex flex-wrap gap-2">
+          <a
+            :href="invoicePdfUrl"
+            target="_blank"
+            rel="noopener"
+            class="border-border hover:bg-muted rounded-md border px-3 py-1.5 text-sm tracking-tight active:scale-98"
+          >
+            Download Invoice
+          </a>
+          <a
+            v-if="isPaid"
+            :href="receiptPdfUrl"
+            target="_blank"
+            rel="noopener"
+            class="border-border hover:bg-muted rounded-md border px-3 py-1.5 text-sm tracking-tight active:scale-98"
+          >
+            Download Receipt
           </a>
         </div>
       </div>
@@ -195,6 +223,27 @@ const statusClass = computed(() => {
     refunded: "bg-destructive/15 text-destructive",
   };
   return map[reservation.value?.status] || "bg-muted text-muted-foreground";
+});
+
+const isPaid = computed(() =>
+  ["paid", "voucher_sent"].includes(reservation.value?.status),
+);
+
+const invoicePdfUrl = computed(() => `/api/accommodation/reservation/${token.value}/invoice.pdf`);
+const receiptPdfUrl = computed(() => `/api/accommodation/reservation/${token.value}/receipt.pdf`);
+
+const expiresAtLabel = computed(() => {
+  const iso = reservation.value?.payment_expires_at;
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 });
 
 const formatRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);

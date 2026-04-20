@@ -15,10 +15,13 @@ use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\EloquentSortable\Sortable;
+use Spatie\EloquentSortable\SortableTrait;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Tags\HasTags;
 
 /**
  * @property-read Collection<int, Activity> $activities
@@ -47,14 +50,16 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  *
  * @mixin \Eloquent
  */
-class RoomType extends Model implements HasMedia
+class RoomType extends Model implements HasMedia, Sortable
 {
     use HasFactory;
     use HasMediaManager;
     use HasSlug;
+    use HasTags;
     use InteractsWithMedia;
     use LogsActivity;
     use SoftDeletes;
+    use SortableTrait;
 
     protected $fillable = [
         'hotel_id',
@@ -63,14 +68,19 @@ class RoomType extends Model implements HasMedia
         'description',
         'max_pax',
         'bed_type',
-        'view_type',
         'area_sqm',
         'base_rate',
         'breakfast_included',
         'smoking_allowed',
-        'amenities',
         'cancellation_policy',
         'is_active',
+        'settings',
+        'more_details',
+    ];
+
+    public array $sortable = [
+        'order_column_name' => 'order_column',
+        'sort_when_creating' => true,
     ];
 
     protected function casts(): array
@@ -81,8 +91,9 @@ class RoomType extends Model implements HasMedia
             'base_rate' => 'decimal:2',
             'breakfast_included' => 'boolean',
             'smoking_allowed' => 'boolean',
-            'amenities' => 'array',
             'is_active' => 'boolean',
+            'settings' => 'array',
+            'more_details' => 'array',
         ];
     }
 

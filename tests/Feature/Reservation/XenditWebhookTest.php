@@ -103,6 +103,28 @@ test('webhook is idempotent when PAID event fires twice', function () {
     expect($reservation->paid_at->toIso8601String())->toBe($paidAt->toIso8601String());
 });
 
+test('webhook rejects PAID event for cancelled reservation', function () {
+    $hotel = Hotel::factory()->create();
+    $reservation = Reservation::factory()->create([
+        'hotel_id' => $hotel->id,
+        'status' => ReservationStatus::Cancelled,
+        'cancelled_at' => now()->subMinutes(10),
+        'reservation_number' => 'HTL-20260101-EEEE',
+    ]);
+
+    $response = $this->postJson('/api/webhooks/xendit/invoice', [
+        'external_id' => 'HTL-20260101-EEEE',
+        'id' => 'inv_xendit_late_pay',
+        'status' => 'PAID',
+    ], ['x-callback-token' => 'test-callback-token']);
+
+    $response->assertStatus(409)
+        ->assertJsonPath('message', 'Reservation already in final state');
+
+    $reservation->refresh();
+    expect($reservation->status)->toBe(ReservationStatus::Cancelled);
+});
+
 test('webhook skips expire for already-paid reservation', function () {
     $hotel = Hotel::factory()->create();
     $reservation = Reservation::factory()->create([

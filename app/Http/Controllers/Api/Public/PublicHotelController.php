@@ -29,7 +29,8 @@ class PublicHotelController extends Controller
                 'event:id,slug,title,project_id,start_date,end_date,is_active',
                 'event.project:id,username,name',
                 'media',
-                'roomTypes' => fn ($q) => $q->active(),
+                'tags',
+                'roomTypes' => fn ($q) => $q->active()->with('tags'),
             ])
             ->whereHas('event', function ($q) use ($request) {
                 $includeInactive = $request->boolean('include_inactive');
@@ -64,7 +65,8 @@ class PublicHotelController extends Controller
                 'event:id,slug,title,project_id,start_date,end_date,is_active',
                 'event.project:id,username,name',
                 'media',
-                'roomTypes' => fn ($q) => $q->active()->with('media'),
+                'tags',
+                'roomTypes' => fn ($q) => $q->active()->with(['media', 'tags']),
                 'transferOptions' => fn ($q) => $q->active(),
             ])
             ->firstOrFail();

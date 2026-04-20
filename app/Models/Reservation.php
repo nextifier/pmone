@@ -170,7 +170,20 @@ class Reservation extends Model implements HasMedia
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['status', 'paid_at', 'voucher_sent_at', 'cancelled_at', 'refunded_at', 'total_amount'])
+            ->logOnly([
+                'status',
+                'paid_at',
+                'voucher_sent_at',
+                'cancelled_at',
+                'refunded_at',
+                'total_amount',
+                'payment_method',
+                'xendit_invoice_id',
+                'xendit_refund_id',
+                'refund_amount',
+                'refund_reason',
+                'cancellation_reason',
+            ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }

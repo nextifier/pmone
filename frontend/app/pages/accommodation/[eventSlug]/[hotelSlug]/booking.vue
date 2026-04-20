@@ -305,7 +305,7 @@ const summary = computed(() => {
 const sessionTotal = ref(null);
 const priceDrift = computed(() => {
   if (sessionTotal.value === null) return false;
-  return Math.abs(sessionTotal.value - summary.value.total) > 0.01;
+  return Math.round(sessionTotal.value * 100) !== Math.round(summary.value.total * 100);
 });
 
 const guestModel = ref({
@@ -399,6 +399,7 @@ function cancelPayment() {
     const token = pendingMagicToken.value;
     pendingMagicToken.value = null;
     pendingPaymentUrl.value = null;
+    clear();
     navigateTo(`/hotels/reservation/${token}`);
   }
 }
@@ -415,6 +416,7 @@ function confirmPayment() {
     host: new URL(pendingPaymentUrl.value).hostname,
   });
   redirecting.value = true;
+  clear();
   window.location.href = pendingPaymentUrl.value;
 }
 
@@ -480,7 +482,7 @@ async function handleSubmit(guestPayload) {
       const opt = hotel.value.transfer_options.find((o) => o.id === line.id);
       return {
         transfer_option_id: line.id,
-        direction: opt?.direction === "both" ? "in" : opt?.direction,
+        direction: opt?.direction ?? "in",
         transfer_date: state.value.checkIn,
         pax_count: 1,
         price: line.price,
@@ -505,8 +507,6 @@ async function handleSubmit(guestPayload) {
       body: payload,
     });
 
-    clear();
-
     trackEvent("booking_created", {
       reservation_number: response?.data?.reservation_number,
       total: summary.value.total,
@@ -526,7 +526,12 @@ async function handleSubmit(guestPayload) {
       pendingMagicToken.value = magicToken ?? null;
       paymentDialogOpen.value = true;
     } else if (magicToken) {
+      clear();
       await navigateTo(`/hotels/reservation/${magicToken}`);
+    } else {
+      toast.error("Booking incomplete", {
+        description: "Reservation created but payment link is missing. Please contact support.",
+      });
     }
   } catch (err) {
     if (err?.response?.status === 422 && err?.data?.errors) {

@@ -12,6 +12,8 @@ use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\EloquentSortable\Sortable;
+use Spatie\EloquentSortable\SortableTrait;
 
 /**
  * @property-read Collection<int, Activity> $activities
@@ -35,11 +37,12 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *
  * @mixin \Eloquent
  */
-class HotelEventAllotment extends Model
+class HotelEventAllotment extends Model implements Sortable
 {
     use HasFactory;
     use LogsActivity;
     use SoftDeletes;
+    use SortableTrait;
 
     protected $fillable = [
         'hotel_id',
@@ -51,6 +54,13 @@ class HotelEventAllotment extends Model
         'surcharge_type',
         'surcharge_amount',
         'is_active',
+        'settings',
+        'more_details',
+    ];
+
+    public array $sortable = [
+        'order_column_name' => 'order_column',
+        'sort_when_creating' => true,
     ];
 
     protected function casts(): array
@@ -62,6 +72,8 @@ class HotelEventAllotment extends Model
             'release_at' => 'datetime',
             'surcharge_amount' => 'decimal:2',
             'is_active' => 'boolean',
+            'settings' => 'array',
+            'more_details' => 'array',
         ];
     }
 

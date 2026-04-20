@@ -15,51 +15,104 @@
       No room types yet.
     </div>
 
-    <div v-else class="grid gap-3 sm:grid-cols-2">
+    <div v-else class="grid gap-4 sm:grid-cols-2">
       <div
         v-for="room in rooms"
         :key="room.id"
-        class="border rounded-md p-4 space-y-3"
+        class="group border-border bg-card hover:border-primary/40 flex items-start gap-x-3 rounded-xl border p-3 transition-colors sm:gap-x-4 sm:p-4"
       >
         <div
-          v-if="room.gallery?.length"
-          class="bg-muted aspect-3/2 overflow-hidden rounded"
+          class="bg-muted border-border relative aspect-4/5 w-24 shrink-0 overflow-hidden rounded-lg border sm:w-32"
         >
           <img
-            :src="room.gallery[0].md || room.gallery[0].url"
+            v-if="room.gallery?.[0]"
+            :src="room.gallery[0].md || room.gallery[0].sm || room.gallery[0].url"
             :alt="room.name"
-            class="size-full object-cover"
+            class="size-full object-cover select-none"
+            loading="lazy"
           />
         </div>
 
-        <div class="flex items-start justify-between gap-2">
-          <div class="min-w-0">
-            <h3 class="text-sm font-semibold tracking-tight truncate">{{ room.name }}</h3>
-            <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
-              {{ room.bed_type || "-" }} · max {{ room.max_pax }} pax · {{ room.area_sqm ? `${room.area_sqm} m²` : "-" }}
-            </p>
+        <div class="flex min-w-0 flex-1 flex-col gap-y-1.5">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span
+              v-if="room.is_active"
+              class="border-border text-muted-foreground rounded-full border px-2 py-0.5 text-xs font-medium tracking-tight"
+            >
+              Active
+            </span>
+            <span
+              v-else
+              class="border-border text-muted-foreground bg-muted rounded-full border px-2 py-0.5 text-xs font-medium tracking-tight"
+            >
+              Inactive
+            </span>
+            <span
+              v-if="room.breakfast_included"
+              class="text-primary border-primary/30 bg-primary/5 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium tracking-tight"
+            >
+              <Icon name="hugeicons:coffee-02" class="size-3" />
+              Breakfast
+            </span>
           </div>
-          <span :class="['inline-flex items-center rounded-full px-2 py-0.5 text-xs tracking-tight', room.is_active ? 'bg-success/15 text-success-foreground' : 'bg-muted text-muted-foreground']">
-            {{ room.is_active ? "Active" : "Inactive" }}
-          </span>
-        </div>
 
-        <p class="text-sm tracking-tight">
-          <span class="font-medium">Rp {{ formatRupiah(room.base_rate) }}</span>
-          <span class="text-muted-foreground"> / night</span>
-        </p>
+          <h3 class="text-base font-semibold tracking-tighter sm:text-lg">
+            {{ room.name }}
+          </h3>
 
-        <div v-if="room.amenities?.length" class="flex flex-wrap gap-1">
-          <span v-for="amenity in room.amenities.slice(0, 4)" :key="amenity" class="bg-muted rounded-full px-2 py-0.5 text-xs tracking-tight">{{ amenity }}</span>
-        </div>
+          <div class="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs tracking-tight sm:text-sm">
+            <span v-if="room.bed_type" class="inline-flex items-center gap-1">
+              <Icon name="hugeicons:bed-single-01" class="size-3.5" />
+              {{ room.bed_type }}
+            </span>
+            <span class="inline-flex items-center gap-1">
+              <Icon name="hugeicons:user-multiple" class="size-3.5" />
+              {{ room.max_pax }} pax
+            </span>
+            <span v-if="room.area_sqm" class="inline-flex items-center gap-1">
+              <Icon name="hugeicons:square-arrow-expand-02" class="size-3.5" />
+              {{ room.area_sqm }} m²
+            </span>
+          </div>
 
-        <div class="flex justify-end gap-1 pt-2">
-          <button class="hover:bg-muted text-muted-foreground inline-flex size-7 items-center justify-center rounded" @click="openEditDialog(room)" title="Edit">
-            <Icon name="lucide:pencil" class="size-3.5" />
-          </button>
-          <button v-if="canDelete" class="hover:bg-destructive/10 text-destructive inline-flex size-7 items-center justify-center rounded" @click="confirmDelete(room)" title="Delete">
-            <Icon name="lucide:trash" class="size-3.5" />
-          </button>
+          <p class="text-sm tracking-tight">
+            <span class="font-semibold">Rp {{ formatRupiah(room.base_rate) }}</span>
+            <span class="text-muted-foreground"> / night</span>
+          </p>
+
+          <div v-if="room.amenities?.length" class="flex flex-wrap gap-1 pt-1">
+            <span
+              v-for="amenity in room.amenities.slice(0, 3)"
+              :key="amenity"
+              class="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs tracking-tight"
+            >
+              {{ amenity }}
+            </span>
+            <span
+              v-if="room.amenities.length > 3"
+              class="text-muted-foreground rounded-full px-2 py-0.5 text-xs tracking-tight"
+            >
+              +{{ room.amenities.length - 3 }} more
+            </span>
+          </div>
+
+          <div class="mt-auto flex items-center justify-end gap-1 pt-2">
+            <button
+              class="hover:bg-muted text-muted-foreground inline-flex size-8 items-center justify-center rounded-md"
+              title="Edit"
+              @click="openEditDialog(room)"
+            >
+              <Icon name="hugeicons:edit-02" class="size-4" />
+            </button>
+            <button
+              v-if="canDelete"
+              class="hover:bg-destructive/10 text-destructive inline-flex size-8 items-center justify-center rounded-md"
+              title="Delete"
+              @click="confirmDelete(room)"
+            >
+              <Icon name="hugeicons:delete-02" class="size-4" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -71,13 +124,13 @@
 
           <form @submit.prevent="handleSubmit" class="mt-4 space-y-3">
             <div class="space-y-2">
-              <Label>Name<span class="text-destructive">*</span></Label>
+              <Label>Name</Label>
               <Input v-model="form.name" required placeholder="Deluxe King" />
             </div>
 
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-2">
-                <Label>Max Pax<span class="text-destructive">*</span></Label>
+                <Label>Max Pax</Label>
                 <Input v-model.number="form.max_pax" type="number" min="1" required />
               </div>
               <div class="space-y-2">
@@ -88,33 +141,13 @@
 
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-2">
-                <Label>Base Rate (IDR)<span class="text-destructive">*</span></Label>
+                <Label>Base Rate (IDR)</Label>
                 <Input v-model.number="form.base_rate" type="number" min="0" required />
               </div>
               <div class="space-y-2">
                 <Label>Area (m²)</Label>
                 <Input v-model.number="form.area_sqm" type="number" step="0.01" min="0" />
               </div>
-            </div>
-
-            <div class="space-y-2">
-              <Label for="view_type">View Type</Label>
-              <Select
-                :model-value="form.view_type || 'none'"
-                @update:model-value="(v) => (form.view_type = v === 'none' ? null : v)"
-              >
-                <SelectTrigger id="view_type" class="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No view</SelectItem>
-                  <SelectItem value="city">City View</SelectItem>
-                  <SelectItem value="sea">Sea View</SelectItem>
-                  <SelectItem value="garden">Garden View</SelectItem>
-                  <SelectItem value="pool">Pool View</SelectItem>
-                  <SelectItem value="mountain">Mountain View</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             <div class="space-y-2">
@@ -129,7 +162,7 @@
 
             <div class="space-y-2">
               <Label>Room Facilities</Label>
-              <p class="text-muted-foreground text-xs tracking-tight">
+              <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
                 Type and press Enter. Examples: WiFi, AC, TV, Minibar, Bathtub, Safe.
               </p>
               <TagsInput v-model="form.amenities" class="text-sm">
@@ -143,7 +176,7 @@
 
             <div class="space-y-2">
               <Label>Room Gallery</Label>
-              <p class="text-muted-foreground text-xs tracking-tight">
+              <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
                 Up to 20 images. JPG/PNG/WebP, max 20MB each.
               </p>
               <InputFile
@@ -264,7 +297,6 @@ const form = reactive({
   name: "",
   max_pax: 2,
   bed_type: "",
-  view_type: null,
   base_rate: 0,
   area_sqm: null,
   description: "",
@@ -280,7 +312,6 @@ const resetForm = () => {
     name: "",
     max_pax: 2,
     bed_type: "",
-    view_type: null,
     base_rate: 0,
     area_sqm: null,
     description: "",
@@ -305,7 +336,6 @@ const openEditDialog = (room) => {
     name: room.name,
     max_pax: room.max_pax,
     bed_type: room.bed_type || "",
-    view_type: room.view_type || null,
     base_rate: room.base_rate,
     area_sqm: room.area_sqm,
     description: room.description || "",

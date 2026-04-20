@@ -30,9 +30,6 @@ export interface Hotel {
   google_maps_embed_src: string | null
   contact_email: string | null
   contact_phone: string | null
-  website_url: string | null
-  check_in_time: string | null
-  check_out_time: string | null
   commission_rate: number
   tax_percentage: number
   service_charge_percentage: number

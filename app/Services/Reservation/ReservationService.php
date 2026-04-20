@@ -231,6 +231,7 @@ class ReservationService
                     'status' => ReservationStatus::Paid,
                     'paid_at' => now(),
                     'payment_method' => PaymentMethod::Complimentary,
+                    'payment_expires_at' => null,
                 ]);
                 SendBookingReceivedJob::dispatch($reservation->id, $rawToken);
             } elseif (($data['mark_paid_manual'] ?? false) === true) {
@@ -238,13 +239,14 @@ class ReservationService
                     'status' => ReservationStatus::Paid,
                     'paid_at' => now(),
                     'payment_method' => PaymentMethod::ManualBankTransfer,
+                    'payment_expires_at' => null,
                 ]);
                 SendBookingReceivedJob::dispatch($reservation->id, $rawToken);
             } elseif (($data['generate_xendit'] ?? true) === true) {
                 try {
                     $xenditClient = $xendit ?? $this->xendit;
                     $frontendUrl = rtrim(config('app.frontend_url'), '/');
-                    $successUrl = "{$frontendUrl}/hotels/reservation/{$rawToken}";
+                    $successUrl = "{$frontendUrl}/accommodation/success?ref={$reservation->reservation_number}&token={$rawToken}";
                     $failureUrl = "{$frontendUrl}/accommodation?failed=".$reservation->reservation_number;
                     $invoice = $xenditClient->createInvoice($reservation, $successUrl, $failureUrl);
                     $reservation->update([

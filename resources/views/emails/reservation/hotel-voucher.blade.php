@@ -20,8 +20,8 @@ Present the attached voucher at reception when you arrive at the hotel, along wi
 
 ## Additional Information
 
-- Check-in time: {{ $reservation->hotel?->check_in_time?->format('H:i') ?? '14:00' }}
-- Check-out time: {{ $reservation->hotel?->check_out_time?->format('H:i') ?? '12:00' }}
+- Check-in time: 14:00
+- Check-out time: 12:00
 - Hotel contact: {{ $reservation->hotel?->contact_phone ?? '-' }}
 
 For any questions, please contact us:

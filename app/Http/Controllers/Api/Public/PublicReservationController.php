@@ -26,7 +26,9 @@ class PublicReservationController extends Controller
         $data['user_agent'] = $request->userAgent();
 
         $hotel = Hotel::with('event')->findOrFail($data['hotel_id']);
-        abort_if(! $hotel->event?->is_active, 422, 'This event is no longer accepting reservations.');
+        abort_if(! $hotel->is_active, 422, 'This hotel is no longer accepting reservations.');
+        abort_if(! $hotel->event, 422, 'This hotel is not linked to an event.');
+        abort_if(! $hotel->event->is_active, 422, 'This event is no longer accepting reservations.');
 
         $reservation = $this->reservations->createReservation($data);
 

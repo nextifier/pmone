@@ -13,6 +13,8 @@ use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\EloquentSortable\Sortable;
+use Spatie\EloquentSortable\SortableTrait;
 
 /**
  * @property TransferDirection $direction
@@ -34,11 +36,12 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *
  * @mixin \Eloquent
  */
-class HotelTransferOption extends Model
+class HotelTransferOption extends Model implements Sortable
 {
     use HasFactory;
     use LogsActivity;
     use SoftDeletes;
+    use SortableTrait;
 
     protected $fillable = [
         'hotel_id',
@@ -48,6 +51,13 @@ class HotelTransferOption extends Model
         'max_pax',
         'price',
         'is_active',
+        'settings',
+        'more_details',
+    ];
+
+    public array $sortable = [
+        'order_column_name' => 'order_column',
+        'sort_when_creating' => true,
     ];
 
     protected function casts(): array
@@ -57,6 +67,8 @@ class HotelTransferOption extends Model
             'max_pax' => 'integer',
             'price' => 'decimal:2',
             'is_active' => 'boolean',
+            'settings' => 'array',
+            'more_details' => 'array',
         ];
     }
 

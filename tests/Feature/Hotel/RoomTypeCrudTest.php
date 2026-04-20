@@ -96,15 +96,15 @@ test('room type from another hotel returns 404', function () {
     $response->assertNotFound();
 });
 
-test('room type slug is unique per hotel', function () {
+test('room type slug is auto-appended when name duplicates', function () {
     RoomType::factory()->create(['hotel_id' => $this->hotel->id, 'name' => 'Deluxe', 'slug' => 'deluxe']);
 
     $response = $this->postJson("/api/events/{$this->event->id}/hotels/{$this->hotel->slug}/room-types", [
         'name' => 'Deluxe',
-        'slug' => 'deluxe',
         'max_pax' => 2,
         'base_rate' => 1000000,
     ]);
 
-    $response->assertStatus(422);
+    $response->assertStatus(201)
+        ->assertJsonPath('data.slug', fn (string $slug) => str_starts_with($slug, 'deluxe-'));
 });

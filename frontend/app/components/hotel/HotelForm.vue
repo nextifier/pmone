@@ -6,17 +6,10 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="grid gap-4 lg:grid-cols-2">
-            <div class="space-y-2">
-              <Label for="name">Name<span class="text-destructive">*</span></Label>
-              <Input id="name" v-model="form.name" placeholder="Grand Mercure Jakarta" required />
-              <InputErrorMessage :errors="errors.name" />
-            </div>
-            <div class="space-y-2">
-              <Label for="slug">Slug</Label>
-              <Input id="slug" v-model="form.slug" placeholder="auto-generated from name" />
-              <InputErrorMessage :errors="errors.slug" />
-            </div>
+          <div class="space-y-2">
+            <Label for="name">Name</Label>
+            <Input id="name" v-model="form.name" placeholder="Grand Mercure Jakarta" required />
+            <InputErrorMessage :errors="errors.name" />
           </div>
 
           <div class="space-y-2">
@@ -30,47 +23,25 @@
             <InputErrorMessage :errors="errors.description" />
           </div>
 
-          <div class="grid gap-4 lg:grid-cols-2">
-            <div class="space-y-2">
-              <Label for="star_rating">Star Rating</Label>
-              <Select
-                :model-value="form.star_rating ? String(form.star_rating) : 'none'"
-                @update:model-value="(v) => (form.star_rating = v === 'none' ? null : Number(v))"
-              >
-                <SelectTrigger id="star_rating" class="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No rating</SelectItem>
-                  <SelectItem value="1">1 Star</SelectItem>
-                  <SelectItem value="2">2 Stars</SelectItem>
-                  <SelectItem value="3">3 Stars</SelectItem>
-                  <SelectItem value="4">4 Stars</SelectItem>
-                  <SelectItem value="5">5 Stars</SelectItem>
-                </SelectContent>
-              </Select>
-              <InputErrorMessage :errors="errors.star_rating" />
-            </div>
-            <div class="space-y-2">
-              <Label for="category">Category</Label>
-              <Select
-                :model-value="form.category || 'none'"
-                @update:model-value="(v) => (form.category = v === 'none' ? null : v)"
-              >
-                <SelectTrigger id="category" class="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Uncategorized</SelectItem>
-                  <SelectItem value="business">Business</SelectItem>
-                  <SelectItem value="resort">Resort</SelectItem>
-                  <SelectItem value="boutique">Boutique</SelectItem>
-                  <SelectItem value="budget">Budget</SelectItem>
-                  <SelectItem value="luxury">Luxury</SelectItem>
-                </SelectContent>
-              </Select>
-              <InputErrorMessage :errors="errors.category" />
-            </div>
+          <div class="space-y-2">
+            <Label for="star_rating">Star Rating</Label>
+            <Select
+              :model-value="form.star_rating ? String(form.star_rating) : 'none'"
+              @update:model-value="(v) => (form.star_rating = v === 'none' ? null : Number(v))"
+            >
+              <SelectTrigger id="star_rating" class="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No rating</SelectItem>
+                <SelectItem value="1">1 Star</SelectItem>
+                <SelectItem value="2">2 Stars</SelectItem>
+                <SelectItem value="3">3 Stars</SelectItem>
+                <SelectItem value="4">4 Stars</SelectItem>
+                <SelectItem value="5">5 Stars</SelectItem>
+              </SelectContent>
+            </Select>
+            <InputErrorMessage :errors="errors.star_rating" />
           </div>
 
           <div class="space-y-2">
@@ -93,20 +64,31 @@
 
     <div class="frame">
       <div class="frame-header">
-        <div class="frame-title">Location & Contact</div>
+        <div class="frame-title">Location &amp; Contact</div>
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
           <div class="grid gap-4 lg:grid-cols-2">
             <div class="space-y-2">
-              <Label for="city">City</Label>
-              <Input id="city" v-model="form.city" placeholder="Jakarta" />
-              <InputErrorMessage :errors="errors.city" />
+              <Label>Country</Label>
+              <LocationCombobox
+                v-model="form.country"
+                :options="countries"
+                :pinned="['Indonesia']"
+                placeholder="Select country"
+              />
+              <InputErrorMessage :errors="errors.country" />
             </div>
             <div class="space-y-2">
-              <Label for="country">Country</Label>
-              <Input id="country" v-model="form.country" placeholder="Indonesia" />
-              <InputErrorMessage :errors="errors.country" />
+              <Label>City</Label>
+              <LocationCombobox
+                v-model="form.city"
+                :options="cityOptions"
+                :pinned="['Jakarta']"
+                :disabled="!isIndonesia && !form.country"
+                placeholder="Select city"
+              />
+              <InputErrorMessage :errors="errors.city" />
             </div>
           </div>
 
@@ -136,7 +118,7 @@
               id="google_maps_embed_src"
               v-model="form.google_maps_embed_src"
               rows="3"
-              placeholder='https://www.google.com/maps/embed?pb=...'
+              placeholder="https://www.google.com/maps/embed?pb=..."
             />
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
               From Google Maps → Share → Embed a map, copy the <code>src</code> value of the iframe.
@@ -161,40 +143,6 @@
               <InputErrorMessage :errors="errors.contact_phone" />
             </div>
           </div>
-
-          <div class="space-y-2">
-            <Label for="website_url">Website URL</Label>
-            <Input
-              id="website_url"
-              v-model="form.website_url"
-              type="url"
-              placeholder="https://www.hotel.com"
-            />
-            <InputErrorMessage :errors="errors.website_url" />
-          </div>
-
-          <div class="grid gap-4 lg:grid-cols-2">
-            <div class="space-y-2">
-              <Label for="nearest_airport">Nearest Airport</Label>
-              <Input
-                id="nearest_airport"
-                v-model="form.nearest_airport"
-                placeholder="CGK - Soekarno Hatta"
-              />
-              <InputErrorMessage :errors="errors.nearest_airport" />
-            </div>
-            <div class="space-y-2">
-              <Label for="airport_distance_km">Airport Distance (km)</Label>
-              <Input
-                id="airport_distance_km"
-                v-model.number="form.airport_distance_km"
-                type="number"
-                min="0"
-                max="9999"
-              />
-              <InputErrorMessage :errors="errors.airport_distance_km" />
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -204,27 +152,15 @@
         <div class="frame-title">Policies</div>
       </div>
       <div class="frame-panel">
-        <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="cancellation_policy">Cancellation Policy</Label>
-            <Textarea
-              id="cancellation_policy"
-              v-model="form.cancellation_policy"
-              rows="3"
-              placeholder="Free cancellation up to 7 days before check-in..."
-            />
-            <InputErrorMessage :errors="errors.cancellation_policy" />
-          </div>
-          <div class="space-y-2">
-            <Label for="children_policy">Children Policy</Label>
-            <Textarea
-              id="children_policy"
-              v-model="form.children_policy"
-              rows="3"
-              placeholder="Children under 12 stay free with existing bed..."
-            />
-            <InputErrorMessage :errors="errors.children_policy" />
-          </div>
+        <div class="space-y-2">
+          <Label for="cancellation_policy">Cancellation Policy</Label>
+          <Textarea
+            id="cancellation_policy"
+            v-model="form.cancellation_policy"
+            rows="3"
+            placeholder="Free cancellation up to 7 days before check-in..."
+          />
+          <InputErrorMessage :errors="errors.cancellation_policy" />
         </div>
       </div>
     </div>
@@ -235,29 +171,17 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="grid gap-4 lg:grid-cols-3">
-            <div class="space-y-2">
-              <Label for="check_in_time">Check-in Time</Label>
-              <Input id="check_in_time" v-model="form.check_in_time" type="time" />
-              <InputErrorMessage :errors="errors.check_in_time" />
-            </div>
-            <div class="space-y-2">
-              <Label for="check_out_time">Check-out Time</Label>
-              <Input id="check_out_time" v-model="form.check_out_time" type="time" />
-              <InputErrorMessage :errors="errors.check_out_time" />
-            </div>
-            <div class="space-y-2">
-              <Label for="commission_rate">Commission Rate (%)</Label>
-              <Input
-                id="commission_rate"
-                v-model.number="form.commission_rate"
-                type="number"
-                step="0.01"
-                min="0"
-                max="100"
-              />
-              <InputErrorMessage :errors="errors.commission_rate" />
-            </div>
+          <div class="space-y-2">
+            <Label for="commission_rate">Commission Rate (%)</Label>
+            <Input
+              id="commission_rate"
+              v-model.number="form.commission_rate"
+              type="number"
+              step="0.01"
+              min="0"
+              max="100"
+            />
+            <InputErrorMessage :errors="errors.commission_rate" />
           </div>
 
           <div class="grid gap-4 lg:grid-cols-2">
@@ -344,7 +268,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import InputFile from "@/components/InputFile.vue";
 import InputFileImage from "@/components/InputFileImage.vue";
 import { Button } from "@/components/ui/button";
@@ -353,6 +277,7 @@ import { Input } from "@/components/ui/input";
 import { InputErrorMessage } from "@/components/ui/input-error-message";
 import { InputPhone } from "@/components/ui/input-phone";
 import { Label } from "@/components/ui/label";
+import { LocationCombobox } from "@/components/ui/location-combobox";
 import {
   Select,
   SelectContent,
@@ -369,6 +294,8 @@ import {
   TagsInputItemText,
 } from "@/components/ui/tags-input";
 import { Textarea } from "@/components/ui/textarea";
+import countries from "@/data/countries.json";
+import indonesiaCities from "@/data/indonesia-cities.json";
 
 const props = defineProps({
   initial: { type: Object, default: () => ({}) },
@@ -381,10 +308,8 @@ const emit = defineEmits(["submit", "cancel"]);
 
 const form = reactive({
   name: "",
-  slug: "",
   description: "",
   star_rating: null,
-  category: null,
   address: "",
   city: "",
   country: "Indonesia",
@@ -393,16 +318,10 @@ const form = reactive({
   facilities: [],
   contact_email: "",
   contact_phone: "",
-  website_url: "",
   cancellation_policy: "",
-  children_policy: "",
-  nearest_airport: "",
-  airport_distance_km: null,
   commission_rate: 0,
   tax_percentage: 11,
   service_charge_percentage: 0,
-  check_in_time: "14:00",
-  check_out_time: "12:00",
   is_active: true,
 });
 
@@ -410,16 +329,24 @@ const featuredFiles = ref([]);
 const galleryFiles = ref([]);
 const initialFeatured = ref(null);
 
+const isIndonesia = computed(() => form.country === "Indonesia");
+
+const cityOptions = computed(() => {
+  if (!isIndonesia.value) return [];
+  const labels = (indonesiaCities ?? [])
+    .map((c) => (typeof c === "string" ? c : c?.label))
+    .filter(Boolean);
+  return Array.from(new Set(labels)).sort();
+});
+
 watch(
   () => props.initial,
   (val) => {
     if (!val) return;
     Object.assign(form, {
       name: val.name ?? "",
-      slug: val.slug ?? "",
       description: val.description ?? "",
       star_rating: val.star_rating ?? null,
-      category: val.category ?? null,
       address: val.address ?? "",
       city: val.city ?? "",
       country: val.country ?? "Indonesia",
@@ -428,16 +355,10 @@ watch(
       facilities: Array.isArray(val.facilities) ? [...val.facilities] : [],
       contact_email: val.contact_email ?? "",
       contact_phone: val.contact_phone ?? "",
-      website_url: val.website_url ?? "",
       cancellation_policy: val.cancellation_policy ?? "",
-      children_policy: val.children_policy ?? "",
-      nearest_airport: val.nearest_airport ?? "",
-      airport_distance_km: val.airport_distance_km ?? null,
       commission_rate: val.commission_rate ?? 0,
       tax_percentage: val.tax_percentage ?? 11,
       service_charge_percentage: val.service_charge_percentage ?? 0,
-      check_in_time: (val.check_in_time ?? "14:00:00").slice(0, 5),
-      check_out_time: (val.check_out_time ?? "12:00:00").slice(0, 5),
       is_active: val.is_active ?? true,
     });
     initialFeatured.value = val.featured?.original ?? val.featured?.url ?? null;

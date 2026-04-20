@@ -130,12 +130,7 @@ const props = defineProps({
 
 const mapLoaded = ref(false)
 
-const checkInCheckOutText = computed(() => {
-  const parts = []
-  if (props.hotel?.check_in_time) parts.push(`Check-in from ${props.hotel.check_in_time.slice(0, 5)}`)
-  if (props.hotel?.check_out_time) parts.push(`check-out by ${props.hotel.check_out_time.slice(0, 5)}`)
-  return parts.join(' · ')
-})
+const checkInCheckOutText = computed(() => 'Check-in from 14:00 · check-out by 12:00')
 
 const jsonLd = computed(() => {
   const h = props.hotel

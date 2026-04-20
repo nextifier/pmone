@@ -295,10 +295,11 @@ class ReservationController extends Controller
     private function applyFilters($query, Request $request): void
     {
         if ($search = $request->input('filter_search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('reservation_number', 'ilike', "%{$search}%")
-                    ->orWhere('guest_name', 'ilike', "%{$search}%")
-                    ->orWhere('guest_email', 'ilike', "%{$search}%");
+            $escaped = addcslashes((string) $search, '%_\\');
+            $query->where(function ($q) use ($escaped) {
+                $q->where('reservation_number', 'ilike', "%{$escaped}%")
+                    ->orWhere('guest_name', 'ilike', "%{$escaped}%")
+                    ->orWhere('guest_email', 'ilike', "%{$escaped}%");
             });
         }
 
