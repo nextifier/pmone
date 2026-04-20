@@ -44,14 +44,15 @@
               />
             </InputGroupAddon>
           </InputGroup>
-          <p v-if="errors.slug" class="text-destructive text-xs sm:text-sm">{{ errors.slug[0] }}</p>
+          <InputErrorMessage v-if="hasUppercase" :errors="['BACA PETUNJUK DI BAWAH!']" />
+          <InputErrorMessage v-else-if="errors.slug" :errors="errors.slug" />
           <p
             v-else-if="slugAvailable === false"
             class="text-destructive text-xs tracking-tight sm:text-sm"
           >
             This short link is already taken.
           </p>
-          <div v-else class="text-body space-y-2 tracking-tight sm:text-sm">
+          <div class="text-body space-y-2 tracking-tight sm:text-sm">
             <div>
               <p>Best practices:</p>
               <ul class="list-disc pl-4">
@@ -103,7 +104,10 @@
 
         <div class="flex justify-end gap-2">
           <Button variant="outline" type="button" @click="isOpen = false">Cancel</Button>
-          <Button type="submit" :disabled="loading || slugChecking || slugAvailable === false">
+          <Button
+            type="submit"
+            :disabled="loading || slugChecking || slugAvailable === false || hasUppercase"
+          >
             <Spinner v-if="loading" />
             {{ mode === "create" ? "Create" : "Save" }}
             <KbdGroup
@@ -146,6 +150,8 @@ const loading = ref(false);
 const slugChecking = ref(false);
 const slugAvailable = ref(null);
 let slugCheckTimeout = null;
+
+const hasUppercase = computed(() => /[A-Z]/.test(formData.value.slug));
 
 function generateRandomSlug(length = 6) {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -212,6 +218,11 @@ watch(isOpen, (val) => {
 });
 
 async function handleSubmit() {
+  if (hasUppercase.value) {
+    toast.error("BACA PETUNJUK DI BAWAH!");
+    return;
+  }
+
   loading.value = true;
   errors.value = {};
   try {
