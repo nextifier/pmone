@@ -1,12 +1,7 @@
 <template>
   <div class="space-y-4">
-    <div class="flex items-center justify-between">
-      <h2 class="text-lg font-semibold tracking-tight">Available Rooms</h2>
-      <span
-        v-if="checking"
-        class="text-muted-foreground text-xs tracking-tight"
-        aria-live="polite"
-      >
+    <div v-if="checking" class="flex justify-end">
+      <span class="text-muted-foreground text-xs tracking-tight" aria-live="polite">
         Checking availability…
       </span>
     </div>

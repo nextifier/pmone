@@ -54,8 +54,14 @@
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div class="space-y-2">
-              <Label for="nationality">Nationality</Label>
-              <Input id="nationality" v-model="form.nationality" placeholder="Indonesia" :disabled="disabled" />
+              <Label>Nationality</Label>
+              <LocationCombobox
+                v-model="form.nationality"
+                :options="countries"
+                :pinned="['Indonesia']"
+                placeholder="Select country"
+                :disabled="disabled"
+              />
               <InputErrorMessage :errors="errors.guest_nationality" />
             </div>
             <div class="space-y-2">
@@ -76,14 +82,12 @@
             />
             <InputErrorMessage :errors="errors.special_request" />
           </div>
-        </div>
-      </div>
-    </div>
 
-    <div class="frame">
-      <div class="frame-panel">
-        <TermsCheckbox v-model="accept" :disabled="disabled" />
-        <InputErrorMessage class="mt-2" :errors="errors.accept_terms" />
+          <div class="space-y-2">
+            <TermsCheckbox v-model="accept" :disabled="disabled" />
+            <InputErrorMessage :errors="errors.accept_terms" />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -103,6 +107,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { InputErrorMessage } from '@/components/ui/input-error-message'
 import { Label } from '@/components/ui/label'
+import { LocationCombobox } from '@/components/ui/location-combobox'
 import {
   Select,
   SelectContent,
@@ -113,6 +118,7 @@ import {
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { InputPhone } from '@/components/ui/input-phone'
+import countries from '@/data/countries.json'
 import { reactive, ref, watch } from 'vue'
 
 const props = defineProps({
@@ -194,20 +200,20 @@ function validate() {
   const errs = {}
 
   if (!form.name?.trim() || form.name.trim().length < 2) {
-    errs.name = 'Name must be at least 2 characters.'
+    errs.name = ['Name must be at least 2 characters.']
   }
   if (!form.email || !EMAIL_RE.test(form.email.trim())) {
-    errs.email = 'Please enter a valid email address.'
+    errs.email = ['Please enter a valid email address.']
   }
   if (!form.phone || !PHONE_RE.test(String(form.phone).trim())) {
-    errs.phone = 'Please enter a valid phone number.'
+    errs.phone = ['Please enter a valid phone number.']
   }
   if (!form.identity_number?.trim()) {
-    errs.identity_number = 'ID number is required.'
+    errs.identity_number = ['ID number is required.']
   } else if (form.identity_type === 'nik' && !NIK_RE.test(form.identity_number.trim())) {
-    errs.identity_number = 'NIK must be exactly 16 digits.'
+    errs.identity_number = ['NIK must be exactly 16 digits.']
   } else if (form.identity_type === 'passport' && !PASSPORT_RE.test(form.identity_number.trim())) {
-    errs.identity_number = 'Passport number must be 6-15 alphanumeric characters.'
+    errs.identity_number = ['Passport number must be 6-15 alphanumeric characters.']
   }
 
   clientErrors.value = errs

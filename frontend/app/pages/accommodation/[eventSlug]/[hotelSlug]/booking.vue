@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-5xl px-4 pt-4 pb-16 space-y-6">
+  <div class="mx-auto max-w-5xl space-y-6 px-4 pt-4 pb-16">
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
@@ -22,11 +22,8 @@
       </BreadcrumbList>
     </Breadcrumb>
 
-    <div class="flex items-center gap-x-2.5 min-w-0">
-      <ButtonBack
-        :destination="`/accommodation/${eventSlug}/${hotelSlug}`"
-        :show-label="false"
-      />
+    <div class="flex flex-col items-start gap-y-6">
+      <ButtonBack :destination="`/accommodation/${eventSlug}/${hotelSlug}`" />
       <h1 class="page-title">Guest Information</h1>
     </div>
 
@@ -52,12 +49,13 @@
           <div
             v-if="priceDrift"
             role="alert"
-            class="bg-warning/10 text-warning-foreground rounded-md border border-warning/30 p-4 text-sm tracking-tight"
+            class="bg-warning/10 text-warning-foreground border-warning/30 rounded-md border p-4 text-sm tracking-tight"
           >
             <p class="font-semibold">Price updated</p>
             <p class="mt-1">
               The hotel rate has changed since you started booking. New total:
-              <strong>Rp {{ formatRupiah(summary.total) }}</strong>. Please accept the new price to continue.
+              <strong>Rp {{ formatRupiah(summary.total) }}</strong
+              >. Please accept the new price to continue.
             </p>
             <Button size="sm" class="mt-3" @click="acceptNewPrice">Accept new price</Button>
           </div>
@@ -71,12 +69,10 @@
             @submit="handleSubmit"
             @cancel="handleCancel"
           />
-
-          <CancellationPolicy :custom-policy="hotel.cancellation_policy" />
         </div>
 
         <aside>
-          <div class="frame sticky top-4">
+          <div class="frame sticky">
             <div class="frame-header">
               <div class="frame-title">Order Summary</div>
             </div>
@@ -88,7 +84,7 @@
                 </p>
               </div>
 
-              <div class="border-t pt-3 text-sm tracking-tight space-y-1">
+              <div class="space-y-1 border-t pt-3 text-sm tracking-tight">
                 <div class="flex justify-between">
                   <span class="text-muted-foreground">Check-in</span>
                   <span>{{ formatDate(checkIn) }}</span>
@@ -103,7 +99,10 @@
                 </div>
               </div>
 
-              <div v-if="selectedRoomLines.length" class="border-t pt-3 space-y-1.5 text-sm tracking-tight">
+              <div
+                v-if="selectedRoomLines.length"
+                class="space-y-1.5 border-t pt-3 text-sm tracking-tight"
+              >
                 <p class="text-muted-foreground text-xs tracking-tight">Rooms</p>
                 <div v-for="line in selectedRoomLines" :key="line.id" class="flex justify-between">
                   <span>{{ line.name }} × {{ line.qty }}</span>
@@ -111,26 +110,33 @@
                 </div>
               </div>
 
-              <div v-if="selectedTransferLines.length" class="border-t pt-3 space-y-1.5 text-sm tracking-tight">
+              <div
+                v-if="selectedTransferLines.length"
+                class="space-y-1.5 border-t pt-3 text-sm tracking-tight"
+              >
                 <p class="text-muted-foreground text-xs tracking-tight">Transfer</p>
-                <div v-for="line in selectedTransferLines" :key="line.id" class="flex justify-between">
+                <div
+                  v-for="line in selectedTransferLines"
+                  :key="line.id"
+                  class="flex justify-between"
+                >
                   <span>{{ line.label }}</span>
                   <span class="tabular-nums">Rp {{ formatRupiah(line.price) }}</span>
                 </div>
               </div>
 
-              <div class="border-t pt-3 space-y-1.5 text-sm tracking-tight">
-                <div class="flex justify-between text-muted-foreground">
+              <div class="space-y-1.5 border-t pt-3 text-sm tracking-tight">
+                <div class="text-muted-foreground flex justify-between">
                   <span>Subtotal</span>
                   <span class="tabular-nums">
                     Rp {{ formatRupiah(summary.rooms + summary.transfer) }}
                   </span>
                 </div>
-                <div class="flex justify-between text-muted-foreground">
+                <div class="text-muted-foreground flex justify-between">
                   <span>Tax {{ hotel.tax_percentage }}%</span>
                   <span class="tabular-nums">Rp {{ formatRupiah(summary.tax) }}</span>
                 </div>
-                <div v-if="summary.service > 0" class="flex justify-between text-muted-foreground">
+                <div v-if="summary.service > 0" class="text-muted-foreground flex justify-between">
                   <span>Service {{ hotel.service_charge_percentage }}%</span>
                   <span class="tabular-nums">Rp {{ formatRupiah(summary.service) }}</span>
                 </div>
@@ -154,32 +160,11 @@
         </div>
       </template>
     </ClientOnly>
-
-    <DialogResponsive v-model:open="paymentDialogOpen" :overflow-content="true" dialog-max-width="28rem">
-      <template #default>
-        <div class="px-4 pb-8 md:px-6 md:py-5 space-y-3">
-          <h3 class="text-lg font-semibold tracking-tight">Redirect to Payment</h3>
-          <p class="text-sm tracking-tight text-muted-foreground">
-            You will be redirected to <strong>Xendit</strong> to complete the payment of
-            <strong class="text-foreground">Rp {{ formatRupiah(summary.total) }}</strong>.
-            Do not close your browser until you return to the confirmation page.
-          </p>
-          <div class="flex justify-end gap-2 pt-1">
-            <Button variant="outline" size="sm" :disabled="redirecting" @click="cancelPayment">Cancel</Button>
-            <Button size="sm" :disabled="redirecting" @click="confirmPayment">
-              <Spinner v-if="redirecting" />
-              {{ redirecting ? 'Redirecting…' : 'Continue to Payment' }}
-            </Button>
-          </div>
-        </div>
-      </template>
-    </DialogResponsive>
   </div>
 </template>
 
 <script setup>
 import GuestInfoForm from "@/components/accommodation/GuestInfoForm.vue";
-import CancellationPolicy from "@/components/accommodation/CancellationPolicy.vue";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -190,9 +175,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { ButtonBack } from "@/components/ui/button-back";
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Spinner } from "@/components/ui/spinner";
 import { useBookingSession } from "@/composables/useBookingSession";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { toast } from "vue-sonner";
@@ -220,7 +203,7 @@ function isAllowedPaymentUrl(url) {
     const parsed = new URL(url);
     if (parsed.protocol !== "https:") return false;
     return ALLOWED_PAYMENT_HOSTS.some(
-      (host) => parsed.hostname === host || parsed.hostname.endsWith(`.${host}`),
+      (host) => parsed.hostname === host || parsed.hostname.endsWith(`.${host}`)
     );
   } catch {
     return false;
@@ -228,7 +211,7 @@ function isAllowedPaymentUrl(url) {
 }
 
 definePageMeta({
-  layout: "public",
+  layout: "default",
 });
 
 const route = useRoute();
@@ -240,7 +223,7 @@ const { state, hydrate, setGuest, set, clear, hasBookingSelection } = useBooking
 
 const { data, pending } = await useLazyAsyncData(
   () => `public-hotel-booking-${eventSlug.value}-${hotelSlug.value}`,
-  () => $fetch(`/api/accommodation/events/${eventSlug.value}/hotels/${hotelSlug.value}`),
+  () => $fetch(`/api/accommodation/events/${eventSlug.value}/hotels/${hotelSlug.value}`)
 );
 
 const hotel = computed(() => data.value?.data);
@@ -296,8 +279,7 @@ const summary = computed(() => {
   const transfer = selectedTransferLines.value.reduce((sum, line) => sum + line.price, 0);
   const taxBase = rooms + transfer;
   const tax = Math.round(taxBase * (hotel.value.tax_percentage / 100) * 100) / 100;
-  const service =
-    Math.round(taxBase * (hotel.value.service_charge_percentage / 100) * 100) / 100;
+  const service = Math.round(taxBase * (hotel.value.service_charge_percentage / 100) * 100) / 100;
   const total = taxBase + tax + service;
   return { rooms, transfer, tax, service, total };
 });
@@ -325,15 +307,11 @@ const errors = ref({});
 const isFormDirty = computed(() => {
   const g = guestModel.value || {};
   return Boolean(
-    g.name || g.email || g.phone || g.identity_number || g.company || g.special_request,
+    g.name || g.email || g.phone || g.identity_number || g.company || g.special_request
   );
 });
 
-watch(
-  guestModel,
-  (value) => setGuest(value),
-  { deep: true, flush: "post" },
-);
+watch(guestModel, (value) => setGuest(value), { deep: true, flush: "post" });
 
 watch(acceptTerms, (value) => set({ acceptTerms: value }), { flush: "post" });
 
@@ -383,41 +361,23 @@ function handleCancel() {
   router.push(`/accommodation/${eventSlug.value}/${hotelSlug.value}`);
 }
 
-const paymentDialogOpen = ref(false);
-const redirecting = ref(false);
-const pendingPaymentUrl = ref(null);
-const pendingMagicToken = ref(null);
-
 function acceptNewPrice() {
   sessionTotal.value = summary.value.total;
 }
 
-function cancelPayment() {
-  if (redirecting.value) return;
-  paymentDialogOpen.value = false;
-  if (pendingMagicToken.value) {
-    const token = pendingMagicToken.value;
-    pendingMagicToken.value = null;
-    pendingPaymentUrl.value = null;
-    clear();
-    navigateTo(`/hotels/reservation/${token}`);
-  }
-}
-
-function confirmPayment() {
-  if (!pendingPaymentUrl.value) return;
-  if (!isAllowedPaymentUrl(pendingPaymentUrl.value)) {
+function redirectToPayment(paymentUrl) {
+  if (!isAllowedPaymentUrl(paymentUrl)) {
     toast.error("Payment redirect blocked", {
-      description: "Payment URL is not from a trusted provider.",
+      description: "Payment URL is not from a trusted provider. Please contact support.",
     });
     return;
   }
   trackEvent("payment_initiated", {
-    host: new URL(pendingPaymentUrl.value).hostname,
+    host: new URL(paymentUrl).hostname,
   });
-  redirecting.value = true;
+  window.removeEventListener("beforeunload", beforeUnloadHandler);
   clear();
-  window.location.href = pendingPaymentUrl.value;
+  window.location.href = paymentUrl;
 }
 
 async function recheckAvailability() {
@@ -516,16 +476,10 @@ async function handleSubmit(guestPayload) {
     const magicToken = response?.data?.magic_link_token;
 
     if (paymentUrl) {
-      if (!isAllowedPaymentUrl(paymentUrl)) {
-        toast.error("Payment redirect blocked", {
-          description: "Payment URL is not from a trusted provider. Please contact support.",
-        });
-        return;
-      }
-      pendingPaymentUrl.value = paymentUrl;
-      pendingMagicToken.value = magicToken ?? null;
-      paymentDialogOpen.value = true;
+      redirectToPayment(paymentUrl);
+      return;
     } else if (magicToken) {
+      window.removeEventListener("beforeunload", beforeUnloadHandler);
       clear();
       await navigateTo(`/hotels/reservation/${magicToken}`);
     } else {

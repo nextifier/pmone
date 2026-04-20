@@ -1,7 +1,7 @@
 <template>
-  <div class="mx-auto max-w-3xl px-4 pt-4 pb-16 space-y-6">
+  <div class="mx-auto max-w-3xl space-y-6 px-4 pt-4 pb-16">
     <div v-if="pending" class="space-y-6">
-      <div class="flex items-start justify-between gap-3 flex-wrap">
+      <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="space-y-2">
           <Skeleton class="h-8 w-72" />
           <Skeleton class="h-4 w-48" />
@@ -21,14 +21,14 @@
     </div>
 
     <div v-else class="space-y-6">
-      <div class="flex items-start justify-between gap-3 flex-wrap">
+      <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="space-y-1">
           <h1 class="page-title">Booking {{ reservation.reservation_number }}</h1>
           <p class="text-muted-foreground text-sm tracking-tight">{{ reservation.hotel?.name }}</p>
         </div>
         <span
           :class="[
-            'inline-flex items-center rounded-full px-3 py-1 text-xs sm:text-sm tracking-tight',
+            'inline-flex items-center rounded-full px-3 py-1 text-xs tracking-tight sm:text-sm',
             statusClass,
           ]"
         >
@@ -41,17 +41,17 @@
           <div class="frame-title">Guest Information</div>
         </div>
         <div class="frame-panel">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm tracking-tight">
+          <div class="grid grid-cols-1 gap-4 text-sm tracking-tight sm:grid-cols-2">
             <div>
-              <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Name</p>
+              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Name</p>
               <p>{{ reservation.guest.name }}</p>
             </div>
             <div>
-              <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Email</p>
+              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Email</p>
               <p>{{ reservation.guest.email }}</p>
             </div>
             <div>
-              <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Phone</p>
+              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Phone</p>
               <p>{{ reservation.guest.phone }}</p>
             </div>
           </div>
@@ -66,20 +66,21 @@
           <div
             v-for="item in reservation.items"
             :key="item.room_type_name"
-            class="border-b last:border-b-0 pb-2 last:pb-0"
+            class="border-b pb-2 last:border-b-0 last:pb-0"
           >
             <div class="flex justify-between gap-3 text-sm tracking-tight">
               <div>
                 <p class="font-medium">{{ item.room_type_name }}</p>
-                <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
-                  {{ item.check_in_date }} → {{ item.check_out_date }} · {{ item.nights }} night(s) · {{ item.qty }} room(s)
+                <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                  {{ item.check_in_date }} → {{ item.check_out_date }} · {{ item.nights }} night(s)
+                  · {{ item.qty }} room(s)
                 </p>
               </div>
               <p class="font-medium tabular-nums">Rp {{ formatRupiah(item.subtotal) }}</p>
             </div>
           </div>
 
-          <div v-if="reservation.transfers?.length" class="border-t pt-3 space-y-2">
+          <div v-if="reservation.transfers?.length" class="space-y-2 border-t pt-3">
             <h3 class="text-sm font-medium tracking-tight">Transfer</h3>
             <div
               v-for="(t, idx) in reservation.transfers"
@@ -88,7 +89,7 @@
             >
               <div>
                 <p>{{ t.direction }} · {{ t.transfer_date }}</p>
-                <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
+                <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
                   {{ t.pickup_location || "-" }} → {{ t.dropoff_location || "-" }}
                 </p>
               </div>
@@ -96,22 +97,30 @@
             </div>
           </div>
 
-          <div class="border-t pt-3 space-y-1.5 text-sm tracking-tight">
-            <div class="flex justify-between text-muted-foreground">
+          <div class="space-y-1.5 border-t pt-3 text-sm tracking-tight">
+            <div class="text-muted-foreground flex justify-between">
               <span>Subtotal</span>
               <span class="tabular-nums">
-                Rp {{ formatRupiah(reservation.amounts.subtotal_rooms + reservation.amounts.subtotal_transfer) }}
+                Rp
+                {{
+                  formatRupiah(
+                    reservation.amounts.subtotal_rooms + reservation.amounts.subtotal_transfer
+                  )
+                }}
               </span>
             </div>
-            <div class="flex justify-between text-muted-foreground">
+            <div class="text-muted-foreground flex justify-between">
               <span>Tax</span>
               <span class="tabular-nums">Rp {{ formatRupiah(reservation.amounts.tax) }}</span>
             </div>
-            <div v-if="reservation.amounts.service > 0" class="flex justify-between text-muted-foreground">
+            <div
+              v-if="reservation.amounts.service > 0"
+              class="text-muted-foreground flex justify-between"
+            >
               <span>Service</span>
               <span class="tabular-nums">Rp {{ formatRupiah(reservation.amounts.service) }}</span>
             </div>
-            <div class="flex justify-between font-semibold text-base pt-1.5 border-t">
+            <div class="flex justify-between border-t pt-1.5 text-base font-semibold">
               <span>Total</span>
               <span class="tabular-nums">Rp {{ formatRupiah(reservation.amounts.total) }}</span>
             </div>
@@ -119,10 +128,7 @@
         </div>
       </div>
 
-      <div
-        v-if="reservation.status === 'pending_payment' && reservation.payment_url"
-        class="frame"
-      >
+      <div v-if="reservation.status === 'pending_payment' && reservation.payment_url" class="frame">
         <div class="frame-header">
           <div class="frame-title">Payment Pending</div>
         </div>
@@ -130,12 +136,12 @@
           <p class="text-sm tracking-tight">
             Payment has not been received yet. Please continue via Xendit:
           </p>
-          <p v-if="expiresAtLabel" class="text-muted-foreground text-xs sm:text-sm tracking-tight">
+          <p v-if="expiresAtLabel" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
             Payment link expires on {{ expiresAtLabel }}.
           </p>
           <a
             :href="reservation.payment_url"
-            class="bg-primary text-primary-foreground inline-flex items-center rounded-md px-4 py-2 text-sm font-medium tracking-tight hover:bg-primary/90 active:scale-98"
+            class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
           >
             Pay Now
           </a>
@@ -177,7 +183,7 @@
             <span class="text-muted-foreground">Email:</span>
             <a
               :href="`mailto:${reservation.hotel?.contact_email || 'support@pmone.id'}`"
-              class="text-primary underline ml-1"
+              class="text-primary ml-1 underline"
             >
               {{ reservation.hotel?.contact_email || "support@pmone.id" }}
             </a>
@@ -196,7 +202,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
 definePageMeta({
-  layout: "public",
+  layout: "default",
 });
 
 const route = useRoute();
@@ -204,7 +210,7 @@ const token = computed(() => route.params.token);
 
 const { data, pending } = await useLazyAsyncData(
   () => `reservation-${token.value}`,
-  () => $fetch(`/api/accommodation/reservation/${token.value}`),
+  () => $fetch(`/api/accommodation/reservation/${token.value}`)
 );
 
 const reservation = computed(() => data.value?.data);
@@ -225,9 +231,7 @@ const statusClass = computed(() => {
   return map[reservation.value?.status] || "bg-muted text-muted-foreground";
 });
 
-const isPaid = computed(() =>
-  ["paid", "voucher_sent"].includes(reservation.value?.status),
-);
+const isPaid = computed(() => ["paid", "voucher_sent"].includes(reservation.value?.status));
 
 const invoicePdfUrl = computed(() => `/api/accommodation/reservation/${token.value}/invoice.pdf`);
 const receiptPdfUrl = computed(() => `/api/accommodation/reservation/${token.value}/receipt.pdf`);

@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-5xl space-y-6 px-4 pt-4 pb-24 sm:pb-16">
+  <div class="mx-auto max-w-5xl space-y-6 px-4 pt-4 pb-16">
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
@@ -9,11 +9,11 @@
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbPage>{{ hotel?.event?.title ?? 'Event' }}</BreadcrumbPage>
+          <BreadcrumbPage>{{ hotel?.event?.title ?? "Event" }}</BreadcrumbPage>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbPage>{{ hotel?.name ?? 'Hotel' }}</BreadcrumbPage>
+          <BreadcrumbPage>{{ hotel?.name ?? "Hotel" }}</BreadcrumbPage>
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
@@ -43,16 +43,9 @@
 
     <ClientOnly v-else>
       <div class="space-y-6">
-        <div v-if="hotel.event" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-          <span>{{ hotel.event.title }}</span>
-          <span v-if="hotel.event.start_date || hotel.event.end_date">
-            · {{ formatEventDates(hotel.event) }}
-          </span>
-        </div>
-
         <HotelDetailHeader :hotel="hotel" />
 
-        <section class="grid gap-6 lg:grid-cols-[1fr_360px]">
+        <section class="grid items-start gap-6 lg:grid-cols-[1fr_360px]">
           <div class="space-y-6">
             <RoomTypeSelector
               :rooms="hotel.room_types"
@@ -61,70 +54,20 @@
               v-model="selectedRoomQty"
             />
             <TransferSelector :options="hotel.transfer_options" v-model="selectedTransfers" />
-            <CancellationPolicy :custom-policy="hotel.cancellation_policy" />
           </div>
 
-          <aside class="hidden lg:block">
+          <aside>
             <BookingSummary
               v-model:check-in="checkInDate"
               v-model:check-out="checkOutDate"
               :summary="summary"
               :tax-percentage="hotel.tax_percentage"
               :service-percentage="hotel.service_charge_percentage"
-              :event-start="hotel.event?.start_date"
-              :event-end="hotel.event?.end_date"
               :can-proceed="canProceed"
               @continue="goToBooking"
             />
           </aside>
         </section>
-
-        <div
-          class="bg-background/95 fixed inset-x-0 bottom-0 z-20 border-t backdrop-blur lg:hidden"
-        >
-          <div class="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-            <div class="min-w-0">
-              <p class="text-muted-foreground text-xs tracking-tight">Total</p>
-              <p class="font-semibold tracking-tight tabular-nums">
-                Rp {{ formatRupiah(summary.total) }}
-              </p>
-              <p v-if="nights > 0" class="text-muted-foreground text-xs tracking-tight">
-                {{ nights }} night{{ nights > 1 ? 's' : '' }} · {{ totalRoomsSelected }} room{{
-                  totalRoomsSelected > 1 ? 's' : ''
-                }}
-              </p>
-            </div>
-            <Button :disabled="!canProceed" @click="openMobileSummary = true">Continue</Button>
-          </div>
-        </div>
-
-        <DialogResponsive
-          v-model:open="openMobileSummary"
-          :overflow-content="true"
-          dialog-max-width="32rem"
-        >
-          <template #default>
-            <div class="px-4 pb-6 md:px-6 md:py-5">
-              <h3 class="text-lg font-semibold tracking-tight">Booking Summary</h3>
-              <p class="text-muted-foreground mt-1 text-sm tracking-tight">
-                Review your selection before continuing.
-              </p>
-              <div class="mt-4">
-                <BookingSummary
-                  v-model:check-in="checkInDate"
-                  v-model:check-out="checkOutDate"
-                  :summary="summary"
-                  :tax-percentage="hotel.tax_percentage"
-                  :service-percentage="hotel.service_charge_percentage"
-                  :event-start="hotel.event?.start_date"
-                  :event-end="hotel.event?.end_date"
-                  :can-proceed="canProceed"
-                  @continue="goToBooking"
-                />
-              </div>
-            </div>
-          </template>
-        </DialogResponsive>
       </div>
 
       <template #fallback>
@@ -148,273 +91,226 @@
 </template>
 
 <script setup>
-import HotelDetailHeader from '@/components/accommodation/HotelDetailHeader.vue'
-import RoomTypeSelector from '@/components/accommodation/RoomTypeSelector.vue'
-import TransferSelector from '@/components/accommodation/TransferSelector.vue'
-import BookingSummary from '@/components/accommodation/BookingSummary.vue'
-import CancellationPolicy from '@/components/accommodation/CancellationPolicy.vue'
-import DialogResponsive from '@/components/ui/dialog-responsive/DialogResponsive.vue'
+import BookingSummary from "@/components/accommodation/BookingSummary.vue";
+import HotelDetailHeader from "@/components/accommodation/HotelDetailHeader.vue";
+import RoomTypeSelector from "@/components/accommodation/RoomTypeSelector.vue";
+import TransferSelector from "@/components/accommodation/TransferSelector.vue";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
-  BreadcrumbSeparator
-} from '@/components/ui/breadcrumb'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useBookingSession } from '@/composables/useBookingSession'
-import { computed, onMounted, ref, watch } from 'vue'
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useBookingSession } from "@/composables/useBookingSession";
+import { computed, onMounted, ref, watch } from "vue";
 
 definePageMeta({
-  layout: 'public'
-})
+  layout: "default",
+});
 
-const route = useRoute()
-const router = useRouter()
-const eventSlug = computed(() => route.params.eventSlug)
-const hotelSlug = computed(() => route.params.hotelSlug)
+const route = useRoute();
+const router = useRouter();
+const eventSlug = computed(() => route.params.eventSlug);
+const hotelSlug = computed(() => route.params.hotelSlug);
 
 const { data, pending } = await useLazyAsyncData(
   () => `public-hotel-${eventSlug.value}-${hotelSlug.value}`,
   () => $fetch(`/api/accommodation/events/${eventSlug.value}/hotels/${hotelSlug.value}`)
-)
+);
 
-const hotel = computed(() => data.value?.data)
+const hotel = computed(() => data.value?.data);
 
 usePageMeta(null, {
   title: computed(
-    () => `${hotel.value?.name ?? 'Hotel'} · ${hotel.value?.event?.title ?? 'Accommodation'}`
-  )
-})
+    () => `${hotel.value?.name ?? "Hotel"} · ${hotel.value?.event?.title ?? "Accommodation"}`
+  ),
+});
 
-const { state, hydrate, set } = useBookingSession()
-
-const today = new Date()
-today.setHours(0, 0, 0, 0)
-const tomorrow = new Date(today.getTime() + 86400000)
-const dayAfter = new Date(today.getTime() + 2 * 86400000)
+const { state, hydrate, set } = useBookingSession();
 
 const parseIso = (iso) => {
-  if (!iso) return null
-  const [y, m, d] = iso.split('-').map(Number)
-  if (!y || !m || !d) return null
-  const date = new Date(y, m - 1, d)
-  return Number.isNaN(date.getTime()) ? null : date
-}
+  if (!iso) return null;
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) return null;
+  const date = new Date(y, m - 1, d);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
 
 const toIsoDate = (date) => {
-  if (!date) return null
-  const pad = (n) => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
-}
+  if (!date) return null;
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+};
 
-const checkInDate = ref(tomorrow)
-const checkOutDate = ref(dayAfter)
-const selectedRoomQty = ref({})
-const selectedTransfers = ref({})
-const openMobileSummary = ref(false)
-const syncing = ref(false)
-const restoredFromSession = ref(false)
-
-function applyEventDefaults() {
-  const eventStartRaw = hotel.value?.event?.start_date
-  const eventEndRaw = hotel.value?.event?.end_date
-  if (!eventStartRaw || !eventEndRaw) return
-  const start = new Date(eventStartRaw)
-  const end = new Date(eventEndRaw)
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return
-  start.setHours(0, 0, 0, 0)
-  end.setHours(0, 0, 0, 0)
-  if (end.getTime() < today.getTime()) return
-  checkInDate.value = start.getTime() < today.getTime() ? tomorrow : start
-  checkOutDate.value =
-    end.getTime() <= checkInDate.value.getTime()
-      ? new Date(checkInDate.value.getTime() + 86400000)
-      : end
-}
+const checkInDate = ref(null);
+const checkOutDate = ref(null);
+const selectedRoomQty = ref({});
+const selectedTransfers = ref({});
+const syncing = ref(false);
 
 onMounted(() => {
-  hydrate()
-  syncing.value = true
+  hydrate();
+  syncing.value = true;
   const sameSelection =
-    state.value.eventSlug === eventSlug.value && state.value.hotelSlug === hotelSlug.value
+    state.value.eventSlug === eventSlug.value && state.value.hotelSlug === hotelSlug.value;
 
   if (sameSelection) {
-    const savedIn = parseIso(state.value.checkIn)
-    const savedOut = parseIso(state.value.checkOut)
-    if (savedIn) checkInDate.value = savedIn
-    if (savedOut) checkOutDate.value = savedOut
-    selectedRoomQty.value = { ...(state.value.rooms || {}) }
-    selectedTransfers.value = { ...(state.value.transfers || {}) }
-    restoredFromSession.value = true
-  } else if (hotel.value) {
-    applyEventDefaults()
+    const savedIn = parseIso(state.value.checkIn);
+    const savedOut = parseIso(state.value.checkOut);
+    if (savedIn) checkInDate.value = savedIn;
+    if (savedOut) checkOutDate.value = savedOut;
+    selectedRoomQty.value = { ...(state.value.rooms || {}) };
+    selectedTransfers.value = { ...(state.value.transfers || {}) };
   }
 
-  syncing.value = false
+  syncing.value = false;
 
   set({
     checkIn: toIsoDate(checkInDate.value),
-    checkOut: toIsoDate(checkOutDate.value)
-  })
-})
+    checkOut: toIsoDate(checkOutDate.value),
+  });
+});
 
 watch(
   hotel,
   (value) => {
-    if (!value || !import.meta.client) return
-    if (!restoredFromSession.value) {
-      syncing.value = true
-      applyEventDefaults()
-      syncing.value = false
-    }
+    if (!value || !import.meta.client) return;
     set({
       hotelId: value.id,
       eventSlug: eventSlug.value,
       hotelSlug: hotelSlug.value,
       checkIn: toIsoDate(checkInDate.value),
-      checkOut: toIsoDate(checkOutDate.value)
-    })
+      checkOut: toIsoDate(checkOutDate.value),
+    });
   },
   { immediate: true }
-)
+);
 
 watch([checkInDate, checkOutDate], ([inDate, outDate]) => {
-  if (syncing.value) return
+  if (syncing.value) return;
   if (inDate && outDate && outDate.getTime() <= inDate.getTime()) {
-    checkOutDate.value = new Date(inDate.getTime() + 86400000)
-    return
+    checkOutDate.value = new Date(inDate.getTime() + 86400000);
+    return;
   }
-  set({ checkIn: toIsoDate(inDate), checkOut: toIsoDate(outDate) })
-})
+  set({ checkIn: toIsoDate(inDate), checkOut: toIsoDate(outDate) });
+});
 
 watch(
   selectedRoomQty,
   (value) => {
-    if (syncing.value) return
-    set({ rooms: { ...value } })
+    if (syncing.value) return;
+    set({ rooms: { ...value } });
   },
   { deep: true }
-)
+);
 
 watch(
   selectedTransfers,
   (value) => {
-    if (syncing.value) return
-    set({ transfers: { ...value } })
+    if (syncing.value) return;
+    set({ transfers: { ...value } });
   },
   { deep: true }
-)
+);
 
 const nights = computed(() => {
-  if (!checkInDate.value || !checkOutDate.value) return 0
-  const ms = checkOutDate.value.getTime() - checkInDate.value.getTime()
-  return Math.max(0, Math.round(ms / 86400000))
-})
+  if (!checkInDate.value || !checkOutDate.value) return 0;
+  const ms = checkOutDate.value.getTime() - checkInDate.value.getTime();
+  return Math.max(0, Math.round(ms / 86400000));
+});
 
-const availability = ref({})
-const checkingAvailability = ref(false)
-let availabilityReq = 0
+const availability = ref({});
+const checkingAvailability = ref(false);
+let availabilityReq = 0;
 
 async function fetchAvailability() {
-  if (!hotel.value || nights.value < 1) return
-  const rooms = hotel.value.room_types ?? []
-  if (!rooms.length) return
-  const checkIn = toIsoDate(checkInDate.value)
-  const checkOut = toIsoDate(checkOutDate.value)
-  if (!checkIn || !checkOut) return
+  if (!hotel.value || nights.value < 1) return;
+  const rooms = hotel.value.room_types ?? [];
+  if (!rooms.length) return;
+  const checkIn = toIsoDate(checkInDate.value);
+  const checkOut = toIsoDate(checkOutDate.value);
+  if (!checkIn || !checkOut) return;
 
-  const reqId = ++availabilityReq
-  checkingAvailability.value = true
+  const reqId = ++availabilityReq;
+  checkingAvailability.value = true;
   try {
     const results = await Promise.all(
       rooms.map((room) =>
-        $fetch('/api/accommodation/availability', {
-          method: 'POST',
+        $fetch("/api/accommodation/availability", {
+          method: "POST",
           body: {
             hotel_id: hotel.value.id,
             room_type_id: room.id,
             check_in_date: checkIn,
             check_out_date: checkOut,
-            qty: 1
-          }
+            qty: 1,
+          },
         })
           .then((res) => ({ id: room.id, available: Number(res?.data?.available ?? 0) }))
           .catch(() => ({ id: room.id, available: null }))
       )
-    )
-    if (reqId !== availabilityReq) return
-    const map = {}
-    for (const r of results) map[r.id] = r.available
-    availability.value = map
+    );
+    if (reqId !== availabilityReq) return;
+    const map = {};
+    for (const r of results) map[r.id] = r.available;
+    availability.value = map;
 
     // Clamp selected quantities to remaining availability
-    const next = { ...selectedRoomQty.value }
-    let changed = false
+    const next = { ...selectedRoomQty.value };
+    let changed = false;
     for (const [id, qty] of Object.entries(next)) {
-      const avail = map[id]
+      const avail = map[id];
       if (avail != null && Number(qty) > avail) {
-        next[id] = Math.max(0, avail)
-        changed = true
+        next[id] = Math.max(0, avail);
+        changed = true;
       }
     }
-    if (changed) selectedRoomQty.value = next
+    if (changed) selectedRoomQty.value = next;
   } finally {
-    if (reqId === availabilityReq) checkingAvailability.value = false
+    if (reqId === availabilityReq) checkingAvailability.value = false;
   }
 }
 
 watch(
   [hotel, checkInDate, checkOutDate],
   () => {
-    if (syncing.value) return
-    fetchAvailability()
+    if (syncing.value) return;
+    fetchAvailability();
   },
-  { flush: 'post' }
-)
+  { flush: "post" }
+);
 
 const totalRoomsSelected = computed(() =>
   Object.values(selectedRoomQty.value).reduce((sum, qty) => sum + (Number(qty) || 0), 0)
-)
+);
 
 const summary = computed(() => {
-  if (!hotel.value) return { rooms: 0, transfer: 0, tax: 0, service: 0, total: 0 }
-  let rooms = 0
+  if (!hotel.value) return { rooms: 0, transfer: 0, tax: 0, service: 0, total: 0 };
+  let rooms = 0;
   for (const room of hotel.value.room_types ?? []) {
-    const qty = Number(selectedRoomQty.value[room.id]) || 0
-    rooms += room.base_rate * nights.value * qty
+    const qty = Number(selectedRoomQty.value[room.id]) || 0;
+    rooms += room.base_rate * nights.value * qty;
   }
-  let transfer = 0
+  let transfer = 0;
   for (const opt of hotel.value.transfer_options ?? []) {
-    if (selectedTransfers.value[opt.id]) transfer += opt.price
+    if (selectedTransfers.value[opt.id]) transfer += opt.price;
   }
-  const taxBase = rooms + transfer
-  const tax = Math.round(taxBase * (hotel.value.tax_percentage / 100) * 100) / 100
-  const service = Math.round(taxBase * (hotel.value.service_charge_percentage / 100) * 100) / 100
-  const total = taxBase + tax + service
-  return { rooms, transfer, tax, service, total }
-})
+  const taxBase = rooms + transfer;
+  const tax = Math.round(taxBase * (hotel.value.tax_percentage / 100) * 100) / 100;
+  const service = Math.round(taxBase * (hotel.value.service_charge_percentage / 100) * 100) / 100;
+  const total = taxBase + tax + service;
+  return { rooms, transfer, tax, service, total };
+});
 
 const canProceed = computed(
   () => summary.value.total > 0 && nights.value > 0 && totalRoomsSelected.value > 0
-)
+);
 
 const goToBooking = () => {
-  if (!canProceed.value) return
-  openMobileSummary.value = false
-  router.push(`/accommodation/${eventSlug.value}/${hotelSlug.value}/booking`)
-}
-
-const formatRupiah = (n) => new Intl.NumberFormat('id-ID').format(Number(n) || 0)
-
-const formatEventDates = (ev) => {
-  const fmt = (d) =>
-    d
-      ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-      : ''
-  if (ev.start_date && ev.end_date) return `${fmt(ev.start_date)} - ${fmt(ev.end_date)}`
-  return fmt(ev.start_date || ev.end_date)
-}
+  if (!canProceed.value) return;
+  router.push(`/accommodation/${eventSlug.value}/${hotelSlug.value}/booking`);
+};
 </script>
