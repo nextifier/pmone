@@ -573,6 +573,9 @@
       .tippy-content {
         @apply text-[13px];
       }
+      &[data-theme~="primary"] {
+        @apply bg-primary text-primary-foreground ring-primary;
+      }
     }
   }
 }

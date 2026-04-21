@@ -1,9 +1,23 @@
 <template>
-  <div v-if="svgContent" v-html="svgContent" />
+  <Tippy v-if="svgContent" theme="primary" placement="bottom">
+    <button
+      type="button"
+      @click="toggleQrStyle"
+      class="block w-full cursor-pointer rounded-lg transition active:scale-98"
+    >
+      <div v-html="svgContent" />
+    </button>
+    <template #content>
+      <span class="flex items-center gap-x-1.5 leading-none tracking-tight">
+        <Icon name="hugeicons:mouse-left-click-01" class="size-4 shrink-0" />
+        <span>Click to change QR Code style</span>
+      </span>
+    </template>
+  </Tippy>
 </template>
 
 <script setup>
-import { buildQRSvgString } from "@/composables/useQRCode";
+import { buildQRSvgString, useQRCodeStyle } from "@/composables/useQRCode";
 
 const props = defineProps({
   url: {
@@ -32,6 +46,8 @@ const props = defineProps({
   },
 });
 
+const { qrStyle, toggleQrStyle } = useQRCodeStyle();
+
 const qrData = shallowRef(null);
 const QRLib = shallowRef(null);
 
@@ -43,9 +59,9 @@ const svgContent = computed(() => {
     margin: props.margin,
     fgColor: props.fgColor,
     bgColor: props.bgColor,
+    styleVariant: qrStyle.value,
   });
 
-  // Replace fixed width/height with 100% so it fills the container
   return svg
     .replace(`width="${props.size}"`, 'width="100%"')
     .replace(`height="${props.size}"`, 'height="100%"');

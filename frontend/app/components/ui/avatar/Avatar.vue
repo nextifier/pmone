@@ -2,10 +2,10 @@
   <div
     v-if="model"
     v-tippy="tippyContent"
-    class="relative shrink-0"
+    class="@container relative shrink-0"
     :class="[
       gradientFrame
-        ? `${effectiveRounded} before:gradient-insta before:absolute before:-inset-1 before:rounded-[calc(var(--avatar-r)+0.25rem)] before:bg-linear-to-tr before:content-[''] before:[corner-shape:inherit]`
+        ? `${effectiveRounded} before:gradient-insta before:absolute before:-inset-[max(0.25rem,4cqw)] before:rounded-[calc(var(--avatar-r)+max(0.25rem,4cqw))] before:bg-linear-to-tr before:content-[''] before:[corner-shape:inherit]`
         : '',
     ]"
     :style="gradientFrame ? { '--avatar-r': radiusValue } : undefined"

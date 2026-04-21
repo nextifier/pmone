@@ -1,11 +1,14 @@
 import type QRCodeLib from "qrcode";
 
+export type QRStyleVariant = "rounded" | "square";
+
 interface QRSvgOptions {
   size?: number;
   margin?: number;
   fgColor?: string;
   bgColor?: string;
   errorCorrectionLevel?: "L" | "M" | "Q" | "H";
+  styleVariant?: QRStyleVariant;
 }
 
 function isInFinderPattern(row: number, col: number, size: number): boolean {
@@ -52,6 +55,7 @@ export function buildQRSvgString(
     margin = 0,
     fgColor = "#000000",
     bgColor = "#FFFFFF",
+    styleVariant = "rounded",
   } = options;
 
   const moduleCount = qrData.modules.size;
@@ -68,45 +72,80 @@ export function buildQRSvgString(
 
   const parts: string[] = [];
 
-  // Background
-  parts.push(
-    `<rect width="${size}" height="${size}" fill="${bgColor}" rx="12" ry="12"/>`
-  );
-
-  // Finder patterns (circular eye frame + eye ball)
-  for (const [r, c] of finderPositions) {
-    const cx = offset + (c + 3.5) * moduleSize;
-    const cy = offset + (r + 3.5) * moduleSize;
-    const outerR = 3.5 * moduleSize;
-    const middleR = 2.5 * moduleSize;
-    const innerR = 1.5 * moduleSize;
-
-    // Eye frame: outer circle (fg)
+  if (styleVariant === "square") {
+    // Background (no corner radius for classic look)
     parts.push(
-      `<circle cx="${cx}" cy="${cy}" r="${outerR}" fill="${fgColor}"/>`
+      `<rect width="${size}" height="${size}" fill="${bgColor}"/>`
     );
-    // Eye frame: gap circle (bg)
-    parts.push(
-      `<circle cx="${cx}" cy="${cy}" r="${middleR}" fill="${bgColor}"/>`
-    );
-    // Eye ball: inner circle (fg)
-    parts.push(
-      `<circle cx="${cx}" cy="${cy}" r="${innerR}" fill="${fgColor}"/>`
-    );
-  }
 
-  // Data modules (circles)
-  for (let row = 0; row < moduleCount; row++) {
-    for (let col = 0; col < moduleCount; col++) {
-      if (
-        qrData.modules.get(row, col) &&
-        !isInFinderPattern(row, col, moduleCount)
-      ) {
-        const cx = offset + (col + 0.5) * moduleSize;
-        const cy = offset + (row + 0.5) * moduleSize;
-        parts.push(
-          `<circle cx="${cx}" cy="${cy}" r="${circleRadius}" fill="${fgColor}"/>`
-        );
+    // Finder patterns (nested squares: 7x7 fg, 5x5 bg, 3x3 fg)
+    for (const [r, c] of finderPositions) {
+      const x = offset + c * moduleSize;
+      const y = offset + r * moduleSize;
+      parts.push(
+        `<rect x="${x}" y="${y}" width="${7 * moduleSize}" height="${7 * moduleSize}" fill="${fgColor}"/>`
+      );
+      parts.push(
+        `<rect x="${x + moduleSize}" y="${y + moduleSize}" width="${5 * moduleSize}" height="${5 * moduleSize}" fill="${bgColor}"/>`
+      );
+      parts.push(
+        `<rect x="${x + 2 * moduleSize}" y="${y + 2 * moduleSize}" width="${3 * moduleSize}" height="${3 * moduleSize}" fill="${fgColor}"/>`
+      );
+    }
+
+    // Data modules (squares)
+    for (let row = 0; row < moduleCount; row++) {
+      for (let col = 0; col < moduleCount; col++) {
+        if (
+          qrData.modules.get(row, col) &&
+          !isInFinderPattern(row, col, moduleCount)
+        ) {
+          const x = offset + col * moduleSize;
+          const y = offset + row * moduleSize;
+          parts.push(
+            `<rect x="${x}" y="${y}" width="${moduleSize}" height="${moduleSize}" fill="${fgColor}"/>`
+          );
+        }
+      }
+    }
+  } else {
+    // Background (rounded container)
+    parts.push(
+      `<rect width="${size}" height="${size}" fill="${bgColor}" rx="12" ry="12"/>`
+    );
+
+    // Finder patterns (circular eye frame + eye ball)
+    for (const [r, c] of finderPositions) {
+      const cx = offset + (c + 3.5) * moduleSize;
+      const cy = offset + (r + 3.5) * moduleSize;
+      const outerR = 3.5 * moduleSize;
+      const middleR = 2.5 * moduleSize;
+      const innerR = 1.5 * moduleSize;
+
+      parts.push(
+        `<circle cx="${cx}" cy="${cy}" r="${outerR}" fill="${fgColor}"/>`
+      );
+      parts.push(
+        `<circle cx="${cx}" cy="${cy}" r="${middleR}" fill="${bgColor}"/>`
+      );
+      parts.push(
+        `<circle cx="${cx}" cy="${cy}" r="${innerR}" fill="${fgColor}"/>`
+      );
+    }
+
+    // Data modules (circles)
+    for (let row = 0; row < moduleCount; row++) {
+      for (let col = 0; col < moduleCount; col++) {
+        if (
+          qrData.modules.get(row, col) &&
+          !isInFinderPattern(row, col, moduleCount)
+        ) {
+          const cx = offset + (col + 0.5) * moduleSize;
+          const cy = offset + (row + 0.5) * moduleSize;
+          parts.push(
+            `<circle cx="${cx}" cy="${cy}" r="${circleRadius}" fill="${fgColor}"/>`
+          );
+        }
       }
     }
   }
@@ -114,7 +153,22 @@ export function buildQRSvgString(
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${parts.join("")}</svg>`;
 }
 
+export function useQRCodeStyle() {
+  const qrStyle = useLocalStorage<QRStyleVariant>(
+    "pmone:qr-code-style",
+    "rounded"
+  );
+
+  const toggleQrStyle = () => {
+    qrStyle.value = qrStyle.value === "rounded" ? "square" : "rounded";
+  };
+
+  return { qrStyle, toggleQrStyle };
+}
+
 export function useQRCode() {
+  const { qrStyle } = useQRCodeStyle();
+
   async function createQRData(
     value: string,
     errorCorrectionLevel: "L" | "M" | "Q" | "H" = "M"
@@ -150,6 +204,7 @@ export function useQRCode() {
       margin: options.margin ?? 2,
       fgColor: resolveColor(options.fgColor || "var(--foreground)"),
       bgColor: resolveColor(options.bgColor || "var(--background)"),
+      styleVariant: options.styleVariant || qrStyle.value,
     });
     if (!svgString) return;
 
@@ -174,6 +229,7 @@ export function useQRCode() {
       margin: options.margin ?? 2,
       fgColor: resolveColor(options.fgColor || "var(--foreground)"),
       bgColor: resolveColor(options.bgColor || "var(--background)"),
+      styleVariant: options.styleVariant || qrStyle.value,
     });
     if (!svgString) return;
 

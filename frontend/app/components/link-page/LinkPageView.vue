@@ -1,6 +1,6 @@
 <template>
   <div
-    class="relative mx-auto flex min-h-dvh max-w-lg flex-col justify-between gap-y-8 pt-2 pb-10 sm:pt-4"
+    class="relative mx-auto flex min-h-dvh max-w-lg flex-col justify-between gap-y-6 pt-2 pb-10 sm:justify-start sm:pt-4"
   >
     <!-- Title & Description -->
     <div class="flex items-start gap-x-2 p-4">

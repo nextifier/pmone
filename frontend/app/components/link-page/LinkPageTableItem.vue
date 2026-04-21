@@ -37,7 +37,7 @@
               <QRCode
                 v-if="qrDialogOpen"
                 :url="publicUrl"
-                class="w-full max-w-[240px]"
+                class="w-full max-w-60"
               />
             </ClientOnly>
 
