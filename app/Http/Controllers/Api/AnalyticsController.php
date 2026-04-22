@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Click;
 use App\Models\LinkPage;
 use App\Models\Project;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,8 +42,8 @@ class AnalyticsController extends Controller
 
         // Determine date range
         if ($request->has('start_date') && $request->has('end_date')) {
-            $startDate = \Carbon\Carbon::parse($request->start_date)->startOfDay();
-            $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
+            $startDate = Carbon::parse($request->start_date)->startOfDay();
+            $endDate = Carbon::parse($request->end_date)->endOfDay();
             $query->inDateRange($request->start_date, $request->end_date);
         } elseif ($request->has('days')) {
             $days = $request->days;
@@ -162,7 +164,7 @@ class AnalyticsController extends Controller
         }
 
         // Get clicks by link_label (new tracking method)
-        $clicksQuery = \App\Models\Click::query()
+        $clicksQuery = Click::query()
             ->where('clickable_type', get_class($model))
             ->where('clickable_id', $model->id);
 
@@ -192,34 +194,26 @@ class AnalyticsController extends Controller
             ];
         });
 
-        // Add Email and WhatsApp clicks (non-Link items)
-        $contactLabels = ['Email', 'WhatsApp'];
+        // Add any tracked label not already represented as a Link entry.
+        // Covers Email/WhatsApp contact buttons plus any custom labels emitted
+        // by public sites (e.g. "Tickets", "Brands", "Download Visitor E-Guide").
         foreach ($clicksByLabel as $label => $count) {
-            // Check if this label is Email, WhatsApp, or starts with "WhatsApp " (custom labels)
-            $isEmailOrWhatsApp = in_array($label, $contactLabels) || str_starts_with($label, 'WhatsApp ');
-
-            if ($isEmailOrWhatsApp) {
-                // Check if it's not already in links (from Link model)
-                $existsInLinks = $links->contains(fn ($link) => $link->label === $label);
-
-                if (! $existsInLinks) {
-                    // Determine URL based on label
-                    $url = null;
-                    if ($label === 'Email' && $model->email) {
-                        $url = "mailto:{$model->email}";
-                    } elseif (str_starts_with($label, 'WhatsApp')) {
-                        // For WhatsApp, we don't have the phone number in this context
-                        $url = null;
-                    }
-
-                    $linksWithClicks->push([
-                        'link_id' => null,
-                        'label' => $label,
-                        'url' => $url,
-                        'clicks' => $count,
-                    ]);
-                }
+            $existsInLinks = $links->contains(fn ($link) => $link->label === $label);
+            if ($existsInLinks) {
+                continue;
             }
+
+            $url = null;
+            if ($label === 'Email' && $model->email) {
+                $url = "mailto:{$model->email}";
+            }
+
+            $linksWithClicks->push([
+                'link_id' => null,
+                'label' => $label,
+                'url' => $url,
+                'clicks' => $count,
+            ]);
         }
 
         $linksWithClicks = $linksWithClicks->sortByDesc('clicks')->values();
@@ -227,7 +221,7 @@ class AnalyticsController extends Controller
         $totalClicks = $clicksByLabel->sum();
 
         // Get top clickers (for authenticated clicks)
-        $topClickersQuery = \App\Models\Click::query()
+        $topClickersQuery = Click::query()
             ->where('clickable_type', get_class($model))
             ->where('clickable_id', $model->id);
 
@@ -264,7 +258,7 @@ class AnalyticsController extends Controller
                 }
 
                 // Get clicked links for this clicker
-                $clickedLinksQuery = \App\Models\Click::query()
+                $clickedLinksQuery = Click::query()
                     ->where('clickable_type', get_class($model))
                     ->where('clickable_id', $model->id)
                     ->where('clicker_id', $click->clicker_id)
@@ -333,7 +327,7 @@ class AnalyticsController extends Controller
 
         $totalVisits = $model->visits()->lastDays($days)->count();
         $totalLinks = $model->links()->count();
-        $totalClicks = \App\Models\Click::query()
+        $totalClicks = Click::query()
             ->where('clickable_type', get_class($model))
             ->where('clickable_id', $model->id)
             ->lastDays($days)

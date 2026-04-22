@@ -417,6 +417,11 @@ class Project extends Model implements HasMedia, Sortable
         return $this->morphMany(Visit::class, 'visitable');
     }
 
+    public function clicks(): MorphMany
+    {
+        return $this->morphMany(Click::class, 'clickable');
+    }
+
     public function gaProperties(): HasMany
     {
         return $this->hasMany(GaProperty::class);
