@@ -448,6 +448,11 @@ class Event extends Model implements HasMedia, Sortable
                 'single_file' => true,
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
             ],
+            'visitor_eguide' => [
+                'single_file' => true,
+                'mime_types' => ['application/pdf'],
+                'max_size' => 20480,
+            ],
         ];
     }
 

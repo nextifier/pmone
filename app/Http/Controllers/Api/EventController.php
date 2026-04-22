@@ -242,6 +242,9 @@ class EventController extends Controller
         // Handle poster image upload
         $this->handleTemporaryUpload($request, $event, 'tmp_poster_image', 'poster_image');
 
+        // Handle visitor e-guide PDF upload
+        $this->handleTemporaryUpload($request, $event, 'tmp_visitor_eguide', 'visitor_eguide');
+
         // Process content images (move from temp to permanent storage)
         $this->processContentImages($event);
 
@@ -312,6 +315,9 @@ class EventController extends Controller
 
         // Handle poster image upload
         $this->handleTemporaryUpload($request, $event, 'tmp_poster_image', 'poster_image');
+
+        // Handle visitor e-guide PDF upload
+        $this->handleTemporaryUpload($request, $event, 'tmp_visitor_eguide', 'visitor_eguide');
 
         // Process content images (move from temp to permanent storage)
         $this->processContentImages($event);

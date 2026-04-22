@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,7 +19,7 @@ class StoreEventRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -44,6 +45,7 @@ class StoreEventRequest extends FormRequest
             'onsite_penalty_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'badge_vip_info' => ['nullable', 'string', 'max:50000'],
             'tmp_poster_image' => ['nullable', 'string'],
+            'tmp_visitor_eguide' => ['nullable', 'string'],
             'order_form_deadline' => ['nullable', 'date'],
             'promotion_post_deadline' => ['nullable', 'date'],
         ];

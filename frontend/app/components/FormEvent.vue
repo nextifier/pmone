@@ -85,6 +85,54 @@
       <InputErrorMessage :errors="errors.tmp_poster_image" />
     </div>
 
+    <!-- Visitor E-guide -->
+    <div class="space-y-2">
+      <div class="space-y-1">
+        <Label>Visitor E-guide</Label>
+        <p class="text-muted-foreground text-xs">PDF file, max 20MB</p>
+      </div>
+      <div
+        v-if="initialData?.visitor_eguide && !eguideFiles.length && !deleteFlags.visitor_eguide"
+        class="border-border flex items-center justify-between gap-x-3 rounded-md border p-3"
+      >
+        <a
+          :href="initialData.visitor_eguide.url"
+          target="_blank"
+          rel="noopener"
+          class="text-primary flex min-w-0 items-center gap-x-2 text-sm tracking-tight hover:underline"
+        >
+          <Icon name="hugeicons:pdf-02" class="size-5 shrink-0" />
+          <span class="truncate">{{ initialData.visitor_eguide.name }}</span>
+          <span class="text-muted-foreground shrink-0 text-xs">
+            ({{ formatFileSize(initialData.visitor_eguide.size) }})
+          </span>
+        </a>
+        <button
+          type="button"
+          class="text-muted-foreground hover:text-destructive shrink-0 text-xs font-medium tracking-tight"
+          @click="deleteFlags.visitor_eguide = true"
+        >
+          Remove
+        </button>
+      </div>
+      <InputFile
+        v-else
+        ref="visitorEguideInputRef"
+        v-model="eguideFiles"
+        :accepted-file-types="['application/pdf']"
+        max-file-size="20MB"
+      />
+      <button
+        v-if="deleteFlags.visitor_eguide && initialData?.visitor_eguide"
+        type="button"
+        class="text-muted-foreground hover:text-foreground text-xs font-medium tracking-tight"
+        @click="deleteFlags.visitor_eguide = false"
+      >
+        Undo remove
+      </button>
+      <InputErrorMessage :errors="errors.tmp_visitor_eguide" />
+    </div>
+
     <!-- Description -->
     <div class="space-y-2">
       <Label for="description">Description</Label>
@@ -213,13 +261,29 @@ const emit = defineEmits(["submit"]);
 
 const deleteFlags = ref({
   poster_image: false,
+  visitor_eguide: false,
 });
 
 const imageFiles = ref({
   poster_image: [],
 });
 
+const eguideFiles = ref([]);
+
 const posterImageInputRef = ref(null);
+const visitorEguideInputRef = ref(null);
+
+function formatFileSize(bytes) {
+  if (!bytes) return "0 B";
+  const units = ["B", "KB", "MB", "GB"];
+  let size = bytes;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex++;
+  }
+  return `${size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+}
 const slugManuallyEdited = ref(false);
 
 const form = reactive(createEmptyForm());
@@ -282,6 +346,8 @@ function populateForm(data) {
 
   imageFiles.value.poster_image = [];
   deleteFlags.value.poster_image = false;
+  eguideFiles.value = [];
+  deleteFlags.value.visitor_eguide = false;
 
   // Mark slug as manually edited when loading existing data
   if (data.slug) {
@@ -298,7 +364,7 @@ watch(
 );
 
 function hasFilesUploading() {
-  return [posterImageInputRef].some((ref) =>
+  return [posterImageInputRef, visitorEguideInputRef].some((ref) =>
     ref.value?.pond?.getFiles().some((file) => file.status === FILE_STATUS.PROCESSING)
   );
 }
@@ -331,6 +397,14 @@ function handleSubmit() {
     payload.tmp_poster_image = posterValue;
   } else if (deleteFlags.value.poster_image && !posterValue) {
     payload.delete_poster_image = true;
+  }
+
+  // Handle visitor e-guide PDF
+  const eguideValue = eguideFiles.value?.[0];
+  if (eguideValue && eguideValue.startsWith("tmp-")) {
+    payload.tmp_visitor_eguide = eguideValue;
+  } else if (deleteFlags.value.visitor_eguide) {
+    payload.delete_visitor_eguide = true;
   }
 
   emit("submit", payload);

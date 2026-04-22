@@ -51,6 +51,18 @@ class EventResource extends JsonResource
                 $this->hasMedia('poster_image'),
                 fn () => $this->getMediaUrls('poster_image')
             ),
+            'visitor_eguide' => $this->when(
+                $this->hasMedia('visitor_eguide'),
+                function () {
+                    $media = $this->getFirstMedia('visitor_eguide');
+
+                    return [
+                        'url' => $media->getUrl(),
+                        'name' => $media->file_name,
+                        'size' => $media->size,
+                    ];
+                }
+            ),
             'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
             'updater' => $this->whenLoaded('updater', fn () => new UserMinimalResource($this->updater)),
             'can_edit' => auth()->user()?->can('update', $this->resource),
