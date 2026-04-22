@@ -93,27 +93,34 @@
       </div>
       <div
         v-if="initialData?.visitor_eguide && !eguideFiles.length && !deleteFlags.visitor_eguide"
-        class="border-border flex items-center justify-between gap-x-3 rounded-md border p-3"
+        class="border-border flex items-center gap-x-3 rounded-md border p-3"
       >
-        <a
-          :href="initialData.visitor_eguide.url"
-          target="_blank"
-          rel="noopener"
-          class="text-primary flex min-w-0 items-center gap-x-2 text-sm tracking-tight hover:underline"
-        >
-          <Icon name="hugeicons:pdf-02" class="size-5 shrink-0" />
-          <span class="truncate">{{ initialData.visitor_eguide.name }}</span>
-          <span class="text-muted-foreground shrink-0 text-xs">
-            ({{ formatFileSize(initialData.visitor_eguide.size) }})
-          </span>
-        </a>
-        <button
-          type="button"
-          class="text-muted-foreground hover:text-destructive shrink-0 text-xs font-medium tracking-tight"
-          @click="deleteFlags.visitor_eguide = true"
-        >
-          Remove
-        </button>
+        <Icon name="hugeicons:pdf-02" class="text-primary size-5 shrink-0" />
+        <div class="min-w-0 flex-1">
+          <a
+            :href="initialData.visitor_eguide.url"
+            target="_blank"
+            rel="noopener"
+            class="text-primary block truncate text-sm tracking-tight hover:underline"
+          >
+            {{ initialData.visitor_eguide.name }}
+          </a>
+          <p class="text-muted-foreground text-xs tracking-tight">
+            {{ formatFileSize(initialData.visitor_eguide.size) }}
+          </p>
+        </div>
+        <div class="flex shrink-0 items-center gap-x-1">
+          <ButtonCopy :text="initialData.visitor_eguide.url" />
+          <button
+            type="button"
+            aria-label="Remove file"
+            v-tippy="'Remove file'"
+            class="text-muted-foreground hover:text-destructive flex size-7 items-center justify-center rounded-lg"
+            @click="deleteFlags.visitor_eguide = true"
+          >
+            <Icon name="hugeicons:delete-01" class="size-4" />
+          </button>
+        </div>
       </div>
       <InputFile
         v-else

@@ -1,5 +1,6 @@
 <template>
   <button
+    type="button"
     @click="copy(text)"
     :disabled="copied"
     :aria-label="copied ? 'Copied' : 'Copy to clipboard'"

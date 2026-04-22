@@ -574,6 +574,7 @@ class EventController extends Controller
         $deleteFieldName = 'delete_'.str_replace('tmp_', '', $fieldName);
         if ($request->has($deleteFieldName) && $request->input($deleteFieldName) === true) {
             $event->clearMediaCollection($collection);
+            ResponseCache::clear(['events']);
 
             return;
         }
@@ -615,6 +616,8 @@ class EventController extends Controller
             ->toMediaCollection($collection);
 
         Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
+
+        ResponseCache::clear(['events']);
     }
 
     /**
