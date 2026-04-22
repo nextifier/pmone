@@ -86,14 +86,14 @@
     </div>
 
     <!-- Visitor E-guide -->
-    <div class="space-y-2">
+    <div class="min-w-0 space-y-2">
       <div class="space-y-1">
         <Label>Visitor E-guide</Label>
         <p class="text-muted-foreground text-xs">PDF file, max 20MB</p>
       </div>
       <div
         v-if="initialData?.visitor_eguide && !eguideFiles.length && !deleteFlags.visitor_eguide"
-        class="border-border flex items-center gap-x-3 rounded-md border p-3"
+        class="border-border flex min-w-0 items-center gap-x-3 rounded-md border p-3"
       >
         <Icon name="hugeicons:pdf-02" class="text-primary size-5 shrink-0" />
         <div class="min-w-0 flex-1">

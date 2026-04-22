@@ -9,7 +9,6 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use Spatie\ResponseCache\Middlewares\CacheResponse;
@@ -28,10 +27,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Handle CORS for all requests
-        $middleware->use([
-            HandleCors::class,
-        ]);
+        // Note: HandleCors is part of Laravel's default global middleware stack and
+        // does not need to be re-added here. Calling $middleware->use([...]) would
+        // REPLACE the entire global stack (dropping TrustProxies, ValidatePathEncoding, etc).
 
         $middleware->api(prepend: [
             EnsureFrontendRequestsAreStateful::class,
@@ -54,6 +52,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/track/*',
             'api/public/*',
         ]);
+
+        // Trust forwarded headers from upstream proxies (Nuxt server, CDN, load balancer).
+        // Without this, $request->ip() returns the proxy IP, breaking tracking analytics
+        // and IP-based throttling. Tighten to specific CIDR ranges in production hardening.
+        $middleware->trustProxies(at: '*');
     })
     ->withSchedule(function (Schedule $schedule): void {
         // Cleanup temporary uploads older than 1 hour, run hourly

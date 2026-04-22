@@ -140,8 +140,11 @@
                   </div>
                   <div class="min-w-0 flex-1">
                     <p class="truncate text-sm font-medium tracking-tight">{{ link.label }}</p>
-                    <p class="text-muted-foreground truncate text-xs tracking-tight">
-                      {{ link.url || "No URL" }}
+                    <p
+                      v-if="link.url"
+                      class="text-muted-foreground truncate text-xs tracking-tight"
+                    >
+                      {{ link.url }}
                     </p>
                   </div>
                 </div>

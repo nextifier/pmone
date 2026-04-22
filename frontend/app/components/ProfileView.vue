@@ -361,8 +361,9 @@ const { socialLinks, customLinks } = computed(() => {
     if (!link?.label) continue;
 
     const labelLower = link.label.toLowerCase();
-    // Skip Email and WhatsApp as they are displayed in Contact Buttons section
-    if (labelLower === "email" || labelLower === "whatsapp" || labelLower.startsWith("whatsapp ")) {
+    // Skip Email and WhatsApp - rendered in dedicated contact buttons (uses Project.email & Project.phone[]).
+    // Custom WhatsApp variants ("WhatsApp Sales", etc) flow through to customLinks below.
+    if (labelLower === "email" || labelLower === "whatsapp") {
       continue;
     }
 
