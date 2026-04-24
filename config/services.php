@@ -64,4 +64,8 @@ return [
         'cache_ttl_minutes' => (int) env('EXCHANGE_RATE_CACHE_TTL', 120),
     ],
 
+    'cloudflare' => [
+        'account_id' => env('CLOUDFLARE_ACCOUNT_ID'),
+        'key' => env('CLOUDFLARE_KEY'),
+    ],
 ];

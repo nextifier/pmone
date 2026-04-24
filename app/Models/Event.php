@@ -62,23 +62,24 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property Carbon|null $onsite_order_closes_at
  * @property numeric $onsite_penalty_rate
  * @property string|null $badge_vip_info
+ * @property array<array-key, mixed>|null $branding
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read Collection<int, BrandEvent> $brandEvents
+ * @property-read Collection<int, \App\Models\BrandEvent> $brandEvents
  * @property-read int|null $brand_events_count
- * @property-read Collection<int, Brand> $brands
+ * @property-read Collection<int, \App\Models\Brand> $brands
  * @property-read int|null $brands_count
  * @property-read Collection<int, Event> $conjunctionEvents
  * @property-read int|null $conjunction_events_count
- * @property-read User|null $creator
- * @property-read User|null $deleter
- * @property-read Collection<int, EventDocumentSubmission> $eventDocumentSubmissions
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\User|null $deleter
+ * @property-read Collection<int, \App\Models\EventDocumentSubmission> $eventDocumentSubmissions
  * @property-read int|null $event_document_submissions_count
- * @property-read Collection<int, EventDocument> $eventDocuments
+ * @property-read Collection<int, \App\Models\EventDocument> $eventDocuments
  * @property-read int|null $event_documents_count
- * @property-read Collection<int, EventProductCategory> $eventProductCategories
+ * @property-read Collection<int, \App\Models\EventProductCategory> $eventProductCategories
  * @property-read int|null $event_product_categories_count
- * @property-read Collection<int, EventProduct> $eventProducts
+ * @property-read Collection<int, \App\Models\EventProduct> $eventProducts
  * @property-read int|null $event_products_count
  * @property-read string|null $date_label
  * @property-read string|null $edition_number_with_ordinal
@@ -87,13 +88,12 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property-read string|null $start_time
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read Collection<int, Order> $orders
+ * @property-read Collection<int, \App\Models\Order> $orders
  * @property-read int|null $orders_count
- * @property-read Collection<int, PartnerCategory> $partnerCategories
+ * @property-read Collection<int, \App\Models\PartnerCategory> $partnerCategories
  * @property-read int|null $partner_categories_count
- * @property-read Project|null $project
- * @property-read User|null $updater
- *
+ * @property-read \App\Models\Project|null $project
+ * @property-read \App\Models\User|null $updater
  * @method static Builder<static>|Event active()
  * @method static Builder<static>|Event byStatus(string $status)
  * @method static \Database\Factories\EventFactory factory($count = null, $state = [])
@@ -105,6 +105,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|Event published()
  * @method static Builder<static>|Event query()
  * @method static Builder<static>|Event whereBadgeVipInfo($value)
+ * @method static Builder<static>|Event whereBranding($value)
  * @method static Builder<static>|Event whereCreatedAt($value)
  * @method static Builder<static>|Event whereCreatedBy($value)
  * @method static Builder<static>|Event whereCustomFields($value)
@@ -141,7 +142,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|Event withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Event withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
  * @method static Builder<static>|Event withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class Event extends Model implements HasMedia, Sortable

@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER', 'log'),
+    'default' => env('MAIL_MAILER', 'cloudflare'),
 
     /*
     |--------------------------------------------------------------------------
@@ -97,6 +97,9 @@ return [
             'retry_after' => 60,
         ],
 
+        'cloudflare' => [
+            'transport' => 'cloudflare',
+        ],
     ],
 
     /*

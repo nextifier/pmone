@@ -41,12 +41,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property numeric|null $applied_penalty_rate
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read BrandEvent $brandEvent
- * @property-read User|null $creator
- * @property-read Collection<int, OrderItem> $items
+ * @property-read \App\Models\BrandEvent $brandEvent
+ * @property-read \App\Models\User|null $creator
+ * @property-read Collection<int, \App\Models\OrderItem> $items
  * @property-read int|null $items_count
- * @property-read User|null $updater
- *
+ * @property-read \App\Models\User|null $updater
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order byOperationalStatus(string $status)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order byPaymentStatus(string $status)
  * @method static \Database\Factories\OrderFactory factory($count = null, $state = [])
@@ -76,7 +75,6 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUlid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedBy($value)
- *
  * @mixin \Eloquent
  */
 class Order extends Model

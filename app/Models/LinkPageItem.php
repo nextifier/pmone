@@ -32,13 +32,12 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
- * @property-read Collection<int, Click> $clicks
+ * @property-read Collection<int, \App\Models\Click> $clicks
  * @property-read int $clicks_count
  * @property-read array|null $poster
- * @property-read LinkPage|null $linkPage
+ * @property-read \App\Models\LinkPage|null $linkPage
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem active()
  * @method static \Database\Factories\LinkPageItemFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem newModelQuery()
@@ -63,7 +62,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem whereUrl($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPageItem withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class LinkPageItem extends Model implements HasMedia

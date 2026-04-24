@@ -20,8 +20,7 @@ use Illuminate\Support\Str;
  * @property Carbon $submitted_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Form|null $form
- *
+ * @property-read \App\Models\Form|null $form
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse query()
@@ -37,7 +36,6 @@ use Illuminate\Support\Str;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse whereUlid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse whereUserAgent($value)
- *
  * @mixin \Eloquent
  */
 class FormResponse extends Model

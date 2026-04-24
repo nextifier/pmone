@@ -49,26 +49,25 @@ use Spatie\Tags\Tag;
  * @property Carbon|null $deleted_at
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read Collection<int, BrandEvent> $brandEvents
+ * @property-read Collection<int, \App\Models\BrandEvent> $brandEvents
  * @property-read int|null $brand_events_count
- * @property-read User|null $creator
- * @property-read User|null $deleter
- * @property-read Collection<int, Event> $events
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\User|null $deleter
+ * @property-read Collection<int, \App\Models\Event> $events
  * @property-read int|null $events_count
  * @property-read array|null $brand_logo
  * @property-read array $business_categories_list
- * @property-read Collection<int, Link> $links
+ * @property-read Collection<int, \App\Models\Link> $links
  * @property-read int|null $links_count
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
  * @property Collection<int, Tag> $tags
  * @property-read int|null $tags_count
- * @property-read User|null $updater
- * @property-read Collection<int, User> $users
+ * @property-read \App\Models\User|null $updater
+ * @property-read Collection<int, \App\Models\User> $users
  * @property-read int|null $users_count
- * @property-read Collection<int, Visit> $visits
+ * @property-read Collection<int, \App\Models\Visit> $visits
  * @property-read int|null $visits_count
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand byStatus(string $status)
  * @method static \Database\Factories\BrandFactory factory($count = null, $state = [])
@@ -106,7 +105,6 @@ use Spatie\Tags\Tag;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class Brand extends Model implements HasMedia, Sortable

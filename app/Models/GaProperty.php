@@ -32,16 +32,15 @@ use Spatie\Tags\Tag;
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
- * @property-read User|null $creator
- * @property-read User|null $deleter
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\User|null $deleter
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
  * @property-read mixed $next_sync_at
- * @property-read Project|null $project
+ * @property-read \App\Models\Project|null $project
  * @property Collection<int, Tag> $tags
  * @property-read int|null $tags_count
- * @property-read User|null $updater
- *
+ * @property-read \App\Models\User|null $updater
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty active()
  * @method static \Database\Factories\GaPropertyFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty inactive()
@@ -71,7 +70,6 @@ use Spatie\Tags\Tag;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class GaProperty extends Model implements HasMedia

@@ -17,23 +17,57 @@ use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 
 /**
+ * @property int $id
+ * @property string $ulid
+ * @property int $hotel_id
+ * @property string $label
  * @property TransferDirection $direction
+ * @property string|null $vehicle_type
+ * @property int $max_pax
+ * @property numeric $price
+ * @property bool $is_active
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property array<array-key, mixed>|null $settings
+ * @property array<array-key, mixed>|null $more_details
+ * @property int|null $order_column
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read User|null $creator
- * @property-read User|null $deleter
- * @property-read Hotel|null $hotel
- * @property-read User|null $updater
- *
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\User|null $deleter
+ * @property-read \App\Models\Hotel|null $hotel
+ * @property-read \App\Models\User|null $updater
  * @method static Builder<static>|HotelTransferOption active()
  * @method static \Database\Factories\HotelTransferOptionFactory factory($count = null, $state = [])
  * @method static Builder<static>|HotelTransferOption newModelQuery()
  * @method static Builder<static>|HotelTransferOption newQuery()
  * @method static Builder<static>|HotelTransferOption onlyTrashed()
+ * @method static Builder<static>|HotelTransferOption ordered(string $direction = 'asc')
  * @method static Builder<static>|HotelTransferOption query()
+ * @method static Builder<static>|HotelTransferOption whereCreatedAt($value)
+ * @method static Builder<static>|HotelTransferOption whereCreatedBy($value)
+ * @method static Builder<static>|HotelTransferOption whereDeletedAt($value)
+ * @method static Builder<static>|HotelTransferOption whereDeletedBy($value)
+ * @method static Builder<static>|HotelTransferOption whereDirection($value)
+ * @method static Builder<static>|HotelTransferOption whereHotelId($value)
+ * @method static Builder<static>|HotelTransferOption whereId($value)
+ * @method static Builder<static>|HotelTransferOption whereIsActive($value)
+ * @method static Builder<static>|HotelTransferOption whereLabel($value)
+ * @method static Builder<static>|HotelTransferOption whereMaxPax($value)
+ * @method static Builder<static>|HotelTransferOption whereMoreDetails($value)
+ * @method static Builder<static>|HotelTransferOption whereOrderColumn($value)
+ * @method static Builder<static>|HotelTransferOption wherePrice($value)
+ * @method static Builder<static>|HotelTransferOption whereSettings($value)
+ * @method static Builder<static>|HotelTransferOption whereUlid($value)
+ * @method static Builder<static>|HotelTransferOption whereUpdatedAt($value)
+ * @method static Builder<static>|HotelTransferOption whereUpdatedBy($value)
+ * @method static Builder<static>|HotelTransferOption whereVehicleType($value)
  * @method static Builder<static>|HotelTransferOption withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|HotelTransferOption withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class HotelTransferOption extends Model implements Sortable

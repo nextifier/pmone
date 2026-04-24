@@ -20,8 +20,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $job_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read GaProperty|null $property
- *
+ * @property-read \App\Models\GaProperty|null $property
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog aggregateSyncs()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog failed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog newModelQuery()
@@ -43,7 +42,6 @@ use Illuminate\Support\Carbon;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereSyncType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AnalyticsSyncLog whereUpdatedAt($value)
- *
  * @mixin \Eloquent
  */
 class AnalyticsSyncLog extends Model

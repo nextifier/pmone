@@ -24,33 +24,97 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Tags\HasTags;
 
 /**
+ * @property int $id
+ * @property string $ulid
+ * @property string $slug
+ * @property string $name
+ * @property string|null $description
+ * @property string|null $address
+ * @property string|null $city
+ * @property string|null $country
+ * @property string|null $contact_email
+ * @property string|null $contact_phone
+ * @property numeric $commission_rate
+ * @property numeric $tax_percentage
+ * @property numeric $service_charge_percentage
+ * @property bool $is_active
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property int $event_id
+ * @property int|null $star_rating
+ * @property string|null $google_maps_link
+ * @property string|null $google_maps_embed_src
+ * @property string|null $cancellation_policy
+ * @property array<array-key, mixed>|null $settings
+ * @property array<array-key, mixed>|null $more_details
+ * @property int|null $order_column
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read Collection<int, HotelEventAllotment> $allotments
+ * @property-read Collection<int, \App\Models\HotelEventAllotment> $allotments
  * @property-read int|null $allotments_count
- * @property-read User|null $creator
- * @property-read User|null $deleter
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\User|null $deleter
+ * @property-read \App\Models\Event|null $event
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read Collection<int, Reservation> $reservations
+ * @property-read Collection<int, \App\Models\Reservation> $reservations
  * @property-read int|null $reservations_count
- * @property-read Collection<int, RoomType> $roomTypes
+ * @property-read Collection<int, \App\Models\RoomType> $roomTypes
  * @property-read int|null $room_types_count
- * @property-read Collection<int, HotelTransferOption> $transferOptions
+ * @property Collection<int, \Spatie\Tags\Tag> $tags
+ * @property-read int|null $tags_count
+ * @property-read Collection<int, \App\Models\HotelTransferOption> $transferOptions
  * @property-read int|null $transfer_options_count
- * @property-read User|null $updater
- *
+ * @property-read \App\Models\User|null $updater
  * @method static Builder<static>|Hotel active()
  * @method static \Database\Factories\HotelFactory factory($count = null, $state = [])
  * @method static Builder<static>|Hotel findSimilarSlugs(string $attribute, array $config, string $slug)
  * @method static Builder<static>|Hotel newModelQuery()
  * @method static Builder<static>|Hotel newQuery()
  * @method static Builder<static>|Hotel onlyTrashed()
+ * @method static Builder<static>|Hotel ordered(string $direction = 'asc')
  * @method static Builder<static>|Hotel query()
+ * @method static Builder<static>|Hotel whereAddress($value)
+ * @method static Builder<static>|Hotel whereCancellationPolicy($value)
+ * @method static Builder<static>|Hotel whereCity($value)
+ * @method static Builder<static>|Hotel whereCommissionRate($value)
+ * @method static Builder<static>|Hotel whereContactEmail($value)
+ * @method static Builder<static>|Hotel whereContactPhone($value)
+ * @method static Builder<static>|Hotel whereCountry($value)
+ * @method static Builder<static>|Hotel whereCreatedAt($value)
+ * @method static Builder<static>|Hotel whereCreatedBy($value)
+ * @method static Builder<static>|Hotel whereDeletedAt($value)
+ * @method static Builder<static>|Hotel whereDeletedBy($value)
+ * @method static Builder<static>|Hotel whereDescription($value)
+ * @method static Builder<static>|Hotel whereEventId($value)
+ * @method static Builder<static>|Hotel whereGoogleMapsEmbedSrc($value)
+ * @method static Builder<static>|Hotel whereGoogleMapsLink($value)
+ * @method static Builder<static>|Hotel whereId($value)
+ * @method static Builder<static>|Hotel whereIsActive($value)
+ * @method static Builder<static>|Hotel whereMoreDetails($value)
+ * @method static Builder<static>|Hotel whereName($value)
+ * @method static Builder<static>|Hotel whereOrderColumn($value)
+ * @method static Builder<static>|Hotel whereServiceChargePercentage($value)
+ * @method static Builder<static>|Hotel whereSettings($value)
+ * @method static Builder<static>|Hotel whereSlug($value)
+ * @method static Builder<static>|Hotel whereStarRating($value)
+ * @method static Builder<static>|Hotel whereTaxPercentage($value)
+ * @method static Builder<static>|Hotel whereUlid($value)
+ * @method static Builder<static>|Hotel whereUpdatedAt($value)
+ * @method static Builder<static>|Hotel whereUpdatedBy($value)
+ * @method static Builder<static>|Hotel withAllTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static Builder<static>|Hotel withAllTagsOfAnyType($tags)
+ * @method static Builder<static>|Hotel withAnyTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static Builder<static>|Hotel withAnyTagsOfAnyType($tags)
+ * @method static Builder<static>|Hotel withAnyTagsOfType(array|string $type)
  * @method static Builder<static>|Hotel withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Hotel withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
+ * @method static Builder<static>|Hotel withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static Builder<static>|Hotel withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class Hotel extends Model implements HasMedia, Sortable

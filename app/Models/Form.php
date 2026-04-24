@@ -45,20 +45,19 @@ use Spatie\Tags\Tag;
  * @property Carbon|null $deleted_at
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read User|null $creator
- * @property-read User|null $deleter
- * @property-read Collection<int, FormField> $fields
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\User|null $deleter
+ * @property-read Collection<int, \App\Models\FormField> $fields
  * @property-read int|null $fields_count
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read Project|null $project
- * @property-read Collection<int, FormResponse> $responses
+ * @property-read \App\Models\Project|null $project
+ * @property-read Collection<int, \App\Models\FormResponse> $responses
  * @property-read int|null $responses_count
  * @property Collection<int, Tag> $tags
  * @property-read int|null $tags_count
- * @property-read User|null $updater
- * @property-read User|null $user
- *
+ * @property-read \App\Models\User|null $updater
+ * @property-read \App\Models\User|null $user
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Form active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Form byStatus(array|string $status)
  * @method static \Database\Factories\FormFactory factory($count = null, $state = [])
@@ -98,7 +97,6 @@ use Spatie\Tags\Tag;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class Form extends Model implements HasMedia

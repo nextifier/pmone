@@ -30,12 +30,11 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property Carbon|null $updated_at
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read BrandEvent $brandEvent
+ * @property-read \App\Models\BrandEvent $brandEvent
  * @property-read array|null $post_image
  * @property-read array $post_images
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- *
  * @method static \Database\Factories\PromotionPostFactory factory($count = null, $state = [])
  * @method static Builder<static>|PromotionPost newModelQuery()
  * @method static Builder<static>|PromotionPost newQuery()
@@ -48,7 +47,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|PromotionPost whereId($value)
  * @method static Builder<static>|PromotionPost whereOrderColumn($value)
  * @method static Builder<static>|PromotionPost whereUpdatedAt($value)
- *
  * @mixin \Eloquent
  */
 class PromotionPost extends Model implements HasMedia, Sortable

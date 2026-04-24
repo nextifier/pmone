@@ -16,25 +16,63 @@ use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 
 /**
+ * @property int $id
+ * @property string $ulid
+ * @property int $hotel_id
+ * @property int $room_type_id
+ * @property int $quantity
+ * @property \Illuminate\Support\Carbon $start_date
+ * @property \Illuminate\Support\Carbon $end_date
+ * @property \Illuminate\Support\Carbon|null $release_at
+ * @property string|null $surcharge_type
+ * @property numeric|null $surcharge_amount
+ * @property bool $is_active
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property array<array-key, mixed>|null $settings
+ * @property array<array-key, mixed>|null $more_details
+ * @property int|null $order_column
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read User|null $creator
- * @property-read User|null $deleter
- * @property-read Event|null $event
- * @property-read Hotel|null $hotel
- * @property-read RoomType|null $roomType
- * @property-read User|null $updater
- *
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\User|null $deleter
+ * @property-read \App\Models\Hotel|null $hotel
+ * @property-read \App\Models\RoomType|null $roomType
+ * @property-read \App\Models\User|null $updater
  * @method static Builder<static>|HotelEventAllotment active()
  * @method static \Database\Factories\HotelEventAllotmentFactory factory($count = null, $state = [])
  * @method static Builder<static>|HotelEventAllotment newModelQuery()
  * @method static Builder<static>|HotelEventAllotment newQuery()
  * @method static Builder<static>|HotelEventAllotment onlyTrashed()
+ * @method static Builder<static>|HotelEventAllotment ordered(string $direction = 'asc')
  * @method static Builder<static>|HotelEventAllotment overlapsRange(string $checkIn, string $checkOut)
  * @method static Builder<static>|HotelEventAllotment query()
+ * @method static Builder<static>|HotelEventAllotment whereCreatedAt($value)
+ * @method static Builder<static>|HotelEventAllotment whereCreatedBy($value)
+ * @method static Builder<static>|HotelEventAllotment whereDeletedAt($value)
+ * @method static Builder<static>|HotelEventAllotment whereDeletedBy($value)
+ * @method static Builder<static>|HotelEventAllotment whereEndDate($value)
+ * @method static Builder<static>|HotelEventAllotment whereHotelId($value)
+ * @method static Builder<static>|HotelEventAllotment whereId($value)
+ * @method static Builder<static>|HotelEventAllotment whereIsActive($value)
+ * @method static Builder<static>|HotelEventAllotment whereMoreDetails($value)
+ * @method static Builder<static>|HotelEventAllotment whereOrderColumn($value)
+ * @method static Builder<static>|HotelEventAllotment whereQuantity($value)
+ * @method static Builder<static>|HotelEventAllotment whereReleaseAt($value)
+ * @method static Builder<static>|HotelEventAllotment whereRoomTypeId($value)
+ * @method static Builder<static>|HotelEventAllotment whereSettings($value)
+ * @method static Builder<static>|HotelEventAllotment whereStartDate($value)
+ * @method static Builder<static>|HotelEventAllotment whereSurchargeAmount($value)
+ * @method static Builder<static>|HotelEventAllotment whereSurchargeType($value)
+ * @method static Builder<static>|HotelEventAllotment whereUlid($value)
+ * @method static Builder<static>|HotelEventAllotment whereUpdatedAt($value)
+ * @method static Builder<static>|HotelEventAllotment whereUpdatedBy($value)
  * @method static Builder<static>|HotelEventAllotment withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|HotelEventAllotment withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class HotelEventAllotment extends Model implements Sortable

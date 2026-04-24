@@ -8,15 +8,43 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
 /**
- * @property-read HotelEventAllotment|null $allotment
- * @property-read Reservation|null $reservation
- * @property-read RoomType|null $roomType
- *
+ * @property int $id
+ * @property string $ulid
+ * @property int $reservation_id
+ * @property int $room_type_id
+ * @property int|null $allotment_id
+ * @property \Illuminate\Support\Carbon $check_in_date
+ * @property \Illuminate\Support\Carbon $check_out_date
+ * @property int $nights
+ * @property int $qty
+ * @property string|null $guest_name
+ * @property string|null $guest_identity
+ * @property numeric $rate_per_night
+ * @property numeric $subtotal
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\HotelEventAllotment|null $allotment
+ * @property-read \App\Models\Reservation|null $reservation
+ * @property-read \App\Models\RoomType|null $roomType
  * @method static \Database\Factories\ReservationItemFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem query()
- *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereAllotmentId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereCheckInDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereCheckOutDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereGuestIdentity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereGuestName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereNights($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereQty($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereRatePerNight($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereReservationId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereRoomTypeId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereSubtotal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereUlid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereUpdatedAt($value)
  * @mixin \Eloquent
  */
 class ReservationItem extends Model

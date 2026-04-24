@@ -48,27 +48,28 @@ use Spatie\Permission\Exceptions\RoleDoesNotExist;
  * @property int|null $deleted_by
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, ContactFormSubmission> $contactFormSubmissions
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Click> $clicks
+ * @property-read int|null $clicks_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ContactFormSubmission> $contactFormSubmissions
  * @property-read int|null $contact_form_submissions_count
- * @property-read User|null $creator
- * @property-read \Illuminate\Database\Eloquent\Collection<int, ProjectCustomField> $customFields
+ * @property-read \App\Models\User|null $creator
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProjectCustomField> $customFields
  * @property-read int|null $custom_fields_count
- * @property-read User|null $deleter
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Event> $events
+ * @property-read \App\Models\User|null $deleter
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Event> $events
  * @property-read int|null $events_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, GaProperty> $gaProperties
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\GaProperty> $gaProperties
  * @property-read int|null $ga_properties_count
  * @property-read array|null $profile_image
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Link> $links
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Link> $links
  * @property-read int|null $links_count
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, User> $members
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $members
  * @property-read int|null $members_count
- * @property-read User|null $updater
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Visit> $visits
+ * @property-read \App\Models\User|null $updater
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Visit> $visits
  * @property-read int|null $visits_count
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project byStatus(string $status)
  * @method static \Database\Factories\ProjectFactory factory($count = null, $state = [])
@@ -98,7 +99,6 @@ use Spatie\Permission\Exceptions\RoleDoesNotExist;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereVisibility($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class Project extends Model implements HasMedia, Sortable

@@ -39,14 +39,13 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property int|null $updated_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read User|null $creator
- * @property-read Event|null $event
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\Event|null $event
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read Collection<int, EventDocumentSubmission> $submissions
+ * @property-read Collection<int, \App\Models\EventDocumentSubmission> $submissions
  * @property-read int|null $submissions_count
- * @property-read User|null $updater
- *
+ * @property-read \App\Models\User|null $updater
  * @method static \Database\Factories\EventDocumentFactory factory($count = null, $state = [])
  * @method static Builder<static>|EventDocument findSimilarSlugs(string $attribute, array $config, string $slug)
  * @method static Builder<static>|EventDocument newModelQuery()
@@ -73,7 +72,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|EventDocument whereUpdatedAt($value)
  * @method static Builder<static>|EventDocument whereUpdatedBy($value)
  * @method static Builder<static>|EventDocument withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
- *
  * @mixin \Eloquent
  */
 class EventDocument extends Model implements HasMedia, Sortable

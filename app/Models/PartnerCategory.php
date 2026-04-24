@@ -25,12 +25,11 @@ use Spatie\EloquentSortable\SortableTrait;
  * @property int|null $updated_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read User|null $creator
- * @property-read Event|null $event
- * @property-read Collection<int, Partner> $partners
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\Event|null $event
+ * @property-read Collection<int, \App\Models\Partner> $partners
  * @property-read int|null $partners_count
- * @property-read User|null $updater
- *
+ * @property-read \App\Models\User|null $updater
  * @method static Builder<static>|PartnerCategory findSimilarSlugs(string $attribute, array $config, string $slug)
  * @method static Builder<static>|PartnerCategory newModelQuery()
  * @method static Builder<static>|PartnerCategory newQuery()
@@ -47,7 +46,6 @@ use Spatie\EloquentSortable\SortableTrait;
  * @method static Builder<static>|PartnerCategory whereUpdatedAt($value)
  * @method static Builder<static>|PartnerCategory whereUpdatedBy($value)
  * @method static Builder<static>|PartnerCategory withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
- *
  * @mixin \Eloquent
  */
 class PartnerCategory extends Model implements Sortable

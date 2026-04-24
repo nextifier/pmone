@@ -37,16 +37,15 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property int|null $category_id
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read User|null $creator
- * @property-read Event|null $event
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\Event|null $event
  * @property-read array|null $product_image
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read Collection<int, OrderItem> $orderItems
+ * @property-read Collection<int, \App\Models\OrderItem> $orderItems
  * @property-read int|null $order_items_count
- * @property-read EventProductCategory|null $productCategory
- * @property-read User|null $updater
- *
+ * @property-read \App\Models\EventProductCategory|null $productCategory
+ * @property-read \App\Models\User|null $updater
  * @method static Builder<static>|EventProduct active()
  * @method static \Database\Factories\EventProductFactory factory($count = null, $state = [])
  * @method static Builder<static>|EventProduct newModelQuery()
@@ -67,7 +66,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|EventProduct whereUnit($value)
  * @method static Builder<static>|EventProduct whereUpdatedAt($value)
  * @method static Builder<static>|EventProduct whereUpdatedBy($value)
- *
  * @mixin \Eloquent
  */
 class EventProduct extends Model implements HasMedia, Sortable

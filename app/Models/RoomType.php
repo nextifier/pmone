@@ -24,30 +24,83 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Tags\HasTags;
 
 /**
+ * @property int $id
+ * @property string $ulid
+ * @property int $hotel_id
+ * @property string $slug
+ * @property string $name
+ * @property string|null $description
+ * @property int $max_pax
+ * @property string|null $bed_type
+ * @property numeric|null $area_sqm
+ * @property numeric $base_rate
+ * @property bool $breakfast_included
+ * @property bool $is_active
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property bool $smoking_allowed
+ * @property string|null $cancellation_policy
+ * @property array<array-key, mixed>|null $settings
+ * @property array<array-key, mixed>|null $more_details
+ * @property int|null $order_column
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read Collection<int, HotelEventAllotment> $allotments
+ * @property-read Collection<int, \App\Models\HotelEventAllotment> $allotments
  * @property-read int|null $allotments_count
- * @property-read User|null $creator
- * @property-read User|null $deleter
- * @property-read Hotel|null $hotel
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\User|null $deleter
+ * @property-read \App\Models\Hotel|null $hotel
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read Collection<int, ReservationItem> $reservationItems
+ * @property-read Collection<int, \App\Models\ReservationItem> $reservationItems
  * @property-read int|null $reservation_items_count
- * @property-read User|null $updater
- *
+ * @property Collection<int, \Spatie\Tags\Tag> $tags
+ * @property-read int|null $tags_count
+ * @property-read \App\Models\User|null $updater
  * @method static Builder<static>|RoomType active()
  * @method static \Database\Factories\RoomTypeFactory factory($count = null, $state = [])
  * @method static Builder<static>|RoomType findSimilarSlugs(string $attribute, array $config, string $slug)
  * @method static Builder<static>|RoomType newModelQuery()
  * @method static Builder<static>|RoomType newQuery()
  * @method static Builder<static>|RoomType onlyTrashed()
+ * @method static Builder<static>|RoomType ordered(string $direction = 'asc')
  * @method static Builder<static>|RoomType query()
+ * @method static Builder<static>|RoomType whereAreaSqm($value)
+ * @method static Builder<static>|RoomType whereBaseRate($value)
+ * @method static Builder<static>|RoomType whereBedType($value)
+ * @method static Builder<static>|RoomType whereBreakfastIncluded($value)
+ * @method static Builder<static>|RoomType whereCancellationPolicy($value)
+ * @method static Builder<static>|RoomType whereCreatedAt($value)
+ * @method static Builder<static>|RoomType whereCreatedBy($value)
+ * @method static Builder<static>|RoomType whereDeletedAt($value)
+ * @method static Builder<static>|RoomType whereDeletedBy($value)
+ * @method static Builder<static>|RoomType whereDescription($value)
+ * @method static Builder<static>|RoomType whereHotelId($value)
+ * @method static Builder<static>|RoomType whereId($value)
+ * @method static Builder<static>|RoomType whereIsActive($value)
+ * @method static Builder<static>|RoomType whereMaxPax($value)
+ * @method static Builder<static>|RoomType whereMoreDetails($value)
+ * @method static Builder<static>|RoomType whereName($value)
+ * @method static Builder<static>|RoomType whereOrderColumn($value)
+ * @method static Builder<static>|RoomType whereSettings($value)
+ * @method static Builder<static>|RoomType whereSlug($value)
+ * @method static Builder<static>|RoomType whereSmokingAllowed($value)
+ * @method static Builder<static>|RoomType whereUlid($value)
+ * @method static Builder<static>|RoomType whereUpdatedAt($value)
+ * @method static Builder<static>|RoomType whereUpdatedBy($value)
+ * @method static Builder<static>|RoomType withAllTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static Builder<static>|RoomType withAllTagsOfAnyType($tags)
+ * @method static Builder<static>|RoomType withAnyTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static Builder<static>|RoomType withAnyTagsOfAnyType($tags)
+ * @method static Builder<static>|RoomType withAnyTagsOfType(array|string $type)
  * @method static Builder<static>|RoomType withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|RoomType withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
+ * @method static Builder<static>|RoomType withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static Builder<static>|RoomType withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class RoomType extends Model implements HasMedia, Sortable

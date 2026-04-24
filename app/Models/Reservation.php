@@ -24,24 +24,64 @@ use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
+ * @property int $id
+ * @property string $ulid
+ * @property string $reservation_number
+ * @property int $event_id
+ * @property int $hotel_id
  * @property ReservationStatus $status
- * @property ReservationSource $source
+ * @property \Illuminate\Support\Carbon $payment_expires_at
+ * @property \Illuminate\Support\Carbon|null $paid_at
+ * @property \Illuminate\Support\Carbon|null $voucher_sent_at
+ * @property \Illuminate\Support\Carbon|null $cancelled_at
+ * @property \Illuminate\Support\Carbon|null $refunded_at
+ * @property string $guest_name
+ * @property string $guest_email
+ * @property string $guest_phone
  * @property IdentityType $guest_identity_type
- * @property PaymentMethod $payment_method
+ * @property string $guest_identity_number
+ * @property string|null $guest_nationality
+ * @property string|null $guest_company
+ * @property string|null $special_request
+ * @property numeric $subtotal_rooms
+ * @property numeric $subtotal_transfer
+ * @property numeric $surcharge_amount
+ * @property numeric $tax_amount
+ * @property numeric $service_charge_amount
+ * @property numeric $discount_amount
+ * @property numeric $total_amount
+ * @property string|null $xendit_invoice_id
+ * @property string|null $payment_url
+ * @property PaymentMethod|null $payment_method
+ * @property numeric|null $refund_amount
+ * @property string|null $xendit_refund_id
+ * @property string|null $refund_reason
+ * @property string|null $cancellation_reason
+ * @property string $magic_link_token
+ * @property ReservationSource $source
+ * @property string|null $project_username
+ * @property string|null $ip_address
+ * @property string|null $user_agent
+ * @property string|null $notes
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read User|null $creator
- * @property-read User|null $deleter
- * @property-read Event|null $event
- * @property-read Hotel|null $hotel
- * @property-read Collection<int, ReservationItem> $items
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\User|null $deleter
+ * @property-read \App\Models\Event|null $event
+ * @property-read \App\Models\Hotel|null $hotel
+ * @property-read Collection<int, \App\Models\ReservationItem> $items
  * @property-read int|null $items_count
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read Collection<int, ReservationTransfer> $transfers
+ * @property-read Collection<int, \App\Models\ReservationTransfer> $transfers
  * @property-read int|null $transfers_count
- * @property-read User|null $updater
- *
+ * @property-read \App\Models\User|null $updater
  * @method static \Database\Factories\ReservationFactory factory($count = null, $state = [])
  * @method static Builder<static>|Reservation forEvent(?int $eventId)
  * @method static Builder<static>|Reservation forHotel(int $hotelId)
@@ -50,9 +90,53 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|Reservation onlyTrashed()
  * @method static Builder<static>|Reservation query()
  * @method static Builder<static>|Reservation status(\App\Enums\ReservationStatus|string $status)
+ * @method static Builder<static>|Reservation whereCancellationReason($value)
+ * @method static Builder<static>|Reservation whereCancelledAt($value)
+ * @method static Builder<static>|Reservation whereCreatedAt($value)
+ * @method static Builder<static>|Reservation whereCreatedBy($value)
+ * @method static Builder<static>|Reservation whereDeletedAt($value)
+ * @method static Builder<static>|Reservation whereDeletedBy($value)
+ * @method static Builder<static>|Reservation whereDiscountAmount($value)
+ * @method static Builder<static>|Reservation whereEventId($value)
+ * @method static Builder<static>|Reservation whereGuestCompany($value)
+ * @method static Builder<static>|Reservation whereGuestEmail($value)
+ * @method static Builder<static>|Reservation whereGuestIdentityNumber($value)
+ * @method static Builder<static>|Reservation whereGuestIdentityType($value)
+ * @method static Builder<static>|Reservation whereGuestName($value)
+ * @method static Builder<static>|Reservation whereGuestNationality($value)
+ * @method static Builder<static>|Reservation whereGuestPhone($value)
+ * @method static Builder<static>|Reservation whereHotelId($value)
+ * @method static Builder<static>|Reservation whereId($value)
+ * @method static Builder<static>|Reservation whereIpAddress($value)
+ * @method static Builder<static>|Reservation whereMagicLinkToken($value)
+ * @method static Builder<static>|Reservation whereNotes($value)
+ * @method static Builder<static>|Reservation wherePaidAt($value)
+ * @method static Builder<static>|Reservation wherePaymentExpiresAt($value)
+ * @method static Builder<static>|Reservation wherePaymentMethod($value)
+ * @method static Builder<static>|Reservation wherePaymentUrl($value)
+ * @method static Builder<static>|Reservation whereProjectUsername($value)
+ * @method static Builder<static>|Reservation whereRefundAmount($value)
+ * @method static Builder<static>|Reservation whereRefundReason($value)
+ * @method static Builder<static>|Reservation whereRefundedAt($value)
+ * @method static Builder<static>|Reservation whereReservationNumber($value)
+ * @method static Builder<static>|Reservation whereServiceChargeAmount($value)
+ * @method static Builder<static>|Reservation whereSource($value)
+ * @method static Builder<static>|Reservation whereSpecialRequest($value)
+ * @method static Builder<static>|Reservation whereStatus($value)
+ * @method static Builder<static>|Reservation whereSubtotalRooms($value)
+ * @method static Builder<static>|Reservation whereSubtotalTransfer($value)
+ * @method static Builder<static>|Reservation whereSurchargeAmount($value)
+ * @method static Builder<static>|Reservation whereTaxAmount($value)
+ * @method static Builder<static>|Reservation whereTotalAmount($value)
+ * @method static Builder<static>|Reservation whereUlid($value)
+ * @method static Builder<static>|Reservation whereUpdatedAt($value)
+ * @method static Builder<static>|Reservation whereUpdatedBy($value)
+ * @method static Builder<static>|Reservation whereUserAgent($value)
+ * @method static Builder<static>|Reservation whereVoucherSentAt($value)
+ * @method static Builder<static>|Reservation whereXenditInvoiceId($value)
+ * @method static Builder<static>|Reservation whereXenditRefundId($value)
  * @method static Builder<static>|Reservation withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Reservation withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class Reservation extends Model implements HasMedia

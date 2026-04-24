@@ -28,12 +28,11 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property string|null $user_agent
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Event|null $event
- * @property-read EventDocument $eventDocument
+ * @property-read \App\Models\Event|null $event
+ * @property-read \App\Models\EventDocument $eventDocument
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read User|null $submitter
- *
+ * @property-read \App\Models\User|null $submitter
  * @method static \Database\Factories\EventDocumentSubmissionFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission newQuery()
@@ -52,7 +51,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission whereUlid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission whereUserAgent($value)
- *
  * @mixin \Eloquent
  */
 class EventDocumentSubmission extends Model implements HasMedia

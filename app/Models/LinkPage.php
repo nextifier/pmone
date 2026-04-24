@@ -43,20 +43,19 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property Carbon|null $deleted_at
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read Collection<int, Click> $clicks
+ * @property-read Collection<int, \App\Models\Click> $clicks
  * @property-read int $clicks_count
- * @property-read User|null $creator
- * @property-read User|null $deleter
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\User|null $deleter
  * @property-read array|null $cover_image
  * @property-read int|null $items_count
  * @property-read int|null $visits_count
- * @property-read Collection<int, LinkPageItem> $items
+ * @property-read Collection<int, \App\Models\LinkPageItem> $items
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read User|null $updater
- * @property-read User|null $user
- * @property-read Collection<int, Visit> $visits
- *
+ * @property-read \App\Models\User|null $updater
+ * @property-read \App\Models\User|null $user
+ * @property-read Collection<int, \App\Models\Visit> $visits
  * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage active()
  * @method static \Database\Factories\LinkPageFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage newModelQuery()
@@ -87,7 +86,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage whereVisibility($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|LinkPage withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class LinkPage extends Model implements HasMedia

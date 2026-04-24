@@ -50,21 +50,20 @@ use Spatie\Tags\Tag;
  * @property int|null $deleted_by
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read Collection<int, User> $authors
+ * @property-read Collection<int, \App\Models\User> $authors
  * @property-read int|null $authors_count
  * @property-read Collection<int, Tag> $categories
  * @property-read int|null $categories_count
- * @property-read User|null $creator
- * @property-read User|null $deleter
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\User|null $deleter
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read User|null $primaryAuthor
+ * @property-read \App\Models\User|null $primaryAuthor
  * @property Collection<int, Tag> $tags
  * @property-read int|null $tags_count
- * @property-read User|null $updater
- * @property-read Collection<int, Visit> $visits
+ * @property-read \App\Models\User|null $updater
+ * @property-read Collection<int, \App\Models\Visit> $visits
  * @property-read int|null $visits_count
- *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byAuthor(int $authorId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byCreator(int $userId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byStatus(string $status)
@@ -113,7 +112,6 @@ use Spatie\Tags\Tag;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class Post extends Model implements HasMedia

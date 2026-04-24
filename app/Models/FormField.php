@@ -24,8 +24,7 @@ use Spatie\EloquentSortable\SortableTrait;
  * @property int $order_column
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Form|null $form
- *
+ * @property-read \App\Models\Form|null $form
  * @method static Builder<static>|FormField newModelQuery()
  * @method static Builder<static>|FormField newQuery()
  * @method static Builder<static>|FormField ordered(string $direction = 'asc')
@@ -43,7 +42,6 @@ use Spatie\EloquentSortable\SortableTrait;
  * @method static Builder<static>|FormField whereUlid($value)
  * @method static Builder<static>|FormField whereUpdatedAt($value)
  * @method static Builder<static>|FormField whereValidation($value)
- *
  * @mixin \Eloquent
  */
 class FormField extends Model implements Sortable

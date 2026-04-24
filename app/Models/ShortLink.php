@@ -32,13 +32,12 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int|null $deleted_by
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read Collection<int, Click> $clicks
+ * @property-read Collection<int, \App\Models\Click> $clicks
  * @property-read int $clicks_count
- * @property-read User|null $creator
- * @property-read User|null $deleter
- * @property-read User|null $updater
- * @property-read User|null $user
- *
+ * @property-read \App\Models\User|null $creator
+ * @property-read \App\Models\User|null $deleter
+ * @property-read \App\Models\User|null $updater
+ * @property-read \App\Models\User|null $user
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink excludeProfileLinks()
  * @method static \Database\Factories\ShortLinkFactory factory($count = null, $state = [])
@@ -63,7 +62,6 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortLink withoutTrashed()
- *
  * @mixin \Eloquent
  */
 class ShortLink extends Model

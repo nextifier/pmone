@@ -11,14 +11,32 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 /**
- * @property-read User|null $creator
- * @property-read User|null $updater
- *
+ * @property int $id
+ * @property string $ulid
+ * @property string $key
+ * @property array<array-key, mixed>|null $value
+ * @property string|null $description
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\User|null $creator
+ * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read int|null $media_count
+ * @property-read \App\Models\User|null $updater
  * @method static \Database\Factories\AppSettingFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AppSetting newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AppSetting newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AppSetting query()
- *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AppSetting whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AppSetting whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AppSetting whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AppSetting whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AppSetting whereKey($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AppSetting whereUlid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AppSetting whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AppSetting whereUpdatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AppSetting whereValue($value)
  * @mixin \Eloquent
  */
 class AppSetting extends Model implements HasMedia
