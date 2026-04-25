@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChartConfig } from "@/registry/new-york-v4/ui/chart"
+import type { ChartConfig } from "@/components/ui/chart"
 
 // import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { VisArea, VisAxis, VisLine, VisXYContainer } from "@unovis/vue"
@@ -9,7 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/registry/new-york-v4/ui/card"
+} from "@/components/ui/card"
 import {
 
   ChartContainer,
@@ -18,14 +18,14 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   componentToString,
-} from "@/registry/new-york-v4/ui/chart"
+} from "@/components/ui/chart"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/registry/new-york-v4/ui/select"
+} from "@/components/ui/select"
 
 const description = "An interactive area chart"
 

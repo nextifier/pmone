@@ -21,8 +21,7 @@
         v-model="selectedDate"
         :min-value="calendarMinValue"
         :max-value="calendarMaxValue"
-        :min-year="minYear"
-        :max-year="maxYear"
+        :year-range="calendarYearRange"
         initial-focus
         @update:model-value="onDateSelect"
       />
@@ -124,6 +123,19 @@ const minutes = Array.from({ length: 60 }, (_, i) => i);
 // Calendar constraints
 const calendarMinValue = computed(() => (props.disablePastDates ? todayDate : undefined));
 const calendarMaxValue = computed(() => (props.disableFutureDates ? todayDate : undefined));
+
+const calendarYearRange = computed<DateValue[] | undefined>(() => {
+  if (props.minYear === undefined && props.maxYear === undefined) return undefined;
+  const currentYear = todayDate.year;
+  const start = props.minYear ?? currentYear - 100;
+  const end = props.maxYear ?? currentYear + 10;
+  if (end < start) return undefined;
+  const range: DateValue[] = [];
+  for (let y = start; y <= end; y++) {
+    range.push(new CalendarDate(y, 1, 1));
+  }
+  return range;
+});
 
 // Display text
 const displayText = computed(() => {

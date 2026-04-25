@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type {
   ChartConfig,
-} from "@/registry/new-york-v4/ui/chart"
+} from "@/components/ui/chart"
 import { CurveType } from "@unovis/ts"
 
 import { VisAxis, VisLine, VisXYContainer } from "@unovis/vue"
@@ -13,14 +13,14 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/registry/new-york-v4/ui/card"
+} from "@/components/ui/card"
 import {
   ChartContainer,
   ChartCrosshair,
   ChartTooltip,
   ChartTooltipContent,
   componentToString,
-} from "@/registry/new-york-v4/ui/chart"
+} from "@/components/ui/chart"
 
 const description = "A line chart"
 

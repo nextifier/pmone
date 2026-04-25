@@ -7,12 +7,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import type { DateValue } from "@internationalized/date";
-import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
-import { reactiveOmit } from "@vueuse/core";
-import type { CalendarRootEmits, CalendarRootProps } from "reka-ui";
-import { CalendarRoot, useForwardPropsEmits } from "reka-ui";
-import type { HTMLAttributes } from "vue";
+import { getLocalTimeZone, today } from "@internationalized/date";
+import { createReusableTemplate, reactiveOmit, useVModel } from "@vueuse/core";
+import type { CalendarRootEmits, CalendarRootProps, DateValue } from "reka-ui";
+import { CalendarRoot, useDateFormatter, useForwardPropsEmits } from "reka-ui";
+import { createYear, createYearRange, toDate } from "reka-ui/date";
+import type { HTMLAttributes, Ref } from "vue";
+import { computed, toRaw } from "vue";
+import type { LayoutTypes } from ".";
 import {
   CalendarCell,
   CalendarCellTrigger,
@@ -22,113 +24,160 @@ import {
   CalendarGridRow,
   CalendarHeadCell,
   CalendarHeader,
+  CalendarHeading,
   CalendarNextButton,
   CalendarPrevButton,
 } from ".";
 
-interface Props extends CalendarRootProps {
-  class?: HTMLAttributes["class"];
-  minYear?: number;
-  maxYear?: number;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  minYear: () => today(getLocalTimeZone()).year - 100,
-  maxYear: () => today(getLocalTimeZone()).year + 10,
-});
+const props = withDefaults(
+  defineProps<
+    CalendarRootProps & {
+      class?: HTMLAttributes["class"];
+      layout?: LayoutTypes;
+      yearRange?: DateValue[];
+    }
+  >(),
+  {
+    modelValue: undefined,
+    layout: "month-and-year",
+  }
+);
 const emits = defineEmits<CalendarRootEmits>();
 
-const delegatedProps = reactiveOmit(props, "class", "minYear", "maxYear");
-const forwarded = useForwardPropsEmits(delegatedProps, emits);
+const delegatedProps = reactiveOmit(props, "class", "layout", "placeholder");
 
-const todayDate = today(getLocalTimeZone());
+const placeholder = useVModel(props, "placeholder", emits, {
+  passive: true,
+  defaultValue: props.defaultPlaceholder ?? today(getLocalTimeZone()),
+}) as Ref<DateValue>;
 
-// Resolve initial date from modelValue or placeholder
-function getInitialDate(): DateValue {
-  const mv = props.modelValue;
-  if (mv) {
-    if (Array.isArray(mv)) return mv[0] ?? todayDate;
-    return mv as DateValue;
-  }
-  if (props.placeholder) return props.placeholder as DateValue;
-  return todayDate;
-}
+const formatter = useDateFormatter(props.locale ?? "en");
 
-const initialDate = getInitialDate();
-const displayMonth = ref(initialDate.month);
-const displayYear = ref(initialDate.year);
+const yearRange = computed(() => {
+  return (
+    props.yearRange ??
+    createYearRange({
+      start:
+        props?.minValue ??
+        (toRaw(props.placeholder) ?? props.defaultPlaceholder ?? today(getLocalTimeZone())).cycle(
+          "year",
+          -100
+        ),
 
-// Placeholder computed from select values
-const selectPlaceholder = computed(
-  () => new CalendarDate(displayYear.value, displayMonth.value, 1)
-);
-
-// Sync selects when calendar navigates via prev/next
-function onPlaceholderChange(date: DateValue) {
-  displayMonth.value = date.month;
-  displayYear.value = date.year;
-}
-
-// Sync selects when modelValue changes externally
-watch(
-  () => props.modelValue,
-  (v) => {
-    if (!v) return;
-    const date = Array.isArray(v) ? v[0] : (v as DateValue);
-    if (date) {
-      displayMonth.value = date.month;
-      displayYear.value = date.year;
-    }
-  }
-);
-
-// Month names (short format)
-const monthNames = Array.from({ length: 12 }, (_, i) =>
-  new CalendarDate(todayDate.year, i + 1, 1)
-    .toDate(getLocalTimeZone())
-    .toLocaleString("en-US", { month: "short" })
-);
-
-// Years list (descending)
-const years = computed(() => {
-  const count = props.maxYear - props.minYear + 1;
-  return Array.from({ length: count }, (_, i) => props.maxYear - i);
+      end:
+        props?.maxValue ??
+        (toRaw(props.placeholder) ?? props.defaultPlaceholder ?? today(getLocalTimeZone())).cycle(
+          "year",
+          10
+        ),
+    })
+  );
 });
+
+const [DefineMonthTemplate, ReuseMonthTemplate] = createReusableTemplate<{ date: DateValue }>();
+const [DefineYearTemplate, ReuseYearTemplate] = createReusableTemplate<{ date: DateValue }>();
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
 
 <template>
+  <DefineMonthTemplate v-slot="{ date }">
+    <Select
+      :model-value="date.month"
+      @update:model-value="
+        (v) => {
+          placeholder = placeholder.set({ month: Number(v) });
+        }
+      "
+    >
+      <SelectTrigger size="sm" class="h-8 gap-1 px-2 text-sm">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem
+          v-for="month in createYear({ dateObj: date })"
+          :key="month.toString()"
+          :value="month.month"
+        >
+          {{ formatter.custom(toDate(month), { month: "short" }) }}
+        </SelectItem>
+      </SelectContent>
+    </Select>
+  </DefineMonthTemplate>
+
+  <DefineYearTemplate v-slot="{ date }">
+    <Select
+      :model-value="date.year"
+      @update:model-value="
+        (v) => {
+          placeholder = placeholder.set({ year: Number(v) });
+        }
+      "
+    >
+      <SelectTrigger size="sm" class="h-8 gap-1 px-2 text-sm">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem
+          v-for="year in yearRange"
+          :key="year.toString()"
+          :value="year.year"
+        >
+          {{ formatter.custom(toDate(year), { year: "numeric" }) }}
+        </SelectItem>
+      </SelectContent>
+    </Select>
+  </DefineYearTemplate>
+
   <CalendarRoot
-    v-slot="{ grid, weekDays }"
-    data-slot="calendar"
-    :class="cn('p-2.5', props.class)"
+    v-slot="{ grid, weekDays, date }"
     v-bind="forwarded"
-    :placeholder="selectPlaceholder"
+    v-model:placeholder="placeholder"
+    data-slot="calendar"
     weekday-format="short"
-    @update:placeholder="onPlaceholderChange"
+    :weekStartsOn="1"
+    :class="cn('p-3', props.class)"
   >
-    <CalendarHeader class="gap-1">
-      <CalendarPrevButton class="static left-auto size-8 border-0 shadow-none" />
-      <Select v-model="displayMonth">
-        <SelectTrigger size="sm" class="bg-card tracking-tight">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent class="tracking-tight">
-          <SelectItem v-for="(month, i) in monthNames" :key="i" :value="i + 1">
-            {{ month }}
-          </SelectItem>
-        </SelectContent>
-      </Select>
-      <Select v-model="displayYear">
-        <SelectTrigger size="sm" class="bg-card tracking-tight">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent class="tracking-tight">
-          <SelectItem v-for="year in years" :key="year" :value="year">
-            {{ year }}
-          </SelectItem>
-        </SelectContent>
-      </Select>
-      <CalendarNextButton class="static right-auto size-8 border-0 shadow-none" />
+    <CalendarHeader class="pt-0">
+      <nav
+        class="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between gap-1 [&>*]:pointer-events-auto"
+      >
+        <CalendarPrevButton>
+          <slot name="calendar-prev-icon" />
+        </CalendarPrevButton>
+        <CalendarNextButton>
+          <slot name="calendar-next-icon" />
+        </CalendarNextButton>
+      </nav>
+
+      <slot
+        name="calendar-heading"
+        :date="date"
+        :month="ReuseMonthTemplate"
+        :year="ReuseYearTemplate"
+      >
+        <template v-if="layout === 'month-and-year'">
+          <div class="flex items-center justify-center gap-1">
+            <ReuseMonthTemplate :date="date" />
+            <ReuseYearTemplate :date="date" />
+          </div>
+        </template>
+        <template v-else-if="layout === 'month-only'">
+          <div class="flex items-center justify-center gap-1">
+            <ReuseMonthTemplate :date="date" />
+            {{ formatter.custom(toDate(date), { year: "numeric" }) }}
+          </div>
+        </template>
+        <template v-else-if="layout === 'year-only'">
+          <div class="flex items-center justify-center gap-1">
+            {{ formatter.custom(toDate(date), { month: "short" }) }}
+            <ReuseYearTemplate :date="date" />
+          </div>
+        </template>
+        <template v-else>
+          <CalendarHeading />
+        </template>
+      </slot>
     </CalendarHeader>
 
     <div class="mt-4 flex flex-col gap-y-4 sm:flex-row sm:gap-x-4 sm:gap-y-0">
@@ -136,7 +185,7 @@ const years = computed(() => {
         <CalendarGridHead>
           <CalendarGridRow>
             <CalendarHeadCell v-for="day in weekDays" :key="day">
-              {{ day.slice(0, 2) }}
+              {{ day }}
             </CalendarHeadCell>
           </CalendarGridRow>
         </CalendarGridHead>
