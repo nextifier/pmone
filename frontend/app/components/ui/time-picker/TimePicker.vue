@@ -19,13 +19,14 @@ const props = withDefaults(
   defineProps<TimeFieldRootProps & {
     class?: HTMLAttributes["class"];
     clearable?: boolean;
+    showCaret?: boolean;
   }>(),
-  { hourCycle: 24, locale: "en-US", clearable: false },
+  { hourCycle: 24, locale: "en-US", clearable: false, showCaret: false },
 );
 
 const emits = defineEmits<TimeFieldRootEmits>();
 
-const delegatedProps = reactiveOmit(props, "class", "clearable");
+const delegatedProps = reactiveOmit(props, "class", "clearable", "showCaret");
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
 const showClear = computed(
@@ -43,22 +44,22 @@ function clear() {
     data-slot="time-picker"
     :class="
       cn(
-        'border-border flex h-9 w-full min-w-0 items-center rounded-md border bg-transparent px-3 py-1 text-sm tracking-tight shadow-xs transition-[color,box-shadow]',
-        'focus-within:border-ring focus-within:ring-ring focus-within:ring-[1px]',
-        'data-[invalid]:border-destructive data-[invalid]:ring-destructive/20',
+        'flex h-9 w-full min-w-0 items-center gap-0.5 text-sm tracking-tight',
         'data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50',
         props.class,
       )
     "
     v-bind="forwarded"
   >
-    <TimePickerInput
-      v-for="(item, idx) in segments"
-      :key="`${item.part}-${idx}`"
-      :part="item.part"
-    >
-      {{ item.value }}
-    </TimePickerInput>
+    <template v-for="(item, idx) in segments" :key="`${item.part}-${idx}`">
+      <TimePickerInput
+        v-if="item.part !== 'literal' || item.value.trim()"
+        :part="item.part"
+        :show-caret="showCaret"
+      >
+        {{ item.value }}
+      </TimePickerInput>
+    </template>
     <button
       v-if="showClear"
       type="button"

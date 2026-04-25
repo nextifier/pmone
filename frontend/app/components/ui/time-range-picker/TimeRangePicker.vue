@@ -11,33 +11,34 @@
  * (no opt-out — wrap-around schedules are not supported by reka-ui's internal
  * validator). To allow custom availability checks, pass `is-time-unavailable`.
  */
-import type { TimeRangeFieldRootEmits, TimeRangeFieldRootProps } from "reka-ui";
-import type { HTMLAttributes } from "vue";
-import { reactiveOmit } from "@vueuse/core";
-import { TimeRangeFieldRoot, useForwardPropsEmits } from "reka-ui";
-import { computed } from "vue";
 import { cn } from "@/lib/utils";
+import { reactiveOmit } from "@vueuse/core";
+import type { TimeRangeFieldRootEmits, TimeRangeFieldRootProps } from "reka-ui";
+import { TimeRangeFieldRoot, useForwardPropsEmits } from "reka-ui";
+import type { HTMLAttributes } from "vue";
+import { computed } from "vue";
 import TimeRangePickerInput from "./TimeRangePickerInput.vue";
 
 const props = withDefaults(
-  defineProps<TimeRangeFieldRootProps & {
-    class?: HTMLAttributes["class"];
-    clearable?: boolean;
-  }>(),
-  { hourCycle: 24, locale: "en-US", clearable: false },
+  defineProps<
+    TimeRangeFieldRootProps & {
+      class?: HTMLAttributes["class"];
+      clearable?: boolean;
+      showCaret?: boolean;
+    }
+  >(),
+  { hourCycle: 24, locale: "en-US", clearable: false, showCaret: false }
 );
 
 const emits = defineEmits<TimeRangeFieldRootEmits>();
 
-const delegatedProps = reactiveOmit(props, "class", "clearable");
+const delegatedProps = reactiveOmit(props, "class", "clearable", "showCaret");
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
-const hasValue = computed(
-  () => props.modelValue?.start != null || props.modelValue?.end != null,
-);
+const hasValue = computed(() => props.modelValue?.start != null || props.modelValue?.end != null);
 
 const showClear = computed(
-  () => props.clearable && hasValue.value && !props.disabled && !props.readonly,
+  () => props.clearable && hasValue.value && !props.disabled && !props.readonly
 );
 
 function clear() {
@@ -51,32 +52,42 @@ function clear() {
     data-slot="time-range-picker"
     :class="
       cn(
-        'border-border flex h-9 w-full min-w-0 items-center rounded-md border bg-transparent px-3 py-1 text-sm tracking-tight shadow-xs transition-[color,box-shadow]',
-        'focus-within:border-ring focus-within:ring-ring focus-within:ring-[1px]',
-        'data-[invalid]:border-destructive data-[invalid]:ring-destructive/20',
+        'flex h-9 w-full min-w-0 items-center gap-0.5 text-sm tracking-tight',
         'data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50',
-        props.class,
+        props.class
       )
     "
     v-bind="forwarded"
   >
-    <TimeRangePickerInput
+    <template
       v-for="(item, idx) in segments.start"
       :key="`start-${item.part}-${idx}`"
-      :part="item.part"
-      type="start"
     >
-      {{ item.value }}
-    </TimeRangePickerInput>
-    <span aria-hidden="true" class="text-muted-foreground px-1 tracking-tight">–</span>
-    <TimeRangePickerInput
+      <TimeRangePickerInput
+        v-if="item.part !== 'literal' || item.value.trim()"
+        :part="item.part"
+        type="start"
+        :show-caret="showCaret"
+      >
+        {{ item.value }}
+      </TimeRangePickerInput>
+    </template>
+    <span aria-hidden="true" class="grid h-full w-4 place-items-center">
+      <span class="bg-muted-foreground/60 block h-px w-2" />
+    </span>
+    <template
       v-for="(item, idx) in segments.end"
       :key="`end-${item.part}-${idx}`"
-      :part="item.part"
-      type="end"
     >
-      {{ item.value }}
-    </TimeRangePickerInput>
+      <TimeRangePickerInput
+        v-if="item.part !== 'literal' || item.value.trim()"
+        :part="item.part"
+        type="end"
+        :show-caret="showCaret"
+      >
+        {{ item.value }}
+      </TimeRangePickerInput>
+    </template>
     <button
       v-if="showClear"
       type="button"

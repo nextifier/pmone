@@ -116,7 +116,7 @@ const formatRange = (r: TimeRangeValue) => {
           <ClientOnly>
             <TimePicker v-model="twelveHourTime" :hour-cycle="12" />
             <template #fallback>
-              <div class="border-border h-9 w-full rounded-md border bg-transparent" />
+              <div class="h-9 w-full" />
             </template>
           </ClientOnly>
         </div>
@@ -245,7 +245,7 @@ const formatRange = (r: TimeRangeValue) => {
           <ClientOnly>
             <TimeRangePicker v-model="basicRange" :hour-cycle="12" />
             <template #fallback>
-              <div class="border-border h-9 w-full rounded-md border bg-transparent" />
+              <div class="h-9 w-full" />
             </template>
           </ClientOnly>
         </div>
