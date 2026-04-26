@@ -957,10 +957,12 @@ Route::prefix('exchange-rates')->middleware('throttle:api')->group(function () {
 
 // Public Hotel Reservation API endpoints (API key authentication)
 Route::middleware(['api.key'])->prefix('public')->group(function () {
-    Route::get('/hotels', [PublicHotelController::class, 'index']);
+    Route::get('/hotels', [PublicHotelController::class, 'index'])
+        ->middleware(CacheResponse::for(3600, 'hotels'));
     Route::post('/hotels/availability', [PublicHotelController::class, 'availability'])
         ->middleware('throttle:60,1');
-    Route::get('/events/{eventSlug}/hotels/{hotelSlug}', [PublicHotelController::class, 'show']);
+    Route::get('/events/{eventSlug}/hotels/{hotelSlug}', [PublicHotelController::class, 'show'])
+        ->middleware(CacheResponse::for(3600, 'hotels'));
     Route::post('/reservations', [PublicReservationController::class, 'store'])
         ->middleware('throttle:10,1');
     Route::get('/reservations/magic/{token}', [PublicReservationController::class, 'showByMagicLink'])

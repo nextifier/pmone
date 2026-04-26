@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\TransferDirection;
+use App\Traits\ClearsResponseCache;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -72,6 +73,7 @@ use Spatie\EloquentSortable\SortableTrait;
  */
 class HotelTransferOption extends Model implements Sortable
 {
+    use ClearsResponseCache;
     use HasFactory;
     use LogsActivity;
     use SoftDeletes;
@@ -104,6 +106,11 @@ class HotelTransferOption extends Model implements Sortable
             'settings' => 'array',
             'more_details' => 'array',
         ];
+    }
+
+    protected static function responseCacheTags(): array
+    {
+        return ['hotels'];
     }
 
     protected static function boot(): void

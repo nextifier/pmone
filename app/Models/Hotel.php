@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
 use App\Traits\HasSlug;
 use Illuminate\Database\Eloquent\Builder;
@@ -119,6 +120,7 @@ use Spatie\Tags\HasTags;
  */
 class Hotel extends Model implements HasMedia, Sortable
 {
+    use ClearsResponseCache;
     use HasFactory;
     use HasMediaManager;
     use HasSlug;
@@ -166,6 +168,11 @@ class Hotel extends Model implements HasMedia, Sortable
             'settings' => 'array',
             'more_details' => 'array',
         ];
+    }
+
+    protected static function responseCacheTags(): array
+    {
+        return ['hotels'];
     }
 
     public function sluggable(): array
