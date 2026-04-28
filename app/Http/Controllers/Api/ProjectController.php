@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\ResponseCache\Facades\ResponseCache;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProjectController extends Controller
@@ -304,6 +305,39 @@ class ProjectController extends Controller
         return response()->json([
             'message' => 'Project updated successfully',
             'data' => new ProjectResource($project->load(['members.media', 'links', 'creator', 'updater'])),
+        ]);
+    }
+
+    public function updateWebsiteSettings(Request $request, string $username): JsonResponse
+    {
+        $project = Project::where('username', $username)->firstOrFail();
+
+        $this->authorize('update', $project);
+
+        $validated = $request->validate([
+            'rundown' => ['sometimes', 'array'],
+            'rundown.show_search_bar' => ['sometimes', 'boolean'],
+            'rundown.show_all_rundown_details' => ['sometimes', 'boolean'],
+        ]);
+
+        $settings = $project->settings ?? [];
+        $current = data_get($settings, 'website_settings', []);
+        $merged = array_replace_recursive($current, $validated);
+        data_set($settings, 'website_settings', $merged);
+
+        $project->settings = $settings;
+        $project->save();
+
+        // Public rundown / events responses cache `website_settings` from the
+        // owning project. The Project model only clears the 'projects' tag on
+        // save, so explicitly invalidate the dependent caches here.
+        ResponseCache::clear(['rundown', 'events']);
+
+        return response()->json([
+            'message' => 'Website settings updated successfully',
+            'data' => [
+                'website_settings' => data_get($project->settings, 'website_settings', []),
+            ],
         ]);
     }
 

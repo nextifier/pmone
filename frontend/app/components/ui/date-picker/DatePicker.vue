@@ -19,6 +19,7 @@
     <PopoverContent class="w-auto rounded-xl p-0" align="start">
       <Calendar
         v-model="selectedDate"
+        :placeholder="calendarPlaceholder"
         :min-value="calendarMinValue"
         :max-value="calendarMaxValue"
         :year-range="calendarYearRange"
@@ -90,6 +91,9 @@ const props = withDefaults(
     disablePastDates?: boolean;
     minYear?: number;
     maxYear?: number;
+    min?: Date | null;
+    max?: Date | null;
+    placeholderDate?: Date | null;
   }>(),
   {
     modelValue: null,
@@ -100,6 +104,9 @@ const props = withDefaults(
     defaultMinute: 0,
     disableFutureDates: false,
     disablePastDates: false,
+    min: null,
+    max: null,
+    placeholderDate: null,
   }
 );
 
@@ -120,9 +127,26 @@ const selectedMinute = ref(props.defaultMinute);
 const hours = Array.from({ length: 24 }, (_, i) => i);
 const minutes = Array.from({ length: 60 }, (_, i) => i);
 
-// Calendar constraints
-const calendarMinValue = computed(() => (props.disablePastDates ? todayDate : undefined));
-const calendarMaxValue = computed(() => (props.disableFutureDates ? todayDate : undefined));
+function dateToCalendarDate(date: Date): CalendarDate {
+  return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
+}
+
+// Calendar constraints — explicit min/max takes precedence
+const calendarMinValue = computed<DateValue | undefined>(() => {
+  if (props.min) return dateToCalendarDate(props.min);
+  return props.disablePastDates ? todayDate : undefined;
+});
+const calendarMaxValue = computed<DateValue | undefined>(() => {
+  if (props.max) return dateToCalendarDate(props.max);
+  return props.disableFutureDates ? todayDate : undefined;
+});
+
+const calendarPlaceholder = computed<DateValue | undefined>(() => {
+  if (props.modelValue) return dateToCalendarDate(props.modelValue);
+  if (props.placeholderDate) return dateToCalendarDate(props.placeholderDate);
+  if (props.min) return dateToCalendarDate(props.min);
+  return undefined;
+});
 
 const calendarYearRange = computed<DateValue[] | undefined>(() => {
   if (props.minYear === undefined && props.maxYear === undefined) return undefined;
@@ -162,11 +186,10 @@ watch(isOpen, (open) => {
 
 function syncFromModelValue(value: Date | null | undefined) {
   if (value) {
-    const date = new Date(value);
-    selectedDate.value = new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
+    selectedDate.value = dateToCalendarDate(value);
     if (props.withTime) {
-      selectedHour.value = date.getHours();
-      selectedMinute.value = date.getMinutes();
+      selectedHour.value = value.getHours();
+      selectedMinute.value = value.getMinutes();
     }
   } else {
     selectedDate.value = undefined;

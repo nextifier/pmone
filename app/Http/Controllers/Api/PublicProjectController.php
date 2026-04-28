@@ -11,11 +11,14 @@ use App\Http\Resources\ProjectResource;
 use App\Http\Resources\PromotionPostResource;
 use App\Http\Resources\PublicBrandDetailResource;
 use App\Http\Resources\PublicBrandIndexResource;
+use App\Http\Resources\RundownItemPublicResource;
 use App\Models\BrandEvent;
 use App\Models\Event;
 use App\Models\Project;
+use App\Services\Rundown\RundownGrouper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 
 class PublicProjectController extends Controller
 {
@@ -374,6 +377,41 @@ class PublicProjectController extends Controller
 
         return response()->json([
             'data' => new PublicBrandDetailResource($brandEvent),
+        ]);
+    }
+
+    /**
+     * List rundown items grouped by date for an event.
+     * Returns translated content based on `?locale=` query param (default: en).
+     */
+    public function rundown(Request $request, string $username, string $eventSlug): JsonResponse
+    {
+        $event = $this->findEvent($username, $eventSlug);
+        $event->loadMissing('project');
+
+        $locale = $request->input('locale', config('app.locale', 'en'));
+        App::setLocale($locale);
+
+        $items = $event->rundownItems()
+            ->with(['media', 'tags'])
+            ->where('is_active', true)
+            ->get();
+
+        $rundownSettings = data_get($event->project?->settings, 'website_settings.rundown', []);
+
+        return response()->json([
+            'data' => [
+                'days' => RundownGrouper::group(
+                    $items,
+                    fn ($item) => (new RundownItemPublicResource($item))->resolve(),
+                    event: $event,
+                    unscheduledLabel: null,
+                ),
+                'settings' => [
+                    'show_search_bar' => (bool) ($rundownSettings['show_search_bar'] ?? true),
+                    'show_all_rundown_details' => (bool) ($rundownSettings['show_all_rundown_details'] ?? false),
+                ],
+            ],
         ]);
     }
 

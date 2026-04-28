@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Order;
 use App\Models\Post;
+use App\Models\Project;
 use App\Models\Visit;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -20,7 +21,11 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        $projects = $user->projects()
+        $query = $user->hasRole(['master', 'admin', 'staff'])
+            ? Project::query()
+            : $user->projects();
+
+        $projects = $query
             ->active()
             ->orderBy('order_column')
             ->with(['media', 'events' => fn ($q) => $q->active()->reorder()->latest('id')->with('media')])
@@ -147,8 +152,12 @@ class DashboardController extends Controller
             })
             ->values();
 
-        // --- My Projects - all projects where user is member ---
-        $myProjects = $user->projects()
+        // --- My Projects - all projects where user is member (or all for admin/staff) ---
+        $myProjectsQuery = $user->hasRole(['master', 'admin', 'staff'])
+            ? Project::query()
+            : $user->projects();
+
+        $myProjects = $myProjectsQuery
             ->active()
             ->orderBy('order_column')
             ->with('media')

@@ -37,6 +37,11 @@ const settingsTabs = computed(() => [
     icon: "hugeicons:structure-03",
     to: `${settingsBase.value}/brand-fields`,
   },
+  {
+    label: "Website Settings",
+    icon: "hugeicons:globe-02",
+    to: `${settingsBase.value}/website-settings`,
+  },
 ]);
 
 const projectTabs = inject("projectTabs");

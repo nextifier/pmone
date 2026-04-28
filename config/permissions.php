@@ -19,6 +19,7 @@ use App\Models\Post;
 use App\Models\Project;
 use App\Models\Reservation;
 use App\Models\RoomType;
+use App\Models\RundownItem;
 use App\Models\ShortLink;
 use App\Models\Task;
 use App\Models\User;
@@ -150,6 +151,12 @@ return [
             'description' => 'Manage event documents and rules',
             'model' => EventDocument::class,
             'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'rundown_items' => [
+            'label' => 'Rundown',
+            'description' => 'Manage event rundown items',
+            'model' => RundownItem::class,
+            'actions' => ['create', 'read', 'update', 'delete', 'restore'],
         ],
         'forms' => [
             'label' => 'Forms',

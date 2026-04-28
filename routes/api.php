@@ -53,6 +53,7 @@ use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\RolesPermissionsSyncController;
 use App\Http\Controllers\Api\RoomTypeController;
+use App\Http\Controllers\Api\RundownItemController;
 use App\Http\Controllers\Api\SheetsController;
 use App\Http\Controllers\Api\ShortLinkController;
 use App\Http\Controllers\Api\TagController;
@@ -175,6 +176,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::post('/{username}/members/toggle', [ProjectController::class, 'toggleMember'])->name('projects.toggle-member');
         Route::get('/{username}', [ProjectController::class, 'show'])->name('projects.show');
         Route::put('/{username}', [ProjectController::class, 'update'])->name('projects.update');
+        Route::patch('/{username}/website-settings', [ProjectController::class, 'updateWebsiteSettings'])->name('projects.website-settings');
         Route::delete('/{username}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     });
 
@@ -238,6 +240,19 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/{id}', [EventProductController::class, 'show'])->name('event-products.show');
         Route::put('/{id}', [EventProductController::class, 'update'])->name('event-products.update');
         Route::delete('/{id}', [EventProductController::class, 'destroy'])->name('event-products.destroy');
+    });
+
+    // Rundown item management endpoints (nested under events)
+    Route::prefix('projects/{username}/events/{eventSlug}/rundown-items')->group(function () {
+        Route::get('/', [RundownItemController::class, 'index'])->name('rundown-items.index');
+        Route::post('/', [RundownItemController::class, 'store'])->name('rundown-items.store');
+        Route::post('/reorder', [RundownItemController::class, 'reorder'])->name('rundown-items.reorder');
+        Route::get('/trash', [RundownItemController::class, 'trash'])->name('rundown-items.trash');
+        Route::post('/trash/{id}/restore', [RundownItemController::class, 'restore'])->name('rundown-items.restore');
+        Route::delete('/trash/{id}', [RundownItemController::class, 'forceDestroy'])->name('rundown-items.force-destroy');
+        Route::get('/{id}', [RundownItemController::class, 'show'])->name('rundown-items.show');
+        Route::put('/{id}', [RundownItemController::class, 'update'])->name('rundown-items.update');
+        Route::delete('/{id}', [RundownItemController::class, 'destroy'])->name('rundown-items.destroy');
     });
 
     // Event product category management endpoints (nested under events)
@@ -939,6 +954,8 @@ Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
         ->middleware(CacheResponse::for(86400, 'brands'));
     Route::get('/{username}/events/{eventSlug}/brands/{brandSlug}/promotion-posts', [PublicProjectController::class, 'promotionPosts'])
         ->middleware(CacheResponse::for(3600, 'promotion-posts'));
+    Route::get('/{username}/events/{eventSlug}/rundown', [PublicProjectController::class, 'rundown'])
+        ->middleware(CacheResponse::for(86400, 'rundown'));
 });
 
 // Public Exchange Rate API endpoints (no authentication required, public proxy)

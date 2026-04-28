@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { cn } from "@/lib/utils";
 import { TabsTrigger, type TabsTriggerProps, useForwardProps } from "reka-ui";
-import { computed, type HTMLAttributes } from "vue";
+import { computed, inject, type HTMLAttributes } from "vue";
+import {
+  TABS_CONTEXT,
+  TABS_DEFAULTS,
+  tabsTriggerClasses,
+  tabsTriggerSizeClasses,
+} from "./context";
 
 const props = defineProps<
   TabsTriggerProps & { class?: HTMLAttributes["class"] }
@@ -9,11 +15,18 @@ const props = defineProps<
 
 const delegatedProps = computed(() => {
   const { class: _, ...delegated } = props;
-
   return delegated;
 });
 
 const forwardedProps = useForwardProps(delegatedProps);
+
+const ctx = inject(TABS_CONTEXT, null);
+const variantClass = computed(
+  () => tabsTriggerClasses[ctx?.variant.value ?? TABS_DEFAULTS.variant],
+);
+const sizeClass = computed(
+  () => tabsTriggerSizeClasses[ctx?.size.value ?? TABS_DEFAULTS.size],
+);
 </script>
 
 <template>
@@ -21,13 +34,13 @@ const forwardedProps = useForwardProps(delegatedProps);
     v-bind="forwardedProps"
     :class="
       cn(
-        'inline-flex items-center justify-center whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-xs',
+        'ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center gap-1.5 font-medium whitespace-nowrap transition-colors outline-hidden select-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+        sizeClass,
+        variantClass,
         props.class,
       )
     "
   >
-    <span class="truncate">
-      <slot />
-    </span>
+    <slot />
   </TabsTrigger>
 </template>
