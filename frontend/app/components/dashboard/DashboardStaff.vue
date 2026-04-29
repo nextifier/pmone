@@ -4,6 +4,8 @@
   >
     <DashboardGreetingTips :tip-definitions="tipDefinitions" :tips="tips" :loading="loading" />
 
+    <DashboardAnnouncements />
+
     <DashboardMyProjects :projects="myProjects" :loading="loading" />
 
     <DashboardRecentEvents :events="allEvents" :loading="loading" />
