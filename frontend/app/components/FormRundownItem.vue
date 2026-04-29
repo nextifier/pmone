@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Time } from "@internationalized/date";
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import InputFileImage from "@/components/InputFileImage.vue";
 import SpeakerListInput from "@/components/SpeakerListInput.vue";
 import PanelistListInput from "@/components/PanelistListInput.vue";
@@ -9,6 +9,7 @@ import PanelistListInput from "@/components/PanelistListInput.vue";
 type Translatable = Record<string, string | null>;
 type Speaker = { name: string; title?: string; organization?: string };
 type Panelist = { name: string; title?: string };
+type LocalizedList<T> = T[] | Record<string, T[]>;
 
 type RundownItemPayload = {
   id?: number;
@@ -22,12 +23,31 @@ type RundownItemPayload = {
   location?: Translatable;
   presented_by?: Translatable;
   moderator?: Translatable;
-  panelists?: Panelist[] | null;
-  speakers?: Speaker[] | null;
+  panelists?: LocalizedList<Panelist> | null;
+  speakers?: LocalizedList<Speaker> | null;
   categories?: string[];
   poster_image?: { sm?: string; md?: string; lg?: string; original?: string } | null;
   is_active?: boolean;
 };
+
+function flattenLocalizedList<T>(
+  value: LocalizedList<T> | null | undefined,
+  preferred: string = "en"
+): T[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === "object") {
+    const dict = value as Record<string, T[]>;
+    return (
+      dict[preferred] ??
+      dict.en ??
+      dict.id ??
+      Object.values(dict).find((v): v is T[] => Array.isArray(v)) ??
+      []
+    );
+  }
+  return [];
+}
 
 type EventRange = {
   start_date?: string | null;
@@ -76,8 +96,8 @@ const form = ref({
   location: { ...(props.item?.location ?? { en: "", id: "" }) } as Translatable,
   presented_by: { ...(props.item?.presented_by ?? { en: "", id: "" }) } as Translatable,
   moderator: { ...(props.item?.moderator ?? { en: "", id: "" }) } as Translatable,
-  panelists: (props.item?.panelists ?? []) as Panelist[],
-  speakers: (props.item?.speakers ?? []) as Speaker[],
+  panelists: flattenLocalizedList<Panelist>(props.item?.panelists),
+  speakers: flattenLocalizedList<Speaker>(props.item?.speakers),
   categories: (props.item?.categories ?? []) as string[],
   is_active: props.item?.is_active ?? true,
 });
@@ -162,23 +182,6 @@ const locationField = bind("location");
 const presentedByField = bind("presented_by");
 const moderatorField = bind("moderator");
 
-function localeHasContent(field: TranslatableKey, locale: LocaleKey): boolean {
-  return Boolean((form.value[field]?.[locale] ?? "").trim());
-}
-
-function localeIndicator(locale: LocaleKey): boolean {
-  const fields: TranslatableKey[] = [
-    "title",
-    "subtitle",
-    "description",
-    "theme",
-    "location",
-    "presented_by",
-    "moderator",
-  ];
-  return fields.some((f) => localeHasContent(f, locale));
-}
-
 function handleSubmit() {
   const payload: Record<string, unknown> = {
     date: form.value.date,
@@ -223,26 +226,31 @@ function err(key: string): string | null {
 function localizedError(field: TranslatableKey): string | null {
   return err(`${field}.${activeLocale.value}`) ?? err(field);
 }
+
+const { metaSymbol } = useShortcuts();
+
+defineShortcuts({
+  meta_s: {
+    usingInput: true,
+    handler: () => {
+      handleSubmit();
+    },
+  },
+});
 </script>
 
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-5">
     <!-- Global locale switcher -->
-    <Tabs v-model="activeLocale" class="w-full">
-      <TabsList class="bg-muted/60 inline-flex h-9 items-center gap-1 rounded-full p-1">
+    <Tabs v-model="activeLocale" variant="segmented">
+      <TabsList>
+        <TabsIndicator />
         <TabsTrigger
           v-for="locale in LOCALES"
           :key="locale.value"
           :value="locale.value"
-          class="relative"
         >
-          <span class="flex items-center gap-1.5">
-            <span>{{ locale.label }}</span>
-            <span
-              v-if="localeIndicator(locale.value)"
-              class="bg-primary inline-block size-1.5 rounded-full"
-            />
-          </span>
+          {{ locale.label }}
         </TabsTrigger>
       </TabsList>
     </Tabs>
@@ -385,21 +393,17 @@ function localizedError(field: TranslatableKey): string | null {
 
     <!-- Actions -->
     <div class="flex items-center justify-end gap-2 pt-2">
-      <button
-        type="button"
-        class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-        @click="emit('cancel')"
-      >
+      <Button type="button" variant="outline" @click="emit('cancel')">
         Cancel
-      </button>
-      <button
-        type="submit"
-        :disabled="loading"
-        class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-      >
+      </Button>
+      <Button type="submit" :disabled="loading">
         <Spinner v-if="loading" class="size-4" />
-        <span>{{ item ? "Save changes" : "Create item" }}</span>
-      </button>
+        Save
+        <KbdGroup>
+          <Kbd>{{ metaSymbol }}</Kbd>
+          <Kbd>S</Kbd>
+        </KbdGroup>
+      </Button>
     </div>
   </form>
 </template>

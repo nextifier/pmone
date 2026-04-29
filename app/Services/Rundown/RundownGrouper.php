@@ -32,8 +32,8 @@ class RundownGrouper
         $sorted = $items->sortBy(function ($item) {
             return [
                 $item->date?->format('Y-m-d') ?? '9999-99-99',
+                $item->order_column ?? PHP_INT_MAX,
                 $item->start_time ?? '99:99:99',
-                $item->order_column ?? 0,
             ];
         })->values();
 

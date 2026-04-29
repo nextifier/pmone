@@ -149,6 +149,35 @@ test('public response exposes website settings', function () {
         ->assertJsonPath('data.settings.show_all_rundown_details', true);
 });
 
+test('items sort by order_column primary, not start_time', function () {
+    // Session header (no start_time) inserted first → order_column=1
+    RundownItem::factory()->onDate('2026-07-22')->create([
+        'event_id' => $this->event->id,
+        'is_active' => true,
+        'title' => ['en' => 'Session Header'],
+        'start_time' => null,
+        'end_time' => null,
+    ]);
+
+    // Keynote with start_time inserted second → order_column=2
+    RundownItem::factory()->onDate('2026-07-22')->create([
+        'event_id' => $this->event->id,
+        'is_active' => true,
+        'title' => ['en' => 'Keynote'],
+        'start_time' => '10:00',
+        'end_time' => '10:15',
+    ]);
+
+    $response = $this->withHeaders(['X-API-Key' => 'pk_test_rundown'])
+        ->getJson($this->endpoint);
+
+    $response->assertOk();
+    $items = $response->json('data.days.0.items');
+
+    expect($items[0]['title'])->toBe('Session Header');
+    expect($items[1]['title'])->toBe('Keynote');
+});
+
 test('cache invalidates on rundown item save', function () {
     $item = RundownItem::factory()->onDate('2026-07-22')->create([
         'event_id' => $this->event->id,

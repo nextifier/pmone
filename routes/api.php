@@ -247,6 +247,11 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/', [RundownItemController::class, 'index'])->name('rundown-items.index');
         Route::post('/', [RundownItemController::class, 'store'])->name('rundown-items.store');
         Route::post('/reorder', [RundownItemController::class, 'reorder'])->name('rundown-items.reorder');
+        Route::get('/export', [RundownItemController::class, 'export'])->name('rundown-items.export');
+        Route::get('/export/json', [RundownItemController::class, 'exportJson'])->name('rundown-items.export.json');
+        Route::get('/import/template', [RundownItemController::class, 'downloadTemplate'])->name('rundown-items.import.template');
+        Route::post('/import', [RundownItemController::class, 'import'])->name('rundown-items.import');
+        Route::post('/import/json', [RundownItemController::class, 'importJson'])->name('rundown-items.import.json');
         Route::get('/trash', [RundownItemController::class, 'trash'])->name('rundown-items.trash');
         Route::post('/trash/{id}/restore', [RundownItemController::class, 'restore'])->name('rundown-items.restore');
         Route::delete('/trash/{id}', [RundownItemController::class, 'forceDestroy'])->name('rundown-items.force-destroy');
