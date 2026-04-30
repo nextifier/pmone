@@ -160,7 +160,7 @@
           </span>
         </button>
 
-        <!-- <button
+        <button
           @click="handlePrint('tspl-bitmap')"
           :disabled="!canPrint || printing"
           class="border-border hover:bg-muted flex flex-col items-start gap-1 rounded-lg border p-4 text-left tracking-tight transition active:scale-98 disabled:opacity-50"
@@ -172,7 +172,7 @@
           <span class="text-muted-foreground text-xs sm:text-sm">
             Kirim raster image · paling kompatibel
           </span>
-        </button> -->
+        </button>
       </div>
     </div>
 

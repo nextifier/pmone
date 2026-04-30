@@ -284,6 +284,12 @@ const navMainGroups = computed(() => {
     iconName: "hugeicons:qr-code",
   });
 
+  toolsItems.push({
+    label: "Print Test",
+    path: "/print-test",
+    iconName: "hugeicons:printer",
+  });
+
   // Forms - requires forms.read permission
   if (hasPermission("forms.read")) {
     toolsItems.push({

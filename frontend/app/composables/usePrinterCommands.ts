@@ -92,6 +92,14 @@ export interface TsplQrOptions extends LabelOptions {
 // Satuan: dots (1 mm = 8 dots @ 203 DPI). Positif = geser kanan/bawah,
 // negatif = geser kiri/atas.
 // ==========================================================================
+
+// Default
+// const TEXT_X_OFFSET = 0;
+// const TEXT_Y_OFFSET = 0;
+// const QR_X_OFFSET = 0;
+// const QR_Y_OFFSET = 0;
+
+// Khusus untuk printer Clabel CT221B (50x50mm) supaya QR Code dan Text perfectly center-aligned
 const TEXT_X_OFFSET = 30;
 const TEXT_Y_OFFSET = 11;
 const QR_X_OFFSET = 22;
