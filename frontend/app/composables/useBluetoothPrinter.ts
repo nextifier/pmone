@@ -47,6 +47,43 @@ const KNOWN_PRINTER_SERVICES = [
   "00001800-0000-1000-8000-00805f9b34fb", // Generic Access
 ];
 
+/**
+ * Service standar BLE yang TIDAK boleh dipakai sebagai write target.
+ * Generic Access (1800) — characteristic "Device Name" (2a00) bersifat writable
+ * untuk rename device, bukan untuk data printer. Chrome desktop mem-blocklist
+ * service ini, tapi Chrome Android meng-expose-nya sehingga auto-pick salah pilih.
+ * Device Information (180a) hanya read-only metadata.
+ */
+const EXCLUDED_WRITE_SERVICES = new Set([
+  "00001800-0000-1000-8000-00805f9b34fb",
+  "0000180a-0000-1000-8000-00805f9b34fb",
+]);
+
+/**
+ * Service "UART-like" yang umum dipakai BLE printer untuk command stream.
+ * Characteristic dari service ini di-prioritize saat auto-pick.
+ */
+const PREFERRED_PRINTER_SERVICES = new Set([
+  "49535343-fe7d-4ae5-8fa9-9fafd205e455", // Microchip ISSC (CT221B)
+  "6e400001-b5a3-f393-e0a9-e50e24dcca9e", // Nordic UART
+  "000018f0-0000-1000-8000-00805f9b34fb", // Generic Thermal Printer
+  "0000ff00-0000-1000-8000-00805f9b34fb",
+  "0000ff10-0000-1000-8000-00805f9b34fb",
+  "0000ff20-0000-1000-8000-00805f9b34fb",
+  "0000ff30-0000-1000-8000-00805f9b34fb",
+  "0000ffe0-0000-1000-8000-00805f9b34fb", // HM-10 BLE serial
+  "0000ffe5-0000-1000-8000-00805f9b34fb",
+  "0000fff0-0000-1000-8000-00805f9b34fb",
+]);
+
+function scoreCandidate(serviceUuid: string, properties: string[]): number {
+  let score = 0;
+  if (PREFERRED_PRINTER_SERVICES.has(serviceUuid.toLowerCase())) score += 100;
+  if (properties.includes("writeWithoutResponse")) score += 10;
+  if (properties.includes("write")) score += 1;
+  return score;
+}
+
 const STORAGE_KEY = "pmone:bluetooth-printer-id";
 const STORAGE_NAME_KEY = "pmone:bluetooth-printer-name";
 
@@ -220,6 +257,14 @@ export function useBluetoothPrinter() {
 
       const candidates: DiscoveredCharacteristic[] = [];
       for (const service of services) {
+        if (EXCLUDED_WRITE_SERVICES.has(service.uuid.toLowerCase())) {
+          addLog(
+            "info",
+            `Skip service ${service.uuid}`,
+            "Bukan UART printer (Generic Access / Device Info), di-exclude dari write target"
+          );
+          continue;
+        }
         try {
           const chars = await service.getCharacteristics();
           const charDescs = chars.map((c) => {
@@ -263,19 +308,26 @@ export function useBluetoothPrinter() {
         throw new Error("Tidak ada characteristic writable. Printer mungkin tidak expose service yang dikenali.");
       }
 
-      const preferred =
-        candidates.find((c) => c.properties.includes("writeWithoutResponse")) ??
-        candidates[0];
+      const ranked = [...candidates].sort(
+        (a, b) =>
+          scoreCandidate(b.serviceUuid, b.properties) -
+          scoreCandidate(a.serviceUuid, a.properties)
+      );
+      const preferred = ranked[0];
 
       if (!preferred) {
         throw new Error("Tidak ada characteristic terpilih");
       }
 
       writeChar.value = preferred.characteristic;
+      const preferredScore = scoreCandidate(preferred.serviceUuid, preferred.properties);
+      const isPreferredService = PREFERRED_PRINTER_SERVICES.has(
+        preferred.serviceUuid.toLowerCase()
+      );
       addLog(
         "success",
         `Write characteristic terpilih`,
-        `service=${preferred.serviceUuid}\ncharacteristic=${preferred.characteristicUuid}\nproperties=[${preferred.properties.join(", ")}]`
+        `service=${preferred.serviceUuid}\ncharacteristic=${preferred.characteristicUuid}\nproperties=[${preferred.properties.join(", ")}]\nscore=${preferredScore} (preferred service: ${isPreferredService})`
       );
 
       status.value = "connected";
@@ -429,6 +481,8 @@ export function useBluetoothPrinter() {
   /**
    * Kirim bytes ke printer dengan chunking. BLE MTU default ~20 byte; 100-180 sering juga aman.
    * Pakai writeWithoutResponse jika tersedia (lebih cepat, tidak ada ack).
+   * Android: chunk dipersempit ke 20 byte + delay 40ms karena Chrome Android
+   * tidak auto-negotiate MTU besar dan stack-nya kurang reliable untuk chunk besar.
    */
   async function writeChunked(bytes: Uint8Array, chunkSize = 100, delayMs = 20): Promise<void> {
     if (!writeChar.value) {
@@ -436,10 +490,17 @@ export function useBluetoothPrinter() {
       throw new Error("Not connected");
     }
 
+    const isAndroid =
+      import.meta.client && /Android/i.test(navigator.userAgent);
+    if (isAndroid) {
+      chunkSize = Math.min(chunkSize, 20);
+      delayMs = Math.max(delayMs, 40);
+    }
+
     addLog(
       "data",
       `Mengirim ${bytes.length} bytes (chunk ${chunkSize}b, delay ${delayMs}ms)`,
-      `Preview: ${bytesToHexPreview(bytes, 48)}`
+      `Preview: ${bytesToHexPreview(bytes, 48)}${isAndroid ? "\nPlatform: Android (chunk size & delay disesuaikan)" : ""}`
     );
 
     const useWriteWithoutResponse =
