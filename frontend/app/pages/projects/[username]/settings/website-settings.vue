@@ -25,6 +25,25 @@
         <div class="flex items-start justify-between gap-4 px-4 py-4 lg:px-5">
           <div class="space-y-1">
             <Label
+              for="rundown-show-on-home"
+              class="cursor-pointer text-sm font-medium tracking-tight"
+            >
+              Display Rundown section in the Home page
+            </Label>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              When on, the home page of the public event website includes the Rundown section.
+            </p>
+          </div>
+          <Switch
+            id="rundown-show-on-home"
+            v-model="form.show_rundown_on_home_page"
+            :disabled="saving"
+          />
+        </div>
+
+        <div class="flex items-start justify-between gap-4 px-4 py-4 lg:px-5">
+          <div class="space-y-1">
+            <Label
               for="rundown-show-search"
               class="cursor-pointer text-sm font-medium tracking-tight"
             >
@@ -85,6 +104,7 @@ const loading = ref(true);
 const saving = ref(false);
 
 const form = ref({
+  show_rundown_on_home_page: false,
   show_search_bar: true,
   show_all_rundown_details: false,
 });
@@ -99,6 +119,7 @@ async function load() {
     const rundown = settings.website_settings?.rundown ?? {};
 
     form.value = {
+      show_rundown_on_home_page: rundown.show_rundown_on_home_page ?? false,
       show_search_bar: rundown.show_search_bar ?? true,
       show_all_rundown_details: rundown.show_all_rundown_details ?? false,
     };

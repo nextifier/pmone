@@ -190,6 +190,18 @@ class ProjectSeeder extends Seeder
             'status' => 'draft',
             'visibility' => 'public',
         ],
+        [
+            'name' => 'Global AI Expo',
+            'username' => 'global-ai-expo',
+            'profile_image' => '',
+            'cover_image' => '',
+            'email' => 'globalaiexpo@panoramamedia.co.id',
+            'bio' => '',
+            'settings' => [],
+            'more_details' => [],
+            'status' => 'active',
+            'visibility' => 'public',
+        ],
     ];
 
     public function run(): void

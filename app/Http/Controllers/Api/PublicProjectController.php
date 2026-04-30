@@ -410,6 +410,7 @@ class PublicProjectController extends Controller
                 'settings' => [
                     'show_search_bar' => (bool) ($rundownSettings['show_search_bar'] ?? true),
                     'show_all_rundown_details' => (bool) ($rundownSettings['show_all_rundown_details'] ?? false),
+                    'show_rundown_on_home_page' => (bool) ($rundownSettings['show_rundown_on_home_page'] ?? false),
                 ],
             ],
         ]);

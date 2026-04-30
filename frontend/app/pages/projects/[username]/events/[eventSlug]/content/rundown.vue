@@ -124,15 +124,21 @@
     </div>
 
     <!-- Day tabs -->
-    <Tabs v-else v-model="activeDayKey" variant="segmented" class="flex w-full flex-col gap-6">
+    <Tabs
+      v-else
+      v-model="activeDayKey"
+      variant="segmented"
+      swipe
+      class="flex w-full flex-col gap-6"
+    >
       <div class="flex justify-center">
-        <TabsList>
+        <TabsList class="scroll-fade-x no-scrollbar w-full max-w-full overflow-x-auto">
           <TabsIndicator />
           <TabsTrigger
             v-for="day in filteredDays"
             :key="dayKey(day)"
             :value="dayKey(day)"
-            class="h-auto py-1.5 [&>span]:overflow-visible [&>span]:whitespace-normal"
+            class="h-auto shrink-0 py-1.5 [&>span]:overflow-visible [&>span]:whitespace-normal"
           >
             <span class="flex flex-col items-center gap-0.5 px-1">
               <span class="text-base leading-tight font-semibold tracking-tighter">
@@ -150,6 +156,7 @@
         v-for="day in filteredDays"
         :key="dayKey(day)"
         :value="dayKey(day)"
+        force-mount
         class="mx-auto w-full max-w-2xl space-y-3"
       >
         <div class="flex items-center justify-between gap-x-3 sm:px-3">
@@ -754,8 +761,9 @@ function formatTabDate(dateStr) {
 function formatTimeRange(item) {
   const s = item?.start_time;
   const e = item?.end_time;
-  if (s && e) return `${s} – ${e}`;
-  return s || e || "";
+  if (s && e) return `${s} - ${e}`;
+  if (s) return `${s} - Finish`;
+  return e || "";
 }
 
 function formatRelative(datetime) {

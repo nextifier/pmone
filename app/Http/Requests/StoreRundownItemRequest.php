@@ -66,6 +66,7 @@ class StoreRundownItemRequest extends FormRequest
             'categories.*' => ['string', 'max:100'],
 
             'settings' => ['nullable', 'array'],
+            'settings.is_group_header' => ['nullable', 'boolean'],
             'more_details' => ['nullable', 'array'],
 
             'is_active' => ['sometimes', 'boolean'],

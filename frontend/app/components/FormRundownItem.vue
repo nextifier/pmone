@@ -2,6 +2,7 @@
 import { Time } from "@internationalized/date";
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import InputFileImage from "@/components/InputFileImage.vue";
 import SpeakerListInput from "@/components/SpeakerListInput.vue";
 import PanelistListInput from "@/components/PanelistListInput.vue";
@@ -10,6 +11,7 @@ type Translatable = Record<string, string | null>;
 type Speaker = { name: string; title?: string; organization?: string };
 type Panelist = { name: string; title?: string };
 type LocalizedList<T> = T[] | Record<string, T[]>;
+type RundownSettings = { is_group_header?: boolean | null } & Record<string, unknown>;
 
 type RundownItemPayload = {
   id?: number;
@@ -28,6 +30,7 @@ type RundownItemPayload = {
   categories?: string[];
   poster_image?: { sm?: string; md?: string; lg?: string; original?: string } | null;
   is_active?: boolean;
+  settings?: RundownSettings | null;
 };
 
 function flattenLocalizedList<T>(
@@ -100,7 +103,28 @@ const form = ref({
   speakers: flattenLocalizedList<Speaker>(props.item?.speakers),
   categories: (props.item?.categories ?? []) as string[],
   is_active: props.item?.is_active ?? true,
+  is_group_header: Boolean(props.item?.settings?.is_group_header),
 });
+
+const isGroupHeader = computed(() => form.value.is_group_header);
+
+function toggleGroupHeader(checked: boolean | "indeterminate"): void {
+  const next = checked === true;
+  form.value.is_group_header = next;
+  if (next) {
+    form.value.date = null;
+    form.value.location = { en: "", id: "" };
+    form.value.description = { en: "", id: "" };
+    form.value.presented_by = { en: "", id: "" };
+    form.value.moderator = { en: "", id: "" };
+    form.value.panelists = [];
+    form.value.speakers = [];
+    form.value.categories = [];
+    timeRange.value = { start: undefined, end: undefined };
+    imageFiles.value.poster = [];
+    deleteFlags.value.poster = Boolean(props.item?.poster_image);
+  }
+}
 
 function toDateOnly(value: string | null | undefined): string | null {
   if (!value) return null;
@@ -183,6 +207,9 @@ const presentedByField = bind("presented_by");
 const moderatorField = bind("moderator");
 
 function handleSubmit() {
+  const existingSettings: RundownSettings = { ...(props.item?.settings ?? {}) };
+  existingSettings.is_group_header = form.value.is_group_header;
+
   const payload: Record<string, unknown> = {
     date: form.value.date,
     start_time: formatTime(timeRange.value.start),
@@ -198,6 +225,7 @@ function handleSubmit() {
     speakers: form.value.speakers.length ? form.value.speakers : null,
     categories: form.value.categories,
     is_active: form.value.is_active,
+    settings: existingSettings,
   };
 
   const posterValue = imageFiles.value.poster?.[0];
@@ -241,6 +269,26 @@ defineShortcuts({
 
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-5">
+    <!-- Group header toggle -->
+    <div class="bg-muted/40 border-border flex items-start gap-2 rounded-lg border p-3">
+      <Checkbox
+        id="rundown-is-group-header"
+        :model-value="form.is_group_header"
+        @update:model-value="toggleGroupHeader"
+      />
+      <div class="grow">
+        <Label
+          for="rundown-is-group-header"
+          class="cursor-pointer text-sm font-medium tracking-tight"
+        >
+          Use as session header
+        </Label>
+        <p class="text-muted-foreground text-sm tracking-tight">
+          For dividers like Session I, Session II, or Closing Ceremony. Hides time, location, and speakers.
+        </p>
+      </div>
+    </div>
+
     <!-- Global locale switcher -->
     <Tabs v-model="activeLocale" variant="segmented">
       <TabsList>
@@ -256,7 +304,7 @@ defineShortcuts({
     </Tabs>
 
     <!-- Poster image -->
-    <div class="space-y-2">
+    <div v-if="!isGroupHeader" class="space-y-2">
       <Label class="text-sm">Poster Image</Label>
       <InputFileImage
         v-model="imageFiles.poster"
@@ -268,7 +316,7 @@ defineShortcuts({
     </div>
 
     <!-- Date + Time -->
-    <div class="grid gap-4 sm:grid-cols-2">
+    <div v-if="!isGroupHeader" class="grid gap-4 sm:grid-cols-2">
       <div class="space-y-2">
         <Label class="text-sm">Date</Label>
         <DatePicker
@@ -314,26 +362,26 @@ defineShortcuts({
       />
     </div>
 
-    <!-- Theme + Location -->
-    <div class="grid gap-4 sm:grid-cols-2">
-      <div class="space-y-2">
-        <Label class="text-sm">Theme</Label>
-        <Input
-          v-model="themeField"
-          :placeholder="activeLocale === 'en' ? 'Session theme' : 'Tema sesi'"
-        />
-      </div>
-      <div class="space-y-2">
-        <Label class="text-sm">Location</Label>
-        <Input
-          v-model="locationField"
-          :placeholder="activeLocale === 'en' ? 'Venue or room' : 'Lokasi atau ruangan'"
-        />
-      </div>
+    <!-- Theme (always visible) -->
+    <div class="space-y-2">
+      <Label class="text-sm">Theme</Label>
+      <Input
+        v-model="themeField"
+        :placeholder="activeLocale === 'en' ? 'Session theme' : 'Tema sesi'"
+      />
+    </div>
+
+    <!-- Location (hidden for group headers) -->
+    <div v-if="!isGroupHeader" class="space-y-2">
+      <Label class="text-sm">Location</Label>
+      <Input
+        v-model="locationField"
+        :placeholder="activeLocale === 'en' ? 'Venue or room' : 'Lokasi atau ruangan'"
+      />
     </div>
 
     <!-- Description -->
-    <div class="space-y-2">
+    <div v-if="!isGroupHeader" class="space-y-2">
       <Label class="text-sm">Description</Label>
       <TipTapEditor
         v-model="descriptionField"
@@ -344,7 +392,7 @@ defineShortcuts({
     </div>
 
     <!-- Presented by + Moderator -->
-    <div class="grid gap-4 sm:grid-cols-2">
+    <div v-if="!isGroupHeader" class="grid gap-4 sm:grid-cols-2">
       <div class="space-y-2">
         <Label class="text-sm">Presented By</Label>
         <Input
@@ -362,19 +410,19 @@ defineShortcuts({
     </div>
 
     <!-- Speakers -->
-    <div class="space-y-2">
+    <div v-if="!isGroupHeader" class="space-y-2">
       <Label class="text-sm">Speakers</Label>
       <SpeakerListInput v-model="form.speakers" />
     </div>
 
     <!-- Panelists -->
-    <div class="space-y-2">
+    <div v-if="!isGroupHeader" class="space-y-2">
       <Label class="text-sm">Panelists</Label>
       <PanelistListInput v-model="form.panelists" />
     </div>
 
     <!-- Categories tags -->
-    <div class="space-y-2">
+    <div v-if="!isGroupHeader" class="space-y-2">
       <Label class="text-sm">Categories</Label>
       <TagsInput v-model="form.categories">
         <TagsInputItem v-for="tag in form.categories" :key="tag" :value="tag">

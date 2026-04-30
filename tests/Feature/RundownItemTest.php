@@ -133,6 +133,28 @@ it('creates a rundown item with translatable fields and speakers', function () {
     )->toBeTrue();
 });
 
+it('persists settings.is_group_header on store and update', function () {
+    $createResponse = $this->postJson($this->apiBase, [
+        'date' => '2026-07-22',
+        'title' => ['en' => 'Session I'],
+        'theme' => ['en' => 'Opening Block'],
+        'settings' => ['is_group_header' => true],
+    ]);
+
+    $createResponse->assertStatus(201)
+        ->assertJsonPath('data.settings.is_group_header', true);
+
+    $itemId = $createResponse->json('data.id');
+
+    $updateResponse = $this->putJson("{$this->apiBase}/{$itemId}", [
+        'settings' => ['is_group_header' => false],
+    ]);
+
+    $updateResponse->assertSuccessful();
+
+    expect(data_get(RundownItem::find($itemId)->settings, 'is_group_header'))->toBeFalse();
+});
+
 it('rejects dates outside the event range', function () {
     $response = $this->postJson($this->apiBase, [
         'date' => '2026-07-30',

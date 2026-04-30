@@ -66,6 +66,7 @@ class UpdateRundownItemRequest extends FormRequest
             'categories.*' => ['string', 'max:100'],
 
             'settings' => ['sometimes', 'nullable', 'array'],
+            'settings.is_group_header' => ['sometimes', 'nullable', 'boolean'],
             'more_details' => ['sometimes', 'nullable', 'array'],
 
             'is_active' => ['sometimes', 'boolean'],

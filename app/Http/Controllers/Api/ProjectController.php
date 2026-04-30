@@ -318,6 +318,7 @@ class ProjectController extends Controller
             'rundown' => ['sometimes', 'array'],
             'rundown.show_search_bar' => ['sometimes', 'boolean'],
             'rundown.show_all_rundown_details' => ['sometimes', 'boolean'],
+            'rundown.show_rundown_on_home_page' => ['sometimes', 'boolean'],
         ]);
 
         $settings = $project->settings ?? [];

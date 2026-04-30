@@ -59,6 +59,56 @@ it('updates website rundown settings and merges into existing settings', functio
     expect(data_get($this->project->settings, 'contact_form.enabled'))->toBeTrue();
 });
 
+it('persists show_rundown_on_home_page flag', function () {
+    $this->actingAs($this->user);
+
+    $response = $this->patchJson($this->endpoint, [
+        'rundown' => [
+            'show_rundown_on_home_page' => true,
+        ],
+    ]);
+
+    $response->assertSuccessful()
+        ->assertJsonPath('data.website_settings.rundown.show_rundown_on_home_page', true);
+
+    $this->project->refresh();
+    expect(data_get($this->project->settings, 'website_settings.rundown.show_rundown_on_home_page'))->toBeTrue();
+});
+
+it('exposes show_rundown_on_home_page in public rundown response', function () {
+    $apiConsumer = ApiConsumer::factory()->create([
+        'api_key' => 'pk_test_home_flag',
+        'is_active' => true,
+    ]);
+
+    $event = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'start_date' => '2026-07-22 09:00:00',
+        'end_date' => '2026-07-23 18:00:00',
+    ]);
+
+    RundownItem::factory()->onDate('2026-07-22')->create([
+        'event_id' => $event->id,
+        'title' => ['en' => 'Session'],
+        'is_active' => true,
+    ]);
+
+    $publicEndpoint = "/api/public/projects/{$this->project->username}/events/{$event->slug}/rundown";
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_home_flag'])
+        ->getJson($publicEndpoint)
+        ->assertJsonPath('data.settings.show_rundown_on_home_page', false);
+
+    $this->actingAs($this->user);
+    $this->patchJson($this->endpoint, [
+        'rundown' => ['show_rundown_on_home_page' => true],
+    ])->assertSuccessful();
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_home_flag'])
+        ->getJson($publicEndpoint)
+        ->assertJsonPath('data.settings.show_rundown_on_home_page', true);
+});
+
 it('partially merges only the provided fields', function () {
     $this->actingAs($this->user);
 
