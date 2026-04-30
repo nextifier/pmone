@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { Time } from "@internationalized/date";
-import { TipTapEditor } from "@/components/ui/tip-tap-editor";
-import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
 import InputFileImage from "@/components/InputFileImage.vue";
-import SpeakerListInput from "@/components/SpeakerListInput.vue";
 import PanelistListInput from "@/components/PanelistListInput.vue";
+import SpeakerListInput from "@/components/SpeakerListInput.vue";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TipTapEditor } from "@/components/ui/tip-tap-editor";
+import { Time } from "@internationalized/date";
 
 type Translatable = Record<string, string | null>;
 type Speaker = { name: string; title?: string; organization?: string };
@@ -269,39 +269,34 @@ defineShortcuts({
 
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-5">
+    <!-- Global locale switcher -->
+    <Tabs v-model="activeLocale" variant="segmented">
+      <TabsList>
+        <TabsIndicator />
+        <TabsTrigger v-for="locale in LOCALES" :key="locale.value" :value="locale.value">
+          {{ locale.label }}
+        </TabsTrigger>
+      </TabsList>
+    </Tabs>
+
     <!-- Group header toggle -->
     <div class="bg-muted/40 border-border flex items-start gap-2 rounded-lg border p-3">
       <Checkbox
         id="rundown-is-group-header"
         :model-value="form.is_group_header"
         @update:model-value="toggleGroupHeader"
+        class="mt-[3px]"
       />
-      <div class="grow">
-        <Label
-          for="rundown-is-group-header"
-          class="cursor-pointer text-sm font-medium tracking-tight"
+      <Label
+        for="rundown-is-group-header"
+        class="flex grow cursor-pointer flex-col items-start gap-y-0.5 tracking-tight"
+      >
+        <span class="text-base font-medium">Use as session header</span>
+        <span class="text-muted-foreground text-sm"
+          >For dividers like Session I, Session II, or Opening, or Closing.</span
         >
-          Use as session header
-        </Label>
-        <p class="text-muted-foreground text-sm tracking-tight">
-          For dividers like Session I, Session II, or Closing Ceremony. Hides time, location, and speakers.
-        </p>
-      </div>
+      </Label>
     </div>
-
-    <!-- Global locale switcher -->
-    <Tabs v-model="activeLocale" variant="segmented">
-      <TabsList>
-        <TabsIndicator />
-        <TabsTrigger
-          v-for="locale in LOCALES"
-          :key="locale.value"
-          :value="locale.value"
-        >
-          {{ locale.label }}
-        </TabsTrigger>
-      </TabsList>
-    </Tabs>
 
     <!-- Poster image -->
     <div v-if="!isGroupHeader" class="space-y-2">
@@ -316,7 +311,7 @@ defineShortcuts({
     </div>
 
     <!-- Date + Time -->
-    <div v-if="!isGroupHeader" class="grid gap-4 sm:grid-cols-2">
+    <div class="grid gap-4 sm:grid-cols-2">
       <div class="space-y-2">
         <Label class="text-sm">Date</Label>
         <DatePicker
@@ -328,7 +323,7 @@ defineShortcuts({
         />
         <p v-if="err('date')" class="text-destructive text-xs">{{ err("date") }}</p>
       </div>
-      <div class="space-y-2">
+      <div v-if="!isGroupHeader" class="space-y-2">
         <Label class="text-sm">Time</Label>
         <TimeRangePicker
           v-model="timeRange"
@@ -441,9 +436,7 @@ defineShortcuts({
 
     <!-- Actions -->
     <div class="flex items-center justify-end gap-2 pt-2">
-      <Button type="button" variant="outline" @click="emit('cancel')">
-        Cancel
-      </Button>
+      <Button type="button" variant="outline" @click="emit('cancel')"> Cancel </Button>
       <Button type="submit" :disabled="loading">
         <Spinner v-if="loading" class="size-4" />
         Save
