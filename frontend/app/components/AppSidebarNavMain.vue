@@ -391,6 +391,15 @@ const navMainGroups = computed(() => {
     });
   }
 
+  // Announcements - requires announcements.read permission
+  if (hasPermission("announcements.read")) {
+    adminItems.push({
+      label: "Announcements",
+      path: "/announcements",
+      iconName: "hugeicons:notification-02",
+    });
+  }
+
   // Google Analytics Properties - only master role
   if (hasRole("master")) {
     adminItems.push({

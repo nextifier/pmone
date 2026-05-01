@@ -132,7 +132,7 @@
       class="flex w-full flex-col gap-6"
     >
       <div class="flex justify-center">
-        <TabsList class="scroll-fade-x no-scrollbar w-full max-w-full overflow-x-auto">
+        <TabsList>
           <TabsIndicator />
           <TabsTrigger
             v-for="day in filteredDays"
@@ -227,8 +227,16 @@
                 </span>
               </div>
 
-              <p v-if="resolveLocalizedList(item.speakers).length" class="mt-0.5 text-sm tracking-tight">
-                {{ resolveLocalizedList(item.speakers).map((s) => s?.name).filter(Boolean).join(", ") }}
+              <p
+                v-if="resolveLocalizedList(item.speakers).length"
+                class="mt-0.5 text-sm tracking-tight"
+              >
+                {{
+                  resolveLocalizedList(item.speakers)
+                    .map((s) => s?.name)
+                    .filter(Boolean)
+                    .join(", ")
+                }}
               </p>
 
               <p
@@ -236,7 +244,12 @@
                 class="text-muted-foreground mt-0.5 text-sm tracking-tight"
               >
                 <span class="text-muted-foreground">Panelists:</span>
-                {{ resolveLocalizedList(item.panelists).map((p) => p?.name).filter(Boolean).join(", ") }}
+                {{
+                  resolveLocalizedList(item.panelists)
+                    .map((p) => p?.name)
+                    .filter(Boolean)
+                    .join(", ")
+                }}
               </p>
 
               <p
@@ -507,8 +520,12 @@ const filteredDays = computed(() => {
           resolve(item.presented_by),
           resolve(item.moderator),
           ...(item.categories ?? []),
-          ...resolveLocalizedList(item.speakers).map((s) => s?.name).filter(Boolean),
-          ...resolveLocalizedList(item.panelists).map((p) => p?.name).filter(Boolean),
+          ...resolveLocalizedList(item.speakers)
+            .map((s) => s?.name)
+            .filter(Boolean),
+          ...resolveLocalizedList(item.panelists)
+            .map((p) => p?.name)
+            .filter(Boolean),
         ]
           .join(" ")
           .toLowerCase();

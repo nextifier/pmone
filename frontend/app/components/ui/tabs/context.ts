@@ -16,11 +16,11 @@ export const TABS_DEFAULTS = {
 };
 
 export const tabsListClasses: Record<TabsVariant, string> = {
-  pill: "relative inline-flex w-fit items-center justify-center rounded-full border border-border bg-background p-0.5 bg-muted text-muted-foreground",
+  pill: "relative inline-flex w-fit max-w-full overflow-x-auto items-center justify-center-safe no-scrollbar scroll-fade-x rounded-full border border-border bg-background p-0.5 bg-muted text-muted-foreground",
   segmented:
-    "relative isolate inline-flex w-fit items-center justify-center rounded-xl bg-muted p-0.5 text-muted-foreground/80",
+    "relative isolate inline-flex w-fit max-w-full overflow-x-auto items-center justify-center-safe no-scrollbar scroll-fade-x rounded-xl bg-muted p-0.5 text-muted-foreground/80",
   underline:
-    "relative isolate inline-flex items-end border-b border-border/30 text-muted-foreground/80",
+    "relative isolate inline-flex w-fit max-w-full overflow-x-auto items-center-safe justify-center-safe no-scrollbar scroll-fade-x border-b border-border/30 text-muted-foreground/80",
 };
 
 export const tabsIndicatorClasses: Record<TabsVariant, string> = {

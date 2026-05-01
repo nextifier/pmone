@@ -63,6 +63,25 @@
         <div class="flex items-start justify-between gap-4 px-4 py-4 lg:px-5">
           <div class="space-y-1">
             <Label
+              for="rundown-show-location-filter"
+              class="cursor-pointer text-sm font-medium tracking-tight"
+            >
+              Show location filter on Rundown section
+            </Label>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              Visitors can filter rundown items by venue or room.
+            </p>
+          </div>
+          <Switch
+            id="rundown-show-location-filter"
+            v-model="form.show_location_filter"
+            :disabled="saving"
+          />
+        </div>
+
+        <div class="flex items-start justify-between gap-4 px-4 py-4 lg:px-5">
+          <div class="space-y-1">
+            <Label
               for="rundown-show-all-details"
               class="cursor-pointer text-sm font-medium tracking-tight"
             >
@@ -106,6 +125,7 @@ const saving = ref(false);
 const form = ref({
   show_rundown_on_home_page: false,
   show_search_bar: true,
+  show_location_filter: true,
   show_all_rundown_details: false,
 });
 
@@ -121,6 +141,7 @@ async function load() {
     form.value = {
       show_rundown_on_home_page: rundown.show_rundown_on_home_page ?? false,
       show_search_bar: rundown.show_search_bar ?? true,
+      show_location_filter: rundown.show_location_filter ?? true,
       show_all_rundown_details: rundown.show_all_rundown_details ?? false,
     };
   } catch (err) {

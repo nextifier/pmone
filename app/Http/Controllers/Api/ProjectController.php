@@ -317,6 +317,7 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'rundown' => ['sometimes', 'array'],
             'rundown.show_search_bar' => ['sometimes', 'boolean'],
+            'rundown.show_location_filter' => ['sometimes', 'boolean'],
             'rundown.show_all_rundown_details' => ['sometimes', 'boolean'],
             'rundown.show_rundown_on_home_page' => ['sometimes', 'boolean'],
         ]);

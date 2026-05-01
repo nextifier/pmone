@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Announcement;
 use App\Models\ApiConsumer;
 use App\Models\AppSetting;
 use App\Models\Brand;
@@ -10,6 +11,7 @@ use App\Models\EventDocument;
 use App\Models\EventProduct;
 use App\Models\EventProductCategory;
 use App\Models\Form;
+use App\Models\Guest;
 use App\Models\Hotel;
 use App\Models\HotelEventAllotment;
 use App\Models\LinkPage;
@@ -158,6 +160,12 @@ return [
             'model' => RundownItem::class,
             'actions' => ['create', 'read', 'update', 'delete', 'restore'],
         ],
+        'guests' => [
+            'label' => 'Guests & Speakers',
+            'description' => 'Manage event guests and speakers',
+            'model' => Guest::class,
+            'actions' => ['create', 'read', 'update', 'delete', 'restore'],
+        ],
         'forms' => [
             'label' => 'Forms',
             'description' => 'Manage form builder and responses',
@@ -199,6 +207,12 @@ return [
             'description' => 'Manage global application settings (branding, etc.)',
             'model' => AppSetting::class,
             'actions' => ['read', 'update'],
+        ],
+        'announcements' => [
+            'label' => 'Announcements',
+            'description' => 'Manage dashboard announcements',
+            'model' => Announcement::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
         ],
     ],
 

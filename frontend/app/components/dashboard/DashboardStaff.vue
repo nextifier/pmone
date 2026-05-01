@@ -4,7 +4,7 @@
   >
     <DashboardGreetingTips :tip-definitions="tipDefinitions" :tips="tips" :loading="loading" />
 
-    <DashboardAnnouncements />
+    <DashboardAnnouncement />
 
     <DashboardMyProjects :projects="myProjects" :loading="loading" />
 

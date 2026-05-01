@@ -5,7 +5,8 @@
         Tabs — Variants Showcase
       </h1>
       <p class="text-muted-foreground mt-2 tracking-tight">
-        Showcase variant + size dari <code class="bg-muted rounded px-1.5 py-0.5 text-sm">components/ui/tabs</code>.
+        Showcase variant + size dari
+        <code class="bg-muted rounded px-1.5 py-0.5 text-sm">components/ui/tabs</code>.
       </p>
     </div>
 
@@ -75,10 +76,12 @@
       <!-- 3. Segmented — multi-line text (Rundown style) -->
       <section>
         <h2 class="text-primary mb-3 text-xl font-semibold tracking-tighter">
-          3. Segmented + multi-line trigger <span class="text-muted-foreground text-sm font-normal">(Rundown style)</span>
+          3. Segmented + multi-line trigger
+          <span class="text-muted-foreground text-sm font-normal">(Rundown style)</span>
         </h2>
         <p class="text-muted-foreground mb-4 text-sm">
-          Segmented dengan label dua baris untuk day picker. Override <code>h-auto</code> di trigger.
+          Segmented dengan label dua baris untuk day picker. Override <code>h-auto</code> di
+          trigger.
         </p>
 
         <div class="flex justify-center">
@@ -92,8 +95,12 @@
                 class="h-auto py-1.5"
               >
                 <span class="flex flex-col items-center gap-0.5 px-1">
-                  <span class="text-base leading-tight font-semibold tracking-tighter">{{ day.label }}</span>
-                  <span class="text-xs leading-tight tracking-tight sm:text-sm">{{ day.dateLabel }}</span>
+                  <span class="text-base leading-tight font-semibold tracking-tighter">{{
+                    day.label
+                  }}</span>
+                  <span class="text-xs leading-tight tracking-tight sm:text-sm">{{
+                    day.dateLabel
+                  }}</span>
                 </span>
               </TabsTrigger>
             </TabsList>
@@ -104,11 +111,10 @@
       <!-- 4. Segmented — icon-only (BrandViewSwitcher style) -->
       <section>
         <h2 class="text-primary mb-3 text-xl font-semibold tracking-tighter">
-          4. Segmented + icon-only trigger <span class="text-muted-foreground text-sm font-normal">(BrandViewSwitcher style)</span>
+          4. Segmented + icon-only trigger
+          <span class="text-muted-foreground text-sm font-normal">(BrandViewSwitcher style)</span>
         </h2>
-        <p class="text-muted-foreground mb-4 text-sm">
-          Icon-only dengan padding 0 + size-8 fixed.
-        </p>
+        <p class="text-muted-foreground mb-4 text-sm">Icon-only dengan padding 0 + size-8 fixed.</p>
 
         <Tabs v-model="viewMode" variant="segmented">
           <TabsList>
@@ -139,7 +145,7 @@
         </p>
 
         <Tabs default-value="tickets" variant="underline" class="flex flex-col gap-4">
-          <TabsList class="w-full justify-center gap-2">
+          <TabsList>
             <TabsIndicator />
             <TabsTrigger
               v-for="tab in iconTabs"
@@ -154,7 +160,8 @@
           <TabsContent v-for="tab in iconTabs" :key="tab.value" :value="tab.value">
             <div class="border-border bg-muted/30 rounded-xl border p-6">
               <p class="text-muted-foreground tracking-tight">
-                Content panel untuk <span class="text-foreground font-medium">{{ tab.label }}</span>.
+                Content panel untuk <span class="text-foreground font-medium">{{ tab.label }}</span
+                >.
               </p>
             </div>
           </TabsContent>
@@ -163,15 +170,13 @@
 
       <!-- 6. Sizes -->
       <section>
-        <h2 class="text-primary mb-3 text-xl font-semibold tracking-tighter">
-          6. Sizes
-        </h2>
+        <h2 class="text-primary mb-3 text-xl font-semibold tracking-tighter">6. Sizes</h2>
         <p class="text-muted-foreground mb-4 text-sm">
           Tiga ukuran: <code>sm</code>, <code>md</code> (default), <code>lg</code>.
         </p>
 
         <div class="flex flex-col gap-4">
-          <div v-for="s in (['sm', 'md', 'lg'] as const)" :key="s" class="flex items-center gap-4">
+          <div v-for="s in ['sm', 'md', 'lg'] as const" :key="s" class="flex items-center gap-4">
             <span class="text-muted-foreground w-10 font-mono text-sm">{{ s }}</span>
             <Tabs default-value="one" :size="s">
               <TabsList>
@@ -210,11 +215,12 @@
           8. Many tabs (overflow scroll)
         </h2>
         <p class="text-muted-foreground mb-4 text-sm">
-          Underline variant dengan <code>overflow-x-auto</code> + <code>scroll-fade-x</code> + <code>shrink-0</code> di trigger.
+          Underline variant dengan <code>overflow-x-auto</code> + <code>scroll-fade-x</code> +
+          <code>shrink-0</code> di trigger.
         </p>
 
         <Tabs default-value="cat1" variant="underline">
-          <TabsList class="scroll-fade-x no-scrollbar w-full overflow-x-auto">
+          <TabsList>
             <TabsIndicator />
             <TabsTrigger
               v-for="cat in manyCategories"
@@ -230,27 +236,39 @@
 
       <!-- 9. Swipe -->
       <section>
-        <h2 class="text-primary mb-3 text-xl font-semibold tracking-tighter">
-          9. Swipe gesture
-        </h2>
+        <h2 class="text-primary mb-3 text-xl font-semibold tracking-tighter">9. Swipe gesture</h2>
         <p class="text-muted-foreground mb-4 text-sm">
-          Set <code class="bg-muted rounded px-1.5 py-0.5">swipe</code> agar tab bisa di-switch dengan swipe horizontal di area Tabs root. Default exclude: <code>[role='tablist']</code>, <code>[aria-roledescription='carousel']</code>, <code>.pswp</code>.
+          Set <code class="bg-muted rounded px-1.5 py-0.5">swipe</code> agar tab bisa di-switch
+          dengan swipe horizontal di area Tabs root. Default exclude: <code>[role='tablist']</code>,
+          <code>[aria-roledescription='carousel']</code>, <code>.pswp</code>.
         </p>
         <p class="text-muted-foreground mb-4 text-sm">
-          <span class="text-foreground font-medium">Tip:</span> coba di mobile / touch device, atau drag horizontal di area konten panel di bawah ini.
+          <span class="text-foreground font-medium">Tip:</span> coba di mobile / touch device, atau
+          drag horizontal di area konten panel di bawah ini.
         </p>
 
         <Tabs default-value="tab1" variant="underline" swipe class="flex flex-col gap-4">
-          <TabsList class="w-full justify-center">
+          <TabsList>
             <TabsIndicator />
-            <TabsTrigger v-for="tab in swipeTabs" :key="tab.value" :value="tab.value" class="rounded-lg">
+            <TabsTrigger
+              v-for="tab in swipeTabs"
+              :key="tab.value"
+              :value="tab.value"
+              class="rounded-lg"
+            >
               {{ tab.label }}
             </TabsTrigger>
           </TabsList>
           <TabsContent v-for="tab in swipeTabs" :key="tab.value" :value="tab.value">
-            <div class="border-border bg-muted/30 flex min-h-40 flex-col items-center justify-center gap-2 rounded-xl border p-6">
-              <span class="text-foreground text-lg font-semibold tracking-tight">{{ tab.label }}</span>
-              <p class="text-muted-foreground text-sm">Swipe kiri/kanan di area ini untuk pindah tab.</p>
+            <div
+              class="border-border bg-muted/30 flex min-h-40 flex-col items-center justify-center gap-2 rounded-xl border p-6"
+            >
+              <span class="text-foreground text-lg font-semibold tracking-tight">{{
+                tab.label
+              }}</span>
+              <p class="text-muted-foreground text-sm">
+                Swipe kiri/kanan di area ini untuk pindah tab.
+              </p>
             </div>
           </TabsContent>
         </Tabs>

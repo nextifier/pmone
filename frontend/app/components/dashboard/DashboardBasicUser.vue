@@ -2,6 +2,8 @@
   <div
     class="min-h-screen-offset mx-auto flex max-w-md flex-col items-center justify-center px-4 py-10 text-center"
   >
+    <DashboardAnnouncement class="mb-8 w-full" />
+
     <div
       class="*:bg-card *:squircle text-muted-foreground relative isolate flex items-center -space-x-2 *:rounded-lg *:border *:p-4 [&_svg]:size-6"
     >

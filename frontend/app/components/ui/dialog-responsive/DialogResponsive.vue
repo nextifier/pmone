@@ -10,7 +10,12 @@
             class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
           />
           <DialogContent
-            class="bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-1/2 left-1/2 z-50 flex w-full -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border shadow-lg outline-hidden duration-200"
+            :class="
+              cn(
+                'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-1/2 left-1/2 z-50 flex w-full -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border shadow-lg outline-hidden duration-200',
+                props.dialogContentClass
+              )
+            "
             :style="{ maxWidth: dialogMaxWidth, maxHeight: dialogMaxHeight }"
             @interact-outside="onInteractOutside"
             @escape-key-down="onEscapeKeyDown"
@@ -18,21 +23,38 @@
             <DialogTitle class="hidden" />
             <DialogDescription class="hidden" />
             <slot name="sticky-header" />
-            <ScrollArea class="flex flex-col" :scrollHideDelay="0">
+            <ScrollArea v-if="!hideScrollbar" class="flex flex-col" :scrollHideDelay="0">
               <slot :data="dialogData" />
             </ScrollArea>
+            <div
+              v-else
+              class="flex flex-col overflow-y-auto [&::-webkit-scrollbar]:hidden"
+              style="scrollbar-width: none"
+            >
+              <slot :data="dialogData" />
+            </div>
             <slot name="sticky-footer" />
             <button
               v-if="preventClose"
               @click="onCloseButtonClick"
-              class="data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
+              :class="
+                cn(
+                  'data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none',
+                  props.closeButtonClass
+                )
+              "
             >
               <Icon name="lucide:x" class="size-4" />
               <span class="sr-only">Close</span>
             </button>
             <DialogClose
               v-else
-              class="data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
+              :class="
+                cn(
+                  'data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none',
+                  props.closeButtonClass
+                )
+              "
             >
               <Icon name="lucide:x" class="size-4" />
               <span class="sr-only">Close</span>
@@ -47,9 +69,21 @@
         <DrawerPortal>
           <DrawerOverlay v-if="!hideOverlay" class="fixed inset-0 z-50 bg-black/80" />
           <DrawerContent
-            class="border-border bg-background fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto max-h-[85vh] flex-col rounded-t-2xl border-t outline-hidden lg:max-h-[calc(100lvh-var(--navbar-height-desktop))]"
+            :class="
+              cn(
+                'border-border bg-background fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto max-h-[85vh] flex-col rounded-t-2xl border-t outline-hidden lg:max-h-[calc(100lvh-var(--navbar-height-desktop))]',
+                drawerFlushTop && 'overflow-hidden'
+              )
+            "
           >
-            <div class="bg-border mx-auto mt-2 mb-7 h-1.5 w-[100px] shrink-0 rounded-full" />
+            <div
+              v-if="!drawerFlushTop"
+              class="bg-foreground/20 mx-auto mt-2 mb-7 h-1 w-[100px] shrink-0 rounded-full"
+            />
+            <div
+              v-else
+              class="absolute top-2 left-1/2 z-30 h-1 w-[100px] -translate-x-1/2 rounded-full bg-white/20"
+            />
             <DrawerTitle class="hidden" />
             <DrawerDescription class="hidden" />
             <slot name="sticky-header" />
@@ -94,6 +128,7 @@
 </template>
 
 <script setup>
+import { cn } from "@/lib/utils";
 import { useMediaQuery, useVModel } from "@vueuse/core";
 
 import {
@@ -145,6 +180,22 @@ const props = defineProps({
     default: false,
   },
   hideOverlay: {
+    type: Boolean,
+    default: false,
+  },
+  closeButtonClass: {
+    type: String,
+    default: "",
+  },
+  dialogContentClass: {
+    type: String,
+    default: "",
+  },
+  hideScrollbar: {
+    type: Boolean,
+    default: false,
+  },
+  drawerFlushTop: {
     type: Boolean,
     default: false,
   },

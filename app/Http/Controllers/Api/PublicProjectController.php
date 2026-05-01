@@ -7,6 +7,7 @@ use App\Http\Resources\BrandEventIndexResource;
 use App\Http\Resources\BrandEventResource;
 use App\Http\Resources\EventIndexResource;
 use App\Http\Resources\EventResource;
+use App\Http\Resources\GuestPublicResource;
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\PromotionPostResource;
 use App\Http\Resources\PublicBrandDetailResource;
@@ -409,10 +410,65 @@ class PublicProjectController extends Controller
                 ),
                 'settings' => [
                     'show_search_bar' => (bool) ($rundownSettings['show_search_bar'] ?? true),
+                    'show_location_filter' => (bool) ($rundownSettings['show_location_filter'] ?? true),
                     'show_all_rundown_details' => (bool) ($rundownSettings['show_all_rundown_details'] ?? false),
                     'show_rundown_on_home_page' => (bool) ($rundownSettings['show_rundown_on_home_page'] ?? false),
                 ],
             ],
+        ]);
+    }
+
+    /**
+     * List public guests/speakers for an event.
+     */
+    public function guests(Request $request, string $username, string $eventSlug): JsonResponse
+    {
+        $event = $this->findEvent($username, $eventSlug);
+
+        $locale = $request->input('locale', config('app.locale', 'en'));
+        App::setLocale($locale);
+
+        $query = $event->guests()
+            ->active()
+            ->where('visibility', 'public')
+            ->with(['media', 'tags', 'links']);
+
+        if ($request->boolean('featured_only')) {
+            $query->where('is_featured', true);
+        }
+
+        $items = $query->orderByDesc('is_featured')
+            ->orderBy('order_column', 'asc')
+            ->get();
+
+        return response()->json([
+            'data' => GuestPublicResource::collection($items),
+            'meta' => [
+                'count' => $items->count(),
+                'featured_count' => $items->where('is_featured', true)->count(),
+            ],
+        ]);
+    }
+
+    /**
+     * Show a single public guest by slug.
+     */
+    public function guest(Request $request, string $username, string $eventSlug, string $slug): JsonResponse
+    {
+        $event = $this->findEvent($username, $eventSlug);
+
+        $locale = $request->input('locale', config('app.locale', 'en'));
+        App::setLocale($locale);
+
+        $guest = $event->guests()
+            ->active()
+            ->where('visibility', 'public')
+            ->where('slug', $slug)
+            ->with(['media', 'tags', 'links'])
+            ->firstOrFail();
+
+        return response()->json([
+            'data' => new GuestPublicResource($guest),
         ]);
     }
 

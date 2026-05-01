@@ -1,0 +1,328 @@
+<?php
+
+namespace App\Models;
+
+use App\Traits\ClearsResponseCache;
+use App\Traits\HasMediaManager;
+use App\Traits\HasSlug;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\EloquentSortable\Sortable;
+use Spatie\EloquentSortable\SortableTrait;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Tags\HasTags;
+use Spatie\Tags\Tag;
+use Spatie\Translatable\HasTranslations;
+
+/**
+ * @property int $id
+ * @property string $ulid
+ * @property int $event_id
+ * @property string $name
+ * @property string $slug
+ * @property array<string, string>|null $title
+ * @property array<string, string>|null $bio
+ * @property string|null $organization
+ * @property array<array-key, mixed>|null $more_details
+ * @property array<array-key, mixed>|null $settings
+ * @property string $status
+ * @property string $visibility
+ * @property bool $is_featured
+ * @property int|null $order_column
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read Event|null $event
+ * @property-read User|null $creator
+ * @property-read User|null $updater
+ * @property-read User|null $deleter
+ * @property-read array|null $profile_image
+ * @property-read Collection<int, Link> $links
+ * @property-read MediaCollection<int, Media> $media
+ * @property Collection<int, Tag> $tags
+ *
+ * @method static \Database\Factories\GuestFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Guest active()
+ * @method static Builder<static>|Guest byStatus(string $status)
+ * @method static Builder<static>|Guest featured()
+ * @method static Builder<static>|Guest forEvent(int $eventId)
+ *
+ * @mixin \Eloquent
+ */
+class Guest extends Model implements HasMedia, Sortable
+{
+    use ClearsResponseCache;
+    use HasFactory;
+    use HasMediaManager;
+    use HasSlug;
+    use HasTags;
+    use HasTranslations;
+    use InteractsWithMedia;
+    use LogsActivity;
+    use SoftDeletes;
+    use SortableTrait;
+
+    protected $fillable = [
+        'event_id',
+        'name',
+        'slug',
+        'title',
+        'bio',
+        'organization',
+        'more_details',
+        'settings',
+        'status',
+        'visibility',
+        'is_featured',
+        'order_column',
+    ];
+
+    /** @var array<int, string> */
+    public array $translatable = [
+        'title',
+        'bio',
+    ];
+
+    /** @var array<string, mixed> */
+    public array $sortable = [
+        'order_column_name' => 'order_column',
+        'sort_when_creating' => true,
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'more_details' => 'array',
+            'settings' => 'array',
+            'is_featured' => 'boolean',
+        ];
+    }
+
+    protected static function responseCacheTags(): array
+    {
+        return ['guests'];
+    }
+
+    public function sluggable(): array
+    {
+        return [
+            'slug' => [
+                'source' => 'name',
+                'includeTrashed' => true,
+            ],
+        ];
+    }
+
+    public function scopeWithUniqueSlugConstraints(
+        Builder $query,
+        Model $model,
+        string $attribute,
+        array $config,
+        string $slug
+    ): Builder {
+        return $query->where('event_id', $model->event_id);
+    }
+
+    public function buildSortQuery(): Builder
+    {
+        return static::query()->where('event_id', $this->event_id);
+    }
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->ulid)) {
+                $model->ulid = (string) Str::ulid();
+            }
+
+            if (auth()->check()) {
+                $model->created_by = auth()->id();
+            }
+        });
+
+        static::updating(function ($model) {
+            if (auth()->check()) {
+                $model->updated_by = auth()->id();
+            }
+        });
+
+        static::deleting(function ($model) {
+            if ($model->isForceDeleting() === false && auth()->check()) {
+                $model->deleted_by = auth()->id();
+                $model->saveQuietly();
+            }
+
+            if ($model->isForceDeleting()) {
+                $model->clearMediaCollection();
+            }
+        });
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'slug', 'organization', 'status', 'visibility', 'is_featured'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->registerDynamicMediaCollections();
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        // profile_image conversions (4:5 portrait ratio)
+        $this->addMediaConversion('lqip')
+            ->width(16)
+            ->height(20)
+            ->quality(10)
+            ->blur(10)
+            ->performOnCollections('profile_image')
+            ->nonQueued();
+
+        $this->addMediaConversion('sm')
+            ->width(240)
+            ->height(300)
+            ->quality(85)
+            ->performOnCollections('profile_image')
+            ->nonQueued();
+
+        $this->addMediaConversion('md')
+            ->width(480)
+            ->height(600)
+            ->quality(90)
+            ->performOnCollections('profile_image');
+
+        $this->addMediaConversion('lg')
+            ->width(800)
+            ->height(1000)
+            ->quality(90)
+            ->performOnCollections('profile_image');
+
+        $this->addMediaConversion('xl')
+            ->width(1080)
+            ->height(1350)
+            ->quality(95)
+            ->performOnCollections('profile_image');
+
+        // bio_images conversions (responsive width-only for TipTap content)
+        $this->addMediaConversion('lqip')
+            ->width(20)
+            ->quality(10)
+            ->blur(10)
+            ->performOnCollections('bio_images')
+            ->nonQueued();
+
+        $this->addMediaConversion('sm')
+            ->width(450)
+            ->quality(85)
+            ->performOnCollections('bio_images')
+            ->nonQueued();
+
+        $this->addMediaConversion('md')
+            ->width(900)
+            ->quality(90)
+            ->performOnCollections('bio_images');
+
+        $this->addMediaConversion('lg')
+            ->width(1200)
+            ->quality(90)
+            ->performOnCollections('bio_images');
+
+        $this->addMediaConversion('xl')
+            ->width(1500)
+            ->quality(95)
+            ->performOnCollections('bio_images');
+    }
+
+    public function getMediaCollections(): array
+    {
+        return [
+            'profile_image' => [
+                'single_file' => true,
+                'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
+            ],
+            'bio_images' => [
+                'single_file' => false,
+                'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+                'max_size' => 20480,
+            ],
+        ];
+    }
+
+    public function getProfileImageAttribute(): ?array
+    {
+        return $this->getMediaUrls('profile_image');
+    }
+
+    // Relationships
+
+    public function event(): BelongsTo
+    {
+        return $this->belongsTo(Event::class);
+    }
+
+    public function links(): MorphMany
+    {
+        return $this->morphMany(Link::class, 'linkable')
+            ->orderBy('order');
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function deleter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
+    }
+
+    // Scopes
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopeByStatus(Builder $query, string $status): Builder
+    {
+        return $query->where('status', $status);
+    }
+
+    public function scopeFeatured(Builder $query): Builder
+    {
+        return $query->where('is_featured', true);
+    }
+
+    public function scopeForEvent(Builder $query, int $eventId): Builder
+    {
+        return $query->where('event_id', $eventId);
+    }
+}

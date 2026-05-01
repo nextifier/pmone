@@ -3,6 +3,8 @@
     <!-- Greeting -->
     <!-- <DashboardGreetingTips /> -->
 
+    <DashboardAnnouncement />
+
     <!-- Loading -->
     <div v-if="pending" class="space-y-4">
       <div class="bg-muted h-24 animate-pulse rounded-xl" />

@@ -518,6 +518,11 @@ class Event extends Model implements HasMedia, Sortable
             ->orderBy('order_column');
     }
 
+    public function guests(): HasMany
+    {
+        return $this->hasMany(Guest::class)->ordered();
+    }
+
     public function eventProductCategories(): HasMany
     {
         return $this->hasMany(EventProductCategory::class)->ordered();

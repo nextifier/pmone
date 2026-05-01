@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AiChatController;
 use App\Http\Controllers\Api\AllotmentController;
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AnalyticsSyncLogController;
+use App\Http\Controllers\Api\AnnouncementController;
 use App\Http\Controllers\Api\ApiConsumerController;
 use App\Http\Controllers\Api\AppSettingController;
 use App\Http\Controllers\Api\BrandController;
@@ -25,6 +26,7 @@ use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\FormFieldController;
 use App\Http\Controllers\Api\FormResponseController;
 use App\Http\Controllers\Api\GoogleAnalyticsController;
+use App\Http\Controllers\Api\GuestController;
 use App\Http\Controllers\Api\HotelController;
 use App\Http\Controllers\Api\HotelTransferOptionController;
 use App\Http\Controllers\Api\ImportProgressController;
@@ -74,6 +76,10 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('dashboard')->group(func
     Route::get('/navigation', [DashboardController::class, 'navigation'])->name('dashboard.navigation');
     Route::get('/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
     Route::get('/writer-stats', [DashboardController::class, 'writerStats'])->name('dashboard.writer-stats');
+
+    // Dashboard announcements (visible to user) + dismiss
+    Route::get('/announcements', [AnnouncementController::class, 'forCurrentUser'])->name('dashboard.announcements');
+    Route::post('/announcements/{announcement}/dismiss', [AnnouncementController::class, 'dismiss'])->name('dashboard.announcements.dismiss');
 });
 
 // Protected API routes (authenticated + verified)
@@ -240,6 +246,22 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/{id}', [EventProductController::class, 'show'])->name('event-products.show');
         Route::put('/{id}', [EventProductController::class, 'update'])->name('event-products.update');
         Route::delete('/{id}', [EventProductController::class, 'destroy'])->name('event-products.destroy');
+    });
+
+    // Guest management endpoints (nested under events)
+    Route::prefix('projects/{username}/events/{eventSlug}/guests')->group(function () {
+        Route::get('/', [GuestController::class, 'index'])->name('guests.index');
+        Route::post('/', [GuestController::class, 'store'])->name('guests.store');
+        Route::post('/reorder', [GuestController::class, 'reorder'])->name('guests.reorder');
+        Route::get('/trash', [GuestController::class, 'trash'])->name('guests.trash');
+        Route::post('/trash/restore-bulk', [GuestController::class, 'bulkRestore'])->name('guests.bulk-restore');
+        Route::delete('/trash/force-bulk', [GuestController::class, 'bulkForceDestroy'])->name('guests.bulk-force-destroy');
+        Route::post('/trash/{id}/restore', [GuestController::class, 'restore'])->name('guests.restore');
+        Route::delete('/trash/{id}', [GuestController::class, 'forceDestroy'])->name('guests.force-destroy');
+        Route::delete('/bulk', [GuestController::class, 'bulkDestroy'])->name('guests.bulk-destroy');
+        Route::get('/{id}', [GuestController::class, 'show'])->name('guests.show');
+        Route::put('/{id}', [GuestController::class, 'update'])->name('guests.update');
+        Route::delete('/{id}', [GuestController::class, 'destroy'])->name('guests.destroy');
     });
 
     // Rundown item management endpoints (nested under events)
@@ -726,6 +748,21 @@ Route::prefix('posts')->group(function () {
     Route::get('/{post:slug}', [PostController::class, 'show'])->name('posts.show');
 });
 
+// Announcement management endpoints (authenticated + verified)
+Route::middleware(['auth:sanctum', 'verified'])->prefix('announcements')->group(function () {
+    Route::get('/', [AnnouncementController::class, 'index'])->middleware('can:announcements.read')->name('announcements.index');
+    Route::post('/', [AnnouncementController::class, 'store'])->middleware('can:announcements.create')->name('announcements.store');
+    Route::delete('/bulk', [AnnouncementController::class, 'bulkDestroy'])->middleware('can:announcements.delete')->name('announcements.bulk-destroy');
+    Route::get('/trash', [AnnouncementController::class, 'trash'])->middleware('can:announcements.delete')->name('announcements.trash');
+    Route::post('/trash/restore/bulk', [AnnouncementController::class, 'bulkRestore'])->middleware('can:announcements.delete')->name('announcements.bulk-restore');
+    Route::post('/trash/{id}/restore', [AnnouncementController::class, 'restore'])->middleware('can:announcements.delete')->name('announcements.restore');
+    Route::delete('/trash/bulk', [AnnouncementController::class, 'bulkForceDestroy'])->middleware('can:announcements.delete')->name('announcements.bulk-force-destroy');
+    Route::delete('/trash/{id}', [AnnouncementController::class, 'forceDestroy'])->middleware('can:announcements.delete')->name('announcements.force-destroy');
+    Route::get('/{announcement}', [AnnouncementController::class, 'show'])->middleware('can:announcements.read')->name('announcements.show');
+    Route::put('/{announcement}', [AnnouncementController::class, 'update'])->middleware('can:announcements.update')->name('announcements.update');
+    Route::delete('/{announcement}', [AnnouncementController::class, 'destroy'])->middleware('can:announcements.delete')->name('announcements.destroy');
+});
+
 // Tag management endpoints (authenticated + verified)
 Route::middleware(['auth:sanctum', 'verified'])->prefix('tags')->group(function () {
     Route::get('/', [TagController::class, 'index'])->name('tags.index');
@@ -961,6 +998,10 @@ Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
         ->middleware(CacheResponse::for(3600, 'promotion-posts'));
     Route::get('/{username}/events/{eventSlug}/rundown', [PublicProjectController::class, 'rundown'])
         ->middleware(CacheResponse::for(86400, 'rundown'));
+    Route::get('/{username}/events/{eventSlug}/guests', [PublicProjectController::class, 'guests'])
+        ->middleware(CacheResponse::for(86400, 'guests'));
+    Route::get('/{username}/events/{eventSlug}/guests/{slug}', [PublicProjectController::class, 'guest'])
+        ->middleware(CacheResponse::for(86400, 'guests'));
 });
 
 // Public Exchange Rate API endpoints (no authentication required, public proxy)

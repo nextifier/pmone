@@ -4,6 +4,8 @@
   >
     <DashboardGreetingTips :tip-definitions="tipDefinitions" :tips="tips" :loading="loading" />
 
+    <DashboardAnnouncement />
+
     <!-- Stats Cards -->
     <div class="mt-2 grid grid-cols-2 gap-2 sm:mt-4 lg:grid-cols-4">
       <DashboardStatsCard
