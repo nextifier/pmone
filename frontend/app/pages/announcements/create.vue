@@ -1,11 +1,14 @@
 <template>
-  <div class="mx-auto flex max-w-3xl flex-col gap-y-6 px-4 pt-4 pb-16">
-    <div class="flex flex-col items-start">
+  <div class="mx-auto flex max-w-2xl flex-col gap-y-5 pt-4 pb-16">
+    <div class="flex flex-col items-start gap-y-5">
       <ButtonBack destination="/announcements" />
-      <h1 class="page-title mt-4">Create Announcement</h1>
-      <p class="page-description mt-1.5">
-        Add a new announcement that will appear on user dashboards.
-      </p>
+
+      <div class="flex flex-col">
+        <h1 class="page-title">Create Announcement</h1>
+        <p class="page-description mt-1.5">
+          Add a new announcement that will appear on user dashboards.
+        </p>
+      </div>
     </div>
 
     <FormAnnouncement
@@ -15,7 +18,6 @@
       submit-text="Create Announcement"
       submit-loading-text="Creating.."
       @submit="handleCreate"
-      @cancel="navigateTo('/announcements')"
     />
   </div>
 </template>
