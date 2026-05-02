@@ -196,7 +196,13 @@
 
             <!-- Time range + poster (left column) -->
             <div class="flex w-24 shrink-0 flex-col gap-2">
-              <span class="pt-0.5 text-sm tracking-tight tabular-nums sm:pt-1">
+              <span
+                v-if="isGroupHeader(item)"
+                class="text-muted-foreground pt-0.5 text-sm tracking-tight italic sm:pt-1"
+              >
+                Session Header
+              </span>
+              <span v-else class="pt-0.5 text-sm tracking-tight tabular-nums sm:pt-1">
                 {{ formatTimeRange(item) }}
               </span>
 
@@ -797,6 +803,10 @@ function formatTimeRange(item) {
   if (s && e) return `${s} - ${e}`;
   if (s) return `${s} - Finish`;
   return e || "";
+}
+
+function isGroupHeader(item) {
+  return !item?.start_time && !item?.end_time;
 }
 
 function formatRelative(datetime) {

@@ -7,7 +7,6 @@ const props = defineProps({
 });
 
 const client = useSanctumClient();
-const { t, d } = useI18n();
 
 const loading = ref(true);
 const items = ref([]);
@@ -20,7 +19,7 @@ const fetchActivities = async () => {
     const response = await client(`${props.apiBase}/${props.guestId}/activities`);
     items.value = response.data ?? [];
   } catch (err) {
-    errorMessage.value = err?.data?.message || err?.message || t("guests.failedToLoad");
+    errorMessage.value = err?.data?.message || err?.message || "Failed to load";
   } finally {
     loading.value = false;
   }
@@ -30,10 +29,10 @@ onMounted(fetchActivities);
 
 const eventLabel = (event) => {
   const map = {
-    created: t("guests.created"),
-    updated: t("guests.updated"),
-    deleted: t("guests.deleted"),
-    restored: t("guests.restored"),
+    created: "Created",
+    updated: "Updated",
+    deleted: "Deleted",
+    restored: "Restored",
   };
   return map[event] || event;
 };
@@ -72,7 +71,7 @@ const formatDate = (iso) => {
       v-else-if="!items.length"
       class="text-muted-foreground py-6 text-center text-sm tracking-tight"
     >
-      {{ $t("guests.noActivity") }}
+      No activity yet
     </p>
 
     <ol v-else class="space-y-3">
@@ -98,7 +97,7 @@ const formatDate = (iso) => {
         <div class="min-w-0 flex-1 space-y-1">
           <div class="flex flex-wrap items-center gap-1.5">
             <span class="text-sm font-medium tracking-tight">
-              {{ entry.causer?.name || $t("guests.system") }}
+              {{ entry.causer?.name || "System" }}
             </span>
             <span
               :class="[

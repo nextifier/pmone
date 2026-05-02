@@ -18,7 +18,6 @@ const props = defineProps({
 const emit = defineEmits(["submit", "cancel"]);
 
 const client = useSanctumClient();
-const { t } = useI18n();
 
 const events = ref([]);
 const fetching = ref(true);
@@ -49,24 +48,21 @@ const handleSubmit = () => {
 <template>
   <div class="space-y-4">
     <div>
-      <h3 class="text-lg font-semibold tracking-tight">{{ $t("guests.moveToEvent") }}</h3>
+      <h3 class="text-lg font-semibold tracking-tight">Move to event</h3>
       <p class="text-muted-foreground mt-1 text-sm tracking-tight">
-        {{ $t("guests.moveDescription", { count }) }}
+        Move {{ count }} guest(s) to another event in this project.
       </p>
     </div>
 
     <div class="space-y-2">
-      <Label>{{ $t("guests.selectTargetEvent") }}</Label>
+      <Label>Select target event</Label>
       <Spinner v-if="fetching" class="size-5" />
-      <p
-        v-else-if="!events.length"
-        class="text-muted-foreground text-sm tracking-tight"
-      >
-        {{ $t("guests.noOtherEvents") }}
+      <p v-else-if="!events.length" class="text-muted-foreground text-sm tracking-tight">
+        No other events in this project.
       </p>
       <Select v-else v-model="selected">
         <SelectTrigger>
-          <SelectValue :placeholder="$t('guests.selectTargetEvent')" />
+          <SelectValue placeholder="Select target event" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem v-for="ev in events" :key="ev.id" :value="String(ev.id)">
@@ -77,23 +73,13 @@ const handleSubmit = () => {
     </div>
 
     <div class="flex justify-end gap-2">
-      <button
-        type="button"
-        :disabled="loading"
-        class="border-border hover:bg-muted rounded-md border px-3 py-1.5 text-sm tracking-tight disabled:opacity-50"
-        @click="emit('cancel')"
-      >
-        {{ $t("guests.cancel") }}
-      </button>
-      <button
-        type="button"
-        :disabled="!selected || loading"
-        class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight disabled:opacity-50"
-        @click="handleSubmit"
-      >
+      <Button variant="outline" size="sm" :disabled="loading" @click="emit('cancel')">
+        Cancel
+      </Button>
+      <Button size="sm" :disabled="!selected || loading" @click="handleSubmit">
         <Icon v-if="loading" name="svg-spinners:ring-resize" class="size-4" />
-        {{ $t("guests.moveTo") }}
-      </button>
+        Move
+      </Button>
     </div>
   </div>
 </template>

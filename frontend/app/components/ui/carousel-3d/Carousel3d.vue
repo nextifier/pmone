@@ -165,6 +165,7 @@ const emit = defineEmits<{
 }>();
 
 const sceneRef = ref<HTMLElement | null>(null);
+const isMounted = ref(false);
 const isVisible = ref(true);
 const isHovered = ref(false);
 const isPaused = ref(!props.animated);
@@ -172,6 +173,10 @@ const focusedIndex = ref(0);
 const imageErrors = ref<Set<number>>(new Set());
 
 const documentVisibility = useDocumentVisibility();
+
+onMounted(() => {
+  isMounted.value = true;
+});
 
 useIntersectionObserver(
   sceneRef,
@@ -199,6 +204,7 @@ const effectiveInitialRotation = computed<string>(() => {
 });
 
 const isPlaying = computed<boolean>(() => {
+  if (!isMounted.value) return false;
   if (isPaused.value) return false;
   if (props.pauseOffScreen && !isVisible.value) return false;
   if (props.pauseOnHover && isHovered.value) return false;

@@ -9,6 +9,8 @@ export default defineNuxtConfig({
     componentInspector: false,
   },
 
+  ignore: ["**/.DS_Store", "**/.DS_Store/**"],
+
   runtimeConfig: {
     // Private keys that are only available server-side
     pmOneApiKey: process.env.NUXT_PM_ONE_API_KEY || "pk_apm8WoYS1OuWX2MBzz982DreFm47X05VyZuUc05k",

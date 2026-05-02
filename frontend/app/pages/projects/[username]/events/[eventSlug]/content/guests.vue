@@ -4,7 +4,7 @@
     <div class="flex flex-col gap-x-2.5 gap-y-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:user-multiple-02" class="size-5 sm:size-6" />
-        <h1 class="page-title">{{ $t("guests.title") }}</h1>
+        <h1 class="page-title">Guests &amp; Speakers</h1>
         <span
           v-if="!loading && totalCount"
           class="text-muted-foreground text-xs tracking-tight tabular-nums"
@@ -14,24 +14,17 @@
       </div>
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <button
-          v-if="canDelete"
-          type="button"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2.5 py-1.5 text-sm tracking-tight active:scale-98"
-          @click="openTrash"
-        >
+        <Button v-if="canDelete" variant="outline" size="sm" @click="openTrash">
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
-          <span class="hidden sm:inline">{{ $t("guests.trash") }}</span>
-        </button>
-        <button
-          v-if="canCreate"
-          type="button"
-          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
-          @click="openCreate"
-        >
-          <Icon name="hugeicons:plus-sign" class="size-4 shrink-0" />
-          <span>{{ $t("guests.addGuest") }}</span>
-        </button>
+          <span class="hidden sm:inline">Trash</span>
+        </Button>
+        <Button v-if="canCreate" size="sm" @click="openCreate">
+          <Icon name="hugeicons:add-01" class="size-4 shrink-0" />
+          <span>Add Guest</span>
+          <KbdGroup>
+            <Kbd>N</Kbd>
+          </KbdGroup>
+        </Button>
       </div>
     </div>
 
@@ -42,7 +35,7 @@
           name="hugeicons:search-01"
           class="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2"
         />
-        <Input v-model="searchInput" :placeholder="$t('guests.searchGuests')" class="pl-9" />
+        <Input v-model="searchInput" placeholder="Search guests..." class="pl-9" />
       </div>
 
       <Select v-model="statusFilter">
@@ -50,9 +43,9 @@
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">{{ $t("guests.all") }}</SelectItem>
-          <SelectItem value="active">{{ $t("guests.active") }}</SelectItem>
-          <SelectItem value="inactive">{{ $t("guests.inactive") }}</SelectItem>
+          <SelectItem value="all">All</SelectItem>
+          <SelectItem value="active">Active</SelectItem>
+          <SelectItem value="inactive">Inactive</SelectItem>
         </SelectContent>
       </Select>
 
@@ -61,8 +54,8 @@
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">{{ $t("guests.all") }}</SelectItem>
-          <SelectItem value="featured">{{ $t("guests.featured") }}</SelectItem>
+          <SelectItem value="all">All</SelectItem>
+          <SelectItem value="featured">Featured</SelectItem>
         </SelectContent>
       </Select>
 
@@ -71,9 +64,9 @@
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">{{ $t("guests.all") }}</SelectItem>
-          <SelectItem value="public">{{ $t("guests.public") }}</SelectItem>
-          <SelectItem value="private">{{ $t("guests.private") }}</SelectItem>
+          <SelectItem value="all">All</SelectItem>
+          <SelectItem value="public">Public</SelectItem>
+          <SelectItem value="private">Private</SelectItem>
         </SelectContent>
       </Select>
 
@@ -83,7 +76,7 @@
         class="text-muted-foreground hover:bg-muted rounded-md px-3 py-1.5 text-sm tracking-tight"
         @click="resetFilters"
       >
-        {{ $t("guests.reset") }}
+        Reset
       </button>
     </div>
 
@@ -96,74 +89,59 @@
         :model-value="allLoadedSelected ? true : selectedCount > 0 ? 'indeterminate' : false"
         @update:model-value="toggleSelectAll"
       />
-      <span class="text-sm font-medium tracking-tight">
-        {{ $t("guests.itemsSelected", { count: selectedCount }) }}
-      </span>
+      <span class="text-sm font-medium tracking-tight">{{ selectedCount }} selected</span>
       <div class="ml-auto flex flex-wrap items-center gap-1.5">
         <button
           type="button"
           class="text-muted-foreground hover:bg-muted rounded-md px-2.5 py-1 text-sm tracking-tight"
           @click="clearSelection"
         >
-          {{ $t("guests.clear") }}
+          Clear
         </button>
 
         <DropdownMenu v-if="canUpdate">
           <DropdownMenuTrigger as-child>
-            <button
-              type="button"
-              class="border-border hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm tracking-tight"
-            >
+            <Button variant="outline" size="sm">
               <Icon name="hugeicons:edit-02" class="size-4 shrink-0" />
-              <span>{{ $t("guests.bulkEdit") }}</span>
-            </button>
+              Bulk edit
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-44">
-            <DropdownMenuLabel>{{ $t("guests.status") }}</DropdownMenuLabel>
+            <DropdownMenuLabel>Status</DropdownMenuLabel>
             <DropdownMenuItem @select="applyBulkUpdate({ status: 'active' })">
-              {{ $t("guests.setActive") }}
+              Set Active
             </DropdownMenuItem>
             <DropdownMenuItem @select="applyBulkUpdate({ status: 'inactive' })">
-              {{ $t("guests.setInactive") }}
+              Set Inactive
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuLabel>{{ $t("guests.visibility") }}</DropdownMenuLabel>
+            <DropdownMenuLabel>Visibility</DropdownMenuLabel>
             <DropdownMenuItem @select="applyBulkUpdate({ visibility: 'public' })">
-              {{ $t("guests.setPublic") }}
+              Set Public
             </DropdownMenuItem>
             <DropdownMenuItem @select="applyBulkUpdate({ visibility: 'private' })">
-              {{ $t("guests.setPrivate") }}
+              Set Private
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuLabel>{{ $t("guests.featured") }}</DropdownMenuLabel>
+            <DropdownMenuLabel>Featured</DropdownMenuLabel>
             <DropdownMenuItem @select="applyBulkUpdate({ is_featured: true })">
-              {{ $t("guests.markFeatured") }}
+              Mark as Featured
             </DropdownMenuItem>
             <DropdownMenuItem @select="applyBulkUpdate({ is_featured: false })">
-              {{ $t("guests.unmarkFeatured") }}
+              Remove Featured
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <button
-          v-if="canUpdate"
-          type="button"
-          class="border-border hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm tracking-tight"
-          @click="moveOpen = true"
-        >
+        <Button v-if="canUpdate" variant="outline" size="sm" @click="moveOpen = true">
           <Icon name="hugeicons:arrow-right-double" class="size-4 shrink-0" />
-          <span>{{ $t("guests.moveToEvent") }}</span>
-        </button>
+          Move to event
+        </Button>
 
-        <button
-          v-if="canDelete"
-          type="button"
-          class="bg-destructive text-destructive-foreground hover:bg-destructive/90 inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-sm font-medium tracking-tight active:scale-98"
-          @click="bulkDeleteOpen = true"
-        >
+        <Button v-if="canDelete" variant="destructive" size="sm" @click="bulkDeleteOpen = true">
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
-          <span>{{ $t("guests.deleteSelected") }}</span>
-        </button>
+          Delete selected
+        </Button>
       </div>
     </div>
 
@@ -191,20 +169,15 @@
         </div>
       </div>
       <div class="space-y-1">
-        <h3 class="font-semibold tracking-tight">{{ $t("guests.noGuests") }}</h3>
+        <h3 class="font-semibold tracking-tight">No guests yet</h3>
         <p class="text-muted-foreground max-w-sm text-sm tracking-tight">
-          {{ $t("guests.noGuestsDescription") }}
+          Add guests or speakers to showcase them on your event website.
         </p>
       </div>
-      <button
-        v-if="canCreate"
-        type="button"
-        class="bg-primary text-primary-foreground hover:bg-primary/90 mt-2 flex items-center gap-x-1.5 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
-        @click="openCreate"
-      >
-        <Icon name="hugeicons:plus-sign" class="size-4 shrink-0" />
-        <span>{{ $t("guests.createFirst") }}</span>
-      </button>
+      <Button v-if="canCreate" size="sm" class="mt-2" @click="openCreate">
+        <Icon name="hugeicons:add-01" class="size-4 shrink-0" />
+        <span>Add your first guest</span>
+      </Button>
     </div>
 
     <!-- Filtered empty state -->
@@ -220,9 +193,9 @@
         </div>
       </div>
       <div class="space-y-1">
-        <h3 class="text-sm font-semibold tracking-tight">{{ $t("guests.noMatchTitle") }}</h3>
+        <h3 class="text-sm font-semibold tracking-tight">No matching guests</h3>
         <p class="text-muted-foreground max-w-sm text-sm tracking-tight">
-          {{ $t("guests.noMatchDescription") }}
+          Try adjusting your filters or search query.
         </p>
       </div>
       <button
@@ -230,7 +203,7 @@
         class="text-primary hover:underline text-sm tracking-tight"
         @click="resetFilters"
       >
-        {{ $t("guests.clearFilters") }}
+        Clear filters
       </button>
     </div>
 
@@ -284,7 +257,7 @@
           ]"
         >
           <Icon name="hugeicons:star" class="size-3" />
-          {{ $t("guests.featured") }}
+          Featured
         </span>
 
         <!-- Status / Visibility badge -->
@@ -294,14 +267,14 @@
             class="bg-muted text-muted-foreground inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs tracking-tight"
           >
             <Icon name="hugeicons:pause" class="size-3" />
-            {{ $t("guests.inactive") }}
+            Inactive
           </span>
           <span
             v-if="guest.visibility === 'private'"
             class="bg-muted text-muted-foreground inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs tracking-tight"
           >
             <Icon name="hugeicons:lock" class="size-3" />
-            {{ $t("guests.private") }}
+            Private
           </span>
         </div>
 
@@ -355,10 +328,10 @@
               type="button"
               class="hover:bg-muted inline-flex size-7 items-center justify-center rounded-md"
               @click="quickToggle(guest, 'is_featured', !guest.is_featured)"
-              v-tippy="guest.is_featured ? $t('guests.unmarkFeatured') : $t('guests.markFeatured')"
+              v-tippy="guest.is_featured ? 'Remove Featured' : 'Mark as Featured'"
             >
               <Icon
-                :name="guest.is_featured ? 'hugeicons:star' : 'hugeicons:star'"
+                name="hugeicons:star"
                 :class="['size-3.5', guest.is_featured && 'text-warning']"
               />
             </button>
@@ -367,7 +340,7 @@
               type="button"
               class="hover:bg-muted inline-flex size-7 items-center justify-center rounded-md"
               @click="quickToggle(guest, 'status', guest.status === 'active' ? 'inactive' : 'active')"
-              v-tippy="guest.status === 'active' ? $t('guests.markAsInactive') : $t('guests.markAsActive')"
+              v-tippy="guest.status === 'active' ? 'Mark as Inactive' : 'Mark as Active'"
             >
               <Icon
                 :name="guest.status === 'active' ? 'hugeicons:view' : 'hugeicons:view-off'"
@@ -379,7 +352,7 @@
               type="button"
               class="hover:bg-muted inline-flex size-7 items-center justify-center rounded-md"
               @click="duplicateGuest(guest)"
-              v-tippy="$t('guests.duplicate')"
+              v-tippy="'Duplicate'"
             >
               <Icon name="hugeicons:copy-01" class="size-3.5" />
             </button>
@@ -388,7 +361,7 @@
               type="button"
               class="hover:bg-muted inline-flex size-7 items-center justify-center rounded-md"
               @click="openEdit(guest)"
-              v-tippy="$t('guests.edit')"
+              v-tippy="'Edit'"
             >
               <Icon name="lucide:pencil" class="size-3.5" />
             </button>
@@ -397,7 +370,7 @@
               type="button"
               class="hover:bg-destructive/10 hover:text-destructive inline-flex size-7 items-center justify-center rounded-md"
               @click="confirmDelete(guest)"
-              v-tippy="$t('guests.delete')"
+              v-tippy="'Delete'"
             >
               <Icon name="hugeicons:delete-01" class="size-3.5" />
             </button>
@@ -412,7 +385,7 @@
       class="flex flex-col items-center gap-3 pt-2 sm:flex-row sm:justify-between"
     >
       <div class="text-muted-foreground text-xs tracking-tight tabular-nums">
-        {{ $t("guests.showingRange", { from: pageRangeFrom, to: pageRangeTo, total: totalCount }) }}
+        Showing {{ pageRangeFrom }}–{{ pageRangeTo }} of {{ totalCount }}
       </div>
       <div class="flex items-center gap-2">
         <button
@@ -421,7 +394,7 @@
           class="border-border hover:bg-muted rounded-md border px-2.5 py-1 text-xs tracking-tight disabled:opacity-50"
           @click="page = Math.max(1, page - 1)"
         >
-          {{ $t("guests.previous") }}
+          Previous
         </button>
         <span class="text-xs tracking-tight tabular-nums">{{ page }} / {{ totalPages }}</span>
         <button
@@ -430,7 +403,7 @@
           class="border-border hover:bg-muted rounded-md border px-2.5 py-1 text-xs tracking-tight disabled:opacity-50"
           @click="page = Math.min(totalPages, page + 1)"
         >
-          {{ $t("guests.next") }}
+          Next
         </button>
         <Select v-model.number="pageSize">
           <SelectTrigger class="h-7 w-20 text-xs">
@@ -451,7 +424,7 @@
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="flex items-start justify-between gap-3">
             <h3 class="text-lg font-semibold tracking-tight">
-              {{ editingGuest ? $t("guests.editGuest") : $t("guests.addGuest") }}
+              {{ editingGuest ? "Edit Guest" : "Add Guest" }}
             </h3>
             <button
               v-if="editingGuest"
@@ -460,7 +433,7 @@
               @click="activityOpen = true"
             >
               <Icon name="hugeicons:clock-04" class="size-3.5" />
-              {{ $t("guests.activityLog") }}
+              Activity log
             </button>
           </div>
           <div class="mt-4">
@@ -481,7 +454,7 @@
     <DialogResponsive v-model:open="activityOpen" dialog-max-width="32rem" :overflow-content="true">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <h3 class="text-lg font-semibold tracking-tight">{{ $t("guests.activityLog") }}</h3>
+          <h3 class="text-lg font-semibold tracking-tight">Activity log</h3>
           <p class="text-muted-foreground mt-1 text-sm tracking-tight">
             {{ editingGuest?.name }}
           </p>
@@ -517,29 +490,16 @@
     <DialogResponsive v-model:open="deleteOpen" dialog-max-width="22rem">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <h3 class="text-lg font-semibold tracking-tight">
-            {{ $t("guests.deleteSingleConfirm") }}
-          </h3>
+          <h3 class="text-lg font-semibold tracking-tight">Delete this guest?</h3>
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
-            {{ $t("guests.deleteSingleDescription", { name: deletingGuest?.name }) }}
+            {{ deletingGuest?.name }} will be moved to trash.
           </p>
           <div class="mt-4 flex justify-end gap-2">
-            <button
-              type="button"
-              class="border-border hover:bg-muted rounded-md border px-3 py-1.5 text-sm tracking-tight"
-              @click="deleteOpen = false"
-            >
-              {{ $t("guests.cancel") }}
-            </button>
-            <button
-              type="button"
-              :disabled="deleteSaving"
-              class="bg-destructive text-destructive-foreground hover:bg-destructive/90 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight disabled:opacity-60"
-              @click="handleDelete"
-            >
+            <Button variant="outline" size="sm" @click="deleteOpen = false">Cancel</Button>
+            <Button variant="destructive" size="sm" :disabled="deleteSaving" @click="handleDelete">
               <Icon v-if="deleteSaving" name="svg-spinners:ring-resize" class="size-4" />
-              {{ $t("guests.delete") }}
-            </button>
+              Delete
+            </Button>
           </div>
         </div>
       </template>
@@ -553,11 +513,9 @@
     >
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <h3 class="text-lg font-semibold tracking-tight">
-            {{ $t("guests.bulkDeleteTitle") }}
-          </h3>
+          <h3 class="text-lg font-semibold tracking-tight">Delete selected guests?</h3>
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
-            {{ $t("guests.bulkDeleteDescription", { count: selectedCount }) }}
+            {{ selectedCount }} guest(s) will be moved to trash.
           </p>
 
           <div v-if="bulkDeleteJob.processing.value" class="mt-4 space-y-2">
@@ -573,23 +531,23 @@
           </div>
 
           <div class="mt-4 flex justify-end gap-2">
-            <button
-              type="button"
+            <Button
+              variant="outline"
+              size="sm"
               :disabled="bulkDeleteJob.processing.value"
-              class="border-border hover:bg-muted rounded-md border px-3 py-1.5 text-sm tracking-tight disabled:opacity-50"
               @click="bulkDeleteOpen = false"
             >
-              {{ $t("guests.cancel") }}
-            </button>
-            <button
-              type="button"
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
               :disabled="bulkDeleteJob.processing.value"
-              class="bg-destructive text-destructive-foreground hover:bg-destructive/90 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight disabled:opacity-60"
               @click="handleBulkDelete"
             >
               <Icon v-if="bulkDeleteJob.processing.value" name="svg-spinners:ring-resize" class="size-4" />
-              {{ bulkDeleteJob.processing.value ? $t("guests.deleting") : $t("guests.deleteSelected") }}
-            </button>
+              {{ bulkDeleteJob.processing.value ? "Deleting..." : "Delete selected" }}
+            </Button>
           </div>
         </div>
       </template>
@@ -599,7 +557,7 @@
     <DialogResponsive v-model:open="trashOpen" dialog-max-width="36rem" :overflow-content="true">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <h3 class="text-lg font-semibold tracking-tight">{{ $t("guests.trash") }}</h3>
+          <h3 class="text-lg font-semibold tracking-tight">Trash</h3>
           <div class="mt-4 space-y-3">
             <div v-if="trashLoading" class="flex justify-center py-8">
               <Spinner class="size-5" />
@@ -608,7 +566,7 @@
               v-else-if="!trashGuests.length"
               class="text-muted-foreground py-8 text-center text-sm tracking-tight"
             >
-              {{ $t("guests.emptyTrash") }}
+              Trash is empty
             </div>
             <div v-else class="space-y-2">
               <div
@@ -635,14 +593,14 @@
                   class="text-primary hover:bg-muted rounded-md px-2 py-1 text-sm tracking-tight"
                   @click="restoreGuest(guest)"
                 >
-                  {{ $t("guests.restore") }}
+                  Restore
                 </button>
                 <button
                   type="button"
                   class="text-destructive hover:bg-destructive/10 rounded-md px-2 py-1 text-sm tracking-tight"
                   @click="forceDestroy(guest)"
                 >
-                  {{ $t("guests.deleteForever") }}
+                  Delete forever
                 </button>
               </div>
             </div>
@@ -681,8 +639,7 @@ import { toast } from "vue-sonner";
 
 const props = defineProps({ event: Object, project: Object });
 
-const { t } = useI18n();
-usePageMeta(null, { title: t("guests.title") });
+usePageMeta(null, { title: "Guests & Speakers" });
 
 const route = useRoute();
 const client = useSanctumClient();
@@ -747,7 +704,7 @@ const fetchGuests = async () => {
     totalCount.value = response.meta?.total ?? 0;
   } catch (err) {
     console.error("Failed to load guests:", err);
-    toast.error(t("guests.errorLoading"));
+    toast.error("Failed to load guests");
   } finally {
     loading.value = false;
     initialLoaded.value = true;
@@ -830,7 +787,7 @@ const initSortable = () => {
         await client(`${apiBase}/reorder`, { method: "POST", body: { orders } });
         await fetchGuests();
       } catch {
-        toast.error(t("guests.failedToReorder"));
+        toast.error("Failed to reorder guests");
       }
     },
   });
@@ -854,7 +811,7 @@ const quickToggle = async (guest, field, value) => {
     });
   } catch (err) {
     guest[field] = previous;
-    toast.error(t("guests.failedToSave"), {
+    toast.error("Failed to save", {
       description: err?.data?.message || err?.message,
     });
   }
@@ -875,6 +832,16 @@ const openCreate = () => {
   formOpen.value = true;
 };
 
+defineShortcuts({
+  n: {
+    handler: () => {
+      if (canCreate.value && !formOpen.value && !trashOpen.value && !bulkDeleteOpen.value && !moveOpen.value && !deleteOpen.value && !activityOpen.value) {
+        openCreate();
+      }
+    },
+  },
+});
+
 const openEdit = (guest) => {
   editingGuest.value = guest;
   formErrors.value = {};
@@ -888,10 +855,10 @@ const handleSave = async (payload) => {
   try {
     if (editingGuest.value) {
       await client(`${apiBase}/${editingGuest.value.id}`, { method: "PUT", body: payload });
-      toast.success(t("guests.guestSaved"));
+      toast.success("Guest saved successfully");
     } else {
       await client(apiBase, { method: "POST", body: payload });
-      toast.success(t("guests.guestCreated"));
+      toast.success("Guest created successfully");
     }
     formOpen.value = false;
     await fetchGuests();
@@ -899,7 +866,7 @@ const handleSave = async (payload) => {
     if (err?.status === 422 && err?.data?.errors) {
       formErrors.value = err.data.errors;
     } else {
-      toast.error(t("guests.failedToSave"), {
+      toast.error("Failed to save guest", {
         description: err?.data?.message || err?.message,
       });
     }
@@ -912,10 +879,10 @@ const handleSave = async (payload) => {
 const duplicateGuest = async (guest) => {
   try {
     await client(`${apiBase}/${guest.id}/duplicate`, { method: "POST" });
-    toast.success(t("guests.duplicated"));
+    toast.success("Guest duplicated");
     await fetchGuests();
   } catch (err) {
-    toast.error(t("guests.failedToDuplicate"), {
+    toast.error("Failed to duplicate guest", {
       description: err?.data?.message || err?.message,
     });
   }
@@ -940,7 +907,7 @@ const handleDelete = async () => {
   deleteSaving.value = true;
   try {
     await client(`${apiBase}/${target.id}`, { method: "DELETE" });
-    toast.success(t("guests.guestDeleted"));
+    toast.success("Guest deleted successfully");
     deleteOpen.value = false;
     if (selectedIds.value.has(target.id)) {
       const next = new Set(selectedIds.value);
@@ -950,7 +917,7 @@ const handleDelete = async () => {
   } catch (err) {
     guests.value = snapshot;
     totalCount.value = totalCount.value + 1;
-    toast.error(t("guests.failedToDelete"), {
+    toast.error("Failed to delete guest", {
       description: err?.data?.message || err?.message,
     });
   } finally {
@@ -966,16 +933,15 @@ watch(
   () => bulkDeleteJob.progress.value?.status,
   (status) => {
     if (status === "completed") {
-      toast.success(
-        t("guests.bulkDeleted", { count: bulkDeleteJob.progress.value?.deleted_count ?? selectedCount.value })
-      );
+      const count = bulkDeleteJob.progress.value?.deleted_count ?? selectedCount.value;
+      toast.success(`${count} guest(s) deleted`);
       bulkDeleteOpen.value = false;
       clearSelection();
       bulkDeleteJob.reset();
       fetchGuests();
     }
     if (status === "failed") {
-      toast.error(t("guests.failedToBulkDelete"), {
+      toast.error("Failed to delete selected guests", {
         description: bulkDeleteJob.progress.value?.error_message,
       });
       bulkDeleteJob.reset();
@@ -991,7 +957,7 @@ const handleBulkDelete = async () => {
       body: { ids: Array.from(selectedIds.value) },
     });
   } catch (err) {
-    toast.error(t("guests.failedToBulkDelete"), {
+    toast.error("Failed to delete selected guests", {
       description: err?.data?.message || err?.message,
     });
     bulkDeleteJob.reset();
@@ -1006,13 +972,12 @@ const applyBulkUpdate = async (payload) => {
       method: "PATCH",
       body: { ids: Array.from(selectedIds.value), ...payload },
     });
-    toast.success(
-      response?.message || t("guests.bulkUpdated", { count: response?.updated_count ?? selectedCount.value })
-    );
+    const count = response?.updated_count ?? selectedCount.value;
+    toast.success(response?.message || `${count} guest(s) updated`);
     clearSelection();
     await fetchGuests();
   } catch (err) {
-    toast.error(t("guests.failedToBulkUpdate"), {
+    toast.error("Failed to update selected guests", {
       description: err?.data?.message || err?.message,
     });
   }
@@ -1029,12 +994,13 @@ const handleMove = async (targetEventId) => {
       method: "POST",
       body: { ids: Array.from(selectedIds.value), target_event_id: targetEventId },
     });
-    toast.success(t("guests.moved", { count: response?.moved_count ?? selectedCount.value }));
+    const count = response?.moved_count ?? selectedCount.value;
+    toast.success(`${count} guest(s) moved`);
     moveOpen.value = false;
     clearSelection();
     await fetchGuests();
   } catch (err) {
-    toast.error(t("guests.failedToMove"), {
+    toast.error("Failed to move guests", {
       description: err?.data?.message || err?.message,
     });
   } finally {
@@ -1054,7 +1020,7 @@ const openTrash = async () => {
     const response = await client(`${apiBase}/trash`);
     trashGuests.value = response.data ?? [];
   } catch {
-    toast.error(t("guests.failedToLoadTrash"));
+    toast.error("Failed to load trash");
   } finally {
     trashLoading.value = false;
   }
@@ -1063,21 +1029,21 @@ const openTrash = async () => {
 const restoreGuest = async (guest) => {
   try {
     await client(`${apiBase}/trash/${guest.id}/restore`, { method: "POST" });
-    toast.success(t("guests.guestRestored"));
+    toast.success("Guest restored");
     trashGuests.value = trashGuests.value.filter((g) => g.id !== guest.id);
     await fetchGuests();
   } catch {
-    toast.error(t("guests.failedToRestore"));
+    toast.error("Failed to restore guest");
   }
 };
 
 const forceDestroy = async (guest) => {
   try {
     await client(`${apiBase}/trash/${guest.id}`, { method: "DELETE" });
-    toast.success(t("guests.permanentlyDeleted"));
+    toast.success("Permanently deleted");
     trashGuests.value = trashGuests.value.filter((g) => g.id !== guest.id);
   } catch {
-    toast.error(t("guests.failedToForceDelete"));
+    toast.error("Failed to permanently delete");
   }
 };
 </script>
