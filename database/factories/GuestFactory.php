@@ -16,14 +16,11 @@ class GuestFactory extends Factory
      */
     public function definition(): array
     {
-        $title = fake()->jobTitle();
-        $bio = fake()->paragraph();
-
         return [
             'event_id' => Event::factory(),
             'name' => fake()->name(),
-            'title' => ['en' => $title, 'id' => $title],
-            'bio' => ['en' => $bio, 'id' => $bio],
+            'title' => fake()->jobTitle(),
+            'bio' => fake()->paragraph(),
             'organization' => fake()->company(),
             'status' => 'active',
             'visibility' => 'public',

@@ -5,9 +5,6 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * Admin resource — exposes ALL locale translations as objects so the form can edit per-locale.
- */
 class GuestResource extends JsonResource
 {
     /**
@@ -24,8 +21,8 @@ class GuestResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
 
-            'title' => $this->getTranslations('title'),
-            'bio' => $this->getTranslations('bio'),
+            'title' => $this->title,
+            'bio' => $this->bio,
 
             'organization' => $this->organization,
 
@@ -52,9 +49,6 @@ class GuestResource extends JsonResource
                 'url' => $link->url,
                 'order' => $link->order,
             ])->values()->all()),
-
-            'more_details' => $this->more_details ?? [],
-            'settings' => $this->settings ?? [],
 
             'can_edit' => $user ? $user->can('guests.update') : false,
             'can_delete' => $user ? $user->can('guests.delete') : false,

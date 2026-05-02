@@ -20,13 +20,8 @@ class StoreGuestRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
 
-            'title' => ['nullable', 'array'],
-            'title.en' => ['nullable', 'string', 'max:255'],
-            'title.id' => ['nullable', 'string', 'max:255'],
-
-            'bio' => ['nullable', 'array'],
-            'bio.en' => ['nullable', 'string', 'max:50000'],
-            'bio.id' => ['nullable', 'string', 'max:50000'],
+            'title' => ['nullable', 'string', 'max:255'],
+            'bio' => ['nullable', 'string', 'max:50000'],
 
             'organization' => ['nullable', 'string', 'max:255'],
 
@@ -40,9 +35,9 @@ class StoreGuestRequest extends FormRequest
             'more_details' => ['nullable', 'array'],
             'settings' => ['nullable', 'array'],
 
-            'links' => ['nullable', 'array'],
+            'links' => ['nullable', 'array', 'max:20'],
             'links.*.label' => ['required_with:links.*.url', 'string', 'max:100'],
-            'links.*.url' => ['required_with:links.*.label', 'string', 'max:500'],
+            'links.*.url' => ['required_with:links.*.label', 'url:http,https', 'max:500'],
 
             'tmp_profile_image' => ['nullable', 'string'],
             'delete_profile_image' => ['sometimes', 'boolean'],

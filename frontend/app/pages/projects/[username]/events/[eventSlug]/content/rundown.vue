@@ -554,6 +554,7 @@ watch(
 // --- Drag-drop reorder per day ---
 const dayContainerRefs = {};
 const daySortableInstances = {};
+const isSyncing = ref(false);
 
 const setDayContainerRef = (dateKey, el) => {
   const key = dateKey ?? "_unscheduled";
@@ -565,6 +566,9 @@ const setDayContainerRef = (dateKey, el) => {
 const initDaySortables = () => {
   Object.values(daySortableInstances).forEach((instance) => instance.destroy());
   Object.keys(daySortableInstances).forEach((key) => delete daySortableInstances[key]);
+
+  // Skip init when filters are active to avoid filtered-vs-full mismatch
+  if (hasActiveFilters.value) return;
 
   for (const day of filteredDays.value) {
     const key = day.date ?? "_unscheduled";
@@ -578,20 +582,32 @@ const initDaySortables = () => {
       chosenClass: "sortable-chosen",
       dragClass: "sortable-drag",
       onEnd: async () => {
+        if (isSyncing.value) return;
+
         const ids = Array.from(el.querySelectorAll("[data-item-id]")).map((node) =>
           Number(node.dataset.itemId)
         );
-
         const orders = ids.map((id, idx) => ({ id, order: idx + 1 }));
 
+        // Optimistic local reorder: mutate rawDays day.items preserving
+        // original object refs so Vue's keyed v-for only moves DOM nodes.
+        const dayObj = rawDays.value.find((d) => (d.date ?? "_unscheduled") === key);
+        if (dayObj) {
+          const itemMap = new Map(dayObj.items.map((it) => [it.id, it]));
+          dayObj.items = ids.map((id) => itemMap.get(id)).filter(Boolean);
+        }
+
         try {
+          isSyncing.value = true;
           await client(`${apiBase}/reorder`, {
             method: "POST",
             body: { date: day.date, orders },
           });
-          await fetchItems();
         } catch (err) {
           toast.error("Failed to reorder items");
+          await fetchItems();
+        } finally {
+          isSyncing.value = false;
         }
       },
     });

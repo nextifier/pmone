@@ -259,6 +259,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::post('/trash/{id}/restore', [GuestController::class, 'restore'])->name('guests.restore');
         Route::delete('/trash/{id}', [GuestController::class, 'forceDestroy'])->name('guests.force-destroy');
         Route::delete('/bulk', [GuestController::class, 'bulkDestroy'])->name('guests.bulk-destroy');
+        Route::patch('/bulk', [GuestController::class, 'bulkUpdate'])->name('guests.bulk-update');
+        Route::post('/bulk-move', [GuestController::class, 'bulkMove'])->name('guests.bulk-move');
+        Route::post('/{id}/duplicate', [GuestController::class, 'duplicate'])->name('guests.duplicate');
+        Route::get('/{id}/activities', [GuestController::class, 'activities'])->name('guests.activities');
         Route::get('/{id}', [GuestController::class, 'show'])->name('guests.show');
         Route::put('/{id}', [GuestController::class, 'update'])->name('guests.update');
         Route::delete('/{id}', [GuestController::class, 'destroy'])->name('guests.destroy');

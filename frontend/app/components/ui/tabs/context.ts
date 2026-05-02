@@ -33,8 +33,10 @@ export const tabsIndicatorClasses: Record<TabsVariant, string> = {
 
 export const tabsTriggerClasses: Record<TabsVariant, string> = {
   pill: "relative z-10 rounded-full data-[state=active]:text-foreground hover:text-foreground",
-  segmented: "relative z-10 rounded-lg data-[state=active]:text-foreground hover:text-foreground",
-  underline: "relative z-10 data-[state=active]:text-foreground hover:text-muted-foreground",
+  segmented:
+    "relative z-10 rounded-lg data-[state=active]:text-foreground hover:text-foreground",
+  underline:
+    "relative z-10 data-[state=active]:text-foreground hover:text-muted-foreground",
 };
 
 export const tabsTriggerSizeClasses: Record<TabsSize, string> = {

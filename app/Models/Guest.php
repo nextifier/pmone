@@ -25,7 +25,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Tags\HasTags;
 use Spatie\Tags\Tag;
-use Spatie\Translatable\HasTranslations;
 
 /**
  * @property int $id
@@ -33,8 +32,8 @@ use Spatie\Translatable\HasTranslations;
  * @property int $event_id
  * @property string $name
  * @property string $slug
- * @property array<string, string>|null $title
- * @property array<string, string>|null $bio
+ * @property string|null $title
+ * @property string|null $bio
  * @property string|null $organization
  * @property array<array-key, mixed>|null $more_details
  * @property array<array-key, mixed>|null $settings
@@ -73,7 +72,6 @@ class Guest extends Model implements HasMedia, Sortable
     use HasMediaManager;
     use HasSlug;
     use HasTags;
-    use HasTranslations;
     use InteractsWithMedia;
     use LogsActivity;
     use SoftDeletes;
@@ -92,12 +90,6 @@ class Guest extends Model implements HasMedia, Sortable
         'visibility',
         'is_featured',
         'order_column',
-    ];
-
-    /** @var array<int, string> */
-    public array $translatable = [
-        'title',
-        'bio',
     ];
 
     /** @var array<string, mixed> */

@@ -15,18 +15,16 @@ import {
   TagsInputItemDelete,
   TagsInputItemText,
 } from "@/components/ui/tags-input";
-import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 
-type Translatable = Record<string, string | null>;
 type Link = { id?: number; label: string; url: string };
 type ImageUrls = Record<string, string> & { sm?: string; md?: string; lg?: string; original?: string };
 
 type GuestPayload = {
   id?: number;
   name?: string;
-  title?: Translatable;
-  bio?: Translatable;
+  title?: string | null;
+  bio?: string | null;
   organization?: string | null;
   status?: "active" | "inactive";
   visibility?: "public" | "private";
@@ -56,22 +54,13 @@ const emit = defineEmits<{
   cancel: [];
 }>();
 
-const LOCALES = [
-  { value: "en", label: "English" },
-  { value: "id", label: "Indonesian" },
-] as const;
-
-type LocaleKey = (typeof LOCALES)[number]["value"];
-
-const activeLocale = ref<LocaleKey>("en");
-
 const PREDEFINED_LABELS = ["Website", "LinkedIn", "X", "Instagram", "Facebook", "YouTube", "TikTok"];
 
 const form = ref({
   name: props.guest?.name ?? "",
   organization: props.guest?.organization ?? "",
-  title: { ...(props.guest?.title ?? { en: "", id: "" }) } as Translatable,
-  bio: { ...(props.guest?.bio ?? { en: "", id: "" }) } as Translatable,
+  title: props.guest?.title ?? "",
+  bio: props.guest?.bio ?? "",
   tags: [...(props.guest?.tags ?? [])] as string[],
   status: (props.guest?.status ?? "active") as "active" | "inactive",
   visibility: (props.guest?.visibility ?? "public") as "public" | "private",
@@ -84,34 +73,12 @@ const deleteFlags = ref<{ profile: boolean }>({ profile: false });
 
 const initialProfile = computed(() => props.guest?.profile_image ?? null);
 
-type TranslatableKey = "title" | "bio";
-
-function bind(key: TranslatableKey) {
-  return computed<string>({
-    get: () => form.value[key]?.[activeLocale.value] ?? "",
-    set: (value: string) => {
-      form.value[key] = { ...form.value[key], [activeLocale.value]: value };
-    },
-  });
-}
-
-const titleField = bind("title");
-const bioField = bind("bio");
-
 function addLink() {
   form.value.links.push({ label: "Website", url: "" });
 }
 
 function removeLink(index: number) {
   form.value.links.splice(index, 1);
-}
-
-function cleanTranslatable(t: Translatable): Translatable {
-  const out: Translatable = {};
-  for (const [k, v] of Object.entries(t ?? {})) {
-    out[k] = v && String(v).trim().length > 0 ? v : null;
-  }
-  return out;
 }
 
 function err(key: string): string | null {
@@ -123,8 +90,8 @@ function handleSubmit() {
   const payload: Record<string, unknown> = {
     name: form.value.name,
     organization: form.value.organization || null,
-    title: cleanTranslatable(form.value.title),
-    bio: cleanTranslatable(form.value.bio),
+    title: form.value.title?.trim() ? form.value.title.trim() : null,
+    bio: form.value.bio?.trim() ? form.value.bio : null,
     tags: form.value.tags,
     status: form.value.status,
     visibility: form.value.visibility,
@@ -156,16 +123,6 @@ defineShortcuts({
 
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-5">
-    <!-- Locale switcher -->
-    <Tabs v-model="activeLocale" variant="segmented">
-      <TabsList>
-        <TabsIndicator />
-        <TabsTrigger v-for="locale in LOCALES" :key="locale.value" :value="locale.value">
-          {{ locale.label }}
-        </TabsTrigger>
-      </TabsList>
-    </Tabs>
-
     <!-- Profile image -->
     <div class="space-y-2">
       <Label class="text-sm">{{ $t("guests.profileImage") }}</Label>
@@ -187,7 +144,7 @@ defineShortcuts({
     <div class="grid gap-4 sm:grid-cols-2">
       <div class="space-y-2">
         <Label class="text-sm" for="guest-name">{{ $t("guests.name") }} *</Label>
-        <Input id="guest-name" v-model="form.name" required />
+        <Input id="guest-name" v-model="form.name" auto-focus required />
         <p v-if="err('name')" class="text-destructive text-xs">{{ err("name") }}</p>
       </div>
       <div class="space-y-2">
@@ -197,32 +154,29 @@ defineShortcuts({
       </div>
     </div>
 
-    <!-- Title (translatable) -->
+    <!-- Title -->
     <div class="space-y-2">
-      <Label class="text-sm">{{ $t("guests.title2") }}</Label>
+      <Label class="text-sm" for="guest-title">{{ $t("guests.title2") }}</Label>
       <Input
-        v-model="titleField"
-        :placeholder="activeLocale === 'en' ? 'e.g. CEO, Founder, Keynote Speaker' : 'mis. CEO, Pendiri, Pembicara Utama'"
+        id="guest-title"
+        v-model="form.title"
+        placeholder="e.g. CEO, Founder, Keynote Speaker"
       />
-      <p v-if="err(`title.${activeLocale}`)" class="text-destructive text-xs">
-        {{ err(`title.${activeLocale}`) }}
-      </p>
+      <p v-if="err('title')" class="text-destructive text-xs">{{ err("title") }}</p>
     </div>
 
-    <!-- Bio (translatable, TipTap) -->
+    <!-- Bio -->
     <div class="space-y-2">
       <Label class="text-sm">{{ $t("guests.bio") }}</Label>
       <TipTapEditor
-        v-model="bioField"
+        v-model="form.bio"
         model-type="App\Models\Guest"
         collection="bio_images"
         :sticky="false"
         min-height="160px"
         :placeholder="$t('guests.writeBio')"
       />
-      <p v-if="err(`bio.${activeLocale}`)" class="text-destructive text-xs">
-        {{ err(`bio.${activeLocale}`) }}
-      </p>
+      <p v-if="err('bio')" class="text-destructive text-xs">{{ err("bio") }}</p>
     </div>
 
     <!-- Tags / Topics -->
@@ -257,7 +211,7 @@ defineShortcuts({
               <SelectItem value="Custom">Custom</SelectItem>
             </SelectContent>
           </Select>
-          <Input v-model="link.url" placeholder="https://..." class="grow" />
+          <Input v-model="link.url" type="url" placeholder="https://..." class="grow" />
           <button
             type="button"
             @click="removeLink(index)"
@@ -273,7 +227,7 @@ defineShortcuts({
         class="text-primary hover:text-primary/80 inline-flex items-center gap-1.5 text-sm font-medium tracking-tight"
       >
         <Icon name="hugeicons:add-01" class="size-4" />
-        Add Link
+        {{ $t("guests.addLink") }}
       </button>
     </div>
 
@@ -326,7 +280,7 @@ defineShortcuts({
         @click="emit('cancel')"
         class="border-border hover:bg-muted rounded-md border px-3 py-1.5 text-sm tracking-tight"
       >
-        Cancel
+        {{ $t("guests.cancel") }}
       </button>
       <button
         type="submit"

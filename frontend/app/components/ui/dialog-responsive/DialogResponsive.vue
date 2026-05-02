@@ -10,12 +10,7 @@
             class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
           />
           <DialogContent
-            :class="
-              cn(
-                'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-1/2 left-1/2 z-50 flex w-full -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border shadow-lg outline-hidden duration-200',
-                props.dialogContentClass
-              )
-            "
+            class="bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 border-border fixed top-1/2 left-1/2 z-50 flex w-full -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl shadow-lg outline-hidden duration-200 dark:border"
             :style="{ maxWidth: dialogMaxWidth, maxHeight: dialogMaxHeight }"
             @interact-outside="onInteractOutside"
             @escape-key-down="onEscapeKeyDown"
@@ -23,7 +18,11 @@
             <DialogTitle class="hidden" />
             <DialogDescription class="hidden" />
             <slot name="sticky-header" />
-            <ScrollArea v-if="!hideScrollbar" class="flex flex-col" :scrollHideDelay="0">
+            <ScrollArea
+              v-if="!flushContent"
+              class="flex flex-col"
+              :scrollHideDelay="0"
+            >
               <slot :data="dialogData" />
             </ScrollArea>
             <div
@@ -40,7 +39,7 @@
               :class="
                 cn(
                   'data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none',
-                  props.closeButtonClass
+                  props.closeButtonClass,
                 )
               "
             >
@@ -52,7 +51,7 @@
               :class="
                 cn(
                   'data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none',
-                  props.closeButtonClass
+                  props.closeButtonClass,
                 )
               "
             >
@@ -67,17 +66,20 @@
     <template v-else>
       <DrawerRoot v-model:open="isOpen">
         <DrawerPortal>
-          <DrawerOverlay v-if="!hideOverlay" class="fixed inset-0 z-50 bg-black/80" />
+          <DrawerOverlay
+            v-if="!hideOverlay"
+            class="fixed inset-0 z-50 bg-black/80"
+          />
           <DrawerContent
             :class="
               cn(
-                'border-border bg-background fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto max-h-[85vh] flex-col rounded-t-2xl border-t outline-hidden lg:max-h-[calc(100lvh-var(--navbar-height-desktop))]',
-                drawerFlushTop && 'overflow-hidden'
+                'border-border bg-background fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto max-h-[85vh] flex-col rounded-t-2xl outline-hidden lg:max-h-[calc(100lvh-var(--navbar-height-desktop))] dark:border-t',
+                flushContent && 'overflow-hidden',
               )
             "
           >
             <div
-              v-if="!drawerFlushTop"
+              v-if="!flushContent"
               class="bg-foreground/20 mx-auto mt-2 mb-7 h-1 w-[100px] shrink-0 rounded-full"
             />
             <div
@@ -128,8 +130,8 @@
 </template>
 
 <script setup>
-import { cn } from "@/lib/utils";
 import { useMediaQuery, useVModel } from "@vueuse/core";
+import { cn } from "@/lib/utils";
 
 import {
   DialogClose,
@@ -187,15 +189,7 @@ const props = defineProps({
     type: String,
     default: "",
   },
-  dialogContentClass: {
-    type: String,
-    default: "",
-  },
-  hideScrollbar: {
-    type: Boolean,
-    default: false,
-  },
-  drawerFlushTop: {
+  flushContent: {
     type: Boolean,
     default: false,
   },
@@ -253,7 +247,8 @@ watch(isOpen, (newValue, oldValue) => {
   if (isDesktop.value && props.isResponsive) {
     if (newValue) {
       const hasScrollbar =
-        document.documentElement.scrollHeight > document.documentElement.clientHeight;
+        document.documentElement.scrollHeight >
+        document.documentElement.clientHeight;
       if (!hasScrollbar) {
         const test = document.createElement("div");
         test.style.cssText =

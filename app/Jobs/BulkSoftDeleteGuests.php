@@ -6,6 +6,7 @@ use App\Models\Guest;
 use App\Traits\TracksJobProgress;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 class BulkSoftDeleteGuests implements ShouldQueue
 {
@@ -29,22 +30,24 @@ class BulkSoftDeleteGuests implements ShouldQueue
         $this->initProgress(count($this->guestIds), 'Deleting guests...');
 
         $deleted = 0;
+        $processed = 0;
 
-        foreach ($this->guestIds as $index => $id) {
-            $guest = Guest::find($id);
+        Guest::whereIn('id', $this->guestIds)
+            ->chunkById(100, function ($guests) use (&$deleted, &$processed) {
+                foreach ($guests as $guest) {
+                    if ($this->deletedBy) {
+                        $guest->deleted_by = $this->deletedBy;
+                        $guest->saveQuietly();
+                    }
 
-            if ($guest) {
-                if ($this->deletedBy) {
-                    $guest->deleted_by = $this->deletedBy;
-                    $guest->saveQuietly();
+                    $guest->delete();
+                    $deleted++;
+                    $processed++;
+                    $this->updateProgress($processed);
                 }
+            });
 
-                $guest->delete();
-                $deleted++;
-            }
-
-            $this->updateProgress($index + 1);
-        }
+        ResponseCache::clear(['guests']);
 
         $this->completeProgress(
             "{$deleted} guest(s) deleted",

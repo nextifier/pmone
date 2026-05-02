@@ -5,6 +5,12 @@
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:user-multiple-02" class="size-5 sm:size-6" />
         <h1 class="page-title">{{ $t("guests.title") }}</h1>
+        <span
+          v-if="!loading && totalCount"
+          class="text-muted-foreground text-xs tracking-tight tabular-nums"
+        >
+          {{ totalCount }}
+        </span>
       </div>
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
@@ -30,14 +36,25 @@
     </div>
 
     <!-- Filter bar -->
-    <div v-if="!loading && rawGuests.length" class="flex flex-wrap items-center gap-2">
+    <div v-if="!loading || hasActiveFilters || guests.length" class="flex flex-wrap items-center gap-2">
       <div class="relative min-w-48 flex-1">
         <Icon
           name="hugeicons:search-01"
           class="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2"
         />
-        <Input v-model="search" :placeholder="$t('guests.searchGuests')" class="pl-9" />
+        <Input v-model="searchInput" :placeholder="$t('guests.searchGuests')" class="pl-9" />
       </div>
+
+      <Select v-model="statusFilter">
+        <SelectTrigger class="w-32 shrink-0">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{{ $t("guests.all") }}</SelectItem>
+          <SelectItem value="active">{{ $t("guests.active") }}</SelectItem>
+          <SelectItem value="inactive">{{ $t("guests.inactive") }}</SelectItem>
+        </SelectContent>
+      </Select>
 
       <Select v-model="featuredFilter">
         <SelectTrigger class="w-32 shrink-0">
@@ -66,18 +83,98 @@
         class="text-muted-foreground hover:bg-muted rounded-md px-3 py-1.5 text-sm tracking-tight"
         @click="resetFilters"
       >
-        Reset
+        {{ $t("guests.reset") }}
       </button>
     </div>
 
+    <!-- Bulk action bar -->
+    <div
+      v-if="selectedCount > 0"
+      class="border-border bg-muted/50 sticky top-2 z-20 flex flex-wrap items-center gap-2 rounded-md border px-3 py-2 backdrop-blur-sm"
+    >
+      <Checkbox
+        :model-value="allLoadedSelected ? true : selectedCount > 0 ? 'indeterminate' : false"
+        @update:model-value="toggleSelectAll"
+      />
+      <span class="text-sm font-medium tracking-tight">
+        {{ $t("guests.itemsSelected", { count: selectedCount }) }}
+      </span>
+      <div class="ml-auto flex flex-wrap items-center gap-1.5">
+        <button
+          type="button"
+          class="text-muted-foreground hover:bg-muted rounded-md px-2.5 py-1 text-sm tracking-tight"
+          @click="clearSelection"
+        >
+          {{ $t("guests.clear") }}
+        </button>
+
+        <DropdownMenu v-if="canUpdate">
+          <DropdownMenuTrigger as-child>
+            <button
+              type="button"
+              class="border-border hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm tracking-tight"
+            >
+              <Icon name="hugeicons:edit-02" class="size-4 shrink-0" />
+              <span>{{ $t("guests.bulkEdit") }}</span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" class="w-44">
+            <DropdownMenuLabel>{{ $t("guests.status") }}</DropdownMenuLabel>
+            <DropdownMenuItem @select="applyBulkUpdate({ status: 'active' })">
+              {{ $t("guests.setActive") }}
+            </DropdownMenuItem>
+            <DropdownMenuItem @select="applyBulkUpdate({ status: 'inactive' })">
+              {{ $t("guests.setInactive") }}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>{{ $t("guests.visibility") }}</DropdownMenuLabel>
+            <DropdownMenuItem @select="applyBulkUpdate({ visibility: 'public' })">
+              {{ $t("guests.setPublic") }}
+            </DropdownMenuItem>
+            <DropdownMenuItem @select="applyBulkUpdate({ visibility: 'private' })">
+              {{ $t("guests.setPrivate") }}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>{{ $t("guests.featured") }}</DropdownMenuLabel>
+            <DropdownMenuItem @select="applyBulkUpdate({ is_featured: true })">
+              {{ $t("guests.markFeatured") }}
+            </DropdownMenuItem>
+            <DropdownMenuItem @select="applyBulkUpdate({ is_featured: false })">
+              {{ $t("guests.unmarkFeatured") }}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <button
+          v-if="canUpdate"
+          type="button"
+          class="border-border hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm tracking-tight"
+          @click="moveOpen = true"
+        >
+          <Icon name="hugeicons:arrow-right-double" class="size-4 shrink-0" />
+          <span>{{ $t("guests.moveToEvent") }}</span>
+        </button>
+
+        <button
+          v-if="canDelete"
+          type="button"
+          class="bg-destructive text-destructive-foreground hover:bg-destructive/90 inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-sm font-medium tracking-tight active:scale-98"
+          @click="bulkDeleteOpen = true"
+        >
+          <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
+          <span>{{ $t("guests.deleteSelected") }}</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Loading -->
-    <div v-if="loading" class="flex justify-center py-16">
+    <div v-if="loading && !guests.length" class="flex justify-center py-16">
       <Spinner class="size-6" />
     </div>
 
-    <!-- Empty state -->
+    <!-- Empty state (no guests at all) -->
     <div
-      v-else-if="!rawGuests.length"
+      v-else-if="!guests.length && !hasActiveFilters && initialLoaded"
       class="flex flex-col items-center justify-center gap-y-4 py-16 text-center"
     >
       <div
@@ -110,14 +207,30 @@
       </button>
     </div>
 
-    <!-- Filtered empty -->
+    <!-- Filtered empty state -->
     <div
-      v-else-if="!filteredGuests.length && hasActiveFilters"
-      class="text-muted-foreground rounded-md border border-dashed py-10 text-center text-sm tracking-tight"
+      v-else-if="!guests.length && hasActiveFilters"
+      class="flex flex-col items-center justify-center gap-y-3 py-12 text-center"
     >
-      No guests match your filters.
-      <button type="button" class="text-primary hover:underline" @click="resetFilters">
-        Clear filters
+      <div
+        class="*:bg-background/80 text-muted-foreground flex items-center *:rounded-lg *:border *:p-3 [&_svg]:size-5"
+      >
+        <div>
+          <Icon name="hugeicons:filter" />
+        </div>
+      </div>
+      <div class="space-y-1">
+        <h3 class="text-sm font-semibold tracking-tight">{{ $t("guests.noMatchTitle") }}</h3>
+        <p class="text-muted-foreground max-w-sm text-sm tracking-tight">
+          {{ $t("guests.noMatchDescription") }}
+        </p>
+      </div>
+      <button
+        type="button"
+        class="text-primary hover:underline text-sm tracking-tight"
+        @click="resetFilters"
+      >
+        {{ $t("guests.clearFilters") }}
       </button>
     </div>
 
@@ -128,14 +241,36 @@
       class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4"
     >
       <div
-        v-for="guest in filteredGuests"
+        v-for="guest in guests"
         :key="guest.id"
         :data-guest-id="guest.id"
-        class="group border-border bg-background hover:shadow-sm relative flex flex-col overflow-hidden rounded-xl border transition"
+        :class="[
+          'group border-border bg-background hover:shadow-sm relative flex flex-col overflow-hidden rounded-xl border transition',
+          isSelected(guest.id) && 'ring-primary ring-2',
+        ]"
       >
+        <!-- Selection checkbox -->
+        <label
+          v-if="canDelete || canUpdate"
+          :class="[
+            'absolute top-2 left-2 z-20 inline-flex size-7 cursor-pointer items-center justify-center rounded-md bg-black/40 backdrop-blur-sm transition',
+            isSelected(guest.id) || selectedCount > 0
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-100',
+          ]"
+          @click.stop
+        >
+          <Checkbox
+            :model-value="isSelected(guest.id)"
+            class="border-white/60 data-[state=checked]:border-primary"
+            @update:model-value="toggleSelect(guest.id)"
+          />
+        </label>
+
         <!-- Drag handle -->
         <span
-          class="drag-handle absolute top-2 left-2 z-10 inline-flex size-7 cursor-grab items-center justify-center rounded-md bg-black/40 text-white backdrop-blur-sm opacity-0 transition group-hover:opacity-100 active:cursor-grabbing"
+          v-if="!hasActiveFilters && selectedCount === 0"
+          class="drag-handle absolute top-2 right-2 z-10 inline-flex size-7 cursor-grab items-center justify-center rounded-md bg-black/40 text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100 active:cursor-grabbing"
         >
           <Icon name="hugeicons:drag-drop" class="size-3.5" />
         </span>
@@ -143,26 +278,38 @@
         <!-- Featured badge -->
         <span
           v-if="guest.is_featured"
-          class="bg-warning text-warning-foreground absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium tracking-tight"
+          :class="[
+            'bg-warning text-warning-foreground absolute z-10 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium tracking-tight',
+            !hasActiveFilters && selectedCount === 0 ? 'top-10 right-2' : 'top-2 right-2',
+          ]"
         >
           <Icon name="hugeicons:star" class="size-3" />
           {{ $t("guests.featured") }}
         </span>
 
-        <!-- Visibility badge -->
-        <span
-          v-if="guest.visibility === 'private'"
-          class="bg-muted text-muted-foreground absolute bottom-2 left-2 z-10 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs tracking-tight"
-        >
-          <Icon name="hugeicons:lock" class="size-3" />
-          {{ $t("guests.private") }}
-        </span>
+        <!-- Status / Visibility badge -->
+        <div class="absolute bottom-2 left-2 z-10 flex items-center gap-1">
+          <span
+            v-if="guest.status === 'inactive'"
+            class="bg-muted text-muted-foreground inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs tracking-tight"
+          >
+            <Icon name="hugeicons:pause" class="size-3" />
+            {{ $t("guests.inactive") }}
+          </span>
+          <span
+            v-if="guest.visibility === 'private'"
+            class="bg-muted text-muted-foreground inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs tracking-tight"
+          >
+            <Icon name="hugeicons:lock" class="size-3" />
+            {{ $t("guests.private") }}
+          </span>
+        </div>
 
         <!-- Profile image -->
         <button
           type="button"
           class="bg-muted relative aspect-[4/5] w-full overflow-hidden text-left"
-          @click="openEdit(guest)"
+          @click="onCardClick(guest, $event)"
         >
           <img
             v-if="guest.profile_image?.md || guest.profile_image?.sm"
@@ -184,15 +331,15 @@
           <button
             type="button"
             class="line-clamp-2 text-left text-sm font-semibold tracking-tight hover:underline"
-            @click="openEdit(guest)"
+            @click="onCardClick(guest, $event)"
           >
             {{ guest.name }}
           </button>
           <p
-            v-if="resolveTitle(guest)"
+            v-if="guest.title"
             class="text-muted-foreground line-clamp-1 text-xs tracking-tight"
           >
-            {{ resolveTitle(guest) }}
+            {{ guest.title }}
           </p>
           <p
             v-if="guest.organization"
@@ -202,13 +349,46 @@
           </p>
 
           <!-- Action menu -->
-          <div class="mt-auto flex items-center justify-end gap-1 pt-1">
+          <div class="mt-auto flex items-center justify-end gap-0.5 pt-1">
+            <button
+              v-if="guest.can_edit"
+              type="button"
+              class="hover:bg-muted inline-flex size-7 items-center justify-center rounded-md"
+              @click="quickToggle(guest, 'is_featured', !guest.is_featured)"
+              v-tippy="guest.is_featured ? $t('guests.unmarkFeatured') : $t('guests.markFeatured')"
+            >
+              <Icon
+                :name="guest.is_featured ? 'hugeicons:star' : 'hugeicons:star'"
+                :class="['size-3.5', guest.is_featured && 'text-warning']"
+              />
+            </button>
+            <button
+              v-if="guest.can_edit"
+              type="button"
+              class="hover:bg-muted inline-flex size-7 items-center justify-center rounded-md"
+              @click="quickToggle(guest, 'status', guest.status === 'active' ? 'inactive' : 'active')"
+              v-tippy="guest.status === 'active' ? $t('guests.markAsInactive') : $t('guests.markAsActive')"
+            >
+              <Icon
+                :name="guest.status === 'active' ? 'hugeicons:view' : 'hugeicons:view-off'"
+                class="size-3.5"
+              />
+            </button>
+            <button
+              v-if="guest.can_edit && canCreate"
+              type="button"
+              class="hover:bg-muted inline-flex size-7 items-center justify-center rounded-md"
+              @click="duplicateGuest(guest)"
+              v-tippy="$t('guests.duplicate')"
+            >
+              <Icon name="hugeicons:copy-01" class="size-3.5" />
+            </button>
             <button
               v-if="guest.can_edit"
               type="button"
               class="hover:bg-muted inline-flex size-7 items-center justify-center rounded-md"
               @click="openEdit(guest)"
-              v-tippy="'Edit'"
+              v-tippy="$t('guests.edit')"
             >
               <Icon name="lucide:pencil" class="size-3.5" />
             </button>
@@ -217,7 +397,7 @@
               type="button"
               class="hover:bg-destructive/10 hover:text-destructive inline-flex size-7 items-center justify-center rounded-md"
               @click="confirmDelete(guest)"
-              v-tippy="'Delete'"
+              v-tippy="$t('guests.delete')"
             >
               <Icon name="hugeicons:delete-01" class="size-3.5" />
             </button>
@@ -226,38 +406,130 @@
       </div>
     </div>
 
+    <!-- Pagination -->
+    <div
+      v-if="!loading && totalPages > 1"
+      class="flex flex-col items-center gap-3 pt-2 sm:flex-row sm:justify-between"
+    >
+      <div class="text-muted-foreground text-xs tracking-tight tabular-nums">
+        {{ $t("guests.showingRange", { from: pageRangeFrom, to: pageRangeTo, total: totalCount }) }}
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          :disabled="page === 1"
+          class="border-border hover:bg-muted rounded-md border px-2.5 py-1 text-xs tracking-tight disabled:opacity-50"
+          @click="page = Math.max(1, page - 1)"
+        >
+          {{ $t("guests.previous") }}
+        </button>
+        <span class="text-xs tracking-tight tabular-nums">{{ page }} / {{ totalPages }}</span>
+        <button
+          type="button"
+          :disabled="page >= totalPages"
+          class="border-border hover:bg-muted rounded-md border px-2.5 py-1 text-xs tracking-tight disabled:opacity-50"
+          @click="page = Math.min(totalPages, page + 1)"
+        >
+          {{ $t("guests.next") }}
+        </button>
+        <Select v-model.number="pageSize">
+          <SelectTrigger class="h-7 w-20 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem :value="20">20</SelectItem>
+            <SelectItem :value="50">50</SelectItem>
+            <SelectItem :value="100">100</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+
     <!-- Create/Edit dialog -->
     <DialogResponsive v-model:open="formOpen" dialog-max-width="40rem" :overflow-content="true">
-      <template #title>
-        {{ editingGuest ? $t("guests.editGuest") : $t("guests.addGuest") }}
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="flex items-start justify-between gap-3">
+            <h3 class="text-lg font-semibold tracking-tight">
+              {{ editingGuest ? $t("guests.editGuest") : $t("guests.addGuest") }}
+            </h3>
+            <button
+              v-if="editingGuest"
+              type="button"
+              class="text-muted-foreground hover:bg-muted inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs tracking-tight"
+              @click="activityOpen = true"
+            >
+              <Icon name="hugeicons:clock-04" class="size-3.5" />
+              {{ $t("guests.activityLog") }}
+            </button>
+          </div>
+          <div class="mt-4">
+            <FormGuest
+              :key="formKey"
+              :guest="editingGuest"
+              :loading="formSaving"
+              :errors="formErrors"
+              @submit="handleSave"
+              @cancel="formOpen = false"
+            />
+          </div>
+        </div>
       </template>
-      <template #content>
-        <FormGuest
-          :key="formKey"
-          :guest="editingGuest"
-          :loading="formSaving"
-          :errors="formErrors"
-          @submit="handleSave"
-          @cancel="formOpen = false"
-        />
+    </DialogResponsive>
+
+    <!-- Activity log dialog -->
+    <DialogResponsive v-model:open="activityOpen" dialog-max-width="32rem" :overflow-content="true">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <h3 class="text-lg font-semibold tracking-tight">{{ $t("guests.activityLog") }}</h3>
+          <p class="text-muted-foreground mt-1 text-sm tracking-tight">
+            {{ editingGuest?.name }}
+          </p>
+          <div class="mt-4">
+            <ActivityLogPanel
+              v-if="activityOpen && editingGuest"
+              :guest-id="editingGuest.id"
+              :api-base="apiBase"
+            />
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
+
+    <!-- Move to event dialog -->
+    <DialogResponsive v-model:open="moveOpen" dialog-max-width="26rem" :overflow-content="true">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <MoveToEventDialog
+            v-if="moveOpen"
+            :username="username"
+            :current-event-id="event?.id ?? 0"
+            :count="selectedCount"
+            :loading="moveSaving"
+            @cancel="moveOpen = false"
+            @submit="handleMove"
+          />
+        </div>
       </template>
     </DialogResponsive>
 
     <!-- Delete confirmation -->
     <DialogResponsive v-model:open="deleteOpen" dialog-max-width="22rem">
-      <template #title>{{ $t("guests.deleteSingleConfirm") }}</template>
-      <template #content>
-        <div class="space-y-4">
-          <p class="text-muted-foreground text-sm tracking-tight">
-            {{ deletingGuest?.name }} will be moved to trash.
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <h3 class="text-lg font-semibold tracking-tight">
+            {{ $t("guests.deleteSingleConfirm") }}
+          </h3>
+          <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
+            {{ $t("guests.deleteSingleDescription", { name: deletingGuest?.name }) }}
           </p>
-          <div class="flex justify-end gap-2">
+          <div class="mt-4 flex justify-end gap-2">
             <button
               type="button"
               class="border-border hover:bg-muted rounded-md border px-3 py-1.5 text-sm tracking-tight"
               @click="deleteOpen = false"
             >
-              Cancel
+              {{ $t("guests.cancel") }}
             </button>
             <button
               type="button"
@@ -266,7 +538,57 @@
               @click="handleDelete"
             >
               <Icon v-if="deleteSaving" name="svg-spinners:ring-resize" class="size-4" />
-              Delete
+              {{ $t("guests.delete") }}
+            </button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
+
+    <!-- Bulk delete confirmation -->
+    <DialogResponsive
+      v-model:open="bulkDeleteOpen"
+      dialog-max-width="24rem"
+      :prevent-close="bulkDeleteJob.processing.value"
+    >
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <h3 class="text-lg font-semibold tracking-tight">
+            {{ $t("guests.bulkDeleteTitle") }}
+          </h3>
+          <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
+            {{ $t("guests.bulkDeleteDescription", { count: selectedCount }) }}
+          </p>
+
+          <div v-if="bulkDeleteJob.processing.value" class="mt-4 space-y-2">
+            <div class="bg-muted h-2 overflow-hidden rounded-full">
+              <div
+                class="bg-destructive h-full transition-all"
+                :style="{ width: `${bulkDeleteJob.progress.value?.percentage ?? 0}%` }"
+              />
+            </div>
+            <p class="text-muted-foreground text-xs tracking-tight tabular-nums">
+              {{ bulkDeleteJob.progress.value?.processed ?? 0 }} / {{ bulkDeleteJob.progress.value?.total ?? 0 }}
+            </p>
+          </div>
+
+          <div class="mt-4 flex justify-end gap-2">
+            <button
+              type="button"
+              :disabled="bulkDeleteJob.processing.value"
+              class="border-border hover:bg-muted rounded-md border px-3 py-1.5 text-sm tracking-tight disabled:opacity-50"
+              @click="bulkDeleteOpen = false"
+            >
+              {{ $t("guests.cancel") }}
+            </button>
+            <button
+              type="button"
+              :disabled="bulkDeleteJob.processing.value"
+              class="bg-destructive text-destructive-foreground hover:bg-destructive/90 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight disabled:opacity-60"
+              @click="handleBulkDelete"
+            >
+              <Icon v-if="bulkDeleteJob.processing.value" name="svg-spinners:ring-resize" class="size-4" />
+              {{ bulkDeleteJob.processing.value ? $t("guests.deleting") : $t("guests.deleteSelected") }}
             </button>
           </div>
         </div>
@@ -275,52 +597,54 @@
 
     <!-- Trash dialog -->
     <DialogResponsive v-model:open="trashOpen" dialog-max-width="36rem" :overflow-content="true">
-      <template #title>{{ $t("guests.trash") }}</template>
-      <template #content>
-        <div class="space-y-3">
-          <div v-if="trashLoading" class="flex justify-center py-8">
-            <Spinner class="size-5" />
-          </div>
-          <div
-            v-else-if="!trashGuests.length"
-            class="text-muted-foreground py-8 text-center text-sm tracking-tight"
-          >
-            {{ $t("guests.emptyTrash") }}
-          </div>
-          <div v-else class="space-y-2">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <h3 class="text-lg font-semibold tracking-tight">{{ $t("guests.trash") }}</h3>
+          <div class="mt-4 space-y-3">
+            <div v-if="trashLoading" class="flex justify-center py-8">
+              <Spinner class="size-5" />
+            </div>
             <div
-              v-for="guest in trashGuests"
-              :key="guest.id"
-              class="border-border flex items-center gap-3 rounded-md border p-2"
+              v-else-if="!trashGuests.length"
+              class="text-muted-foreground py-8 text-center text-sm tracking-tight"
             >
-              <div class="bg-muted aspect-[4/5] w-10 shrink-0 overflow-hidden rounded">
-                <img
-                  v-if="guest.profile_image?.sm"
-                  :src="guest.profile_image.sm"
-                  :alt="guest.name"
-                  class="size-full object-cover"
-                />
-              </div>
-              <div class="min-w-0 flex-1">
-                <p class="truncate text-sm font-medium tracking-tight">{{ guest.name }}</p>
-                <p class="text-muted-foreground truncate text-xs tracking-tight">
-                  {{ guest.organization || "—" }}
-                </p>
-              </div>
-              <button
-                type="button"
-                class="text-primary hover:bg-muted rounded-md px-2 py-1 text-sm tracking-tight"
-                @click="restoreGuest(guest)"
+              {{ $t("guests.emptyTrash") }}
+            </div>
+            <div v-else class="space-y-2">
+              <div
+                v-for="guest in trashGuests"
+                :key="guest.id"
+                class="border-border flex items-center gap-3 rounded-md border p-2"
               >
-                Restore
-              </button>
-              <button
-                type="button"
-                class="text-destructive hover:bg-destructive/10 rounded-md px-2 py-1 text-sm tracking-tight"
-                @click="forceDestroy(guest)"
-              >
-                Delete forever
-              </button>
+                <div class="bg-muted aspect-[4/5] w-10 shrink-0 overflow-hidden rounded">
+                  <img
+                    v-if="guest.profile_image?.sm"
+                    :src="guest.profile_image.sm"
+                    :alt="guest.name"
+                    class="size-full object-cover"
+                  />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-medium tracking-tight">{{ guest.name }}</p>
+                  <p class="text-muted-foreground truncate text-xs tracking-tight">
+                    {{ guest.organization || "—" }}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="text-primary hover:bg-muted rounded-md px-2 py-1 text-sm tracking-tight"
+                  @click="restoreGuest(guest)"
+                >
+                  {{ $t("guests.restore") }}
+                </button>
+                <button
+                  type="button"
+                  class="text-destructive hover:bg-destructive/10 rounded-md px-2 py-1 text-sm tracking-tight"
+                  @click="forceDestroy(guest)"
+                >
+                  {{ $t("guests.deleteForever") }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -330,7 +654,18 @@
 </template>
 
 <script setup>
+import ActivityLogPanel from "@/components/guest/ActivityLogPanel.vue";
 import FormGuest from "@/components/guest/FormGuest.vue";
+import MoveToEventDialog from "@/components/guest/MoveToEventDialog.vue";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -340,10 +675,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import { refDebounced } from "@vueuse/core";
 import Sortable from "sortablejs";
 import { toast } from "vue-sonner";
 
-defineProps({ event: Object, project: Object });
+const props = defineProps({ event: Object, project: Object });
 
 const { t } = useI18n();
 usePageMeta(null, { title: t("guests.title") });
@@ -355,65 +691,116 @@ const apiBase = `/api/projects/${username}/events/${eventSlug}/guests`;
 
 const { hasPermission } = usePermission();
 const canCreate = computed(() => hasPermission("guests.create"));
+const canUpdate = computed(() => hasPermission("guests.update"));
 const canDelete = computed(() => hasPermission("guests.delete"));
 
 // State
-const rawGuests = ref([]);
+const guests = ref([]);
+const totalCount = ref(0);
 const loading = ref(true);
+const initialLoaded = ref(false);
 
-const search = ref("");
+const searchInput = ref("");
+const search = refDebounced(searchInput, 300);
+const statusFilter = ref("all");
 const featuredFilter = ref("all");
 const visibilityFilter = ref("all");
 
+const page = ref(1);
+const pageSize = ref(50);
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)));
+const pageRangeFrom = computed(() => (totalCount.value === 0 ? 0 : (page.value - 1) * pageSize.value + 1));
+const pageRangeTo = computed(() => Math.min(page.value * pageSize.value, totalCount.value));
+
 const hasActiveFilters = computed(
-  () => Boolean(search.value) || featuredFilter.value !== "all" || visibilityFilter.value !== "all"
+  () =>
+    Boolean(search.value) ||
+    statusFilter.value !== "all" ||
+    featuredFilter.value !== "all" ||
+    visibilityFilter.value !== "all"
 );
 
 const resetFilters = () => {
-  search.value = "";
+  searchInput.value = "";
+  statusFilter.value = "all";
   featuredFilter.value = "all";
   visibilityFilter.value = "all";
+  page.value = 1;
+};
+
+const buildQuery = () => {
+  const params = new URLSearchParams();
+  params.set("per_page", String(pageSize.value));
+  params.set("page", String(page.value));
+  if (search.value) params.set("search", search.value);
+  if (statusFilter.value !== "all") params.set("status", statusFilter.value);
+  if (visibilityFilter.value !== "all") params.set("visibility", visibilityFilter.value);
+  if (featuredFilter.value === "featured") params.set("is_featured", "1");
+  return params.toString();
 };
 
 const fetchGuests = async () => {
   try {
     loading.value = true;
-    const response = await client(`${apiBase}?per_page=200`);
-    rawGuests.value = response.data ?? [];
+    const response = await client(`${apiBase}?${buildQuery()}`);
+    guests.value = response.data ?? [];
+    totalCount.value = response.meta?.total ?? 0;
   } catch (err) {
     console.error("Failed to load guests:", err);
     toast.error(t("guests.errorLoading"));
   } finally {
     loading.value = false;
+    initialLoaded.value = true;
   }
 };
 
 onMounted(fetchGuests);
 
-const resolveTitle = (guest) => {
-  const t = guest.title;
-  if (!t) return "";
-  if (typeof t === "string") return t;
-  return t.en ?? t.id ?? Object.values(t).find(Boolean) ?? "";
+watch([search, statusFilter, featuredFilter, visibilityFilter], () => {
+  page.value = 1;
+  fetchGuests();
+});
+
+watch([page, pageSize], () => fetchGuests());
+
+// Selection
+const selectedIds = ref(new Set());
+const selectedCount = computed(() => selectedIds.value.size);
+const isSelected = (id) => selectedIds.value.has(id);
+
+const toggleSelect = (id) => {
+  const next = new Set(selectedIds.value);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  selectedIds.value = next;
 };
 
-const filteredGuests = computed(() => {
-  const q = search.value.trim().toLowerCase();
-  return rawGuests.value.filter((guest) => {
-    if (featuredFilter.value === "featured" && !guest.is_featured) return false;
-    if (visibilityFilter.value !== "all" && guest.visibility !== visibilityFilter.value) {
-      return false;
-    }
-    if (q) {
-      const haystack = [guest.name, guest.organization, resolveTitle(guest), ...(guest.tags ?? [])]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      if (!haystack.includes(q)) return false;
-    }
-    return true;
-  });
-});
+const clearSelection = () => {
+  selectedIds.value = new Set();
+};
+
+const allLoadedSelected = computed(
+  () => guests.value.length > 0 && guests.value.every((g) => selectedIds.value.has(g.id))
+);
+
+const toggleSelectAll = () => {
+  if (allLoadedSelected.value) {
+    clearSelection();
+  } else {
+    const next = new Set(selectedIds.value);
+    guests.value.forEach((g) => next.add(g.id));
+    selectedIds.value = next;
+  }
+};
+
+const onCardClick = (guest, event) => {
+  if (selectedCount.value > 0) {
+    event.preventDefault();
+    toggleSelect(guest.id);
+    return;
+  }
+  openEdit(guest);
+};
 
 // Drag-drop reorder
 const gridContainer = ref(null);
@@ -424,7 +811,7 @@ const initSortable = () => {
     sortableInstance.destroy();
     sortableInstance = null;
   }
-  if (!gridContainer.value || hasActiveFilters.value) return;
+  if (!gridContainer.value || hasActiveFilters.value || selectedCount.value > 0) return;
 
   sortableInstance = Sortable.create(gridContainer.value, {
     animation: 200,
@@ -436,33 +823,42 @@ const initSortable = () => {
       const ids = Array.from(gridContainer.value.querySelectorAll("[data-guest-id]")).map((node) =>
         Number(node.dataset.guestId)
       );
-      const orders = ids.map((id, idx) => ({ id, order: idx + 1 }));
+      const startIndex = (page.value - 1) * pageSize.value;
+      const orders = ids.map((id, idx) => ({ id, order: startIndex + idx + 1 }));
 
       try {
-        await client(`${apiBase}/reorder`, {
-          method: "POST",
-          body: { orders },
-        });
+        await client(`${apiBase}/reorder`, { method: "POST", body: { orders } });
         await fetchGuests();
-      } catch (err) {
-        toast.error("Failed to reorder guests");
+      } catch {
+        toast.error(t("guests.failedToReorder"));
       }
     },
   });
 };
 
-watch(
-  [filteredGuests, hasActiveFilters],
-  async () => {
-    await nextTick();
-    initSortable();
-  },
-  { deep: false }
-);
+watch([guests, hasActiveFilters, selectedCount], async () => {
+  await nextTick();
+  initSortable();
+}, { deep: false });
 
-onUnmounted(() => {
-  sortableInstance?.destroy();
-});
+onUnmounted(() => sortableInstance?.destroy());
+
+// Quick toggle (optimistic)
+const quickToggle = async (guest, field, value) => {
+  const previous = guest[field];
+  guest[field] = value;
+  try {
+    await client(`${apiBase}/${guest.id}`, {
+      method: "PUT",
+      body: { [field]: value },
+    });
+  } catch (err) {
+    guest[field] = previous;
+    toast.error(t("guests.failedToSave"), {
+      description: err?.data?.message || err?.message,
+    });
+  }
+};
 
 // Create/edit
 const formOpen = ref(false);
@@ -470,6 +866,7 @@ const editingGuest = ref(null);
 const formSaving = ref(false);
 const formErrors = ref({});
 const formKey = ref(0);
+const activityOpen = ref(false);
 
 const openCreate = () => {
   editingGuest.value = null;
@@ -511,7 +908,20 @@ const handleSave = async (payload) => {
   }
 };
 
-// Delete
+// Duplicate
+const duplicateGuest = async (guest) => {
+  try {
+    await client(`${apiBase}/${guest.id}/duplicate`, { method: "POST" });
+    toast.success(t("guests.duplicated"));
+    await fetchGuests();
+  } catch (err) {
+    toast.error(t("guests.failedToDuplicate"), {
+      description: err?.data?.message || err?.message,
+    });
+  }
+};
+
+// Delete (optimistic)
 const deleteOpen = ref(false);
 const deletingGuest = ref(null);
 const deleteSaving = ref(false);
@@ -523,16 +933,112 @@ const confirmDelete = (guest) => {
 
 const handleDelete = async () => {
   if (!deletingGuest.value) return;
+  const target = deletingGuest.value;
+  const snapshot = guests.value.slice();
+  guests.value = guests.value.filter((g) => g.id !== target.id);
+  totalCount.value = Math.max(0, totalCount.value - 1);
   deleteSaving.value = true;
   try {
-    await client(`${apiBase}/${deletingGuest.value.id}`, { method: "DELETE" });
+    await client(`${apiBase}/${target.id}`, { method: "DELETE" });
     toast.success(t("guests.guestDeleted"));
     deleteOpen.value = false;
-    await fetchGuests();
+    if (selectedIds.value.has(target.id)) {
+      const next = new Set(selectedIds.value);
+      next.delete(target.id);
+      selectedIds.value = next;
+    }
   } catch (err) {
-    toast.error(t("guests.failedToDelete"));
+    guests.value = snapshot;
+    totalCount.value = totalCount.value + 1;
+    toast.error(t("guests.failedToDelete"), {
+      description: err?.data?.message || err?.message,
+    });
   } finally {
     deleteSaving.value = false;
+  }
+};
+
+// Bulk delete (queued job)
+const bulkDeleteOpen = ref(false);
+const bulkDeleteJob = useJobProgress();
+
+watch(
+  () => bulkDeleteJob.progress.value?.status,
+  (status) => {
+    if (status === "completed") {
+      toast.success(
+        t("guests.bulkDeleted", { count: bulkDeleteJob.progress.value?.deleted_count ?? selectedCount.value })
+      );
+      bulkDeleteOpen.value = false;
+      clearSelection();
+      bulkDeleteJob.reset();
+      fetchGuests();
+    }
+    if (status === "failed") {
+      toast.error(t("guests.failedToBulkDelete"), {
+        description: bulkDeleteJob.progress.value?.error_message,
+      });
+      bulkDeleteJob.reset();
+    }
+  }
+);
+
+const handleBulkDelete = async () => {
+  if (selectedCount.value === 0) return;
+  try {
+    await bulkDeleteJob.startJob(`${apiBase}/bulk`, {
+      method: "DELETE",
+      body: { ids: Array.from(selectedIds.value) },
+    });
+  } catch (err) {
+    toast.error(t("guests.failedToBulkDelete"), {
+      description: err?.data?.message || err?.message,
+    });
+    bulkDeleteJob.reset();
+  }
+};
+
+// Bulk update
+const applyBulkUpdate = async (payload) => {
+  if (selectedCount.value === 0) return;
+  try {
+    const response = await client(`${apiBase}/bulk`, {
+      method: "PATCH",
+      body: { ids: Array.from(selectedIds.value), ...payload },
+    });
+    toast.success(
+      response?.message || t("guests.bulkUpdated", { count: response?.updated_count ?? selectedCount.value })
+    );
+    clearSelection();
+    await fetchGuests();
+  } catch (err) {
+    toast.error(t("guests.failedToBulkUpdate"), {
+      description: err?.data?.message || err?.message,
+    });
+  }
+};
+
+// Bulk move
+const moveOpen = ref(false);
+const moveSaving = ref(false);
+
+const handleMove = async (targetEventId) => {
+  moveSaving.value = true;
+  try {
+    const response = await client(`${apiBase}/bulk-move`, {
+      method: "POST",
+      body: { ids: Array.from(selectedIds.value), target_event_id: targetEventId },
+    });
+    toast.success(t("guests.moved", { count: response?.moved_count ?? selectedCount.value }));
+    moveOpen.value = false;
+    clearSelection();
+    await fetchGuests();
+  } catch (err) {
+    toast.error(t("guests.failedToMove"), {
+      description: err?.data?.message || err?.message,
+    });
+  } finally {
+    moveSaving.value = false;
   }
 };
 
@@ -547,8 +1053,8 @@ const openTrash = async () => {
   try {
     const response = await client(`${apiBase}/trash`);
     trashGuests.value = response.data ?? [];
-  } catch (err) {
-    toast.error("Failed to load trash");
+  } catch {
+    toast.error(t("guests.failedToLoadTrash"));
   } finally {
     trashLoading.value = false;
   }
@@ -560,18 +1066,18 @@ const restoreGuest = async (guest) => {
     toast.success(t("guests.guestRestored"));
     trashGuests.value = trashGuests.value.filter((g) => g.id !== guest.id);
     await fetchGuests();
-  } catch (err) {
-    toast.error("Failed to restore guest");
+  } catch {
+    toast.error(t("guests.failedToRestore"));
   }
 };
 
 const forceDestroy = async (guest) => {
   try {
     await client(`${apiBase}/trash/${guest.id}`, { method: "DELETE" });
-    toast.success("Permanently deleted");
+    toast.success(t("guests.permanentlyDeleted"));
     trashGuests.value = trashGuests.value.filter((g) => g.id !== guest.id);
-  } catch (err) {
-    toast.error("Failed to permanently delete");
+  } catch {
+    toast.error(t("guests.failedToForceDelete"));
   }
 };
 </script>
