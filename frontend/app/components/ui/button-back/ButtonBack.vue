@@ -10,11 +10,17 @@
     -->
     <button
       @click="goBack"
-      class="text-primary/80 hover:text-primary flex items-center justify-center gap-x-1 text-sm tracking-tight transition active:scale-98"
+      :class="[
+        'flex items-center justify-center gap-x-1 text-sm tracking-tight transition active:scale-98',
+        variantClass,
+      ]"
+      v-ripple
     >
       <Icon name="lucide:arrow-left" class="size-4 shrink-0" />
-      <span v-if="showLabel">Back</span>
-      <KbdGroup v-if="showLabel && shortcutEnabled">
+      <span v-if="showLabel && variant !== 'semiTransparent'">Back</span>
+      <KbdGroup
+        v-if="showLabel && variant !== 'semiTransparent' && shortcut && shortcutEnabled"
+      >
         <Kbd>B</Kbd>
       </KbdGroup>
     </button>
@@ -36,6 +42,15 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  variant: {
+    type: String,
+    default: "default",
+    validator: (v) => ["default", "bordered", "semiTransparent"].includes(v),
+  },
+  shortcut: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const router = useRouter();
@@ -45,10 +60,21 @@ const shortcutEnabled = computed(() => {
   return !/\/posts\/(create|[^/]+\/edit)/.test(route.path);
 });
 
+const variantClass = computed(() => {
+  switch (props.variant) {
+    case "bordered":
+      return "text-primary lg:hover:bg-muted bg-background border-border rounded-full border p-3 lg:border-0";
+    case "semiTransparent":
+      return "text-primary bg-background/70 border border-white/10 shadow-lg backdrop-blur-sm rounded-full p-3";
+    default:
+      return "text-primary/80 hover:text-primary";
+  }
+});
+
 defineShortcuts({
   b: {
     handler: () => goBack(),
-    whenever: [shortcutEnabled],
+    whenever: [() => props.shortcut && shortcutEnabled.value],
   },
 });
 
