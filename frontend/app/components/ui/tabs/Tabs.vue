@@ -27,6 +27,7 @@ const props = withDefaults(
       "[aria-roledescription='carousel']",
       ".pswp",
       "[role='tablist']",
+      "[data-slot='table-container']",
     ],
   },
 );
@@ -62,7 +63,17 @@ useSwipe(swipeContainerRef, {
     if (!props.swipe) return;
     isSwipeExcluded.value = false;
     const target = e.target as Element | null;
-    if (target && props.swipeExclude.some((sel) => target.closest(sel))) {
+    if (!target) return;
+
+    // Nested Tabs: kalau closest tabs-root bukan root kita, berarti gesture
+    // berasal dari child Tabs — biar child yang handle, parent skip.
+    const closestTabs = target.closest("[data-slot='tabs']");
+    if (closestTabs && closestTabs !== swipeContainerRef.value) {
+      isSwipeExcluded.value = true;
+      return;
+    }
+
+    if (props.swipeExclude.some((sel) => target.closest(sel))) {
       isSwipeExcluded.value = true;
     }
   },
@@ -77,9 +88,10 @@ useSwipe(swipeContainerRef, {
     const root = swipeContainerRef.value;
     if (!root) return;
 
+    // Filter ke trigger yang langsung milik root ini (bukan dari nested Tabs).
     const triggers = Array.from(
       root.querySelectorAll<HTMLElement>('[role="tab"]:not([disabled])'),
-    );
+    ).filter((t) => t.closest("[data-slot='tabs']") === root);
     if (triggers.length === 0) return;
 
     const activeIdx = triggers.findIndex((t) => t.dataset.state === "active");
@@ -105,7 +117,7 @@ useSwipe(swipeContainerRef, {
 </script>
 
 <template>
-  <TabsRoot ref="tabsRootInstance" v-bind="forwarded">
+  <TabsRoot ref="tabsRootInstance" v-bind="forwarded" data-slot="tabs">
     <slot />
   </TabsRoot>
 </template>
