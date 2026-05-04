@@ -192,7 +192,7 @@ class ProjectSeeder extends Seeder
         ],
         [
             'name' => 'Global AI Expo',
-            'username' => 'global-ai-expo',
+            'username' => 'globalaiexpo',
             'profile_image' => '',
             'cover_image' => '',
             'email' => 'globalaiexpo@panoramamedia.co.id',
