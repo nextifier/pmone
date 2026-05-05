@@ -1002,6 +1002,8 @@ Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
         ->middleware(CacheResponse::for(3600, 'promotion-posts'));
     Route::get('/{username}/events/{eventSlug}/rundown', [PublicProjectController::class, 'rundown'])
         ->middleware(CacheResponse::for(86400, 'rundown'));
+    Route::get('/{username}/website-settings', [PublicProjectController::class, 'websiteSettings'])
+        ->middleware(CacheResponse::for(86400, 'website-settings'));
     Route::get('/{username}/events/{eventSlug}/guests', [PublicProjectController::class, 'guests'])
         ->middleware(CacheResponse::for(86400, 'guests'));
     Route::get('/{username}/events/{eventSlug}/guests/{slug}', [PublicProjectController::class, 'guest'])

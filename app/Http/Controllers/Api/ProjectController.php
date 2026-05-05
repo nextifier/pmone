@@ -320,6 +320,8 @@ class ProjectController extends Controller
             'rundown.show_location_filter' => ['sometimes', 'boolean'],
             'rundown.show_all_rundown_details' => ['sometimes', 'boolean'],
             'rundown.show_rundown_on_home_page' => ['sometimes', 'boolean'],
+            'brands' => ['sometimes', 'array'],
+            'brands.show_brand_preview_on_home_page' => ['sometimes', 'boolean'],
         ]);
 
         $settings = $project->settings ?? [];
@@ -330,10 +332,11 @@ class ProjectController extends Controller
         $project->settings = $settings;
         $project->save();
 
-        // Public rundown / events responses cache `website_settings` from the
-        // owning project. The Project model only clears the 'projects' tag on
-        // save, so explicitly invalidate the dependent caches here.
-        ResponseCache::clear(['rundown', 'events']);
+        // Public rundown / events / website-settings responses cache
+        // `website_settings` from the owning project. The Project model only
+        // clears the 'projects' tag on save, so explicitly invalidate the
+        // dependent caches here.
+        ResponseCache::clear(['rundown', 'events', 'website-settings']);
 
         return response()->json([
             'message' => 'Website settings updated successfully',

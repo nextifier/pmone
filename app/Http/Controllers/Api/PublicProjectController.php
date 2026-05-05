@@ -419,6 +419,36 @@ class PublicProjectController extends Controller
     }
 
     /**
+     * Return the project's public website settings (visibility toggles for
+     * sections rendered on the public event website). Project-level, so no
+     * event slug is required.
+     */
+    public function websiteSettings(string $username): JsonResponse
+    {
+        $project = Project::where('username', $username)->firstOrFail();
+
+        $settings = data_get($project->settings, 'website_settings', []);
+        $rundown = data_get($settings, 'rundown', []);
+        $brands = data_get($settings, 'brands', []);
+
+        return response()->json([
+            'data' => [
+                'settings' => [
+                    'rundown' => [
+                        'show_search_bar' => (bool) ($rundown['show_search_bar'] ?? true),
+                        'show_location_filter' => (bool) ($rundown['show_location_filter'] ?? true),
+                        'show_all_rundown_details' => (bool) ($rundown['show_all_rundown_details'] ?? false),
+                        'show_rundown_on_home_page' => (bool) ($rundown['show_rundown_on_home_page'] ?? false),
+                    ],
+                    'brands' => [
+                        'show_brand_preview_on_home_page' => (bool) ($brands['show_brand_preview_on_home_page'] ?? false),
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    /**
      * List public guests/speakers for an event.
      */
     public function guests(Request $request, string $username, string $eventSlug): JsonResponse

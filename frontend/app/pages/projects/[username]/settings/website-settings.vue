@@ -10,18 +10,19 @@
       <Spinner class="size-5" />
     </div>
 
-    <div v-else class="frame">
-      <div class="flex items-center gap-x-3 px-4 py-3 lg:px-5">
-        <Icon name="hugeicons:time-schedule" class="size-5" />
-        <div class="min-w-0">
-          <h3 class="text-base font-semibold tracking-tight">Rundown</h3>
-          <p class="text-muted-foreground text-sm tracking-tight">
-            Configure how the Rundown section behaves on the public event website.
-          </p>
+    <div v-else class="flex flex-col gap-y-4">
+      <div class="frame">
+        <div class="flex items-center gap-x-3 px-4 py-3 lg:px-5">
+          <Icon name="hugeicons:time-schedule" class="size-5" />
+          <div class="min-w-0">
+            <h3 class="text-base font-semibold tracking-tight">Rundown</h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              Configure how the Rundown section behaves on the public event website.
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div class="frame-panel divide-border divide-y">
+        <div class="frame-panel divide-border divide-y">
         <div class="flex items-start justify-between gap-4 px-4 py-4 lg:px-5">
           <div class="space-y-1">
             <Label
@@ -97,6 +98,40 @@
             :disabled="saving"
           />
         </div>
+        </div>
+      </div>
+
+      <div class="frame">
+        <div class="flex items-center gap-x-3 px-4 py-3 lg:px-5">
+          <Icon name="hugeicons:store-04" class="size-5" />
+          <div class="min-w-0">
+            <h3 class="text-base font-semibold tracking-tight">Brands</h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              Configure how the Brands section behaves on the public event website.
+            </p>
+          </div>
+        </div>
+
+        <div class="frame-panel divide-border divide-y">
+          <div class="flex items-start justify-between gap-4 px-4 py-4 lg:px-5">
+            <div class="space-y-1">
+              <Label
+                for="brands-show-preview-on-home"
+                class="cursor-pointer text-sm font-medium tracking-tight"
+              >
+                Show Brand Preview section in the Home page
+              </Label>
+              <p class="text-muted-foreground text-sm tracking-tight">
+                When on, the home page of the public event website includes a Brand Preview carousel.
+              </p>
+            </div>
+            <Switch
+              id="brands-show-preview-on-home"
+              v-model="form.show_brand_preview_on_home_page"
+              :disabled="saving"
+            />
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -127,6 +162,7 @@ const form = ref({
   show_search_bar: true,
   show_location_filter: true,
   show_all_rundown_details: false,
+  show_brand_preview_on_home_page: false,
 });
 
 let suppressWatcher = true;
@@ -137,12 +173,15 @@ async function load() {
     const response = await client(`/api/projects/${route.params.username}`);
     const settings = response.data?.settings ?? {};
     const rundown = settings.website_settings?.rundown ?? {};
+    const brands = settings.website_settings?.brands ?? {};
 
     form.value = {
       show_rundown_on_home_page: rundown.show_rundown_on_home_page ?? false,
       show_search_bar: rundown.show_search_bar ?? true,
       show_location_filter: rundown.show_location_filter ?? true,
       show_all_rundown_details: rundown.show_all_rundown_details ?? false,
+      show_brand_preview_on_home_page:
+        brands.show_brand_preview_on_home_page ?? false,
     };
   } catch (err) {
     toast.error("Failed to load website settings");
@@ -159,7 +198,18 @@ async function persist() {
   try {
     await client(`/api/projects/${route.params.username}/website-settings`, {
       method: "PATCH",
-      body: { rundown: { ...form.value } },
+      body: {
+        rundown: {
+          show_rundown_on_home_page: form.value.show_rundown_on_home_page,
+          show_search_bar: form.value.show_search_bar,
+          show_location_filter: form.value.show_location_filter,
+          show_all_rundown_details: form.value.show_all_rundown_details,
+        },
+        brands: {
+          show_brand_preview_on_home_page:
+            form.value.show_brand_preview_on_home_page,
+        },
+      },
     });
     toast.success("Website settings updated");
   } catch (err) {
