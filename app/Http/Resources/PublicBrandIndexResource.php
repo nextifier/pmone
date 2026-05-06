@@ -12,6 +12,8 @@ class PublicBrandIndexResource extends JsonResource
         $brand = $this->brand;
 
         return [
+            'id' => $brand?->id,
+            'brand_event_id' => $this->id,
             'slug' => $brand?->slug,
             'brand_name' => $brand?->name,
             'company_name' => $brand?->company_name,

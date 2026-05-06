@@ -11,8 +11,13 @@
 
     <template v-else>
       <div class="flex flex-col gap-y-6">
-        <div class="flex w-full items-center justify-between">
-          <ButtonBack :destination="backDestination" />
+        <div
+          :class="[
+            'flex w-full items-center',
+            embedded ? 'justify-end' : 'justify-between',
+          ]"
+        >
+          <ButtonBack v-if="!embedded" :destination="backDestination" />
 
           <div class="flex items-center gap-x-2">
             <button
@@ -31,7 +36,7 @@
           </div>
         </div>
 
-        <h1 class="page-title">Analytics for {{ user?.name }}</h1>
+        <h1 v-if="!embedded" class="page-title">Analytics for {{ user?.name }}</h1>
 
         <!-- Summary Cards -->
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -132,35 +137,53 @@
               <div
                 v-for="link in clicksData.links"
                 :key="link.link_id"
-                class="flex items-center justify-between gap-x-4 px-3 py-3 first:rounded-t-xl first:pt-0 last:rounded-b-xl last:pb-0 lg:px-5"
+                class="flex flex-col gap-y-1.5 px-3 py-3 first:rounded-t-xl first:pt-0 last:rounded-b-xl last:pb-0 lg:px-5"
               >
-                <div class="flex min-w-0 flex-1 items-center gap-x-3">
-                  <div class="bg-muted text-primary rounded-lg p-2">
-                    <Icon :name="getLinkIcon(link.label)" class="size-4" />
+                <div class="flex items-center justify-between gap-x-4">
+                  <div class="flex min-w-0 flex-1 items-center gap-x-3">
+                    <div class="bg-muted text-primary rounded-lg p-2">
+                      <Icon :name="getLinkIcon(link.label)" class="size-4" />
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate text-sm font-medium tracking-tight">{{ link.label }}</p>
+                      <p
+                        v-if="link.url"
+                        class="text-muted-foreground truncate text-xs tracking-tight"
+                      >
+                        {{ link.url }}
+                      </p>
+                    </div>
                   </div>
-                  <div class="min-w-0 flex-1">
-                    <p class="truncate text-sm font-medium tracking-tight">{{ link.label }}</p>
-                    <p
-                      v-if="link.url"
-                      class="text-muted-foreground truncate text-xs tracking-tight"
+                  <div class="flex items-center gap-x-4">
+                    <div class="bg-muted relative h-2 w-24 overflow-hidden rounded-full">
+                      <div
+                        class="bg-primary absolute inset-y-0 left-0 transition-all"
+                        :style="{
+                          width: `${((link.clicks || 0) / maxClicksPerLink) * 100}%`,
+                        }"
+                      ></div>
+                    </div>
+                    <span
+                      class="text-foreground w-12 text-right text-sm font-semibold tracking-tight"
                     >
-                      {{ link.url }}
-                    </p>
+                      {{ link.clicks?.toLocaleString() || 0 }}
+                    </span>
                   </div>
                 </div>
-                <div class="flex items-center gap-x-4">
-                  <div class="bg-muted relative h-2 w-24 overflow-hidden rounded-full">
-                    <div
-                      class="bg-primary absolute inset-y-0 left-0 transition-all"
-                      :style="{
-                        width: `${((link.clicks || 0) / maxClicksPerLink) * 100}%`,
-                      }"
-                    ></div>
-                  </div>
+                <div
+                  v-if="link.per_event?.length > 0"
+                  class="ml-12 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs tracking-tight"
+                >
                   <span
-                    class="text-foreground w-12 text-right text-sm font-semibold tracking-tight"
+                    v-for="entry in link.per_event"
+                    :key="entry.brand_event_id"
+                    class="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5"
                   >
-                    {{ link.clicks?.toLocaleString() || 0 }}
+                    <span class="text-foreground/80">{{
+                      entry.event_title || `Edition ${entry.edition_number}`
+                    }}</span>
+                    <span class="text-muted-foreground"> · </span>
+                    <span class="text-foreground font-medium">{{ entry.clicks }}</span>
                   </span>
                 </div>
               </div>
@@ -168,6 +191,60 @@
 
             <div v-else class="text-muted-foreground py-8 text-center text-sm tracking-tight">
               No link clicks recorded for this period
+            </div>
+          </div>
+        </div>
+
+        <!-- Per Event Breakdown (drill-down) -->
+        <div v-if="perEventBreakdown?.length > 0" class="frame">
+          <div class="frame-panel space-y-2">
+            <h2 class="text-lg font-semibold tracking-tighter">Per Event</h2>
+            <div class="divide-border -mx-3 divide-y lg:-mx-5">
+              <NuxtLink
+                v-for="entry in perEventBreakdown"
+                :key="entry.brand_event_id"
+                :to="getDrillTo(entry) || ''"
+                :class="[
+                  'flex items-center justify-between gap-x-4 px-3 py-3 first:rounded-t-xl first:pt-0 last:rounded-b-xl last:pb-0 lg:px-5',
+                  getDrillTo(entry) ? 'hover:bg-muted/50 transition' : 'pointer-events-none',
+                ]"
+              >
+                <div class="flex min-w-0 flex-1 items-center gap-x-3">
+                  <div class="bg-muted text-primary rounded-lg p-2">
+                    <Icon name="hugeicons:calendar-03" class="size-4" />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-medium tracking-tight">
+                      {{ entry.event?.title || `Edition ${entry.event?.edition_number}` }}
+                    </p>
+                    <p
+                      v-if="entry.event?.edition_number"
+                      class="text-muted-foreground truncate text-xs tracking-tight"
+                    >
+                      Edition {{ entry.event.edition_number }}
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-x-5 text-sm tracking-tight">
+                  <div class="flex items-center gap-x-1.5">
+                    <Icon name="hugeicons:view" class="text-muted-foreground size-3.5" />
+                    <span class="text-foreground font-semibold">{{
+                      entry.visits?.toLocaleString() || 0
+                    }}</span>
+                  </div>
+                  <div class="flex items-center gap-x-1.5">
+                    <Icon name="hugeicons:cursor-pointer-02" class="text-muted-foreground size-3.5" />
+                    <span class="text-foreground font-semibold">{{
+                      entry.clicks?.toLocaleString() || 0
+                    }}</span>
+                  </div>
+                  <Icon
+                    v-if="getDrillTo(entry)"
+                    name="hugeicons:arrow-right-01"
+                    class="text-muted-foreground size-4"
+                  />
+                </div>
+              </NuxtLink>
             </div>
           </div>
         </div>
@@ -288,7 +365,19 @@ const props = defineProps({
   },
   backDestination: {
     type: String,
-    required: true,
+    default: "",
+  },
+  embedded: {
+    type: Boolean,
+    default: false,
+  },
+  perEventBreakdown: {
+    type: Array,
+    default: null,
+  },
+  perEventLinkPath: {
+    type: String,
+    default: "",
   },
 });
 
@@ -354,5 +443,10 @@ const SOCIAL_ICON_MAP = {
 
 const getLinkIcon = (label) => {
   return SOCIAL_ICON_MAP[label?.toLowerCase()] || "hugeicons:link-02";
+};
+
+const getDrillTo = (entry) => {
+  if (!props.perEventLinkPath || !entry?.brand_event_id) return null;
+  return props.perEventLinkPath.replace("{brand_event_id}", entry.brand_event_id);
 };
 </script>

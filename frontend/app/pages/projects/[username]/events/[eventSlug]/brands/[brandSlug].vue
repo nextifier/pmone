@@ -77,6 +77,7 @@ const brandBase = computed(
 const brandTabs = computed(() => [
   { label: "Details", to: brandBase.value, exact: true, icon: "hugeicons:file-edit" },
   { label: "Promotion Posts", to: `${brandBase.value}/marketing`, icon: "hugeicons:megaphone-02" },
+  { label: "Analytics", to: `${brandBase.value}/analytics`, icon: "hugeicons:analytics-02" },
   { label: "Orders", to: `${brandBase.value}/orders`, icon: "hugeicons:shopping-bag-02" },
 ]);
 

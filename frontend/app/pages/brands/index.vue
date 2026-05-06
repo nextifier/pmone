@@ -206,9 +206,12 @@ usePageMeta(null, {
 
 const { $dayjs } = useNuxtApp();
 const client = useSanctumClient();
-const { hasPermission } = usePermission();
+const { hasPermission, hasAnyRole } = usePermission();
 const canCreate = computed(() => hasPermission("brands.create"));
 const canDelete = computed(() => hasPermission("brands.delete"));
+const canViewAnalytics = computed(
+  () => hasAnyRole(["master", "admin"]) || hasPermission("analytics.view"),
+);
 const baseUrl = "/brands";
 
 // Table state
@@ -659,6 +662,35 @@ const RowActions = defineComponent({
                             ),
                         }
                       ),
+                      // Analytics (only if user has analytics access)
+                      ...(canViewAnalytics.value
+                        ? [
+                            h(
+                              PopoverClose,
+                              { asChild: true },
+                              {
+                                default: () =>
+                                  h(
+                                    resolveComponent("NuxtLink"),
+                                    {
+                                      to: `${baseUrl}/${props.brand.brand_slug}/analytics`,
+                                      class:
+                                        "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                    },
+                                    {
+                                      default: () => [
+                                        h(resolveComponent("Icon"), {
+                                          name: "hugeicons:analytics-02",
+                                          class: "size-4 shrink-0",
+                                        }),
+                                        h("span", {}, "Analytics"),
+                                      ],
+                                    }
+                                  ),
+                              }
+                            ),
+                          ]
+                        : []),
                       // Delete (only if user has brands.delete permission)
                       ...(canDelete.value
                         ? [

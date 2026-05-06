@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Brand;
+use App\Models\BrandEvent;
 use App\Models\Click;
 use App\Models\LinkPage;
 use App\Models\Project;
 use App\Models\User;
+use App\Models\Visit;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,7 +23,7 @@ class AnalyticsController extends Controller
     public function getVisits(Request $request): JsonResponse
     {
         $request->validate([
-            'type' => 'required|in:user,project,linkpage',
+            'type' => 'required|in:user,project,linkpage,brand,brand_event',
             'id' => 'required|integer',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
@@ -31,6 +34,8 @@ class AnalyticsController extends Controller
             'user' => User::findOrFail($request->id),
             'project' => Project::findOrFail($request->id),
             'linkpage' => LinkPage::findOrFail($request->id),
+            'brand' => Brand::findOrFail($request->id),
+            'brand_event' => BrandEvent::with('brand')->findOrFail($request->id),
         };
 
         // Authorization check
@@ -38,7 +43,7 @@ class AnalyticsController extends Controller
             abort(403, 'Unauthorized to view analytics for this resource.');
         }
 
-        $query = $model->visits();
+        $query = $this->buildVisitsQuery($model);
 
         // Determine date range
         if ($request->has('start_date') && $request->has('end_date')) {
@@ -114,6 +119,10 @@ class AnalyticsController extends Controller
                 ];
             });
 
+        $perEventBreakdown = $model instanceof Brand
+            ? $this->buildPerEventBreakdown($model, $startDate, $endDate)
+            : null;
+
         return response()->json([
             'data' => [
                 'summary' => [
@@ -123,6 +132,7 @@ class AnalyticsController extends Controller
                 ],
                 'visits_per_day' => $visitsPerDay,
                 'top_visitors' => $topVisitors,
+                'per_event_breakdown' => $perEventBreakdown,
             ],
         ]);
     }
@@ -133,7 +143,7 @@ class AnalyticsController extends Controller
     public function getClicks(Request $request): JsonResponse
     {
         $request->validate([
-            'type' => 'required|in:user,project,linkpage',
+            'type' => 'required|in:user,project,linkpage,brand,brand_event',
             'id' => 'required|integer',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
@@ -144,6 +154,8 @@ class AnalyticsController extends Controller
             'user' => User::findOrFail($request->id),
             'project' => Project::findOrFail($request->id),
             'linkpage' => LinkPage::findOrFail($request->id),
+            'brand' => Brand::findOrFail($request->id),
+            'brand_event' => BrandEvent::with('brand')->findOrFail($request->id),
         };
 
         // Authorization check
@@ -151,22 +163,26 @@ class AnalyticsController extends Controller
             abort(403, 'Unauthorized to view analytics for this resource.');
         }
 
-        // Get all links for this entity
-        $links = $model->links;
+        // Get all links for this entity (BrandEvent inherits from parent Brand)
+        $links = $model instanceof BrandEvent ? $model->brand->links : $model->links;
 
         $dateFilter = null;
         if ($request->has('start_date') && $request->has('end_date')) {
             $dateFilter = ['start' => $request->start_date, 'end' => $request->end_date];
+            $startDate = Carbon::parse($request->start_date)->startOfDay();
+            $endDate = Carbon::parse($request->end_date)->endOfDay();
         } elseif ($request->has('days')) {
             $dateFilter = ['days' => $request->days];
+            $startDate = now()->subDays($request->days - 1)->startOfDay();
+            $endDate = now()->endOfDay();
         } else {
             $dateFilter = ['days' => 7]; // Default to last 7 days
+            $startDate = now()->subDays(6)->startOfDay();
+            $endDate = now()->endOfDay();
         }
 
         // Get clicks by link_label (new tracking method)
-        $clicksQuery = Click::query()
-            ->where('clickable_type', get_class($model))
-            ->where('clickable_id', $model->id);
+        $clicksQuery = $this->buildClicksQuery($model);
 
         if (isset($dateFilter['start']) && isset($dateFilter['end'])) {
             $clicksQuery->inDateRange($dateFilter['start'], $dateFilter['end']);
@@ -181,17 +197,29 @@ class AnalyticsController extends Controller
             ->get()
             ->pluck('click_count', 'link_label');
 
+        // For Brand (global view), compute per-edition distribution per link label.
+        $perLinkPerEvent = collect();
+        if ($model instanceof Brand) {
+            $perLinkPerEvent = $this->buildPerLinkPerEvent($model, $startDate, $endDate);
+        }
+
         // Map links with their click counts
-        $linksWithClicks = $links->map(function ($link) use ($clicksByLabel) {
+        $linksWithClicks = $links->map(function ($link) use ($clicksByLabel, $perLinkPerEvent, $model) {
             $label = $link->label;
             $clicks = $clicksByLabel->get($label, 0);
 
-            return [
+            $entry = [
                 'link_id' => $link->id,
                 'label' => $label,
                 'url' => $link->url,
                 'clicks' => $clicks,
             ];
+
+            if ($model instanceof Brand) {
+                $entry['per_event'] = $perLinkPerEvent->get($label, collect())->all();
+            }
+
+            return $entry;
         });
 
         // Add any tracked label not already represented as a Link entry.
@@ -208,12 +236,18 @@ class AnalyticsController extends Controller
                 $url = "mailto:{$model->email}";
             }
 
-            $linksWithClicks->push([
+            $entry = [
                 'link_id' => null,
                 'label' => $label,
                 'url' => $url,
                 'clicks' => $count,
-            ]);
+            ];
+
+            if ($model instanceof Brand) {
+                $entry['per_event'] = $perLinkPerEvent->get($label, collect())->all();
+            }
+
+            $linksWithClicks->push($entry);
         }
 
         $linksWithClicks = $linksWithClicks->sortByDesc('clicks')->values();
@@ -221,9 +255,7 @@ class AnalyticsController extends Controller
         $totalClicks = $clicksByLabel->sum();
 
         // Get top clickers (for authenticated clicks)
-        $topClickersQuery = Click::query()
-            ->where('clickable_type', get_class($model))
-            ->where('clickable_id', $model->id);
+        $topClickersQuery = $this->buildClicksQuery($model);
 
         if (isset($dateFilter['start']) && isset($dateFilter['end'])) {
             $topClickersQuery->inDateRange($dateFilter['start'], $dateFilter['end']);
@@ -258,9 +290,7 @@ class AnalyticsController extends Controller
                 }
 
                 // Get clicked links for this clicker
-                $clickedLinksQuery = Click::query()
-                    ->where('clickable_type', get_class($model))
-                    ->where('clickable_id', $model->id)
+                $clickedLinksQuery = $this->buildClicksQuery($model)
                     ->where('clicker_id', $click->clicker_id)
                     ->whereNotNull('link_label');
 
@@ -289,6 +319,10 @@ class AnalyticsController extends Controller
                 ];
             });
 
+        $perEventBreakdown = $model instanceof Brand
+            ? $this->buildPerEventBreakdown($model, $startDate, $endDate)
+            : null;
+
         return response()->json([
             'data' => [
                 'summary' => [
@@ -297,6 +331,7 @@ class AnalyticsController extends Controller
                 ],
                 'links' => $linksWithClicks,
                 'top_clickers' => $topClickers,
+                'per_event_breakdown' => $perEventBreakdown,
             ],
         ]);
     }
@@ -307,7 +342,7 @@ class AnalyticsController extends Controller
     public function getSummary(Request $request): JsonResponse
     {
         $request->validate([
-            'type' => 'required|in:user,project,linkpage',
+            'type' => 'required|in:user,project,linkpage,brand,brand_event',
             'id' => 'required|integer',
             'days' => 'nullable|integer|min:1|max:365',
         ]);
@@ -316,6 +351,8 @@ class AnalyticsController extends Controller
             'user' => User::findOrFail($request->id),
             'project' => Project::findOrFail($request->id),
             'linkpage' => LinkPage::findOrFail($request->id),
+            'brand' => Brand::findOrFail($request->id),
+            'brand_event' => BrandEvent::with('brand')->findOrFail($request->id),
         };
 
         // Authorization check
@@ -325,13 +362,11 @@ class AnalyticsController extends Controller
 
         $days = $request->get('days', 7);
 
-        $totalVisits = $model->visits()->lastDays($days)->count();
-        $totalLinks = $model->links()->count();
-        $totalClicks = Click::query()
-            ->where('clickable_type', get_class($model))
-            ->where('clickable_id', $model->id)
-            ->lastDays($days)
-            ->count();
+        $totalVisits = $this->buildVisitsQuery($model)->lastDays($days)->count();
+        $totalLinks = $model instanceof BrandEvent
+            ? $model->brand->links()->count()
+            : $model->links()->count();
+        $totalClicks = $this->buildClicksQuery($model)->lastDays($days)->count();
 
         return response()->json([
             'data' => [
@@ -360,6 +395,143 @@ class AnalyticsController extends Controller
     }
 
     /**
+     * Build per-edition aggregated breakdown for a Brand within a date range.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildPerEventBreakdown(Brand $brand, Carbon $startDate, Carbon $endDate): array
+    {
+        $brandEvents = $brand->brandEvents()->with('event.project')->get();
+        $brandEventIds = $brandEvents->pluck('id');
+
+        if ($brandEventIds->isEmpty()) {
+            return [];
+        }
+
+        $visitsByEvent = Visit::query()
+            ->where('visitable_type', BrandEvent::class)
+            ->whereIn('visitable_id', $brandEventIds)
+            ->where('visited_at', '>=', $startDate)
+            ->where('visited_at', '<=', $endDate)
+            ->select('visitable_id', DB::raw('COUNT(*) as count'))
+            ->groupBy('visitable_id')
+            ->pluck('count', 'visitable_id');
+
+        $clicksByEvent = Click::query()
+            ->where('clickable_type', BrandEvent::class)
+            ->whereIn('clickable_id', $brandEventIds)
+            ->where('clicked_at', '>=', $startDate)
+            ->where('clicked_at', '<=', $endDate)
+            ->select('clickable_id', DB::raw('COUNT(*) as count'))
+            ->groupBy('clickable_id')
+            ->pluck('count', 'clickable_id');
+
+        return $brandEvents->map(function ($be) use ($visitsByEvent, $clicksByEvent) {
+            $event = $be->event;
+
+            return [
+                'brand_event_id' => $be->id,
+                'event' => $event ? [
+                    'id' => $event->id,
+                    'slug' => $event->slug,
+                    'title' => $event->title,
+                    'edition_number' => $event->edition_number,
+                    'project_username' => $event->project?->username,
+                ] : null,
+                'visits' => (int) ($visitsByEvent[$be->id] ?? 0),
+                'clicks' => (int) ($clicksByEvent[$be->id] ?? 0),
+            ];
+        })
+            ->sortByDesc(fn ($entry) => $entry['visits'] + $entry['clicks'])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Build per-link click distribution across the brand's BrandEvents.
+     *
+     * Returns a Collection keyed by link_label, each value an array of
+     * [brand_event_id, edition_number, event_title, clicks] entries.
+     */
+    private function buildPerLinkPerEvent(Brand $brand, Carbon $startDate, Carbon $endDate)
+    {
+        $brandEvents = $brand->brandEvents()->with('event')->get()->keyBy('id');
+        $brandEventIds = $brandEvents->keys();
+
+        if ($brandEventIds->isEmpty()) {
+            return collect();
+        }
+
+        $rows = Click::query()
+            ->where('clickable_type', BrandEvent::class)
+            ->whereIn('clickable_id', $brandEventIds)
+            ->whereNotNull('link_label')
+            ->where('clicked_at', '>=', $startDate)
+            ->where('clicked_at', '<=', $endDate)
+            ->select('link_label', 'clickable_id', DB::raw('COUNT(*) as clicks'))
+            ->groupBy('link_label', 'clickable_id')
+            ->get();
+
+        return $rows->groupBy('link_label')->map(function ($items) use ($brandEvents) {
+            return $items->map(function ($row) use ($brandEvents) {
+                $be = $brandEvents->get($row->clickable_id);
+                $event = $be?->event;
+
+                return [
+                    'brand_event_id' => (int) $row->clickable_id,
+                    'edition_number' => $event?->edition_number,
+                    'event_title' => $event?->title,
+                    'clicks' => (int) $row->clicks,
+                ];
+            })
+                ->sortByDesc('clicks')
+                ->values();
+        });
+    }
+
+    /**
+     * Build base visits query for a model.
+     *
+     * For Brand, aggregates across all the brand's BrandEvents (global view).
+     * For BrandEvent, queries that BrandEvent directly. Other models use their
+     * own polymorphic visits() relationship.
+     */
+    private function buildVisitsQuery($model)
+    {
+        if ($model instanceof Brand) {
+            $brandEventIds = $model->brandEvents()->pluck('id');
+
+            return Visit::query()
+                ->where('visitable_type', BrandEvent::class)
+                ->whereIn('visitable_id', $brandEventIds);
+        }
+
+        return $model->visits();
+    }
+
+    /**
+     * Build base clicks query for a model.
+     *
+     * For Brand, aggregates across all the brand's BrandEvents (global view).
+     * For BrandEvent, queries that BrandEvent directly. Other models use a
+     * polymorphic class+id lookup.
+     */
+    private function buildClicksQuery($model)
+    {
+        if ($model instanceof Brand) {
+            $brandEventIds = $model->brandEvents()->pluck('id');
+
+            return Click::query()
+                ->where('clickable_type', BrandEvent::class)
+                ->whereIn('clickable_id', $brandEventIds);
+        }
+
+        return Click::query()
+            ->where('clickable_type', get_class($model))
+            ->where('clickable_id', $model->id);
+    }
+
+    /**
      * Check if user can view analytics
      */
     private function canViewAnalytics(Request $request, $model): bool
@@ -382,6 +554,16 @@ class AnalyticsController extends Controller
 
         // LinkPage owner can view their own analytics
         if ($model instanceof LinkPage && $model->user_id === $user->id) {
+            return true;
+        }
+
+        // Brand members can view brand analytics
+        if ($model instanceof Brand && $model->users()->where('user_id', $user->id)->exists()) {
+            return true;
+        }
+
+        // BrandEvent inherits authorization from parent Brand
+        if ($model instanceof BrandEvent && $model->brand?->users()->where('user_id', $user->id)->exists()) {
             return true;
         }
 

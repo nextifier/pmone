@@ -16,14 +16,25 @@
           {{ brand.company_name }}
         </p>
       </div>
-      <NuxtLink
-        v-if="canEditBrand"
-        :to="`/brands/${route.params.slug}/edit`"
-        class="border-border hover:bg-muted inline-flex items-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98"
-      >
-        <Icon name="hugeicons:edit-02" class="size-4" />
-        {{ $t('common.edit') }}
-      </NuxtLink>
+      <div class="flex items-center gap-x-1.5">
+        <NuxtLink
+          v-if="canViewAnalytics"
+          :to="`/brands/${route.params.slug}/analytics`"
+          class="border-border hover:bg-muted inline-flex items-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98"
+        >
+          <Icon name="hugeicons:analytics-02" class="size-4" />
+          Analytics
+        </NuxtLink>
+
+        <NuxtLink
+          v-if="canEditBrand"
+          :to="`/brands/${route.params.slug}/edit`"
+          class="border-border hover:bg-muted inline-flex items-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98"
+        >
+          <Icon name="hugeicons:edit-02" class="size-4" />
+          {{ $t('common.edit') }}
+        </NuxtLink>
+      </div>
     </div>
 
     <!-- Loading Skeleton -->
@@ -223,7 +234,8 @@
 import { toast } from "vue-sonner";
 
 const { t } = useI18n();
-const { hasPermission } = usePermission();
+const { hasPermission, hasAnyRole } = usePermission();
+const { user: authUser } = useSanctumAuth();
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -233,6 +245,13 @@ definePageMeta({
 const route = useRoute();
 const client = useSanctumClient();
 const canEditBrand = computed(() => hasPermission("brands.update"));
+
+const canViewAnalytics = computed(() => {
+  if (!authUser.value) return false;
+  if (hasAnyRole(["master", "admin"])) return true;
+  if (hasPermission("analytics.view")) return true;
+  return !!brand.value;
+});
 
 const brand = ref(null);
 const events = ref([]);

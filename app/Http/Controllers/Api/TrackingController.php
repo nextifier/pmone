@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\TrackingHelper;
 use App\Http\Controllers\Controller;
+use App\Models\BrandEvent;
 use App\Models\Click;
 use App\Models\Link;
 use App\Models\LinkPage;
@@ -24,6 +25,7 @@ class TrackingController extends Controller
         LinkPageItem::class,
         Link::class,
         ShortLink::class,
+        BrandEvent::class,
     ];
 
     /**

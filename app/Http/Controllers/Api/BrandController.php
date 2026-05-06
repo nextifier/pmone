@@ -133,6 +133,20 @@ class BrandController extends Controller
                     'email' => $user->email,
                     'avatar' => $user->relationLoaded('media') ? $user->getMediaUrls('profile_image') : null,
                 ]),
+                'brand_events' => $brand->brandEvents->map(fn ($be) => [
+                    'id' => $be->id,
+                    'event' => $be->event ? [
+                        'id' => $be->event->id,
+                        'slug' => $be->event->slug,
+                        'title' => $be->event->title,
+                        'edition_number' => $be->event->edition_number,
+                        'project' => $be->event->project ? [
+                            'id' => $be->event->project->id,
+                            'username' => $be->event->project->username,
+                            'name' => $be->event->project->name,
+                        ] : null,
+                    ] : null,
+                ])->values(),
                 'created_at' => $brand->created_at,
                 'updated_at' => $brand->updated_at,
                 'created_by' => $brand->creator ? ['id' => $brand->creator->id, 'name' => $brand->creator->name] : null,

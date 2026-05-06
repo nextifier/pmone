@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
@@ -43,15 +44,16 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property string|null $badge_name
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\Brand|null $brand
- * @property-read \App\Models\Event|null $event
+ * @property-read Brand|null $brand
+ * @property-read Event|null $event
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read Collection<int, \App\Models\Order> $orders
+ * @property-read Collection<int, Order> $orders
  * @property-read int|null $orders_count
- * @property-read Collection<int, \App\Models\PromotionPost> $promotionPosts
+ * @property-read Collection<int, PromotionPost> $promotionPosts
  * @property-read int|null $promotion_posts_count
- * @property-read \App\Models\User|null $sales
+ * @property-read User|null $sales
+ *
  * @method static Builder<static>|BrandEvent active()
  * @method static Builder<static>|BrandEvent byStatus(string $status)
  * @method static \Database\Factories\BrandEventFactory factory($count = null, $state = [])
@@ -76,6 +78,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|BrandEvent whereSalesId($value)
  * @method static Builder<static>|BrandEvent whereStatus($value)
  * @method static Builder<static>|BrandEvent whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 class BrandEvent extends Model implements HasMedia, Sortable
@@ -226,6 +229,16 @@ class BrandEvent extends Model implements HasMedia, Sortable
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function visits(): MorphMany
+    {
+        return $this->morphMany(Visit::class, 'visitable');
+    }
+
+    public function clicks(): MorphMany
+    {
+        return $this->morphMany(Click::class, 'clickable');
     }
 
     // Scopes
