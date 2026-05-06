@@ -7,17 +7,22 @@
         <h1 class="page-title">Guests &amp; Speakers</h1>
         <span
           v-if="!loading && totalCount"
-          class="text-muted-foreground text-xs tracking-tight tabular-nums"
+          class="text-muted-foreground text-sm tracking-tight tabular-nums"
         >
           {{ totalCount }}
         </span>
       </div>
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <Button v-if="canDelete" variant="outline" size="sm" @click="openTrash">
+        <button
+          v-if="canDelete"
+          type="button"
+          class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-2.5 py-1.5 text-sm tracking-tight active:scale-98"
+          @click="openTrash"
+        >
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
           <span class="hidden sm:inline">Trash</span>
-        </Button>
+        </button>
         <Button v-if="canCreate" size="sm" @click="openCreate">
           <Icon name="hugeicons:add-01" class="size-4 shrink-0" />
           <span>Add Guest</span>
@@ -43,28 +48,28 @@
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All</SelectItem>
+          <SelectItem value="all">All status</SelectItem>
           <SelectItem value="active">Active</SelectItem>
           <SelectItem value="inactive">Inactive</SelectItem>
         </SelectContent>
       </Select>
 
       <Select v-model="featuredFilter">
-        <SelectTrigger class="w-32 shrink-0">
+        <SelectTrigger class="w-36 shrink-0">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All</SelectItem>
-          <SelectItem value="featured">Featured</SelectItem>
+          <SelectItem value="featured">Featured only</SelectItem>
         </SelectContent>
       </Select>
 
       <Select v-model="visibilityFilter">
-        <SelectTrigger class="w-32 shrink-0">
+        <SelectTrigger class="w-36 shrink-0">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All</SelectItem>
+          <SelectItem value="all">All visibility</SelectItem>
           <SelectItem value="public">Public</SelectItem>
           <SelectItem value="private">Private</SelectItem>
         </SelectContent>
@@ -165,7 +170,7 @@
           <Icon name="hugeicons:user-multiple-02" />
         </div>
         <div class="translate-y-1.5 rotate-6">
-          <Icon name="hugeicons:user" />
+          <Icon name="hugeicons:user-circle" />
         </div>
       </div>
       <div class="space-y-1">
@@ -193,7 +198,7 @@
         </div>
       </div>
       <div class="space-y-1">
-        <h3 class="text-sm font-semibold tracking-tight">No matching guests</h3>
+        <h3 class="font-semibold tracking-tight">No matching guests</h3>
         <p class="text-muted-foreground max-w-sm text-sm tracking-tight">
           Try adjusting your filters or search query.
         </p>
@@ -218,67 +223,11 @@
         :key="guest.id"
         :data-guest-id="guest.id"
         :class="[
-          'group border-border bg-background hover:shadow-sm relative flex flex-col overflow-hidden rounded-xl border transition',
-          isSelected(guest.id) && 'ring-primary ring-2',
+          'group border-border bg-card relative flex flex-col overflow-hidden rounded-2xl border transition-all hover:border-foreground/20 hover:shadow-sm',
+          isSelected(guest.id) && 'ring-primary border-primary ring-2',
         ]"
       >
-        <!-- Selection checkbox -->
-        <label
-          v-if="canDelete || canUpdate"
-          :class="[
-            'absolute top-2 left-2 z-20 inline-flex size-7 cursor-pointer items-center justify-center rounded-md bg-black/40 backdrop-blur-sm transition',
-            isSelected(guest.id) || selectedCount > 0
-              ? 'opacity-100'
-              : 'opacity-0 group-hover:opacity-100',
-          ]"
-          @click.stop
-        >
-          <Checkbox
-            :model-value="isSelected(guest.id)"
-            class="border-white/60 data-[state=checked]:border-primary"
-            @update:model-value="toggleSelect(guest.id)"
-          />
-        </label>
-
-        <!-- Drag handle -->
-        <span
-          v-if="!hasActiveFilters && selectedCount === 0"
-          class="drag-handle absolute top-2 right-2 z-10 inline-flex size-7 cursor-grab items-center justify-center rounded-md bg-black/40 text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100 active:cursor-grabbing"
-        >
-          <Icon name="hugeicons:drag-drop" class="size-3.5" />
-        </span>
-
-        <!-- Featured badge -->
-        <span
-          v-if="guest.is_featured"
-          :class="[
-            'bg-warning text-warning-foreground absolute z-10 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium tracking-tight',
-            !hasActiveFilters && selectedCount === 0 ? 'top-10 right-2' : 'top-2 right-2',
-          ]"
-        >
-          <Icon name="hugeicons:star" class="size-3" />
-          Featured
-        </span>
-
-        <!-- Status / Visibility badge -->
-        <div class="absolute bottom-2 left-2 z-10 flex items-center gap-1">
-          <span
-            v-if="guest.status === 'inactive'"
-            class="bg-muted text-muted-foreground inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs tracking-tight"
-          >
-            <Icon name="hugeicons:pause" class="size-3" />
-            Inactive
-          </span>
-          <span
-            v-if="guest.visibility === 'private'"
-            class="bg-muted text-muted-foreground inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs tracking-tight"
-          >
-            <Icon name="hugeicons:lock" class="size-3" />
-            Private
-          </span>
-        </div>
-
-        <!-- Profile image -->
+        <!-- Image area -->
         <button
           type="button"
           class="bg-muted relative aspect-[4/5] w-full overflow-hidden text-left"
@@ -288,91 +237,152 @@
             v-if="guest.profile_image?.md || guest.profile_image?.sm"
             :src="guest.profile_image.md ?? guest.profile_image.sm"
             :alt="guest.name"
-            class="size-full object-cover"
+            class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
             loading="lazy"
           />
           <div
             v-else
-            class="text-muted-foreground flex size-full items-center justify-center"
+            class="text-muted-foreground bg-muted flex size-full items-center justify-center"
           >
-            <Icon name="hugeicons:user" class="size-8" />
+            <Icon name="hugeicons:user-circle" class="size-12" />
+          </div>
+
+          <!-- Top overlay: gradient + checkbox + featured + drag -->
+          <div
+            v-if="guest.is_featured || (canDelete || canUpdate)"
+            class="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 bg-gradient-to-b from-black/40 via-black/10 to-transparent p-2"
+          >
+            <!-- Selection checkbox (top-left) -->
+            <label
+              v-if="canDelete || canUpdate"
+              class="pointer-events-auto inline-flex size-7 cursor-pointer items-center justify-center rounded-md bg-black/40 text-white backdrop-blur-sm transition"
+              @click.stop
+            >
+              <Checkbox
+                :model-value="isSelected(guest.id)"
+                class="size-4 border-white/70 data-[state=checked]:border-primary data-[state=checked]:bg-primary"
+                @update:model-value="toggleSelect(guest.id)"
+              />
+            </label>
+
+            <div class="ml-auto flex items-center gap-1.5">
+              <!-- Featured indicator -->
+              <span
+                v-if="guest.is_featured"
+                class="pointer-events-auto inline-flex size-7 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm"
+                v-tippy="'Featured speaker'"
+              >
+                <Icon name="hugeicons:star" class="size-4" />
+              </span>
+
+              <!-- Drag handle -->
+              <span
+                v-if="!hasActiveFilters && selectedCount === 0"
+                class="drag-handle pointer-events-auto inline-flex size-7 cursor-grab items-center justify-center rounded-md bg-black/40 text-white backdrop-blur-sm transition active:cursor-grabbing"
+                v-tippy="'Drag to reorder'"
+              >
+                <Icon name="hugeicons:drag-drop" class="size-4" />
+              </span>
+            </div>
+          </div>
+
+          <!-- Bottom badges (status / visibility) -->
+          <div
+            v-if="guest.status === 'inactive' || guest.visibility === 'private'"
+            class="absolute bottom-2 left-2 flex items-center gap-1.5"
+          >
+            <span
+              v-if="guest.status === 'inactive'"
+              class="bg-background/90 text-foreground border-border inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium tracking-tight backdrop-blur-sm"
+            >
+              <Icon name="hugeicons:pause" class="size-3.5" />
+              Inactive
+            </span>
+            <span
+              v-if="guest.visibility === 'private'"
+              class="bg-background/90 text-foreground border-border inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium tracking-tight backdrop-blur-sm"
+            >
+              <Icon name="hugeicons:lock" class="size-3.5" />
+              Private
+            </span>
           </div>
         </button>
 
         <!-- Body -->
-        <div class="flex grow flex-col gap-1 p-3">
+        <div class="flex grow flex-col gap-y-1 px-3 pt-2.5 pb-2 sm:px-3.5 sm:pt-3">
           <button
             type="button"
-            class="line-clamp-2 text-left text-sm font-semibold tracking-tight hover:underline"
+            class="line-clamp-2 text-left text-sm font-semibold tracking-tight hover:underline sm:text-base"
             @click="onCardClick(guest, $event)"
           >
             {{ guest.name }}
           </button>
           <p
             v-if="guest.title"
-            class="text-muted-foreground line-clamp-1 text-xs tracking-tight"
+            class="text-muted-foreground line-clamp-1 text-sm tracking-tight"
           >
             {{ guest.title }}
           </p>
           <p
             v-if="guest.organization"
-            class="text-muted-foreground line-clamp-1 text-xs tracking-tight"
+            class="text-muted-foreground line-clamp-1 flex items-center gap-x-1 text-sm tracking-tight"
           >
+            <Icon name="hugeicons:building-03" class="size-3.5 shrink-0 opacity-60" />
             {{ guest.organization }}
           </p>
 
           <!-- Action menu -->
-          <div class="mt-auto flex items-center justify-end gap-0.5 pt-1">
+          <div class="mt-1.5 -mx-1 flex items-center justify-end border-t pt-1.5">
             <button
               v-if="guest.can_edit"
               type="button"
-              class="hover:bg-muted inline-flex size-7 items-center justify-center rounded-md"
+              class="hover:bg-muted inline-flex size-8 items-center justify-center rounded-md transition"
               @click="quickToggle(guest, 'is_featured', !guest.is_featured)"
               v-tippy="guest.is_featured ? 'Remove Featured' : 'Mark as Featured'"
             >
               <Icon
                 name="hugeicons:star"
-                :class="['size-3.5', guest.is_featured && 'text-warning']"
+                :class="['size-4', guest.is_featured ? 'fill-current text-foreground' : 'text-muted-foreground']"
               />
             </button>
             <button
               v-if="guest.can_edit"
               type="button"
-              class="hover:bg-muted inline-flex size-7 items-center justify-center rounded-md"
+              class="hover:bg-muted inline-flex size-8 items-center justify-center rounded-md transition"
               @click="quickToggle(guest, 'status', guest.status === 'active' ? 'inactive' : 'active')"
               v-tippy="guest.status === 'active' ? 'Mark as Inactive' : 'Mark as Active'"
             >
               <Icon
                 :name="guest.status === 'active' ? 'hugeicons:view' : 'hugeicons:view-off'"
-                class="size-3.5"
+                class="text-muted-foreground size-4"
               />
             </button>
             <button
               v-if="guest.can_edit && canCreate"
               type="button"
-              class="hover:bg-muted inline-flex size-7 items-center justify-center rounded-md"
+              class="hover:bg-muted inline-flex size-8 items-center justify-center rounded-md transition"
               @click="duplicateGuest(guest)"
               v-tippy="'Duplicate'"
             >
-              <Icon name="hugeicons:copy-01" class="size-3.5" />
+              <Icon name="hugeicons:copy-01" class="text-muted-foreground size-4" />
             </button>
             <button
               v-if="guest.can_edit"
               type="button"
-              class="hover:bg-muted inline-flex size-7 items-center justify-center rounded-md"
+              class="hover:bg-muted inline-flex size-8 items-center justify-center rounded-md transition"
               @click="openEdit(guest)"
               v-tippy="'Edit'"
             >
-              <Icon name="lucide:pencil" class="size-3.5" />
+              <Icon name="hugeicons:edit-02" class="text-muted-foreground size-4" />
             </button>
             <button
               v-if="guest.can_delete"
               type="button"
-              class="hover:bg-destructive/10 hover:text-destructive inline-flex size-7 items-center justify-center rounded-md"
+              class="hover:bg-destructive/10 hover:text-destructive inline-flex size-8 items-center justify-center rounded-md transition"
               @click="confirmDelete(guest)"
               v-tippy="'Delete'"
             >
-              <Icon name="hugeicons:delete-01" class="size-3.5" />
+              <Icon name="hugeicons:delete-01" class="text-muted-foreground size-4" />
             </button>
           </div>
         </div>
@@ -384,29 +394,31 @@
       v-if="!loading && totalPages > 1"
       class="flex flex-col items-center gap-3 pt-2 sm:flex-row sm:justify-between"
     >
-      <div class="text-muted-foreground text-xs tracking-tight tabular-nums">
+      <div class="text-muted-foreground text-sm tracking-tight tabular-nums">
         Showing {{ pageRangeFrom }}–{{ pageRangeTo }} of {{ totalCount }}
       </div>
       <div class="flex items-center gap-2">
         <button
           type="button"
           :disabled="page === 1"
-          class="border-border hover:bg-muted rounded-md border px-2.5 py-1 text-xs tracking-tight disabled:opacity-50"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2.5 py-1.5 text-sm tracking-tight transition disabled:opacity-50"
           @click="page = Math.max(1, page - 1)"
         >
-          Previous
+          <Icon name="hugeicons:arrow-left-02" class="size-4 shrink-0" />
+          <span>Previous</span>
         </button>
-        <span class="text-xs tracking-tight tabular-nums">{{ page }} / {{ totalPages }}</span>
+        <span class="text-sm tracking-tight tabular-nums">{{ page }} / {{ totalPages }}</span>
         <button
           type="button"
           :disabled="page >= totalPages"
-          class="border-border hover:bg-muted rounded-md border px-2.5 py-1 text-xs tracking-tight disabled:opacity-50"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2.5 py-1.5 text-sm tracking-tight transition disabled:opacity-50"
           @click="page = Math.min(totalPages, page + 1)"
         >
-          Next
+          <span>Next</span>
+          <Icon name="hugeicons:arrow-right-02" class="size-4 shrink-0" />
         </button>
         <Select v-model.number="pageSize">
-          <SelectTrigger class="h-7 w-20 text-xs">
+          <SelectTrigger class="h-8 w-20 text-sm">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -429,10 +441,10 @@
             <button
               v-if="editingGuest"
               type="button"
-              class="text-muted-foreground hover:bg-muted inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs tracking-tight"
+              class="text-muted-foreground hover:bg-muted inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm tracking-tight"
               @click="activityOpen = true"
             >
-              <Icon name="hugeicons:clock-04" class="size-3.5" />
+              <Icon name="hugeicons:clock-04" class="size-4" />
               Activity log
             </button>
           </div>
@@ -525,7 +537,7 @@
                 :style="{ width: `${bulkDeleteJob.progress.value?.percentage ?? 0}%` }"
               />
             </div>
-            <p class="text-muted-foreground text-xs tracking-tight tabular-nums">
+            <p class="text-muted-foreground text-sm tracking-tight tabular-nums">
               {{ bulkDeleteJob.progress.value?.processed ?? 0 }} / {{ bulkDeleteJob.progress.value?.total ?? 0 }}
             </p>
           </div>
@@ -581,25 +593,33 @@
                     :alt="guest.name"
                     class="size-full object-cover"
                   />
+                  <div
+                    v-else
+                    class="text-muted-foreground flex size-full items-center justify-center"
+                  >
+                    <Icon name="hugeicons:user-circle" class="size-5" />
+                  </div>
                 </div>
                 <div class="min-w-0 flex-1">
                   <p class="truncate text-sm font-medium tracking-tight">{{ guest.name }}</p>
-                  <p class="text-muted-foreground truncate text-xs tracking-tight">
+                  <p class="text-muted-foreground truncate text-sm tracking-tight">
                     {{ guest.organization || "—" }}
                   </p>
                 </div>
                 <button
                   type="button"
-                  class="text-primary hover:bg-muted rounded-md px-2 py-1 text-sm tracking-tight"
+                  class="text-primary hover:bg-muted inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-sm tracking-tight"
                   @click="restoreGuest(guest)"
                 >
+                  <Icon name="hugeicons:rotate-clockwise" class="size-4" />
                   Restore
                 </button>
                 <button
                   type="button"
-                  class="text-destructive hover:bg-destructive/10 rounded-md px-2 py-1 text-sm tracking-tight"
+                  class="text-destructive hover:bg-destructive/10 inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-sm tracking-tight"
                   @click="forceDestroy(guest)"
                 >
+                  <Icon name="hugeicons:delete-01" class="size-4" />
                   Delete forever
                 </button>
               </div>

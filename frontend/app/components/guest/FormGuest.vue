@@ -147,8 +147,8 @@ defineShortcuts({
         :initial-image="initialProfile"
         container-class="relative isolate aspect-[4/5] max-w-[180px]"
       />
-      <p class="text-muted-foreground text-xs tracking-tight">
-        Recommended ratio 4:5 (portrait), JPG/PNG/WEBP
+      <p class="text-muted-foreground text-sm tracking-tight">
+        Recommended ratio 4:5 (portrait), JPG/PNG/WEBP, max 20MB
       </p>
       <InputErrorMessage :errors="errors.tmp_profile_image" />
     </div>
