@@ -527,6 +527,15 @@ const columns = [
     size: 100,
   },
   {
+    header: "Total Visit",
+    accessorKey: "visits_count",
+    cell: ({ row }) => {
+      const count = row.getValue("visits_count") || 0;
+      return h("div", { class: "text-sm tracking-tight" }, count.toLocaleString());
+    },
+    size: 100,
+  },
+  {
     accessorKey: "order_column",
     header: () => null,
     enableHiding: false,

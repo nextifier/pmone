@@ -106,7 +106,7 @@ class BrandEventController extends Controller
         $project = $this->resolveProject($username);
         $event = $this->resolveEvent($project, $eventSlug);
 
-        $query = $event->brandEvents()->with(['brand.media', 'brand.tags', 'brand.links', 'sales'])->withCount('promotionPosts');
+        $query = $event->brandEvents()->with(['brand.media', 'brand.tags', 'brand.links', 'sales'])->withCount(['promotionPosts', 'visits']);
 
         // Search
         if ($request->has('filter.search')) {
