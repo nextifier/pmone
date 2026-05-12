@@ -14,6 +14,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class TaskController extends Controller
 {
@@ -535,9 +536,15 @@ class TaskController extends Controller
                     $caption = html_entity_decode($captionMatch[1]);
                 }
 
+                $baseName = Str::slug(pathinfo($filename, PATHINFO_FILENAME));
+                $extension = pathinfo($filename, PATHINFO_EXTENSION);
+                $uniqueBase = $baseName.'-'.substr($folder, -8);
+                $uniqueFileName = $uniqueBase.($extension ? '.'.$extension : '');
+
                 // Move file from temp storage to permanent storage
                 $mediaAdder = $task->addMediaFromDisk($tempFilePath, 'local')
-                    ->usingName(pathinfo($filename, PATHINFO_FILENAME));
+                    ->usingName($uniqueBase)
+                    ->usingFileName($uniqueFileName);
 
                 if ($caption) {
                     $mediaAdder->withCustomProperties(['caption' => $caption]);

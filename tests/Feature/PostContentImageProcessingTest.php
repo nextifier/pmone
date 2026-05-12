@@ -5,6 +5,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 uses(RefreshDatabase::class);
 
@@ -176,6 +177,56 @@ it('handles content with multiple images in different URL formats', function () 
     expect($post->getMedia('content_images'))->toHaveCount(3);
 });
 
+it('uniquifies filenames when multiple uploads share the same original name', function () {
+    // Simulate a common case: user pastes 3 screenshots from clipboard,
+    // all named "image.png", into the TipTap editor.
+    $folders = [];
+    for ($i = 1; $i <= 3; $i++) {
+        $folder = 'tmp-media-'.uniqid('', true);
+        $filename = 'image.png';
+        $tempFilePath = "tmp/uploads/{$folder}/{$filename}";
+        $metadataPath = "tmp/uploads/{$folder}/metadata.json";
+
+        $image = UploadedFile::fake()->image($filename, 100 + $i, 100 + $i);
+        Storage::disk('local')->put($tempFilePath, file_get_contents($image->getPathname()));
+        Storage::disk('local')->put($metadataPath, json_encode([
+            'original_name' => $filename,
+            'mime_type' => 'image/png',
+            'size' => $image->getSize(),
+            'collection' => 'content_images',
+            'uploaded_at' => now()->toISOString(),
+        ]));
+
+        $folders[] = $folder;
+    }
+
+    $content = collect($folders)
+        ->map(fn ($f) => '<img src="/api/tmp-media/'.$f.'">')
+        ->implode('');
+
+    $response = $this->postJson('/api/posts', [
+        'title' => 'Post with duplicate filename uploads',
+        'content' => $content,
+        'status' => 'draft',
+    ]);
+
+    $response->assertSuccessful();
+
+    $post = Post::find($response->json('data.id'));
+    $media = $post->getMedia('content_images');
+
+    expect($media)->toHaveCount(3);
+
+    // Each media record must have a unique file_name so conversions and
+    // serve URLs do not collide in the shared {model}/{collection}/{id}/ path.
+    expect($media->pluck('file_name')->unique())->toHaveCount(3);
+
+    // Content should reference 3 distinct image URLs after processing.
+    preg_match_all('/<img[^>]+src="([^"]+)"/', $post->content, $matches);
+    expect($matches[1])->toHaveCount(3);
+    expect(array_unique($matches[1]))->toHaveCount(3);
+});
+
 it('does not affect content without temporary images', function () {
     $originalContent = '<p>Hello world</p><img src="/storage/media/123/image.jpg"><p>End</p>';
 
@@ -225,7 +276,7 @@ it('deletes all media when post is permanently deleted', function () {
     expect(Post::withTrashed()->find($post->id))->not->toBeNull();
 
     // Media should still exist after soft delete
-    expect(\Spatie\MediaLibrary\MediaCollections\Models\Media::find($featuredMediaId))->not->toBeNull();
+    expect(Media::find($featuredMediaId))->not->toBeNull();
 
     // Force delete
     $post->forceDelete();
@@ -234,9 +285,9 @@ it('deletes all media when post is permanently deleted', function () {
     expect(Post::withTrashed()->find($post->id))->toBeNull();
 
     // All media records should be deleted
-    expect(\Spatie\MediaLibrary\MediaCollections\Models\Media::find($featuredMediaId))->toBeNull();
+    expect(Media::find($featuredMediaId))->toBeNull();
     foreach ($contentMediaIds as $mediaId) {
-        expect(\Spatie\MediaLibrary\MediaCollections\Models\Media::find($mediaId))->toBeNull();
+        expect(Media::find($mediaId))->toBeNull();
     }
 });
 
@@ -260,5 +311,5 @@ it('does not delete media when post is soft deleted', function () {
     expect(Post::withTrashed()->find($post->id))->not->toBeNull();
 
     // Media should still exist
-    expect(\Spatie\MediaLibrary\MediaCollections\Models\Media::find($mediaId))->not->toBeNull();
+    expect(Media::find($mediaId))->not->toBeNull();
 });
