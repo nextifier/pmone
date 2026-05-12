@@ -2,6 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\LinkPage;
+use App\Models\Project;
+use App\Models\User;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,7 +22,7 @@ class UpdateShortLinkRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -31,14 +35,14 @@ class UpdateShortLinkRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                'regex:/^[a-zA-Z0-9._\-]+$/',
+                'regex:/^[a-zA-Z0-9\-]+$/',
                 Rule::unique('short_links', 'slug')->ignore($shortLinkId),
                 function ($attribute, $value, $fail) use ($shortLink) {
                     // Only validate against users/projects/link_pages if slug is changing
                     if ($value !== $shortLink->slug) {
-                        $existsInUsers = \App\Models\User::where('username', $value)->exists();
-                        $existsInProjects = \App\Models\Project::where('username', $value)->exists();
-                        $existsInLinkPages = \App\Models\LinkPage::where('slug', $value)->exists();
+                        $existsInUsers = User::where('username', $value)->exists();
+                        $existsInProjects = Project::where('username', $value)->exists();
+                        $existsInLinkPages = LinkPage::where('slug', $value)->exists();
 
                         if ($existsInUsers || $existsInProjects || $existsInLinkPages) {
                             $fail('This slug is already taken.');
@@ -61,7 +65,7 @@ class UpdateShortLinkRequest extends FormRequest
         return [
             'slug.required' => 'The short link slug is required.',
             'slug.unique' => 'This slug is already taken.',
-            'slug.regex' => 'Slug can only contain letters, numbers, dots, underscores, and hyphens.',
+            'slug.regex' => 'Slug can only contain letters, numbers, and hyphens.',
             'slug.max' => 'Slug must not exceed 255 characters.',
             'destination_url.required' => 'The destination URL is required.',
             'destination_url.url' => 'Please enter a valid URL.',

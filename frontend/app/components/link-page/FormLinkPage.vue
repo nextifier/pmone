@@ -33,18 +33,22 @@
             <InputGroupAddon align="inline-end">
               <Spinner v-if="slugChecking" class="size-4" />
               <Icon
+                v-else-if="hasUppercase || hasInvalidChars || slugAvailable === false"
+                name="lucide:x"
+                class="text-destructive size-4"
+              />
+              <Icon
                 v-else-if="slugAvailable === true"
                 name="lucide:check"
                 class="text-success-foreground size-4"
               />
-              <Icon
-                v-else-if="slugAvailable === false"
-                name="lucide:x"
-                class="text-destructive size-4"
-              />
             </InputGroupAddon>
           </InputGroup>
           <InputErrorMessage v-if="hasUppercase" :errors="['BACA PETUNJUK DI BAWAH!']" />
+          <InputErrorMessage
+            v-else-if="hasInvalidChars"
+            :errors="['Slug hanya boleh huruf, angka, dan tanda hubung (-).']"
+          />
           <InputErrorMessage v-else-if="errors.slug" :errors="errors.slug" />
           <p
             v-else-if="slugAvailable === false"
@@ -106,7 +110,9 @@
           <Button variant="outline" type="button" @click="isOpen = false">Cancel</Button>
           <Button
             type="submit"
-            :disabled="loading || slugChecking || slugAvailable === false || hasUppercase"
+            :disabled="
+              loading || slugChecking || slugAvailable === false || hasUppercase || hasInvalidChars
+            "
           >
             <Spinner v-if="loading" />
             {{ mode === "create" ? "Create" : "Save" }}
@@ -152,6 +158,9 @@ const slugAvailable = ref(null);
 let slugCheckTimeout = null;
 
 const hasUppercase = computed(() => /[A-Z]/.test(formData.value.slug));
+const hasInvalidChars = computed(
+  () => !!formData.value.slug && /[^a-zA-Z0-9\-]/.test(formData.value.slug)
+);
 
 function generateRandomSlug(length = 6) {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -220,6 +229,11 @@ watch(isOpen, (val) => {
 async function handleSubmit() {
   if (hasUppercase.value) {
     toast.error("BACA PETUNJUK DI BAWAH!");
+    return;
+  }
+
+  if (hasInvalidChars.value) {
+    toast.error("Slug hanya boleh huruf, angka, dan tanda hubung (-).");
     return;
   }
 
