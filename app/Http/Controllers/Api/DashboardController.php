@@ -226,7 +226,7 @@ class DashboardController extends Controller
                 'slug' => $post->slug,
                 'status' => $post->status,
                 'visits_count' => $post->visits_count,
-                'featured_image' => $post->getMediaUrls('featured_image'),
+                'featured_image' => $post->getMediaUrlsDetailed('featured_image'),
                 'published_at' => $post->published_at?->toISOString(),
                 'created_at' => $post->created_at?->toISOString(),
             ]);
@@ -271,7 +271,7 @@ class DashboardController extends Controller
                 'slug' => $post->slug,
                 'visits_count' => $post->visits_count,
                 'recent_visits_count' => $post->recent_visits_count,
-                'featured_image' => $post->getMediaUrls('featured_image'),
+                'featured_image' => $post->getMediaUrlsDetailed('featured_image'),
                 'published_at' => $post->published_at?->toISOString(),
             ]);
 
