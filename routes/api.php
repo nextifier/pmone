@@ -46,6 +46,7 @@ use App\Http\Controllers\Api\ProjectActivityController;
 use App\Http\Controllers\Api\ProjectBusinessCategoryController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ProjectCustomFieldController;
+use App\Http\Controllers\Api\ProjectPaymentGatewayController;
 use App\Http\Controllers\Api\Public\PublicHotelController;
 use App\Http\Controllers\Api\Public\PublicReservationController;
 use App\Http\Controllers\Api\PublicBlogController;
@@ -668,6 +669,12 @@ Route::get('/sheets/orders/{eventId}', [SheetsController::class, 'orders'])
 Route::get('/sheets/contacts', [SheetsController::class, 'contacts'])
     ->middleware('throttle:60,1')
     ->name('sheets.contacts');
+Route::get('/sheets/brands', [SheetsController::class, 'brands'])
+    ->middleware('throttle:60,1')
+    ->name('sheets.brands');
+Route::get('/sheets/brand-events', [SheetsController::class, 'brandEvents'])
+    ->middleware('throttle:60,1')
+    ->name('sheets.brand-events');
 
 // Contact form submission (requires API key for CORS and rate limiting)
 Route::post('/contact-forms/submit', [ContactFormController::class, 'submit'])->middleware(['api.key']);
@@ -939,6 +946,16 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::put('/events/{event}/branding', [EventBrandingController::class, 'update'])
         ->middleware('can:events.update_branding')
         ->name('events.branding.update');
+
+    // Project payment gateways (Xendit, etc.) - credentials encrypted at rest, masked in API
+    Route::prefix('projects/{project:username}/payment-gateways')->group(function () {
+        Route::get('/', [ProjectPaymentGatewayController::class, 'index'])->name('projects.payment-gateways.index');
+        Route::post('/', [ProjectPaymentGatewayController::class, 'store'])->name('projects.payment-gateways.store');
+        Route::get('/{paymentGateway}', [ProjectPaymentGatewayController::class, 'show'])->name('projects.payment-gateways.show');
+        Route::patch('/{paymentGateway}', [ProjectPaymentGatewayController::class, 'update'])->name('projects.payment-gateways.update');
+        Route::delete('/{paymentGateway}', [ProjectPaymentGatewayController::class, 'destroy'])->name('projects.payment-gateways.destroy');
+        Route::post('/{paymentGateway}/set-default', [ProjectPaymentGatewayController::class, 'setDefault'])->name('projects.payment-gateways.set-default');
+    });
 });
 
 // Public Blog API endpoints (API key authentication for consumption by multiple websites)
@@ -1043,4 +1060,11 @@ Route::middleware(['api.key'])->prefix('public')->group(function () {
 });
 
 // Xendit webhook (no auth - signature verified in controller)
-Route::post('/webhooks/xendit/invoice', [XenditWebhookController::class, 'invoice']);
+// Legacy global endpoint (env-configured token). Deprecated: use per-project URL below.
+// Must be declared BEFORE the per-project route so the literal segment "invoice"
+// is not captured as a {project} username.
+Route::post('/webhooks/xendit/invoice', [XenditWebhookController::class, 'legacyInvoice']);
+
+// Per-project URL: each project registers its own webhook URL in its Xendit dashboard.
+Route::post('/webhooks/xendit/{project:username}', [XenditWebhookController::class, 'invoice'])
+    ->name('webhooks.xendit.invoice');

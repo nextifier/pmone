@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\Contact;
 use App\Models\Event;
@@ -176,6 +177,233 @@ class SheetsController extends Controller
 
         return response()->json([
             'title' => 'Contacts',
+            'headings' => $headings,
+            'rows' => $rows,
+            'updated_at' => now()->toIso8601String(),
+        ]);
+    }
+
+    public function brands(Request $request): JsonResponse
+    {
+        if ($request->query('token') !== config('services.sheets.api_token')) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $brands = Brand::query()
+            ->with([
+                'media',
+                'creator:id,name',
+                'updater:id,name',
+                'tags',
+                'events:id,title',
+                'brandEvents' => fn ($q) => $q
+                    ->with(['event:id,title', 'sales:id,name'])
+                    ->withCount(['visits', 'promotionPosts']),
+                'users:id,name',
+                'links' => fn ($q) => $q->withCount('clicks'),
+            ])
+            ->withCount(['brandEvents', 'users', 'links'])
+            ->orderBy('created_at')
+            ->get();
+
+        $linkLabels = $brands
+            ->flatMap(fn (Brand $b) => $b->links->pluck('label'))
+            ->filter()
+            ->map(fn ($l) => trim($l))
+            ->countBy()
+            ->sortDesc()
+            ->keys()
+            ->values()
+            ->all();
+
+        $linkClickHeadings = array_map(fn ($l) => "{$l} Click", $linkLabels);
+
+        $headings = [
+            'ID', 'ULID', 'Name', 'Slug',
+            'Company Name', 'Company Email', 'Company Phone', 'Company Address',
+            'Description', 'Status',
+            'Logo URL',
+            'Business Categories', 'Other Tags',
+            'Events Count', 'Events List', 'Booth Numbers', 'Sales PICs',
+            'Users List',
+            'Links Count',
+            ...$linkLabels,
+            ...$linkClickHeadings,
+            'Total Visits', 'Total Link Clicks',
+            'Total Promotion Posts',
+            'Created By', 'Updated By', 'Created At', 'Updated At',
+            'Custom Fields',
+        ];
+
+        $rows = $brands->map(function (Brand $brand) use ($linkLabels) {
+            $logoUrl = $brand->getFirstMediaUrl('brand_logo', 'md') ?: '-';
+
+            $categories = $brand->tags
+                ->filter(fn ($tag) => str_starts_with($tag->type, 'business_category'))
+                ->pluck('name')
+                ->unique()
+                ->join(', ') ?: '-';
+
+            $otherTags = $brand->tags
+                ->reject(fn ($tag) => str_starts_with($tag->type, 'business_category'))
+                ->pluck('name')
+                ->join(', ') ?: '-';
+
+            $eventsList = $brand->events->pluck('title')->join(', ') ?: '-';
+
+            $boothNumbers = $brand->brandEvents
+                ->pluck('booth_number')
+                ->filter()
+                ->join(', ') ?: '-';
+
+            $salesPics = $brand->brandEvents
+                ->pluck('sales.name')
+                ->filter()
+                ->unique()
+                ->join(', ') ?: '-';
+
+            $usersList = $brand->users
+                ->map(fn ($user) => $user->pivot?->role
+                    ? "{$user->name} ({$user->pivot->role})"
+                    : $user->name)
+                ->join(', ') ?: '-';
+
+            $linksByLabel = $brand->links->keyBy(fn ($link) => trim($link->label ?? ''));
+
+            $linkUrlSlots = [];
+            $linkClickSlots = [];
+            foreach ($linkLabels as $label) {
+                $link = $linksByLabel[$label] ?? null;
+                $linkUrlSlots[] = $link?->url ?? '';
+                $linkClickSlots[] = $link ? (int) $link->clicks_count : '';
+            }
+
+            $totalVisits = (int) $brand->brandEvents->sum('visits_count');
+            $totalLinkClicks = (int) $brand->links->sum('clicks_count');
+
+            $totalPromotionPosts = (int) $brand->brandEvents->sum('promotion_posts_count');
+
+            $customFields = $brand->custom_fields
+                ? json_encode($brand->custom_fields, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                : '-';
+
+            return [
+                $brand->id,
+                $brand->ulid,
+                $brand->name,
+                $brand->slug,
+                $brand->company_name ?? '-',
+                $brand->company_email ?? '-',
+                $brand->company_phone ?? '-',
+                $brand->company_address ?? '-',
+                $brand->description ?? '-',
+                Str::title(str_replace('_', ' ', $brand->status ?? '-')),
+                $logoUrl,
+                $categories,
+                $otherTags,
+                $brand->brand_events_count,
+                $eventsList,
+                $boothNumbers,
+                $salesPics,
+                $usersList,
+                $brand->links_count,
+                ...$linkUrlSlots,
+                ...$linkClickSlots,
+                $totalVisits,
+                $totalLinkClicks,
+                $totalPromotionPosts,
+                $brand->creator?->name ?? '-',
+                $brand->updater?->name ?? '-',
+                $brand->created_at?->format('Y-m-d H:i:s'),
+                $brand->updated_at?->format('Y-m-d H:i:s'),
+                $customFields,
+            ];
+        })->toArray();
+
+        return response()->json([
+            'title' => 'Brands',
+            'headings' => $headings,
+            'rows' => $rows,
+            'updated_at' => now()->toIso8601String(),
+        ]);
+    }
+
+    public function brandEvents(Request $request): JsonResponse
+    {
+        if ($request->query('token') !== config('services.sheets.api_token')) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $brandEvents = BrandEvent::query()
+            ->with([
+                'brand:id,ulid,name,slug,company_name,company_email,company_phone,status',
+                'event:id,title,slug',
+                'sales:id,name,email',
+            ])
+            ->withCount(['promotionPosts', 'visits', 'clicks'])
+            ->orderBy('created_at')
+            ->get();
+
+        $headings = [
+            'ID',
+            'Brand ID', 'Brand ULID', 'Brand Name', 'Brand Slug',
+            'Company Name', 'Company Email', 'Company Phone',
+            'Brand Status',
+            'Event ID', 'Event Title', 'Event Slug',
+            'Booth Number', 'Booth Size (sqm)', 'Booth Type', 'Booth Price',
+            'Fascia Name', 'Badge Name',
+            'Sales PIC Name', 'Sales PIC Email',
+            'Participation Status', 'Notes', 'Promotion Post Limit',
+            'Visits Count', 'Clicks Count',
+            'Promotion Posts Count',
+            'Custom Fields',
+            'Created At', 'Updated At',
+        ];
+
+        $rows = $brandEvents->map(function (BrandEvent $brandEvent) {
+            $brand = $brandEvent->brand;
+            $event = $brandEvent->event;
+            $sales = $brandEvent->sales;
+
+            $customFields = $brandEvent->custom_fields
+                ? json_encode($brandEvent->custom_fields, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                : '-';
+
+            return [
+                $brandEvent->id,
+                $brand?->id ?? '-',
+                $brand?->ulid ?? '-',
+                $brand?->name ?? '-',
+                $brand?->slug ?? '-',
+                $brand?->company_name ?? '-',
+                $brand?->company_email ?? '-',
+                $brand?->company_phone ?? '-',
+                $brand ? Str::title(str_replace('_', ' ', $brand->status)) : '-',
+                $event?->id ?? '-',
+                $event?->title ?? '-',
+                $event?->slug ?? '-',
+                $brandEvent->booth_number ?? '-',
+                $brandEvent->booth_size,
+                $brandEvent->booth_type?->label() ?? '-',
+                $brandEvent->booth_price,
+                $brandEvent->fascia_name ?? '-',
+                $brandEvent->badge_name ?? '-',
+                $sales?->name ?? '-',
+                $sales?->email ?? '-',
+                Str::title(str_replace('_', ' ', $brandEvent->status ?? '-')),
+                $brandEvent->notes ?? '-',
+                $brandEvent->promotion_post_limit,
+                (int) $brandEvent->visits_count,
+                (int) $brandEvent->clicks_count,
+                (int) $brandEvent->promotion_posts_count,
+                $customFields,
+                $brandEvent->created_at?->format('Y-m-d H:i:s'),
+                $brandEvent->updated_at?->format('Y-m-d H:i:s'),
+            ];
+        })->toArray();
+
+        return response()->json([
+            'title' => 'Brand Events',
             'headings' => $headings,
             'rows' => $rows,
             'updated_at' => now()->toIso8601String(),
