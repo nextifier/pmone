@@ -37,7 +37,7 @@ class SheetsController extends Controller
             'Booth Type', 'Booth Number', 'Booth Size (sqm)', 'Booth Price',
             'Fascia Name', 'Sales PIC', 'Order Period',
             'Product Name', 'Product Category', 'Qty', 'Unit Price', 'Item Total', 'Item Notes',
-            'Subtotal', 'Discount Type', 'Discount Value', 'Discount Amount',
+            'Subtotal', 'Discount Amount', 'Penalty Amount', 'Promo Code',
             'Tax Rate (%)', 'Tax Amount', 'Total',
             'Operational Status', 'Payment Status', 'Cancellation Reason', 'Order Notes',
             'Submitted At', 'Confirmed At', 'Created By',
@@ -66,9 +66,9 @@ class SheetsController extends Controller
 
             $orderSummary = [
                 $order->subtotal,
-                $order->discount_type ? ucwords(str_replace('_', ' ', $order->discount_type)) : '-',
-                $order->discount_value,
                 $order->discount_amount,
+                $order->penalty_amount,
+                $order->promo_code_applied ?? '-',
                 $order->tax_rate,
                 $order->tax_amount,
                 $order->total,
@@ -336,36 +336,110 @@ class SheetsController extends Controller
 
         $brandEvents = BrandEvent::query()
             ->with([
-                'brand:id,ulid,name,slug,company_name,company_email,company_phone,status',
-                'event:id,title,slug',
-                'sales:id,name,email',
+                'brand' => fn ($q) => $q
+                    ->with([
+                        'media',
+                        'creator:id,name',
+                        'updater:id,name',
+                        'tags',
+                        'users:id,name',
+                        'links' => fn ($q) => $q->withCount('clicks'),
+                    ])
+                    ->withCount('links'),
+                'event:id,title,slug,start_date,end_date,location,hall,status',
+                'sales:id,name,email,phone',
             ])
             ->withCount(['promotionPosts', 'visits', 'clicks'])
             ->orderBy('created_at')
             ->get();
 
+        $linkLabels = $brandEvents
+            ->pluck('brand')
+            ->filter()
+            ->unique('id')
+            ->flatMap(fn (Brand $b) => $b->links->pluck('label'))
+            ->filter()
+            ->map(fn ($l) => trim($l))
+            ->countBy()
+            ->sortDesc()
+            ->keys()
+            ->values()
+            ->all();
+
+        $linkClickHeadings = array_map(fn ($l) => "{$l} Click", $linkLabels);
+
         $headings = [
             'ID',
             'Brand ID', 'Brand ULID', 'Brand Name', 'Brand Slug',
-            'Company Name', 'Company Email', 'Company Phone',
-            'Brand Status',
+            'Company Name', 'Company Email', 'Company Phone', 'Company Address',
+            'Brand Description', 'Brand Status', 'Brand Logo URL',
+            'Business Categories', 'Other Tags',
+            'Brand Users',
             'Event ID', 'Event Title', 'Event Slug',
+            'Event Start Date', 'Event End Date', 'Event Location', 'Event Hall', 'Event Status',
             'Booth Number', 'Booth Size (sqm)', 'Booth Type', 'Booth Price',
             'Fascia Name', 'Badge Name',
-            'Sales PIC Name', 'Sales PIC Email',
+            'Sales PIC Name', 'Sales PIC Email', 'Sales PIC Phone',
             'Participation Status', 'Notes', 'Promotion Post Limit',
-            'Visits Count', 'Clicks Count',
-            'Promotion Posts Count',
-            'Custom Fields',
+            'Visits Count', 'Clicks Count', 'Promotion Posts Count',
+            'Brand Links Count',
+            ...$linkLabels,
+            ...$linkClickHeadings,
+            'Brand Total Link Clicks',
+            'Brand Created By', 'Brand Updated By', 'Brand Custom Fields',
+            'BrandEvent Custom Fields',
             'Created At', 'Updated At',
         ];
 
-        $rows = $brandEvents->map(function (BrandEvent $brandEvent) {
+        $rows = $brandEvents->map(function (BrandEvent $brandEvent) use ($linkLabels) {
             $brand = $brandEvent->brand;
             $event = $brandEvent->event;
             $sales = $brandEvent->sales;
 
-            $customFields = $brandEvent->custom_fields
+            $logoUrl = $brand?->getFirstMediaUrl('brand_logo', 'md') ?: '-';
+
+            $categories = $brand
+                ? ($brand->tags
+                    ->filter(fn ($tag) => str_starts_with($tag->type, 'business_category'))
+                    ->pluck('name')
+                    ->unique()
+                    ->join(', ') ?: '-')
+                : '-';
+
+            $otherTags = $brand
+                ? ($brand->tags
+                    ->reject(fn ($tag) => str_starts_with($tag->type, 'business_category'))
+                    ->pluck('name')
+                    ->join(', ') ?: '-')
+                : '-';
+
+            $usersList = $brand
+                ? ($brand->users
+                    ->map(fn ($user) => $user->pivot?->role
+                        ? "{$user->name} ({$user->pivot->role})"
+                        : $user->name)
+                    ->join(', ') ?: '-')
+                : '-';
+
+            $linksByLabel = $brand
+                ? $brand->links->keyBy(fn ($link) => trim($link->label ?? ''))
+                : collect();
+
+            $linkUrlSlots = [];
+            $linkClickSlots = [];
+            foreach ($linkLabels as $label) {
+                $link = $linksByLabel[$label] ?? null;
+                $linkUrlSlots[] = $link?->url ?? '';
+                $linkClickSlots[] = $link ? (int) $link->clicks_count : '';
+            }
+
+            $totalLinkClicks = $brand ? (int) $brand->links->sum('clicks_count') : 0;
+
+            $brandCustomFields = $brand && $brand->custom_fields
+                ? json_encode($brand->custom_fields, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                : '-';
+
+            $brandEventCustomFields = $brandEvent->custom_fields
                 ? json_encode($brandEvent->custom_fields, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
                 : '-';
 
@@ -378,10 +452,21 @@ class SheetsController extends Controller
                 $brand?->company_name ?? '-',
                 $brand?->company_email ?? '-',
                 $brand?->company_phone ?? '-',
-                $brand ? Str::title(str_replace('_', ' ', $brand->status)) : '-',
+                $brand?->company_address ?? '-',
+                $brand?->description ?? '-',
+                $brand ? Str::title(str_replace('_', ' ', $brand->status ?? '-')) : '-',
+                $logoUrl,
+                $categories,
+                $otherTags,
+                $usersList,
                 $event?->id ?? '-',
                 $event?->title ?? '-',
                 $event?->slug ?? '-',
+                $event?->start_date?->format('Y-m-d H:i:s') ?? '-',
+                $event?->end_date?->format('Y-m-d H:i:s') ?? '-',
+                $event?->location ?? '-',
+                $event?->hall ?? '-',
+                $event ? Str::title(str_replace('_', ' ', $event->status ?? '-')) : '-',
                 $brandEvent->booth_number ?? '-',
                 $brandEvent->booth_size,
                 $brandEvent->booth_type?->label() ?? '-',
@@ -390,13 +475,21 @@ class SheetsController extends Controller
                 $brandEvent->badge_name ?? '-',
                 $sales?->name ?? '-',
                 $sales?->email ?? '-',
+                $sales?->phone ?? '-',
                 Str::title(str_replace('_', ' ', $brandEvent->status ?? '-')),
                 $brandEvent->notes ?? '-',
                 $brandEvent->promotion_post_limit,
                 (int) $brandEvent->visits_count,
                 (int) $brandEvent->clicks_count,
                 (int) $brandEvent->promotion_posts_count,
-                $customFields,
+                (int) ($brand?->links_count ?? 0),
+                ...$linkUrlSlots,
+                ...$linkClickSlots,
+                $totalLinkClicks,
+                $brand?->creator?->name ?? '-',
+                $brand?->updater?->name ?? '-',
+                $brandCustomFields,
+                $brandEventCustomFields,
                 $brandEvent->created_at?->format('Y-m-d H:i:s'),
                 $brandEvent->updated_at?->format('Y-m-d H:i:s'),
             ];
