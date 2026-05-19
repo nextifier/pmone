@@ -82,17 +82,14 @@ const placeholder = computed(() => {
   return parseISO(props.checkIn) ?? today;
 });
 
-const minValue = computed(() => {
-  const eventStart = parseEventDate(props.hotel?.event?.start_date);
-  if (eventStart) {
-    return eventStart.compare(today) > 0 ? eventStart : today;
-  }
-  return today;
-});
+// Only block dates in the past. Event dates are not the booking boundary —
+// guests can check in earlier or stay longer than the event window as long
+// as the hotel has an active allotment for those dates (the calendar's
+// per-day pricing/availability data already disables cells outside the
+// allotment range).
+const minValue = computed(() => today);
 
-const maxValue = computed(() => {
-  return parseEventDate(props.hotel?.event?.end_date);
-});
+const maxValue = computed(() => undefined);
 
 function handleRangeChange(value) {
   if (!value) {
