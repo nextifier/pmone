@@ -87,6 +87,38 @@
         </Button>
       </div>
 
+      <!-- Manual refund pending: reservation is cancelled with an outstanding
+           refund amount that Xendit didn't (or can't) process automatically.
+           Admin must transfer money back to guest and record completion here. -->
+      <Alert
+        v-if="reservation.refund?.manual_refund_pending"
+        variant="destructive"
+      >
+        <Icon name="lucide:triangle-alert" />
+        <AlertTitle>Manual refund required</AlertTitle>
+        <AlertDescription class="space-y-2">
+          <p>
+            Rp{{ formatRupiah(reservation.refund.amount) }} belum direfund. Channel
+            <span class="font-medium">{{ reservation.payment?.channel ?? "ini" }}</span>
+            tidak support refund otomatis via Xendit
+            <span v-if="reservation.payment?.channel && !reservation.payment.channel_supports_refund">
+              (Virtual Account / retail outlet umumnya butuh transfer manual)</span>.
+            Transfer manual ke rekening guest, lalu klik tombol di bawah untuk mencatat completion.
+          </p>
+          <div>
+            <Button
+              v-if="reservation.can_manual_refund"
+              variant="outline"
+              size="sm"
+              @click="manualRefundDialogOpen = true"
+            >
+              <Icon name="lucide:check" class="size-4 mr-1" />
+              Mark Manual Refund Completed
+            </Button>
+          </div>
+        </AlertDescription>
+      </Alert>
+
       <div v-if="reservation.can_view_documents" class="rounded-md border p-4 flex flex-wrap items-center gap-3">
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium tracking-tight">Documents</p>
@@ -355,6 +387,16 @@
           <div class="px-4 pb-10 md:px-6 md:py-5">
             <h3 class="text-lg font-semibold tracking-tight">Cancel & Refund</h3>
             <form @submit.prevent="handleCancel" class="mt-4 space-y-3">
+              <Alert v-if="cancelChannelUnrefundable" variant="destructive">
+                <Icon name="lucide:triangle-alert" />
+                <AlertTitle>Channel {{ reservation.payment?.channel }} tidak support refund otomatis</AlertTitle>
+                <AlertDescription>
+                  Xendit tidak menyediakan refund via API untuk channel ini (umumnya
+                  Virtual Account / retail outlet). Setelah cancellation, Anda harus
+                  transfer manual ke rekening guest, lalu tandai refund completed dari
+                  halaman reservation.
+                </AlertDescription>
+              </Alert>
               <div class="space-y-2">
                 <Label>Reason</Label>
                 <Textarea v-model="cancelForm.reason" rows="3" required />
@@ -364,15 +406,48 @@
                 <Input v-model.number="cancelForm.refund_amount" type="number" min="0" :placeholder="`Auto: Rp${formatRupiah(autoRefund)}`" />
                 <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">{{ refundPolicyText }}</p>
               </div>
-              <label class="flex items-center gap-2 text-sm tracking-tight">
-                <Checkbox v-model="cancelForm.process_refund" />
-                <span>Process Xendit refund automatically</span>
+              <label class="flex items-center gap-2 text-sm tracking-tight" :class="{ 'opacity-50': cancelChannelUnrefundable }">
+                <Checkbox v-model="cancelForm.process_refund" :disabled="cancelChannelUnrefundable" />
+                <span>
+                  Process Xendit refund automatically
+                  <span v-if="cancelChannelUnrefundable" class="text-muted-foreground text-xs sm:text-sm tracking-tight">(disabled — channel tidak support)</span>
+                </span>
               </label>
               <div class="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="outline" @click="cancelDialogOpen = false">Cancel</Button>
                 <Button type="submit" variant="destructive" :disabled="cancelling">
                   <Spinner v-if="cancelling" />
                   {{ cancelling ? "Processing..." : "Confirm Cancellation" }}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </template>
+      </DialogResponsive>
+
+      <DialogResponsive v-model:open="manualRefundDialogOpen" :overflow-content="true" dialog-max-width="28rem">
+        <template #default>
+          <div class="px-4 pb-10 md:px-6 md:py-5">
+            <h3 class="text-lg font-semibold tracking-tight">Mark Manual Refund Completed</h3>
+            <p class="text-muted-foreground mt-1 text-sm tracking-tight">
+              Konfirmasi bahwa Rp{{ formatRupiah(reservation.refund?.amount) }} sudah ditransfer
+              kembali ke guest. Status akan diubah ke <span class="font-medium">Refunded</span> dan
+              detail di bawah dicatat di activity log untuk audit.
+            </p>
+            <form @submit.prevent="handleManualRefund" class="mt-4 space-y-3">
+              <div class="space-y-2">
+                <Label>Bank reference / transaction ID (optional)</Label>
+                <Input v-model="manualRefundForm.bank_reference" placeholder="e.g. TRX-2026-0001" />
+              </div>
+              <div class="space-y-2">
+                <Label>Note <span class="text-destructive">*</span></Label>
+                <Textarea v-model="manualRefundForm.note" rows="3" required placeholder="Misal: Transferred via BCA mobile banking ke rekening guest 1234567890" />
+              </div>
+              <div class="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="outline" @click="manualRefundDialogOpen = false">Cancel</Button>
+                <Button type="submit" :disabled="markingManualRefund">
+                  <Spinner v-if="markingManualRefund" />
+                  {{ markingManualRefund ? "Saving..." : "Confirm Manual Refund" }}
                 </Button>
               </div>
             </form>
@@ -420,6 +495,7 @@
 <script setup>
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import InputFile from "@/components/InputFile.vue";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -427,7 +503,7 @@ import { Label } from "@/components/ui/label";
 import { PaymentMethodBadge } from "@/components/ui/payment-method-badge";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -577,6 +653,52 @@ const cancelForm = reactive({
   refund_amount: null,
   process_refund: true,
 });
+
+// Channel like BCA VA / Alfamart cannot be refunded via Xendit's API — we
+// surface this in the cancel dialog and disable the auto-refund checkbox.
+const cancelChannelUnrefundable = computed(() => {
+  const channel = reservation.value?.payment?.channel;
+  return Boolean(channel) && reservation.value?.payment?.channel_supports_refund === false;
+});
+
+watch(
+  () => [cancelDialogOpen.value, cancelChannelUnrefundable.value],
+  ([open, unrefundable]) => {
+    if (open && unrefundable) {
+      cancelForm.process_refund = false;
+    }
+  }
+);
+
+const manualRefundDialogOpen = ref(false);
+const markingManualRefund = ref(false);
+const manualRefundForm = reactive({
+  note: "",
+  bank_reference: "",
+});
+
+const handleManualRefund = async () => {
+  markingManualRefund.value = true;
+  try {
+    await client(`/api/events/${props.event.id}/reservations/${ulid.value}/manual-refund`, {
+      method: "POST",
+      body: {
+        note: manualRefundForm.note,
+        bank_reference: manualRefundForm.bank_reference || null,
+      },
+    });
+    toast.success("Manual refund recorded");
+    manualRefundDialogOpen.value = false;
+    manualRefundForm.note = "";
+    manualRefundForm.bank_reference = "";
+    await refresh();
+    await loadActivity();
+  } catch (err) {
+    toast.error("Could not save manual refund", { description: err?.data?.message || err?.message });
+  } finally {
+    markingManualRefund.value = false;
+  }
+};
 
 const canMarkPaid = computed(() => hasPermission("reservations.mark_paid"));
 const markPaidDialogOpen = ref(false);

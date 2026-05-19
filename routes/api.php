@@ -975,6 +975,9 @@ Route::middleware(['auth:sanctum', 'verified', 'hotel-reservation-enabled'])->pr
         Route::post('/{reservation}/mark-paid', [ReservationController::class, 'markPaid'])
             ->middleware('can:reservations.mark_paid')
             ->name('events.reservations.mark-paid');
+        Route::post('/{reservation}/manual-refund', [ReservationController::class, 'manualRefund'])
+            ->middleware('can:reservations.refund')
+            ->name('events.reservations.manual-refund');
         Route::get('/{reservation}/invoice.pdf', [ReservationController::class, 'invoicePdf'])
             ->middleware('can:reservations.view_documents')
             ->name('events.reservations.invoice-pdf');

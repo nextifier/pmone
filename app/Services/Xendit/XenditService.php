@@ -85,6 +85,52 @@ class XenditService
      */
     protected const FALLBACK_CHANNEL_CODES = ['VISA', 'MASTERCARD', 'BCA', 'BRI', 'BNI', 'MANDIRI', 'QRIS'];
 
+    /**
+     * Payment channel codes (uppercase, matching Xendit's payment_channel value)
+     * that support refunds via Xendit's /refunds API. Everything not in this list
+     * — notably Virtual Accounts and retail outlets — requires the admin to
+     * refund manually (bank transfer to guest, etc.).
+     *
+     * Source: Xendit's "Unified Refunds (BETA)" channel matrix.
+     *
+     * @var array<int, string>
+     */
+    public const REFUNDABLE_CHANNELS = [
+        // Cards (fully refundable via API)
+        'CREDIT_CARD',
+        'VISA',
+        'MASTERCARD',
+        'AMEX',
+        'JCB',
+        // E-wallets (most support refunds via API)
+        'OVO',
+        'DANA',
+        'SHOPEEPAY',
+        'LINKAJA',
+        'GOPAY',
+        'ASTRAPAY',
+        'JENIUSPAY',
+        'NEXCASH',
+        // QR + direct debit
+        'QRIS',
+        'DD_BRI',
+        'BRI_DIRECT_DEBIT',
+    ];
+
+    /**
+     * Whether the given payment channel can be refunded automatically via Xendit.
+     * Virtual Accounts (BCA, BNI, BRI, MANDIRI, ...) and retail outlets all
+     * return false — those require manual handling by the admin.
+     */
+    public static function channelSupportsRefund(?string $channel): bool
+    {
+        if ($channel === null || $channel === '') {
+            return false;
+        }
+
+        return in_array(strtoupper($channel), self::REFUNDABLE_CHANNELS, true);
+    }
+
     protected ?string $secretKey = null;
 
     protected ?string $webhookToken = null;
