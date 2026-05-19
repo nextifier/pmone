@@ -256,6 +256,21 @@ class XenditService
     }
 
     /**
+     * Xendit refund `reason` accepts only a fixed set of enum values. Anything
+     * outside this list gets rejected by Xendit with "Failed to validate the
+     * request". We preserve the user-supplied free text on the Reservation
+     * model itself (`refund_reason` column) and only forward an allowed enum
+     * here.
+     */
+    public const REFUND_REASONS = [
+        'FRAUDULENT',
+        'DUPLICATE',
+        'REQUESTED_BY_CUSTOMER',
+        'CANCELLATION',
+        'OTHERS',
+    ];
+
+    /**
      * Refund a Xendit invoice (partial or full).
      */
     public function refundInvoice(string $invoiceId, float $amount, string $reason = 'CANCELLATION'): string
@@ -263,10 +278,15 @@ class XenditService
         $this->requireGateway();
         $api = new RefundApi($this->httpClient());
 
+        $normalizedReason = strtoupper($reason);
+        if (! in_array($normalizedReason, self::REFUND_REASONS, true)) {
+            $normalizedReason = 'CANCELLATION';
+        }
+
         $payload = new CreateRefund([
             'invoice_id' => $invoiceId,
             'amount' => $amount,
-            'reason' => $reason,
+            'reason' => $normalizedReason,
         ]);
 
         $refund = $api->createRefund(null, null, $payload);
