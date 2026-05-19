@@ -13,6 +13,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Xendit\XenditSdkException;
 
 class ProcessXenditRefundJob implements ShouldQueue
 {
@@ -74,9 +75,15 @@ class ProcessXenditRefundJob implements ShouldQueue
                 ])
                 ->log('Refund initiated via Xendit');
         } catch (\Throwable $e) {
+            // XenditSdkException's getMessage() is generic ("Failed to validate
+            // the request..."). The actual field-level detail lives in the raw
+            // response body — surface it so production failures are diagnosable.
+            $rawResponse = $e instanceof XenditSdkException ? $e->getRawResponse() : null;
+
             Log::error('Xendit refund failed', [
                 'reservation_id' => $reservation->id,
                 'error' => $e->getMessage(),
+                'xendit_response' => $rawResponse,
             ]);
 
             activity()
@@ -88,6 +95,7 @@ class ProcessXenditRefundJob implements ShouldQueue
                     'refund_amount' => $this->amount,
                     'refund_reason' => $this->reason,
                     'error' => $e->getMessage(),
+                    'xendit_response' => $rawResponse,
                 ])
                 ->log('Xendit refund failed');
 

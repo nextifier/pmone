@@ -19,14 +19,19 @@ uses(RefreshDatabase::class);
  * the request with "Header 'for-user-id' is not in a valid XenPlatform
  * sub-account ID format" and the refund silently failed.
  */
-test('refundInvoice sends payload as JSON body without for-user-id header', function () {
+/**
+ * Build a XenditService bound to a real gateway but with a Guzzle handler
+ * that captures outgoing requests instead of hitting Xendit. Returns the
+ * service and a reference to the captured request history.
+ */
+function refundCaptureService(array &$history): XenditService
+{
     $gateway = ProjectPaymentGateway::factory()->default()->create([
         'provider' => 'xendit',
         'mode' => 'test',
         'secret_key' => 'xnd_development_test_key',
     ]);
 
-    $history = [];
     $stack = HandlerStack::create(new MockHandler([
         new Response(200, ['Content-Type' => 'application/json'], json_encode([
             'id' => 'rfnd_test_123',
@@ -42,6 +47,13 @@ test('refundInvoice sends payload as JSON body without for-user-id header', func
         ->makePartial()
         ->shouldAllowMockingProtectedMethods();
     $service->shouldReceive('httpClient')->andReturn($captureClient);
+
+    return $service;
+}
+
+test('refundInvoice sends payload as JSON body without for-user-id header', function () {
+    $history = [];
+    $service = refundCaptureService($history);
 
     $refundId = $service->refundInvoice('inv_abc', 100000.0, 'CANCELLATION');
 
@@ -60,4 +72,24 @@ test('refundInvoice sends payload as JSON body without for-user-id header', func
         'amount' => 100000,
         'reason' => 'CANCELLATION',
     ]);
+});
+
+test('refundInvoice normalizes free-text reason to CANCELLATION', function () {
+    $history = [];
+    $service = refundCaptureService($history);
+
+    $service->refundInvoice('inv_abc', 100000.0, 'Antonius requested refund because of date change');
+
+    $body = json_decode((string) $history[0]['request']->getBody(), true);
+    expect($body['reason'])->toBe('CANCELLATION');
+});
+
+test('refundInvoice forwards a valid Xendit enum reason case-insensitively', function () {
+    $history = [];
+    $service = refundCaptureService($history);
+
+    $service->refundInvoice('inv_abc', 100000.0, 'requested_by_customer');
+
+    $body = json_decode((string) $history[0]['request']->getBody(), true);
+    expect($body['reason'])->toBe('REQUESTED_BY_CUSTOMER');
 });
