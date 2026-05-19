@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\Xendit\XenditService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -54,6 +55,7 @@ class ReservationResource extends JsonResource
                 'method' => $this->payment_method?->value,
                 'method_label' => $this->payment_method?->label(),
                 'channel' => $this->payment_channel,
+                'channel_supports_refund' => XenditService::channelSupportsRefund($this->payment_channel),
                 'destination' => $this->payment_destination,
                 'gateway_id' => $this->payment_gateway_id,
                 'gateway' => $this->whenLoaded('paymentGateway', fn () => [
@@ -67,6 +69,14 @@ class ReservationResource extends JsonResource
                 'amount' => $this->refund_amount !== null ? (float) $this->refund_amount : null,
                 'xendit_refund_id' => $this->xendit_refund_id,
                 'reason' => $this->refund_reason,
+                // Manual refund is pending whenever the reservation is cancelled
+                // with a refund amount that hasn't actually been disbursed yet
+                // (no Xendit refund created and no `refunded_at` timestamp).
+                'manual_refund_pending' => $this->status?->value === 'cancelled'
+                    && $this->refund_amount !== null
+                    && (float) $this->refund_amount > 0
+                    && $this->xendit_refund_id === null
+                    && $this->refunded_at === null,
             ],
             'cancellation_reason' => $this->cancellation_reason,
             'source' => $this->source?->value,
@@ -102,6 +112,7 @@ class ReservationResource extends JsonResource
             'can_edit' => auth()->user()?->can('reservations.update'),
             'can_delete' => auth()->user()?->can('reservations.delete'),
             'can_cancel' => auth()->user()?->can('reservations.cancel'),
+            'can_manual_refund' => auth()->user()?->can('reservations.refund'),
             'can_upload_voucher' => auth()->user()?->can('reservations.upload_voucher'),
             'can_send_voucher' => auth()->user()?->can('reservations.send_voucher'),
             'can_view_documents' => auth()->user()?->can('reservations.view_documents'),

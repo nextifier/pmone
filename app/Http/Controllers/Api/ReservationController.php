@@ -7,6 +7,7 @@ use App\Enums\ReservationStatus;
 use App\Exports\ReservationsExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Reservation\CancelReservationRequest;
+use App\Http\Requests\Reservation\ManualRefundRequest;
 use App\Http\Requests\Reservation\StoreManualReservationRequest;
 use App\Http\Requests\Reservation\UploadVoucherRequest;
 use App\Http\Resources\ReservationIndexResource;
@@ -341,6 +342,60 @@ class ReservationController extends Controller
 
         return response()->json([
             'message' => 'Reservation marked as paid.',
+            'data' => new ReservationResource($reservation->fresh()),
+        ]);
+    }
+
+    /**
+     * Mark an outstanding refund as completed manually. Used for payment
+     * channels (Virtual Account, retail outlets) that Xendit does not refund
+     * via API — admin must transfer money back to the guest manually and then
+     * record completion here. Sets `refunded_at` + flips status to
+     * {@see ReservationStatus::Refunded}. The bank reference (if provided) +
+     * the admin's note land in the activity log for audit.
+     */
+    public function manualRefund(ManualRefundRequest $request, Event $event, Reservation $reservation): JsonResponse
+    {
+        $this->ensureReservationBelongsToEvent($event, $reservation);
+
+        if ($reservation->status !== ReservationStatus::Cancelled) {
+            abort(422, "Manual refund only applies to cancelled reservations. Current status: {$reservation->status->label()}.");
+        }
+
+        if ($reservation->refunded_at !== null) {
+            abort(422, 'This reservation has already been refunded on '.$reservation->refunded_at->toDateTimeString().'.');
+        }
+
+        if ($reservation->refund_amount === null || (float) $reservation->refund_amount <= 0) {
+            abort(422, 'No refund amount is recorded for this reservation.');
+        }
+
+        if ($reservation->xendit_refund_id !== null) {
+            abort(422, 'A Xendit refund is already in progress for this reservation.');
+        }
+
+        $data = $request->validated();
+
+        $reservation->update([
+            'status' => ReservationStatus::Refunded,
+            'refunded_at' => now(),
+        ]);
+
+        activity()
+            ->causedBy($request->user())
+            ->performedOn($reservation)
+            ->event('refund_completed_manual')
+            ->withProperties([
+                'project_id' => $event->project_id,
+                'reservation_id' => $reservation->id,
+                'refund_amount' => (float) $reservation->refund_amount,
+                'note' => $data['note'],
+                'bank_reference' => $data['bank_reference'] ?? null,
+            ])
+            ->log('Manual refund completed by staff');
+
+        return response()->json([
+            'message' => 'Manual refund recorded.',
             'data' => new ReservationResource($reservation->fresh()),
         ]);
     }
