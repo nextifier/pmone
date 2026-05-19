@@ -80,10 +80,17 @@ class ProcessXenditRefundJob implements ShouldQueue
             // response body — surface it so production failures are diagnosable.
             $rawResponse = $e instanceof XenditSdkException ? $e->getRawResponse() : null;
 
+            // 4xx from Xendit means the request itself is bad — wrong channel,
+            // invalid amount, validation failure. Retrying with the same payload
+            // will only fail again. 5xx + network errors stay retryable.
+            $status = $e instanceof XenditSdkException ? (int) $e->getStatus() : 0;
+            $isUnrecoverable = $status >= 400 && $status < 500;
+
             Log::error('Xendit refund failed', [
                 'reservation_id' => $reservation->id,
                 'error' => $e->getMessage(),
                 'xendit_response' => $rawResponse,
+                'unrecoverable' => $isUnrecoverable,
             ]);
 
             activity()
@@ -96,8 +103,19 @@ class ProcessXenditRefundJob implements ShouldQueue
                     'refund_reason' => $this->reason,
                     'error' => $e->getMessage(),
                     'xendit_response' => $rawResponse,
+                    'unrecoverable' => $isUnrecoverable,
                 ])
-                ->log('Xendit refund failed');
+                ->log($isUnrecoverable
+                    ? 'Xendit refund cannot be processed automatically — manual refund required'
+                    : 'Xendit refund failed (will retry)');
+
+            if ($isUnrecoverable) {
+                // Don't rethrow — queue would just retry the same losing request.
+                // Reservation state (cancelled + refund_amount set + xendit_refund_id
+                // null) already signals that the refund is outstanding for the admin
+                // to handle manually.
+                return;
+            }
 
             throw $e;
         }

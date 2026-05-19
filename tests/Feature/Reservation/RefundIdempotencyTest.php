@@ -8,6 +8,7 @@ use App\Models\Reservation;
 use App\Services\Xendit\XenditService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery\MockInterface;
+use Xendit\XenditSdkException;
 
 uses(RefreshDatabase::class);
 
@@ -93,4 +94,53 @@ test('refund job persists xendit_refund_id on success', function () {
     expect($reservation->xendit_refund_id)->toBe('rfnd_new_456');
     expect($reservation->status)->toBe(ReservationStatus::Refunded);
     expect((float) $reservation->refund_amount)->toBe(1000000.0);
+});
+
+test('refund job swallows 4xx Xendit errors instead of retrying', function () {
+    $hotel = Hotel::factory()->create();
+    $reservation = Reservation::factory()->paid()->create([
+        'hotel_id' => $hotel->id,
+        'total_amount' => 2000000,
+        'xendit_invoice_id' => 'inv_unrefundable_channel',
+    ]);
+
+    $mock = bindMockXenditForReservation($reservation);
+    $mock->shouldReceive('refundInvoice')
+        ->once()
+        ->andThrow(new XenditSdkException(
+            (object) ['message' => 'Refund request failed because refunds are not supported for this channel.'],
+            '400',
+            'Refund request failed because refunds are not supported for this channel.'
+        ));
+
+    $job = new ProcessXenditRefundJob($reservation->id, 1000000.0, 'Cancellation');
+
+    // Should NOT throw — 4xx is permanent, retry won't help.
+    $job->handle();
+
+    $reservation->refresh();
+    expect($reservation->xendit_refund_id)->toBeNull()
+        ->and($reservation->status)->not->toBe(ReservationStatus::Refunded);
+});
+
+test('refund job rethrows 5xx Xendit errors so queue retries', function () {
+    $hotel = Hotel::factory()->create();
+    $reservation = Reservation::factory()->paid()->create([
+        'hotel_id' => $hotel->id,
+        'total_amount' => 2000000,
+        'xendit_invoice_id' => 'inv_xendit_down',
+    ]);
+
+    $mock = bindMockXenditForReservation($reservation);
+    $mock->shouldReceive('refundInvoice')
+        ->once()
+        ->andThrow(new XenditSdkException(
+            (object) ['message' => 'Internal server error'],
+            '500',
+            'Internal server error'
+        ));
+
+    $job = new ProcessXenditRefundJob($reservation->id, 1000000.0, 'Cancellation');
+
+    expect(fn () => $job->handle())->toThrow(XenditSdkException::class);
 });
