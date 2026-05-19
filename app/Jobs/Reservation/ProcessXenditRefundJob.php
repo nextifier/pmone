@@ -106,13 +106,13 @@ class ProcessXenditRefundJob implements ShouldQueue
         }
 
         $project = $reservation->event?->project;
-        $mode = app()->environment('production') ? 'live' : 'test';
-        $gateway = $project?->defaultPaymentGateway('xendit', $mode);
+        $preferred = app()->environment('production') ? 'live' : 'test';
+        $gateway = $project?->resolvePaymentGateway('xendit', $preferred);
 
         if (! $gateway) {
             throw new \RuntimeException(
                 "Cannot refund reservation #{$reservation->id}: no active Xendit gateway found ".
-                "(payment_gateway_id={$reservation->payment_gateway_id}, project={$project?->username}, mode={$mode})."
+                "(payment_gateway_id={$reservation->payment_gateway_id}, project={$project?->username})."
             );
         }
 

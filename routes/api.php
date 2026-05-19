@@ -1139,9 +1139,17 @@ Route::middleware(['api.key'])->prefix('public')->group(function () {
         ->middleware('throttle:30,1');
 });
 
-// Xendit webhook (no auth - signature verified per-project in controller).
-// Each project registers its own webhook URL in its Xendit dashboard using
-// the project's username as the path segment, and the project's saved
-// webhook_token (per-gateway in DB) is used to verify the x-callback-token.
+// Xendit webhook (no auth - signature verified inside the controller).
+// Two variants:
+//   1) Per-project URL `/api/webhooks/xendit/{username}` — original shape;
+//      project resolved from the URL segment, token verified against that
+//      project's gateway.
+//   2) Generic URL `/api/webhooks/xendit` — required when multiple PM One
+//      projects share the SAME Xendit account (one Xendit dashboard only
+//      accepts one Invoice-Paid URL). The controller resolves the project
+//      from the payload's `external_id` (= reservation_number) and verifies
+//      the token against that project's gateway.
+Route::post('/webhooks/xendit', [XenditWebhookController::class, 'invoiceGeneric'])
+    ->name('webhooks.xendit.invoice-generic');
 Route::post('/webhooks/xendit/{project:username}', [XenditWebhookController::class, 'invoice'])
     ->name('webhooks.xendit.invoice');

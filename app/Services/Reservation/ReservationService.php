@@ -55,11 +55,15 @@ class ReservationService
             abort(422, 'Reservation must belong to an event with a project to generate payment.');
         }
 
-        $mode = app()->environment('production') ? 'live' : 'test';
-        $gateway = $project->defaultPaymentGateway('xendit', $mode);
+        // Prefer the mode that matches the runtime environment, but fall back
+        // to the opposite mode if only that one is configured. Staff can run
+        // the production app against a test gateway during integration
+        // verification without having to flip an env flag.
+        $preferred = app()->environment('production') ? 'live' : 'test';
+        $gateway = $project->resolvePaymentGateway('xendit', $preferred);
 
         if (! $gateway) {
-            abort(422, "No active Xendit gateway ({$mode}) configured for project \"{$project->username}\". Setup di Settings → Payment Gateways.");
+            abort(422, "No active Xendit gateway configured for project \"{$project->username}\". Setup di Settings → Payment Gateways.");
         }
 
         return XenditService::forGateway($gateway);
@@ -140,14 +144,14 @@ class ReservationService
             }
             $event = Event::with('project')->findOrFail($data['event_id']);
             $project = $event->project;
-            $mode = app()->environment('production') ? 'live' : 'test';
 
             if (! $project) {
                 abort(422, 'Reservation must belong to an event with a project to generate payment.');
             }
 
-            if (! $project->defaultPaymentGateway('xendit', $mode)) {
-                abort(422, "No active Xendit gateway ({$mode}) configured for project \"{$project->username}\". Setup di Settings → Payment Gateways.");
+            $preferred = app()->environment('production') ? 'live' : 'test';
+            if (! $project->resolvePaymentGateway('xendit', $preferred)) {
+                abort(422, "No active Xendit gateway configured for project \"{$project->username}\". Setup di Settings → Payment Gateways.");
             }
         }
 

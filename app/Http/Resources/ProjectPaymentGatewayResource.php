@@ -36,18 +36,16 @@ class ProjectPaymentGatewayResource extends JsonResource
         ];
     }
 
+    /**
+     * Generic webhook URL — single URL for every Xendit account regardless
+     * of how many PM One projects share it. The controller resolves the
+     * owning project from the payload's `external_id` (reservation_number)
+     * and verifies the token against that project's gateway, so per-project
+     * URLs are no longer needed. Per-project routes still resolve for any
+     * historically configured webhooks.
+     */
     private function resolveWebhookUrl(): ?string
     {
-        if (! $this->relationLoaded('project') && ! $this->project_id) {
-            return null;
-        }
-
-        $username = $this->project?->username;
-
-        if (! $username) {
-            return null;
-        }
-
-        return rtrim(config('app.url'), '/').'/api/webhooks/'.$this->provider.'/'.$username;
+        return rtrim(config('app.url'), '/').'/api/webhooks/'.$this->provider;
     }
 }

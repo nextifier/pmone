@@ -68,7 +68,7 @@ class ProjectResource extends JsonResource
             'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
             'updater' => $this->whenLoaded('updater', fn () => new UserMinimalResource($this->updater)),
             'deleter' => $this->whenLoaded('deleter', fn () => new UserMinimalResource($this->deleter)),
-            'has_xendit_gateway' => $this->defaultPaymentGateway(
+            'has_xendit_gateway' => $this->resolvePaymentGateway(
                 'xendit',
                 app()->environment('production') ? 'live' : 'test'
             ) !== null,

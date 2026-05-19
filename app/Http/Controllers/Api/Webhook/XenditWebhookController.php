@@ -50,6 +50,72 @@ class XenditWebhookController extends Controller
         return $this->dispatch($request, $project);
     }
 
+    /**
+     * Generic webhook entry — used when several PM One projects share the
+     * same Xendit account and therefore can only register ONE Invoice-Paid
+     * URL in the Xendit dashboard. Resolves the owning project from the
+     * payload's `external_id` (reservation_number) via the reservation
+     * lookup, then enforces the same token check as the per-project route.
+     */
+    public function invoiceGeneric(Request $request): JsonResponse
+    {
+        $payload = $request->all();
+        $callbackToken = (string) $request->header('x-callback-token');
+
+        $project = $this->resolveProjectFromPayload($payload);
+
+        // Refund payloads identify the reservation via `invoice_id` instead
+        // of `external_id`; resolve from that field when present.
+        if (! $project && ! empty($payload['invoice_id'])) {
+            $reservation = Reservation::query()
+                ->where('xendit_invoice_id', $payload['invoice_id'])
+                ->first();
+            $project = $reservation?->event?->project;
+        }
+
+        if (! $project) {
+            Log::warning('Xendit webhook (generic) could not resolve project', [
+                'external_id' => $payload['external_id'] ?? null,
+                'invoice_id' => $payload['invoice_id'] ?? null,
+                'ip' => $request->ip(),
+            ]);
+
+            return response()->json(['message' => 'Reservation not found'], 404);
+        }
+
+        $gateway = $callbackToken !== ''
+            ? $this->resolver->resolveByWebhookToken($project, 'xendit', $callbackToken)
+            : null;
+
+        if (! $gateway) {
+            Log::warning('Xendit webhook signature mismatch (generic)', [
+                'project' => $project->username,
+                'ip' => $request->ip(),
+            ]);
+
+            return response()->json(['message' => 'Invalid signature'], 401);
+        }
+
+        return $this->dispatch($request, $project);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function resolveProjectFromPayload(array $payload): ?Project
+    {
+        $externalId = $payload['external_id'] ?? null;
+        if (! $externalId) {
+            return null;
+        }
+
+        $reservation = Reservation::query()
+            ->where('reservation_number', $externalId)
+            ->first();
+
+        return $reservation?->event?->project;
+    }
+
     private function dispatch(Request $request, ?Project $project): JsonResponse
     {
         $payload = $request->all();

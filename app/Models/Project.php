@@ -398,6 +398,26 @@ class Project extends Model implements HasMedia, Sortable
             ->first(fn (ProjectPaymentGateway $gw) => $gw->isConfigured());
     }
 
+    /**
+     * Resolve a usable provider gateway with mode fallback. Tries the preferred
+     * mode first (typically derived from app environment), then falls back to
+     * the opposite mode. This lets staff run a project in test mode on
+     * production while validating the integration before flipping the live
+     * credentials on — the previous strict "production=live or fail" rule
+     * blocked that workflow.
+     */
+    public function resolvePaymentGateway(string $provider = 'xendit', string $preferredMode = 'live'): ?ProjectPaymentGateway
+    {
+        $gateway = $this->defaultPaymentGateway($provider, $preferredMode);
+        if ($gateway) {
+            return $gateway;
+        }
+
+        $fallback = $preferredMode === 'live' ? 'test' : 'live';
+
+        return $this->defaultPaymentGateway($provider, $fallback);
+    }
+
     public function hasActivePaymentGateway(): bool
     {
         return $this->paymentGateways()
