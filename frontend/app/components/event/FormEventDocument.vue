@@ -2,7 +2,7 @@
   <form @submit.prevent="handleSubmit" class="space-y-4">
     <!-- Title -->
     <div class="space-y-2">
-      <Label for="title">Title <span class="text-destructive">*</span></Label>
+      <Label for="title">Title</Label>
       <Input id="title" v-model="form.title" placeholder="Document title" required />
       <p v-if="errors.title" class="text-destructive mt-1 text-xs">
         {{ Array.isArray(errors.title) ? errors.title[0] : errors.title }}
@@ -11,7 +11,7 @@
 
     <!-- Document Type -->
     <div class="space-y-2">
-      <Label for="document_type">Type <span class="text-destructive">*</span></Label>
+      <Label for="document_type">Type</Label>
       <Select v-model="form.document_type" required>
         <SelectTrigger id="document_type" class="w-full">
           <SelectValue placeholder="Select type" />

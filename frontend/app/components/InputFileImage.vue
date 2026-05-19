@@ -4,18 +4,13 @@
       ref="inputFileRef"
       v-if="showInput"
       v-model="localFiles"
-      :accepted-file-types="['image/jpeg', 'image/png', 'image/jpg', 'image/webp']"
+      :accepted-file-types="acceptedFileTypes"
       :allow-multiple="false"
       :max-files="1"
     />
 
     <div v-else :class="containerClass">
-      <img
-        :src="imageUrl"
-        alt=""
-        class="border-border size-full rounded-lg border object-contain"
-        loading="lazy"
-      />
+      <img :src="imageUrl" alt="" :class="imageClass" loading="lazy" />
 
       <button
         type="button"
@@ -60,6 +55,14 @@ const props = defineProps({
   containerClass: {
     type: String,
     default: "relative isolate",
+  },
+  imageClass: {
+    type: String,
+    default: "border-border size-full rounded-lg border object-contain",
+  },
+  acceptedFileTypes: {
+    type: Array,
+    default: () => ["image/jpeg", "image/png", "image/jpg", "image/webp"],
   },
 });
 

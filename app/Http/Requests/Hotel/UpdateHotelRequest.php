@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Hotel;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateHotelRequest extends FormRequest
 {
@@ -13,8 +14,15 @@ class UpdateHotelRequest extends FormRequest
 
     public function rules(): array
     {
+        $hotelId = $this->route('hotel')?->id;
+
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'slug' => ['sometimes', 'string', 'max:255', 'alpha_dash',
+                Rule::unique('hotels', 'slug')
+                    ->ignore($hotelId)
+                    ->whereNull('deleted_at'),
+            ],
             'description' => ['nullable', 'string', 'max:10000'],
             'star_rating' => ['nullable', 'integer', 'min:1', 'max:5'],
             'address' => ['nullable', 'string', 'max:500'],
@@ -37,6 +45,12 @@ class UpdateHotelRequest extends FormRequest
             'delete_featured' => ['nullable', 'boolean'],
             'gallery_files' => ['nullable', 'array'],
             'gallery_files.*' => ['string'],
+
+            // Pivot fields when updating event-scoped attachment
+            'pivot' => ['nullable', 'array'],
+            'pivot.is_active' => ['nullable', 'boolean'],
+            'pivot.notes' => ['nullable', 'string', 'max:2000'],
+            'pivot.order_column' => ['nullable', 'integer'],
         ];
     }
 }

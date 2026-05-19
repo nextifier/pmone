@@ -128,12 +128,11 @@ export const usePermission = () => {
 
   /**
    * Check if user can delete a specific project
-   * Rules: User with projects.delete permission can delete any project, or user must be the creator
+   * Rules: Only master and admin roles can delete projects (no creator/member fallback)
    */
-  const canDeleteProject = (project: { created_by: number }): boolean => {
+  const canDeleteProject = (_project: { created_by: number }): boolean => {
     if (!user.value) return false;
-    if (hasPermission("projects.delete")) return true;
-    return project.created_by === user.value.id;
+    return hasAnyRole(["master", "admin"]);
   };
 
   /**

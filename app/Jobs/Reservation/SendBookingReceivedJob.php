@@ -34,10 +34,16 @@ class SendBookingReceivedJob implements ShouldQueue
         }
 
         $frontendUrl = rtrim(config('app.frontend_url'), '/');
+        $appUrl = rtrim(config('app.url'), '/');
+
         $magicLinkUrl = $this->rawMagicLinkToken
             ? "{$frontendUrl}/hotels/reservation/{$this->rawMagicLinkToken}"
-            : "{$frontendUrl}/accommodation/success?ref=".$reservation->reservation_number;
+            : "{$frontendUrl}/hotels/success?ref=".$reservation->reservation_number;
 
-        Mail::send(new BookingReceivedMail($reservation, $magicLinkUrl));
+        $invoiceUrl = $this->rawMagicLinkToken
+            ? "{$appUrl}/api/public/reservations/magic/{$this->rawMagicLinkToken}/invoice.pdf"
+            : null;
+
+        Mail::send(new BookingReceivedMail($reservation, $magicLinkUrl, $invoiceUrl));
     }
 }

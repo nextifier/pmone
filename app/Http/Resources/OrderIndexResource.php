@@ -26,10 +26,11 @@ class OrderIndexResource extends JsonResource
             'cancellation_reason' => $this->cancellation_reason,
             'subtotal' => $this->subtotal,
             'tax_amount' => $this->tax_amount,
-            'discount_amount' => $this->discount_amount,
+            'discount_amount' => (float) $this->discount_amount,
+            'penalty_amount' => (float) $this->penalty_amount,
+            'promo_code_applied' => $this->promo_code_applied,
             'total' => $this->total,
             'order_period' => $this->order_period,
-            'applied_penalty_rate' => $this->applied_penalty_rate,
             'items_count' => $this->when($this->items_count !== null, $this->items_count),
             'items' => $this->whenLoaded('items', fn () => $this->items->map(fn ($item) => [
                 'id' => $item->id,

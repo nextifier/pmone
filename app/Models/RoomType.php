@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PricingType;
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
 use App\Traits\HasSlug;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
@@ -23,6 +25,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Tags\HasTags;
+use Spatie\Tags\Tag;
 
 /**
  * @property int $id
@@ -40,28 +43,32 @@ use Spatie\Tags\HasTags;
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property bool $smoking_allowed
  * @property string|null $cancellation_policy
  * @property array<array-key, mixed>|null $settings
  * @property array<array-key, mixed>|null $more_details
  * @property int|null $order_column
+ * @property PricingType $pricing_type
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read Collection<int, \App\Models\HotelEventAllotment> $allotments
+ * @property-read Collection<int, HotelEventAllotment> $allotments
  * @property-read int|null $allotments_count
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\User|null $deleter
- * @property-read \App\Models\Hotel|null $hotel
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
+ * @property-read Hotel|null $hotel
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read Collection<int, \App\Models\ReservationItem> $reservationItems
+ * @property-read Collection<int, RoomTypePricingPeriod> $pricingPeriods
+ * @property-read int|null $pricing_periods_count
+ * @property-read Collection<int, ReservationItem> $reservationItems
  * @property-read int|null $reservation_items_count
- * @property Collection<int, \Spatie\Tags\Tag> $tags
+ * @property Collection<int, Tag> $tags
  * @property-read int|null $tags_count
- * @property-read \App\Models\User|null $updater
+ * @property-read User|null $updater
+ *
  * @method static Builder<static>|RoomType active()
  * @method static \Database\Factories\RoomTypeFactory factory($count = null, $state = [])
  * @method static Builder<static>|RoomType findSimilarSlugs(string $attribute, array $config, string $slug)
@@ -87,6 +94,7 @@ use Spatie\Tags\HasTags;
  * @method static Builder<static>|RoomType whereMoreDetails($value)
  * @method static Builder<static>|RoomType whereName($value)
  * @method static Builder<static>|RoomType whereOrderColumn($value)
+ * @method static Builder<static>|RoomType wherePricingType($value)
  * @method static Builder<static>|RoomType whereSettings($value)
  * @method static Builder<static>|RoomType whereSlug($value)
  * @method static Builder<static>|RoomType whereSmokingAllowed($value)
@@ -102,6 +110,7 @@ use Spatie\Tags\HasTags;
  * @method static Builder<static>|RoomType withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
  * @method static Builder<static>|RoomType withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static Builder<static>|RoomType withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class RoomType extends Model implements HasMedia, Sortable
@@ -125,6 +134,7 @@ class RoomType extends Model implements HasMedia, Sortable
         'bed_type',
         'area_sqm',
         'base_rate',
+        'pricing_type',
         'breakfast_included',
         'smoking_allowed',
         'cancellation_policy',
@@ -144,6 +154,7 @@ class RoomType extends Model implements HasMedia, Sortable
             'max_pax' => 'integer',
             'area_sqm' => 'decimal:2',
             'base_rate' => 'decimal:2',
+            'pricing_type' => PricingType::class,
             'breakfast_included' => 'boolean',
             'smoking_allowed' => 'boolean',
             'is_active' => 'boolean',
@@ -211,7 +222,7 @@ class RoomType extends Model implements HasMedia, Sortable
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'slug', 'base_rate', 'is_active'])
+            ->logOnly(['name', 'slug', 'base_rate', 'pricing_type', 'is_active'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
@@ -263,6 +274,11 @@ class RoomType extends Model implements HasMedia, Sortable
     public function allotments(): HasMany
     {
         return $this->hasMany(HotelEventAllotment::class);
+    }
+
+    public function pricingPeriods(): HasMany
+    {
+        return $this->hasMany(RoomTypePricingPeriod::class)->orderBy('start_date');
     }
 
     public function reservationItems(): HasMany

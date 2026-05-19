@@ -631,6 +631,15 @@ class ProjectController extends Controller
         // Generate filename with timestamp
         $filename = 'projects_'.now()->format('Y-m-d_His').'.xlsx';
 
+        activity()
+            ->causedBy($request->user())
+            ->event('exported')
+            ->withProperties([
+                'model_type' => 'Project',
+                'filename' => $filename,
+            ])
+            ->log('Exported projects');
+
         return Excel::download($export, $filename);
     }
 

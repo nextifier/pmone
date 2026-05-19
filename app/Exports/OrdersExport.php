@@ -44,9 +44,9 @@ class OrdersExport extends BaseExport
             'Item Total',
             'Item Notes',
             'Subtotal',
-            'Discount Type',
-            'Discount Value',
             'Discount Amount',
+            'Penalty Amount',
+            'Promo Code',
             'Tax Rate (%)',
             'Tax Amount',
             'Total',
@@ -86,9 +86,9 @@ class OrdersExport extends BaseExport
 
         $orderSummary = [
             $order->subtotal,
-            $order->discount_type ? $this->titleCase($order->discount_type) : '-',
-            $order->discount_value,
             $order->discount_amount,
+            $order->penalty_amount,
+            $order->promo_code_applied ?? '-',
             $order->tax_rate,
             $order->tax_amount,
             $order->total,

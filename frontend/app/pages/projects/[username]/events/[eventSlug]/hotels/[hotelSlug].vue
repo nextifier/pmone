@@ -12,14 +12,31 @@
     </div>
 
     <template v-else>
+      <div class="mb-4">
+        <ButtonBack
+          :destination="`/projects/${route.params.username}/events/${route.params.eventSlug}/hotels`"
+        />
+      </div>
+
       <div class="mb-6 grid gap-5 lg:grid-cols-[12rem_1fr_12rem] lg:items-start">
         <div class="bg-muted aspect-4/5 w-full overflow-hidden rounded-xl lg:w-48">
-          <img
-            v-if="hotel.featured?.lg || hotel.featured?.url"
-            :src="hotel.featured?.lg || hotel.featured?.url"
+          <Lightbox
+            v-if="galleryItems.length"
+            :items="galleryItems"
             :alt="hotel.name"
-            class="size-full object-cover select-none"
-          />
+            thumbnail-key="md"
+          >
+            <template #trigger="{ open }">
+              <button type="button" class="block size-full cursor-zoom-in" @click="open">
+                <img
+                  :src="galleryItems[0].md || galleryItems[0].lg || galleryItems[0].url"
+                  :alt="hotel.name"
+                  class="size-full object-cover select-none"
+                />
+              </button>
+            </template>
+          </Lightbox>
+          <div v-else class="from-muted to-muted/40 size-full bg-gradient-to-br" />
         </div>
 
         <div class="flex min-w-0 flex-col items-start gap-y-2 lg:pt-3">
@@ -96,10 +113,24 @@
           </p>
 
           <div v-if="canEdit" class="mt-3 flex flex-wrap items-center gap-2">
-            <Button :to="`${base}/edit`" size="sm">
-              <Icon name="hugeicons:edit-02" class="size-4" />
-              Edit Hotel
+            <Button as-child size="sm">
+              <NuxtLink :to="`${base}/edit`">
+                <Icon name="hugeicons:edit-02" class="size-4" />
+                Edit Hotel
+              </NuxtLink>
             </Button>
+            <Button variant="outline" size="sm" @click="pivotDialogOpen = true">
+              <Icon name="hugeicons:settings-02" class="size-4" />
+              Event settings
+            </Button>
+            <NuxtLink
+              :to="`/hotels-master/${hotelSlug}`"
+              target="_blank"
+              class="border-border hover:bg-muted inline-flex items-center gap-x-1 rounded-md border px-3 py-1.5 text-sm tracking-tight active:scale-98"
+            >
+              <Icon name="hugeicons:link-square-02" class="size-4" />
+              Open in master
+            </NuxtLink>
           </div>
         </div>
 
@@ -120,14 +151,61 @@
       <div ref="hotelArea" class="pt-6">
         <NuxtPage :event="event" :project="project" :hotel="hotel" @refresh="refresh" />
       </div>
+
+      <DialogResponsive v-model:open="pivotDialogOpen" dialog-max-width="28rem">
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="space-y-1">
+            <h3 class="page-title">Event settings</h3>
+            <p class="page-description">
+              Controls how this hotel behaves for "{{ event?.title || "this event" }}". Master hotel
+              fields (name, address, gallery) are global - edit them in the master page.
+            </p>
+          </div>
+
+          <form @submit.prevent="savePivot" class="mt-4 space-y-4">
+            <label class="flex items-start gap-x-2">
+              <Checkbox id="pivot-active" v-model="pivotForm.is_active" class="mt-0.5" />
+              <div class="space-y-0.5">
+                <Label for="pivot-active" class="cursor-pointer">Active for this event</Label>
+                <p class="text-muted-foreground text-xs tracking-tight">
+                  When off, public booking flow hides this hotel from the event listing.
+                </p>
+              </div>
+            </label>
+
+            <div class="space-y-2">
+              <Label>Notes</Label>
+              <Textarea
+                v-model="pivotForm.notes"
+                placeholder="Internal notes about this hotel for this event"
+                rows="3"
+              />
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+              <Button variant="outline" type="button" @click="pivotDialogOpen = false">Cancel</Button>
+              <Button type="submit" :disabled="pivotSaving">
+                <Spinner v-if="pivotSaving" />
+                Save settings
+              </Button>
+            </div>
+          </form>
+        </div>
+      </DialogResponsive>
     </template>
   </div>
 </template>
 
 <script setup>
+import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { TabNav } from "@/components/ui/tab-nav";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Lightbox } from "@/components/ui/lightbox";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: ["sanctum:auth", "permission"],
@@ -172,6 +250,44 @@ const hotelTabs = computed(() => [
 const eventTabs = inject("eventTabs", null);
 useTabSwipe(hotelArea, hotelTabs, { parentTabs: eventTabs });
 
+const client = useSanctumClient();
+const pivotDialogOpen = ref(false);
+const pivotSaving = ref(false);
+const pivotForm = reactive({ is_active: true, notes: "" });
+
+watch(
+  hotel,
+  (h) => {
+    if (!h) return;
+    const pivotEv = h.events?.[0]?.pivot ?? null;
+    pivotForm.is_active = pivotEv?.is_active !== false;
+    pivotForm.notes = pivotEv?.notes ?? "";
+  },
+  { immediate: true }
+);
+
+async function savePivot() {
+  pivotSaving.value = true;
+  try {
+    await client(`/api/events/${props.event.id}/hotels/${hotelSlug.value}`, {
+      method: "PUT",
+      body: {
+        pivot: {
+          is_active: pivotForm.is_active,
+          notes: pivotForm.notes || null,
+        },
+      },
+    });
+    toast.success("Event settings saved");
+    pivotDialogOpen.value = false;
+    await refresh();
+  } catch (err) {
+    toast.error("Save failed", { description: err?.data?.message || err?.message });
+  } finally {
+    pivotSaving.value = false;
+  }
+}
+
 const metaItems = computed(() => {
   if (!hotel.value) return [];
   const parts = [hotel.value.address, hotel.value.city, hotel.value.country].filter(Boolean);
@@ -199,6 +315,31 @@ const metaItems = computed(() => {
       value: `${Number(hotel.value.commission_rate).toFixed(2)}% / ${Number(hotel.value.tax_percentage).toFixed(2)}% / ${Number(hotel.value.service_charge_percentage).toFixed(2)}%`,
     },
   ];
+});
+
+const galleryItems = computed(() => {
+  if (!hotel.value) return [];
+  const items = [];
+  if (hotel.value.featured) {
+    items.push({
+      sm: hotel.value.featured.sm,
+      md: hotel.value.featured.md,
+      lg: hotel.value.featured.lg || hotel.value.featured.url,
+      url: hotel.value.featured.url,
+      alt: hotel.value.name,
+    });
+  }
+  for (const media of hotel.value.media ?? []) {
+    if (hotel.value.featured && media.id === hotel.value.featured.id) continue;
+    items.push({
+      sm: media.sm,
+      md: media.md,
+      lg: media.lg || media.url,
+      url: media.url,
+      alt: hotel.value.name,
+    });
+  }
+  return items;
 });
 
 const mapEmbedUrl = computed(() => {

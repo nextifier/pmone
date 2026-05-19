@@ -11,15 +11,13 @@
 
     <div v-else-if="profile" class="mx-auto flex min-h-dvh max-w-xl flex-col px-4 pb-16 sm:pt-4">
       <div class="relative -mx-4">
-        <div
-          class="aspect-[3/1] overflow-hidden sm:rounded-xl"
-          :style="!profile?.cover_image && !profile?.profile_image ? coverGradientStyle : undefined"
-          :class="[
-            'outline-primary/5 @container relative flex items-center justify-center outline -outline-offset-1',
-          ]"
+        <button
+          v-if="profile.cover_image?.md"
+          type="button"
+          class="outline-primary/5 @container relative flex aspect-[3/1] w-full cursor-zoom-in items-center justify-center overflow-hidden outline -outline-offset-1 sm:rounded-xl"
+          @click="openLightboxFor('cover')"
         >
           <img
-            v-if="profile.cover_image?.md"
             :src="profile.cover_image.md"
             :alt="`${profile.name} cover`"
             class="size-full object-cover"
@@ -27,9 +25,18 @@
             height="500"
             loading="lazy"
           />
+        </button>
 
+        <div
+          v-else
+          class="aspect-[3/1] overflow-hidden sm:rounded-xl"
+          :style="!profile?.profile_image ? coverGradientStyle : undefined"
+          :class="[
+            'outline-primary/5 @container relative flex items-center justify-center outline -outline-offset-1',
+          ]"
+        >
           <img
-            v-else-if="profile?.profile_image?.sm"
+            v-if="profile?.profile_image?.sm"
             :src="profile.profile_image.sm"
             alt=""
             class="size-full scale-150 object-cover blur-[80px]"
@@ -52,7 +59,21 @@
           <div class="flex flex-col items-start gap-y-2">
             <div class="relative flex w-full items-end justify-between gap-2">
               <div class="relative isolate">
-                <div class="ring-background rounded-full ring-4">
+                <button
+                  v-if="profile?.profile_image"
+                  type="button"
+                  class="ring-background block cursor-zoom-in rounded-full ring-4 transition active:scale-98"
+                  @click="openLightboxFor('profile')"
+                >
+                  <Avatar
+                    :model="profile"
+                    size="sm"
+                    rounded="rounded-full"
+                    class="size-24 lg:size-32"
+                  />
+                </button>
+
+                <div v-else class="ring-background rounded-full ring-4">
                   <Avatar
                     :model="profile"
                     size="sm"
@@ -221,11 +242,24 @@
           </ClientOnly>
         </div>
       </div>
+
+      <Lightbox
+        v-if="lightboxItems.length > 0"
+        v-model:open="lightboxOpen"
+        v-model:index="lightboxIndex"
+        :items="lightboxItems"
+      >
+        <template #trigger>
+          <div />
+        </template>
+      </Lightbox>
     </div>
   </div>
 </template>
 
 <script setup>
+import { Lightbox } from "@/components/ui/lightbox";
+
 const props = defineProps({
   profile: {
     type: Object,
@@ -378,4 +412,44 @@ const { socialLinks, customLinks } = computed(() => {
 }).value;
 
 const getSocialIcon = (label) => SOCIAL_ICON_MAP[label?.toLowerCase()] || "hugeicons:link-02";
+
+const lightboxOpen = ref(false);
+const lightboxIndex = ref(0);
+
+const lightboxItems = computed(() => {
+  const items = [];
+  if (props.profile?.cover_image) {
+    items.push({
+      sm: props.profile.cover_image.sm || props.profile.cover_image.md,
+      md: props.profile.cover_image.md,
+      lg: props.profile.cover_image.lg || props.profile.cover_image.md,
+      xl: props.profile.cover_image.xl || props.profile.cover_image.lg || props.profile.cover_image.md,
+      name: `${props.profile.name} - Cover`,
+      alt: props.profile.cover_image.alt || `${props.profile.name} cover`,
+      caption: props.profile.cover_image.caption || undefined,
+    });
+  }
+  if (props.profile?.profile_image) {
+    items.push({
+      sm: props.profile.profile_image.sm || props.profile.profile_image.md,
+      md: props.profile.profile_image.md || props.profile.profile_image.sm,
+      lg: props.profile.profile_image.lg || props.profile.profile_image.md || props.profile.profile_image.sm,
+      xl: props.profile.profile_image.xl || props.profile.profile_image.lg || props.profile.profile_image.md || props.profile.profile_image.sm,
+      name: `${props.profile.name} - Profile`,
+      alt: props.profile.profile_image.alt || `${props.profile.name} profile`,
+      caption: props.profile.profile_image.caption || undefined,
+    });
+  }
+  return items;
+});
+
+const openLightboxFor = (target) => {
+  if (lightboxItems.value.length === 0) return;
+  if (target === "cover" && props.profile?.cover_image) {
+    lightboxIndex.value = 0;
+  } else if (target === "profile") {
+    lightboxIndex.value = props.profile?.cover_image ? 1 : 0;
+  }
+  lightboxOpen.value = true;
+};
 </script>

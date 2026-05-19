@@ -66,8 +66,6 @@ use Spatie\Tags\Tag;
  * @property-read User|null $updater
  * @property-read Collection<int, User> $users
  * @property-read int|null $users_count
- * @property-read Collection<int, Visit> $visits
- * @property-read int|null $visits_count
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand byStatus(string $status)

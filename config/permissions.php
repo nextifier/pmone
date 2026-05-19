@@ -19,6 +19,9 @@ use App\Models\Order;
 use App\Models\Partner;
 use App\Models\Post;
 use App\Models\Project;
+use App\Models\ProjectPaymentGateway;
+use App\Models\PromoCode;
+use App\Models\PromotionRule;
 use App\Models\Reservation;
 use App\Models\RoomType;
 use App\Models\RundownItem;
@@ -214,6 +217,24 @@ return [
             'model' => Announcement::class,
             'actions' => ['create', 'read', 'update', 'delete'],
         ],
+        'payment_gateways' => [
+            'label' => 'Payment Gateways',
+            'description' => 'Manage per-project payment gateway credentials (Xendit, etc.)',
+            'model' => ProjectPaymentGateway::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'promotion_rules' => [
+            'label' => 'Promotion Rules',
+            'description' => 'Manage discount and penalty rule definitions',
+            'model' => PromotionRule::class,
+            'actions' => ['create', 'read', 'update', 'delete', 'restore'],
+        ],
+        'promo_codes' => [
+            'label' => 'Promo Codes',
+            'description' => 'Manage issued promo codes and vouchers',
+            'model' => PromoCode::class,
+            'actions' => ['create', 'read', 'update', 'delete', 'restore'],
+        ],
     ],
 
     /*
@@ -264,6 +285,7 @@ return [
                 'reservations.manual_entry' => 'Create reservation manually from admin',
                 'reservations.export' => 'Export reservations to Excel',
                 'reservations.view_documents' => 'Download invoice and receipt PDFs',
+                'reservations.mark_paid' => 'Manually mark reservation as paid (override Xendit webhook)',
             ],
         ],
         'event_branding' => [
@@ -271,6 +293,16 @@ return [
             'description' => 'Override branding per event (used in invoices and receipts)',
             'permissions' => [
                 'events.update_branding' => 'Update event branding settings',
+            ],
+        ],
+        'promotions' => [
+            'label' => 'Promotion Operations',
+            'description' => 'Apply or void promotions on existing purchases (reservations, orders)',
+            'permissions' => [
+                'promotions.apply_manual' => 'Manually apply discount or penalty to a purchase',
+                'promotions.void_adjustment' => 'Void an already applied adjustment',
+                'promotions.bulk_generate_codes' => 'Bulk-generate promo codes from a rule',
+                'promotions.view_reports' => 'View promo code usage and ROI reports',
             ],
         ],
     ],

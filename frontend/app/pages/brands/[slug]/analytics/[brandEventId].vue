@@ -17,20 +17,24 @@
 
             <div class="flex items-center gap-x-2">
               <span class="text-muted-foreground text-sm tracking-tight">Edition</span>
-              <select
+              <Select
                 v-model="selectedBrandEventId"
-                @change="onEditionChange"
-                class="border-border bg-background hover:bg-muted rounded-md border px-2.5 py-1.5 text-sm tracking-tight"
+                @update:model-value="onEditionChange"
               >
-                <option value="all">All Events (Global)</option>
-                <option
-                  v-for="be in editions"
-                  :key="be.id"
-                  :value="be.id"
-                >
-                  {{ be.event?.title || `Edition ${be.event?.edition_number}` }}
-                </option>
-              </select>
+                <SelectTrigger class="h-9 w-[220px]">
+                  <SelectValue placeholder="Select edition" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Events (Global)</SelectItem>
+                  <SelectItem
+                    v-for="be in editions"
+                    :key="be.id"
+                    :value="String(be.id)"
+                  >
+                    {{ be.event?.title || `Edition ${be.event?.edition_number}` }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -52,6 +56,14 @@
 </template>
 
 <script setup>
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 definePageMeta({
   ssr: false,
   middleware: ["sanctum:auth"],
@@ -65,10 +77,12 @@ const { user: authUser } = useSanctumAuth();
 const { hasPermission, hasAnyRole } = usePermission();
 
 const selectedPeriod = ref(7);
-const selectedBrandEventId = ref(brandEventIdParam.value);
+// shadcn-vue Select model is a string; coerce route param so the binding
+// stays consistent between the initial render and user-triggered changes.
+const selectedBrandEventId = ref(String(brandEventIdParam.value));
 
 watch(brandEventIdParam, (val) => {
-  selectedBrandEventId.value = val;
+  selectedBrandEventId.value = String(val);
 });
 
 const {
@@ -152,7 +166,9 @@ const onEditionChange = () => {
     navigateTo(`/brands/${slug.value}/analytics`);
     return;
   }
-  if (selectedBrandEventId.value !== brandEventIdParam.value) {
+  // Select emits strings, the route param is parsed to a Number — compare
+  // loose-equality after coercion so we don't loop-navigate.
+  if (Number(selectedBrandEventId.value) !== brandEventIdParam.value) {
     navigateTo(`/brands/${slug.value}/analytics/${selectedBrandEventId.value}`);
   }
 };

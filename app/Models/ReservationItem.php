@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
@@ -13,19 +14,22 @@ use Illuminate\Support\Str;
  * @property int $reservation_id
  * @property int $room_type_id
  * @property int|null $allotment_id
- * @property \Illuminate\Support\Carbon $check_in_date
- * @property \Illuminate\Support\Carbon $check_out_date
+ * @property Carbon $check_in_date
+ * @property Carbon $check_out_date
  * @property int $nights
  * @property int $qty
  * @property string|null $guest_name
  * @property string|null $guest_identity
  * @property numeric $rate_per_night
  * @property numeric $subtotal
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\HotelEventAllotment|null $allotment
- * @property-read \App\Models\Reservation|null $reservation
- * @property-read \App\Models\RoomType|null $roomType
+ * @property string|null $notes
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property array<array-key, mixed>|null $daily_breakdown
+ * @property-read HotelEventAllotment|null $allotment
+ * @property-read Reservation|null $reservation
+ * @property-read RoomType|null $roomType
+ *
  * @method static \Database\Factories\ReservationItemFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem newQuery()
@@ -34,6 +38,7 @@ use Illuminate\Support\Str;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereCheckInDate($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereCheckOutDate($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereDailyBreakdown($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereGuestIdentity($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereGuestName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereId($value)
@@ -45,6 +50,7 @@ use Illuminate\Support\Str;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereSubtotal($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereUlid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 class ReservationItem extends Model
@@ -63,6 +69,8 @@ class ReservationItem extends Model
         'guest_identity',
         'rate_per_night',
         'subtotal',
+        'notes',
+        'daily_breakdown',
     ];
 
     protected function casts(): array
@@ -74,6 +82,7 @@ class ReservationItem extends Model
             'qty' => 'integer',
             'rate_per_night' => 'decimal:2',
             'subtotal' => 'decimal:2',
+            'daily_breakdown' => 'array',
         ];
     }
 

@@ -78,7 +78,7 @@
 
           <!-- Email field (if require_email) -->
           <div v-if="form.settings?.require_email" class="space-y-1.5">
-            <Label for="respondent_email"> Email <span class="text-destructive">*</span> </Label>
+            <Label for="respondent_email"> Email</Label>
             <Input
               id="respondent_email"
               v-model="respondentEmail"

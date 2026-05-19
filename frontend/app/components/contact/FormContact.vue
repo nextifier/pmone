@@ -1,7 +1,7 @@
 <template>
   <form @submit.prevent="save" class="mt-4 space-y-4">
     <div class="space-y-2">
-      <Label for="name">Person Name <span class="text-destructive">*</span></Label>
+      <Label for="name">Person Name</Label>
       <Input id="name" ref="nameInputRef" v-model="form.name" />
       <p v-if="errors.name" class="text-destructive text-xs tracking-tight">
         {{ errors.name }}

@@ -60,6 +60,17 @@ export interface EventRef {
   project?: { id: number; username: string; name: string }
 }
 
+export type PricingType = 'flat' | 'dynamic'
+
+export interface RoomTypePricingPeriod {
+  id?: number
+  start_date: string
+  end_date: string
+  rate: number
+  label?: string | null
+  is_active?: boolean
+}
+
 export interface RoomType {
   id: number
   ulid: string
@@ -73,6 +84,8 @@ export interface RoomType {
   area_sqm: number | null
   base_rate: number
   all_in_rate?: number
+  pricing_type?: PricingType
+  pricing_periods?: RoomTypePricingPeriod[]
   breakfast_included: boolean
   smoking_allowed: boolean
   amenities: string[] | null
@@ -115,8 +128,12 @@ export interface HotelTransferOption {
 export interface AvailabilityResult {
   available: number
   qty: number
+  requested_qty?: number
   rate_per_night: number
   all_in_per_night: number
+  subtotal?: number
   estimated_total: number
+  pricing_type?: PricingType
+  daily_breakdown?: Array<{ date: string; rate: number }>
   is_available?: boolean
 }

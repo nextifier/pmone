@@ -24,7 +24,7 @@ beforeEach(function () {
 
     $this->project = Project::factory()->create(['status' => 'active']);
     $this->event = Event::factory()->create(['project_id' => $this->project->id, 'is_active' => true]);
-    $this->hotel = Hotel::factory()->for($this->event)->create();
+    $this->hotel = Hotel::factory()->withEvent($this->event)->create();
     $this->roomType = RoomType::factory()->create([
         'hotel_id' => $this->hotel->id,
         'base_rate' => 500000,
@@ -43,6 +43,7 @@ function basePayload(array $overrides = []): array
 {
     return array_merge([
         'hotel_id' => test()->hotel->id,
+        'event_id' => test()->event->id,
         'guest_name' => 'Test Guest',
         'guest_email' => 'test@example.com',
         'guest_phone' => '+62812345678',
@@ -120,7 +121,7 @@ test('transfer pax_count over max_pax is rejected', function () {
 });
 
 test('transfer belonging to different hotel is rejected', function () {
-    $otherHotel = Hotel::factory()->for($this->event)->create();
+    $otherHotel = Hotel::factory()->withEvent($this->event)->create();
     $foreignTransfer = HotelTransferOption::factory()->create([
         'hotel_id' => $otherHotel->id,
         'max_pax' => 4,

@@ -7,61 +7,40 @@
       </Button>
     </div>
 
-    <div v-if="pending" class="flex justify-center py-6">
-      <Spinner class="size-5" />
-    </div>
+    <TableData
+      :data="allotments"
+      :columns="columns"
+      :meta="meta"
+      model="allotments"
+      label="Allotment"
+      :pending="pending"
+      :client-only="true"
+      :show-add-button="false"
+      :column-toggle="false"
+      :searchable="false"
+      :initial-pagination="{ pageIndex: 0, pageSize: 50 }"
+      :initial-sorting="[{ id: 'start_date', desc: true }]"
+      @refresh="refresh"
+    />
 
-    <div v-else-if="!allotments.length" class="text-muted-foreground text-sm tracking-tight rounded-md border border-dashed py-10 text-center">
-      No allotments yet. Create one to commit room block to an event.
-    </div>
-
-    <div v-else class="overflow-x-auto rounded-md border">
-      <table class="w-full text-sm tracking-tight">
-        <thead class="bg-muted">
-          <tr class="text-left">
-            <th class="px-3 py-2">Room Type</th>
-            <th class="px-3 py-2">Date Range</th>
-            <th class="px-3 py-2 text-right">Quantity</th>
-            <th class="px-3 py-2">Surcharge</th>
-            <th class="px-3 py-2">Status</th>
-            <th class="px-3 py-2"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="a in allotments" :key="a.id" class="border-t">
-            <td class="px-3 py-2">{{ a.room_type?.name || "-" }}</td>
-            <td class="px-3 py-2 whitespace-nowrap">{{ a.start_date }} → {{ a.end_date }}</td>
-            <td class="px-3 py-2 text-right tabular-nums">{{ a.quantity }}</td>
-            <td class="px-3 py-2">{{ a.surcharge_type ? `${a.surcharge_amount} ${a.surcharge_type}` : "-" }}</td>
-            <td class="px-3 py-2">
-              <span :class="['rounded-full px-2 py-0.5 text-xs tracking-tight', a.is_active ? 'bg-success/15 text-success-foreground' : 'bg-muted text-muted-foreground']">
-                {{ a.is_active ? "Active" : "Inactive" }}
-              </span>
-            </td>
-            <td class="px-3 py-2">
-              <div class="flex gap-1 justify-end">
-                <button class="hover:bg-muted text-muted-foreground inline-flex size-7 items-center justify-center rounded" @click="openEditDialog(a)" title="Edit">
-                  <Icon name="lucide:pencil" class="size-3.5" />
-                </button>
-                <button v-if="canDelete" class="hover:bg-destructive/10 text-destructive inline-flex size-7 items-center justify-center rounded" @click="confirmDelete(a)" title="Delete">
-                  <Icon name="lucide:trash" class="size-3.5" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <DialogResponsive v-model:open="dialogOpen" dialog-max-width="30rem" :overflow-content="true">
+    <DialogResponsive
+      v-model:open="dialogOpen"
+      dialog-max-width="30rem"
+      :overflow-content="true"
+    >
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <h3 class="text-lg font-semibold tracking-tight">{{ editing ? "Edit Allotment" : "Add Allotment" }}</h3>
+          <h3 class="text-lg font-semibold tracking-tight">
+            {{ editing ? "Edit Allotment" : "Add Allotment" }}
+          </h3>
 
           <form @submit.prevent="handleSubmit" class="mt-4 space-y-3">
             <div class="space-y-2">
               <Label for="allotment_room_type">Room Type</Label>
-              <Select :model-value="form.room_type_id ? String(form.room_type_id) : undefined" @update:model-value="(v) => (form.room_type_id = v ? Number(v) : null)">
+              <Select
+                :model-value="form.room_type_id ? String(form.room_type_id) : undefined"
+                @update:model-value="(v) => (form.room_type_id = v ? Number(v) : null)"
+              >
                 <SelectTrigger id="allotment_room_type" class="w-full">
                   <SelectValue placeholder="Select room type" />
                 </SelectTrigger>
@@ -76,11 +55,20 @@
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-2">
                 <Label>Start Date</Label>
-                <Input v-model="form.start_date" type="date" required />
+                <DatePicker
+                  :model-value="form._start_date_obj"
+                  placeholder="Pick start date"
+                  @update:model-value="(d) => (form._start_date_obj = d)"
+                />
               </div>
               <div class="space-y-2">
                 <Label>End Date</Label>
-                <Input v-model="form.end_date" type="date" required />
+                <DatePicker
+                  :model-value="form._end_date_obj"
+                  placeholder="Pick end date"
+                  :min="form._start_date_obj"
+                  @update:model-value="(d) => (form._end_date_obj = d)"
+                />
               </div>
             </div>
 
@@ -89,10 +77,28 @@
               <Input v-model.number="form.quantity" type="number" min="1" required />
             </div>
 
+            <div class="space-y-2">
+              <Label>Custom base rate (override)</Label>
+              <Input
+                v-model.number="form.base_rate_override"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Leave empty to use room type's default base rate"
+              />
+              <p class="text-muted-foreground text-xs tracking-tight">
+                When set, this rate replaces the room type's default base rate for this event.
+                Dynamic pricing periods still take precedence when they apply.
+              </p>
+            </div>
+
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-2">
                 <Label for="surcharge_type">Surcharge Type</Label>
-                <Select :model-value="form.surcharge_type ?? 'none'" @update:model-value="(v) => (form.surcharge_type = v === 'none' ? null : v)">
+                <Select
+                  :model-value="form.surcharge_type ?? 'none'"
+                  @update:model-value="(v) => (form.surcharge_type = v === 'none' ? null : v)"
+                >
                   <SelectTrigger id="surcharge_type" class="w-full">
                     <SelectValue />
                   </SelectTrigger>
@@ -105,13 +111,24 @@
               </div>
               <div class="space-y-2">
                 <Label>Surcharge Amount</Label>
-                <Input v-model.number="form.surcharge_amount" type="number" step="0.01" min="0" :disabled="!form.surcharge_type" />
+                <Input
+                  v-model.number="form.surcharge_amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  :disabled="!form.surcharge_type"
+                />
               </div>
             </div>
 
             <div class="space-y-2">
               <Label>Release At (auto-release unsold)</Label>
-              <Input v-model="form.release_at" type="datetime-local" />
+              <DatePicker
+                with-time
+                :model-value="form._release_at_obj"
+                placeholder="Optional release datetime"
+                @update:model-value="(d) => (form._release_at_obj = d)"
+              />
             </div>
 
             <label class="flex items-center gap-2 text-sm tracking-tight">
@@ -139,7 +156,9 @@
             This allotment block will be moved to trash.
           </p>
           <div class="mt-3 flex justify-end gap-2">
-            <Button variant="outline" type="button" @click="deleteDialogOpen = false">Cancel</Button>
+            <Button variant="outline" type="button" @click="deleteDialogOpen = false">
+              Cancel
+            </Button>
             <Button variant="destructive" :disabled="deleting" @click="handleDelete">
               <Spinner v-if="deleting" />
               {{ deleting ? "Deleting..." : "Delete" }}
@@ -155,8 +174,10 @@
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -165,7 +186,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
-import { computed, reactive, ref } from "vue";
+import { TableData } from "@/components/ui/table-data";
+import { parseLocalDateString, toLocalDateString, toLocalDateTimeString } from "@/lib/utils";
+import { PopoverClose } from "reka-ui";
+import { computed, defineComponent, h, reactive, ref, resolveComponent } from "vue";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
@@ -173,19 +197,29 @@ const props = defineProps({
   hotelSlug: { type: String, required: true },
 });
 
-const baseUrl = computed(() => `/api/events/${props.eventId}/hotels/${props.hotelSlug}/allotments`);
-const roomsUrl = computed(() => `/api/events/${props.eventId}/hotels/${props.hotelSlug}/room-types`);
+const baseUrl = computed(
+  () => `/api/events/${props.eventId}/hotels/${props.hotelSlug}/allotments`
+);
+const roomsUrl = computed(
+  () => `/api/events/${props.eventId}/hotels/${props.hotelSlug}/room-types`
+);
 
 const client = useSanctumClient();
 const { hasPermission } = usePermission();
 const canCreate = computed(() => hasPermission("allotments.create"));
 const canDelete = computed(() => hasPermission("allotments.delete"));
 
-const { data, pending, refresh } = await useLazySanctumFetch(() => `${baseUrl.value}?per_page=50`, {
-  key: () => `hotel-${props.eventId}-${props.hotelSlug}-allotments`,
-});
+const { data, pending, refresh } = await useLazySanctumFetch(
+  () => `${baseUrl.value}?per_page=100`,
+  {
+    key: () => `hotel-${props.eventId}-${props.hotelSlug}-allotments`,
+  }
+);
 
 const allotments = computed(() => data.value?.data ?? []);
+const meta = computed(
+  () => data.value?.meta ?? { current_page: 1, last_page: 1, per_page: 50, total: allotments.value.length }
+);
 
 const { data: roomsData } = await useLazySanctumFetch(() => `${roomsUrl.value}?per_page=100`, {
   key: () => `hotel-${props.eventId}-${props.hotelSlug}-rooms-for-allotments`,
@@ -201,10 +235,17 @@ const form = reactive({
   start_date: "",
   end_date: "",
   quantity: 1,
+  base_rate_override: null,
   surcharge_type: null,
   surcharge_amount: null,
   release_at: "",
   is_active: true,
+  // Underscored mirrors are Date objects bound to DatePicker. Serialised to
+  // strings in handleSubmit so the backend keeps receiving its expected
+  // ISO-flavoured payload.
+  _start_date_obj: null,
+  _end_date_obj: null,
+  _release_at_obj: null,
 });
 
 const resetForm = () => {
@@ -213,10 +254,14 @@ const resetForm = () => {
     start_date: "",
     end_date: "",
     quantity: 1,
+    base_rate_override: null,
     surcharge_type: null,
     surcharge_amount: null,
     release_at: "",
     is_active: true,
+    _start_date_obj: null,
+    _end_date_obj: null,
+    _release_at_obj: null,
   });
 };
 
@@ -233,10 +278,14 @@ const openEditDialog = (a) => {
     start_date: a.start_date,
     end_date: a.end_date,
     quantity: a.quantity,
+    base_rate_override: a.base_rate_override ?? null,
     surcharge_type: a.surcharge_type,
     surcharge_amount: a.surcharge_amount,
     release_at: a.release_at ? a.release_at.slice(0, 16) : "",
     is_active: a.is_active,
+    _start_date_obj: parseLocalDateString(a.start_date),
+    _end_date_obj: parseLocalDateString(a.end_date),
+    _release_at_obj: a.release_at ? new Date(a.release_at) : null,
   });
   dialogOpen.value = true;
 };
@@ -244,12 +293,23 @@ const openEditDialog = (a) => {
 const handleSubmit = async () => {
   saving.value = true;
   try {
-    const payload = { ...form };
+    const payload = {
+      ...form,
+      start_date: form._start_date_obj ? toLocalDateString(form._start_date_obj) : "",
+      end_date: form._end_date_obj ? toLocalDateString(form._end_date_obj) : "",
+      release_at: form._release_at_obj ? toLocalDateTimeString(form._release_at_obj) : null,
+    };
+    delete payload._start_date_obj;
+    delete payload._end_date_obj;
+    delete payload._release_at_obj;
     if (!payload.surcharge_type) {
       payload.surcharge_amount = null;
     }
     if (!payload.release_at) {
       payload.release_at = null;
+    }
+    if (payload.base_rate_override === "" || payload.base_rate_override === undefined) {
+      payload.base_rate_override = null;
     }
 
     if (editing.value) {
@@ -291,4 +351,172 @@ const handleDelete = async () => {
     deleting.value = false;
   }
 };
+
+const formatDate = (iso) =>
+  iso
+    ? new Date(iso).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "-";
+
+const RowActions = defineComponent({
+  props: { item: { type: Object, required: true } },
+  setup(p) {
+    return () =>
+      h("div", { class: "flex justify-end" }, [
+        h(
+          Popover,
+          {},
+          {
+            default: () => [
+              h(
+                PopoverTrigger,
+                { asChild: true },
+                {
+                  default: () =>
+                    h(
+                      "button",
+                      {
+                        class:
+                          "hover:bg-muted data-[state=open]:bg-muted inline-flex size-8 items-center justify-center rounded-md",
+                      },
+                      [h(resolveComponent("Icon"), { name: "lucide:ellipsis", class: "size-4" })]
+                    ),
+                }
+              ),
+              h(
+                PopoverContent,
+                { align: "end", class: "w-40 p-1" },
+                {
+                  default: () =>
+                    h("div", { class: "flex flex-col" }, [
+                      h(
+                        PopoverClose,
+                        { asChild: true },
+                        {
+                          default: () =>
+                            h(
+                              "button",
+                              {
+                                class:
+                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                onClick: () => openEditDialog(p.item),
+                              },
+                              [
+                                h(resolveComponent("Icon"), {
+                                  name: "lucide:pencil-line",
+                                  class: "size-4 shrink-0",
+                                }),
+                                h("span", {}, "Edit"),
+                              ]
+                            ),
+                        }
+                      ),
+                      canDelete.value
+                        ? h(
+                            PopoverClose,
+                            { asChild: true },
+                            {
+                              default: () =>
+                                h(
+                                  "button",
+                                  {
+                                    class:
+                                      "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                    onClick: () => confirmDelete(p.item),
+                                  },
+                                  [
+                                    h(resolveComponent("Icon"), {
+                                      name: "lucide:trash",
+                                      class: "size-4 shrink-0",
+                                    }),
+                                    h("span", {}, "Delete"),
+                                  ]
+                                ),
+                            }
+                          )
+                        : null,
+                    ]),
+                }
+              ),
+            ],
+          }
+        ),
+      ]);
+  },
+});
+
+const columns = [
+  {
+    header: "Room Type",
+    accessorKey: "room_type",
+    cell: ({ row }) =>
+      h(
+        "span",
+        { class: "font-medium tracking-tight" },
+        row.original.room_type?.name || "-"
+      ),
+    size: 200,
+    enableHiding: false,
+  },
+  {
+    header: "Date Range",
+    accessorKey: "start_date",
+    cell: ({ row }) =>
+      h(
+        "span",
+        { class: "text-sm tracking-tight whitespace-nowrap" },
+        `${formatDate(row.original.start_date)} → ${formatDate(row.original.end_date)}`
+      ),
+    size: 220,
+  },
+  {
+    header: "Quantity",
+    accessorKey: "quantity",
+    cell: ({ row }) =>
+      h("span", { class: "tabular-nums text-sm tracking-tight" }, row.original.quantity),
+    size: 90,
+  },
+  {
+    header: "Surcharge",
+    accessorKey: "surcharge_type",
+    cell: ({ row }) => {
+      const a = row.original;
+      const text = a.surcharge_type
+        ? `${new Intl.NumberFormat("id-ID").format(Number(a.surcharge_amount) || 0)}${
+            a.surcharge_type === "percentage" ? "%" : ""
+          } ${a.surcharge_type}`
+        : "-";
+      return h("span", { class: "text-sm tracking-tight text-muted-foreground" }, text);
+    },
+    size: 160,
+  },
+  {
+    header: "Status",
+    accessorKey: "is_active",
+    cell: ({ row }) =>
+      h(
+        "span",
+        {
+          class: [
+            "inline-flex items-center rounded-full px-2 py-0.5 text-xs tracking-tight",
+            row.original.is_active
+              ? "bg-success/15 text-success-foreground"
+              : "bg-muted text-muted-foreground",
+          ],
+        },
+        row.original.is_active ? "Active" : "Inactive"
+      ),
+    size: 90,
+  },
+  {
+    id: "actions",
+    header: () => h("span", { class: "sr-only" }, "Actions"),
+    cell: ({ row }) => h(RowActions, { item: row.original }),
+    size: 60,
+    enableHiding: false,
+  },
+];
 </script>

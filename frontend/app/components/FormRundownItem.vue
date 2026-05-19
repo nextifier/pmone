@@ -338,7 +338,7 @@ defineShortcuts({
 
     <!-- Title (translatable, required) -->
     <div class="space-y-2">
-      <Label class="text-sm">Title <span class="text-destructive">*</span></Label>
+      <Label class="text-sm">Title</Label>
       <Input
         v-model="titleField"
         :placeholder="activeLocale === 'en' ? 'Session title' : 'Judul sesi'"

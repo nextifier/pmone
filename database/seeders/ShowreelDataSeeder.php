@@ -338,16 +338,25 @@ class ShowreelDataSeeder extends Seeder
                     $subtotal += $totalPrice;
                 }
 
-                // Apply discount to some orders
+                $discountAmount = 0;
                 if (fake()->boolean(25)) {
-                    $order->discount_type = fake()->randomElement(['percentage', 'fixed']);
-                    $order->discount_value = $order->discount_type === 'percentage'
-                        ? fake()->randomElement([5, 10, 15, 20])
-                        : fake()->randomElement([500000, 1000000, 2000000]);
+                    $discountAmount = fake()->randomElement([
+                        round($subtotal * 0.05, 2),
+                        round($subtotal * 0.10, 2),
+                        round($subtotal * 0.15, 2),
+                        500000,
+                        1000000,
+                    ]);
+                    $discountAmount = min($discountAmount, $subtotal);
                 }
 
+                $taxableAmount = $subtotal - $discountAmount;
+                $taxAmount = round($taxableAmount * (float) $order->tax_rate / 100, 2);
+
                 $order->subtotal = $subtotal;
-                $order->recalculateTotal();
+                $order->discount_amount = $discountAmount;
+                $order->tax_amount = $taxAmount;
+                $order->total = $taxableAmount + $taxAmount;
                 $order->save();
 
                 $orderCount++;

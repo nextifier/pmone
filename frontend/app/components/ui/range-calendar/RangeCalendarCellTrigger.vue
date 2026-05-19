@@ -37,7 +37,7 @@ const forwardedProps = useForwardProps(delegatedProps)
         // Unavailable
         'data-[unavailable]:text-destructive-foreground data-[unavailable]:line-through',
         // Outside months
-        'data-[outside-view]:text-muted-foreground',
+        'data-[outside-view]:text-muted-foreground data-[outside-view]:opacity-50',
         // Today dot indicator
         'data-[today]:after:bg-primary data-[today]:data-[selected]:after:bg-primary-foreground data-[today]:after:absolute data-[today]:after:bottom-[3px] data-[today]:after:left-1/2 data-[today]:after:size-[3px] data-[today]:after:-translate-x-1/2 data-[today]:after:rounded-full',
         props.class

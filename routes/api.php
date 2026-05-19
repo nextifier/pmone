@@ -35,6 +35,7 @@ use App\Http\Controllers\Api\LinkPageController;
 use App\Http\Controllers\Api\LinkPageItemController;
 use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\OrderAdjustmentController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PartnerCategoryController;
 use App\Http\Controllers\Api\PartnerController;
@@ -47,11 +48,15 @@ use App\Http\Controllers\Api\ProjectBusinessCategoryController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ProjectCustomFieldController;
 use App\Http\Controllers\Api\ProjectPaymentGatewayController;
+use App\Http\Controllers\Api\PromoCodeController;
+use App\Http\Controllers\Api\PromotionRuleController;
 use App\Http\Controllers\Api\Public\PublicHotelController;
+use App\Http\Controllers\Api\Public\PublicPromoCodeController;
 use App\Http\Controllers\Api\Public\PublicReservationController;
 use App\Http\Controllers\Api\PublicBlogController;
 use App\Http\Controllers\Api\PublicFormController;
 use App\Http\Controllers\Api\PublicProjectController;
+use App\Http\Controllers\Api\ReservationAdjustmentController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\RolesPermissionsSyncController;
@@ -232,6 +237,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/{eventSlug}', [EventController::class, 'show'])->name('events.show');
         Route::put('/{eventSlug}', [EventController::class, 'update'])->name('events.update');
         Route::post('/{eventSlug}/set-active', [EventController::class, 'setActive'])->name('events.set-active');
+        Route::patch('/{eventSlug}/hotel-reservation-toggle', [EventController::class, 'toggleHotelReservation'])->name('events.hotel-reservation-toggle');
         Route::delete('/{eventSlug}', [EventController::class, 'destroy'])->name('events.destroy');
     });
 
@@ -314,8 +320,34 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/{ulid}', [OrderController::class, 'show'])->name('orders.show');
         Route::patch('/{ulid}/operational-status', [OrderController::class, 'updateOperationalStatus'])->name('orders.update-operational-status');
         Route::patch('/{ulid}/payment-status', [OrderController::class, 'updatePaymentStatus'])->name('orders.update-payment-status');
-        Route::patch('/{ulid}/discount', [OrderController::class, 'applyDiscount'])->name('orders.apply-discount');
         Route::delete('/{ulid}', [OrderController::class, 'destroy'])->name('orders.destroy');
+
+        Route::post('/{ulid}/adjustments', [OrderAdjustmentController::class, 'store'])
+            ->name('orders.adjustments.store');
+        Route::delete('/{ulid}/adjustments/{adjustment:ulid}', [OrderAdjustmentController::class, 'destroy'])
+            ->name('orders.adjustments.destroy');
+    });
+
+    // Promotion rule & promo code admin CRUD
+    Route::prefix('promotion-rules')->group(function () {
+        Route::get('/', [PromotionRuleController::class, 'index'])->name('promotion-rules.index');
+        Route::get('/trash', [PromotionRuleController::class, 'trash'])->name('promotion-rules.trash');
+        Route::post('/', [PromotionRuleController::class, 'store'])->name('promotion-rules.store');
+        Route::get('/{rule:ulid}', [PromotionRuleController::class, 'show'])->name('promotion-rules.show');
+        Route::patch('/{rule:ulid}', [PromotionRuleController::class, 'update'])->name('promotion-rules.update');
+        Route::delete('/{rule:ulid}', [PromotionRuleController::class, 'destroy'])->name('promotion-rules.destroy');
+        Route::post('/{ulid}/restore', [PromotionRuleController::class, 'restore'])->name('promotion-rules.restore');
+        Route::get('/{rule:ulid}/report', [PromotionRuleController::class, 'report'])->name('promotion-rules.report');
+        Route::post('/{rule:ulid}/codes', [PromoCodeController::class, 'store'])->name('promo-codes.store');
+        Route::post('/{rule:ulid}/codes/bulk', [PromoCodeController::class, 'bulkStore'])->name('promo-codes.bulk-store');
+    });
+
+    Route::prefix('promo-codes')->group(function () {
+        Route::get('/', [PromoCodeController::class, 'index'])->name('promo-codes.index');
+        Route::get('/{code:ulid}', [PromoCodeController::class, 'show'])->name('promo-codes.show');
+        Route::patch('/{code:ulid}', [PromoCodeController::class, 'update'])->name('promo-codes.update');
+        Route::delete('/{code:ulid}', [PromoCodeController::class, 'destroy'])->name('promo-codes.destroy');
+        Route::get('/{code:ulid}/usages', [PromoCodeController::class, 'usages'])->name('promo-codes.usages');
     });
 
     // Brand management endpoints (nested under project events)
@@ -799,9 +831,37 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('api-consumers')->group(
     Route::get('/{apiConsumer}/analytics', [ApiConsumerController::class, 'analytics'])->name('api-consumers.analytics');
 });
 
+// Global hotel master CRUD (top-level, hotel as global resource)
+Route::middleware(['auth:sanctum', 'verified'])->prefix('hotels')->group(function () {
+    Route::get('/', [HotelController::class, 'globalIndex'])
+        ->middleware('can:hotels.read')
+        ->name('hotels.index');
+    Route::post('/', [HotelController::class, 'globalStore'])
+        ->middleware('can:hotels.create')
+        ->name('hotels.store');
+    Route::get('/trash', [HotelController::class, 'globalTrash'])
+        ->middleware('can:hotels.delete')
+        ->name('hotels.trash');
+    Route::post('/trash/{id}/restore', [HotelController::class, 'globalRestore'])
+        ->middleware('can:hotels.delete')
+        ->name('hotels.restore');
+    Route::delete('/trash/{id}', [HotelController::class, 'globalForceDestroy'])
+        ->middleware('can:hotels.delete')
+        ->name('hotels.force-destroy');
+    Route::get('/{hotel}', [HotelController::class, 'globalShow'])
+        ->middleware('can:hotels.read')
+        ->name('hotels.show');
+    Route::put('/{hotel}', [HotelController::class, 'globalUpdate'])
+        ->middleware('can:hotels.update')
+        ->name('hotels.update');
+    Route::delete('/{hotel}', [HotelController::class, 'globalDestroy'])
+        ->middleware('can:hotels.delete')
+        ->name('hotels.destroy');
+});
+
 // Hotel & Reservation management endpoints (nested under event, authenticated + verified)
-Route::middleware(['auth:sanctum', 'verified'])->prefix('events/{event}')->group(function () {
-    // Hotels CRUD
+Route::middleware(['auth:sanctum', 'verified', 'hotel-reservation-enabled'])->prefix('events/{event}')->group(function () {
+    // Hotels CRUD (event-scoped via pivot - attach/detach/edit pivot fields)
     Route::prefix('hotels')->group(function () {
         Route::get('/', [HotelController::class, 'index'])
             ->middleware('can:hotels.read')
@@ -809,15 +869,6 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('events/{event}')->group
         Route::post('/', [HotelController::class, 'store'])
             ->middleware('can:hotels.create')
             ->name('events.hotels.store');
-        Route::get('/trash', [HotelController::class, 'trash'])
-            ->middleware('can:hotels.delete')
-            ->name('events.hotels.trash');
-        Route::post('/trash/{id}/restore', [HotelController::class, 'restore'])
-            ->middleware('can:hotels.delete')
-            ->name('events.hotels.restore');
-        Route::delete('/trash/{id}', [HotelController::class, 'forceDestroy'])
-            ->middleware('can:hotels.delete')
-            ->name('events.hotels.force-destroy');
         Route::get('/{hotel}', [HotelController::class, 'show'])
             ->middleware('can:hotels.read')
             ->name('events.hotels.show');
@@ -921,6 +972,9 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('events/{event}')->group
         Route::post('/{reservation}/cancel', [ReservationController::class, 'cancel'])
             ->middleware('can:reservations.cancel')
             ->name('events.reservations.cancel');
+        Route::post('/{reservation}/mark-paid', [ReservationController::class, 'markPaid'])
+            ->middleware('can:reservations.mark_paid')
+            ->name('events.reservations.mark-paid');
         Route::get('/{reservation}/invoice.pdf', [ReservationController::class, 'invoicePdf'])
             ->middleware('can:reservations.view_documents')
             ->name('events.reservations.invoice-pdf');
@@ -930,6 +984,13 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('events/{event}')->group
         Route::get('/{reservation}/activity', [ReservationController::class, 'activityLog'])
             ->middleware('can:reservations.read')
             ->name('events.reservations.activity');
+
+        Route::post('/{reservation}/adjustments', [ReservationAdjustmentController::class, 'store'])
+            ->middleware('can:promotions.apply_manual')
+            ->name('events.reservations.adjustments.store');
+        Route::delete('/{reservation}/adjustments/{adjustment:ulid}', [ReservationAdjustmentController::class, 'destroy'])
+            ->middleware('can:promotions.void_adjustment')
+            ->name('events.reservations.adjustments.destroy');
     });
 });
 
@@ -951,10 +1012,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::prefix('projects/{project:username}/payment-gateways')->group(function () {
         Route::get('/', [ProjectPaymentGatewayController::class, 'index'])->name('projects.payment-gateways.index');
         Route::post('/', [ProjectPaymentGatewayController::class, 'store'])->name('projects.payment-gateways.store');
+        Route::post('/test-connection', [ProjectPaymentGatewayController::class, 'testConnection'])
+            ->middleware('throttle:30,1')
+            ->name('projects.payment-gateways.test-connection');
         Route::get('/{paymentGateway}', [ProjectPaymentGatewayController::class, 'show'])->name('projects.payment-gateways.show');
         Route::patch('/{paymentGateway}', [ProjectPaymentGatewayController::class, 'update'])->name('projects.payment-gateways.update');
         Route::delete('/{paymentGateway}', [ProjectPaymentGatewayController::class, 'destroy'])->name('projects.payment-gateways.destroy');
-        Route::post('/{paymentGateway}/set-default', [ProjectPaymentGatewayController::class, 'setDefault'])->name('projects.payment-gateways.set-default');
     });
 });
 
@@ -1046,25 +1109,39 @@ Route::middleware(['api.key'])->prefix('public')->group(function () {
     Route::get('/hotels', [PublicHotelController::class, 'index'])
         ->middleware(CacheResponse::for(3600, 'hotels'));
     Route::post('/hotels/availability', [PublicHotelController::class, 'availability'])
-        ->middleware('throttle:60,1');
+        ->middleware(['throttle:60,1', 'hotel-reservation-enabled']);
     Route::get('/events/{eventSlug}/hotels/{hotelSlug}', [PublicHotelController::class, 'show'])
-        ->middleware(CacheResponse::for(3600, 'hotels'));
+        ->middleware(['hotel-reservation-enabled', CacheResponse::for(3600, 'hotels')]);
+    Route::get(
+        '/events/{eventSlug}/hotels/{hotelSlug}/room-types/{roomTypeId}/daily-availability',
+        [PublicHotelController::class, 'dailyAvailability']
+    )->middleware(['throttle:60,1', 'hotel-reservation-enabled']);
+    Route::get(
+        '/events/{eventSlug}/hotels/{hotelSlug}/daily-availability-aggregate',
+        [PublicHotelController::class, 'dailyAvailabilityAggregate']
+    )->middleware(['throttle:60,1', 'hotel-reservation-enabled']);
     Route::post('/reservations', [PublicReservationController::class, 'store'])
-        ->middleware('throttle:10,1');
+        ->middleware(['throttle:10,1', 'hotel-reservation-enabled']);
+    Route::post('/reservations/preview-pricing', [PublicReservationController::class, 'previewPricing'])
+        ->middleware(['throttle:60,1', 'hotel-reservation-enabled']);
     Route::get('/reservations/magic/{token}', [PublicReservationController::class, 'showByMagicLink'])
         ->middleware('throttle:30,1');
+    Route::get('/reservations/status/{reservationNumber}', [PublicReservationController::class, 'statusByNumber'])
+        ->middleware('throttle:30,1');
+    Route::post('/reservations/magic/{token}/retry-payment', [PublicReservationController::class, 'retryPaymentByMagicLink'])
+        ->middleware('throttle:5,1');
     Route::get('/reservations/magic/{token}/invoice.pdf', [PublicReservationController::class, 'invoicePdfByMagicLink'])
         ->middleware('throttle:30,1');
     Route::get('/reservations/magic/{token}/receipt.pdf', [PublicReservationController::class, 'receiptPdfByMagicLink'])
         ->middleware('throttle:30,1');
+
+    Route::post('/promo-codes/validate', [PublicPromoCodeController::class, 'validate'])
+        ->middleware('throttle:30,1');
 });
 
-// Xendit webhook (no auth - signature verified in controller)
-// Legacy global endpoint (env-configured token). Deprecated: use per-project URL below.
-// Must be declared BEFORE the per-project route so the literal segment "invoice"
-// is not captured as a {project} username.
-Route::post('/webhooks/xendit/invoice', [XenditWebhookController::class, 'legacyInvoice']);
-
-// Per-project URL: each project registers its own webhook URL in its Xendit dashboard.
+// Xendit webhook (no auth - signature verified per-project in controller).
+// Each project registers its own webhook URL in its Xendit dashboard using
+// the project's username as the path segment, and the project's saved
+// webhook_token (per-gateway in DB) is used to verify the x-callback-token.
 Route::post('/webhooks/xendit/{project:username}', [XenditWebhookController::class, 'invoice'])
     ->name('webhooks.xendit.invoice');

@@ -1,52 +1,47 @@
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-6">
     <div class="space-y-4">
-      <h2 class="text-base font-medium tracking-tight">Company Information</h2>
-
-      <div class="grid gap-4 lg:grid-cols-2">
+      <div class="grid gap-x-2 gap-y-4 lg:grid-cols-[minmax(0,200px)_1fr]">
         <div class="space-y-2">
-          <Label>Company Name<span class="text-destructive">*</span></Label>
-          <Input v-model="form.company_name" placeholder="PT PM One" required />
+          <Label>Logo</Label>
+          <InputFileImage
+            v-model="logoFiles"
+            v-model:delete-flag="deleteLogo"
+            :initial-image="form.logo_url"
+            :accepted-file-types="logoMimeTypes"
+            container-class="relative isolate aspect-3/2 w-full"
+            image-class="border-border bg-background size-full rounded-lg border object-contain p-2"
+          />
+          <p class="text-muted-foreground text-xs tracking-tight text-nowrap sm:text-sm">
+            PNG, JPG, WebP or SVG. Max 5MB.
+          </p>
         </div>
-        <div class="space-y-2">
-          <Label>Tax ID (NPWP)</Label>
-          <Input v-model="form.tax_id" placeholder="00.000.000.0-000.000" />
-        </div>
-      </div>
 
-      <div class="space-y-2">
-        <Label>Logo</Label>
-        <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
-          Company logo for Invoice & Receipt PDF header. JPG/PNG/WebP/SVG, max 5MB.
-        </p>
-        <InputFileImage
-          v-model="logoFiles"
-          v-model:delete-flag="deleteLogo"
-          :initial-image="form.logo_url"
-          container-class="relative isolate aspect-3/2 max-w-xs"
-        />
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <Label>Company Name</Label>
+            <Input v-model="form.company_name" placeholder="PT PM One" required />
+          </div>
+          <div class="space-y-2">
+            <Label>Tax ID (NPWP)</Label>
+            <Input v-model="form.tax_id" placeholder="00.000.000.0-000.000" />
+          </div>
+        </div>
       </div>
 
       <div class="space-y-2">
         <Label>Address</Label>
-        <Textarea v-model="form.address" rows="2" placeholder="Full address line" />
+        <Textarea
+          v-model="form.address"
+          rows="2"
+          placeholder="Street, city, postal code"
+        />
       </div>
 
-      <div class="grid gap-4 lg:grid-cols-2">
-        <div class="space-y-2">
-          <Label>City</Label>
-          <Input v-model="form.city" placeholder="Jakarta" />
-        </div>
-        <div class="space-y-2">
-          <Label>Country</Label>
-          <Input v-model="form.country" placeholder="Indonesia" />
-        </div>
-      </div>
-
-      <div class="grid gap-4 lg:grid-cols-3">
+      <div class="grid gap-x-2 gap-y-4 lg:grid-cols-3">
         <div class="space-y-2">
           <Label>Phone</Label>
-          <Input v-model="form.phone" placeholder="+62 21 ..." />
+          <InputPhone v-model="form.phone" />
         </div>
         <div class="space-y-2">
           <Label>Email</Label>
@@ -54,75 +49,32 @@
         </div>
         <div class="space-y-2">
           <Label>Website</Label>
-          <Input v-model="form.website" type="url" placeholder="https://pmone.id" />
-        </div>
-      </div>
-    </div>
-
-    <div class="space-y-4 border-t pt-6">
-      <div class="flex items-center justify-between">
-        <h2 class="text-base font-medium tracking-tight">Bank Accounts</h2>
-        <Button type="button" variant="outline" size="sm" @click="addBankAccount">
-          <Icon name="lucide:plus" class="size-4" />
-          Add Bank
-        </Button>
-      </div>
-
-      <div v-if="!form.bank_accounts.length" class="text-muted-foreground rounded-md border border-dashed py-6 text-center text-sm tracking-tight">
-        No bank accounts. Add one for invoice payment instructions.
-      </div>
-
-      <div v-for="(bank, idx) in form.bank_accounts" :key="idx" class="rounded-md border p-3 space-y-3">
-        <div class="grid gap-3 lg:grid-cols-3">
-          <div class="space-y-1.5">
-            <Label class="text-xs sm:text-sm">Bank Name</Label>
-            <Input v-model="bank.bank_name" placeholder="BCA" />
-          </div>
-          <div class="space-y-1.5">
-            <Label class="text-xs sm:text-sm">Account Number</Label>
-            <Input v-model="bank.account_number" placeholder="0000000000" />
-          </div>
-          <div class="space-y-1.5">
-            <Label class="text-xs sm:text-sm">Account Name</Label>
-            <Input v-model="bank.account_name" placeholder="PT PM One" />
-          </div>
-        </div>
-        <div class="flex justify-end">
-          <Button type="button" variant="ghost" size="sm" class="text-destructive hover:text-destructive" @click="removeBankAccount(idx)">
-            <Icon name="lucide:trash-2" class="size-4" />
-            Remove
-          </Button>
-        </div>
-      </div>
-    </div>
-
-    <div class="space-y-4 border-t pt-6">
-      <h2 class="text-base font-medium tracking-tight">Appearance</h2>
-
-      <div class="grid gap-4 lg:grid-cols-2">
-        <div class="space-y-2">
-          <Label>Primary Color</Label>
-          <div class="flex items-center gap-2">
-            <input v-model="form.primary_color" type="color" class="size-9 cursor-pointer rounded-md border" />
-            <Input v-model="form.primary_color" placeholder="#0F172A" class="flex-1" />
-          </div>
-          <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
-            Accent color for PDF section headings.
-          </p>
+          <InputLink v-model="form.website" />
         </div>
       </div>
 
       <div class="space-y-2">
         <Label>Footer Note</Label>
-        <Textarea v-model="form.footer_note" rows="2" placeholder="Thank you for your business." />
-        <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
-          Appears at the bottom of every Invoice & Receipt.
+        <Textarea
+          v-model="form.footer_note"
+          rows="2"
+          placeholder="Thank you for your business."
+        />
+        <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+          Appears at the bottom of every Invoice & Receipt PDF.
         </p>
       </div>
     </div>
 
     <div class="flex justify-end gap-2 border-t pt-4">
-      <Button v-if="$slots.cancel || cancelLabel" variant="outline" type="button" @click="$emit('cancel')">{{ cancelLabel || "Cancel" }}</Button>
+      <Button
+        v-if="$slots.cancel || cancelLabel"
+        variant="outline"
+        type="button"
+        @click="$emit('cancel')"
+      >
+        {{ cancelLabel || "Cancel" }}
+      </Button>
       <Button type="submit" :disabled="saving">
         <Icon v-if="saving" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
         {{ submitLabel }}
@@ -136,6 +88,8 @@ import { reactive, ref, watch } from "vue";
 import InputFileImage from "@/components/InputFileImage.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { InputLink } from "@/components/ui/input-link";
+import { InputPhone } from "@/components/ui/input-phone";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -151,19 +105,23 @@ const emit = defineEmits(["update:modelValue", "submit", "cancel"]);
 const logoFiles = ref([]);
 const deleteLogo = ref(false);
 
+const logoMimeTypes = [
+  "image/jpeg",
+  "image/png",
+  "image/jpg",
+  "image/webp",
+  "image/svg+xml",
+];
+
 const blank = () => ({
   logo_url: "",
   company_name: "",
   address: "",
-  city: "",
-  country: "",
   phone: "",
   email: "",
   website: "",
   tax_id: "",
-  bank_accounts: [],
   footer_note: "",
-  primary_color: "#0F172A",
 });
 
 const form = reactive(blank());
@@ -171,28 +129,12 @@ const form = reactive(blank());
 watch(
   () => props.modelValue,
   (val) => {
-    const next = { ...blank(), ...(val || {}) };
-    next.bank_accounts = Array.isArray(next.bank_accounts)
-      ? next.bank_accounts.map((b) => ({
-          bank_name: b.bank_name ?? "",
-          account_number: b.account_number ?? "",
-          account_name: b.account_name ?? "",
-        }))
-      : [];
-    Object.assign(form, next);
+    Object.assign(form, { ...blank(), ...(val || {}) });
     logoFiles.value = [];
     deleteLogo.value = false;
   },
   { immediate: true, deep: true }
 );
-
-const addBankAccount = () => {
-  form.bank_accounts.push({ bank_name: "", account_number: "", account_name: "" });
-};
-
-const removeBankAccount = (idx) => {
-  form.bank_accounts.splice(idx, 1);
-};
 
 const handleSubmit = () => {
   const payload = JSON.parse(JSON.stringify(form));

@@ -75,7 +75,7 @@ async function fetchOrders() {
 }
 
 function formatPrice(amount) {
-  return `Rp ${Number(amount).toLocaleString("id-ID")}`;
+  return `Rp${Number(amount).toLocaleString("id-ID")}`;
 }
 
 function formatDate(dateStr) {

@@ -37,38 +37,14 @@
                 >
               </div>
 
-              <div class="relative">
-                <Input
-                  v-model="form.password"
-                  :type="showPassword ? 'text' : 'password'"
-                  name="password"
-                  class="!pr-12"
-                  ref="password"
-                  id="password"
-                  required
-                />
-                <div class="absolute top-1/2 right-2 -translate-y-1/2">
-                  <button
-                    @click="toggleShowPassword"
-                    type="button"
-                    tabindex="-1"
-                    class="hover:bg-muted flex size-7 items-center justify-center rounded-full transition active:scale-95"
-                  >
-                    <Icon
-                      v-if="!showPassword"
-                      name="lucide:eye"
-                      class="size-4 shrink-0"
-                      v-tippy="$t('auth.showPassword')"
-                    />
-                    <Icon
-                      v-else
-                      name="lucide:eye-off"
-                      class="size-4 shrink-0"
-                      v-tippy="$t('auth.hidePassword')"
-                    />
-                  </button>
-                </div>
-              </div>
+              <InputPassword
+                v-model="form.password"
+                name="password"
+                id="password"
+                required
+                :show-label="$t('auth.showPassword')"
+                :hide-label="$t('auth.hidePassword')"
+              />
               <InputErrorMessage v-if="errors?.password" :errors="errors.password" />
             </div>
 
@@ -111,7 +87,6 @@ definePageMeta({
 usePageMeta(null, { title: "Log in" });
 
 const loading = ref(false);
-const showPassword = ref(false);
 const form = reactive({
   email: "",
   password: "",
@@ -134,24 +109,5 @@ const submit = async () => {
   } finally {
     loading.value = false;
   }
-};
-
-const toggleShowPassword = () => {
-  showPassword.value = !showPassword.value;
-
-  let el = document.querySelector("#password");
-  el.focus();
-
-  // Move cursor to the end of input after focusing
-  setTimeout(() => {
-    if (typeof el.selectionStart == "number") {
-      el.selectionStart = el.selectionEnd = el.value.length;
-    } else if (typeof el.createTextRange != "undefined") {
-      el.focus();
-      var range = el.createTextRange();
-      range.collapse(false);
-      range.select();
-    }
-  }, 0);
 };
 </script>

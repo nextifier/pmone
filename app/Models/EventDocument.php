@@ -12,6 +12,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 use Spatie\MediaLibrary\HasMedia;
@@ -39,13 +42,14 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property int|null $updated_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\Event|null $event
+ * @property-read User|null $creator
+ * @property-read Event|null $event
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read Collection<int, \App\Models\EventDocumentSubmission> $submissions
+ * @property-read Collection<int, EventDocumentSubmission> $submissions
  * @property-read int|null $submissions_count
- * @property-read \App\Models\User|null $updater
+ * @property-read User|null $updater
+ *
  * @method static \Database\Factories\EventDocumentFactory factory($count = null, $state = [])
  * @method static Builder<static>|EventDocument findSimilarSlugs(string $attribute, array $config, string $slug)
  * @method static Builder<static>|EventDocument newModelQuery()
@@ -72,6 +76,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|EventDocument whereUpdatedAt($value)
  * @method static Builder<static>|EventDocument whereUpdatedBy($value)
  * @method static Builder<static>|EventDocument withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
+ *
  * @mixin \Eloquent
  */
 class EventDocument extends Model implements HasMedia, Sortable
@@ -80,6 +85,7 @@ class EventDocument extends Model implements HasMedia, Sortable
     use HasMediaManager;
     use HasSlug;
     use InteractsWithMedia;
+    use LogsActivity;
     use SortableTrait;
 
     protected $fillable = [
@@ -158,6 +164,30 @@ class EventDocument extends Model implements HasMedia, Sortable
     public function getRouteKeyName(): string
     {
         return 'ulid';
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'title',
+                'slug',
+                'document_type',
+                'is_required',
+                'blocks_next_step',
+                'submission_deadline',
+                'booth_types',
+                'content_version',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
+
+    public function tapActivity(Activity $activity, string $eventName): void
+    {
+        if ($projectId = $this->event?->project_id) {
+            $activity->properties = $activity->properties->put('project_id', $projectId);
+        }
     }
 
     public function buildSortQuery(): Builder

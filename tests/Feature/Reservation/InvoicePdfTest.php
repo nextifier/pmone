@@ -31,12 +31,12 @@ beforeEach(function () {
     ]);
 
     $this->event = Event::factory()->create();
-    $this->hotel = Hotel::factory()->for($this->event)->create();
+    $this->hotel = Hotel::factory()->withEvent($this->event)->create();
     $this->room = RoomType::factory()->create(['hotel_id' => $this->hotel->id]);
 });
 
 test('admin can download invoice pdf', function () {
-    $reservation = Reservation::factory()->create(['hotel_id' => $this->hotel->id]);
+    $reservation = Reservation::factory()->create(['hotel_id' => $this->hotel->id, 'event_id' => $this->event->id]);
     ReservationItem::factory()->create([
         'reservation_id' => $reservation->id,
         'room_type_id' => $this->room->id,
@@ -49,7 +49,7 @@ test('admin can download invoice pdf', function () {
 });
 
 test('admin cannot download receipt before payment', function () {
-    $reservation = Reservation::factory()->create(['hotel_id' => $this->hotel->id]);
+    $reservation = Reservation::factory()->create(['hotel_id' => $this->hotel->id, 'event_id' => $this->event->id]);
     ReservationItem::factory()->create([
         'reservation_id' => $reservation->id,
         'room_type_id' => $this->room->id,
@@ -61,7 +61,7 @@ test('admin cannot download receipt before payment', function () {
 });
 
 test('admin can download receipt after payment', function () {
-    $reservation = Reservation::factory()->paid()->create(['hotel_id' => $this->hotel->id]);
+    $reservation = Reservation::factory()->paid()->create(['hotel_id' => $this->hotel->id, 'event_id' => $this->event->id]);
     ReservationItem::factory()->create([
         'reservation_id' => $reservation->id,
         'room_type_id' => $this->room->id,

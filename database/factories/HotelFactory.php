@@ -16,7 +16,6 @@ class HotelFactory extends Factory
         $name = fake()->company().' Hotel';
 
         return [
-            'event_id' => Event::factory(),
             'name' => $name,
             'description' => fake()->paragraph(),
             'star_rating' => fake()->numberBetween(3, 5),
@@ -35,5 +34,17 @@ class HotelFactory extends Factory
     public function inactive(): static
     {
         return $this->state(fn () => ['is_active' => false]);
+    }
+
+    /**
+     * Attach the created hotel to an event via hotel_event pivot.
+     * Replaces the legacy ->for($event) BelongsTo idiom.
+     */
+    public function withEvent(?Event $event = null): static
+    {
+        return $this->afterCreating(function (Hotel $hotel) use ($event) {
+            $event = $event ?? Event::factory()->create();
+            $hotel->events()->syncWithoutDetaching([$event->id => ['is_active' => true]]);
+        });
     }
 }

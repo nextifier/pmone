@@ -460,6 +460,15 @@ class BrandController extends Controller
 
         $filename = 'brands_'.now()->format('Y-m-d_His').'.xlsx';
 
+        activity()
+            ->causedBy($request->user())
+            ->event('exported')
+            ->withProperties([
+                'model_type' => 'Brand',
+                'filename' => $filename,
+            ])
+            ->log('Exported brands');
+
         return Excel::download($export, $filename);
     }
 

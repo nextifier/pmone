@@ -1,9 +1,9 @@
 <?php
 
 return [
-    'secret_key' => env('XENDIT_SECRET_KEY'),
-    'webhook_token' => env('XENDIT_WEBHOOK_TOKEN'),
-    'is_production' => env('XENDIT_IS_PRODUCTION', false),
+    // Per-project Xendit credentials are stored encrypted in
+    // project_payment_gateways table. No global env fallback — each project
+    // MUST register its own gateway via Settings → Payment Gateways.
     'invoice_duration' => 86400, // 24 hours in seconds
     'currency' => 'IDR',
 

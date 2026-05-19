@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Contracts\Pricing\Purchasable;
 use App\Enums\OperationalStatus;
 use App\Enums\PaymentStatus;
+use App\Traits\HasAdjustments;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -21,11 +23,14 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int $brand_event_id
  * @property string $order_number
  * @property OperationalStatus $operational_status
+ * @property PaymentStatus $payment_status
+ * @property string|null $cancellation_reason
+ * @property string|null $order_period
  * @property string|null $notes
- * @property string|null $discount_type
- * @property numeric|null $discount_value
- * @property numeric|null $discount_amount
  * @property numeric $subtotal
+ * @property numeric $discount_amount
+ * @property numeric $penalty_amount
+ * @property string|null $promo_code_applied
  * @property numeric $tax_rate
  * @property numeric $tax_amount
  * @property numeric $total
@@ -35,50 +40,26 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int|null $updated_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property PaymentStatus $payment_status
- * @property string|null $cancellation_reason
- * @property string|null $order_period
- * @property numeric|null $applied_penalty_rate
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\BrandEvent $brandEvent
- * @property-read \App\Models\User|null $creator
- * @property-read Collection<int, \App\Models\OrderItem> $items
+ * @property-read BrandEvent $brandEvent
+ * @property-read User|null $creator
+ * @property-read Collection<int, OrderItem> $items
  * @property-read int|null $items_count
- * @property-read \App\Models\User|null $updater
+ * @property-read User|null $updater
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order byOperationalStatus(string $status)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order byPaymentStatus(string $status)
  * @method static \Database\Factories\OrderFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereAppliedPenaltyRate($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBrandEventId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCancellationReason($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereConfirmedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCreatedBy($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereDiscountAmount($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereDiscountType($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereDiscountValue($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereNotes($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereOperationalStatus($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereOrderNumber($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereOrderPeriod($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order wherePaymentStatus($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereSubmittedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereSubtotal($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTaxAmount($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTaxRate($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTotal($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUlid($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedBy($value)
+ *
  * @mixin \Eloquent
  */
-class Order extends Model
+class Order extends Model implements Purchasable
 {
+    use HasAdjustments;
     use HasFactory;
     use LogsActivity;
 
@@ -89,12 +70,11 @@ class Order extends Model
         'payment_status',
         'cancellation_reason',
         'order_period',
-        'applied_penalty_rate',
         'notes',
-        'discount_type',
-        'discount_value',
-        'discount_amount',
         'subtotal',
+        'discount_amount',
+        'penalty_amount',
+        'promo_code_applied',
         'tax_rate',
         'tax_amount',
         'total',
@@ -107,10 +87,9 @@ class Order extends Model
         return [
             'operational_status' => OperationalStatus::class,
             'payment_status' => PaymentStatus::class,
-            'applied_penalty_rate' => 'decimal:2',
             'subtotal' => 'decimal:2',
-            'discount_value' => 'decimal:2',
             'discount_amount' => 'decimal:2',
+            'penalty_amount' => 'decimal:2',
             'tax_rate' => 'decimal:2',
             'tax_amount' => 'decimal:2',
             'total' => 'decimal:2',
@@ -166,7 +145,15 @@ class Order extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['operational_status', 'payment_status', 'confirmed_at'])
+            ->logOnly([
+                'operational_status',
+                'payment_status',
+                'confirmed_at',
+                'discount_amount',
+                'penalty_amount',
+                'promo_code_applied',
+                'total',
+            ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
@@ -198,23 +185,91 @@ class Order extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
-    // Methods
+    // --- Purchasable contract ---
 
-    public function recalculateTotal(): void
+    public function pricingLines(): array
     {
-        $subtotal = (float) $this->subtotal;
-        $discountAmount = 0;
+        return [
+            ['key' => 'subtotal', 'amount' => (float) $this->subtotal, 'taxable' => true],
+        ];
+    }
 
-        if ($this->discount_type === 'percentage' && $this->discount_value > 0) {
-            $discountAmount = round($subtotal * (float) $this->discount_value / 100, 2);
-        } elseif ($this->discount_type === 'fixed' && $this->discount_value > 0) {
-            $discountAmount = min((float) $this->discount_value, $subtotal);
+    public function taxRate(): float
+    {
+        return (float) ($this->tax_rate ?? 0) / 100;
+    }
+
+    public function serviceChargeRate(): float
+    {
+        return 0.0;
+    }
+
+    public function subtotalForDiscountBase(): float
+    {
+        return (float) $this->subtotal;
+    }
+
+    public function customerEmail(): ?string
+    {
+        $brandEvent = $this->relationLoaded('brandEvent') ? $this->brandEvent : $this->brandEvent()->with('brand')->first();
+
+        return $brandEvent?->brand?->email ?? null;
+    }
+
+    public function persistTotals(array $totals): void
+    {
+        $this->forceFill([
+            'discount_amount' => $totals['discount_amount'] ?? 0,
+            'penalty_amount' => $totals['penalty_amount'] ?? 0,
+            'tax_amount' => $totals['tax_amount'] ?? 0,
+            'total' => $totals['total_amount'] ?? 0,
+        ])->save();
+    }
+
+    public function getPurchaseContext(): array
+    {
+        $brandEvent = $this->relationLoaded('brandEvent') ? $this->brandEvent : $this->brandEvent()->first();
+        $items = $this->relationLoaded('items') ? $this->items : $this->items()->get();
+
+        return [
+            'event_id' => $brandEvent?->event_id,
+            'brand_id' => $brandEvent?->brand_id,
+            'event_product_ids' => $items->pluck('event_product_id')->filter()->unique()->values()->all(),
+            'category_ids' => $items->pluck('category_id')->filter()->unique()->values()->all(),
+            'qty' => (int) $items->sum('quantity'),
+            'morph_class' => $this->getMorphClass(),
+            'email' => $this->customerEmail(),
+        ];
+    }
+
+    public function purchaseItems(): array
+    {
+        $items = $this->relationLoaded('items') ? $this->items : $this->items()->get();
+
+        $out = [];
+
+        foreach ($items as $item) {
+            $qty = max(1, (int) $item->quantity);
+            $unitPrice = (float) $item->unit_price;
+
+            for ($i = 0; $i < $qty; $i++) {
+                $out[] = [
+                    'line_key' => 'subtotal',
+                    'item_id' => $item->id,
+                    'item_type' => 'event_product',
+                    'category_id' => $item->category_id !== null ? (int) $item->category_id : null,
+                    'unit_price' => $unitPrice,
+                    'qty' => 1,
+                    'taxable' => true,
+                    'meta' => [
+                        'event_product_id' => $item->event_product_id,
+                        'product_name' => $item->product_name,
+                    ],
+                ];
+            }
         }
 
-        $this->discount_amount = $discountAmount;
-        $taxableAmount = $subtotal - $discountAmount;
-        $this->tax_amount = round($taxableAmount * (float) $this->tax_rate / 100, 2);
-        $this->total = $taxableAmount + (float) $this->tax_amount;
+        return $out;
     }
 
     // Scopes

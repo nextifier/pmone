@@ -23,6 +23,7 @@ class StoreAllotmentRequest extends FormRequest
             'release_at' => ['nullable', 'date'],
             'surcharge_type' => ['nullable', 'string', 'in:fixed,percentage'],
             'surcharge_amount' => ['nullable', 'numeric', 'min:0', 'required_with:surcharge_type'],
+            'base_rate_override' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'is_active' => ['sometimes', 'boolean'],
         ];
     }

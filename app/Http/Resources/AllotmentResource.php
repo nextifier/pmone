@@ -20,6 +20,8 @@ class AllotmentResource extends JsonResource
             'release_at' => $this->release_at?->toIso8601String(),
             'surcharge_type' => $this->surcharge_type,
             'surcharge_amount' => $this->surcharge_amount !== null ? (float) $this->surcharge_amount : null,
+            'base_rate_override' => $this->base_rate_override !== null ? (float) $this->base_rate_override : null,
+            'effective_base_rate' => $this->whenLoaded('roomType', fn () => (float) ($this->base_rate_override ?? $this->roomType?->base_rate ?? 0)),
             'is_active' => $this->is_active,
             'room_type' => $this->whenLoaded('roomType', fn () => [
                 'id' => $this->roomType->id,

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\PricingType;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -20,6 +21,18 @@ class RoomTypeResource extends JsonResource
             'bed_type' => $this->bed_type,
             'area_sqm' => $this->area_sqm !== null ? (float) $this->area_sqm : null,
             'base_rate' => (float) $this->base_rate,
+            'pricing_type' => $this->pricing_type instanceof PricingType
+                ? $this->pricing_type->value
+                : (string) ($this->pricing_type ?? 'flat'),
+            'pricing_periods' => $this->whenLoaded('pricingPeriods', fn () => $this->pricingPeriods->map(fn ($p) => [
+                'id' => $p->id,
+                'start_date' => $p->start_date?->toDateString(),
+                'end_date' => $p->end_date?->toDateString(),
+                'rate' => (float) $p->rate,
+                'label' => $p->label,
+                'is_active' => (bool) $p->is_active,
+                'order_column' => $p->order_column,
+            ])->values()->all()),
             'breakfast_included' => $this->breakfast_included,
             'smoking_allowed' => (bool) $this->smoking_allowed,
             'amenities' => $this->tags->pluck('name')->values(),

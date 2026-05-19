@@ -2,8 +2,10 @@
 
 namespace App\Jobs\Reservation;
 
+use App\Enums\ReservationStatus;
 use App\Mail\Reservation\CancellationMail;
 use App\Models\Reservation;
+use App\Services\Reservation\ReservationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -23,7 +25,7 @@ class SendCancellationJob implements ShouldQueue
         public float $refundAmount,
     ) {}
 
-    public function handle(): void
+    public function handle(ReservationService $reservations): void
     {
         $reservation = Reservation::query()->find($this->reservationId);
 
@@ -31,6 +33,18 @@ class SendCancellationJob implements ShouldQueue
             return;
         }
 
-        Mail::send(new CancellationMail($reservation, $this->refundAmount));
+        [$rawToken, $hashedToken] = $reservations->generateMagicLinkToken();
+        $reservation->update([
+            'magic_link_token' => $hashedToken,
+            'magic_link_expires_at' => now()->addYear(),
+        ]);
+
+        $appUrl = rtrim(config('app.url'), '/');
+        $invoiceUrl = "{$appUrl}/api/public/reservations/magic/{$rawToken}/invoice.pdf";
+        $receiptUrl = in_array($reservation->status, [ReservationStatus::Paid, ReservationStatus::VoucherSent, ReservationStatus::Refunded], true)
+            ? "{$appUrl}/api/public/reservations/magic/{$rawToken}/receipt.pdf"
+            : null;
+
+        Mail::send(new CancellationMail($reservation, $this->refundAmount, $invoiceUrl, $receiptUrl));
     }
 }

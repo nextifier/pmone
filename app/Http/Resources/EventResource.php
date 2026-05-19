@@ -46,6 +46,7 @@ class EventResource extends JsonResource
             'onsite_penalty_rate' => $this->onsite_penalty_rate,
             'badge_vip_info' => $this->badge_vip_info,
             'is_active' => $this->is_active,
+            'hotel_reservation_enabled' => (bool) $this->hotel_reservation_enabled,
             'order_column' => $this->order_column,
             'poster_image' => $this->when(
                 $this->hasMedia('poster_image'),

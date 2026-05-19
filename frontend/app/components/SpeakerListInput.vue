@@ -52,7 +52,7 @@ function patch(index: number, key: keyof Speaker, value: string) {
       <div class="flex items-start gap-2">
         <div class="grid flex-1 gap-2 sm:grid-cols-3">
           <div class="space-y-1">
-            <Label class="text-xs">Name <span class="text-destructive">*</span></Label>
+            <Label class="text-xs">Name</Label>
             <Input
               :model-value="speaker.name"
               placeholder="e.g. Dr. John Doe"

@@ -199,10 +199,9 @@
         <div class="grid grid-cols-1 gap-y-6">
           <div v-if="showPassword" class="space-y-2">
             <Label for="password">Password</Label>
-            <Input
+            <InputPassword
               id="password"
               v-model="form.password"
-              type="password"
               minlength="8"
               autocomplete="new-password"
             />

@@ -201,7 +201,7 @@
             </div>
 
             <div class="space-y-2">
-              <Label>Name<span class="text-destructive">*</span></Label>
+              <Label>Name</Label>
               <Input v-model="createForm.name" placeholder="Partner name" auto-focus required />
             </div>
 

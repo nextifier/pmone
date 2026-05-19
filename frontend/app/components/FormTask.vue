@@ -3,7 +3,7 @@
     <div class="space-y-5">
       <!-- Title -->
       <div class="space-y-2">
-        <Label for="title">Task Title <span class="text-destructive">*</span></Label>
+        <Label for="title">Task Title</Label>
         <Textarea
           ref="titleInputRef"
           id="title"
@@ -177,7 +177,7 @@
 
       <!-- Visibility -->
       <div class="space-y-2.5">
-        <Label> Who can view this task? <span class="text-destructive">*</span> </Label>
+        <Label> Who can view this task?</Label>
         <RadioGroup v-model="form.visibility" class="space-y-0">
           <div
             v-for="option in visibilityOptions"
@@ -203,7 +203,7 @@
 
       <!-- Shared Users (only if visibility is 'shared') -->
       <div v-if="form.visibility === 'shared'" class="space-y-2">
-        <Label> Share with Users <span class="text-destructive">*</span> </Label>
+        <Label> Share with Users</Label>
         <UserMultiSelect
           v-if="eligibleUsers.length > 0"
           :users="eligibleUsers"

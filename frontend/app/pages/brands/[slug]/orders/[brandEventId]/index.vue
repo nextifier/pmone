@@ -69,11 +69,11 @@
 
           <!-- Onsite order badge -->
           <div
-            v-if="order.order_period === 'onsite_order'"
+            v-if="order.order_period === 'onsite_order' && Number(order.penalty_amount) > 0"
             class="text-muted-foreground mt-2 flex items-center gap-x-1.5 text-xs tracking-tight sm:text-sm"
           >
-            <Icon name="hugeicons:alert-02" class="size-3.5 shrink-0 text-amber-500" />
-            <span>Onsite Order - includes {{ order.applied_penalty_rate }}% surcharge</span>
+            <Icon name="hugeicons:alert-02" class="size-3.5 shrink-0 text-warning-foreground" />
+            <span>Onsite Order - includes {{ formatPrice(order.penalty_amount) }} surcharge</span>
           </div>
 
           <!-- Items list -->

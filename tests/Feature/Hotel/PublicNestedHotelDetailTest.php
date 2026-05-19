@@ -20,7 +20,7 @@ beforeEach(function () {
 
 test('nested public detail resolves hotel by event+hotel slug', function () {
     $event = Event::factory()->create(['slug' => 'iicc-2026', 'is_active' => true]);
-    $hotel = Hotel::factory()->for($event)->create(['slug' => 'grand-mercure']);
+    $hotel = Hotel::factory()->withEvent($event)->create(['slug' => 'grand-mercure']);
 
     $response = $this->getJson('/api/public/events/iicc-2026/hotels/grand-mercure', $this->headers);
 
@@ -32,7 +32,7 @@ test('nested public detail resolves hotel by event+hotel slug', function () {
 test('nested public detail returns 404 when hotel slug mismatches event', function () {
     $eventA = Event::factory()->create(['slug' => 'event-a', 'is_active' => true]);
     $eventB = Event::factory()->create(['slug' => 'event-b', 'is_active' => true]);
-    Hotel::factory()->for($eventA)->create(['slug' => 'same-hotel']);
+    Hotel::factory()->withEvent($eventA)->create(['slug' => 'same-hotel']);
 
     $response = $this->getJson('/api/public/events/event-b/hotels/same-hotel', $this->headers);
 
@@ -41,7 +41,7 @@ test('nested public detail returns 404 when hotel slug mismatches event', functi
 
 test('nested public detail returns hotel event + project relation', function () {
     $event = Event::factory()->create(['slug' => 'flei-2026', 'is_active' => true]);
-    $hotel = Hotel::factory()->for($event)->create(['slug' => 'holiday-inn']);
+    $hotel = Hotel::factory()->withEvent($event)->create(['slug' => 'holiday-inn']);
 
     $response = $this->getJson('/api/public/events/flei-2026/hotels/holiday-inn', $this->headers);
 

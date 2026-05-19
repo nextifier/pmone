@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -15,13 +17,15 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property string|null $ip_address
  * @property string|null $user_agent
  * @property string|null $referer
- * @property \Illuminate\Support\Carbon $clicked_at
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon $clicked_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read Model|\Eloquent $clickable
- * @property-read \App\Models\User|null $clicker
+ * @property-read User|null $clicker
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click anonymous()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click authenticated()
+ * @method static \Database\Factories\ClickFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click inDateRange($startDate, $endDate)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click lastDays(int $days = 7)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click newModelQuery()
@@ -38,6 +42,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereReferer($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Click whereUserAgent($value)
+ *
  * @mixin \Eloquent
  */
 class Click extends Model
@@ -67,7 +72,7 @@ class Click extends Model
         return $this->morphTo();
     }
 
-    public function clicker(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function clicker(): BelongsTo
     {
         return $this->belongsTo(User::class, 'clicker_id');
     }

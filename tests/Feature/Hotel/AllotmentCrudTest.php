@@ -30,7 +30,7 @@ beforeEach(function () {
 
     $this->project = Project::factory()->create(['status' => 'active']);
     $this->event = Event::factory()->create(['project_id' => $this->project->id]);
-    $this->hotel = Hotel::factory()->for($this->event)->create();
+    $this->hotel = Hotel::factory()->withEvent($this->event)->create();
     $this->roomType = RoomType::factory()->create(['hotel_id' => $this->hotel->id]);
 });
 

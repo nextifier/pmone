@@ -283,8 +283,47 @@ class LogController extends Controller
             'Task' => '/tasks',
             'Project' => $subject->username ? "/projects/{$subject->username}" : null,
             'EventProduct' => self::getEventProductUrl($subject),
+            'Reservation' => self::getReservationUrl($subject),
+            'Order' => self::getOrderUrl($subject),
+            'Announcement' => $subject->id ? "/announcements/{$subject->id}/edit" : null,
+            'Partner' => $subject->slug ? "/partners/{$subject->slug}/edit" : null,
+            'ProjectPaymentGateway' => self::getPaymentGatewayUrl($subject),
+            'Hotel' => $subject->slug ? "/hotels?search={$subject->slug}" : null,
+            'GaProperty' => '/web-analytics',
             default => null,
         };
+    }
+
+    private static function getReservationUrl(mixed $subject): ?string
+    {
+        $event = $subject->event;
+        $project = $event?->project;
+        if (! $event?->slug || ! $project?->username || ! $subject->ulid) {
+            return null;
+        }
+
+        return "/projects/{$project->username}/events/{$event->slug}/reservations/{$subject->ulid}";
+    }
+
+    private static function getOrderUrl(mixed $subject): ?string
+    {
+        $event = $subject->brandEvent?->event;
+        $project = $event?->project;
+        if (! $event?->slug || ! $project?->username || ! $subject->ulid) {
+            return null;
+        }
+
+        return "/projects/{$project->username}/events/{$event->slug}/operational/orders/{$subject->ulid}";
+    }
+
+    private static function getPaymentGatewayUrl(mixed $subject): ?string
+    {
+        $project = $subject->project;
+        if (! $project?->username) {
+            return null;
+        }
+
+        return "/projects/{$project->username}/settings/payment-gateways";
     }
 
     private static function getPromotionPostUrl(mixed $subject): ?string
@@ -469,6 +508,131 @@ class LogController extends Controller
                 $consumerName = $activity->properties['consumer_name'] ?? $subjectName ?? 'unknown';
 
                 return "{$userName} regenerated API key for \"{$consumerName}\"";
+
+            case 'payment_paid':
+                $amount = $activity->properties['amount'] ?? null;
+                $amountLabel = $amount ? ' ('.number_format((float) $amount).')' : '';
+
+                return $subjectName
+                    ? "Payment received for reservation \"{$subjectName}\"{$amountLabel}"
+                    : "Payment received via Xendit{$amountLabel}";
+
+            case 'payment_expired':
+                return $subjectName
+                    ? "Xendit invoice expired for reservation \"{$subjectName}\""
+                    : 'Xendit invoice expired';
+
+            case 'refund_initiated':
+                $amount = $activity->properties['refund_amount'] ?? null;
+                $amountLabel = $amount ? ' ('.number_format((float) $amount).')' : '';
+
+                return $subjectName
+                    ? "Refund initiated for reservation \"{$subjectName}\"{$amountLabel}"
+                    : "Refund initiated via Xendit{$amountLabel}";
+
+            case 'refund_settled':
+                return $subjectName
+                    ? "Refund settled for reservation \"{$subjectName}\""
+                    : 'Xendit refund settled';
+
+            case 'refund_failed':
+                $reason = $activity->properties['failure_reason'] ?? $activity->properties['error'] ?? null;
+                $reasonLabel = $reason ? " - {$reason}" : '';
+
+                return $subjectName
+                    ? "Refund failed for reservation \"{$subjectName}\"{$reasonLabel}"
+                    : "Xendit refund failed{$reasonLabel}";
+
+            case 'auto_expired':
+                return $subjectName
+                    ? "Reservation \"{$subjectName}\" auto-expired (unpaid)"
+                    : 'Reservation auto-expired (unpaid)';
+
+            case 'allotments_released':
+                $count = $activity->properties['released_count'] ?? 0;
+
+                return "Released {$count} expired allotment(s)";
+
+            case 'adjustment_applied':
+                $kind = $activity->properties['kind'] ?? 'adjustment';
+                $amount = $activity->properties['amount'] ?? null;
+                $amountLabel = $amount ? ' ('.number_format((float) $amount).')' : '';
+                $modelLabel = $subjectType ? self::humanizeModelName($subjectType) : 'record';
+
+                return $subjectName
+                    ? "{$userName} applied {$kind} on {$modelLabel} \"{$subjectName}\"{$amountLabel}"
+                    : "{$userName} applied {$kind}{$amountLabel}";
+
+            case 'adjustment_voided':
+                $kind = $activity->properties['kind'] ?? 'adjustment';
+                $modelLabel = $subjectType ? self::humanizeModelName($subjectType) : 'record';
+
+                return $subjectName
+                    ? "{$userName} voided {$kind} on {$modelLabel} \"{$subjectName}\""
+                    : "{$userName} voided {$kind}";
+
+            case 'media_deleted':
+                $fileName = $activity->properties['file_name'] ?? 'media';
+
+                return "{$userName} deleted media \"{$fileName}\"";
+
+            case 'payment_gateway_added':
+                $provider = $activity->properties['provider'] ?? 'gateway';
+                $mode = $activity->properties['mode'] ?? null;
+                $modeLabel = $mode ? " ({$mode})" : '';
+
+                return "{$userName} added payment gateway: {$provider}{$modeLabel}";
+
+            case 'payment_gateway_removed':
+                $provider = $activity->properties['provider'] ?? 'gateway';
+                $mode = $activity->properties['mode'] ?? null;
+                $modeLabel = $mode ? " ({$mode})" : '';
+
+                return "{$userName} removed payment gateway: {$provider}{$modeLabel}";
+
+            case 'payment_gateway_credentials_rotated':
+                $provider = $activity->properties['provider'] ?? 'gateway';
+                $fields = $activity->properties['rotated_fields'] ?? [];
+                $fieldsLabel = is_array($fields) && ! empty($fields) ? ' ('.implode(', ', $fields).')' : '';
+
+                return "{$userName} rotated credentials for {$provider}{$fieldsLabel}";
+
+            case 'analytics_synced':
+                $count = $activity->properties['properties_count'] ?? null;
+                if ($count !== null) {
+                    return "{$userName} triggered analytics sync for {$count} property(ies)";
+                }
+
+                return $subjectName
+                    ? "{$userName} triggered analytics sync for \"{$subjectName}\""
+                    : "{$userName} triggered analytics sync";
+
+            case 'event_linked':
+                $linkedTitle = $activity->properties['linked_event_title'] ?? 'an event';
+
+                return $subjectName
+                    ? "{$userName} linked \"{$linkedTitle}\" as conjunction to \"{$subjectName}\""
+                    : "{$userName} linked conjunction event \"{$linkedTitle}\"";
+
+            case 'reservation_cancelled':
+                $reason = $activity->properties['reason'] ?? null;
+                $reasonLabel = $reason ? " - {$reason}" : '';
+
+                return $subjectName
+                    ? "{$userName} cancelled reservation \"{$subjectName}\"{$reasonLabel}"
+                    : "{$userName} cancelled a reservation{$reasonLabel}";
+
+            case 'voucher_sent':
+                return $subjectName
+                    ? "{$userName} sent hotel voucher for \"{$subjectName}\""
+                    : "{$userName} sent hotel voucher";
+
+            case 'event_unlinked':
+                $linkedTitle = $activity->properties['linked_event_title'] ?? 'an event';
+
+                return $subjectName
+                    ? "{$userName} unlinked \"{$linkedTitle}\" from \"{$subjectName}\""
+                    : "{$userName} unlinked conjunction event \"{$linkedTitle}\"";
 
             case 'password_changed':
                 $viaReset = $activity->properties['via_reset'] ?? false;

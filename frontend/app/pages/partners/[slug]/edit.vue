@@ -29,7 +29,7 @@
 
             <!-- Name -->
             <div class="space-y-2">
-              <Label>Name<span class="text-destructive">*</span></Label>
+              <Label>Name</Label>
               <Input v-model="form.name" placeholder="Partner name" required />
             </div>
 

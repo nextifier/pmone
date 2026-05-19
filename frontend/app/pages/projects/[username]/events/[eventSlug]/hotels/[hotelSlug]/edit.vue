@@ -1,10 +1,11 @@
 <template>
   <div class="mx-auto space-y-6 pb-16 lg:max-w-4xl">
-    <div class="flex items-center gap-x-2.5">
-      <NuxtLink :to="`${eventBase}/hotels/${hotelSlug}`" class="hover:bg-muted text-muted-foreground inline-flex size-8 items-center justify-center rounded-md">
-        <Icon name="lucide:arrow-left" class="size-4" />
-      </NuxtLink>
-      <h1 class="page-title">Edit Hotel</h1>
+    <div class="flex flex-col items-start gap-y-4">
+      <ButtonBack :destination="`${eventBase}/hotels/${hotelSlug}`" />
+      <div class="flex items-center gap-x-2.5">
+        <Icon name="hugeicons:edit-02" class="size-5 sm:size-6" />
+        <h1 class="page-title">Edit Hotel</h1>
+      </div>
     </div>
 
     <div v-if="pending" class="flex justify-center py-10">

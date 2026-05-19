@@ -20,6 +20,7 @@ class StorePublicReservationRequest extends FormRequest
     {
         return [
             'hotel_id' => ['required', 'exists:hotels,id'],
+            'event_id' => ['required', 'exists:events,id'],
 
             'guest_name' => ['required', 'string', 'max:255'],
             'guest_email' => ['required', 'email', 'max:255'],
@@ -37,6 +38,7 @@ class StorePublicReservationRequest extends FormRequest
             'items.*.qty' => ['required', 'integer', 'min:1', 'max:20'],
             'items.*.guest_name' => ['nullable', 'string', 'max:255'],
             'items.*.guest_identity' => ['nullable', 'string', 'max:100'],
+            'items.*.notes' => ['nullable', 'string', 'max:1000'],
 
             'transfers' => ['nullable', 'array'],
             'transfers.*.transfer_option_id' => ['required_with:transfers', 'exists:hotel_transfer_options,id'],
@@ -50,9 +52,12 @@ class StorePublicReservationRequest extends FormRequest
             'transfers.*.pax_count' => ['required_with:transfers', 'integer', 'min:1'],
             'transfers.*.luggage_count' => ['nullable', 'integer', 'min:0'],
             'transfers.*.note' => ['nullable', 'string', 'max:1000'],
-            'transfers.*.price' => ['required_with:transfers', 'numeric', 'min:0'],
+            // NOTE: `transfers.*.price` deliberately not validated/accepted from client.
+            // Server resolves price from HotelTransferOption to prevent tampering (C1).
 
             'accept_terms' => ['accepted'],
+
+            'promo_code' => ['nullable', 'string', 'max:60'],
         ];
     }
 
@@ -90,6 +95,15 @@ class StorePublicReservationRequest extends FormRequest
                     $validator->errors()->add(
                         "transfers.{$index}.transfer_option_id",
                         'Selected transfer option does not belong to this hotel.'
+                    );
+
+                    continue;
+                }
+
+                if (! $option->is_active) {
+                    $validator->errors()->add(
+                        "transfers.{$index}.transfer_option_id",
+                        'Selected transfer option is no longer available.'
                     );
 
                     continue;

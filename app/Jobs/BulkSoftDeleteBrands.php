@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Brand;
+use App\Models\User;
 use App\Traits\TracksJobProgress;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -44,6 +45,17 @@ class BulkSoftDeleteBrands implements ShouldQueue
             }
 
             $this->updateProgress($index + 1);
+        }
+
+        if ($deleted > 0) {
+            activity()
+                ->causedBy($this->deletedBy ? User::find($this->deletedBy) : null)
+                ->event('bulk_deleted')
+                ->withProperties([
+                    'deleted_count' => $deleted,
+                    'model_type' => 'Brand',
+                ])
+                ->log("Bulk deleted {$deleted} brand(s)");
         }
 
         $this->completeProgress(

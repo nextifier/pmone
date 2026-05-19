@@ -30,14 +30,16 @@
           />
           <span class="text-sm font-medium tracking-tight">API Usage Analytics</span>
         </CollapsibleTrigger>
-        <select
-          v-model="analyticsPeriod"
-          class="border-border bg-background rounded-md border px-2 py-1 text-sm"
-        >
-          <option value="7">Last 7 days</option>
-          <option value="30">Last 30 days</option>
-          <option value="90">Last 90 days</option>
-        </select>
+        <Select v-model="analyticsPeriod">
+          <SelectTrigger class="h-9 w-[160px]">
+            <SelectValue placeholder="Period" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="7">Last 7 days</SelectItem>
+            <SelectItem value="30">Last 30 days</SelectItem>
+            <SelectItem value="90">Last 90 days</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <CollapsibleContent>
@@ -270,6 +272,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { TableSwitch } from "@/components/ui/table-switch";
 import { PopoverClose } from "reka-ui";
 import { resolveDirective, withDirectives } from "vue";

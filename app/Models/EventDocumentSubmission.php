@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
@@ -28,11 +31,12 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property string|null $user_agent
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read \App\Models\Event|null $event
- * @property-read \App\Models\EventDocument $eventDocument
+ * @property-read Event|null $event
+ * @property-read EventDocument $eventDocument
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read \App\Models\User|null $submitter
+ * @property-read User|null $submitter
+ *
  * @method static \Database\Factories\EventDocumentSubmissionFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission newQuery()
@@ -51,6 +55,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission whereUlid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission whereUserAgent($value)
+ *
  * @mixin \Eloquent
  */
 class EventDocumentSubmission extends Model implements HasMedia
@@ -58,6 +63,7 @@ class EventDocumentSubmission extends Model implements HasMedia
     use HasFactory;
     use HasMediaManager;
     use InteractsWithMedia;
+    use LogsActivity;
 
     protected $fillable = [
         'event_document_id',
@@ -95,6 +101,27 @@ class EventDocumentSubmission extends Model implements HasMedia
     public function getRouteKeyName(): string
     {
         return 'ulid';
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'event_document_id',
+                'booth_identifier',
+                'agreed_at',
+                'document_version',
+                'submitted_by',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
+
+    public function tapActivity(Activity $activity, string $eventName): void
+    {
+        if ($projectId = $this->event?->project_id) {
+            $activity->properties = $activity->properties->put('project_id', $projectId);
+        }
     }
 
     public function registerMediaCollections(): void

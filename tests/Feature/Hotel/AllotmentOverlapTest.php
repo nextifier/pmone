@@ -23,7 +23,7 @@ beforeEach(function () {
     $this->actingAs($this->user);
 
     $this->event = Event::factory()->create();
-    $this->hotel = Hotel::factory()->for($this->event)->create();
+    $this->hotel = Hotel::factory()->withEvent($this->event)->create();
     $this->roomType = RoomType::factory()->create(['hotel_id' => $this->hotel->id]);
 });
 

@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Spatie\MediaLibrary\MediaCollections\Exceptions\InvalidCollection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MediaController extends Controller
 {
@@ -134,12 +139,12 @@ class MediaController extends Controller
                 'media' => $mediaUrls,
             ]);
 
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'message' => 'Resource not found',
             ], 404);
 
-        } catch (\Spatie\MediaLibrary\MediaCollections\Exceptions\InvalidCollection $e) {
+        } catch (InvalidCollection $e) {
             return response()->json([
                 'message' => 'Invalid media collection',
                 'error' => $e->getMessage(),
@@ -321,7 +326,7 @@ class MediaController extends Controller
 
             return response()->json($response, count($failedUploads) > 0 ? 207 : 200); // 207 Multi-Status if some failed
 
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'message' => 'Resource not found',
             ], 404);
@@ -447,11 +452,11 @@ class MediaController extends Controller
         }
     }
 
-    public function download(int $mediaId): \Symfony\Component\HttpFoundation\StreamedResponse|\Symfony\Component\HttpFoundation\BinaryFileResponse
+    public function download(int $mediaId): StreamedResponse|BinaryFileResponse
     {
         $media = Media::findOrFail($mediaId);
 
-        $disk = \Illuminate\Support\Facades\Storage::disk($media->disk);
+        $disk = Storage::disk($media->disk);
 
         return $disk->download($media->getPathRelativeToRoot(), $media->file_name);
     }
@@ -468,13 +473,27 @@ class MediaController extends Controller
                 ], 403);
             }
 
+            $mediaInfo = [
+                'media_id' => $media->id,
+                'model_type' => $media->model_type,
+                'model_id' => $media->model_id,
+                'collection_name' => $media->collection_name,
+                'file_name' => $media->file_name,
+            ];
+
             $media->delete();
+
+            activity()
+                ->causedBy(auth()->user())
+                ->event('media_deleted')
+                ->withProperties($mediaInfo)
+                ->log("Media deleted: {$mediaInfo['file_name']}");
 
             return response()->json([
                 'message' => 'Media deleted successfully',
             ]);
 
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'message' => 'Media not found',
             ], 404);
@@ -905,14 +924,14 @@ class MediaController extends Controller
         $filename = $file->getClientOriginalName();
 
         // Store file in temporary storage
-        $path = \Illuminate\Support\Facades\Storage::disk('local')->putFileAs(
+        $path = Storage::disk('local')->putFileAs(
             "tmp/uploads/{$folder}",
             $file,
             $filename
         );
 
         // Store metadata
-        \Illuminate\Support\Facades\Storage::disk('local')->put(
+        Storage::disk('local')->put(
             "tmp/uploads/{$folder}/metadata.json",
             json_encode([
                 'original_name' => $filename,
@@ -950,12 +969,12 @@ class MediaController extends Controller
 
         $folderPath = "tmp/uploads/{$folder}";
 
-        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($folderPath)) {
+        if (! Storage::disk('local')->exists($folderPath)) {
             return response()->json(['error' => 'File not found'], 404);
         }
 
         try {
-            \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory($folderPath);
+            Storage::disk('local')->deleteDirectory($folderPath);
 
             return response()->json(['message' => 'Temporary media deleted successfully']);
         } catch (\Exception $e) {
@@ -979,19 +998,19 @@ class MediaController extends Controller
 
         $metadataPath = "tmp/uploads/{$folder}/metadata.json";
 
-        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+        if (! Storage::disk('local')->exists($metadataPath)) {
             return response()->json(['error' => 'File not found'], 404);
         }
 
-        $metadata = json_decode(\Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath), true);
+        $metadata = json_decode(Storage::disk('local')->get($metadataPath), true);
         $filePath = "tmp/uploads/{$folder}/{$metadata['original_name']}";
 
-        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($filePath)) {
+        if (! Storage::disk('local')->exists($filePath)) {
             return response()->json(['error' => 'File not found'], 404);
         }
 
         return response()->file(
-            \Illuminate\Support\Facades\Storage::disk('local')->path($filePath),
+            Storage::disk('local')->path($filePath),
             [
                 'Content-Type' => $metadata['mime_type'],
                 'Content-Disposition' => 'inline; filename="'.$metadata['original_name'].'"',

@@ -240,53 +240,6 @@ class OrderController extends Controller
         ]);
     }
 
-    public function applyDiscount(Request $request, string $username, string $eventSlug, string $ulid): JsonResponse
-    {
-        $project = $this->resolveProject($username);
-        $event = $this->resolveEvent($project, $eventSlug);
-
-        $order = Order::query()
-            ->whereIn('brand_event_id', $event->brandEvents()->select('id'))
-            ->where('ulid', $ulid)
-            ->firstOrFail();
-
-        $validated = $request->validate([
-            'discount_type' => ['nullable', 'string', Rule::in(['percentage', 'fixed'])],
-            'discount_value' => ['nullable', 'numeric', 'min:0'],
-        ]);
-
-        // Additional validation
-        if (($validated['discount_type'] ?? null) === 'percentage' && ($validated['discount_value'] ?? 0) > 100) {
-            return response()->json(['message' => 'Percentage discount cannot exceed 100%.'], 422);
-        }
-
-        if (($validated['discount_type'] ?? null) === 'fixed' && ($validated['discount_value'] ?? 0) > (float) $order->subtotal) {
-            return response()->json(['message' => 'Fixed discount cannot exceed subtotal.'], 422);
-        }
-
-        // Clear discount if type is null
-        if (empty($validated['discount_type'])) {
-            $order->discount_type = null;
-            $order->discount_value = null;
-            $order->discount_amount = null;
-            // Recalculate without discount
-            $subtotal = (float) $order->subtotal;
-            $order->tax_amount = round($subtotal * (float) $order->tax_rate / 100, 2);
-            $order->total = $subtotal + (float) $order->tax_amount;
-        } else {
-            $order->discount_type = $validated['discount_type'];
-            $order->discount_value = $validated['discount_value'] ?? 0;
-            $order->recalculateTotal();
-        }
-
-        $order->save();
-
-        return response()->json([
-            'message' => 'Discount applied successfully',
-            'data' => new OrderResource($order->load(['items.productCategory', 'brandEvent.brand', 'creator'])),
-        ]);
-    }
-
     public function destroy(Request $request, string $username, string $eventSlug, string $ulid): JsonResponse
     {
         $user = $request->user();
@@ -325,6 +278,17 @@ class OrderController extends Controller
 
         $export = new OrdersExport($event->id, $filters ?: null, $sort);
         $filename = 'orders_'.now()->format('Y-m-d_His').'.xlsx';
+
+        activity()
+            ->causedBy($request->user())
+            ->event('exported')
+            ->withProperties([
+                'project_id' => $event->project_id,
+                'model_type' => 'Order',
+                'event_id' => $event->id,
+                'filename' => $filename,
+            ])
+            ->log('Exported orders');
 
         return Excel::download($export, $filename);
     }

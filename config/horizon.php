@@ -224,6 +224,19 @@ return [
             'timeout' => 600,
             'nice' => 0,
         ],
+        'supervisor-pdf' => [
+            'connection' => 'redis',
+            'queue' => ['pdf-batch'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 256,
+            'tries' => 2,
+            'timeout' => 120,
+            'nice' => 10,
+        ],
     ],
 
     'environments' => [
@@ -238,6 +251,11 @@ return [
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
+            'supervisor-pdf' => [
+                'maxProcesses' => 2,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
         ],
 
         'local' => [
@@ -246,6 +264,9 @@ return [
             ],
             'supervisor-analytics' => [
                 'maxProcesses' => 2,
+            ],
+            'supervisor-pdf' => [
+                'maxProcesses' => 1,
             ],
         ],
     ],

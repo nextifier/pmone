@@ -574,6 +574,7 @@ class BrandEventController extends Controller
             $jobId,
             $validated['slugs'],
             $event->id,
+            auth()->id(),
         );
 
         return response()->json(['job_id' => $jobId]);
@@ -926,6 +927,17 @@ class BrandEventController extends Controller
 
         $export = new BrandEventsExport($event->id, $filters, $sort);
         $filename = 'brands_'.now()->format('Y-m-d_His').'.xlsx';
+
+        activity()
+            ->causedBy($request->user())
+            ->event('exported')
+            ->withProperties([
+                'project_id' => $event->project_id,
+                'model_type' => 'BrandEvent',
+                'event_id' => $event->id,
+                'filename' => $filename,
+            ])
+            ->log('Exported event brands');
 
         return Excel::download($export, $filename);
     }

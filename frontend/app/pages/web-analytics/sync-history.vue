@@ -75,17 +75,21 @@
             <p class="text-muted-foreground text-sm">Recent background data fetching activities</p>
           </div>
           <div class="flex items-center gap-2">
-            <select
-              v-model="syncHistoryHours"
-              @change="fetchSyncHistory"
-              class="border-border bg-background rounded-md border px-3 py-1.5 text-sm"
+            <Select
+              :model-value="String(syncHistoryHours)"
+              @update:model-value="(v) => { syncHistoryHours = Number(v); fetchSyncHistory(); }"
             >
-              <option :value="1">Last 1 hour</option>
-              <option :value="6">Last 6 hours</option>
-              <option :value="24">Last 24 hours</option>
-              <option :value="72">Last 3 days</option>
-              <option :value="168">Last 7 days</option>
-            </select>
+              <SelectTrigger class="h-9 w-[160px]">
+                <SelectValue placeholder="Time range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">Last 1 hour</SelectItem>
+                <SelectItem value="6">Last 6 hours</SelectItem>
+                <SelectItem value="24">Last 24 hours</SelectItem>
+                <SelectItem value="72">Last 3 days</SelectItem>
+                <SelectItem value="168">Last 7 days</SelectItem>
+              </SelectContent>
+            </Select>
             <Button
               variant="outline"
               size="sm"
@@ -190,6 +194,13 @@
 <script setup>
 import { TableData } from "@/components/ui/table-data";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAnalyticsSync } from "~/composables/useAnalyticsSync";
 import { useAnalyticsSyncHistory } from "~/composables/useAnalyticsSyncHistory";
 

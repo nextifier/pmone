@@ -3,10 +3,11 @@
 namespace Database\Factories;
 
 use App\Models\BrandEvent;
+use App\Models\Order;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Order>
+ * @extends Factory<Order>
  */
 class OrderFactory extends Factory
 {
@@ -50,20 +51,16 @@ class OrderFactory extends Factory
         ]);
     }
 
-    public function withDiscount(string $type = 'percentage', float $value = 10): static
+    public function withDiscount(float $amount = 100000): static
     {
-        return $this->state(function (array $attributes) use ($type, $value) {
+        return $this->state(function (array $attributes) use ($amount) {
             $subtotal = (float) $attributes['subtotal'];
-            $discountAmount = $type === 'percentage'
-                ? round($subtotal * $value / 100, 2)
-                : min($value, $subtotal);
+            $discountAmount = min($amount, $subtotal);
             $taxRate = (float) $attributes['tax_rate'];
             $taxableAmount = $subtotal - $discountAmount;
             $taxAmount = round($taxableAmount * $taxRate / 100, 2);
 
             return [
-                'discount_type' => $type,
-                'discount_value' => $value,
                 'discount_amount' => $discountAmount,
                 'tax_amount' => $taxAmount,
                 'total' => $taxableAmount + $taxAmount,

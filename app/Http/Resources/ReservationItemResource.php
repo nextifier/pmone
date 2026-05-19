@@ -23,6 +23,8 @@ class ReservationItemResource extends JsonResource
             'guest_identity' => $this->guest_identity,
             'rate_per_night' => (float) $this->rate_per_night,
             'subtotal' => (float) $this->subtotal,
+            'notes' => $this->notes,
+            'daily_breakdown' => $this->daily_breakdown,
             'room_type' => $this->whenLoaded('roomType', fn () => [
                 'id' => $this->roomType->id,
                 'name' => $this->roomType->name,

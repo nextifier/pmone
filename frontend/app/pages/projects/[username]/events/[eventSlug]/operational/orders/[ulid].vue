@@ -186,18 +186,18 @@
                   <span class="tracking-tight">{{ formatPrice(order.subtotal) }}</span>
                 </div>
                 <div
+                  v-if="order.penalty_amount && parseFloat(order.penalty_amount) > 0"
+                  class="flex items-center justify-between gap-x-8 text-sm"
+                >
+                  <span class="text-warning-foreground tracking-tight">Penalty</span>
+                  <span class="text-warning-foreground tracking-tight">+{{ formatPrice(order.penalty_amount) }}</span>
+                </div>
+                <div
                   v-if="order.discount_amount && parseFloat(order.discount_amount) > 0"
                   class="flex items-center justify-between gap-x-8 text-sm"
                 >
-                  <span class="text-muted-foreground tracking-tight">
-                    Discount
-                    <span v-if="order.discount_type === 'percentage'"
-                      >({{ order.discount_value }}%)</span
-                    >
-                  </span>
-                  <span class="tracking-tight text-green-600 dark:text-green-400"
-                    >-{{ formatPrice(order.discount_amount) }}</span
-                  >
+                  <span class="text-success-foreground tracking-tight">Discount</span>
+                  <span class="text-success-foreground tracking-tight">-{{ formatPrice(order.discount_amount) }}</span>
                 </div>
                 <div
                   v-if="order.tax_amount != null"
@@ -241,40 +241,65 @@
 
         <!-- Sidebar -->
         <div class="flex flex-col gap-y-4">
-          <!-- Discount Controls -->
+          <!-- Adjustments Controls -->
           <div class="border-border rounded-lg border p-4">
-            <h4 class="mb-3 font-medium tracking-tight">Apply Discount</h4>
-            <div class="space-y-2">
-              <Select v-model="discountForm.type">
-                <SelectTrigger class="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Discount</SelectItem>
-                  <SelectItem value="percentage">Percentage</SelectItem>
-                  <SelectItem value="fixed">Fixed Amount</SelectItem>
-                </SelectContent>
-              </Select>
-              <div v-if="discountForm.type !== 'none'" class="flex items-center gap-x-2">
-                <Input
-                  v-model.number="discountForm.value"
-                  type="number"
-                  min="0"
-                  :max="discountForm.type === 'percentage' ? 100 : undefined"
-                  step="any"
-                  :placeholder="discountForm.type === 'percentage' ? 'e.g. 10' : 'e.g. 500000'"
-                  class="flex-1"
-                />
-                <span
-                  v-if="discountForm.type === 'percentage'"
-                  class="text-muted-foreground text-sm"
-                  >%</span
-                >
-              </div>
-              <Button size="sm" class="w-full" :disabled="applyingDiscount" @click="applyDiscount">
-                <Spinner v-if="applyingDiscount" class="mr-1 size-3.5" />
-                {{ discountForm.type === "none" ? "Remove Discount" : "Apply" }}
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <h4 class="font-medium tracking-tight">Adjustments</h4>
+              <Button
+                v-if="canApplyManual"
+                size="sm"
+                variant="outline"
+                @click="adjustmentDialogOpen = true"
+              >
+                <Icon name="lucide:plus" class="size-3.5 shrink-0" />
+                Add
               </Button>
+            </div>
+
+            <div v-if="!order.adjustments?.length" class="text-muted-foreground text-xs sm:text-sm tracking-tight">
+              No adjustments applied.
+            </div>
+
+            <div v-else class="space-y-2">
+              <div
+                v-for="adj in order.adjustments"
+                :key="adj.id"
+                :class="[
+                  'rounded-md border p-2',
+                  adj.is_voided ? 'opacity-50' : '',
+                ]"
+              >
+                <div class="flex items-start justify-between gap-2">
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-1.5">
+                      <span
+                        :class="[
+                          'inline-flex items-center rounded-full px-1.5 py-0 text-xs tracking-tight',
+                          adj.kind === 'discount' ? 'bg-success/15 text-success-foreground' : 'bg-warning/15 text-warning-foreground',
+                        ]"
+                      >
+                        {{ adj.kind_label }}
+                      </span>
+                    </div>
+                    <p class="text-xs tracking-tight mt-1 truncate">{{ adj.label }}</p>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <p class="text-xs tracking-tight tabular-nums font-medium">
+                      {{ adj.kind === "discount" ? "-" : "+" }}{{ formatPrice(adj.amount) }}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  v-if="!adj.is_voided && canVoid"
+                  size="sm"
+                  variant="ghost"
+                  class="text-destructive h-6 px-1.5 text-xs mt-1 w-full justify-start"
+                  @click="openVoidAdjustment(adj)"
+                >
+                  <Icon name="lucide:x" class="size-3 shrink-0" />
+                  Void
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -377,12 +402,38 @@
         </div>
       </template>
     </DialogResponsive>
+
+    <!-- Manual Adjustment Dialog -->
+    <ManualAdjustmentDialog
+      v-model:open="adjustmentDialogOpen"
+      target-type="Order"
+      :target-email="order?.brand_event?.brand?.company_email"
+      @apply="handleApplyAdjustment"
+    />
+
+    <!-- Void Adjustment Confirm -->
+    <DialogResponsive v-model:open="voidDialogOpen" dialog-max-width="26rem">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <h3 class="text-lg font-semibold tracking-tight">Void Adjustment</h3>
+          <p class="text-muted-foreground text-sm tracking-tight mt-2">
+            Void "{{ voidTarget?.label }}"? Recalculates totals.
+          </p>
+          <div class="flex justify-end gap-2 pt-4">
+            <Button variant="outline" @click="voidDialogOpen = false">Cancel</Button>
+            <Button variant="destructive" @click="confirmVoid" :disabled="voiding">
+              <Spinner v-if="voiding" class="size-4" />
+              {{ voiding ? "Voiding..." : "Void" }}
+            </Button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
   </div>
 </template>
 
 <script setup>
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -396,21 +447,84 @@ const props = defineProps({ event: Object, project: Object });
 
 const route = useRoute();
 const client = useSanctumClient();
+const { hasPermission } = usePermission();
+
+const canApplyManual = computed(() => hasPermission("promotions.apply_manual"));
+const canVoid = computed(() => hasPermission("promotions.void_adjustment"));
 
 const order = ref(null);
 const loading = ref(true);
 const statusLoading = ref(false);
 const paymentStatusLoading = ref(false);
 
-// Discount form
-const discountForm = reactive({ type: "none", value: 0 });
-const applyingDiscount = ref(false);
+// Adjustment dialog state
+const adjustmentDialogOpen = ref(false);
+const voidDialogOpen = ref(false);
+const voidTarget = ref(null);
+const voiding = ref(false);
 
 usePageMeta(null, {
   title: computed(
     () => `Order ${order.value?.order_number || ""} · ${props.event?.title || "Event"}`
   ),
 });
+
+const orderBase = computed(
+  () =>
+    `/api/projects/${route.params.username}/events/${route.params.eventSlug}/orders/${route.params.ulid}`
+);
+
+const handleApplyAdjustment = async (payload, setErrors) => {
+  try {
+    const res = await client(`${orderBase.value}/adjustments`, {
+      method: "POST",
+      body: payload,
+    });
+    toast.success(res?.message || "Adjustment applied");
+    adjustmentDialogOpen.value = false;
+    if (res?.data?.order) {
+      order.value = res.data.order;
+    } else {
+      await fetchOrder();
+    }
+  } catch (err) {
+    if (err.response?.status === 422) {
+      const errors = err.response._data?.errors || {};
+      setErrors?.(errors);
+      toast.error(err.response._data?.message || "Validation failed");
+    } else {
+      toast.error("Failed to apply adjustment", { description: err?.data?.message });
+    }
+  }
+};
+
+const openVoidAdjustment = (adj) => {
+  voidTarget.value = adj;
+  voidDialogOpen.value = true;
+};
+
+const confirmVoid = async () => {
+  if (!voidTarget.value) return;
+  voiding.value = true;
+  try {
+    const res = await client(
+      `${orderBase.value}/adjustments/${voidTarget.value.ulid}`,
+      { method: "DELETE" },
+    );
+    toast.success("Adjustment voided");
+    voidDialogOpen.value = false;
+    voidTarget.value = null;
+    if (res?.data) {
+      order.value = res.data;
+    } else {
+      await fetchOrder();
+    }
+  } catch (err) {
+    toast.error("Failed to void", { description: err?.data?.message });
+  } finally {
+    voiding.value = false;
+  }
+};
 
 async function fetchOrder() {
   loading.value = true;
@@ -419,8 +533,6 @@ async function fetchOrder() {
       `/api/projects/${route.params.username}/events/${route.params.eventSlug}/orders/${route.params.ulid}`
     );
     order.value = res.data;
-    discountForm.type = res.data.discount_type || "none";
-    discountForm.value = res.data.discount_value ? parseFloat(res.data.discount_value) : 0;
   } catch (err) {
     toast.error("Failed to load order", {
       description: err?.data?.message || err?.message || "An error occurred",
@@ -483,32 +595,9 @@ async function handlePaymentStatusUpdate(newStatus) {
   }
 }
 
-async function applyDiscount() {
-  applyingDiscount.value = true;
-  try {
-    const body =
-      discountForm.type === "none"
-        ? { discount_type: null, discount_value: null }
-        : { discount_type: discountForm.type, discount_value: discountForm.value };
-
-    const res = await client(
-      `/api/projects/${route.params.username}/events/${route.params.eventSlug}/orders/${route.params.ulid}/discount`,
-      { method: "PATCH", body }
-    );
-    order.value = res.data;
-    discountForm.type = res.data.discount_type || "none";
-    discountForm.value = res.data.discount_value ? parseFloat(res.data.discount_value) : 0;
-    toast.success(discountForm.type === "none" ? "Discount removed" : "Discount applied");
-  } catch (e) {
-    toast.error(e?.data?.message || "Failed to apply discount");
-  } finally {
-    applyingDiscount.value = false;
-  }
-}
-
 function formatPrice(amount) {
   if (amount == null) return "-";
-  return `Rp ${Number(amount).toLocaleString("id-ID")}`;
+  return `Rp${Number(amount).toLocaleString("id-ID")}`;
 }
 
 function formatDate(dateStr) {

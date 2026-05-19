@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Permission\Models\Role;
+use Spatie\ResponseCache\Facades\ResponseCache;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class UserController extends Controller
@@ -412,6 +413,8 @@ class UserController extends Controller
             // Handle cover image upload from temporary storage
             $this->handleTemporaryUpload($request, $user, 'tmp_cover_image', 'cover_image');
 
+            ResponseCache::clear(['short-links']);
+
             $user->load(['roles', 'media', 'links', 'projects.media']);
 
             return response()->json([
@@ -648,6 +651,8 @@ class UserController extends Controller
             // Auto-sync Email and WhatsApp links
             LinkSyncHelper::syncUserContactLinks($user);
 
+            ResponseCache::clear(['short-links']);
+
             // Load fresh links
             $user->load('links');
 
@@ -751,6 +756,8 @@ class UserController extends Controller
 
             // Handle cover image upload from temporary storage
             $this->handleTemporaryUpload($request, $user, 'tmp_cover_image', 'cover_image');
+
+            ResponseCache::clear(['short-links']);
 
             $user->load(['roles', 'media', 'links']);
 

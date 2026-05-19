@@ -32,8 +32,6 @@ use Spatie\Tags\Tag;
  * @property int $event_id
  * @property string $name
  * @property string $slug
- * @property string|null $title
- * @property string|null $bio
  * @property string|null $organization
  * @property array<array-key, mixed>|null $more_details
  * @property array<array-key, mixed>|null $settings
@@ -47,21 +45,62 @@ use Spatie\Tags\Tag;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ * @property string|null $title
+ * @property string|null $bio
  * @property-read Collection<int, Activity> $activities
- * @property-read Event|null $event
+ * @property-read int|null $activities_count
  * @property-read User|null $creator
- * @property-read User|null $updater
  * @property-read User|null $deleter
+ * @property-read Event|null $event
  * @property-read array|null $profile_image
  * @property-read Collection<int, Link> $links
+ * @property-read int|null $links_count
  * @property-read MediaCollection<int, Media> $media
+ * @property-read int|null $media_count
  * @property Collection<int, Tag> $tags
+ * @property-read int|null $tags_count
+ * @property-read User|null $updater
  *
- * @method static \Database\Factories\GuestFactory factory($count = null, $state = [])
  * @method static Builder<static>|Guest active()
  * @method static Builder<static>|Guest byStatus(string $status)
+ * @method static \Database\Factories\GuestFactory factory($count = null, $state = [])
  * @method static Builder<static>|Guest featured()
+ * @method static Builder<static>|Guest findSimilarSlugs(string $attribute, array $config, string $slug)
  * @method static Builder<static>|Guest forEvent(int $eventId)
+ * @method static Builder<static>|Guest newModelQuery()
+ * @method static Builder<static>|Guest newQuery()
+ * @method static Builder<static>|Guest onlyTrashed()
+ * @method static Builder<static>|Guest ordered(string $direction = 'asc')
+ * @method static Builder<static>|Guest query()
+ * @method static Builder<static>|Guest whereBio($value)
+ * @method static Builder<static>|Guest whereCreatedAt($value)
+ * @method static Builder<static>|Guest whereCreatedBy($value)
+ * @method static Builder<static>|Guest whereDeletedAt($value)
+ * @method static Builder<static>|Guest whereDeletedBy($value)
+ * @method static Builder<static>|Guest whereEventId($value)
+ * @method static Builder<static>|Guest whereId($value)
+ * @method static Builder<static>|Guest whereIsFeatured($value)
+ * @method static Builder<static>|Guest whereMoreDetails($value)
+ * @method static Builder<static>|Guest whereName($value)
+ * @method static Builder<static>|Guest whereOrderColumn($value)
+ * @method static Builder<static>|Guest whereOrganization($value)
+ * @method static Builder<static>|Guest whereSettings($value)
+ * @method static Builder<static>|Guest whereSlug($value)
+ * @method static Builder<static>|Guest whereStatus($value)
+ * @method static Builder<static>|Guest whereTitle($value)
+ * @method static Builder<static>|Guest whereUlid($value)
+ * @method static Builder<static>|Guest whereUpdatedAt($value)
+ * @method static Builder<static>|Guest whereUpdatedBy($value)
+ * @method static Builder<static>|Guest whereVisibility($value)
+ * @method static Builder<static>|Guest withAllTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static Builder<static>|Guest withAllTagsOfAnyType($tags)
+ * @method static Builder<static>|Guest withAnyTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static Builder<static>|Guest withAnyTagsOfAnyType($tags)
+ * @method static Builder<static>|Guest withAnyTagsOfType(array|string $type)
+ * @method static Builder<static>|Guest withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Guest withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
+ * @method static Builder<static>|Guest withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static Builder<static>|Guest withoutTrashed()
  *
  * @mixin \Eloquent
  */

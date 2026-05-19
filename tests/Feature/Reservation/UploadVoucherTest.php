@@ -27,8 +27,8 @@ beforeEach(function () {
 
 test('admin can upload voucher pdf', function () {
     $event = Event::factory()->create();
-    $hotel = Hotel::factory()->for($event)->create();
-    $reservation = Reservation::factory()->paid()->create(['hotel_id' => $hotel->id]);
+    $hotel = Hotel::factory()->withEvent($event)->create();
+    $reservation = Reservation::factory()->paid()->create(['hotel_id' => $hotel->id, 'event_id' => $event->id]);
 
     $pdfContent = "%PDF-1.4\n".str_repeat('a', 1024)."\n%%EOF";
     $file = UploadedFile::fake()->createWithContent('voucher.pdf', $pdfContent);
@@ -44,8 +44,8 @@ test('admin can upload voucher pdf', function () {
 
 test('admin cannot upload non-pdf-image file', function () {
     $event = Event::factory()->create();
-    $hotel = Hotel::factory()->for($event)->create();
-    $reservation = Reservation::factory()->paid()->create(['hotel_id' => $hotel->id]);
+    $hotel = Hotel::factory()->withEvent($event)->create();
+    $reservation = Reservation::factory()->paid()->create(['hotel_id' => $hotel->id, 'event_id' => $event->id]);
 
     $file = UploadedFile::fake()->create('voucher.txt', 100, 'text/plain');
 
@@ -58,8 +58,8 @@ test('admin cannot upload non-pdf-image file', function () {
 
 test('admin can upload voucher via tmp_voucher reference', function () {
     $event = Event::factory()->create();
-    $hotel = Hotel::factory()->for($event)->create();
-    $reservation = Reservation::factory()->paid()->create(['hotel_id' => $hotel->id]);
+    $hotel = Hotel::factory()->withEvent($event)->create();
+    $reservation = Reservation::factory()->paid()->create(['hotel_id' => $hotel->id, 'event_id' => $event->id]);
 
     $folder = 'tmp-'.uniqid();
     $filename = 'voucher.pdf';
@@ -84,8 +84,8 @@ test('admin can upload voucher via tmp_voucher reference', function () {
 
 test('upload voucher fails when neither file nor tmp_voucher provided', function () {
     $event = Event::factory()->create();
-    $hotel = Hotel::factory()->for($event)->create();
-    $reservation = Reservation::factory()->paid()->create(['hotel_id' => $hotel->id]);
+    $hotel = Hotel::factory()->withEvent($event)->create();
+    $reservation = Reservation::factory()->paid()->create(['hotel_id' => $hotel->id, 'event_id' => $event->id]);
 
     $response = $this->postJson("/api/events/{$event->id}/reservations/{$reservation->ulid}/voucher", []);
 
@@ -96,8 +96,8 @@ test('send voucher requires voucher to be uploaded first', function () {
     Queue::fake();
 
     $event = Event::factory()->create();
-    $hotel = Hotel::factory()->for($event)->create();
-    $reservation = Reservation::factory()->paid()->create(['hotel_id' => $hotel->id]);
+    $hotel = Hotel::factory()->withEvent($event)->create();
+    $reservation = Reservation::factory()->paid()->create(['hotel_id' => $hotel->id, 'event_id' => $event->id]);
 
     $response = $this->postJson("/api/events/{$event->id}/reservations/{$reservation->ulid}/send-voucher");
 

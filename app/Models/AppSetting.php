@@ -5,10 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * @property int $id
@@ -18,12 +23,13 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property string|null $description
  * @property int|null $created_by
  * @property int|null $updated_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\User|null $creator
- * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read User|null $creator
+ * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read \App\Models\User|null $updater
+ * @property-read User|null $updater
+ *
  * @method static \Database\Factories\AppSettingFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AppSetting newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AppSetting newQuery()
@@ -37,12 +43,14 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AppSetting whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AppSetting whereUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AppSetting whereValue($value)
+ *
  * @mixin \Eloquent
  */
 class AppSetting extends Model implements HasMedia
 {
     use HasFactory;
     use InteractsWithMedia;
+    use LogsActivity;
 
     protected $fillable = [
         'key',
@@ -84,6 +92,14 @@ class AppSetting extends Model implements HasMedia
         static::deleted(function ($model) {
             Cache::forget(self::cacheKey($model->key));
         });
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['key', 'value', 'description'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 
     public static function get(string $key, mixed $default = null): mixed

@@ -15,7 +15,11 @@ class HotelVoucherMail extends Mailable
     use Queueable;
     use SerializesModels;
 
-    public function __construct(public Reservation $reservation) {}
+    public function __construct(
+        public Reservation $reservation,
+        public ?string $invoiceUrl = null,
+        public ?string $receiptUrl = null,
+    ) {}
 
     public function envelope(): Envelope
     {
@@ -29,7 +33,11 @@ class HotelVoucherMail extends Mailable
     {
         return new Content(
             markdown: 'emails.reservation.hotel-voucher',
-            with: ['reservation' => $this->reservation],
+            with: [
+                'reservation' => $this->reservation,
+                'invoiceUrl' => $this->invoiceUrl,
+                'receiptUrl' => $this->receiptUrl,
+            ],
         );
     }
 

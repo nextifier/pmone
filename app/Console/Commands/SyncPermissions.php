@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class SyncPermissions extends Command
 {
@@ -43,6 +45,7 @@ class SyncPermissions extends Command
         foreach ($configPermissions as $permissionName => $description) {
             if (in_array($permissionName, $existingPermissions)) {
                 $unchanged++;
+
                 continue;
             }
 
@@ -93,9 +96,20 @@ class SyncPermissions extends Command
             $this->info('Run without --dry-run to apply changes.');
         }
 
+        // Master role should always own every defined permission; without
+        // this re-sync, freshly created permissions become orphaned and the
+        // matching UI buttons disappear until someone re-runs RoleAndPermissionSeeder.
+        if (! $isDryRun && $created > 0) {
+            $master = Role::query()->where('name', 'master')->where('guard_name', 'web')->first();
+            if ($master) {
+                $master->syncPermissions(Permission::all());
+                $this->info("Master role re-synced with all {$master->permissions()->count()} permissions.");
+            }
+        }
+
         // Clear permission cache
-        if (!$isDryRun && ($created > 0 || $pruned > 0)) {
-            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        if (! $isDryRun && ($created > 0 || $pruned > 0)) {
+            app()[PermissionRegistrar::class]->forgetCachedPermissions();
             $this->info('Permission cache cleared.');
         }
 

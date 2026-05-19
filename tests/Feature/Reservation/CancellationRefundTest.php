@@ -94,7 +94,7 @@ test('admin can cancel reservation with custom refund amount', function () {
         'xendit_invoice_id' => 'inv_test',
     ]);
 
-    $response = $this->postJson("/api/events/{$hotel->event_id}/reservations/{$reservation->ulid}/cancel", [
+    $response = $this->postJson("/api/events/{$reservation->event_id}/reservations/{$reservation->ulid}/cancel", [
         'reason' => 'Customer requested refund',
         'refund_amount' => 750000,
         'process_refund' => true,
@@ -106,4 +106,37 @@ test('admin can cancel reservation with custom refund amount', function () {
     $reservation->refresh();
     expect($reservation->status)->toBe(ReservationStatus::Cancelled);
     expect((float) $reservation->refund_amount)->toBe(750000.0);
+});
+
+test('cancel rejects already-cancelled reservation (T4 idempotency)', function () {
+    Queue::fake();
+
+    $hotel = Hotel::factory()->create();
+    $reservation = Reservation::factory()->cancelled()->create([
+        'hotel_id' => $hotel->id,
+        'total_amount' => 1000000,
+    ]);
+
+    $response = $this->postJson("/api/events/{$reservation->event_id}/reservations/{$reservation->ulid}/cancel", [
+        'reason' => 'Trying to cancel again',
+    ]);
+
+    $response->assertStatus(422);
+    expect($response->json('message'))->toContain('Cannot cancel');
+});
+
+test('cancel rejects refunded reservation (T4 idempotency)', function () {
+    Queue::fake();
+
+    $hotel = Hotel::factory()->create();
+    $reservation = Reservation::factory()->paid()->create([
+        'hotel_id' => $hotel->id,
+        'status' => ReservationStatus::Refunded,
+        'refunded_at' => now()->subDay(),
+        'total_amount' => 1000000,
+    ]);
+
+    $this->postJson("/api/events/{$reservation->event_id}/reservations/{$reservation->ulid}/cancel", [
+        'reason' => 'Cancel after refund',
+    ])->assertStatus(422);
 });

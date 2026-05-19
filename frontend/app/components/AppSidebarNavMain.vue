@@ -244,8 +244,14 @@ const navMainGroups = computed(() => {
     });
   }
 
-  // Hotels & Reservations are now nested under event detail page
-  // (accessible via /projects/{username}/events/{eventSlug}/hotels and /reservations)
+  // Hotels master list (global). Per-event hotel attach/detach lives under event detail.
+  if (hasPermission("hotels.read")) {
+    coreItems.push({
+      label: "Hotels",
+      path: "/hotels-master",
+      iconName: "hugeicons:hotel-01",
+    });
+  }
 
   // Tools section
   const toolsItems = [];
@@ -397,6 +403,24 @@ const navMainGroups = computed(() => {
       label: "Announcements",
       path: "/announcements",
       iconName: "hugeicons:notification-02",
+    });
+  }
+
+  // Promotion Rules - requires promotion_rules.read permission
+  if (hasPermission("promotion_rules.read")) {
+    adminItems.push({
+      label: "Promotion Rules",
+      path: "/promotion-rules",
+      iconName: "hugeicons:discount-tag-02",
+    });
+  }
+
+  // Promo Codes - requires promo_codes.read permission
+  if (hasPermission("promo_codes.read")) {
+    adminItems.push({
+      label: "Promo Codes",
+      path: "/promo-codes",
+      iconName: "hugeicons:coupon-03",
     });
   }
 

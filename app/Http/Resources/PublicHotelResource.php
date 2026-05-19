@@ -12,19 +12,24 @@ class PublicHotelResource extends JsonResource
         return [
             'id' => $this->id,
             'slug' => $this->slug,
-            'event' => $this->whenLoaded('event', fn () => [
-                'id' => $this->event->id,
-                'slug' => $this->event->slug,
-                'title' => $this->event->title,
-                'start_date' => $this->event->start_date?->toIso8601String(),
-                'end_date' => $this->event->end_date?->toIso8601String(),
-                'is_active' => (bool) $this->event->is_active,
-                'project' => $this->event->relationLoaded('project') ? [
-                    'id' => $this->event->project?->id,
-                    'username' => $this->event->project?->username,
-                    'name' => $this->event->project?->name,
-                ] : null,
-            ]),
+            'event' => $this->whenLoaded('events', function () {
+                // Controller filters `events` to the relevant event (single match).
+                $event = $this->events->first();
+
+                return $event ? [
+                    'id' => $event->id,
+                    'slug' => $event->slug,
+                    'title' => $event->title,
+                    'start_date' => $event->start_date?->toIso8601String(),
+                    'end_date' => $event->end_date?->toIso8601String(),
+                    'is_active' => (bool) $event->is_active,
+                    'project' => $event->relationLoaded('project') ? [
+                        'id' => $event->project?->id,
+                        'username' => $event->project?->username,
+                        'name' => $event->project?->name,
+                    ] : null,
+                ] : null;
+            }),
             'name' => $this->name,
             'description' => $this->description,
             'star_rating' => $this->star_rating,
@@ -33,6 +38,8 @@ class PublicHotelResource extends JsonResource
             'country' => $this->country,
             'google_maps_link' => $this->google_maps_link,
             'google_maps_embed_src' => $this->google_maps_embed_src,
+            'contact_email' => $this->contact_email,
+            'contact_phone' => $this->contact_phone,
             'facilities' => $this->tags->pluck('name')->values(),
             'cancellation_policy' => $this->cancellation_policy,
             'tax_percentage' => (float) $this->tax_percentage,

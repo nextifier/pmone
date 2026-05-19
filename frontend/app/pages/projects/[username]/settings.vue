@@ -23,26 +23,40 @@ const route = useRoute();
 
 const contentArea = ref(null);
 
+const { hasPermission } = usePermission();
+
 const settingsBase = computed(() => `/projects/${route.params.username}/settings`);
-const settingsTabs = computed(() => [
-  { label: "General", icon: "hugeicons:settings-01", to: settingsBase.value, exact: true },
-  { label: "Members", icon: "hugeicons:user-group", to: `${settingsBase.value}/members` },
-  {
-    label: "Contact Form",
-    icon: "hugeicons:mail-at-sign-01",
-    to: `${settingsBase.value}/contact-form`,
-  },
-  {
-    label: "Brand Fields",
-    icon: "hugeicons:structure-03",
-    to: `${settingsBase.value}/brand-fields`,
-  },
-  {
-    label: "Website Settings",
-    icon: "hugeicons:globe-02",
-    to: `${settingsBase.value}/website-settings`,
-  },
-]);
+const settingsTabs = computed(() => {
+  const tabs = [
+    { label: "General", icon: "hugeicons:settings-01", to: settingsBase.value, exact: true },
+    { label: "Members", icon: "hugeicons:user-group", to: `${settingsBase.value}/members` },
+    {
+      label: "Contact Form",
+      icon: "hugeicons:mail-at-sign-01",
+      to: `${settingsBase.value}/contact-form`,
+    },
+    {
+      label: "Brand Fields",
+      icon: "hugeicons:structure-03",
+      to: `${settingsBase.value}/brand-fields`,
+    },
+    {
+      label: "Website Settings",
+      icon: "hugeicons:globe-02",
+      to: `${settingsBase.value}/website-settings`,
+    },
+  ];
+
+  if (hasPermission("payment_gateways.read")) {
+    tabs.push({
+      label: "Payment Gateways",
+      icon: "hugeicons:credit-card",
+      to: `${settingsBase.value}/payment-gateways`,
+    });
+  }
+
+  return tabs;
+});
 
 const projectTabs = inject("projectTabs");
 useTabSwipe(contentArea, settingsTabs, { parentTabs: projectTabs });

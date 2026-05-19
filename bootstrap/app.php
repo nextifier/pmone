@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureHotelReservationEnabled;
 use App\Http\Middleware\UpdateLastSeen;
 use App\Http\Middleware\ValidateApiKey;
 use App\Jobs\FetchExchangeRates;
@@ -45,6 +46,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.key' => ValidateApiKey::class,
             'cacheResponse' => CacheResponse::class,
             'doNotCacheResponse' => DoNotCacheResponse::class,
+            'hotel-reservation-enabled' => EnsureHotelReservationEnabled::class,
         ]);
 
         // Exclude tracking endpoints from request forgery protection (for anonymous tracking)

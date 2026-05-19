@@ -19,6 +19,22 @@ In accordance with our cancellation policy for bookings cancelled within 7 days 
 **Reason:** {{ $reservation->cancellation_reason }}
 @endif
 
+@if (! empty($invoiceUrl) || ! empty($receiptUrl))
+## Documents
+
+@if (! empty($invoiceUrl))
+@component('mail::button', ['url' => $invoiceUrl])
+Download Invoice
+@endcomponent
+@endif
+
+@if (! empty($receiptUrl))
+@component('mail::button', ['url' => $receiptUrl, 'color' => 'secondary'])
+Download Receipt
+@endcomponent
+@endif
+@endif
+
 For any questions, please contact us:
 - Email: support@pmone.id
 

@@ -12,7 +12,6 @@ class HotelIndexResource extends JsonResource
         return [
             'id' => $this->id,
             'ulid' => $this->ulid,
-            'event_id' => $this->event_id,
             'slug' => $this->slug,
             'name' => $this->name,
             'city' => $this->city,
@@ -27,7 +26,24 @@ class HotelIndexResource extends JsonResource
                 ]
             ),
             'room_types_count' => $this->whenCounted('roomTypes'),
-            'reservations_count' => $this->whenCounted('reservations'),
+            'events_count' => $this->whenCounted('events'),
+            'events' => $this->whenLoaded('events', fn () => $this->events->map(fn ($ev) => [
+                'id' => $ev->id,
+                'slug' => $ev->slug,
+                'title' => $ev->title,
+                'project' => $ev->relationLoaded('project') && $ev->project
+                    ? ['username' => $ev->project->username, 'name' => $ev->project->name]
+                    : null,
+                'pivot' => $ev->pivot ? [
+                    'is_active' => (bool) $ev->pivot->is_active,
+                ] : null,
+            ])),
+            'pivot' => $this->when(isset($this->pivot), fn () => [
+                'id' => $this->pivot?->id,
+                'is_active' => (bool) ($this->pivot?->is_active),
+                'order_column' => $this->pivot?->order_column,
+                'notes' => $this->pivot?->notes,
+            ]),
             'can_edit' => auth()->user()?->can('hotels.update'),
             'can_delete' => auth()->user()?->can('hotels.delete'),
             'created_at' => $this->created_at,

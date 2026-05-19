@@ -292,6 +292,17 @@ class RundownItemController extends Controller
             now()->format('Y-m-d_His'),
         );
 
+        activity()
+            ->causedBy($request->user())
+            ->event('exported')
+            ->withProperties([
+                'project_id' => $event->project_id,
+                'model_type' => 'RundownItem',
+                'event_id' => $event->id,
+                'filename' => $filename,
+            ])
+            ->log('Exported rundown items');
+
         return Excel::download($export, $filename);
     }
 

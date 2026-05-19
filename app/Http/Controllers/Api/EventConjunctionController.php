@@ -77,6 +77,19 @@ class EventConjunctionController extends Controller
 
         ResponseCache::clear(['brands']);
 
+        activity()
+            ->causedBy($request->user())
+            ->performedOn($event)
+            ->event('event_linked')
+            ->withProperties([
+                'project_id' => $event->project_id,
+                'event_id' => $event->id,
+                'linked_event_id' => $conjunctionEvent->id,
+                'linked_event_title' => $conjunctionEvent->title,
+                'conjunction_label' => $label,
+            ])
+            ->log("Linked conjunction event: {$conjunctionEvent->title}");
+
         return response()->json(['message' => 'Conjunction event added.'], 201);
     }
 
@@ -87,14 +100,27 @@ class EventConjunctionController extends Controller
     {
         $event = $this->findEvent($username, $eventSlug);
 
+        $conjunctionEvent = Event::find($conjunctionEventId);
+
         // Remove forward direction
         $event->conjunctionEvents()->detach($conjunctionEventId);
 
         // Remove reverse direction
-        $conjunctionEvent = Event::find($conjunctionEventId);
         $conjunctionEvent?->conjunctionEvents()->detach($event->id);
 
         ResponseCache::clear(['brands']);
+
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($event)
+            ->event('event_unlinked')
+            ->withProperties([
+                'project_id' => $event->project_id,
+                'event_id' => $event->id,
+                'linked_event_id' => $conjunctionEventId,
+                'linked_event_title' => $conjunctionEvent?->title,
+            ])
+            ->log('Unlinked conjunction event');
 
         return response()->json(['message' => 'Conjunction event removed.']);
     }

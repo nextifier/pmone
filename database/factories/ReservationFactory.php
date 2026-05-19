@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Enums\IdentityType;
 use App\Enums\ReservationSource;
 use App\Enums\ReservationStatus;
+use App\Models\Event;
 use App\Models\Hotel;
 use App\Models\Reservation;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -21,9 +22,15 @@ class ReservationFactory extends Factory
         $tax = round($rooms * 0.11, 2);
         $total = $rooms + $tax;
 
+        // Default factory chain: create event + hotel attached via pivot, then set event_id.
+        $event = Event::factory()->create();
+        $hotel = Hotel::factory()->create();
+        $hotel->events()->syncWithoutDetaching([$event->id => ['is_active' => true]]);
+
         return [
             'reservation_number' => 'HTL-'.now()->format('Ymd').'-'.strtoupper(Str::random(4)),
-            'hotel_id' => Hotel::factory(),
+            'event_id' => $event->id,
+            'hotel_id' => $hotel->id,
             'status' => ReservationStatus::PendingPayment,
             'payment_expires_at' => now()->addHours(24),
             'guest_name' => fake()->name(),

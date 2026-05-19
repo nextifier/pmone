@@ -23,6 +23,7 @@ beforeEach(function () {
         'events.create', 'events.read', 'events.update', 'events.delete',
         'orders.read', 'orders.update',
         'brands.create', 'brands.read', 'brands.update', 'brands.delete',
+        'promotions.apply_manual', 'promotions.void_adjustment',
     ];
 
     foreach ($permissions as $p) {
@@ -361,21 +362,20 @@ it('staff can apply percentage discount to order', function () {
 
     $this->actingAs($this->staff);
 
-    $response = $this->patchJson(
-        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/discount",
-        ['discount_type' => 'percentage', 'discount_value' => 10]
+    $response = $this->postJson(
+        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/adjustments",
+        ['mode' => 'manual', 'kind' => 'discount', 'value_type' => 'percentage', 'value' => 10]
     );
 
     $response->assertSuccessful();
 
     $order->refresh();
-    expect($order->discount_type)->toBe('percentage');
-    expect($order->discount_value)->toBe('10.00');
-    expect($order->discount_amount)->toBe('600000.00'); // 6000000 * 10%
+    // 6000000 * 10% = 600000
+    expect((float) $order->discount_amount)->toBe(600000.0);
     // tax = (6000000 - 600000) * 11% = 594000
-    expect($order->tax_amount)->toBe('594000.00');
+    expect((float) $order->tax_amount)->toBe(594000.0);
     // total = 5400000 + 594000 = 5994000
-    expect($order->total)->toBe('5994000.00');
+    expect((float) $order->total)->toBe(5994000.0);
 });
 
 it('staff can apply fixed discount to order', function () {
@@ -393,24 +393,22 @@ it('staff can apply fixed discount to order', function () {
 
     $this->actingAs($this->staff);
 
-    $response = $this->patchJson(
-        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/discount",
-        ['discount_type' => 'fixed', 'discount_value' => 500000]
+    $response = $this->postJson(
+        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/adjustments",
+        ['mode' => 'manual', 'kind' => 'discount', 'value_type' => 'fixed_amount', 'value' => 500000]
     );
 
     $response->assertSuccessful();
 
     $order->refresh();
-    expect($order->discount_type)->toBe('fixed');
-    expect($order->discount_value)->toBe('500000.00');
-    expect($order->discount_amount)->toBe('500000.00');
+    expect((float) $order->discount_amount)->toBe(500000.0);
     // tax = (3000000 - 500000) * 11% = 275000
-    expect($order->tax_amount)->toBe('275000.00');
+    expect((float) $order->tax_amount)->toBe(275000.0);
     // total = 2500000 + 275000 = 2775000
-    expect($order->total)->toBe('2775000.00');
+    expect((float) $order->total)->toBe(2775000.0);
 });
 
-it('staff can remove discount from order', function () {
+it('staff can void discount adjustment from order', function () {
     $this->actingAs($this->exhibitor);
 
     $this->postJson(
@@ -424,30 +422,27 @@ it('staff can remove discount from order', function () {
 
     $this->actingAs($this->staff);
 
-    // Apply discount first
-    $this->patchJson(
-        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/discount",
-        ['discount_type' => 'percentage', 'discount_value' => 10]
+    // Apply discount
+    $applyResponse = $this->postJson(
+        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/adjustments",
+        ['mode' => 'manual', 'kind' => 'discount', 'value_type' => 'percentage', 'value' => 10]
     )->assertSuccessful();
 
-    // Remove discount
-    $response = $this->patchJson(
-        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/discount",
-        ['discount_type' => null, 'discount_value' => null]
-    );
+    $adjustmentUlid = $applyResponse->json('data.adjustment.ulid');
 
-    $response->assertSuccessful();
+    // Void
+    $this->deleteJson(
+        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/adjustments/{$adjustmentUlid}"
+    )->assertSuccessful();
 
     $order->refresh();
-    expect($order->discount_type)->toBeNull();
-    expect($order->discount_value)->toBeNull();
-    expect($order->discount_amount)->toBeNull();
+    expect((float) $order->discount_amount)->toBe(0.0);
     // Back to original: subtotal = 3000000, tax = 330000, total = 3330000
-    expect($order->tax_amount)->toBe('330000.00');
-    expect($order->total)->toBe('3330000.00');
+    expect((float) $order->tax_amount)->toBe(330000.0);
+    expect((float) $order->total)->toBe(3330000.0);
 });
 
-it('fixed discount cannot exceed subtotal', function () {
+it('fixed discount exceeding subtotal is clamped, total cannot go negative', function () {
     $this->actingAs($this->exhibitor);
 
     $this->postJson(
@@ -462,12 +457,15 @@ it('fixed discount cannot exceed subtotal', function () {
 
     $this->actingAs($this->staff);
 
-    $response = $this->patchJson(
-        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/discount",
-        ['discount_type' => 'fixed', 'discount_value' => 2000000]
-    );
+    $this->postJson(
+        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/adjustments",
+        ['mode' => 'manual', 'kind' => 'discount', 'value_type' => 'fixed_amount', 'value' => 2000000]
+    )->assertSuccessful();
 
-    $response->assertStatus(422);
+    $order->refresh();
+    // Discount clamped to subtotal (1500000), total drops to 0
+    expect((float) $order->discount_amount)->toBe(1500000.0);
+    expect((float) $order->total)->toBe(0.0);
 });
 
 // Deadline tests

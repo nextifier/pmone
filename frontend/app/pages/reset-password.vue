@@ -21,76 +21,24 @@
             <div class="input-group">
               <Label for="password">New Password</Label>
 
-              <div class="relative">
-                <Input
-                  v-model="form.password"
-                  :type="showPassword ? 'text' : 'password'"
-                  name="password"
-                  class="!pr-12"
-                  ref="password"
-                  id="password"
-                  required
-                />
-                <div class="absolute top-1/2 right-2 -translate-y-1/2">
-                  <button
-                    @click="toggleShowPassword"
-                    type="button"
-                    tabindex="-1"
-                    class="hover:bg-muted flex size-7 items-center justify-center rounded-full transition active:scale-95"
-                  >
-                    <Icon
-                      v-if="!showPassword"
-                      name="lucide:eye"
-                      class="size-4 shrink-0"
-                      v-tippy="'Show password'"
-                    />
-                    <Icon
-                      v-else
-                      name="lucide:eye-off"
-                      class="size-4 shrink-0"
-                      v-tippy="'Hide password'"
-                    />
-                  </button>
-                </div>
-              </div>
+              <InputPassword
+                v-model="form.password"
+                name="password"
+                id="password"
+                required
+              />
               <InputErrorMessage v-if="errors?.password" :errors="errors.password" />
             </div>
 
             <div class="input-group">
               <Label for="password_confirmation">Confirm New Password</Label>
 
-              <div class="relative">
-                <Input
-                  v-model="form.password_confirmation"
-                  :type="showPasswordConfirmation ? 'text' : 'password'"
-                  name="password_confirmation"
-                  class="!pr-12"
-                  ref="password_confirmation"
-                  id="password_confirmation"
-                  required
-                />
-                <div class="absolute top-1/2 right-2 -translate-y-1/2">
-                  <button
-                    @click="toggleShowPasswordConfirmation"
-                    type="button"
-                    tabindex="-1"
-                    class="hover:bg-muted flex size-7 items-center justify-center rounded-full transition active:scale-95"
-                  >
-                    <Icon
-                      v-if="!showPasswordConfirmation"
-                      name="lucide:eye"
-                      class="size-4 shrink-0"
-                      v-tippy="'Show password'"
-                    />
-                    <Icon
-                      v-else
-                      name="lucide:eye-off"
-                      class="size-4 shrink-0"
-                      v-tippy="'Hide password'"
-                    />
-                  </button>
-                </div>
-              </div>
+              <InputPassword
+                v-model="form.password_confirmation"
+                name="password_confirmation"
+                id="password_confirmation"
+                required
+              />
             </div>
 
             <button
@@ -118,8 +66,6 @@ definePageMeta({
 usePageMeta(null, { title: "Reset Password" });
 
 const loading = ref(false);
-const showPassword = ref(false);
-const showPasswordConfirmation = ref(false);
 const route = useRoute();
 const form = reactive({
   email: route.query.email,
@@ -151,43 +97,5 @@ const submit = async () => {
   } finally {
     loading.value = false;
   }
-};
-
-const toggleShowPassword = () => {
-  showPassword.value = !showPassword.value;
-
-  let el = document.querySelector("#password");
-  el.focus();
-
-  // Move cursor to the end of input after focusing
-  setTimeout(() => {
-    if (typeof el.selectionStart == "number") {
-      el.selectionStart = el.selectionEnd = el.value.length;
-    } else if (typeof el.createTextRange != "undefined") {
-      el.focus();
-      var range = el.createTextRange();
-      range.collapse(false);
-      range.select();
-    }
-  }, 0);
-};
-
-const toggleShowPasswordConfirmation = () => {
-  showPasswordConfirmation.value = !showPasswordConfirmation.value;
-
-  let el = document.querySelector("#password_confirmation");
-  el.focus();
-
-  // Move cursor to the end of input after focusing
-  setTimeout(() => {
-    if (typeof el.selectionStart == "number") {
-      el.selectionStart = el.selectionEnd = el.value.length;
-    } else if (typeof el.createTextRange != "undefined") {
-      el.focus();
-      var range = el.createTextRange();
-      range.collapse(false);
-      range.select();
-    }
-  }, 0);
 };
 </script>

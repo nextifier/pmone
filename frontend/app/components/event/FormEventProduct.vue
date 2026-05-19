@@ -2,7 +2,7 @@
   <form @submit.prevent="handleSubmit" class="space-y-4">
     <!-- Category -->
     <div class="space-y-2">
-      <Label for="category_id">Category <span class="text-destructive">*</span></Label>
+      <Label for="category_id">Category</Label>
       <Select v-model="form.category_id" required>
         <SelectTrigger id="category_id" class="w-full">
           <SelectValue placeholder="Select category" />
@@ -20,7 +20,7 @@
 
     <!-- Name -->
     <div class="space-y-2">
-      <Label for="name">Name <span class="text-destructive">*</span></Label>
+      <Label for="name">Name</Label>
       <Input id="name" v-model="form.name" placeholder="Product name" required />
       <p v-if="errors.name" class="text-destructive mt-1 text-xs">
         {{ Array.isArray(errors.name) ? errors.name[0] : errors.name }}
@@ -44,7 +44,7 @@
     <!-- Price & Unit -->
     <div class="grid grid-cols-2 gap-x-3">
       <div class="space-y-2">
-        <Label for="price">Price <span class="text-destructive">*</span></Label>
+        <Label for="price">Price</Label>
         <InputGroup>
           <InputGroupAddon>
             <InputGroupText>Rp</InputGroupText>

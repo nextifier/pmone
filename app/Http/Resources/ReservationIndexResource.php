@@ -20,6 +20,8 @@ class ReservationIndexResource extends JsonResource
             'guest_email' => $this->guest_email,
             'guest_phone' => $this->guest_phone,
             'total_amount' => (float) $this->total_amount,
+            'payment_method' => $this->payment_method?->value,
+            'payment_channel' => $this->payment_channel,
             'paid_at' => $this->paid_at?->toIso8601String(),
             'voucher_sent_at' => $this->voucher_sent_at?->toIso8601String(),
             'source' => $this->source?->value,

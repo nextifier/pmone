@@ -18,12 +18,17 @@ use App\Models\EventProduct;
 use App\Models\Order;
 use App\Models\PromotionPost;
 use App\Notifications\OrderSubmittedNotification;
+use App\Services\Pricing\PricingService;
+use App\Services\Promotion\PenaltyService;
+use App\Services\Promotion\PromoCodeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Tags\Tag;
 
 class ExhibitorDashboardController extends Controller
 {
@@ -305,7 +310,7 @@ class ExhibitorDashboardController extends Controller
         foreach ($projectIds as $projectId) {
             $businessCategoryOptions = array_merge(
                 $businessCategoryOptions,
-                \Spatie\Tags\Tag::withType("business_category:{$projectId}")
+                Tag::withType("business_category:{$projectId}")
                     ->ordered()
                     ->pluck('name')
                     ->toArray()
@@ -583,7 +588,7 @@ class ExhibitorDashboardController extends Controller
             'media_ids.*' => ['integer'],
         ]);
 
-        \Spatie\MediaLibrary\MediaCollections\Models\Media::setNewOrder($validated['media_ids']);
+        Media::setNewOrder($validated['media_ids']);
 
         $post->load('media');
 
@@ -756,17 +761,17 @@ class ExhibitorDashboardController extends Controller
         } elseif ($event->onsite_order_opens_at && $event->onsite_order_closes_at
             && $now->between($event->onsite_order_opens_at, $event->onsite_order_closes_at)) {
             $orderPeriod = 'onsite_order';
-            $penaltyRate = (float) $event->onsite_penalty_rate;
         }
 
-        $order = DB::transaction(function () use ($validated, $brandEvent, $products, $taxRate, $orderPeriod, $penaltyRate) {
+        $order = DB::transaction(function () use ($validated, $brand, $brandEvent, $products, $taxRate, $orderPeriod, $request) {
             $subtotal = 0;
             $itemsData = [];
-            $penaltyMultiplier = $penaltyRate > 0 ? (1 + $penaltyRate / 100) : 1;
 
+            // Item unit_price uses BASE product price. Any onsite-period penalty is added
+            // afterwards as a separate AppliedAdjustment via PenaltyService.
             foreach ($validated['items'] as $item) {
                 $product = $products[$item['event_product_id']];
-                $unitPrice = round((float) $product->price * $penaltyMultiplier, 2);
+                $unitPrice = round((float) $product->price, 2);
                 $totalPrice = $unitPrice * $item['quantity'];
                 $subtotal += $totalPrice;
 
@@ -782,25 +787,41 @@ class ExhibitorDashboardController extends Controller
                 ];
             }
 
-            $taxAmount = round($subtotal * $taxRate / 100, 2);
-            $total = $subtotal + $taxAmount;
-
             $order = Order::create([
                 'brand_event_id' => $brandEvent->id,
                 'operational_status' => 'submitted',
                 'order_period' => $orderPeriod,
-                'applied_penalty_rate' => $penaltyRate,
                 'notes' => $validated['notes'] ?? null,
                 'subtotal' => $subtotal,
                 'tax_rate' => $taxRate,
-                'tax_amount' => $taxAmount,
-                'total' => $total,
+                'tax_amount' => 0,
+                'total' => 0,
                 'submitted_at' => now(),
             ]);
 
             $order->items()->createMany($itemsData);
 
-            return $order;
+            // Evaluate auto-triggered penalty rules (event_period seeded from Event.onsite_penalty_rate).
+            app(PenaltyService::class)->evaluateAndApply($order);
+
+            // Apply promo code if supplied. Throws ValidationException on invalid code, aborting the txn.
+            if (! empty($validated['promo_code'])) {
+                $email = $brand->email ?? $request->user()->email ?? '';
+                app(PromoCodeService::class)->applyByCode(
+                    (string) $validated['promo_code'],
+                    $order->fresh(['items', 'adjustments.promotionRule', 'brandEvent']),
+                    (string) $email,
+                    $request->user()?->id,
+                );
+                $order->forceFill([
+                    'promo_code_applied' => strtoupper(trim((string) $validated['promo_code'])),
+                ])->save();
+            }
+
+            // Final recalculate persists discount/penalty/tax/total based on adjustments + subtotal.
+            app(PricingService::class)->recalculateAndPersist($order->fresh(['adjustments', 'brandEvent']));
+
+            return $order->fresh(['adjustments']);
         });
 
         $order->load(['items.productCategory', 'brandEvent.brand', 'creator']);

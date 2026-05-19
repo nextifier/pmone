@@ -17,6 +17,8 @@ class CancellationMail extends Mailable
     public function __construct(
         public Reservation $reservation,
         public float $refundAmount,
+        public ?string $invoiceUrl = null,
+        public ?string $receiptUrl = null,
     ) {}
 
     public function envelope(): Envelope
@@ -34,6 +36,8 @@ class CancellationMail extends Mailable
             with: [
                 'reservation' => $this->reservation,
                 'refundAmount' => $this->refundAmount,
+                'invoiceUrl' => $this->invoiceUrl,
+                'receiptUrl' => $this->receiptUrl,
             ],
         );
     }

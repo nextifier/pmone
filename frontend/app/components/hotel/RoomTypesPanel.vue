@@ -24,13 +24,28 @@
         <div
           class="bg-muted border-border relative aspect-4/5 w-24 shrink-0 overflow-hidden rounded-lg border sm:w-32"
         >
-          <img
-            v-if="room.gallery?.[0]"
-            :src="room.gallery[0].md || room.gallery[0].sm || room.gallery[0].url"
+          <Lightbox
+            v-if="room.gallery?.length"
+            :items="room.gallery"
             :alt="room.name"
-            class="size-full object-cover select-none"
-            loading="lazy"
-          />
+            thumbnail-key="md"
+          >
+            <template #trigger="{ open }">
+              <button
+                type="button"
+                class="block size-full cursor-zoom-in"
+                @click="open"
+              >
+                <img
+                  :src="room.gallery[0].md || room.gallery[0].lg || room.gallery[0].url"
+                  :alt="room.name"
+                  class="size-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </button>
+            </template>
+          </Lightbox>
         </div>
 
         <div class="flex min-w-0 flex-1 flex-col gap-y-1.5">
@@ -75,10 +90,24 @@
             </span>
           </div>
 
-          <p class="text-sm tracking-tight">
-            <span class="font-semibold">Rp {{ formatRupiah(room.base_rate) }}</span>
-            <span class="text-muted-foreground"> / night</span>
-          </p>
+          <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <p class="text-sm tracking-tight">
+              <template v-if="room.pricing_type === 'dynamic' && room.pricing_periods?.length">
+                <span class="text-muted-foreground">from </span>
+                <span class="font-semibold">Rp{{ formatRupiah(minPeriodRate(room)) }}</span>
+              </template>
+              <template v-else>
+                <span class="font-semibold">Rp{{ formatRupiah(room.base_rate) }}</span>
+              </template>
+              <span class="text-muted-foreground"> / night</span>
+            </p>
+            <span
+              v-if="room.pricing_type === 'dynamic'"
+              class="text-info border-info/30 bg-info/10 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium tracking-tight"
+            >
+              Dynamic
+            </span>
+          </div>
 
           <div v-if="room.amenities?.length" class="flex flex-wrap gap-1 pt-1">
             <span
@@ -97,21 +126,24 @@
           </div>
 
           <div class="mt-auto flex items-center justify-end gap-1 pt-2">
-            <button
-              class="hover:bg-muted text-muted-foreground inline-flex size-8 items-center justify-center rounded-md"
+            <Button
+              variant="ghost"
+              size="iconSm"
               title="Edit"
               @click="openEditDialog(room)"
             >
               <Icon name="hugeicons:edit-02" class="size-4" />
-            </button>
-            <button
+            </Button>
+            <Button
               v-if="canDelete"
-              class="hover:bg-destructive/10 text-destructive inline-flex size-8 items-center justify-center rounded-md"
+              variant="ghost"
+              size="iconSm"
+              class="hover:bg-destructive/10 text-destructive"
               title="Delete"
               @click="confirmDelete(room)"
             >
               <Icon name="hugeicons:delete-02" class="size-4" />
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -147,6 +179,93 @@
               <div class="space-y-2">
                 <Label>Area (m²)</Label>
                 <Input v-model.number="form.area_sqm" type="number" step="0.01" min="0" />
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <Label>Pricing Mode</Label>
+              <Select :model-value="form.pricing_type" @update:model-value="(v) => (form.pricing_type = v || 'flat')">
+                <SelectTrigger class="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="flat">Flat Rate (same price every night)</SelectItem>
+                  <SelectItem value="dynamic">Dynamic (per date range)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p v-if="form.pricing_type === 'dynamic'" class="text-muted-foreground text-xs sm:text-sm tracking-tight">
+                Base rate above is used as fallback display. Booking total uses period rates below.
+              </p>
+            </div>
+
+            <div v-if="form.pricing_type === 'dynamic'" class="space-y-2">
+              <div class="flex items-center justify-between">
+                <Label>Pricing Periods</Label>
+                <Button size="sm" type="button" variant="outline" @click="addPricingPeriod">
+                  <Icon name="lucide:plus" class="-ml-1 size-3.5 shrink-0" />
+                  Add Period
+                </Button>
+              </div>
+              <p v-if="form.pricing_periods.length === 0" class="text-muted-foreground text-sm tracking-tight rounded-md border border-dashed py-6 text-center">
+                No pricing periods yet. Add one to define a date range and rate.
+              </p>
+              <div v-if="pricingPeriodOverlap" class="text-destructive text-xs sm:text-sm tracking-tight">
+                {{ pricingPeriodOverlap }}
+              </div>
+              <div
+                v-for="(period, idx) in form.pricing_periods"
+                :key="idx"
+                class="border-border rounded-md border p-3 space-y-2"
+              >
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="space-y-1">
+                    <Label class="text-xs sm:text-sm">Start Date</Label>
+                    <DatePicker
+                      :model-value="parseLocalDateString(period.start_date)"
+                      placeholder="Pick start date"
+                      @update:model-value="
+                        (d) => (period.start_date = d ? toLocalDateString(d) : '')
+                      "
+                    />
+                  </div>
+                  <div class="space-y-1">
+                    <Label class="text-xs sm:text-sm">End Date</Label>
+                    <DatePicker
+                      :model-value="parseLocalDateString(period.end_date)"
+                      placeholder="Pick end date"
+                      :min="parseLocalDateString(period.start_date)"
+                      @update:model-value="
+                        (d) => (period.end_date = d ? toLocalDateString(d) : '')
+                      "
+                    />
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="space-y-1">
+                    <Label class="text-xs sm:text-sm">Rate (IDR)</Label>
+                    <Input v-model.number="period.rate" type="number" min="0" required />
+                  </div>
+                  <div class="space-y-1">
+                    <Label class="text-xs sm:text-sm">Label (optional)</Label>
+                    <Input v-model="period.label" placeholder="e.g. Weekend, Peak" />
+                  </div>
+                </div>
+                <div class="flex items-center justify-between pt-1">
+                  <label class="flex items-center gap-2 text-xs sm:text-sm tracking-tight">
+                    <Checkbox v-model="period.is_active" />
+                    <span>Active</span>
+                  </label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="iconSm"
+                    class="hover:bg-destructive/10 text-destructive"
+                    title="Remove period"
+                    @click="removePricingPeriod(idx)"
+                  >
+                    <Icon name="hugeicons:delete-02" class="size-3.5" />
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -246,9 +365,11 @@
 
 <script setup>
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import { Lightbox } from "@/components/ui/lightbox";
 import InputFile from "@/components/InputFile.vue";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -267,6 +388,7 @@ import {
   TagsInputItemText,
 } from "@/components/ui/tags-input";
 import { Textarea } from "@/components/ui/textarea";
+import { parseLocalDateString, toLocalDateString } from "@/lib/utils";
 import { computed, reactive, ref } from "vue";
 import { toast } from "vue-sonner";
 
@@ -305,6 +427,8 @@ const form = reactive({
   breakfast_included: true,
   smoking_allowed: false,
   is_active: true,
+  pricing_type: "flat",
+  pricing_periods: [],
 });
 
 const resetForm = () => {
@@ -320,8 +444,44 @@ const resetForm = () => {
     breakfast_included: true,
     smoking_allowed: false,
     is_active: true,
+    pricing_type: "flat",
+    pricing_periods: [],
   });
   galleryFiles.value = [];
+};
+
+const addPricingPeriod = () => {
+  form.pricing_periods.push({
+    id: null,
+    start_date: "",
+    end_date: "",
+    rate: 0,
+    label: "",
+    is_active: true,
+  });
+};
+
+const removePricingPeriod = (idx) => {
+  form.pricing_periods.splice(idx, 1);
+};
+
+const pricingPeriodOverlap = computed(() => {
+  const periods = form.pricing_periods
+    .filter((p) => p.start_date && p.end_date)
+    .slice()
+    .sort((a, b) => a.start_date.localeCompare(b.start_date));
+
+  for (let i = 0; i < periods.length - 1; i++) {
+    if (periods[i].end_date >= periods[i + 1].start_date) {
+      return `Periods overlap: ${periods[i].start_date} - ${periods[i].end_date} and ${periods[i + 1].start_date} - ${periods[i + 1].end_date}.`;
+    }
+  }
+  return null;
+});
+
+const minPeriodRate = (room) => {
+  if (!room.pricing_periods?.length) return room.base_rate;
+  return Math.min(...room.pricing_periods.map((p) => Number(p.rate) || 0));
 };
 
 const openCreateDialog = () => {
@@ -344,15 +504,46 @@ const openEditDialog = (room) => {
     breakfast_included: room.breakfast_included,
     smoking_allowed: room.smoking_allowed ?? false,
     is_active: room.is_active,
+    pricing_type: room.pricing_type || "flat",
+    pricing_periods: Array.isArray(room.pricing_periods)
+      ? room.pricing_periods.map((p) => ({
+          id: p.id,
+          start_date: p.start_date,
+          end_date: p.end_date,
+          rate: Number(p.rate),
+          label: p.label || "",
+          is_active: p.is_active ?? true,
+        }))
+      : [],
   });
   galleryFiles.value = [];
   dialogOpen.value = true;
 };
 
 const handleSubmit = async () => {
+  if (form.pricing_type === "dynamic" && pricingPeriodOverlap.value) {
+    toast.error("Pricing periods overlap. Fix before saving.");
+    return;
+  }
+  if (form.pricing_type === "dynamic" && form.pricing_periods.length === 0) {
+    toast.error("Add at least one pricing period for dynamic pricing.");
+    return;
+  }
+
   saving.value = true;
   try {
     const payload = { ...form };
+
+    payload.pricing_periods = form.pricing_periods
+      .filter((p) => p.start_date && p.end_date && Number(p.rate) > 0)
+      .map((p) => ({
+        id: p.id || undefined,
+        start_date: p.start_date,
+        end_date: p.end_date,
+        rate: Number(p.rate),
+        label: p.label || null,
+        is_active: p.is_active,
+      }));
 
     if (Array.isArray(galleryFiles.value) && galleryFiles.value.length > 0) {
       payload.gallery_files = galleryFiles.value.filter(

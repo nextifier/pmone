@@ -86,6 +86,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property-read string|null $end_time
  * @property-read array|null $poster_image
  * @property-read string|null $start_time
+ * @property-read Collection<int, Guest> $guests
+ * @property-read int|null $guests_count
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
  * @property-read Collection<int, Order> $orders
@@ -93,6 +95,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property-read Collection<int, PartnerCategory> $partnerCategories
  * @property-read int|null $partner_categories_count
  * @property-read Project|null $project
+ * @property-read Collection<int, RundownItem> $rundownItems
+ * @property-read int|null $rundown_items_count
  * @property-read User|null $updater
  *
  * @method static Builder<static>|Event active()
@@ -171,6 +175,7 @@ class Event extends Model implements HasMedia, Sortable
         'status',
         'is_active',
         'visibility',
+        'hotel_reservation_enabled',
         'settings',
         'custom_fields',
         'branding',
@@ -214,6 +219,7 @@ class Event extends Model implements HasMedia, Sortable
             'onsite_order_closes_at' => 'datetime',
             'onsite_penalty_rate' => 'decimal:2',
             'is_active' => 'boolean',
+            'hotel_reservation_enabled' => 'boolean',
             'order_form_deadline' => 'datetime',
             'promotion_post_deadline' => 'datetime',
         ];
@@ -331,27 +337,12 @@ class Event extends Model implements HasMedia, Sortable
             }
         });
 
-        static::deleted(function ($model) {
-            if ($model->isForceDeleting()) {
-                return;
-            }
-
-            Hotel::where('event_id', $model->id)->get()->each->delete();
-        });
-
-        static::restored(function ($model) {
-            Hotel::onlyTrashed()
-                ->where('event_id', $model->id)
-                ->get()
-                ->each
-                ->restore();
-        });
     }
 
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['title', 'slug', 'status', 'visibility'])
+            ->logOnly(['title', 'slug', 'status', 'visibility', 'hotel_reservation_enabled'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
@@ -491,6 +482,19 @@ class Event extends Model implements HasMedia, Sortable
     public function brandEvents(): HasMany
     {
         return $this->hasMany(BrandEvent::class)->ordered();
+    }
+
+    public function hotels(): BelongsToMany
+    {
+        return $this->belongsToMany(Hotel::class, 'hotel_event')
+            ->withPivot(['id', 'is_active', 'order_column', 'notes', 'created_by', 'updated_by'])
+            ->withTimestamps()
+            ->orderByPivot('order_column');
+    }
+
+    public function hotelEvents(): HasMany
+    {
+        return $this->hasMany(HotelEvent::class);
     }
 
     public function partnerCategories(): HasMany

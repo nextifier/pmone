@@ -1,11 +1,14 @@
 <template>
   <div class="flex flex-col gap-y-0">
-    <div v-if="eventLoading" class="flex flex-col gap-y-0">
+    <div v-if="eventLoading && !event" class="flex flex-col gap-y-0">
       <!-- TabNav Skeleton -->
       <nav class="bg-background relative -mx-4 flex gap-x-5 px-4 sm:mx-0 sm:px-0">
         <div v-for="i in 4" :key="`tab-${i}`" class="flex shrink-0 items-center gap-x-1.5 py-3">
           <Skeleton class="size-4 rounded" />
-          <Skeleton class="h-4 rounded" :class="[i === 1 ? 'w-16' : i === 2 ? 'w-14' : i === 3 ? 'w-20' : 'w-14']" />
+          <Skeleton
+            class="h-4 rounded"
+            :class="[i === 1 ? 'w-16' : i === 2 ? 'w-14' : i === 3 ? 'w-20' : 'w-14']"
+          />
         </div>
       </nav>
 
@@ -55,7 +58,9 @@
         </div>
 
         <!-- Stats Grid Skeleton -->
-        <div class="grid grow-0 grid-cols-2 gap-2 sm:grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
+        <div
+          class="grid grow-0 grid-cols-2 gap-2 sm:grid-cols-[repeat(auto-fit,minmax(200px,1fr))]"
+        >
           <!-- Stat Cards (Exhibitors, Orders, Revenue) -->
           <div
             v-for="i in 3"
@@ -109,7 +114,10 @@
         <TabNav v-if="event" :tabs="eventTabs" />
       </template>
 
-      <div ref="contentArea" :class="isBrandPage || isContentPage || isOperationalPage ? '' : 'pt-6'">
+      <div
+        ref="contentArea"
+        :class="isBrandPage || isContentPage || isOperationalPage ? '' : 'pt-6'"
+      >
         <NuxtPage :event="event" :project="project" />
       </div>
     </template>
@@ -117,8 +125,8 @@
 </template>
 
 <script setup>
-import { TabNav } from "@/components/ui/tab-nav";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TabNav } from "@/components/ui/tab-nav";
 
 const props = defineProps({
   project: Object,
@@ -130,6 +138,7 @@ const {
   data: eventResponse,
   pending: eventLoading,
   error: fetchError,
+  refresh: refreshEvent,
 } = await useLazySanctumFetch(
   () => `/api/projects/${route.params.username}/events/${route.params.eventSlug}`,
   {
@@ -184,24 +193,37 @@ const eventTabs = computed(() => {
   const tabs = [
     { label: "Overview", icon: "hugeicons:dashboard-circle", to: eventBase.value, exact: true },
     { label: "Brands", icon: "hugeicons:store-02", to: `${eventBase.value}/brands` },
-    { label: "Operational", icon: "hugeicons:briefcase-01", to: `${eventBase.value}/operational/orders`, activeFor: [`${eventBase.value}/operational`] },
+    {
+      label: "Operational",
+      icon: "hugeicons:briefcase-01",
+      to: `${eventBase.value}/operational/orders`,
+      activeFor: [`${eventBase.value}/operational`],
+    },
     { label: "Content", icon: "hugeicons:note-01", to: `${eventBase.value}/content/rundown` },
   ];
 
-  if (hasPermission("hotels.read")) {
-    tabs.push({ label: "Hotels", icon: "hugeicons:building-01", to: `${eventBase.value}/hotels` });
+  const hotelEnabled = event.value?.hotel_reservation_enabled === true;
+  if (hotelEnabled && hasPermission("hotels.read")) {
+    tabs.push({ label: "Hotels", icon: "hugeicons:hotel-01", to: `${eventBase.value}/hotels` });
   }
-  if (hasPermission("reservations.read")) {
-    tabs.push({ label: "Reservations", icon: "hugeicons:calendar-02", to: `${eventBase.value}/reservations` });
+  if (hotelEnabled && hasPermission("reservations.read")) {
+    tabs.push({
+      label: "Reservations",
+      icon: "hugeicons:calendar-02",
+      to: `${eventBase.value}/reservations`,
+    });
   }
 
   return tabs;
 });
 
 const contentArea = ref(null);
-const swipeEnabled = computed(() => !isOperationalPage.value && !isContentPage.value && !isBrandPage.value);
+const swipeEnabled = computed(
+  () => !isOperationalPage.value && !isContentPage.value && !isBrandPage.value
+);
 useTabSwipe(contentArea, eventTabs, { enabled: swipeEnabled });
 
 provide("event", event);
 provide("eventTabs", eventTabs);
+provide("refreshEvent", refreshEvent);
 </script>

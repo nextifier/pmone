@@ -43,6 +43,62 @@
           }}</span></span
         >
       </div>
+
+      <!-- Danger Zone -->
+      <div v-if="canDeleteProject(settingsProject)" class="frame border-destructive/30 mt-6">
+        <div class="frame-header">
+          <div class="frame-title text-destructive">Danger Zone</div>
+        </div>
+        <div class="frame-panel">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium tracking-tight">Delete Project</p>
+              <p class="text-muted-foreground text-xs tracking-tight text-balance sm:text-sm">
+                Move this project to trash. It can be restored later.
+              </p>
+            </div>
+            <button
+              type="button"
+              :disabled="deleteLoading"
+              @click="deleteDialogOpen = true"
+              class="bg-destructive hover:bg-destructive/80 flex shrink-0 items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white transition disabled:opacity-50"
+            >
+              <Spinner v-if="deleteLoading" />
+              {{ deleteLoading ? "Deleting.." : "Delete Project" }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delete Confirmation Dialog -->
+      <DialogResponsive v-model:open="deleteDialogOpen">
+        <template #default>
+          <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+            <p class="text-body mt-1.5 text-sm tracking-tight">
+              This will move <strong>{{ settingsProject.name }}</strong> to trash. It can be
+              restored later.
+            </p>
+            <div class="mt-3 flex justify-end gap-2">
+              <button
+                class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                :disabled="deleteLoading"
+                @click="deleteDialogOpen = false"
+              >
+                Cancel
+              </button>
+              <button
+                class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                :disabled="deleteLoading"
+                @click="handleDelete"
+              >
+                <Spinner v-if="deleteLoading" class="size-4 text-white" />
+                <span v-else>Delete Project</span>
+              </button>
+            </div>
+          </div>
+        </template>
+      </DialogResponsive>
     </template>
 
     <template v-else>
@@ -64,6 +120,7 @@ const props = defineProps({
 });
 
 const route = useRoute();
+const router = useRouter();
 const sanctumFetch = useSanctumClient();
 const { $dayjs } = useNuxtApp();
 const { signalRefresh } = useDataRefresh();
@@ -73,8 +130,10 @@ const { metaSymbol } = useShortcuts();
 
 const loading = ref(false);
 const errors = ref({});
+const deleteLoading = ref(false);
+const deleteDialogOpen = ref(false);
 
-const { isAdminOrMaster: canEditprojects } = usePermission();
+const { isAdminOrMaster: canEditprojects, canDeleteProject } = usePermission();
 
 const { data: projectResponse, pending: settingsLoading } = await useLazySanctumFetch(
   () => `/api/projects/${route.params.username}`,
@@ -142,6 +201,25 @@ async function updateProject(payload) {
     }
   } finally {
     loading.value = false;
+  }
+}
+
+async function handleDelete() {
+  deleteLoading.value = true;
+
+  try {
+    await sanctumFetch(`/api/projects/${settingsProject.value.username}`, {
+      method: "DELETE",
+    });
+
+    toast.success("Project moved to trash");
+    signalRefresh("projects-list");
+    deleteDialogOpen.value = false;
+    router.push("/projects");
+  } catch (error) {
+    toast.error(error.response?._data?.message || "Failed to delete project");
+  } finally {
+    deleteLoading.value = false;
   }
 }
 

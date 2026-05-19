@@ -9,10 +9,9 @@
       <!-- Current Password (only if user has existing password) -->
       <div v-if="userHasPassword" class="input-group">
         <label for="current_password">{{ $t('settings.currentPassword') }}</label>
-        <input
+        <InputPassword
           id="current_password"
           v-model="form.current_password"
-          type="password"
           :class="{ 'border-destructive': errors?.current_password }"
           required
         />
@@ -22,10 +21,9 @@
       <!-- New Password -->
       <div class="input-group">
         <label for="password">{{ $t('settings.newPassword') }}</label>
-        <input
+        <InputPassword
           id="password"
           v-model="form.password"
-          type="password"
           :class="{ 'border-destructive': errors?.password }"
           required
         />
@@ -35,10 +33,9 @@
       <!-- Confirm New Password -->
       <div class="input-group">
         <label for="password_confirmation">{{ $t('settings.confirmNewPassword') }}</label>
-        <input
+        <InputPassword
           id="password_confirmation"
           v-model="form.password_confirmation"
-          type="password"
           :class="{ 'border-destructive': errors?.password_confirmation }"
           required
         />

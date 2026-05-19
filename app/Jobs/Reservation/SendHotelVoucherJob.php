@@ -5,6 +5,7 @@ namespace App\Jobs\Reservation;
 use App\Enums\ReservationStatus;
 use App\Mail\Reservation\HotelVoucherMail;
 use App\Models\Reservation;
+use App\Services\Reservation\ReservationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -21,7 +22,7 @@ class SendHotelVoucherJob implements ShouldQueue
 
     public function __construct(public int $reservationId) {}
 
-    public function handle(): void
+    public function handle(ReservationService $reservations): void
     {
         $reservation = Reservation::query()
             ->with(['hotel', 'items.roomType', 'media'])
@@ -35,7 +36,17 @@ class SendHotelVoucherJob implements ShouldQueue
             return;
         }
 
-        Mail::send(new HotelVoucherMail($reservation));
+        [$rawToken, $hashedToken] = $reservations->generateMagicLinkToken();
+        $reservation->update([
+            'magic_link_token' => $hashedToken,
+            'magic_link_expires_at' => now()->addYear(),
+        ]);
+
+        $appUrl = rtrim(config('app.url'), '/');
+        $invoiceUrl = "{$appUrl}/api/public/reservations/magic/{$rawToken}/invoice.pdf";
+        $receiptUrl = "{$appUrl}/api/public/reservations/magic/{$rawToken}/receipt.pdf";
+
+        Mail::send(new HotelVoucherMail($reservation, $invoiceUrl, $receiptUrl));
 
         $reservation->update([
             'status' => ReservationStatus::VoucherSent,

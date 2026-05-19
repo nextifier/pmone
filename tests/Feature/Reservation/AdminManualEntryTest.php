@@ -3,6 +3,7 @@
 use App\Enums\ReservationStatus;
 use App\Models\Event;
 use App\Models\Hotel;
+use App\Models\HotelEventAllotment;
 use App\Models\RoomType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,8 +25,16 @@ beforeEach(function () {
     $this->actingAs($this->user);
 
     $this->event = Event::factory()->create();
-    $this->hotel = Hotel::factory()->for($this->event)->create();
+    $this->hotel = Hotel::factory()->withEvent($this->event)->create();
     $this->room = RoomType::factory()->create(['hotel_id' => $this->hotel->id, 'base_rate' => 1000000]);
+    HotelEventAllotment::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'room_type_id' => $this->room->id,
+        'quantity' => 5,
+        'start_date' => '2026-07-01',
+        'end_date' => '2026-07-31',
+        'is_active' => true,
+    ]);
 });
 
 test('admin can create reservation with skip_payment mode', function () {
@@ -57,6 +66,7 @@ test('admin can create reservation with skip_payment mode', function () {
         'status' => ReservationStatus::Paid->value,
         'source' => 'admin_manual',
         'event_id' => $this->event->id,
+        'hotel_id' => $this->hotel->id,
     ]);
 });
 

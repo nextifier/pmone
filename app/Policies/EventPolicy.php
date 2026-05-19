@@ -49,7 +49,7 @@ class EventPolicy
      */
     public function update(User $user, Event $event): bool
     {
-        if ($user->hasRole(['master', 'admin'])) {
+        if ($user->hasRole(['master', 'admin', 'staff'])) {
             return true;
         }
 
@@ -61,15 +61,8 @@ class EventPolicy
      */
     public function delete(User $user, Event $event): bool
     {
-        if ($user->hasRole(['master', 'admin'])) {
-            return true;
-        }
-
-        if ($event->created_by === $user->id) {
-            return true;
-        }
-
-        return $event->project->members()->where('user_id', $user->id)->exists();
+        // Only master and admin can delete events
+        return $user->hasRole(['master', 'admin']);
     }
 
     /**

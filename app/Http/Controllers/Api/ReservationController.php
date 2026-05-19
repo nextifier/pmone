@@ -16,7 +16,10 @@ use App\Jobs\Reservation\SendCancellationJob;
 use App\Jobs\Reservation\SendHotelVoucherJob;
 use App\Models\Event;
 use App\Models\Hotel;
+use App\Models\HotelEvent;
 use App\Models\Reservation;
+use App\Services\Promotion\PenaltyService;
+use App\Services\Promotion\PromoCodeService;
 use App\Services\Reservation\DocumentService;
 use App\Services\Reservation\ReservationService;
 use Illuminate\Http\JsonResponse;
@@ -32,13 +35,15 @@ class ReservationController extends Controller
     public function __construct(
         protected ReservationService $reservations,
         protected DocumentService $documents,
+        protected PromoCodeService $promoCodes,
+        protected PenaltyService $penalties,
     ) {}
 
     public function index(Request $request, Event $event): JsonResponse
     {
         $query = Reservation::query()
             ->where('event_id', $event->id)
-            ->with(['hotel', 'event', 'items', 'media']);
+            ->with(['hotel', 'event', 'items.roomType', 'media']);
 
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
@@ -64,6 +69,8 @@ class ReservationController extends Controller
             'hotel', 'event',
             'items.roomType',
             'transfers.transferOption',
+            'paymentGateway',
+            'adjustments.promotionRule', 'adjustments.promoCode',
             'media', 'creator', 'updater',
         ]);
 
@@ -114,10 +121,13 @@ class ReservationController extends Controller
         $data = $request->validated();
         $data['source'] = ReservationSource::AdminManual;
 
-        // Ensure hotel belongs to the route event
-        $hotel = Hotel::where('id', $data['hotel_id'])
-            ->where('event_id', $event->id)
-            ->firstOrFail();
+        // Ensure hotel is attached to the route event via pivot
+        $hotel = Hotel::query()->findOrFail($data['hotel_id']);
+        $pivot = HotelEvent::query()
+            ->where(['hotel_id' => $hotel->id, 'event_id' => $event->id, 'is_active' => true])
+            ->first();
+        abort_if(! $pivot, 404, 'Hotel is not active for this event.');
+
         $data['event_id'] = $event->id;
 
         $mode = $data['payment_mode'] ?? 'xendit';
@@ -207,7 +217,22 @@ class ReservationController extends Controller
             return response()->json(['message' => 'Voucher must be uploaded first'], 422);
         }
 
+        // H4: Idempotency — guard against duplicate dispatch that overwrites voucher_sent_at.
+        if ($reservation->voucher_sent_at !== null) {
+            abort(422, 'Voucher already sent at '.$reservation->voucher_sent_at->toDateTimeString().'.');
+        }
+
         SendHotelVoucherJob::dispatch($reservation->id);
+
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($reservation)
+            ->event('voucher_sent')
+            ->withProperties([
+                'project_id' => $event->project_id,
+                'reservation_id' => $reservation->id,
+            ])
+            ->log('Hotel voucher sent to guest');
 
         return response()->json(['message' => 'Voucher email queued']);
     }
@@ -216,8 +241,24 @@ class ReservationController extends Controller
     {
         $this->ensureReservationBelongsToEvent($event, $reservation);
 
+        // C4: Block cancellation of already-final reservations to preserve audit trail.
+        if ($reservation->status->isFinal()) {
+            abort(422, "Cannot cancel a {$reservation->status->label()} reservation.");
+        }
+
         $data = $request->validated();
-        $refundAmount = $data['refund_amount'] ?? $this->reservations->calculateRefund($reservation);
+
+        // Void all active adjustments + revert promo usage counters BEFORE status flip.
+        // Preserves total_amount so refund calculation is correct.
+        $this->promoCodes->voidAllOnCancel($reservation);
+
+        // Apply any cancellation_window penalty rule that matches. The penalty
+        // is recorded as an AppliedAdjustment for audit, but the refund still
+        // uses the hardcoded tier formula in calculateRefund() unless caller
+        // supplied an explicit refund_amount.
+        $this->penalties->applyCancellationFee($reservation->fresh(['items', 'transfers', 'adjustments', 'hotel']));
+
+        $refundAmount = $data['refund_amount'] ?? $this->reservations->calculateRefund($reservation->fresh());
 
         $reservation->update([
             'status' => ReservationStatus::Cancelled,
@@ -233,9 +274,74 @@ class ReservationController extends Controller
 
         SendCancellationJob::dispatch($reservation->id, (float) $refundAmount);
 
+        activity()
+            ->causedBy($request->user())
+            ->performedOn($reservation)
+            ->event('reservation_cancelled')
+            ->withProperties([
+                'project_id' => $event->project_id,
+                'reservation_id' => $reservation->id,
+                'reason' => $data['reason'],
+                'refund_amount' => (float) $refundAmount,
+                'process_refund' => (bool) ($data['process_refund'] ?? true),
+            ])
+            ->log('Reservation cancelled');
+
         return response()->json([
             'message' => 'Reservation cancelled',
             'refund_amount' => (float) $refundAmount,
+        ]);
+    }
+
+    /**
+     * Manually flip a pending_payment reservation to paid. Backs the staff
+     * action that lives behind `reservations.mark_paid` permission. Used when
+     * payment lands outside Xendit (cash, manual bank transfer, voucher) or
+     * when the Xendit webhook never reached the server (localhost dev,
+     * misconfigured allowlist). Routes through the same {@see ReservationService::markAsPaid}
+     * call path so downstream effects — booking email, payment_channel
+     * backfill, status conditional update — stay identical to the webhook
+     * happy path.
+     */
+    public function markPaid(Request $request, Event $event, Reservation $reservation): JsonResponse
+    {
+        $this->ensureReservationBelongsToEvent($event, $reservation);
+
+        if ($reservation->status !== ReservationStatus::PendingPayment) {
+            abort(422, "Only pending payment reservations can be marked as paid. Current status: {$reservation->status->label()}.");
+        }
+
+        $data = $request->validate([
+            'payment_channel' => ['nullable', 'string', 'max:50'],
+            'payment_destination' => ['nullable', 'string', 'max:100'],
+            'note' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $payload = [];
+        if (! empty($data['payment_channel'])) {
+            $payload['payment_channel'] = strtoupper($data['payment_channel']);
+        }
+        if (! empty($data['payment_destination'])) {
+            $payload['payment_destination'] = $data['payment_destination'];
+        }
+
+        $this->reservations->markAsPaid($reservation, $payload);
+
+        activity()
+            ->causedBy($request->user())
+            ->performedOn($reservation)
+            ->event('reservation_marked_paid_manual')
+            ->withProperties([
+                'project_id' => $event->project_id,
+                'reservation_id' => $reservation->id,
+                'payment_channel' => $payload['payment_channel'] ?? null,
+                'note' => $data['note'] ?? null,
+            ])
+            ->log('Reservation manually marked as paid by staff');
+
+        return response()->json([
+            'message' => 'Reservation marked as paid.',
+            'data' => new ReservationResource($reservation->fresh()),
         ]);
     }
 
@@ -257,6 +363,17 @@ class ReservationController extends Controller
         $sort = $request->input('sort', '-created_at');
 
         $filename = 'reservations_'.now()->format('Y-m-d_His').'.xlsx';
+
+        activity()
+            ->causedBy($request->user())
+            ->event('exported')
+            ->withProperties([
+                'project_id' => $event->project_id,
+                'model_type' => 'Reservation',
+                'event_id' => $event->id,
+                'filename' => $filename,
+            ])
+            ->log('Exported reservations');
 
         return Excel::download(new ReservationsExport($filters ?: null, $sort), $filename);
     }
@@ -296,10 +413,11 @@ class ReservationController extends Controller
     {
         if ($search = $request->input('filter_search')) {
             $escaped = addcslashes((string) $search, '%_\\');
-            $query->where(function ($q) use ($escaped) {
-                $q->where('reservation_number', 'ilike', "%{$escaped}%")
-                    ->orWhere('guest_name', 'ilike', "%{$escaped}%")
-                    ->orWhere('guest_email', 'ilike', "%{$escaped}%");
+            $like = '%'.strtolower($escaped).'%';
+            $query->where(function ($q) use ($like) {
+                $q->whereRaw('LOWER(reservation_number) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(guest_name) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(guest_email) LIKE ?', [$like]);
             });
         }
 

@@ -75,42 +75,123 @@
     <!-- Conjunction Events -->
     <EventConjunctionManager v-if="event" :event="event" />
 
-    <!-- Hotel Reservation Branding Override -->
+    <!-- Hotel Reservation -->
     <div v-if="event && canEditBranding" class="frame">
       <div class="frame-header">
-        <div class="frame-title">Hotel Reservation Branding</div>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="frame-title flex items-center gap-x-1.5">
+            <Icon name="hugeicons:hotel-01" class="size-3.5 shrink-0" />
+            Hotel Reservation
+          </div>
+          <span
+            v-if="hotelEnabled"
+            class="bg-success/15 text-success-foreground inline-flex w-fit shrink-0 items-center gap-x-1 rounded-full px-2.5 py-0.5 text-xs font-medium tracking-tight sm:text-sm"
+          >
+            <Icon name="hugeicons:checkmark-circle-02" class="size-3.5 shrink-0" />
+            Active
+          </span>
+          <span
+            v-else
+            class="bg-muted text-muted-foreground inline-flex w-fit shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-medium tracking-tight sm:text-sm"
+          >
+            Disabled
+          </span>
+        </div>
       </div>
-      <div class="frame-panel space-y-5">
-        <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
-          Override global branding for this event's Hotel Reservation Invoice & Receipt PDF. Useful for white-label events. Leave disabled to fall back to global branding.
-        </p>
+      <div class="frame-panel space-y-6">
+        <!-- Toggle row -->
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="flex-1 space-y-1 text-sm tracking-tight">
+            <p class="font-medium">Enable booking for this event</p>
+            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+              {{
+                hotelEnabled
+                  ? "The Hotels and Reservations tabs are visible. Public visitors can book accommodation and admins can record manual reservations."
+                  : "Turn on to expose Hotels and Reservations tabs, allotment management, and the public booking flow for this event."
+              }}
+            </p>
+          </div>
+          <Switch
+            :model-value="hotelEnabled"
+            :disabled="hotelToggling || (!canEnableHotel && !hotelEnabled)"
+            @update:model-value="onToggleHotel"
+          />
+        </div>
 
-        <div class="flex items-center gap-3 rounded-md border p-3">
-          <Switch v-model="brandingEnabled" />
-          <div class="text-sm tracking-tight">
-            <span class="font-medium">Use custom branding</span>
-            <p class="text-muted-foreground text-xs sm:text-sm">{{ brandingEnabled ? "Custom branding will be used for this event." : "Falls back to global branding." }}</p>
+        <!-- Payment gateway guard -->
+        <div
+          v-if="!canEnableHotel"
+          class="border-warning/40 bg-warning/10 flex items-start gap-3 rounded-md border p-3"
+        >
+          <Icon
+            name="hugeicons:alert-circle"
+            class="text-warning-foreground mt-0.5 size-4 shrink-0"
+          />
+          <div class="flex-1 text-sm tracking-tight">
+            <p class="text-warning-foreground font-medium">Payment gateway required</p>
+            <p class="text-muted-foreground mt-1 text-xs tracking-tight sm:text-sm">
+              {{
+                hotelEnabled
+                  ? "This project has no active payment gateway. Public booking is currently blocked. Set up a gateway to restore reservations."
+                  : "Hotel Reservation needs an active payment gateway on this project before it can be enabled. Without it, guests cannot complete bookings."
+              }}
+            </p>
+            <NuxtLink
+              :to="paymentGatewaysUrl"
+              class="text-primary mt-2 inline-flex items-center gap-x-1 text-sm font-medium tracking-tight hover:underline"
+            >
+              <Icon name="hugeicons:credit-card" class="size-4 shrink-0" />
+              Set up payment gateway
+              <Icon name="hugeicons:arrow-right-01" class="size-3.5 shrink-0" />
+            </NuxtLink>
           </div>
         </div>
 
-        <BrandingForm
-          v-if="brandingEnabled && !brandingLoading"
-          :model-value="brandingDraft"
-          :saving="brandingSaving"
-          submit-label="Save Branding"
-          @submit="handleBrandingSubmit"
-        />
+        <template v-if="hotelEnabled">
+          <!-- Custom branding sub-section -->
+          <div class="space-y-4 border-t pt-5">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div class="flex-1 space-y-1 text-sm tracking-tight">
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <p class="font-medium">Custom branding for PDFs</p>
+                  <span
+                    v-if="brandingEnabled"
+                    class="bg-info/15 text-info-foreground rounded-full px-2 py-0.5 text-xs font-medium tracking-tight sm:text-sm"
+                  >
+                    Override active
+                  </span>
+                </div>
+                <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                  {{
+                    brandingEnabled
+                      ? "This event uses its own logo, company info, and footer on Invoice and Receipt PDFs."
+                      : "Invoice and Receipt PDFs fall back to global branding. Enable to override for white-label events."
+                  }}
+                </p>
+              </div>
+              <Switch v-model="brandingEnabled" />
+            </div>
 
-        <div v-else-if="brandingEnabled && brandingLoading" class="flex justify-center py-4">
-          <Spinner class="size-5" />
-        </div>
+            <BrandingForm
+              v-if="brandingEnabled && !brandingLoading"
+              :model-value="brandingDraft"
+              :saving="brandingSaving"
+              submit-label="Save Branding"
+              @submit="handleBrandingSubmit"
+            />
 
-        <div v-else class="flex justify-end">
-          <Button variant="outline" :disabled="brandingSaving" @click="clearBranding">
-            <Icon v-if="brandingSaving" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
-            Clear Custom Branding
-          </Button>
-        </div>
+            <div v-else-if="brandingEnabled && brandingLoading" class="flex justify-center py-4">
+              <Spinner class="size-5" />
+            </div>
+
+            <div v-else-if="!brandingEnabled && brandingDraft?.company_name" class="flex justify-end">
+              <Button variant="outline" :disabled="brandingSaving" @click="clearBranding">
+                <Icon v-if="brandingSaving" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
+                Clear Custom Branding
+              </Button>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -139,6 +220,41 @@
         </div>
       </div>
     </div>
+
+    <!-- Disable Hotel Reservation Confirmation Dialog -->
+    <DialogResponsive v-model:open="disableConfirmOpen">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="text-primary text-lg font-semibold tracking-tight">
+            Disable hotel reservation?
+          </div>
+          <p class="text-body mt-1.5 text-sm tracking-tight">
+            This event has
+            <strong>{{ disableActiveCount }} active reservation{{
+              disableActiveCount === 1 ? "" : "s"
+            }}</strong>
+            with upcoming stays. Disabling will:
+          </p>
+          <ul class="text-muted-foreground mt-2 list-inside list-disc space-y-1 text-sm tracking-tight">
+            <li>Hide Hotels & Reservations tabs from staff UI for this event</li>
+            <li>Block customers from completing payment on pending bookings</li>
+            <li>Hide hotel listings from public booking pages</li>
+          </ul>
+          <p class="text-muted-foreground mt-2 text-sm tracking-tight">
+            Existing magic-link receipts and voucher emails remain accessible to customers.
+          </p>
+          <div class="mt-4 flex justify-end gap-2">
+            <Button variant="outline" type="button" :disabled="hotelToggling" @click="disableConfirmOpen = false">
+              Keep enabled
+            </Button>
+            <Button variant="destructive" :disabled="hotelToggling" @click="confirmForceDisable">
+              <Spinner v-if="hotelToggling" />
+              Disable anyway
+            </Button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
 
     <!-- Delete Confirmation Dialog -->
     <DialogResponsive v-model:open="deleteDialogOpen">
@@ -201,6 +317,79 @@ const brandingEnabled = ref(false);
 const brandingDraft = ref({});
 const brandingLoading = ref(false);
 const brandingSaving = ref(false);
+
+// Hotel reservation toggle
+const hotelEnabled = ref(false);
+const hotelToggling = ref(false);
+const canEnableHotel = computed(() => !!props.project?.has_active_payment_gateway);
+const paymentGatewaysUrl = computed(
+  () => props.project?.payment_gateways_url || `/projects/${route.params.username}/settings/payment-gateways`
+);
+
+watch(
+  () => props.event?.hotel_reservation_enabled,
+  (v) => {
+    hotelEnabled.value = !!v;
+  },
+  { immediate: true }
+);
+
+const refreshEvent = inject("refreshEvent", null);
+
+const disableConfirmOpen = ref(false);
+const disableActiveCount = ref(0);
+
+const onToggleHotel = (next) => {
+  if (hotelToggling.value) return;
+  if (next && !canEnableHotel.value) {
+    toast.error("Payment gateway required", {
+      description: "Set up an active payment gateway on the project first.",
+    });
+    return;
+  }
+  return performToggle(next, false);
+};
+
+const performToggle = async (next, force) => {
+  hotelToggling.value = true;
+  const previous = hotelEnabled.value;
+  hotelEnabled.value = next;
+  try {
+    const res = await client(
+      `/api/projects/${route.params.username}/events/${route.params.eventSlug}/hotel-reservation-toggle`,
+      {
+        method: "PATCH",
+        body: { enabled: next, force },
+      }
+    );
+    toast.success(res?.message || (next ? "Hotel reservation enabled" : "Hotel reservation disabled"));
+    disableConfirmOpen.value = false;
+    if (typeof refreshEvent === "function") {
+      await refreshEvent();
+    } else {
+      await refreshNuxtData(`event-${route.params.username}-${route.params.eventSlug}`);
+    }
+  } catch (err) {
+    hotelEnabled.value = previous;
+    const errCode = err?.data?.error_code;
+    if (errCode === "PAYMENT_GATEWAY_REQUIRED") {
+      toast.error("Payment gateway required", {
+        description: "Set up an active payment gateway on the project first.",
+      });
+    } else if (errCode === "ACTIVE_RESERVATIONS_EXIST") {
+      disableActiveCount.value = Number(err?.data?.active_reservations_count || 0);
+      disableConfirmOpen.value = true;
+    } else {
+      toast.error("Failed to toggle hotel reservation", {
+        description: err?.data?.message || err?.message,
+      });
+    }
+  } finally {
+    hotelToggling.value = false;
+  }
+};
+
+const confirmForceDisable = () => performToggle(false, true);
 
 watch(
   () => props.event?.id,

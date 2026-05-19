@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
@@ -21,28 +22,29 @@ use Spatie\EloquentSortable\SortableTrait;
  * @property int $hotel_id
  * @property int $room_type_id
  * @property int $quantity
- * @property \Illuminate\Support\Carbon $start_date
- * @property \Illuminate\Support\Carbon $end_date
- * @property \Illuminate\Support\Carbon|null $release_at
+ * @property Carbon $start_date
+ * @property Carbon $end_date
+ * @property Carbon|null $release_at
  * @property string|null $surcharge_type
  * @property numeric|null $surcharge_amount
  * @property bool $is_active
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property array<array-key, mixed>|null $settings
  * @property array<array-key, mixed>|null $more_details
  * @property int|null $order_column
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\User|null $deleter
- * @property-read \App\Models\Hotel|null $hotel
- * @property-read \App\Models\RoomType|null $roomType
- * @property-read \App\Models\User|null $updater
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
+ * @property-read Hotel|null $hotel
+ * @property-read RoomType|null $roomType
+ * @property-read User|null $updater
+ *
  * @method static Builder<static>|HotelEventAllotment active()
  * @method static \Database\Factories\HotelEventAllotmentFactory factory($count = null, $state = [])
  * @method static Builder<static>|HotelEventAllotment newModelQuery()
@@ -73,6 +75,7 @@ use Spatie\EloquentSortable\SortableTrait;
  * @method static Builder<static>|HotelEventAllotment whereUpdatedBy($value)
  * @method static Builder<static>|HotelEventAllotment withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|HotelEventAllotment withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class HotelEventAllotment extends Model implements Sortable
@@ -91,6 +94,7 @@ class HotelEventAllotment extends Model implements Sortable
         'release_at',
         'surcharge_type',
         'surcharge_amount',
+        'base_rate_override',
         'is_active',
         'settings',
         'more_details',
@@ -109,6 +113,7 @@ class HotelEventAllotment extends Model implements Sortable
             'end_date' => 'date',
             'release_at' => 'datetime',
             'surcharge_amount' => 'decimal:2',
+            'base_rate_override' => 'decimal:2',
             'is_active' => 'boolean',
             'settings' => 'array',
             'more_details' => 'array',
@@ -185,5 +190,13 @@ class HotelEventAllotment extends Model implements Sortable
     {
         return $query->where('start_date', '<=', $checkIn)
             ->where('end_date', '>=', $checkOut);
+    }
+
+    /**
+     * Returns the override rate if set, otherwise null (caller falls back to room base_rate).
+     */
+    public function getEffectiveBaseRate(): ?float
+    {
+        return $this->base_rate_override !== null ? (float) $this->base_rate_override : null;
     }
 }

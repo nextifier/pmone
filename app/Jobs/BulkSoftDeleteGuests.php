@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Guest;
+use App\Models\User;
 use App\Traits\TracksJobProgress;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -48,6 +49,17 @@ class BulkSoftDeleteGuests implements ShouldQueue
             });
 
         ResponseCache::clear(['guests']);
+
+        if ($deleted > 0) {
+            activity()
+                ->causedBy($this->deletedBy ? User::find($this->deletedBy) : null)
+                ->event('bulk_deleted')
+                ->withProperties([
+                    'deleted_count' => $deleted,
+                    'model_type' => 'Guest',
+                ])
+                ->log("Bulk deleted {$deleted} guest(s)");
+        }
 
         $this->completeProgress(
             "{$deleted} guest(s) deleted",

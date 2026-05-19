@@ -11,6 +11,7 @@ use App\Models\Hotel;
 use App\Models\HotelEventAllotment;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AllotmentController extends Controller
 {
@@ -97,6 +98,11 @@ class AllotmentController extends Controller
 
     private function ensureHotelBelongsToEvent(Event $event, Hotel $hotel): void
     {
-        abort_if($hotel->event_id !== $event->id, 404);
+        $exists = DB::table('hotel_event')
+            ->where('event_id', $event->id)
+            ->where('hotel_id', $hotel->id)
+            ->exists();
+
+        abort_if(! $exists, 404, 'Hotel not attached to this event.');
     }
 }

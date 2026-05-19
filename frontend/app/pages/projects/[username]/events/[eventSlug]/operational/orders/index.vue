@@ -527,7 +527,7 @@ async function handleDeleteRows(selectedRows) {
 // Format helpers
 function formatPrice(amount) {
   if (amount == null) return "-";
-  return `Rp ${Number(amount).toLocaleString("id-ID")}`;
+  return `Rp${Number(amount).toLocaleString("id-ID")}`;
 }
 
 function orderDetailUrl(order) {

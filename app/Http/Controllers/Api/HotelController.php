@@ -9,8 +9,10 @@ use App\Http\Resources\HotelIndexResource;
 use App\Http\Resources\HotelResource;
 use App\Models\Event;
 use App\Models\Hotel;
+use App\Models\HotelEvent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -18,12 +20,13 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class HotelController extends Controller
 {
+    // ─── Event-scoped endpoints (pivot-aware) ──────────────────────────
+
     public function index(Request $request, Event $event): JsonResponse
     {
-        $query = Hotel::query()
-            ->where('event_id', $event->id)
+        $query = $event->hotels()
             ->with(['media'])
-            ->withCount(['roomTypes', 'reservations']);
+            ->withCount(['roomTypes']);
 
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
@@ -44,42 +47,66 @@ class HotelController extends Controller
 
     public function show(Event $event, Hotel $hotel): JsonResponse
     {
-        $this->ensureHotelBelongsToEvent($event, $hotel);
+        $this->ensureHotelAttachedToEvent($event, $hotel);
 
-        $hotel->load(['media', 'creator', 'updater'])
-            ->loadCount(['roomTypes', 'reservations']);
+        $hotel->load(['media', 'creator', 'updater', 'events' => fn ($q) => $q->where('events.id', $event->id)])
+            ->loadCount(['roomTypes']);
 
         return response()->json([
             'data' => (new HotelResource($hotel))->resolve(),
         ]);
     }
 
+    /**
+     * Two modes:
+     *  - body has `hotel_id` → attach existing hotel to event
+     *  - body has hotel fields without `hotel_id` → create global hotel + attach
+     */
     public function store(StoreHotelRequest $request, Event $event): JsonResponse
     {
-        $data = $request->safe()->except(['tmp_featured', 'gallery_files', 'facilities']);
-        $data['event_id'] = $event->id;
+        $hotelId = $request->input('hotel_id');
+        $pivotData = $request->input('pivot', ['is_active' => true]);
 
-        $hotel = Hotel::create($data);
+        if ($hotelId) {
+            $hotel = Hotel::query()->findOrFail($hotelId);
+        } else {
+            $data = $request->safe()->except(['tmp_featured', 'gallery_files', 'facilities', 'hotel_id', 'pivot']);
+            $hotel = Hotel::create($data);
+            $this->syncFacilities($hotel, $request->input('facilities'));
+            $this->handleFeaturedUpload($request, $hotel);
+            $this->handleGalleryUpload($request, $hotel);
+        }
 
-        $this->syncFacilities($hotel, $request->input('facilities'));
-        $this->handleFeaturedUpload($request, $hotel);
-        $this->handleGalleryUpload($request, $hotel);
+        HotelEvent::firstOrCreate(
+            ['hotel_id' => $hotel->id, 'event_id' => $event->id],
+            array_intersect_key(
+                array_merge(['is_active' => true], $pivotData),
+                array_flip(['is_active', 'notes', 'order_column']),
+            ),
+        );
 
-        $hotel->load(['media', 'tags']);
+        $hotel->load(['media', 'tags', 'events' => fn ($q) => $q->where('events.id', $event->id)]);
 
         return response()->json([
             'data' => (new HotelResource($hotel))->resolve(),
-            'message' => 'Hotel created successfully',
+            'message' => $hotelId ? 'Hotel attached to event' : 'Hotel created and attached',
         ], 201);
     }
 
     public function update(UpdateHotelRequest $request, Event $event, Hotel $hotel): JsonResponse
     {
-        $this->ensureHotelBelongsToEvent($event, $hotel);
+        $this->ensureHotelAttachedToEvent($event, $hotel);
 
-        $data = $request->safe()->except(['tmp_featured', 'delete_featured', 'gallery_files', 'facilities']);
+        $hotelData = $request->safe()->except(['tmp_featured', 'delete_featured', 'gallery_files', 'facilities', 'pivot']);
+        if (! empty($hotelData)) {
+            $hotel->update($hotelData);
+        }
 
-        $hotel->update($data);
+        if ($pivot = $request->input('pivot')) {
+            HotelEvent::query()
+                ->where(['hotel_id' => $hotel->id, 'event_id' => $event->id])
+                ->update(array_intersect_key($pivot, array_flip(['is_active', 'notes', 'order_column'])));
+        }
 
         if ($request->has('facilities')) {
             $this->syncFacilities($hotel, $request->input('facilities'));
@@ -88,7 +115,7 @@ class HotelController extends Controller
         $this->handleFeaturedUpload($request, $hotel);
         $this->handleGalleryUpload($request, $hotel);
 
-        $hotel->load(['media', 'tags']);
+        $hotel->load(['media', 'tags', 'events' => fn ($q) => $q->where('events.id', $event->id)]);
 
         return response()->json([
             'data' => (new HotelResource($hotel))->resolve(),
@@ -96,24 +123,23 @@ class HotelController extends Controller
         ]);
     }
 
-    private function syncFacilities(Hotel $hotel, ?array $facilities): void
-    {
-        $hotel->syncTagsWithType($facilities ?? [], 'hotel_facility');
-    }
-
+    /**
+     * Detach hotel from event - hard delete pivot row, hotel record itself stays.
+     */
     public function destroy(Event $event, Hotel $hotel): JsonResponse
     {
-        $this->authorizeAction('hotels.delete');
-        $this->ensureHotelBelongsToEvent($event, $hotel);
+        $this->ensureHotelAttachedToEvent($event, $hotel);
 
-        $hotel->delete();
+        HotelEvent::query()
+            ->where(['hotel_id' => $hotel->id, 'event_id' => $event->id])
+            ->delete();
 
-        return response()->json(['message' => 'Hotel deleted successfully']);
+        return response()->json(['message' => 'Hotel detached from event']);
     }
 
     public function reorderMedia(Request $request, Event $event, Hotel $hotel, string $collection): JsonResponse
     {
-        $this->ensureHotelBelongsToEvent($event, $hotel);
+        $this->ensureHotelAttachedToEvent($event, $hotel);
 
         $request->validate([
             'media_ids' => ['required', 'array'],
@@ -138,12 +164,116 @@ class HotelController extends Controller
         return response()->json(['message' => 'Order updated']);
     }
 
-    public function trash(Request $request, Event $event): JsonResponse
-    {
-        $query = Hotel::onlyTrashed()
-            ->where('event_id', $event->id)
-            ->with(['media', 'deleter']);
+    // ─── Global hotel master endpoints ──────────────────────────────────
 
+    public function globalIndex(Request $request): JsonResponse
+    {
+        $this->authorizeAction('hotels.read');
+
+        $query = Hotel::query()
+            ->with([
+                'media',
+                'events:id,slug,title,project_id',
+                'events.project:id,username,name',
+            ])
+            ->withCount(['roomTypes', 'events']);
+
+        $this->applyFilters($query, $request);
+        $this->applySorting($query, $request);
+
+        $hotels = $query->paginate((int) $request->input('per_page', 15));
+
+        return response()->json([
+            'data' => HotelIndexResource::collection($hotels)->resolve(),
+            'meta' => [
+                'current_page' => $hotels->currentPage(),
+                'last_page' => $hotels->lastPage(),
+                'per_page' => $hotels->perPage(),
+                'total' => $hotels->total(),
+            ],
+        ]);
+    }
+
+    public function globalStore(StoreHotelRequest $request): JsonResponse
+    {
+        $this->authorizeAction('hotels.create');
+
+        $data = $request->safe()->except(['tmp_featured', 'gallery_files', 'facilities', 'hotel_id', 'pivot']);
+        $hotel = Hotel::create($data);
+
+        $this->syncFacilities($hotel, $request->input('facilities'));
+        $this->handleFeaturedUpload($request, $hotel);
+        $this->handleGalleryUpload($request, $hotel);
+
+        $hotel->load(['media', 'tags']);
+
+        return response()->json([
+            'data' => (new HotelResource($hotel))->resolve(),
+            'message' => 'Hotel created successfully',
+        ], 201);
+    }
+
+    public function globalShow(Hotel $hotel): JsonResponse
+    {
+        $this->authorizeAction('hotels.read');
+
+        $hotel->load([
+            'media',
+            'tags',
+            'creator',
+            'updater',
+            'events' => fn ($q) => $q->orderByPivot('order_column'),
+            'events.project:id,username,name',
+            'roomTypes' => fn ($q) => $q->withTrashed()->orderBy('order_column'),
+            'roomTypes.media',
+        ])->loadCount(['roomTypes', 'events']);
+
+        return response()->json([
+            'data' => (new HotelResource($hotel))->resolve(),
+        ]);
+    }
+
+    public function globalUpdate(UpdateHotelRequest $request, Hotel $hotel): JsonResponse
+    {
+        $this->authorizeAction('hotels.update');
+
+        $data = $request->safe()->except(['tmp_featured', 'delete_featured', 'gallery_files', 'facilities', 'pivot']);
+        if (! empty($data)) {
+            $hotel->update($data);
+        }
+
+        if ($request->has('facilities')) {
+            $this->syncFacilities($hotel, $request->input('facilities'));
+        }
+
+        $this->handleFeaturedUpload($request, $hotel);
+        $this->handleGalleryUpload($request, $hotel);
+
+        $hotel->load(['media', 'tags']);
+
+        return response()->json([
+            'data' => (new HotelResource($hotel))->resolve(),
+            'message' => 'Hotel updated successfully',
+        ]);
+    }
+
+    /**
+     * Soft delete hotel globally. Cascades pivot rows via foreign key.
+     */
+    public function globalDestroy(Hotel $hotel): JsonResponse
+    {
+        $this->authorizeAction('hotels.delete');
+
+        $hotel->delete();
+
+        return response()->json(['message' => 'Hotel deleted globally']);
+    }
+
+    public function globalTrash(Request $request): JsonResponse
+    {
+        $this->authorizeAction('hotels.delete');
+
+        $query = Hotel::onlyTrashed()->with(['media', 'deleter']);
         $this->applyFilters($query, $request);
         $query->orderBy('deleted_at', 'desc');
 
@@ -160,31 +290,43 @@ class HotelController extends Controller
         ]);
     }
 
-    public function restore(Event $event, int $id): JsonResponse
+    public function globalRestore(int $id): JsonResponse
     {
-        $hotel = Hotel::onlyTrashed()
-            ->where('event_id', $event->id)
-            ->findOrFail($id);
+        $this->authorizeAction('hotels.delete');
+
+        $hotel = Hotel::onlyTrashed()->findOrFail($id);
         $hotel->restore();
 
         return response()->json(['message' => 'Hotel restored successfully']);
     }
 
-    public function forceDestroy(Event $event, int $id): JsonResponse
+    public function globalForceDestroy(int $id): JsonResponse
     {
-        $hotel = Hotel::onlyTrashed()
-            ->where('event_id', $event->id)
-            ->findOrFail($id);
+        $this->authorizeAction('hotels.delete');
+
+        $hotel = Hotel::onlyTrashed()->findOrFail($id);
         $hotel->forceDelete();
 
         return response()->json(['message' => 'Hotel permanently deleted']);
     }
 
-    private function ensureHotelBelongsToEvent(Event $event, Hotel $hotel): void
+    // ─── Helpers ────────────────────────────────────────────────────────
+
+    private function ensureHotelAttachedToEvent(Event $event, Hotel $hotel): void
     {
-        if ($hotel->event_id !== $event->id) {
-            throw new NotFoundHttpException('Hotel not found in this event.');
+        $exists = DB::table('hotel_event')
+            ->where('event_id', $event->id)
+            ->where('hotel_id', $hotel->id)
+            ->exists();
+
+        if (! $exists) {
+            throw new NotFoundHttpException('Hotel is not attached to this event.');
         }
+    }
+
+    private function syncFacilities(Hotel $hotel, ?array $facilities): void
+    {
+        $hotel->syncTagsWithType($facilities ?? [], 'hotel_facility');
     }
 
     private function authorizeAction(string $permission): void

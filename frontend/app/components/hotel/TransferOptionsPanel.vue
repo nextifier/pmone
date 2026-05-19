@@ -7,46 +7,32 @@
       </Button>
     </div>
 
-    <div v-if="pending" class="flex justify-center py-6">
-      <Spinner class="size-5" />
-    </div>
+    <TableData
+      :data="options"
+      :columns="columns"
+      :meta="meta"
+      model="transfers"
+      label="Transfer Option"
+      :pending="pending"
+      :client-only="true"
+      :show-add-button="false"
+      :column-toggle="false"
+      :searchable="false"
+      :initial-pagination="{ pageIndex: 0, pageSize: 50 }"
+      :initial-sorting="[]"
+      @refresh="refresh"
+    />
 
-    <div v-else-if="!options.length" class="text-muted-foreground text-sm tracking-tight rounded-md border border-dashed py-10 text-center">
-      No transfer options yet.
-    </div>
-
-    <div v-else class="grid gap-3 sm:grid-cols-2">
-      <div v-for="opt in options" :key="opt.id" class="border rounded-md p-4 space-y-2">
-        <div class="flex items-start justify-between gap-2">
-          <div class="min-w-0">
-            <h3 class="text-sm font-semibold tracking-tight truncate">{{ opt.label }}</h3>
-            <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
-              {{ opt.direction_label }} · {{ opt.vehicle_type || "-" }} · max {{ opt.max_pax }} pax
-            </p>
-          </div>
-          <span :class="['inline-flex items-center rounded-full px-2 py-0.5 text-xs tracking-tight', opt.is_active ? 'bg-success/15 text-success-foreground' : 'bg-muted text-muted-foreground']">
-            {{ opt.is_active ? "Active" : "Inactive" }}
-          </span>
-        </div>
-        <p class="text-sm tracking-tight">
-          <span class="font-medium">Rp {{ formatRupiah(opt.price) }}</span>
-          <span class="text-muted-foreground"> per trip</span>
-        </p>
-        <div class="flex justify-end gap-1 pt-1">
-          <button class="hover:bg-muted text-muted-foreground inline-flex size-7 items-center justify-center rounded" @click="openEditDialog(opt)" title="Edit">
-            <Icon name="lucide:pencil" class="size-3.5" />
-          </button>
-          <button v-if="canEdit" class="hover:bg-destructive/10 text-destructive inline-flex size-7 items-center justify-center rounded" @click="confirmDelete(opt)" title="Delete">
-            <Icon name="lucide:trash" class="size-3.5" />
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <DialogResponsive v-model:open="dialogOpen" dialog-max-width="28rem" :overflow-content="true">
+    <DialogResponsive
+      v-model:open="dialogOpen"
+      dialog-max-width="28rem"
+      :overflow-content="true"
+    >
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <h3 class="text-lg font-semibold tracking-tight">{{ editing ? "Edit Transfer Option" : "Add Transfer Option" }}</h3>
+          <h3 class="text-lg font-semibold tracking-tight">
+            {{ editing ? "Edit Transfer Option" : "Add Transfer Option" }}
+          </h3>
 
           <form @submit.prevent="handleSubmit" class="mt-4 space-y-3">
             <div class="space-y-2">
@@ -105,10 +91,16 @@
     <DialogResponsive v-model:open="deleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tight">Delete transfer option?</div>
-          <p class="text-body mt-1.5 text-sm tracking-tight">"{{ deletingItem?.label }}" will be removed.</p>
+          <div class="text-primary text-lg font-semibold tracking-tight">
+            Delete transfer option?
+          </div>
+          <p class="text-body mt-1.5 text-sm tracking-tight">
+            "{{ deletingItem?.label }}" will be removed.
+          </p>
           <div class="mt-3 flex justify-end gap-2">
-            <Button variant="outline" type="button" @click="deleteDialogOpen = false">Cancel</Button>
+            <Button variant="outline" type="button" @click="deleteDialogOpen = false">
+              Cancel
+            </Button>
             <Button variant="destructive" :disabled="deleting" @click="handleDelete">
               <Spinner v-if="deleting" />
               {{ deleting ? "Deleting..." : "Delete" }}
@@ -126,6 +118,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -134,7 +127,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
-import { computed, reactive, ref } from "vue";
+import { TableData } from "@/components/ui/table-data";
+import { PopoverClose } from "reka-ui";
+import { computed, defineComponent, h, reactive, ref, resolveComponent } from "vue";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
@@ -142,17 +137,25 @@ const props = defineProps({
   hotelSlug: { type: String, required: true },
 });
 
-const baseUrl = computed(() => `/api/events/${props.eventId}/hotels/${props.hotelSlug}/transfer-options`);
+const baseUrl = computed(
+  () => `/api/events/${props.eventId}/hotels/${props.hotelSlug}/transfer-options`
+);
 
 const client = useSanctumClient();
 const { hasPermission } = usePermission();
 const canEdit = computed(() => hasPermission("hotels.update"));
 
-const { data, pending, refresh } = await useLazySanctumFetch(() => `${baseUrl.value}?per_page=50`, {
-  key: () => `hotel-${props.eventId}-${props.hotelSlug}-transfers`,
-});
+const { data, pending, refresh } = await useLazySanctumFetch(
+  () => `${baseUrl.value}?per_page=100`,
+  {
+    key: () => `hotel-${props.eventId}-${props.hotelSlug}-transfers`,
+  }
+);
 
 const options = computed(() => data.value?.data ?? []);
+const meta = computed(
+  () => data.value?.meta ?? { current_page: 1, last_page: 1, per_page: 50, total: options.value.length }
+);
 
 const dialogOpen = ref(false);
 const editing = ref(null);
@@ -242,4 +245,167 @@ const handleDelete = async () => {
 };
 
 const formatRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
+
+const RowActions = defineComponent({
+  props: { item: { type: Object, required: true } },
+  setup(p) {
+    return () =>
+      h("div", { class: "flex justify-end" }, [
+        h(
+          Popover,
+          {},
+          {
+            default: () => [
+              h(
+                PopoverTrigger,
+                { asChild: true },
+                {
+                  default: () =>
+                    h(
+                      "button",
+                      {
+                        class:
+                          "hover:bg-muted data-[state=open]:bg-muted inline-flex size-8 items-center justify-center rounded-md",
+                      },
+                      [h(resolveComponent("Icon"), { name: "lucide:ellipsis", class: "size-4" })]
+                    ),
+                }
+              ),
+              h(
+                PopoverContent,
+                { align: "end", class: "w-40 p-1" },
+                {
+                  default: () =>
+                    h("div", { class: "flex flex-col" }, [
+                      h(
+                        PopoverClose,
+                        { asChild: true },
+                        {
+                          default: () =>
+                            h(
+                              "button",
+                              {
+                                class:
+                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                onClick: () => openEditDialog(p.item),
+                              },
+                              [
+                                h(resolveComponent("Icon"), {
+                                  name: "lucide:pencil-line",
+                                  class: "size-4 shrink-0",
+                                }),
+                                h("span", {}, "Edit"),
+                              ]
+                            ),
+                        }
+                      ),
+                      canEdit.value
+                        ? h(
+                            PopoverClose,
+                            { asChild: true },
+                            {
+                              default: () =>
+                                h(
+                                  "button",
+                                  {
+                                    class:
+                                      "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                    onClick: () => confirmDelete(p.item),
+                                  },
+                                  [
+                                    h(resolveComponent("Icon"), {
+                                      name: "lucide:trash",
+                                      class: "size-4 shrink-0",
+                                    }),
+                                    h("span", {}, "Delete"),
+                                  ]
+                                ),
+                            }
+                          )
+                        : null,
+                    ]),
+                }
+              ),
+            ],
+          }
+        ),
+      ]);
+  },
+});
+
+const columns = [
+  {
+    header: "Label",
+    accessorKey: "label",
+    cell: ({ row }) =>
+      h("span", { class: "font-medium tracking-tight" }, row.original.label),
+    size: 240,
+    enableHiding: false,
+  },
+  {
+    header: "Direction",
+    accessorKey: "direction",
+    cell: ({ row }) =>
+      h(
+        "span",
+        { class: "text-sm tracking-tight text-muted-foreground" },
+        row.original.direction_label || row.original.direction || "-"
+      ),
+    size: 140,
+  },
+  {
+    header: "Vehicle",
+    accessorKey: "vehicle_type",
+    cell: ({ row }) =>
+      h(
+        "span",
+        { class: "text-sm tracking-tight text-muted-foreground" },
+        row.original.vehicle_type || "-"
+      ),
+    size: 140,
+  },
+  {
+    header: "Max Pax",
+    accessorKey: "max_pax",
+    cell: ({ row }) =>
+      h("span", { class: "tabular-nums text-sm tracking-tight" }, row.original.max_pax),
+    size: 80,
+  },
+  {
+    header: "Price",
+    accessorKey: "price",
+    cell: ({ row }) =>
+      h(
+        "span",
+        { class: "tabular-nums text-sm tracking-tight" },
+        `Rp${formatRupiah(row.original.price)}`
+      ),
+    size: 140,
+  },
+  {
+    header: "Status",
+    accessorKey: "is_active",
+    cell: ({ row }) =>
+      h(
+        "span",
+        {
+          class: [
+            "inline-flex items-center rounded-full px-2 py-0.5 text-xs tracking-tight",
+            row.original.is_active
+              ? "bg-success/15 text-success-foreground"
+              : "bg-muted text-muted-foreground",
+          ],
+        },
+        row.original.is_active ? "Active" : "Inactive"
+      ),
+    size: 90,
+  },
+  {
+    id: "actions",
+    header: () => h("span", { class: "sr-only" }, "Actions"),
+    cell: ({ row }) => h(RowActions, { item: row.original }),
+    size: 60,
+    enableHiding: false,
+  },
+];
 </script>

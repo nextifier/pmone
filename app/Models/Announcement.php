@@ -4,21 +4,101 @@ namespace App\Models;
 
 use App\Traits\HasMediaManager;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
+/**
+ * @property int $id
+ * @property string $ulid
+ * @property string $title
+ * @property string|null $description
+ * @property string|null $icon
+ * @property string $type
+ * @property string $status
+ * @property bool $is_global
+ * @property array<array-key, mixed>|null $target_roles
+ * @property array<array-key, mixed>|null $cta_actions
+ * @property array<array-key, mixed>|null $more_details
+ * @property array<array-key, mixed>|null $settings
+ * @property Carbon|null $start_time
+ * @property Carbon|null $end_time
+ * @property bool $is_dismissible
+ * @property int|null $order_column
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
+ * @property-read Collection<int, AnnouncementUserDismissal> $dismissals
+ * @property-read int|null $dismissals_count
+ * @property-read Collection<int, Event> $events
+ * @property-read int|null $events_count
+ * @property-read MediaCollection<int, Media> $media
+ * @property-read int|null $media_count
+ * @property-read Collection<int, Project> $projects
+ * @property-read int|null $projects_count
+ * @property-read User|null $updater
+ * @property-read Collection<int, User> $users
+ * @property-read int|null $users_count
+ *
+ * @method static Builder<static>|Announcement active()
+ * @method static \Database\Factories\AnnouncementFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Announcement newModelQuery()
+ * @method static Builder<static>|Announcement newQuery()
+ * @method static Builder<static>|Announcement notDismissedBy(?\App\Models\User $user)
+ * @method static Builder<static>|Announcement onlyTrashed()
+ * @method static Builder<static>|Announcement published()
+ * @method static Builder<static>|Announcement query()
+ * @method static Builder<static>|Announcement visibleTo(?\App\Models\User $user)
+ * @method static Builder<static>|Announcement whereCreatedAt($value)
+ * @method static Builder<static>|Announcement whereCreatedBy($value)
+ * @method static Builder<static>|Announcement whereCtaActions($value)
+ * @method static Builder<static>|Announcement whereDeletedAt($value)
+ * @method static Builder<static>|Announcement whereDeletedBy($value)
+ * @method static Builder<static>|Announcement whereDescription($value)
+ * @method static Builder<static>|Announcement whereEndTime($value)
+ * @method static Builder<static>|Announcement whereIcon($value)
+ * @method static Builder<static>|Announcement whereId($value)
+ * @method static Builder<static>|Announcement whereIsDismissible($value)
+ * @method static Builder<static>|Announcement whereIsGlobal($value)
+ * @method static Builder<static>|Announcement whereMoreDetails($value)
+ * @method static Builder<static>|Announcement whereOrderColumn($value)
+ * @method static Builder<static>|Announcement whereSettings($value)
+ * @method static Builder<static>|Announcement whereStartTime($value)
+ * @method static Builder<static>|Announcement whereStatus($value)
+ * @method static Builder<static>|Announcement whereTargetRoles($value)
+ * @method static Builder<static>|Announcement whereTitle($value)
+ * @method static Builder<static>|Announcement whereType($value)
+ * @method static Builder<static>|Announcement whereUlid($value)
+ * @method static Builder<static>|Announcement whereUpdatedAt($value)
+ * @method static Builder<static>|Announcement whereUpdatedBy($value)
+ * @method static Builder<static>|Announcement withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Announcement withoutTrashed()
+ *
+ * @mixin \Eloquent
+ */
 class Announcement extends Model implements HasMedia
 {
     use HasFactory;
     use HasMediaManager;
     use InteractsWithMedia;
+    use LogsActivity;
     use SoftDeletes;
 
     protected $fillable = [
@@ -89,6 +169,14 @@ class Announcement extends Model implements HasMedia
                 }
             }
         });
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['title', 'type', 'status', 'is_global', 'is_dismissible', 'start_time', 'end_time'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 
     public function registerMediaCollections(): void

@@ -18,6 +18,17 @@ class ReleaseExpiredAllotmentsJob implements ShouldQueue
 
     public function handle(AllotmentService $allotments): int
     {
-        return $allotments->releaseExpiredAllotments();
+        $released = $allotments->releaseExpiredAllotments();
+
+        if ($released > 0) {
+            activity()
+                ->event('allotments_released')
+                ->withProperties([
+                    'released_count' => $released,
+                ])
+                ->log("Released {$released} expired allotment(s)");
+        }
+
+        return $released;
     }
 }

@@ -74,13 +74,11 @@
     />
 
     <!-- Date -->
-    <Input
+    <DatePicker
       v-else-if="field.type === 'date'"
-      :id="fieldId"
-      :model-value="modelValue"
-      type="date"
-      :class="{ 'border-destructive': error }"
-      @update:model-value="$emit('update:modelValue', $event)"
+      :model-value="parseLocalDateString(modelValue)"
+      :placeholder="field.placeholder || 'Pick a date'"
+      @update:model-value="$emit('update:modelValue', $event ? toLocalDateString($event) : '')"
     />
 
     <!-- Time -->
@@ -248,6 +246,7 @@
 
 <script setup>
 import { Checkbox } from "@/components/ui/checkbox";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -259,6 +258,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { parseLocalDateString, toLocalDateString } from "@/lib/utils";
 
 const props = defineProps({
   field: { type: Object, required: true },

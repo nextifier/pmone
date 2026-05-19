@@ -1,12 +1,18 @@
 <template>
   <div class="mx-auto space-y-6 pb-16 lg:max-w-4xl">
-    <div class="flex items-center justify-between gap-2">
-      <div class="flex items-center gap-x-2.5 min-w-0">
-        <NuxtLink :to="`${eventBase}/reservations`" class="hover:bg-muted text-muted-foreground inline-flex size-8 items-center justify-center rounded-md shrink-0">
-          <Icon name="lucide:arrow-left" class="size-4" />
-        </NuxtLink>
-        <h1 class="page-title font-mono text-base sm:text-lg">{{ reservation?.reservation_number ?? "Reservation" }}</h1>
-        <span v-if="reservation" :class="['inline-flex items-center rounded-full px-2 py-0.5 text-xs sm:text-sm tracking-tight', statusBadge]">
+    <div class="flex flex-col items-start gap-y-4">
+      <ButtonBack :destination="`${eventBase}/reservations`" />
+      <div class="flex flex-wrap items-center gap-x-2.5 gap-y-2 min-w-0">
+        <h1 class="page-title font-mono text-base sm:text-lg">
+          {{ reservation?.reservation_number ?? "Reservation" }}
+        </h1>
+        <span
+          v-if="reservation"
+          :class="[
+            'inline-flex items-center rounded-full px-2 py-0.5 text-xs sm:text-sm tracking-tight',
+            statusBadge,
+          ]"
+        >
           {{ reservation.status_label }}
         </span>
       </div>
@@ -31,7 +37,7 @@
               <p class="text-muted-foreground text-sm tracking-tight mt-1">PDF, JPG, or PNG. Max 20MB.</p>
               <form @submit.prevent="handleVoucherUpload" class="mt-4 space-y-4">
                 <div class="space-y-2">
-                  <Label>Voucher File<span class="text-destructive">*</span></Label>
+                  <Label>Voucher File</Label>
                   <InputFile
                     v-model="voucherFiles"
                     :max-file-size="'20MB'"
@@ -65,6 +71,19 @@
         <Button v-if="reservation.can_cancel" variant="outline" size="sm" @click="cancelDialogOpen = true" class="text-destructive">
           <Icon name="lucide:x" class="size-4 mr-1" />
           Cancel & Refund
+        </Button>
+      </div>
+
+      <!-- Pending payment actions: rendered in their own wrapper because the
+           voucher/cancel actions block above only mounts for paid/voucher_sent
+           statuses and would hide these otherwise. -->
+      <div
+        v-if="reservation.status === 'pending_payment' && canMarkPaid"
+        class="flex flex-wrap gap-2"
+      >
+        <Button variant="outline" size="sm" @click="markPaidDialogOpen = true">
+          <Icon name="hugeicons:money-bag-02" class="size-4 mr-1" />
+          Mark as Paid
         </Button>
       </div>
 
@@ -116,42 +135,186 @@
         <p class="text-sm tracking-tight"><span class="text-muted-foreground">Hotel:</span> {{ reservation.hotel?.name }}</p>
         <p v-if="reservation.event" class="text-sm tracking-tight"><span class="text-muted-foreground">Event:</span> {{ reservation.event?.title }}</p>
 
-        <table class="w-full text-sm tracking-tight">
-          <thead class="text-muted-foreground text-xs sm:text-sm tracking-tight">
-            <tr class="text-left border-b"><th class="py-1">Room</th><th class="py-1">Dates</th><th class="text-right py-1">Qty</th><th class="text-right py-1">Subtotal</th></tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in reservation.items" :key="item.id" class="border-b last:border-b-0">
-              <td class="py-1.5">{{ item.room_type?.name }}</td>
-              <td class="py-1.5">{{ item.check_in_date }} - {{ item.check_out_date }} ({{ item.nights }}n)</td>
-              <td class="py-1.5 text-right">{{ item.qty }}</td>
-              <td class="py-1.5 text-right tabular-nums">Rp {{ formatRupiah(item.subtotal) }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="space-y-3">
+          <div
+            v-for="item in reservation.items"
+            :key="item.id"
+            class="border-b last:border-b-0 pb-3 last:pb-0"
+          >
+            <div class="flex flex-wrap items-start justify-between gap-2 text-sm tracking-tight">
+              <div class="min-w-0">
+                <p class="font-medium">{{ item.room_type?.name }}</p>
+                <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
+                  {{ item.check_in_date }} → {{ item.check_out_date }} · {{ item.nights }} night{{ item.nights > 1 ? "s" : "" }} · {{ item.qty }} room{{ item.qty > 1 ? "s" : "" }}
+                </p>
+              </div>
+              <p class="font-medium tabular-nums">Rp{{ formatRupiah(item.subtotal) }}</p>
+            </div>
+            <p
+              v-if="item.notes"
+              class="text-muted-foreground mt-1 text-xs sm:text-sm tracking-tight italic"
+            >
+              <span class="font-medium not-italic">Notes:</span> {{ item.notes }}
+            </p>
+          </div>
+        </div>
 
-        <div v-if="reservation.transfers?.length" class="border-t pt-2">
-          <p class="text-xs sm:text-sm tracking-tight text-muted-foreground mb-1">Transfers</p>
-          <div v-for="t in reservation.transfers" :key="t.id" class="flex justify-between text-sm tracking-tight py-0.5">
-            <span>{{ t.direction_label }} - {{ t.transfer_date }}</span>
-            <span class="tabular-nums">Rp {{ formatRupiah(t.price) }}</span>
+        <div v-if="reservation.transfers?.length" class="border-t pt-3 space-y-3">
+          <p class="text-xs sm:text-sm tracking-tight text-muted-foreground">Transfers</p>
+          <div
+            v-for="t in reservation.transfers"
+            :key="t.id"
+            class="space-y-0.5"
+          >
+            <div class="flex justify-between text-sm tracking-tight">
+              <span>{{ t.direction_label }} · {{ t.transfer_date }}</span>
+              <span class="tabular-nums">Rp{{ formatRupiah(t.price) }}</span>
+            </div>
+            <p
+              v-if="t.note"
+              class="text-muted-foreground text-xs sm:text-sm tracking-tight italic"
+            >
+              <span class="font-medium not-italic">Notes:</span> {{ t.note }}
+            </p>
           </div>
         </div>
 
         <div class="border-t pt-3 space-y-1.5 text-sm tracking-tight">
-          <div class="flex justify-between text-muted-foreground"><span>Subtotal</span><span class="tabular-nums">Rp {{ formatRupiah(reservation.amounts.subtotal_rooms + reservation.amounts.subtotal_transfer) }}</span></div>
-          <div class="flex justify-between text-muted-foreground"><span>Tax</span><span class="tabular-nums">Rp {{ formatRupiah(reservation.amounts.tax) }}</span></div>
-          <div v-if="reservation.amounts.service > 0" class="flex justify-between text-muted-foreground"><span>Service</span><span class="tabular-nums">Rp {{ formatRupiah(reservation.amounts.service) }}</span></div>
-          <div class="flex justify-between font-semibold pt-1.5 border-t"><span>Total</span><span class="tabular-nums">Rp {{ formatRupiah(reservation.amounts.total) }}</span></div>
+          <div class="flex justify-between text-muted-foreground"><span>Subtotal</span><span class="tabular-nums">Rp{{ formatRupiah(reservation.amounts.subtotal_rooms + reservation.amounts.subtotal_transfer) }}</span></div>
+          <div v-if="reservation.amounts.surcharge > 0" class="flex justify-between text-muted-foreground"><span>Surcharge</span><span class="tabular-nums">Rp{{ formatRupiah(reservation.amounts.surcharge) }}</span></div>
+          <div v-if="reservation.amounts.penalty > 0" class="flex justify-between text-warning-foreground"><span>Penalty</span><span class="tabular-nums">+Rp{{ formatRupiah(reservation.amounts.penalty) }}</span></div>
+          <div v-if="reservation.amounts.discount > 0" class="flex justify-between text-success-foreground"><span>Discount</span><span class="tabular-nums">-Rp{{ formatRupiah(reservation.amounts.discount) }}</span></div>
+          <div class="flex justify-between text-muted-foreground"><span>Tax</span><span class="tabular-nums">Rp{{ formatRupiah(reservation.amounts.tax) }}</span></div>
+          <div v-if="reservation.amounts.service > 0" class="flex justify-between text-muted-foreground"><span>Service</span><span class="tabular-nums">Rp{{ formatRupiah(reservation.amounts.service) }}</span></div>
+          <div class="flex justify-between font-semibold pt-1.5 border-t"><span>Total</span><span class="tabular-nums">Rp{{ formatRupiah(reservation.amounts.total) }}</span></div>
         </div>
       </div>
 
-      <div class="rounded-md border p-4 space-y-2 text-sm tracking-tight">
+      <!-- Adjustments Section -->
+      <div class="rounded-md border p-4 space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="text-base font-semibold tracking-tight">Adjustments</h2>
+          <Button
+            v-if="canApplyManual && !reservation.status_label?.toLowerCase().includes('cancelled') && !reservation.status_label?.toLowerCase().includes('refunded')"
+            size="sm"
+            variant="outline"
+            @click="adjustmentDialogOpen = true"
+          >
+            <Icon name="lucide:plus" class="size-4 shrink-0" />
+            Add Adjustment
+          </Button>
+        </div>
+
+        <div v-if="!reservation.adjustments?.length" class="text-muted-foreground text-sm tracking-tight">
+          No adjustments applied.
+        </div>
+
+        <div v-else class="space-y-2">
+          <div
+            v-for="adj in reservation.adjustments"
+            :key="adj.id"
+            :class="[
+              'flex items-center justify-between gap-3 rounded-md border p-3',
+              adj.is_voided ? 'opacity-50' : '',
+            ]"
+          >
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <span
+                  :class="[
+                    'inline-flex items-center rounded-full px-2 py-0.5 text-xs tracking-tight',
+                    adj.kind === 'discount' ? 'bg-success/15 text-success-foreground' : 'bg-warning/15 text-warning-foreground',
+                  ]"
+                >
+                  {{ adj.kind_label }}
+                </span>
+                <p class="text-sm tracking-tight truncate">{{ adj.label }}</p>
+              </div>
+              <p class="text-muted-foreground text-xs tracking-tight mt-1">
+                {{ adj.value_type === "percentage" ? `${adj.value}%` : `Rp${formatRupiah(adj.value)}` }}
+                · applied by {{ adj.applied_by }}
+                <span v-if="adj.is_voided"> · voided</span>
+              </p>
+            </div>
+            <div class="text-right shrink-0">
+              <p class="text-sm tracking-tight tabular-nums font-medium">
+                {{ adj.kind === "discount" ? "-" : "+" }}Rp{{ formatRupiah(adj.amount) }}
+              </p>
+              <Button
+                v-if="!adj.is_voided && canVoid"
+                size="sm"
+                variant="ghost"
+                class="text-destructive h-7 px-2 text-xs"
+                @click="voidAdjustment(adj)"
+              >
+                Void
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Manual Adjustment Dialog -->
+      <ManualAdjustmentDialog
+        v-model:open="adjustmentDialogOpen"
+        target-type="Reservation"
+        :target-email="reservation.guest?.email"
+        @apply="handleApplyAdjustment"
+      />
+
+      <!-- Void Adjustment Confirm Dialog -->
+      <DialogResponsive v-model:open="voidDialogOpen" dialog-max-width="26rem">
+        <template #default>
+          <div class="px-4 pb-10 md:px-6 md:py-5">
+            <h3 class="text-lg font-semibold tracking-tight">Void Adjustment</h3>
+            <p class="text-muted-foreground text-sm tracking-tight mt-2">
+              Void "{{ voidTarget?.label }}"? This will revert promo usage counter (if applicable) and recalculate totals.
+            </p>
+            <div class="flex justify-end gap-2 pt-4">
+              <Button variant="outline" @click="voidDialogOpen = false">Cancel</Button>
+              <Button variant="destructive" @click="confirmVoid" :disabled="voiding">
+                <Spinner v-if="voiding" />
+                {{ voiding ? "Voiding..." : "Void" }}
+              </Button>
+            </div>
+          </div>
+        </template>
+      </DialogResponsive>
+
+      <div class="rounded-md border p-4 space-y-3 text-sm tracking-tight">
         <h2 class="text-base font-semibold tracking-tight">Payment</h2>
+        <div class="flex flex-wrap items-center gap-3">
+          <PaymentMethodBadge
+            :channel="reservation.payment.channel"
+            :method="reservation.payment.method"
+          />
+        </div>
         <div class="grid grid-cols-2 gap-2">
-          <div><span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Method:</span> {{ reservation.payment.method_label || "-" }}</div>
-          <div v-if="reservation.paid_at"><span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Paid at:</span> {{ formatDateTime(reservation.paid_at) }}</div>
-          <div v-if="reservation.payment.xendit_invoice_id"><span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Xendit ID:</span> <span class="font-mono text-xs sm:text-sm tracking-tight">{{ reservation.payment.xendit_invoice_id }}</span></div>
+          <div>
+            <span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Method:</span>
+            {{ reservation.payment.method_label || "-" }}
+          </div>
+          <div v-if="reservation.payment.destination">
+            <span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Destination:</span>
+            <span class="font-mono text-xs sm:text-sm tracking-tight">{{ reservation.payment.destination }}</span>
+          </div>
+          <div v-if="reservation.paid_at">
+            <span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Paid at:</span>
+            {{ formatDateTime(reservation.paid_at) }}
+          </div>
+          <div v-if="reservation.payment.xendit_invoice_id">
+            <span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Xendit ID:</span>
+            <span class="font-mono text-xs sm:text-sm tracking-tight">{{ reservation.payment.xendit_invoice_id }}</span>
+          </div>
+          <div v-if="reservation.payment.xendit_payment_id">
+            <span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Payment ID:</span>
+            <span class="font-mono text-xs sm:text-sm tracking-tight">{{ reservation.payment.xendit_payment_id }}</span>
+          </div>
+          <div v-if="reservation.payment.gateway">
+            <span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Gateway:</span>
+            {{ reservation.payment.gateway.label || reservation.payment.gateway.provider }}
+            <span class="text-muted-foreground text-xs">· {{ reservation.payment.gateway.mode }}</span>
+          </div>
         </div>
       </div>
 
@@ -193,12 +356,12 @@
             <h3 class="text-lg font-semibold tracking-tight">Cancel & Refund</h3>
             <form @submit.prevent="handleCancel" class="mt-4 space-y-3">
               <div class="space-y-2">
-                <Label>Reason<span class="text-destructive">*</span></Label>
+                <Label>Reason</Label>
                 <Textarea v-model="cancelForm.reason" rows="3" required />
               </div>
               <div class="space-y-2">
                 <Label>Refund Amount (override auto-calc)</Label>
-                <Input v-model.number="cancelForm.refund_amount" type="number" min="0" :placeholder="`Auto: Rp ${formatRupiah(autoRefund)}`" />
+                <Input v-model.number="cancelForm.refund_amount" type="number" min="0" :placeholder="`Auto: Rp${formatRupiah(autoRefund)}`" />
                 <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">{{ refundPolicyText }}</p>
               </div>
               <label class="flex items-center gap-2 text-sm tracking-tight">
@@ -216,6 +379,40 @@
           </div>
         </template>
       </DialogResponsive>
+
+      <DialogResponsive v-model:open="markPaidDialogOpen" :overflow-content="true" dialog-max-width="28rem">
+        <template #default>
+          <div class="px-4 pb-10 md:px-6 md:py-5">
+            <h3 class="text-lg font-semibold tracking-tight">Mark as Paid</h3>
+            <p class="text-muted-foreground mt-1 text-sm tracking-tight">
+              Manually confirm payment for this reservation. Use this when payment landed outside Xendit (cash, manual transfer) or when the Xendit webhook did not reach the server.
+            </p>
+            <form @submit.prevent="handleMarkPaid" class="mt-4 space-y-3">
+              <div class="grid grid-cols-2 gap-2">
+                <div class="space-y-2">
+                  <Label>Payment channel (optional)</Label>
+                  <Input v-model="markPaidForm.payment_channel" placeholder="BCA, OVO, Cash..." />
+                </div>
+                <div class="space-y-2">
+                  <Label>Destination/VA (optional)</Label>
+                  <Input v-model="markPaidForm.payment_destination" placeholder="0000000000" />
+                </div>
+              </div>
+              <div class="space-y-2">
+                <Label>Internal note (optional)</Label>
+                <Textarea v-model="markPaidForm.note" rows="2" placeholder="Why this is being marked manually" />
+              </div>
+              <div class="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="outline" @click="markPaidDialogOpen = false">Cancel</Button>
+                <Button type="submit" :disabled="markingPaid">
+                  <Spinner v-if="markingPaid" />
+                  {{ markingPaid ? "Marking..." : "Confirm Payment" }}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </template>
+      </DialogResponsive>
     </div>
   </div>
 </template>
@@ -227,6 +424,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PaymentMethodBadge } from "@/components/ui/payment-method-badge";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { computed, reactive, ref } from "vue";
@@ -260,9 +458,63 @@ const { data, pending, refresh } = await useLazySanctumFetch(
 
 const reservation = computed(() => data.value?.data);
 
+const { hasPermission } = usePermission();
+const canApplyManual = computed(() => hasPermission("promotions.apply_manual"));
+const canVoid = computed(() => hasPermission("promotions.void_adjustment"));
+
 usePageMeta(null, {
   title: computed(() => `${reservation.value?.reservation_number ?? "Reservation"} · Reservations`),
 });
+
+const adjustmentDialogOpen = ref(false);
+
+const handleApplyAdjustment = async (payload, setErrors) => {
+  try {
+    const res = await client(
+      `/api/events/${props.event.id}/reservations/${ulid.value}/adjustments`,
+      { method: "POST", body: payload },
+    );
+    toast.success(res?.message || "Adjustment applied");
+    adjustmentDialogOpen.value = false;
+    await refresh();
+  } catch (err) {
+    if (err.response?.status === 422) {
+      const errors = err.response._data?.errors || {};
+      setErrors?.(errors);
+      toast.error(err.response._data?.message || "Validation failed");
+    } else {
+      toast.error("Failed to apply adjustment", { description: err?.data?.message });
+    }
+  }
+};
+
+const voidTarget = ref(null);
+const voidDialogOpen = ref(false);
+const voiding = ref(false);
+
+const voidAdjustment = (adj) => {
+  voidTarget.value = adj;
+  voidDialogOpen.value = true;
+};
+
+const confirmVoid = async () => {
+  if (!voidTarget.value) return;
+  voiding.value = true;
+  try {
+    await client(
+      `/api/events/${props.event.id}/reservations/${ulid.value}/adjustments/${voidTarget.value.ulid}`,
+      { method: "DELETE" },
+    );
+    toast.success("Adjustment voided");
+    voidDialogOpen.value = false;
+    voidTarget.value = null;
+    await refresh();
+  } catch (err) {
+    toast.error("Failed to void", { description: err?.data?.message });
+  } finally {
+    voiding.value = false;
+  }
+};
 
 const formatRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
 const formatDateTime = (iso) => iso ? new Date(iso).toLocaleString("id-ID") : "-";
@@ -325,6 +577,39 @@ const cancelForm = reactive({
   refund_amount: null,
   process_refund: true,
 });
+
+const canMarkPaid = computed(() => hasPermission("reservations.mark_paid"));
+const markPaidDialogOpen = ref(false);
+const markingPaid = ref(false);
+const markPaidForm = reactive({
+  payment_channel: "",
+  payment_destination: "",
+  note: "",
+});
+
+const handleMarkPaid = async () => {
+  markingPaid.value = true;
+  try {
+    await client(`/api/events/${props.event.id}/reservations/${ulid.value}/mark-paid`, {
+      method: "POST",
+      body: {
+        payment_channel: markPaidForm.payment_channel || null,
+        payment_destination: markPaidForm.payment_destination || null,
+        note: markPaidForm.note || null,
+      },
+    });
+    toast.success("Reservation marked as paid");
+    markPaidDialogOpen.value = false;
+    markPaidForm.payment_channel = "";
+    markPaidForm.payment_destination = "";
+    markPaidForm.note = "";
+    await refresh();
+  } catch (err) {
+    toast.error("Mark paid failed", { description: err?.data?.message || err?.message });
+  } finally {
+    markingPaid.value = false;
+  }
+};
 
 const earliestCheckIn = computed(() => {
   const items = reservation.value?.items ?? [];
@@ -411,7 +696,7 @@ const activityLabel = (entry) => {
   if ("cancelled_at" in changes) return "Cancelled";
   if ("refunded_at" in changes) return "Refunded";
   if ("voucher_sent_at" in changes) return "Voucher sent";
-  if ("total_amount" in changes) return `Total updated to Rp ${formatRupiah(changes.total_amount)}`;
+  if ("total_amount" in changes) return `Total updated to Rp${formatRupiah(changes.total_amount)}`;
   return entry.description || "Updated";
 };
 

@@ -8,6 +8,26 @@ Event websites consume PM One API for: blog posts, brands/exhibitors, tickets, r
 
 See `~/Frontend/pmone-events/CLAUDE.md` for the event websites monorepo documentation.
 
+**Frontend styling:** Untuk pekerjaan UI di `/frontend` (Nuxt admin), wajib baca `frontend/STYLE_GUIDE.md` sebelum membuat atau mengubah komponen. File ini berisi aturan typography, warna, spacing, component shadcn-vue yang wajib dipakai, custom input (`<InputPhone>`, `<InputLink>`, dll), dan checklist sebelum commit.
+
+## Hotel Reservation system
+
+**Architecture:** Hotel (global, no event_id) → `hotel_event` pivot → Event. Per-event allotments + pricing via `hotel_event_allotments.base_rate_override`. Mirror BrandEvent pattern.
+
+**Feature toggle:** `events.hotel_reservation_enabled` boolean (default false). Toggle UI at `/projects/{u}/events/{e}/details`. Enabling requires the project to have at least one active payment gateway (`Project::hasActivePaymentGateway()`). Disabling with active future reservations returns 409 `ACTIVE_RESERVATIONS_EXIST` and requires `force=true` to override.
+
+**API guards:** Middleware alias `hotel-reservation-enabled` (class `EnsureHotelReservationEnabled`) gates:
+- Admin: `events/{event}/hotels/*` and `events/{event}/reservations/*` (entire group)
+- Public: `POST /public/hotels/availability`, `POST /public/reservations`, `POST /public/reservations/preview-pricing`, `GET /public/events/{slug}/hotels/{slug}` + daily-availability variants
+
+Returns 404 with `error_code: HOTEL_RESERVATION_DISABLED`. Magic-link endpoints (existing reservation receipt/voucher) are NOT gated so customers can still access historical bookings. `GET /public/hotels` listing filters via `whereHas events.hotel_reservation_enabled = true`.
+
+**Data seeding:** `database/seeders/JakartaHotelsSeeder` (20 hotels with rooms + transfers) + `database/seeders/JakartaHotelsPhotosSeeder` (~190 photos from `database/seeders/hotel-photos/` committed to git, no external CDN at runtime). Both idempotent via `firstOrCreate` + media existence check.
+
+**Reservation creation:** Requires explicit `event_id` in payload. `ReservationService::createReservation` validates `HotelEvent` pivot exists + active. Public form `StorePublicReservationRequest` enforces `event_id => required|exists`.
+
+See `DEPLOY.md` for production deploy + seeder runbook.
+
 <laravel-boost-guidelines>
 === foundation rules ===
 
@@ -255,3 +275,19 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - Do NOT delete tests without approval.
 
 </laravel-boost-guidelines>
+
+# Database Access Rules
+
+- All database access must go through the `postgres` MCP server
+- Never read `.env` or any config file containing credentials
+- Never suggest storing credentials in code or config files
+- Use parameterised queries only — no string concatenation for SQL
+- Untuk query yang bersifat modifikasi data, konfirmasi dulu sebelum eksekusi
+
+# Database Context
+
+- Database production PM One diakses melalui MCP server `postgres` 
+  (tunnel ke 127.0.0.1:5433)
+- Database local PM One ada di 127.0.0.1:5432
+- Jika diminta query database tanpa keterangan, **selalu tanyakan dulu** 
+  apakah maksudnya local atau production sebelum eksekusi

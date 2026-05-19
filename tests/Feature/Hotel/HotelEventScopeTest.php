@@ -21,12 +21,12 @@ beforeEach(function () {
     $this->actingAs($this->user);
 });
 
-test('hotel list is scoped to its event', function () {
+test('hotel list under event returns only attached hotels via pivot', function () {
     $eventA = Event::factory()->create();
     $eventB = Event::factory()->create();
 
-    Hotel::factory()->count(2)->for($eventA)->create();
-    Hotel::factory()->count(3)->for($eventB)->create();
+    Hotel::factory()->count(2)->withEvent($eventA)->create();
+    Hotel::factory()->count(3)->withEvent($eventB)->create();
 
     $responseA = $this->getJson("/api/events/{$eventA->id}/hotels");
     $responseB = $this->getJson("/api/events/{$eventB->id}/hotels");
@@ -35,28 +35,41 @@ test('hotel list is scoped to its event', function () {
     expect($responseB->json('meta.total'))->toBe(3);
 });
 
-test('hotel from event A returns 404 when accessed via event B scope', function () {
+test('hotel not attached to event returns 404 via event scope', function () {
     $eventA = Event::factory()->create();
     $eventB = Event::factory()->create();
-    $hotel = Hotel::factory()->for($eventA)->create();
+    $hotel = Hotel::factory()->withEvent($eventA)->create();
 
     $response = $this->getJson("/api/events/{$eventB->id}/hotels/{$hotel->slug}");
 
     $response->assertNotFound();
 });
 
-test('same slug can coexist across different events', function () {
+test('hotel slug auto-increments when duplicate name is created', function () {
     $eventA = Event::factory()->create();
     $eventB = Event::factory()->create();
 
-    $hotelA = Hotel::factory()->for($eventA)->create(['slug' => 'grand-mercure', 'name' => 'Grand Mercure']);
-    $hotelB = Hotel::factory()->for($eventB)->create(['slug' => 'grand-mercure', 'name' => 'Grand Mercure']);
+    $first = Hotel::factory()->withEvent($eventA)->create(['name' => 'Grand Mercure Globally Unique']);
+    $second = Hotel::factory()->withEvent($eventB)->create(['name' => 'Grand Mercure Globally Unique']);
 
-    expect($hotelA->id)->not->toBe($hotelB->id);
-    expect($hotelA->slug)->toBe($hotelB->slug);
+    // HasSlug trait auto-dedupes via suffix (slug is globally unique now)
+    expect($first->slug)->toBe('grand-mercure-globally-unique');
+    expect($second->slug)->not->toBe('grand-mercure-globally-unique');
+    expect($second->slug)->toStartWith('grand-mercure-globally-unique');
 });
 
-test('hotel creation via nested route auto-assigns event_id from route', function () {
+test('shared hotel attached to multiple events appears in each event listing', function () {
+    $eventA = Event::factory()->create();
+    $eventB = Event::factory()->create();
+
+    $shared = Hotel::factory()->create();
+    $shared->events()->attach([$eventA->id => ['is_active' => true], $eventB->id => ['is_active' => true]]);
+
+    expect($this->getJson("/api/events/{$eventA->id}/hotels")->json('meta.total'))->toBe(1);
+    expect($this->getJson("/api/events/{$eventB->id}/hotels")->json('meta.total'))->toBe(1);
+});
+
+test('nested event hotel store creates global hotel + pivot row', function () {
     $event = Event::factory()->create();
 
     $response = $this->postJson("/api/events/{$event->id}/hotels", [
@@ -64,6 +77,31 @@ test('hotel creation via nested route auto-assigns event_id from route', functio
         'city' => 'Bandung',
     ]);
 
-    $response->assertStatus(201)
-        ->assertJsonPath('data.event_id', $event->id);
+    $response->assertStatus(201);
+    $hotel = Hotel::where('name', 'Nested Hotel')->first();
+    expect($hotel)->not->toBeNull();
+    $this->assertDatabaseHas('hotel_event', ['hotel_id' => $hotel->id, 'event_id' => $event->id]);
+});
+
+test('nested event hotel store attaches existing hotel when hotel_id provided', function () {
+    $event = Event::factory()->create();
+    $existing = Hotel::factory()->create();
+
+    $response = $this->postJson("/api/events/{$event->id}/hotels", [
+        'hotel_id' => $existing->id,
+    ]);
+
+    $response->assertStatus(201);
+    $this->assertDatabaseHas('hotel_event', ['hotel_id' => $existing->id, 'event_id' => $event->id]);
+});
+
+test('detaching hotel from event keeps hotel record alive', function () {
+    $event = Event::factory()->create();
+    $hotel = Hotel::factory()->withEvent($event)->create();
+
+    $response = $this->deleteJson("/api/events/{$event->id}/hotels/{$hotel->slug}");
+
+    $response->assertSuccessful();
+    $this->assertDatabaseMissing('hotel_event', ['hotel_id' => $hotel->id, 'event_id' => $event->id]);
+    $this->assertDatabaseHas('hotels', ['id' => $hotel->id, 'deleted_at' => null]);
 });

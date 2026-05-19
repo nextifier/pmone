@@ -3,6 +3,7 @@
 use App\Models\Event;
 use App\Models\Hotel;
 use App\Models\RoomType;
+use App\Models\RoomTypePricingPeriod;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
@@ -27,7 +28,7 @@ beforeEach(function () {
     $this->actingAs($this->user);
 
     $this->event = Event::factory()->create();
-    $this->hotel = Hotel::factory()->for($this->event)->create();
+    $this->hotel = Hotel::factory()->withEvent($this->event)->create();
 });
 
 test('admin can list room types for a hotel', function () {
@@ -88,7 +89,7 @@ test('admin can soft delete a room type', function () {
 });
 
 test('room type from another hotel returns 404', function () {
-    $otherHotel = Hotel::factory()->for($this->event)->create();
+    $otherHotel = Hotel::factory()->withEvent($this->event)->create();
     $room = RoomType::factory()->create(['hotel_id' => $otherHotel->id]);
 
     $response = $this->getJson("/api/events/{$this->event->id}/hotels/{$this->hotel->slug}/room-types/{$room->slug}");
@@ -107,4 +108,97 @@ test('room type slug is auto-appended when name duplicates', function () {
 
     $response->assertStatus(201)
         ->assertJsonPath('data.slug', fn (string $slug) => str_starts_with($slug, 'deluxe-'));
+});
+
+test('admin can create room type with dynamic pricing periods', function () {
+    $response = $this->postJson("/api/events/{$this->event->id}/hotels/{$this->hotel->slug}/room-types", [
+        'name' => 'Dynamic King',
+        'max_pax' => 2,
+        'base_rate' => 1500000,
+        'pricing_type' => 'dynamic',
+        'pricing_periods' => [
+            ['start_date' => '2026-06-01', 'end_date' => '2026-06-05', 'rate' => 1500000, 'label' => 'Weekday'],
+            ['start_date' => '2026-06-06', 'end_date' => '2026-06-07', 'rate' => 1800000, 'label' => 'Weekend'],
+        ],
+    ]);
+
+    $response->assertStatus(201)
+        ->assertJsonPath('data.pricing_type', 'dynamic');
+    expect((float) $response->json('data.pricing_periods.0.rate'))->toBe(1500000.0);
+    expect((float) $response->json('data.pricing_periods.1.rate'))->toBe(1800000.0);
+
+    $this->assertDatabaseCount('room_type_pricing_periods', 2);
+});
+
+test('admin can update room type pricing periods (add, edit, remove)', function () {
+    $room = RoomType::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'pricing_type' => 'dynamic',
+    ]);
+    $existing = RoomTypePricingPeriod::factory()->for($room)->create([
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-06-05',
+        'rate' => 1500000,
+    ]);
+    $toRemove = RoomTypePricingPeriod::factory()->for($room)->create([
+        'start_date' => '2026-07-01',
+        'end_date' => '2026-07-05',
+        'rate' => 2000000,
+    ]);
+
+    $response = $this->putJson("/api/events/{$this->event->id}/hotels/{$this->hotel->slug}/room-types/{$room->slug}", [
+        'pricing_type' => 'dynamic',
+        'pricing_periods' => [
+            ['id' => $existing->id, 'start_date' => '2026-06-01', 'end_date' => '2026-06-05', 'rate' => 1700000],
+            ['start_date' => '2026-08-01', 'end_date' => '2026-08-03', 'rate' => 2500000],
+        ],
+    ]);
+
+    $response->assertSuccessful();
+    expect($room->fresh()->pricingPeriods()->count())->toBe(2);
+    $this->assertSoftDeleted('room_type_pricing_periods', ['id' => $toRemove->id]);
+    expect((float) $existing->fresh()->rate)->toBe(1700000.0);
+});
+
+test('validation rejects dynamic pricing with empty periods', function () {
+    $response = $this->postJson("/api/events/{$this->event->id}/hotels/{$this->hotel->slug}/room-types", [
+        'name' => 'Dyn Empty',
+        'max_pax' => 2,
+        'base_rate' => 1000000,
+        'pricing_type' => 'dynamic',
+        'pricing_periods' => [],
+    ]);
+
+    $response->assertStatus(422);
+    expect($response->json('errors'))->toHaveKey('pricing_periods');
+});
+
+test('validation rejects overlapping pricing periods', function () {
+    $response = $this->postJson("/api/events/{$this->event->id}/hotels/{$this->hotel->slug}/room-types", [
+        'name' => 'Overlap',
+        'max_pax' => 2,
+        'base_rate' => 1000000,
+        'pricing_type' => 'dynamic',
+        'pricing_periods' => [
+            ['start_date' => '2026-06-01', 'end_date' => '2026-06-05', 'rate' => 1500000],
+            ['start_date' => '2026-06-04', 'end_date' => '2026-06-08', 'rate' => 1800000],
+        ],
+    ]);
+
+    $response->assertStatus(422);
+    expect($response->json('errors'))->toHaveKey('pricing_periods');
+});
+
+test('validation rejects end_date before start_date in period', function () {
+    $response = $this->postJson("/api/events/{$this->event->id}/hotels/{$this->hotel->slug}/room-types", [
+        'name' => 'Reverse',
+        'max_pax' => 2,
+        'base_rate' => 1000000,
+        'pricing_type' => 'dynamic',
+        'pricing_periods' => [
+            ['start_date' => '2026-06-10', 'end_date' => '2026-06-05', 'rate' => 1500000],
+        ],
+    ]);
+
+    $response->assertStatus(422);
 });

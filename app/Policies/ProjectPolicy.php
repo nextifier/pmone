@@ -58,8 +58,8 @@ class ProjectPolicy
      */
     public function update(User $user, Project $project): bool
     {
-        // Master and admin can update all projects
-        if ($user->hasRole(['master', 'admin'])) {
+        // Master, admin, and staff can update all projects
+        if ($user->hasRole(['master', 'admin', 'staff'])) {
             return true;
         }
 
@@ -72,18 +72,8 @@ class ProjectPolicy
      */
     public function delete(User $user, Project $project): bool
     {
-        // Master and admin can delete all projects
-        if ($user->hasRole(['master', 'admin'])) {
-            return true;
-        }
-
-        // Creator can delete their own project
-        if ($project->created_by === $user->id) {
-            return true;
-        }
-
-        // Members can delete projects they belong to
-        return $project->members()->where('user_id', $user->id)->exists();
+        // Only master and admin can delete projects
+        return $user->hasRole(['master', 'admin']);
     }
 
     /**

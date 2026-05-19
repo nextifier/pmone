@@ -355,7 +355,7 @@ function boothTypeLabel(type) {
 function formatPrice(price) {
   if (price === null || price === undefined) return "—";
   return (
-    "Rp " +
+    "Rp" +
     Number(price)
       .toLocaleString("id-ID", { minimumFractionDigits: 0, maximumFractionDigits: 0 })
   );

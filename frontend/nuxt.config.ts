@@ -59,7 +59,6 @@ export default defineNuxtConfig({
       include: [
         "embla-carousel-wheel-gestures",
         "vue-json-pretty",
-        "vue3-picture-swipe",
         "vue-scrollto",
         "v-wave",
         "dayjs",

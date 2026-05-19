@@ -14,13 +14,20 @@ use App\Http\Requests\GoogleAnalytics\TriggerSyncRequest;
 use App\Http\Requests\GoogleAnalytics\UpdateGaPropertyRequest;
 use App\Http\Resources\GaPropertyResource;
 use App\Imports\GaPropertiesImport;
+use App\Jobs\RefreshAggregateCache;
 use App\Jobs\SyncGoogleAnalyticsData;
 use App\Models\GaProperty;
+use App\Services\GoogleAnalytics\AnalyticsAggregator;
 use App\Services\GoogleAnalytics\AnalyticsCacheKeyGenerator as CacheKey;
+use App\Services\GoogleAnalytics\AnalyticsMetrics;
 use App\Services\GoogleAnalytics\AnalyticsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -28,7 +35,7 @@ class GoogleAnalyticsController extends Controller
 {
     public function __construct(
         protected AnalyticsService $analyticsService,
-        protected \App\Services\GoogleAnalytics\AnalyticsAggregator $aggregator
+        protected AnalyticsAggregator $aggregator
     ) {}
 
     /**
@@ -266,6 +273,17 @@ class GoogleAnalyticsController extends Controller
 
             SyncGoogleAnalyticsData::dispatch($property->id, $days);
 
+            activity()
+                ->causedBy($request->user())
+                ->performedOn($property)
+                ->event('analytics_synced')
+                ->withProperties([
+                    'project_id' => $property->project_id,
+                    'property_id' => $property->property_id,
+                    'days' => $days,
+                ])
+                ->log("Analytics sync triggered for {$property->name}");
+
             return response()->json([
                 'message' => 'Sync job dispatched for property: '.$property->name,
                 'property_id' => $property->property_id,
@@ -279,6 +297,15 @@ class GoogleAnalyticsController extends Controller
         foreach ($properties as $property) {
             SyncGoogleAnalyticsData::dispatch($property->id, $days);
         }
+
+        activity()
+            ->causedBy($request->user())
+            ->event('analytics_synced')
+            ->withProperties([
+                'properties_count' => $properties->count(),
+                'days' => $days,
+            ])
+            ->log("Analytics sync triggered for {$properties->count()} properties");
 
         return response()->json([
             'message' => 'Sync jobs dispatched for '.$properties->count().' properties',
@@ -299,9 +326,9 @@ class GoogleAnalyticsController extends Controller
         $period = $this->analyticsService->createPeriodFromDays($days);
         $cacheKey = CacheKey::forAggregate($propertyIds, $period->startDate, $period->endDate);
 
-        \Illuminate\Support\Facades\Cache::forget($cacheKey);
-        \Illuminate\Support\Facades\Cache::forget(CacheKey::timestamp($cacheKey));
-        \Illuminate\Support\Facades\Cache::forget(CacheKey::refreshing($cacheKey));
+        Cache::forget($cacheKey);
+        Cache::forget(CacheKey::timestamp($cacheKey));
+        Cache::forget(CacheKey::refreshing($cacheKey));
 
         return response()->json([
             'message' => 'Aggregate cache cleared, next request will fetch fresh data from daily cache',
@@ -320,8 +347,8 @@ class GoogleAnalyticsController extends Controller
         $userId = auth()->id();
         $key = "sync-analytics:{$userId}";
 
-        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($key, 2)) {
-            $retryAfter = \Illuminate\Support\Facades\RateLimiter::availableIn($key);
+        if (RateLimiter::tooManyAttempts($key, 2)) {
+            $retryAfter = RateLimiter::availableIn($key);
 
             return response()->json([
                 'message' => 'Too many sync attempts. Please try again later.',
@@ -330,7 +357,7 @@ class GoogleAnalyticsController extends Controller
             ], 429);
         }
 
-        \Illuminate\Support\Facades\RateLimiter::hit($key, 3600); // 1 hour
+        RateLimiter::hit($key, 3600); // 1 hour
 
         $days = $request->validated()['days'];
         $period = $this->analyticsService->createPeriodFromDays($days);
@@ -339,14 +366,14 @@ class GoogleAnalyticsController extends Controller
         $cacheKey = CacheKey::forAggregate(null, $period->startDate, $period->endDate);
 
         foreach (CacheKey::getAllKeys($cacheKey) as $cacheItemKey) {
-            \Illuminate\Support\Facades\Cache::forget($cacheItemKey);
+            Cache::forget($cacheItemKey);
         }
 
         // Dispatch background job
         $refreshingKey = CacheKey::refreshing($cacheKey);
-        \Illuminate\Support\Facades\Cache::put($refreshingKey, true, now()->addMinutes(5));
+        Cache::put($refreshingKey, true, now()->addMinutes(5));
 
-        dispatch(new \App\Jobs\RefreshAggregateCache(
+        dispatch(new RefreshAggregateCache(
             period: $period,
             propertyIds: null,
             cacheKey: $cacheKey,
@@ -520,7 +547,7 @@ class GoogleAnalyticsController extends Controller
         $propertyId = $request->input('property_id');
         $hours = $request->input('hours', 24);
 
-        $metrics = app(\App\Services\GoogleAnalytics\AnalyticsMetrics::class);
+        $metrics = app(AnalyticsMetrics::class);
         $stats = $metrics->getApiCallStats($propertyId, $hours);
 
         return response()->json($stats);
@@ -534,7 +561,7 @@ class GoogleAnalyticsController extends Controller
         $propertyId = $request->input('property_id');
         $hours = $request->input('hours', 24);
 
-        $metrics = app(\App\Services\GoogleAnalytics\AnalyticsMetrics::class);
+        $metrics = app(AnalyticsMetrics::class);
         $stats = $metrics->getCacheStats($propertyId, $hours);
 
         return response()->json($stats);
@@ -547,7 +574,7 @@ class GoogleAnalyticsController extends Controller
     {
         $days = $request->input('days', 1);
 
-        $metrics = app(\App\Services\GoogleAnalytics\AnalyticsMetrics::class);
+        $metrics = app(AnalyticsMetrics::class);
         $usage = $metrics->getQuotaUsage($propertyId, $days);
 
         return response()->json($usage);
@@ -558,7 +585,7 @@ class GoogleAnalyticsController extends Controller
      */
     public function getSystemHealth(): JsonResponse
     {
-        $metrics = app(\App\Services\GoogleAnalytics\AnalyticsMetrics::class);
+        $metrics = app(AnalyticsMetrics::class);
         $health = $metrics->getSystemHealth();
 
         return response()->json($health);
@@ -638,13 +665,13 @@ class GoogleAnalyticsController extends Controller
         $key = "analytics-request:{$userId}";
         $maxAttempts = config('analytics.rate_limiting.requests_per_minute', 60);
 
-        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($key, $maxAttempts)) {
-            $retryAfter = \Illuminate\Support\Facades\RateLimiter::availableIn($key);
+        if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
+            $retryAfter = RateLimiter::availableIn($key);
 
             abort(429, "Too many analytics requests. Please try again in {$retryAfter} seconds.");
         }
 
-        \Illuminate\Support\Facades\RateLimiter::hit($key, 60); // 60 seconds (1 minute)
+        RateLimiter::hit($key, 60); // 60 seconds (1 minute)
     }
 
     /**
@@ -732,20 +759,20 @@ class GoogleAnalyticsController extends Controller
             // Get file path from temporary storage
             $metadataPath = "tmp/uploads/{$tempFolder}/metadata.json";
 
-            if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+            if (! Storage::disk('local')->exists($metadataPath)) {
                 return response()->json([
                     'message' => 'File not found',
                 ], 404);
             }
 
             $metadata = json_decode(
-                \Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath),
+                Storage::disk('local')->get($metadataPath),
                 true
             );
 
             $filePath = "tmp/uploads/{$tempFolder}/{$metadata['original_name']}";
 
-            if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($filePath)) {
+            if (! Storage::disk('local')->exists($filePath)) {
                 return response()->json([
                     'message' => 'File not found',
                 ], 404);
@@ -753,7 +780,7 @@ class GoogleAnalyticsController extends Controller
 
             // Import GA properties
             $import = new GaPropertiesImport;
-            Excel::import($import, \Illuminate\Support\Facades\Storage::disk('local')->path($filePath));
+            Excel::import($import, Storage::disk('local')->path($filePath));
 
             // Get import results
             $failures = $import->getFailures();
@@ -793,7 +820,7 @@ class GoogleAnalyticsController extends Controller
         } finally {
             // Always clean up temporary files
             if ($tempFolder) {
-                \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
+                Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
             }
         }
     }
@@ -824,25 +851,25 @@ class GoogleAnalyticsController extends Controller
         }
 
         // If value doesn't start with 'tmp-', it's an existing media URL, skip
-        if (! \Illuminate\Support\Str::startsWith($value, 'tmp-')) {
+        if (! Str::startsWith($value, 'tmp-')) {
             return;
         }
 
         // Handle new upload from temporary storage
         $metadataPath = "tmp/uploads/{$value}/metadata.json";
 
-        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+        if (! Storage::disk('local')->exists($metadataPath)) {
             return;
         }
 
         $metadata = json_decode(
-            \Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath),
+            Storage::disk('local')->get($metadataPath),
             true
         );
 
         $filePath = "tmp/uploads/{$value}/{$metadata['original_name']}";
 
-        if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($filePath)) {
+        if (! Storage::disk('local')->exists($filePath)) {
             return;
         }
 
@@ -850,10 +877,10 @@ class GoogleAnalyticsController extends Controller
         $property->clearMediaCollection($collection);
 
         // Add new media
-        $property->addMedia(\Illuminate\Support\Facades\Storage::disk('local')->path($filePath))
+        $property->addMedia(Storage::disk('local')->path($filePath))
             ->toMediaCollection($collection);
 
         // Clean up temporary files
-        \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
+        Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
     }
 }

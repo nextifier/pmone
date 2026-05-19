@@ -198,6 +198,17 @@ class EventProductController extends Controller
         $export = new EventProductsExport($event->id, $filters, $sort);
         $filename = 'products_'.now()->format('Y-m-d_His').'.xlsx';
 
+        activity()
+            ->causedBy($request->user())
+            ->event('exported')
+            ->withProperties([
+                'project_id' => $event->project_id,
+                'model_type' => 'EventProduct',
+                'event_id' => $event->id,
+                'filename' => $filename,
+            ])
+            ->log('Exported event products');
+
         return Excel::download($export, $filename);
     }
 

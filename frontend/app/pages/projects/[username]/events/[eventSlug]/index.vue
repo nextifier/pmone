@@ -81,8 +81,8 @@
         <!-- Action Buttons -->
         <div v-if="event.can_edit" class="mt-3 flex flex-wrap items-center gap-2">
           <Button :to="`${base}/details`" size="sm">
-            <Icon name="hugeicons:edit-02" class="size-4" />
-            Edit Details
+            <Icon name="hugeicons:settings-02" class="size-4" />
+            Settings
           </Button>
           <Button
             v-if="event.is_active"
@@ -154,9 +154,12 @@ const settingActive = ref(false);
 async function handleSetActive() {
   settingActive.value = true;
   try {
-    await client(`/api/projects/${route.params.username}/events/${route.params.eventSlug}/set-active`, {
-      method: "POST",
-    });
+    await client(
+      `/api/projects/${route.params.username}/events/${route.params.eventSlug}/set-active`,
+      {
+        method: "POST",
+      }
+    );
     toast.success(`${props.event.title} set as active edition`);
     await refreshNuxtData(`event-${route.params.username}-${route.params.eventSlug}`);
   } catch (e) {

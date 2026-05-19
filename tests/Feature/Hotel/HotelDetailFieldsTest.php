@@ -56,7 +56,7 @@ test('star_rating must be between 1 and 5', function () {
 });
 
 test('facilities are stored via spatie tags', function () {
-    $hotel = Hotel::factory()->for($this->event)->create();
+    $hotel = Hotel::factory()->withEvent($this->event)->create();
     $hotel->syncTagsWithType(['WiFi', 'Parking'], 'hotel_facility');
 
     expect($hotel->fresh()->tags->pluck('name')->all())->toEqualCanonicalizing(['WiFi', 'Parking']);
@@ -73,7 +73,7 @@ test('public hotel endpoint exposes facilities and standard fields', function ()
 
     $this->event->update(['is_active' => true]);
 
-    $hotel = Hotel::factory()->for($this->event)->create([
+    $hotel = Hotel::factory()->withEvent($this->event)->create([
         'star_rating' => 4,
         'google_maps_link' => 'https://maps.app.goo.gl/test',
     ]);

@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Brand;
+use App\Models\User;
 use App\Traits\TracksJobProgress;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -22,6 +23,7 @@ class BulkPermanentDeleteBrands implements ShouldQueue
         public string $jobId,
         public array $brandSlugs,
         public ?int $eventId = null,
+        public ?int $causerId = null,
     ) {}
 
     public function handle(): void
@@ -41,6 +43,18 @@ class BulkPermanentDeleteBrands implements ShouldQueue
             $deleted++;
 
             $this->updateProgress($index + 1);
+        }
+
+        if ($deleted > 0) {
+            activity()
+                ->causedBy($this->causerId ? User::find($this->causerId) : null)
+                ->event('bulk_force_deleted')
+                ->withProperties([
+                    'deleted_count' => $deleted,
+                    'model_type' => 'Brand',
+                    'event_id' => $this->eventId,
+                ])
+                ->log("Permanently deleted {$deleted} brand(s)");
         }
 
         $this->completeProgress(

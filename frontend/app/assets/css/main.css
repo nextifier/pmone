@@ -540,7 +540,7 @@
     html {
       scrollbar-gutter: stable;
 
-      &:has(body[style*="overflow: hidden"][style*="padding-right"]) {
+      &:has(body[style*="overflow: hidden"]) {
         scrollbar-gutter: auto;
       }
     }
@@ -981,13 +981,11 @@ img.pswp__img {
   }
 }
 
-#layout-app {
-  & label:has(+ input:required)::after,
-  & label:has(+ select:required)::after,
-  & label:has(+ textarea:required)::after {
-    /* content: " *"; */
-    @apply text-destructive ml-0 content-['*'];
-  }
+label:has(+ input:required)::after,
+label:has(+ select:required)::after,
+label:has(+ textarea:required)::after,
+label:has(+ .base-phone-input input:required)::after {
+  @apply text-destructive ml-0 content-['*'];
 }
 
 /* LQIP shimmer overlay */
@@ -1161,3 +1159,4 @@ img.pswp__img {
   } */
 }
 /* Vue JSON Pretty - End */
+

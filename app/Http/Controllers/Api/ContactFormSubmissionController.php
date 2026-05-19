@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\ContactFormStatus;
+use App\Exports\ContactFormSubmissionsExport;
 use App\Exports\ContactFormSubmissionsTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ContactFormSubmissionIndexResource;
@@ -57,7 +58,7 @@ class ContactFormSubmissionController extends Controller
         ]);
     }
 
-    public function export(Request $request): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    public function export(Request $request): BinaryFileResponse
     {
         // Get filters and sorting from request
         $filters = [];
@@ -74,12 +75,21 @@ class ContactFormSubmissionController extends Controller
         $sort = $request->input('sort', '-created_at');
 
         // Create the export with filters and sorting
-        $export = new \App\Exports\ContactFormSubmissionsExport($filters, $sort);
+        $export = new ContactFormSubmissionsExport($filters, $sort);
 
         // Generate filename with timestamp
         $filename = 'inbox_'.now()->format('Y-m-d_His').'.xlsx';
 
-        return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
+        activity()
+            ->causedBy($request->user())
+            ->event('exported')
+            ->withProperties([
+                'model_type' => 'ContactFormSubmission',
+                'filename' => $filename,
+            ])
+            ->log('Exported inbox submissions');
+
+        return Excel::download($export, $filename);
     }
 
     public function downloadTemplate(): BinaryFileResponse

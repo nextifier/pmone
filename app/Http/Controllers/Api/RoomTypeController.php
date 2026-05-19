@@ -9,8 +9,10 @@ use App\Http\Resources\RoomTypeResource;
 use App\Models\Event;
 use App\Models\Hotel;
 use App\Models\RoomType;
+use App\Models\RoomTypePricingPeriod;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -21,7 +23,7 @@ class RoomTypeController extends Controller
     {
         $this->ensureHotelBelongsToEvent($event, $hotel);
 
-        $query = $hotel->roomTypes()->with(['media']);
+        $query = $hotel->roomTypes()->with(['media', 'pricingPeriods']);
 
         if ($search = $request->input('filter_search')) {
             $query->where('name', 'ilike', "%{$search}%");
@@ -49,7 +51,7 @@ class RoomTypeController extends Controller
         $this->ensureHotelBelongsToEvent($event, $hotel);
         abort_if($roomType->hotel_id !== $hotel->id, 404);
 
-        $roomType->load(['media', 'hotel']);
+        $roomType->load(['media', 'hotel', 'pricingPeriods']);
 
         return response()->json(['data' => (new RoomTypeResource($roomType))->resolve()]);
     }
@@ -58,15 +60,23 @@ class RoomTypeController extends Controller
     {
         $this->ensureHotelBelongsToEvent($event, $hotel);
 
-        $data = $request->safe()->except(['gallery_files', 'amenities']);
+        $data = $request->safe()->except(['gallery_files', 'amenities', 'pricing_periods']);
         $data['hotel_id'] = $hotel->id;
 
-        $roomType = RoomType::create($data);
+        $roomType = DB::transaction(function () use ($data, $request) {
+            $roomType = RoomType::create($data);
+
+            if ($request->has('pricing_periods')) {
+                $this->syncPricingPeriods($roomType, $request->input('pricing_periods', []));
+            }
+
+            return $roomType;
+        });
 
         $this->syncAmenities($roomType, $request->input('amenities'));
         $this->handleGalleryUpload($request, $roomType);
 
-        $roomType->load(['media', 'tags']);
+        $roomType->load(['media', 'tags', 'pricingPeriods']);
 
         return response()->json([
             'data' => (new RoomTypeResource($roomType))->resolve(),
@@ -79,9 +89,15 @@ class RoomTypeController extends Controller
         $this->ensureHotelBelongsToEvent($event, $hotel);
         abort_if($roomType->hotel_id !== $hotel->id, 404);
 
-        $data = $request->safe()->except(['gallery_files', 'amenities']);
+        $data = $request->safe()->except(['gallery_files', 'amenities', 'pricing_periods']);
 
-        $roomType->update($data);
+        DB::transaction(function () use ($roomType, $data, $request) {
+            $roomType->update($data);
+
+            if ($request->has('pricing_periods')) {
+                $this->syncPricingPeriods($roomType, $request->input('pricing_periods', []));
+            }
+        });
 
         if ($request->has('amenities')) {
             $this->syncAmenities($roomType, $request->input('amenities'));
@@ -89,12 +105,46 @@ class RoomTypeController extends Controller
 
         $this->handleGalleryUpload($request, $roomType);
 
-        $roomType->load(['media', 'tags']);
+        $roomType->load(['media', 'tags', 'pricingPeriods']);
 
         return response()->json([
             'data' => (new RoomTypeResource($roomType))->resolve(),
             'message' => 'Room type updated successfully',
         ]);
+    }
+
+    private function syncPricingPeriods(RoomType $roomType, array $periods): void
+    {
+        $submittedIds = collect($periods)
+            ->pluck('id')
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $roomType->pricingPeriods()
+            ->whereNotIn('id', $submittedIds)
+            ->get()
+            ->each(fn (RoomTypePricingPeriod $p) => $p->delete());
+
+        foreach ($periods as $period) {
+            $payload = [
+                'start_date' => $period['start_date'],
+                'end_date' => $period['end_date'],
+                'rate' => $period['rate'],
+                'label' => $period['label'] ?? null,
+                'is_active' => array_key_exists('is_active', $period)
+                    ? (bool) $period['is_active']
+                    : true,
+            ];
+
+            if (! empty($period['id'])) {
+                $roomType->pricingPeriods()
+                    ->whereKey($period['id'])
+                    ->update($payload);
+            } else {
+                $roomType->pricingPeriods()->create($payload);
+            }
+        }
     }
 
     private function syncAmenities(RoomType $roomType, ?array $amenities): void
@@ -141,7 +191,12 @@ class RoomTypeController extends Controller
 
     private function ensureHotelBelongsToEvent(Event $event, Hotel $hotel): void
     {
-        abort_if($hotel->event_id !== $event->id, 404);
+        $exists = DB::table('hotel_event')
+            ->where('event_id', $event->id)
+            ->where('hotel_id', $hotel->id)
+            ->exists();
+
+        abort_if(! $exists, 404, 'Hotel not attached to this event.');
     }
 
     private function handleGalleryUpload(Request $request, RoomType $roomType): void

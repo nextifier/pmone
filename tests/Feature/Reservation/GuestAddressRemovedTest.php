@@ -5,6 +5,7 @@ use App\Models\Event;
 use App\Models\Hotel;
 use App\Models\HotelEventAllotment;
 use App\Models\Project;
+use App\Models\ProjectPaymentGateway;
 use App\Models\RoomType;
 use App\Services\Xendit\XenditService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -25,8 +26,9 @@ beforeEach(function () {
     $this->headers = ['X-API-Key' => $this->consumer->api_key];
 
     $this->project = Project::factory()->create(['status' => 'active']);
+    ProjectPaymentGateway::factory()->for($this->project)->default()->create(['mode' => 'test']);
     $this->event = Event::factory()->create(['project_id' => $this->project->id, 'is_active' => true]);
-    $this->hotel = Hotel::factory()->for($this->event)->create([
+    $this->hotel = Hotel::factory()->withEvent($this->event)->create([
         'tax_percentage' => 11,
         'service_charge_percentage' => 0,
     ]);
@@ -52,10 +54,12 @@ test('public reservation succeeds without guest_address field', function () {
         'invoice_id' => 'inv_noaddr',
         'invoice_url' => 'https://checkout.xendit.co/web/inv_noaddr',
     ]);
+    $xendit->shouldReceive('gateway')->andReturnNull();
     $this->app->instance(XenditService::class, $xendit);
 
     $response = $this->postJson('/api/public/reservations', [
         'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
         'guest_name' => 'No Address',
         'guest_email' => 'no-addr@test.com',
         'guest_phone' => '+62812000000',
@@ -86,10 +90,12 @@ test('reservation payload ignores guest_address even when provided', function ()
         'invoice_id' => 'inv_ignore',
         'invoice_url' => 'https://checkout.xendit.co/web/inv_ignore',
     ]);
+    $xendit->shouldReceive('gateway')->andReturnNull();
     $this->app->instance(XenditService::class, $xendit);
 
     $response = $this->postJson('/api/public/reservations', [
         'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
         'guest_name' => 'Legacy Addr',
         'guest_email' => 'legacy-addr@test.com',
         'guest_phone' => '+62812000000',

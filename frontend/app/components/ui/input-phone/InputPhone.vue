@@ -57,6 +57,7 @@
         :model-value="inputValue"
         @input="updateInputValue"
         :placeholder="placeholder"
+        :required="required"
       />
     </template>
   </PhoneInput>
@@ -69,6 +70,7 @@ import { ChevronsUpDown } from "lucide-vue-next";
 
 const props = defineProps<{
   modelValue?: string;
+  required?: boolean;
 }>();
 
 const emit = defineEmits<{

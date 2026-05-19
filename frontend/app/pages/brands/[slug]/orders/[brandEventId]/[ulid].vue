@@ -30,11 +30,11 @@
             </span>
           </div>
           <div
-            v-if="order.order_period === 'onsite_order'"
-            class="mt-2 inline-flex items-center gap-x-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs sm:text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+            v-if="order.order_period === 'onsite_order' && Number(order.penalty_amount) > 0"
+            class="mt-2 inline-flex items-center gap-x-2 rounded-md border bg-warning/15 px-3 py-1.5 text-xs sm:text-sm text-warning-foreground"
           >
             <Icon name="hugeicons:alert-02" class="size-4 shrink-0" />
-            <span>Onsite Order - prices include {{ order.applied_penalty_rate }}% surcharge</span>
+            <span>Onsite Order - includes {{ formatPrice(order.penalty_amount) }} surcharge</span>
           </div>
         </div>
         <Badge :class="statusClass(order.operational_status)" class="shrink-0 capitalize">
@@ -97,12 +97,16 @@
             <span class="text-muted-foreground">{{ $t('orderDetail.subtotal') }}</span>
             <span>{{ formatPrice(order.subtotal) }}</span>
           </div>
+          <div v-if="order.penalty_amount && parseFloat(order.penalty_amount) > 0" class="flex justify-between">
+            <span class="text-warning-foreground">Penalty</span>
+            <span class="text-warning-foreground">+{{ formatPrice(order.penalty_amount) }}</span>
+          </div>
           <div v-if="order.discount_amount && parseFloat(order.discount_amount) > 0" class="flex justify-between">
-            <span class="text-muted-foreground">
-                {{ $t('orderDetail.discount') }}
-                <span v-if="order.discount_type === 'percentage'">({{ order.discount_value }}%)</span>
+            <span class="text-success-foreground">
+              {{ $t('orderDetail.discount') }}
+              <span v-if="order.promo_code_applied" class="text-muted-foreground">({{ order.promo_code_applied }})</span>
             </span>
-            <span class="text-green-600 dark:text-green-400">-{{ formatPrice(order.discount_amount) }}</span>
+            <span class="text-success-foreground">-{{ formatPrice(order.discount_amount) }}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-muted-foreground">{{ $t('orderDetail.tax', { rate: order.tax_rate }) }}</span>

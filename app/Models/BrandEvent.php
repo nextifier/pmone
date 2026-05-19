@@ -45,6 +45,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read Brand|null $brand
+ * @property-read Collection<int, Click> $clicks
+ * @property-read int|null $clicks_count
  * @property-read Event|null $event
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
@@ -53,6 +55,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property-read Collection<int, PromotionPost> $promotionPosts
  * @property-read int|null $promotion_posts_count
  * @property-read User|null $sales
+ * @property-read Collection<int, Visit> $visits
+ * @property-read int|null $visits_count
  *
  * @method static Builder<static>|BrandEvent active()
  * @method static Builder<static>|BrandEvent byStatus(string $status)

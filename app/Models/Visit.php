@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -15,13 +16,15 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property string|null $ip_address
  * @property string|null $user_agent
  * @property string|null $referer
- * @property \Illuminate\Support\Carbon $visited_at
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon $visited_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read Model|\Eloquent $visitable
- * @property-read \App\Models\User|null $visitor
+ * @property-read User|null $visitor
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Visit anonymous()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Visit authenticated()
+ * @method static \Database\Factories\VisitFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Visit inDateRange($startDate, $endDate)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Visit lastDays(int $days = 7)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Visit newModelQuery()
@@ -37,6 +40,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Visit whereVisitableType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Visit whereVisitedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Visit whereVisitorId($value)
+ *
  * @mixin \Eloquent
  */
 class Visit extends Model

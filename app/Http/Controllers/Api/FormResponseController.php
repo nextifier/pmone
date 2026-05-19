@@ -94,6 +94,18 @@ class FormResponseController extends Controller
 
         $filename = Str::slug($form->title).'-responses-'.now()->format('Y-m-d').'.xlsx';
 
+        activity()
+            ->causedBy($request->user())
+            ->performedOn($form)
+            ->event('exported')
+            ->withProperties([
+                'project_id' => $form->project_id ?? null,
+                'model_type' => 'FormResponse',
+                'form_id' => $form->id,
+                'filename' => $filename,
+            ])
+            ->log("Exported responses for form: {$form->title}");
+
         return Excel::download(
             new FormResponsesExport($form, $filters ?: null, $sort),
             $filename

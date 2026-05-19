@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Contracts\Pricing\Purchasable;
 use App\Enums\IdentityType;
 use App\Enums\PaymentMethod;
 use App\Enums\ReservationSource;
 use App\Enums\ReservationStatus;
+use App\Traits\HasAdjustments;
 use App\Traits\HasMediaManager;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -14,6 +16,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
@@ -30,11 +34,11 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property int $event_id
  * @property int $hotel_id
  * @property ReservationStatus $status
- * @property \Illuminate\Support\Carbon $payment_expires_at
- * @property \Illuminate\Support\Carbon|null $paid_at
- * @property \Illuminate\Support\Carbon|null $voucher_sent_at
- * @property \Illuminate\Support\Carbon|null $cancelled_at
- * @property \Illuminate\Support\Carbon|null $refunded_at
+ * @property Carbon|null $payment_expires_at
+ * @property Carbon|null $paid_at
+ * @property Carbon|null $voucher_sent_at
+ * @property Carbon|null $cancelled_at
+ * @property Carbon|null $refunded_at
  * @property string $guest_name
  * @property string $guest_email
  * @property string $guest_phone
@@ -66,22 +70,29 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property Carbon|null $magic_link_expires_at
+ * @property int|null $payment_gateway_id
+ * @property string|null $payment_channel
+ * @property string|null $payment_destination
+ * @property string|null $xendit_payment_id
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\User|null $deleter
- * @property-read \App\Models\Event|null $event
- * @property-read \App\Models\Hotel|null $hotel
- * @property-read Collection<int, \App\Models\ReservationItem> $items
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
+ * @property-read Event|null $event
+ * @property-read Hotel|null $hotel
+ * @property-read Collection<int, ReservationItem> $items
  * @property-read int|null $items_count
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read Collection<int, \App\Models\ReservationTransfer> $transfers
+ * @property-read ProjectPaymentGateway|null $paymentGateway
+ * @property-read Collection<int, ReservationTransfer> $transfers
  * @property-read int|null $transfers_count
- * @property-read \App\Models\User|null $updater
+ * @property-read User|null $updater
+ *
  * @method static \Database\Factories\ReservationFactory factory($count = null, $state = [])
  * @method static Builder<static>|Reservation forEvent(?int $eventId)
  * @method static Builder<static>|Reservation forHotel(int $hotelId)
@@ -108,10 +119,14 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|Reservation whereHotelId($value)
  * @method static Builder<static>|Reservation whereId($value)
  * @method static Builder<static>|Reservation whereIpAddress($value)
+ * @method static Builder<static>|Reservation whereMagicLinkExpiresAt($value)
  * @method static Builder<static>|Reservation whereMagicLinkToken($value)
  * @method static Builder<static>|Reservation whereNotes($value)
  * @method static Builder<static>|Reservation wherePaidAt($value)
+ * @method static Builder<static>|Reservation wherePaymentChannel($value)
+ * @method static Builder<static>|Reservation wherePaymentDestination($value)
  * @method static Builder<static>|Reservation wherePaymentExpiresAt($value)
+ * @method static Builder<static>|Reservation wherePaymentGatewayId($value)
  * @method static Builder<static>|Reservation wherePaymentMethod($value)
  * @method static Builder<static>|Reservation wherePaymentUrl($value)
  * @method static Builder<static>|Reservation whereProjectUsername($value)
@@ -134,13 +149,16 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|Reservation whereUserAgent($value)
  * @method static Builder<static>|Reservation whereVoucherSentAt($value)
  * @method static Builder<static>|Reservation whereXenditInvoiceId($value)
+ * @method static Builder<static>|Reservation whereXenditPaymentId($value)
  * @method static Builder<static>|Reservation whereXenditRefundId($value)
  * @method static Builder<static>|Reservation withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Reservation withoutTrashed()
+ *
  * @mixin \Eloquent
  */
-class Reservation extends Model implements HasMedia
+class Reservation extends Model implements HasMedia, Purchasable
 {
+    use HasAdjustments;
     use HasFactory;
     use HasMediaManager;
     use InteractsWithMedia;
@@ -173,18 +191,25 @@ class Reservation extends Model implements HasMedia
         'subtotal_rooms',
         'subtotal_transfer',
         'surcharge_amount',
+        'penalty_amount',
         'tax_amount',
         'service_charge_amount',
         'discount_amount',
+        'promo_code_applied',
         'total_amount',
         'xendit_invoice_id',
+        'xendit_payment_id',
         'payment_url',
         'payment_method',
+        'payment_gateway_id',
+        'payment_channel',
+        'payment_destination',
         'refund_amount',
         'xendit_refund_id',
         'refund_reason',
         'cancellation_reason',
         'magic_link_token',
+        'magic_link_expires_at',
         'source',
         'project_username',
         'ip_address',
@@ -204,9 +229,11 @@ class Reservation extends Model implements HasMedia
             'voucher_sent_at' => 'datetime',
             'cancelled_at' => 'datetime',
             'refunded_at' => 'datetime',
+            'magic_link_expires_at' => 'datetime',
             'subtotal_rooms' => 'decimal:2',
             'subtotal_transfer' => 'decimal:2',
             'surcharge_amount' => 'decimal:2',
+            'penalty_amount' => 'decimal:2',
             'tax_amount' => 'decimal:2',
             'service_charge_amount' => 'decimal:2',
             'discount_amount' => 'decimal:2',
@@ -225,7 +252,13 @@ class Reservation extends Model implements HasMedia
             }
 
             if (empty($model->event_id) && $model->hotel_id) {
-                $model->event_id = Hotel::query()->whereKey($model->hotel_id)->value('event_id');
+                // BC-safe fallback: pick first active event the hotel is attached to.
+                // Callers should pass event_id explicitly (see ReservationService).
+                $model->event_id = DB::table('hotel_event')
+                    ->where('hotel_id', $model->hotel_id)
+                    ->where('is_active', true)
+                    ->orderBy('id')
+                    ->value('event_id');
             }
 
             if (auth()->check()) {
@@ -260,8 +293,12 @@ class Reservation extends Model implements HasMedia
                 'voucher_sent_at',
                 'cancelled_at',
                 'refunded_at',
+                'discount_amount',
+                'penalty_amount',
                 'total_amount',
+                'promo_code_applied',
                 'payment_method',
+                'payment_gateway_id',
                 'xendit_invoice_id',
                 'xendit_refund_id',
                 'refund_amount',
@@ -296,6 +333,11 @@ class Reservation extends Model implements HasMedia
     public function hotel(): BelongsTo
     {
         return $this->belongsTo(Hotel::class);
+    }
+
+    public function paymentGateway(): BelongsTo
+    {
+        return $this->belongsTo(ProjectPaymentGateway::class);
     }
 
     public function items(): HasMany
@@ -347,5 +389,202 @@ class Reservation extends Model implements HasMedia
     public function getRouteKeyName(): string
     {
         return 'ulid';
+    }
+
+    // --- Purchasable contract ---
+
+    public function pricingLines(): array
+    {
+        return [
+            ['key' => 'rooms', 'amount' => (float) $this->subtotal_rooms, 'taxable' => true],
+            ['key' => 'transfer', 'amount' => (float) $this->subtotal_transfer, 'taxable' => true],
+            ['key' => 'surcharge', 'amount' => (float) $this->surcharge_amount, 'taxable' => true],
+        ];
+    }
+
+    public function taxRate(): float
+    {
+        $hotel = $this->relationLoaded('hotel') ? $this->hotel : $this->hotel()->first();
+
+        return (float) ($hotel?->tax_percentage ?? 11) / 100;
+    }
+
+    public function serviceChargeRate(): float
+    {
+        $hotel = $this->relationLoaded('hotel') ? $this->hotel : $this->hotel()->first();
+
+        return (float) ($hotel?->service_charge_percentage ?? 0) / 100;
+    }
+
+    public function subtotalForDiscountBase(): float
+    {
+        return (float) ($this->subtotal_rooms + $this->subtotal_transfer + $this->surcharge_amount);
+    }
+
+    public function customerEmail(): ?string
+    {
+        return $this->guest_email;
+    }
+
+    public function persistTotals(array $totals): void
+    {
+        $this->forceFill([
+            'penalty_amount' => $totals['penalty_amount'] ?? 0,
+            'discount_amount' => $totals['discount_amount'] ?? 0,
+            'tax_amount' => $totals['tax_amount'] ?? 0,
+            'service_charge_amount' => $totals['service_charge_amount'] ?? 0,
+            'total_amount' => $totals['total_amount'] ?? 0,
+        ])->save();
+    }
+
+    public function getPurchaseContext(): array
+    {
+        $items = $this->relationLoaded('items') ? $this->items : $this->items()->get();
+
+        $checkInDates = $items->pluck('check_in_date')->filter()->map(fn ($d) => (string) $d)->all();
+        $nearestCheckIn = ! empty($checkInDates) ? min($checkInDates) : null;
+
+        return [
+            'event_id' => $this->event_id,
+            'hotel_id' => $this->hotel_id,
+            'room_type_ids' => $items->pluck('room_type_id')->filter()->unique()->values()->all(),
+            'nights' => (int) $items->sum('nights'),
+            'qty' => (int) $items->sum('qty'),
+            'check_in_dates' => $checkInDates,
+            'nearest_check_in' => $nearestCheckIn,
+            'email' => $this->guest_email,
+            'morph_class' => $this->getMorphClass(),
+        ];
+    }
+
+    /**
+     * Allocate bonus quantities to room items for "buy X get Y" promos. Increases
+     * each item's qty + subtotal in place, and recomputes the parent reservation's
+     * subtotal_rooms so PricingService sees the new base.
+     *
+     * Returns the per-item allocation record so the promo adjustment can store it
+     * for later reversal (when the promo is voided).
+     *
+     * @param  callable(ReservationItem): int  $bonusFor  Function that returns bonus qty for a given item.
+     * @return array<int, array{item_id: int, original_qty: int, bonus_qty: int, new_qty: int}>
+     */
+    public function allocateItemBonuses(callable $bonusFor): array
+    {
+        $items = $this->relationLoaded('items') ? $this->items : $this->items()->get();
+        $allocations = [];
+
+        foreach ($items as $item) {
+            $bonusQty = (int) $bonusFor($item);
+            if ($bonusQty <= 0) {
+                continue;
+            }
+
+            $originalQty = (int) $item->qty;
+            $newQty = $originalQty + $bonusQty;
+            $nights = max(1, (int) $item->nights);
+            $newSubtotal = (float) $item->rate_per_night * $nights * $newQty;
+
+            $item->forceFill([
+                'qty' => $newQty,
+                'subtotal' => $newSubtotal,
+            ])->save();
+
+            $allocations[] = [
+                'item_id' => $item->id,
+                'original_qty' => $originalQty,
+                'bonus_qty' => $bonusQty,
+                'new_qty' => $newQty,
+            ];
+        }
+
+        if (! empty($allocations)) {
+            $this->refreshRoomsSubtotal();
+        }
+
+        return $allocations;
+    }
+
+    /**
+     * Revert previously-allocated bonus qty (e.g. when the buy-x-get-y promo is voided).
+     *
+     * @param  array<int, array{item_id: int, original_qty: int, bonus_qty: int, new_qty: int}>  $allocations
+     */
+    public function revertItemBonuses(array $allocations): void
+    {
+        foreach ($allocations as $alloc) {
+            $item = $this->items()->whereKey($alloc['item_id'])->first();
+            if (! $item) {
+                continue;
+            }
+
+            $nights = max(1, (int) $item->nights);
+            $originalQty = (int) $alloc['original_qty'];
+
+            $item->forceFill([
+                'qty' => $originalQty,
+                'subtotal' => (float) $item->rate_per_night * $nights * $originalQty,
+            ])->save();
+        }
+
+        $this->refreshRoomsSubtotal();
+    }
+
+    /**
+     * Sum item subtotals back into reservation.subtotal_rooms.
+     */
+    protected function refreshRoomsSubtotal(): void
+    {
+        $sum = (float) $this->items()->sum('subtotal');
+        $this->forceFill(['subtotal_rooms' => $sum])->save();
+        $this->setRelation('items', $this->items()->get());
+    }
+
+    public function purchaseItems(): array
+    {
+        $items = $this->relationLoaded('items') ? $this->items : $this->items()->get();
+        $transfers = $this->relationLoaded('transfers') ? $this->transfers : $this->transfers()->get();
+
+        $out = [];
+
+        foreach ($items as $item) {
+            $qty = max(1, (int) $item->qty);
+            $nights = max(1, (int) $item->nights);
+            $unitPrice = $qty > 0 ? (float) $item->subtotal / $qty : 0.0;
+
+            for ($i = 0; $i < $qty; $i++) {
+                $out[] = [
+                    'line_key' => 'rooms',
+                    'item_id' => $item->id,
+                    'item_type' => 'room_type',
+                    'category_id' => (int) $item->room_type_id,
+                    'unit_price' => $unitPrice,
+                    'qty' => 1,
+                    'taxable' => true,
+                    'meta' => [
+                        'room_type_id' => $item->room_type_id,
+                        'nights' => $nights,
+                        'check_in_date' => (string) $item->check_in_date,
+                    ],
+                ];
+            }
+        }
+
+        foreach ($transfers as $transfer) {
+            $out[] = [
+                'line_key' => 'transfer',
+                'item_id' => $transfer->id,
+                'item_type' => 'transfer_option',
+                'category_id' => (int) $transfer->transfer_option_id,
+                'unit_price' => (float) $transfer->price,
+                'qty' => 1,
+                'taxable' => true,
+                'meta' => [
+                    'transfer_option_id' => $transfer->transfer_option_id,
+                    'direction' => $transfer->direction?->value ?? $transfer->direction,
+                ],
+            ];
+        }
+
+        return $out;
     }
 }

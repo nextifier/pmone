@@ -6,11 +6,15 @@ use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\Event;
 use App\Models\EventProduct;
+use App\Models\EventProductCategory;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Project;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class EventExhibitorSeeder extends Seeder
 {
@@ -240,14 +244,14 @@ class EventExhibitorSeeder extends Seeder
         $this->command->info('Seeding complete!');
     }
 
-    private function createBrandPool(User $creator): \Illuminate\Support\Collection
+    private function createBrandPool(User $creator): Collection
     {
         $existingBrands = Brand::all();
         $existingSlugs = $existingBrands->pluck('slug')->toArray();
         $brandsToCreate = [];
 
         foreach ($this->exhibitorNames as $name) {
-            $slug = \Illuminate\Support\Str::slug($name);
+            $slug = Str::slug($name);
 
             if (in_array($slug, $existingSlugs)) {
                 continue;
@@ -288,7 +292,7 @@ class EventExhibitorSeeder extends Seeder
         User $creator,
     ): Event {
         $startDay = fake()->numberBetween(5, 20);
-        $startDate = \Carbon\Carbon::create($year, $month, $startDay, 10, 0, 0);
+        $startDate = Carbon::create($year, $month, $startDay, 10, 0, 0);
         $endDate = (clone $startDate)->addDays($days)->setTime(18, 0);
 
         // Past events = published, future events = draft or published
@@ -314,7 +318,7 @@ class EventExhibitorSeeder extends Seeder
         ]);
     }
 
-    private function createEventProducts(Event $event, User $creator): \Illuminate\Support\Collection
+    private function createEventProducts(Event $event, User $creator): Collection
     {
         $products = collect();
 
@@ -322,9 +326,9 @@ class EventExhibitorSeeder extends Seeder
             // Randomize price a bit (+/- 20%)
             $adjustedPrice = $price * fake()->randomFloat(2, 0.8, 1.2);
 
-            $categoryModel = \App\Models\EventProductCategory::firstOrCreate(
+            $categoryModel = EventProductCategory::firstOrCreate(
                 ['event_id' => $event->id, 'title' => $category],
-                ['slug' => \Illuminate\Support\Str::slug($category)],
+                ['slug' => Str::slug($category)],
             );
 
             $product = EventProduct::create([
@@ -360,7 +364,7 @@ class EventExhibitorSeeder extends Seeder
         };
     }
 
-    private function assignExhibitors(Event $event, \Illuminate\Support\Collection $brands, User $creator): \Illuminate\Support\Collection
+    private function assignExhibitors(Event $event, Collection $brands, User $creator): Collection
     {
         $salesUsers = User::role(['staff', 'admin'])->pluck('id')->toArray();
         $brandEvents = collect();
@@ -405,7 +409,7 @@ class EventExhibitorSeeder extends Seeder
         return $brandEvents;
     }
 
-    private function createOrders(\Illuminate\Support\Collection $brandEvents, \Illuminate\Support\Collection $products, User $creator): int
+    private function createOrders(Collection $brandEvents, Collection $products, User $creator): int
     {
         $orderCount = 0;
 
@@ -459,16 +463,25 @@ class EventExhibitorSeeder extends Seeder
                     $subtotal += $totalPrice;
                 }
 
-                // Apply discount to some orders
+                $discountAmount = 0;
                 if (fake()->boolean(25)) {
-                    $order->discount_type = fake()->randomElement(['percentage', 'fixed']);
-                    $order->discount_value = $order->discount_type === 'percentage'
-                        ? fake()->randomElement([5, 10, 15, 20])
-                        : fake()->randomElement([500000, 1000000, 2000000]);
+                    $discountAmount = fake()->randomElement([
+                        round($subtotal * 0.05, 2),
+                        round($subtotal * 0.10, 2),
+                        round($subtotal * 0.15, 2),
+                        500000,
+                        1000000,
+                    ]);
+                    $discountAmount = min($discountAmount, $subtotal);
                 }
 
+                $taxableAmount = $subtotal - $discountAmount;
+                $taxAmount = round($taxableAmount * (float) $order->tax_rate / 100, 2);
+
                 $order->subtotal = $subtotal;
-                $order->recalculateTotal();
+                $order->discount_amount = $discountAmount;
+                $order->tax_amount = $taxAmount;
+                $order->total = $taxableAmount + $taxAmount;
                 $order->save();
 
                 $orderCount++;

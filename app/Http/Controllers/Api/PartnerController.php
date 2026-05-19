@@ -374,6 +374,15 @@ class PartnerController extends Controller
 
         $filename = 'partners_'.now()->format('Y-m-d_His').'.xlsx';
 
+        activity()
+            ->causedBy($request->user())
+            ->event('exported')
+            ->withProperties([
+                'model_type' => 'Partner',
+                'filename' => $filename,
+            ])
+            ->log('Exported partners');
+
         return Excel::download($export, $filename);
     }
 

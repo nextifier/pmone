@@ -162,7 +162,7 @@
           </h3>
           <form @submit.prevent="handleSaveCategory" class="mt-4 space-y-4">
             <div class="space-y-2">
-              <Label>Name<span class="text-destructive">*</span></Label>
+              <Label>Name</Label>
               <Input v-model="categoryForm.name" placeholder="e.g. Media Partners" auto-focus required />
             </div>
             <div class="flex items-center gap-x-2">
@@ -202,7 +202,7 @@
 
           <form @submit.prevent="handleAddPartner" class="mt-4 space-y-4">
             <div class="space-y-2">
-              <Label>Partner Name<span class="text-destructive">*</span></Label>
+              <Label>Partner Name</Label>
               <AutocompleteRoot v-model="partnerSearchTerm" :ignore-filter="true">
                 <AutocompleteAnchor as-child>
                   <AutocompleteInput

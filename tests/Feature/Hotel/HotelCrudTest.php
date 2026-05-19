@@ -26,7 +26,7 @@ beforeEach(function () {
 });
 
 test('admin can list hotels', function () {
-    Hotel::factory()->count(3)->for($this->event)->create();
+    Hotel::factory()->count(3)->withEvent($this->event)->create();
 
     $response = $this->getJson("/api/events/{$this->event->id}/hotels");
 
@@ -39,7 +39,7 @@ test('admin can list hotels', function () {
     expect($response->json('meta.total'))->toBe(3);
 });
 
-test('admin can create a hotel', function () {
+test('admin can create a hotel and attach to event', function () {
     $response = $this->postJson("/api/events/{$this->event->id}/hotels", [
         'name' => 'Grand Test Hotel',
         'city' => 'Jakarta',
@@ -49,18 +49,19 @@ test('admin can create a hotel', function () {
 
     $response->assertStatus(201)
         ->assertJsonPath('data.name', 'Grand Test Hotel')
-        ->assertJsonPath('data.city', 'Jakarta')
-        ->assertJsonPath('data.event_id', $this->event->id);
+        ->assertJsonPath('data.city', 'Jakarta');
 
     $this->assertDatabaseHas('hotels', [
         'name' => 'Grand Test Hotel',
         'city' => 'Jakarta',
-        'event_id' => $this->event->id,
     ]);
+
+    $hotel = Hotel::where('name', 'Grand Test Hotel')->first();
+    $this->assertDatabaseHas('hotel_event', ['hotel_id' => $hotel->id, 'event_id' => $this->event->id]);
 });
 
 test('admin can show a hotel by slug', function () {
-    $hotel = Hotel::factory()->for($this->event)->create();
+    $hotel = Hotel::factory()->withEvent($this->event)->create();
 
     $response = $this->getJson("/api/events/{$this->event->id}/hotels/{$hotel->slug}");
 
@@ -70,7 +71,7 @@ test('admin can show a hotel by slug', function () {
 });
 
 test('admin can update a hotel', function () {
-    $hotel = Hotel::factory()->for($this->event)->create(['name' => 'Old Name']);
+    $hotel = Hotel::factory()->withEvent($this->event)->create(['name' => 'Old Name']);
 
     $response = $this->putJson("/api/events/{$this->event->id}/hotels/{$hotel->slug}", [
         'name' => 'New Name',
@@ -83,14 +84,17 @@ test('admin can update a hotel', function () {
     $this->assertDatabaseHas('hotels', ['id' => $hotel->id, 'name' => 'New Name']);
 });
 
-test('admin can soft delete a hotel', function () {
-    $hotel = Hotel::factory()->for($this->event)->create();
+test('admin can detach hotel from event (semantics changed - hotel stays alive)', function () {
+    $hotel = Hotel::factory()->withEvent($this->event)->create();
 
     $response = $this->deleteJson("/api/events/{$this->event->id}/hotels/{$hotel->slug}");
 
     $response->assertSuccessful();
 
-    $this->assertSoftDeleted('hotels', ['id' => $hotel->id]);
+    // Pivot row removed
+    $this->assertDatabaseMissing('hotel_event', ['hotel_id' => $hotel->id, 'event_id' => $this->event->id]);
+    // Hotel record itself stays alive
+    $this->assertDatabaseHas('hotels', ['id' => $hotel->id, 'deleted_at' => null]);
 });
 
 test('user without permission cannot create hotel', function () {
@@ -106,7 +110,7 @@ test('user without permission cannot create hotel', function () {
 });
 
 test('hotel media collections are configured', function () {
-    $hotel = Hotel::factory()->for($this->event)->create();
+    $hotel = Hotel::factory()->withEvent($this->event)->create();
     $collections = $hotel->getMediaCollections();
 
     expect($collections)->toHaveKeys(['featured', 'gallery']);
