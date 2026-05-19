@@ -269,7 +269,7 @@ class XenditService
             'reason' => $reason,
         ]);
 
-        $refund = $api->createRefund(null, $payload);
+        $refund = $api->createRefund(null, null, $payload);
 
         $this->touchGatewayUsage();
 
