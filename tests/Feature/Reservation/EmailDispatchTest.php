@@ -18,6 +18,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
@@ -108,6 +109,36 @@ test('hotel voucher job sends HotelVoucherMail', function () {
     app()->call([new SendHotelVoucherJob($reservation->id), 'handle']);
 
     Mail::assertSent(HotelVoucherMail::class);
+});
+
+test('hotel voucher attachment reads from the media disk', function () {
+    Storage::fake('public');
+
+    $reservation = Reservation::factory()->paid()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'guest_email' => 'voucher@test.com',
+    ]);
+
+    $tmp = tempnam(sys_get_temp_dir(), 'voucher_').'.pdf';
+    $body = '%PDF-1.4 voucher contents';
+    file_put_contents($tmp, $body);
+    $reservation->addMedia($tmp)->toMediaCollection('voucher');
+
+    $attachments = (new HotelVoucherMail($reservation->fresh()))->attachments();
+
+    expect($attachments)->toHaveCount(1);
+
+    $attachment = $attachments[0];
+    $resolved = $attachment->attachWith(
+        fn ($path) => ['kind' => 'path', 'value' => $path],
+        fn ($data) => ['kind' => 'data', 'value' => $data()],
+    );
+
+    expect($resolved['kind'])->toBe('data')
+        ->and($resolved['value'])->toBe($body)
+        ->and($attachment->as)->toBe(basename($tmp))
+        ->and($attachment->mime)->toBe('application/pdf');
 });
 
 test('cancellation job sends CancellationMail', function () {
