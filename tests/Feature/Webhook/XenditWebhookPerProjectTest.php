@@ -59,8 +59,10 @@ it('passes signature check with matching token and proceeds to payload handling'
         ['x-callback-token' => 'good-token']
     );
 
-    $response->assertStatus(404)
-        ->assertJsonPath('message', 'Reservation not found');
+    // Webhook acknowledges (200) so Xendit does not retry; signature still
+    // verified — proven by reaching the payload handler at all.
+    $response->assertSuccessful()
+        ->assertJsonPath('message', 'Reservation not found (acknowledged)');
 });
 
 it('rejects webhook with missing token header', function () {

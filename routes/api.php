@@ -1149,7 +1149,15 @@ Route::middleware(['api.key'])->prefix('public')->group(function () {
 //      accepts one Invoice-Paid URL). The controller resolves the project
 //      from the payload's `external_id` (= reservation_number) and verifies
 //      the token against that project's gateway.
+// Xendit accepts a single webhook URL per event type. Three valid shapes:
+//   1) `/api/webhooks/xendit`            — generic; resolves project via payload
+//   2) `/api/webhooks/xendit/{anything}` — tolerant; tries project lookup by
+//      that segment first, otherwise treats it as a Xendit event-type marker
+//      (invoice / refund / ewallet / fva / etc.) and falls back to generic
+//   3) `/api/webhooks/xendit/{username}` — per-project (subset of #2)
+// One handler entry point keeps the resolution rules in one place — adding new
+// Xendit event types later requires no route changes.
 Route::post('/webhooks/xendit', [XenditWebhookController::class, 'invoiceGeneric'])
     ->name('webhooks.xendit.invoice-generic');
-Route::post('/webhooks/xendit/{project:username}', [XenditWebhookController::class, 'invoice'])
+Route::post('/webhooks/xendit/{segment}', [XenditWebhookController::class, 'invoiceWithSegment'])
     ->name('webhooks.xendit.invoice');

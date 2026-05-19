@@ -92,9 +92,11 @@ test('webhook expires reservation on EXPIRED event', function () {
     expect($reservation->status)->toBe(ReservationStatus::Expired);
 });
 
-test('webhook returns 404 for unknown reservation', function () {
+test('webhook acknowledges unknown reservation with 200 to avoid retry storm', function () {
     // Need any reservation just to set up a project + gateway, then call webhook
-    // with a different external_id that doesn't exist.
+    // with a different external_id that doesn't exist. Webhook handler now
+    // returns 200 to prevent Xendit's exponential-backoff retry on a 4xx —
+    // unknown external_id is logged and acknowledged.
     $reservation = Reservation::factory()->create([
         'reservation_number' => 'HTL-20260101-EXISTS',
     ]);
@@ -105,7 +107,8 @@ test('webhook returns 404 for unknown reservation', function () {
         'status' => 'PAID',
     ], ['x-callback-token' => 'test-callback-token']);
 
-    $response->assertStatus(404);
+    $response->assertSuccessful()
+        ->assertJsonPath('message', 'Reservation not found (acknowledged)');
 });
 
 test('webhook is idempotent when PAID event fires twice', function () {

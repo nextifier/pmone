@@ -31,7 +31,32 @@ class XenditWebhookController extends Controller
      * - Payment Method events: logged for Phase 4 implementation
      * - Unknown events: 200 with "ignored" message (so Xendit does not retry)
      */
-    public function invoice(Request $request, Project $project): JsonResponse
+    /**
+     * Tolerant single-segment entry. Xendit's legacy dashboard appends event
+     * markers (`/invoice`, `/refund`, `/ewallet`, `/fva`, etc.) to the
+     * configured base URL, and PM One originally supported per-project URLs
+     * using project username as the segment. This handler accepts BOTH:
+     *
+     *   - If the segment matches an existing project username → per-project
+     *     verify path (token compared against THAT project's gateway).
+     *   - Otherwise → fall through to the generic handler which resolves the
+     *     project from the payload's `external_id` / `invoice_id`.
+     *
+     * One entry point keeps Xendit dashboard configuration mistakes (typed
+     * `/invoice` suffix vs project username vs nothing) from causing 404s.
+     */
+    public function invoiceWithSegment(Request $request, string $segment): JsonResponse
+    {
+        $project = Project::query()->where('username', $segment)->first();
+
+        if ($project) {
+            return $this->invoiceForProject($request, $project);
+        }
+
+        return $this->invoiceGeneric($request);
+    }
+
+    private function invoiceForProject(Request $request, Project $project): JsonResponse
     {
         $callbackToken = (string) $request->header('x-callback-token');
         $gateway = $callbackToken !== ''
@@ -167,9 +192,16 @@ class XenditWebhookController extends Controller
                 ->first();
 
             if (! $reservation) {
+                // Acknowledge with 200 so Xendit does not retry. Common cases:
+                //  - "Test and save" in the dashboard sends a synthetic
+                //    external_id ("invoice_123124123") that will never match.
+                //  - Webhook arrives milliseconds before our create
+                //    transaction has committed (rare race).
+                // Either way, a 4xx triggers Xendit's exponential-backoff
+                // retry storm which buys us nothing — we log + move on.
                 Log::warning('Xendit webhook: reservation not found', ['external_id' => $externalId]);
 
-                return response()->json(['message' => 'Reservation not found'], 404);
+                return response()->json(['message' => 'Reservation not found (acknowledged)']);
             }
 
             if ($status === 'paid' || $status === 'settled') {
