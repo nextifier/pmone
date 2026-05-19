@@ -9,6 +9,7 @@ use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Storage;
 
 class HotelVoucherMail extends Mailable
 {
@@ -49,8 +50,15 @@ class HotelVoucherMail extends Mailable
             return [];
         }
 
+        // Read the file via the configured disk so attachments work on both
+        // local and cloud disks (e.g. Cloudflare R2). `$media->getPath()`
+        // returns a non-resolvable path on remote disks, which previously
+        // caused the mail transport to send an empty attachment body.
         return [
-            Attachment::fromPath($media->getPath())->as($media->file_name),
+            Attachment::fromData(
+                fn () => Storage::disk($media->disk)->get($media->getPathRelativeToRoot()),
+                $media->file_name,
+            )->withMime($media->mime_type),
         ];
     }
 }
