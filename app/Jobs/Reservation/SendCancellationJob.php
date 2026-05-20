@@ -2,7 +2,6 @@
 
 namespace App\Jobs\Reservation;
 
-use App\Enums\ReservationStatus;
 use App\Mail\Reservation\CancellationMail;
 use App\Models\Reservation;
 use App\Services\Reservation\ReservationService;
@@ -27,7 +26,9 @@ class SendCancellationJob implements ShouldQueue
 
     public function handle(ReservationService $reservations): void
     {
-        $reservation = Reservation::query()->find($this->reservationId);
+        $reservation = Reservation::query()
+            ->with(['hotel', 'event', 'items.roomType'])
+            ->find($this->reservationId);
 
         if (! $reservation) {
             return;
@@ -41,7 +42,9 @@ class SendCancellationJob implements ShouldQueue
 
         $appUrl = rtrim(config('app.url'), '/');
         $invoiceUrl = "{$appUrl}/api/public/reservations/magic/{$rawToken}/invoice.pdf";
-        $receiptUrl = in_array($reservation->status, [ReservationStatus::Paid, ReservationStatus::VoucherSent, ReservationStatus::Refunded], true)
+        // Receipt is proof of the original payment, so it stays available even
+        // after cancellation/refund - gate on whether payment ever happened.
+        $receiptUrl = $reservation->paid_at !== null
             ? "{$appUrl}/api/public/reservations/magic/{$rawToken}/receipt.pdf"
             : null;
 

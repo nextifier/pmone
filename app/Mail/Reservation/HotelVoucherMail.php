@@ -20,6 +20,7 @@ class HotelVoucherMail extends Mailable
         public Reservation $reservation,
         public ?string $invoiceUrl = null,
         public ?string $receiptUrl = null,
+        public ?string $voucherUrl = null,
     ) {}
 
     public function envelope(): Envelope
@@ -38,6 +39,7 @@ class HotelVoucherMail extends Mailable
                 'reservation' => $this->reservation,
                 'invoiceUrl' => $this->invoiceUrl,
                 'receiptUrl' => $this->receiptUrl,
+                'voucherUrl' => $this->voucherUrl,
             ],
         );
     }

@@ -366,7 +366,7 @@ class ReservationService
                 'payment_method' => PaymentMethod::Complimentary,
                 'payment_expires_at' => null,
             ]);
-            SendBookingReceivedJob::dispatch($reservation->id, $rawToken);
+            SendBookingReceivedJob::dispatch($reservation->id);
         } elseif (($data['skip_payment'] ?? false) === true) {
             $reservation->update([
                 'status' => ReservationStatus::Paid,
@@ -374,7 +374,7 @@ class ReservationService
                 'payment_method' => PaymentMethod::Complimentary,
                 'payment_expires_at' => null,
             ]);
-            SendBookingReceivedJob::dispatch($reservation->id, $rawToken);
+            SendBookingReceivedJob::dispatch($reservation->id);
         } elseif (($data['mark_paid_manual'] ?? false) === true) {
             $reservation->update([
                 'status' => ReservationStatus::Paid,
@@ -382,7 +382,7 @@ class ReservationService
                 'payment_method' => PaymentMethod::ManualBankTransfer,
                 'payment_expires_at' => null,
             ]);
-            SendBookingReceivedJob::dispatch($reservation->id, $rawToken);
+            SendBookingReceivedJob::dispatch($reservation->id);
         } elseif (($data['generate_xendit'] ?? true) === true) {
             try {
                 $xenditClient = $xendit ?? $this->xenditFor($reservation);

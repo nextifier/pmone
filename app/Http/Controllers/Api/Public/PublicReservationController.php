@@ -20,6 +20,7 @@ use App\Services\Xendit\XenditErrorMapper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -178,11 +179,29 @@ class PublicReservationController extends Controller
     {
         $reservation = $this->resolveByToken($token);
 
-        if (! $reservation->status->isPaid()) {
+        // Receipt stays available after cancellation/refund - it is proof of the
+        // original payment, so gate on whether payment ever happened.
+        if ($reservation->paid_at === null) {
             abort(422, 'Receipt is only available after payment.');
         }
 
         return $this->documents->renderReceiptPdf($reservation);
+    }
+
+    public function voucherByMagicLink(string $token): Response
+    {
+        $reservation = $this->resolveByToken($token);
+
+        $media = $reservation->getFirstMedia('voucher');
+
+        if (! $media) {
+            abort(404, 'The check-in voucher is not available yet.');
+        }
+
+        return Storage::disk($media->disk)->download(
+            $media->getPathRelativeToRoot(),
+            $media->file_name,
+        );
     }
 
     /**

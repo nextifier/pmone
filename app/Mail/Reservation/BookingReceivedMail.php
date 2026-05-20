@@ -18,18 +18,16 @@ class BookingReceivedMail extends Mailable
         public Reservation $reservation,
         public string $magicLinkUrl,
         public ?string $invoiceUrl = null,
+        public ?string $receiptUrl = null,
     ) {}
 
     public function envelope(): Envelope
     {
-        $isPaid = in_array($this->reservation->status?->value, ['paid', 'voucher_sent'], true);
-        $subject = $isPaid
-            ? 'Payment Confirmed - '.$this->reservation->reservation_number
-            : 'Booking Received - '.$this->reservation->reservation_number;
+        $isComplimentary = $this->reservation->payment_method?->value === 'complimentary';
 
         return new Envelope(
             to: $this->reservation->guest_email,
-            subject: $subject,
+            subject: ($isComplimentary ? 'Booking Confirmed - ' : 'Payment Confirmed - ').$this->reservation->reservation_number,
         );
     }
 
@@ -41,6 +39,7 @@ class BookingReceivedMail extends Mailable
                 'reservation' => $this->reservation,
                 'magicLinkUrl' => $this->magicLinkUrl,
                 'invoiceUrl' => $this->invoiceUrl,
+                'receiptUrl' => $this->receiptUrl,
             ],
         );
     }

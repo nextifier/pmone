@@ -2,14 +2,14 @@
   <div class="mx-auto space-y-6 pb-16 lg:max-w-4xl">
     <div class="flex flex-col items-start gap-y-4">
       <ButtonBack :destination="`${eventBase}/reservations`" />
-      <div class="flex flex-wrap items-center gap-x-2.5 gap-y-2 min-w-0">
+      <div class="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-2">
         <h1 class="page-title font-mono text-base sm:text-lg">
           {{ reservation?.reservation_number ?? "Reservation" }}
         </h1>
         <span
           v-if="reservation"
           :class="[
-            'inline-flex items-center rounded-full px-2 py-0.5 text-xs sm:text-sm tracking-tight',
+            'inline-flex items-center rounded-full px-2 py-0.5 text-xs tracking-tight sm:text-sm',
             statusBadge,
           ]"
         >
@@ -23,18 +23,32 @@
     </div>
 
     <div v-else-if="reservation" class="space-y-6">
-      <div v-if="['paid', 'voucher_sent'].includes(reservation.status)" class="flex flex-wrap gap-2">
-        <DialogResponsive v-model:open="voucherDialogOpen" :overflow-content="true" dialog-max-width="28rem">
+      <div
+        v-if="['paid', 'voucher_sent'].includes(reservation.status)"
+        class="flex flex-wrap gap-2"
+      >
+        <DialogResponsive
+          v-model:open="voucherDialogOpen"
+          :overflow-content="true"
+          dialog-max-width="28rem"
+        >
           <template #trigger="{ open }">
-            <Button v-if="reservation.can_upload_voucher" variant="outline" size="sm" @click="open()">
-              <Icon name="lucide:upload" class="size-4 mr-1" />
+            <Button
+              v-if="reservation.can_upload_voucher"
+              variant="outline"
+              size="sm"
+              @click="open()"
+            >
+              <Icon name="lucide:upload" class="mr-1 size-4" />
               {{ reservation.voucher ? "Replace Voucher" : "Upload Voucher" }}
             </Button>
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
               <h3 class="text-lg font-semibold tracking-tight">Upload Voucher</h3>
-              <p class="text-muted-foreground text-sm tracking-tight mt-1">PDF, JPG, or PNG. Max 20MB.</p>
+              <p class="text-muted-foreground mt-1 text-sm tracking-tight">
+                PDF, JPG, or PNG. Max 20MB.
+              </p>
               <form @submit.prevent="handleVoucherUpload" class="mt-4 space-y-4">
                 <div class="space-y-2">
                   <Label>Voucher File</Label>
@@ -45,7 +59,9 @@
                   />
                 </div>
                 <div class="flex justify-end gap-2">
-                  <Button type="button" variant="outline" @click="voucherDialogOpen = false">Cancel</Button>
+                  <Button type="button" variant="outline" @click="voucherDialogOpen = false"
+                    >Cancel</Button
+                  >
                   <Button type="submit" :disabled="uploading || !voucherFiles.length">
                     <Spinner v-if="uploading" />
                     {{ uploading ? "Uploading..." : "Upload" }}
@@ -63,13 +79,19 @@
           :disabled="!reservation.voucher || sendingVoucher"
           @click="handleSendVoucher"
         >
-          <Icon v-if="sendingVoucher" name="svg-spinners:ring-resize" class="size-4 mr-1" />
-          <Icon v-else name="lucide:send" class="size-4 mr-1" />
+          <Icon v-if="sendingVoucher" name="svg-spinners:ring-resize" class="mr-1 size-4" />
+          <Icon v-else name="lucide:send" class="mr-1 size-4" />
           {{ reservation.status === "voucher_sent" ? "Resend Voucher" : "Send Voucher" }}
         </Button>
 
-        <Button v-if="reservation.can_cancel" variant="outline" size="sm" @click="cancelDialogOpen = true" class="text-destructive">
-          <Icon name="lucide:x" class="size-4 mr-1" />
+        <Button
+          v-if="reservation.can_cancel"
+          variant="outline"
+          size="sm"
+          @click="cancelDialogOpen = true"
+          class="text-destructive"
+        >
+          <Icon name="lucide:x" class="mr-1 size-4" />
           Cancel & Refund
         </Button>
       </div>
@@ -82,49 +104,63 @@
         class="flex flex-wrap gap-2"
       >
         <Button variant="outline" size="sm" @click="markPaidDialogOpen = true">
-          <Icon name="hugeicons:money-bag-02" class="size-4 mr-1" />
+          <Icon name="hugeicons:money-bag-02" class="mr-1 size-4" />
           Mark as Paid
         </Button>
       </div>
 
       <!-- Manual refund pending: reservation is cancelled with an outstanding
-           refund amount that Xendit didn't (or can't) process automatically.
-           Admin must transfer money back to guest and record completion here. -->
-      <Alert
-        v-if="reservation.refund?.manual_refund_pending"
-        variant="destructive"
-      >
+           refund amount not yet disbursed to the guest. This is true whether the
+           channel can't be auto-refunded OR the auto-refund was skipped, failed,
+           or still queued, so the copy must not blame the channel unconditionally. -->
+      <Alert v-if="reservation.refund?.manual_refund_pending" class="[&>svg]:text-destructive">
         <Icon name="lucide:triangle-alert" />
         <AlertTitle>Manual refund required</AlertTitle>
-        <AlertDescription class="space-y-2">
-          <p>
-            Rp{{ formatRupiah(reservation.refund.amount) }} belum direfund. Channel
-            <span class="font-medium">{{ reservation.payment?.channel ?? "ini" }}</span>
-            tidak support refund otomatis via Xendit
-            <span v-if="reservation.payment?.channel && !reservation.payment.channel_supports_refund">
-              (Virtual Account / retail outlet umumnya butuh transfer manual)</span>.
-            Transfer manual ke rekening guest, lalu klik tombol di bawah untuk mencatat completion.
+        <AlertDescription class="gap-2">
+          <p class="text-foreground text-base font-medium tracking-tight tabular-nums">
+            Rp{{ formatRupiah(reservation.refund.amount) }}
           </p>
-          <div>
-            <Button
-              v-if="reservation.can_manual_refund"
-              variant="outline"
-              size="sm"
-              @click="manualRefundDialogOpen = true"
+          <p class="tracking-tight">
+            <template
+              v-if="
+                reservation.payment?.channel &&
+                reservation.payment.channel_supports_refund === false
+              "
             >
-              <Icon name="lucide:check" class="size-4 mr-1" />
-              Mark Manual Refund Completed
-            </Button>
-          </div>
+              Channel
+              <span class="font-medium">{{ reservation.payment.channel }}</span>
+              tidak mendukung refund otomatis via Xendit (Virtual Account / retail outlet umumnya
+              perlu transfer manual).
+            </template>
+            <template v-else> Refund belum diproses otomatis untuk reservasi ini. </template>
+            Transfer dana ke rekening guest, lalu tandai selesai di bawah.
+          </p>
+          <Button
+            v-if="reservation.can_manual_refund"
+            variant="outline"
+            @click="manualRefundDialogOpen = true"
+          >
+            <Icon name="lucide:check" class="size-4" />
+            Mark Manual Refund Completed
+          </Button>
         </AlertDescription>
       </Alert>
 
-      <div v-if="reservation.can_view_documents" class="rounded-md border p-4 flex flex-wrap items-center gap-3">
-        <div class="flex-1 min-w-0">
+      <div
+        v-if="reservation.can_view_documents"
+        class="flex flex-wrap items-center gap-3 rounded-md border p-4"
+      >
+        <div class="min-w-0 flex-1">
           <p class="text-sm font-medium tracking-tight">Documents</p>
-          <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Invoice & Receipt PDF</p>
+          <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+            Invoice & Receipt PDF
+          </p>
         </div>
-        <a :href="`${apiBase}/api/events/${event.id}/reservations/${reservation.ulid}/invoice.pdf`" target="_blank" class="border-border hover:bg-muted rounded-md border px-3 py-1.5 text-sm tracking-tight">
+        <a
+          :href="`${apiBase}/api/events/${event.id}/reservations/${reservation.ulid}/invoice.pdf`"
+          target="_blank"
+          class="border-border hover:bg-muted rounded-md border px-3 py-1.5 text-sm tracking-tight"
+        >
           Invoice PDF
         </a>
         <a
@@ -137,97 +173,166 @@
         </a>
       </div>
 
-      <div v-if="reservation.voucher" class="rounded-md border p-4 flex items-center gap-3">
-        <Icon name="lucide:file" class="size-5 text-muted-foreground shrink-0" />
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium tracking-tight truncate">{{ reservation.voucher.name }}</p>
-          <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">{{ formatBytes(reservation.voucher.size) }}</p>
+      <div v-if="reservation.voucher" class="flex items-center gap-3 rounded-md border p-4">
+        <Icon name="lucide:file" class="text-muted-foreground size-5 shrink-0" />
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-sm font-medium tracking-tight">{{ reservation.voucher.name }}</p>
+          <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+            {{ formatBytes(reservation.voucher.size) }}
+          </p>
         </div>
-        <a :href="reservation.voucher.url" target="_blank" rel="noopener" class="text-primary text-sm hover:underline">View</a>
+        <a
+          :href="reservation.voucher.url"
+          target="_blank"
+          rel="noopener"
+          class="text-primary text-sm hover:underline"
+          >View</a
+        >
       </div>
 
-      <div class="rounded-md border p-4 space-y-3">
+      <div class="space-y-3 rounded-md border p-4">
         <h2 class="text-base font-semibold tracking-tight">Guest Information</h2>
         <div class="grid grid-cols-2 gap-3 text-sm tracking-tight">
-          <div><p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Name</p>{{ reservation.guest.name }}</div>
-          <div><p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Email</p>{{ reservation.guest.email }}</div>
-          <div><p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Phone</p>{{ reservation.guest.phone }}</div>
-          <div><p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Identity</p>{{ reservation.guest.identity_type_label }}: {{ reservation.guest.identity_number }}</div>
-          <div v-if="reservation.guest.company"><p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Company</p>{{ reservation.guest.company }}</div>
-          <div v-if="reservation.guest.nationality"><p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Nationality</p>{{ reservation.guest.nationality }}</div>
+          <div>
+            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Name</p>
+            {{ reservation.guest.name }}
+          </div>
+          <div>
+            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Email</p>
+            {{ reservation.guest.email }}
+          </div>
+          <div>
+            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Phone</p>
+            {{ reservation.guest.phone }}
+          </div>
+          <div>
+            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Identity</p>
+            {{ reservation.guest.identity_type_label }}: {{ reservation.guest.identity_number }}
+          </div>
+          <div v-if="reservation.guest.company">
+            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Company</p>
+            {{ reservation.guest.company }}
+          </div>
+          <div v-if="reservation.guest.nationality">
+            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Nationality</p>
+            {{ reservation.guest.nationality }}
+          </div>
         </div>
         <div v-if="reservation.special_request" class="text-sm tracking-tight">
-          <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">Special Request</p>
+          <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Special Request</p>
           {{ reservation.special_request }}
         </div>
       </div>
 
-      <div class="rounded-md border p-4 space-y-3">
+      <div class="space-y-3 rounded-md border p-4">
         <h2 class="text-base font-semibold tracking-tight">Booking</h2>
-        <p class="text-sm tracking-tight"><span class="text-muted-foreground">Hotel:</span> {{ reservation.hotel?.name }}</p>
-        <p v-if="reservation.event" class="text-sm tracking-tight"><span class="text-muted-foreground">Event:</span> {{ reservation.event?.title }}</p>
+        <p class="text-sm tracking-tight">
+          <span class="text-muted-foreground">Hotel:</span> {{ reservation.hotel?.name }}
+        </p>
+        <p v-if="reservation.event" class="text-sm tracking-tight">
+          <span class="text-muted-foreground">Event:</span> {{ reservation.event?.title }}
+        </p>
 
         <div class="space-y-3">
           <div
             v-for="item in reservation.items"
             :key="item.id"
-            class="border-b last:border-b-0 pb-3 last:pb-0"
+            class="border-b pb-3 last:border-b-0 last:pb-0"
           >
             <div class="flex flex-wrap items-start justify-between gap-2 text-sm tracking-tight">
               <div class="min-w-0">
                 <p class="font-medium">{{ item.room_type?.name }}</p>
-                <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
-                  {{ item.check_in_date }} → {{ item.check_out_date }} · {{ item.nights }} night{{ item.nights > 1 ? "s" : "" }} · {{ item.qty }} room{{ item.qty > 1 ? "s" : "" }}
+                <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                  {{ item.check_in_date }} → {{ item.check_out_date }} · {{ item.nights }} night{{
+                    item.nights > 1 ? "s" : ""
+                  }}
+                  · {{ item.qty }} room{{ item.qty > 1 ? "s" : "" }}
                 </p>
               </div>
               <p class="font-medium tabular-nums">Rp{{ formatRupiah(item.subtotal) }}</p>
             </div>
             <p
               v-if="item.notes"
-              class="text-muted-foreground mt-1 text-xs sm:text-sm tracking-tight italic"
+              class="text-muted-foreground mt-1 text-xs tracking-tight italic sm:text-sm"
             >
               <span class="font-medium not-italic">Notes:</span> {{ item.notes }}
             </p>
           </div>
         </div>
 
-        <div v-if="reservation.transfers?.length" class="border-t pt-3 space-y-3">
-          <p class="text-xs sm:text-sm tracking-tight text-muted-foreground">Transfers</p>
-          <div
-            v-for="t in reservation.transfers"
-            :key="t.id"
-            class="space-y-0.5"
-          >
+        <div v-if="reservation.transfers?.length" class="space-y-3 border-t pt-3">
+          <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Transfers</p>
+          <div v-for="t in reservation.transfers" :key="t.id" class="space-y-0.5">
             <div class="flex justify-between text-sm tracking-tight">
               <span>{{ t.direction_label }} · {{ t.transfer_date }}</span>
               <span class="tabular-nums">Rp{{ formatRupiah(t.price) }}</span>
             </div>
-            <p
-              v-if="t.note"
-              class="text-muted-foreground text-xs sm:text-sm tracking-tight italic"
-            >
+            <p v-if="t.note" class="text-muted-foreground text-xs tracking-tight italic sm:text-sm">
               <span class="font-medium not-italic">Notes:</span> {{ t.note }}
             </p>
           </div>
         </div>
 
-        <div class="border-t pt-3 space-y-1.5 text-sm tracking-tight">
-          <div class="flex justify-between text-muted-foreground"><span>Subtotal</span><span class="tabular-nums">Rp{{ formatRupiah(reservation.amounts.subtotal_rooms + reservation.amounts.subtotal_transfer) }}</span></div>
-          <div v-if="reservation.amounts.surcharge > 0" class="flex justify-between text-muted-foreground"><span>Surcharge</span><span class="tabular-nums">Rp{{ formatRupiah(reservation.amounts.surcharge) }}</span></div>
-          <div v-if="reservation.amounts.penalty > 0" class="flex justify-between text-warning-foreground"><span>Penalty</span><span class="tabular-nums">+Rp{{ formatRupiah(reservation.amounts.penalty) }}</span></div>
-          <div v-if="reservation.amounts.discount > 0" class="flex justify-between text-success-foreground"><span>Discount</span><span class="tabular-nums">-Rp{{ formatRupiah(reservation.amounts.discount) }}</span></div>
-          <div class="flex justify-between text-muted-foreground"><span>Tax</span><span class="tabular-nums">Rp{{ formatRupiah(reservation.amounts.tax) }}</span></div>
-          <div v-if="reservation.amounts.service > 0" class="flex justify-between text-muted-foreground"><span>Service</span><span class="tabular-nums">Rp{{ formatRupiah(reservation.amounts.service) }}</span></div>
-          <div class="flex justify-between font-semibold pt-1.5 border-t"><span>Total</span><span class="tabular-nums">Rp{{ formatRupiah(reservation.amounts.total) }}</span></div>
+        <div class="space-y-1.5 border-t pt-3 text-sm tracking-tight">
+          <div class="text-muted-foreground flex justify-between">
+            <span>Subtotal</span
+            ><span class="tabular-nums"
+              >Rp{{
+                formatRupiah(
+                  reservation.amounts.subtotal_rooms + reservation.amounts.subtotal_transfer
+                )
+              }}</span
+            >
+          </div>
+          <div
+            v-if="reservation.amounts.surcharge > 0"
+            class="text-muted-foreground flex justify-between"
+          >
+            <span>Surcharge</span
+            ><span class="tabular-nums">Rp{{ formatRupiah(reservation.amounts.surcharge) }}</span>
+          </div>
+          <div
+            v-if="reservation.amounts.penalty > 0"
+            class="text-warning-foreground flex justify-between"
+          >
+            <span>Penalty</span
+            ><span class="tabular-nums">+Rp{{ formatRupiah(reservation.amounts.penalty) }}</span>
+          </div>
+          <div
+            v-if="reservation.amounts.discount > 0"
+            class="text-success-foreground flex justify-between"
+          >
+            <span>Discount</span
+            ><span class="tabular-nums">-Rp{{ formatRupiah(reservation.amounts.discount) }}</span>
+          </div>
+          <div class="text-muted-foreground flex justify-between">
+            <span>Tax</span
+            ><span class="tabular-nums">Rp{{ formatRupiah(reservation.amounts.tax) }}</span>
+          </div>
+          <div
+            v-if="reservation.amounts.service > 0"
+            class="text-muted-foreground flex justify-between"
+          >
+            <span>Service</span
+            ><span class="tabular-nums">Rp{{ formatRupiah(reservation.amounts.service) }}</span>
+          </div>
+          <div class="flex justify-between border-t pt-1.5 font-semibold">
+            <span>Total</span
+            ><span class="tabular-nums">Rp{{ formatRupiah(reservation.amounts.total) }}</span>
+          </div>
         </div>
       </div>
 
       <!-- Adjustments Section -->
-      <div class="rounded-md border p-4 space-y-3">
+      <div class="space-y-3 rounded-md border p-4">
         <div class="flex items-center justify-between gap-2">
           <h2 class="text-base font-semibold tracking-tight">Adjustments</h2>
           <Button
-            v-if="canApplyManual && !reservation.status_label?.toLowerCase().includes('cancelled') && !reservation.status_label?.toLowerCase().includes('refunded')"
+            v-if="
+              canApplyManual &&
+              !reservation.status_label?.toLowerCase().includes('cancelled') &&
+              !reservation.status_label?.toLowerCase().includes('refunded')
+            "
             size="sm"
             variant="outline"
             @click="adjustmentDialogOpen = true"
@@ -237,7 +342,10 @@
           </Button>
         </div>
 
-        <div v-if="!reservation.adjustments?.length" class="text-muted-foreground text-sm tracking-tight">
+        <div
+          v-if="!reservation.adjustments?.length"
+          class="text-muted-foreground text-sm tracking-tight"
+        >
           No adjustments applied.
         </div>
 
@@ -255,21 +363,25 @@
                 <span
                   :class="[
                     'inline-flex items-center rounded-full px-2 py-0.5 text-xs tracking-tight',
-                    adj.kind === 'discount' ? 'bg-success/15 text-success-foreground' : 'bg-warning/15 text-warning-foreground',
+                    adj.kind === 'discount'
+                      ? 'bg-success/15 text-success-foreground'
+                      : 'bg-warning/15 text-warning-foreground',
                   ]"
                 >
                   {{ adj.kind_label }}
                 </span>
-                <p class="text-sm tracking-tight truncate">{{ adj.label }}</p>
+                <p class="truncate text-sm tracking-tight">{{ adj.label }}</p>
               </div>
-              <p class="text-muted-foreground text-xs tracking-tight mt-1">
-                {{ adj.value_type === "percentage" ? `${adj.value}%` : `Rp${formatRupiah(adj.value)}` }}
+              <p class="text-muted-foreground mt-1 text-xs tracking-tight">
+                {{
+                  adj.value_type === "percentage" ? `${adj.value}%` : `Rp${formatRupiah(adj.value)}`
+                }}
                 · applied by {{ adj.applied_by }}
                 <span v-if="adj.is_voided"> · voided</span>
               </p>
             </div>
-            <div class="text-right shrink-0">
-              <p class="text-sm tracking-tight tabular-nums font-medium">
+            <div class="shrink-0 text-right">
+              <p class="text-sm font-medium tracking-tight tabular-nums">
                 {{ adj.kind === "discount" ? "-" : "+" }}Rp{{ formatRupiah(adj.amount) }}
               </p>
               <Button
@@ -299,8 +411,9 @@
         <template #default>
           <div class="px-4 pb-10 md:px-6 md:py-5">
             <h3 class="text-lg font-semibold tracking-tight">Void Adjustment</h3>
-            <p class="text-muted-foreground text-sm tracking-tight mt-2">
-              Void "{{ voidTarget?.label }}"? This will revert promo usage counter (if applicable) and recalculate totals.
+            <p class="text-muted-foreground mt-2 text-sm tracking-tight">
+              Void "{{ voidTarget?.label }}"? This will revert promo usage counter (if applicable)
+              and recalculate totals.
             </p>
             <div class="flex justify-end gap-2 pt-4">
               <Button variant="outline" @click="voidDialogOpen = false">Cancel</Button>
@@ -313,7 +426,7 @@
         </template>
       </DialogResponsive>
 
-      <div class="rounded-md border p-4 space-y-3 text-sm tracking-tight">
+      <div class="space-y-3 rounded-md border p-4 text-sm tracking-tight">
         <h2 class="text-base font-semibold tracking-tight">Payment</h2>
         <div class="flex flex-wrap items-center gap-3">
           <PaymentMethodBadge
@@ -323,78 +436,102 @@
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Method:</span>
+            <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">Method:</span>
             {{ reservation.payment.method_label || "-" }}
           </div>
           <div v-if="reservation.payment.destination">
-            <span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Destination:</span>
-            <span class="font-mono text-xs sm:text-sm tracking-tight">{{ reservation.payment.destination }}</span>
+            <span class="text-muted-foreground text-xs tracking-tight sm:text-sm"
+              >Destination:</span
+            >
+            <span class="font-mono text-xs tracking-tight sm:text-sm">{{
+              reservation.payment.destination
+            }}</span>
           </div>
           <div v-if="reservation.paid_at">
-            <span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Paid at:</span>
+            <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">Paid at:</span>
             {{ formatDateTime(reservation.paid_at) }}
           </div>
           <div v-if="reservation.payment.xendit_invoice_id">
-            <span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Xendit ID:</span>
-            <span class="font-mono text-xs sm:text-sm tracking-tight">{{ reservation.payment.xendit_invoice_id }}</span>
+            <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">Xendit ID:</span>
+            <span class="font-mono text-xs tracking-tight sm:text-sm">{{
+              reservation.payment.xendit_invoice_id
+            }}</span>
           </div>
           <div v-if="reservation.payment.xendit_payment_id">
-            <span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Payment ID:</span>
-            <span class="font-mono text-xs sm:text-sm tracking-tight">{{ reservation.payment.xendit_payment_id }}</span>
+            <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">Payment ID:</span>
+            <span class="font-mono text-xs tracking-tight sm:text-sm">{{
+              reservation.payment.xendit_payment_id
+            }}</span>
           </div>
           <div v-if="reservation.payment.gateway">
-            <span class="text-muted-foreground text-xs sm:text-sm tracking-tight">Gateway:</span>
+            <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">Gateway:</span>
             {{ reservation.payment.gateway.label || reservation.payment.gateway.provider }}
-            <span class="text-muted-foreground text-xs">· {{ reservation.payment.gateway.mode }}</span>
+            <span class="text-muted-foreground text-xs"
+              >· {{ reservation.payment.gateway.mode }}</span
+            >
           </div>
         </div>
       </div>
 
-      <div class="rounded-md border p-4 space-y-3">
+      <div class="space-y-3 rounded-md border p-4">
         <div class="flex items-center justify-between">
           <h2 class="text-base font-semibold tracking-tight">Activity</h2>
           <button
             type="button"
-            class="text-primary text-xs sm:text-sm tracking-tight hover:underline"
+            class="text-primary text-xs tracking-tight hover:underline sm:text-sm"
             :disabled="loadingActivity"
             @click="loadActivity"
           >
-            {{ activity.length ? 'Refresh' : 'Load history' }}
+            {{ activity.length ? "Refresh" : "Load history" }}
           </button>
         </div>
-        <div v-if="loadingActivity" class="text-muted-foreground text-xs sm:text-sm tracking-tight">Loading activity…</div>
+        <div v-if="loadingActivity" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+          Loading activity…
+        </div>
         <div v-else-if="activity.length" class="space-y-2">
           <div
             v-for="entry in activity"
             :key="entry.id"
-            class="flex gap-3 items-start pb-2 border-b last:border-b-0 last:pb-0"
+            class="flex items-start gap-3 border-b pb-2 last:border-b-0 last:pb-0"
           >
-            <div class="size-2 rounded-full mt-1.5 shrink-0" :class="activityDotClass(entry)"></div>
-            <div class="flex-1 min-w-0">
-              <p class="text-xs sm:text-sm tracking-tight">
+            <div class="mt-1.5 size-2 shrink-0 rounded-full" :class="activityDotClass(entry)"></div>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs tracking-tight sm:text-sm">
                 <span class="font-medium">{{ activityLabel(entry) }}</span>
-                <span v-if="entry.causer" class="text-muted-foreground"> by {{ entry.causer.name }}</span>
+                <span v-if="entry.causer" class="text-muted-foreground">
+                  by {{ entry.causer.name }}</span
+                >
               </p>
-              <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">{{ formatDateTime(entry.created_at) }}</p>
+              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                {{ formatDateTime(entry.created_at) }}
+              </p>
             </div>
           </div>
         </div>
-        <p v-else class="text-muted-foreground text-xs sm:text-sm tracking-tight">No activity recorded yet.</p>
+        <p v-else class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+          No activity recorded yet.
+        </p>
       </div>
 
-      <DialogResponsive v-model:open="cancelDialogOpen" :overflow-content="true" dialog-max-width="28rem">
+      <DialogResponsive
+        v-model:open="cancelDialogOpen"
+        :overflow-content="true"
+        dialog-max-width="28rem"
+      >
         <template #default>
           <div class="px-4 pb-10 md:px-6 md:py-5">
             <h3 class="text-lg font-semibold tracking-tight">Cancel & Refund</h3>
             <form @submit.prevent="handleCancel" class="mt-4 space-y-3">
-              <Alert v-if="cancelChannelUnrefundable" variant="destructive">
+              <Alert v-if="cancelChannelUnrefundable" class="[&>svg]:text-destructive">
                 <Icon name="lucide:triangle-alert" />
-                <AlertTitle>Channel {{ reservation.payment?.channel }} tidak support refund otomatis</AlertTitle>
+                <AlertTitle
+                  >Channel {{ reservation.payment?.channel }} tidak mendukung refund
+                  otomatis</AlertTitle
+                >
                 <AlertDescription>
-                  Xendit tidak menyediakan refund via API untuk channel ini (umumnya
-                  Virtual Account / retail outlet). Setelah cancellation, Anda harus
-                  transfer manual ke rekening guest, lalu tandai refund completed dari
-                  halaman reservation.
+                  Xendit tidak menyediakan refund via API untuk channel ini (umumnya Virtual Account
+                  / retail outlet). Setelah cancellation, Anda harus transfer manual ke rekening
+                  guest, lalu tandai refund completed dari halaman reservation.
                 </AlertDescription>
               </Alert>
               <div class="space-y-2">
@@ -403,18 +540,37 @@
               </div>
               <div class="space-y-2">
                 <Label>Refund Amount (override auto-calc)</Label>
-                <Input v-model.number="cancelForm.refund_amount" type="number" min="0" :placeholder="`Auto: Rp${formatRupiah(autoRefund)}`" />
-                <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">{{ refundPolicyText }}</p>
+                <Input
+                  v-model.number="cancelForm.refund_amount"
+                  type="number"
+                  min="0"
+                  :placeholder="`Auto: Rp${formatRupiah(autoRefund)}`"
+                />
+                <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                  {{ refundPolicyText }}
+                </p>
               </div>
-              <label class="flex items-center gap-2 text-sm tracking-tight" :class="{ 'opacity-50': cancelChannelUnrefundable }">
-                <Checkbox v-model="cancelForm.process_refund" :disabled="cancelChannelUnrefundable" />
+              <label
+                class="flex items-center gap-2 text-sm tracking-tight"
+                :class="{ 'opacity-50': cancelChannelUnrefundable }"
+              >
+                <Checkbox
+                  v-model="cancelForm.process_refund"
+                  :disabled="cancelChannelUnrefundable"
+                />
                 <span>
                   Process Xendit refund automatically
-                  <span v-if="cancelChannelUnrefundable" class="text-muted-foreground text-xs sm:text-sm tracking-tight">(disabled — channel tidak support)</span>
+                  <span
+                    v-if="cancelChannelUnrefundable"
+                    class="text-muted-foreground text-xs tracking-tight sm:text-sm"
+                    >(disabled, channel tidak mendukung refund otomatis)</span
+                  >
                 </span>
               </label>
               <div class="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" @click="cancelDialogOpen = false">Cancel</Button>
+                <Button type="button" variant="outline" @click="cancelDialogOpen = false"
+                  >Cancel</Button
+                >
                 <Button type="submit" variant="destructive" :disabled="cancelling">
                   <Spinner v-if="cancelling" />
                   {{ cancelling ? "Processing..." : "Confirm Cancellation" }}
@@ -425,7 +581,11 @@
         </template>
       </DialogResponsive>
 
-      <DialogResponsive v-model:open="manualRefundDialogOpen" :overflow-content="true" dialog-max-width="28rem">
+      <DialogResponsive
+        v-model:open="manualRefundDialogOpen"
+        :overflow-content="true"
+        dialog-max-width="28rem"
+      >
         <template #default>
           <div class="px-4 pb-10 md:px-6 md:py-5">
             <h3 class="text-lg font-semibold tracking-tight">Mark Manual Refund Completed</h3>
@@ -441,10 +601,17 @@
               </div>
               <div class="space-y-2">
                 <Label>Note <span class="text-destructive">*</span></Label>
-                <Textarea v-model="manualRefundForm.note" rows="3" required placeholder="Misal: Transferred via BCA mobile banking ke rekening guest 1234567890" />
+                <Textarea
+                  v-model="manualRefundForm.note"
+                  rows="3"
+                  required
+                  placeholder="Misal: Transferred via BCA mobile banking ke rekening guest 1234567890"
+                />
               </div>
               <div class="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" @click="manualRefundDialogOpen = false">Cancel</Button>
+                <Button type="button" variant="outline" @click="manualRefundDialogOpen = false"
+                  >Cancel</Button
+                >
                 <Button type="submit" :disabled="markingManualRefund">
                   <Spinner v-if="markingManualRefund" />
                   {{ markingManualRefund ? "Saving..." : "Confirm Manual Refund" }}
@@ -455,12 +622,17 @@
         </template>
       </DialogResponsive>
 
-      <DialogResponsive v-model:open="markPaidDialogOpen" :overflow-content="true" dialog-max-width="28rem">
+      <DialogResponsive
+        v-model:open="markPaidDialogOpen"
+        :overflow-content="true"
+        dialog-max-width="28rem"
+      >
         <template #default>
           <div class="px-4 pb-10 md:px-6 md:py-5">
             <h3 class="text-lg font-semibold tracking-tight">Mark as Paid</h3>
             <p class="text-muted-foreground mt-1 text-sm tracking-tight">
-              Manually confirm payment for this reservation. Use this when payment landed outside Xendit (cash, manual transfer) or when the Xendit webhook did not reach the server.
+              Manually confirm payment for this reservation. Use this when payment landed outside
+              Xendit (cash, manual transfer) or when the Xendit webhook did not reach the server.
             </p>
             <form @submit.prevent="handleMarkPaid" class="mt-4 space-y-3">
               <div class="grid grid-cols-2 gap-2">
@@ -475,10 +647,16 @@
               </div>
               <div class="space-y-2">
                 <Label>Internal note (optional)</Label>
-                <Textarea v-model="markPaidForm.note" rows="2" placeholder="Why this is being marked manually" />
+                <Textarea
+                  v-model="markPaidForm.note"
+                  rows="2"
+                  placeholder="Why this is being marked manually"
+                />
               </div>
               <div class="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" @click="markPaidDialogOpen = false">Cancel</Button>
+                <Button type="button" variant="outline" @click="markPaidDialogOpen = false"
+                  >Cancel</Button
+                >
                 <Button type="submit" :disabled="markingPaid">
                   <Spinner v-if="markingPaid" />
                   {{ markingPaid ? "Marking..." : "Confirm Payment" }}
@@ -493,11 +671,11 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import InputFile from "@/components/InputFile.vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PaymentMethodBadge } from "@/components/ui/payment-method-badge";
@@ -548,7 +726,7 @@ const handleApplyAdjustment = async (payload, setErrors) => {
   try {
     const res = await client(
       `/api/events/${props.event.id}/reservations/${ulid.value}/adjustments`,
-      { method: "POST", body: payload },
+      { method: "POST", body: payload }
     );
     toast.success(res?.message || "Adjustment applied");
     adjustmentDialogOpen.value = false;
@@ -579,7 +757,7 @@ const confirmVoid = async () => {
   try {
     await client(
       `/api/events/${props.event.id}/reservations/${ulid.value}/adjustments/${voidTarget.value.ulid}`,
-      { method: "DELETE" },
+      { method: "DELETE" }
     );
     toast.success("Adjustment voided");
     voidDialogOpen.value = false;
@@ -593,8 +771,9 @@ const confirmVoid = async () => {
 };
 
 const formatRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
-const formatDateTime = (iso) => iso ? new Date(iso).toLocaleString("id-ID") : "-";
-const formatBytes = (b) => b > 1024 * 1024 ? `${(b / (1024 * 1024)).toFixed(1)} MB` : `${Math.round(b / 1024)} KB`;
+const formatDateTime = (iso) => (iso ? new Date(iso).toLocaleString("id-ID") : "-");
+const formatBytes = (b) =>
+  b > 1024 * 1024 ? `${(b / (1024 * 1024)).toFixed(1)} MB` : `${Math.round(b / 1024)} KB`;
 
 const statusBadge = computed(() => {
   const map = {
@@ -636,7 +815,9 @@ const sendingVoucher = ref(false);
 const handleSendVoucher = async () => {
   sendingVoucher.value = true;
   try {
-    await client(`/api/events/${props.event.id}/reservations/${ulid.value}/send-voucher`, { method: "POST" });
+    await client(`/api/events/${props.event.id}/reservations/${ulid.value}/send-voucher`, {
+      method: "POST",
+    });
     toast.success("Voucher email queued");
     await refresh();
   } catch (err) {
@@ -694,7 +875,9 @@ const handleManualRefund = async () => {
     await refresh();
     await loadActivity();
   } catch (err) {
-    toast.error("Could not save manual refund", { description: err?.data?.message || err?.message });
+    toast.error("Could not save manual refund", {
+      description: err?.data?.message || err?.message,
+    });
   } finally {
     markingManualRefund.value = false;
   }
@@ -780,7 +963,10 @@ const handleCancel = async () => {
     if (cancelForm.refund_amount !== null && cancelForm.refund_amount !== "") {
       payload.refund_amount = cancelForm.refund_amount;
     }
-    await client(`/api/events/${props.event.id}/reservations/${ulid.value}/cancel`, { method: "POST", body: payload });
+    await client(`/api/events/${props.event.id}/reservations/${ulid.value}/cancel`, {
+      method: "POST",
+      body: payload,
+    });
     toast.success("Reservation cancelled");
     cancelDialogOpen.value = false;
     await refresh();
@@ -798,9 +984,7 @@ const loadingActivity = ref(false);
 const loadActivity = async () => {
   loadingActivity.value = true;
   try {
-    const res = await client(
-      `/api/events/${props.event.id}/reservations/${ulid.value}/activity`
-    );
+    const res = await client(`/api/events/${props.event.id}/reservations/${ulid.value}/activity`);
     activity.value = res?.data ?? [];
   } catch (err) {
     toast.error("Could not load activity", { description: err?.data?.message || err?.message });

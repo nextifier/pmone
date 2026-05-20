@@ -1133,12 +1133,21 @@ Route::middleware(['api.key'])->prefix('public')->group(function () {
         ->middleware('throttle:30,1');
     Route::post('/reservations/magic/{token}/retry-payment', [PublicReservationController::class, 'retryPaymentByMagicLink'])
         ->middleware('throttle:5,1');
+
+    Route::post('/promo-codes/validate', [PublicPromoCodeController::class, 'validate'])
+        ->middleware('throttle:30,1');
+});
+
+// Magic-link document downloads — opened directly from reservation emails in
+// the guest's browser, so they cannot carry an API key. The unguessable
+// magic-link token (plus the per-token rate limit in resolveByToken) is the
+// authentication, so these routes sit outside the api.key group.
+Route::prefix('public')->group(function () {
     Route::get('/reservations/magic/{token}/invoice.pdf', [PublicReservationController::class, 'invoicePdfByMagicLink'])
         ->middleware('throttle:30,1');
     Route::get('/reservations/magic/{token}/receipt.pdf', [PublicReservationController::class, 'receiptPdfByMagicLink'])
         ->middleware('throttle:30,1');
-
-    Route::post('/promo-codes/validate', [PublicPromoCodeController::class, 'validate'])
+    Route::get('/reservations/magic/{token}/voucher', [PublicReservationController::class, 'voucherByMagicLink'])
         ->middleware('throttle:30,1');
 });
 

@@ -1,5 +1,4 @@
 @php
-    $isPaid = in_array($reservation->status?->value, ['paid', 'voucher_sent'], true);
     $isComplimentary = $reservation->payment_method?->value === 'complimentary';
 @endphp
 @component('mail::message')
@@ -7,10 +6,8 @@
 
 @if ($isComplimentary)
 Your complimentary reservation **{{ $reservation->reservation_number }}** has been confirmed. No payment is required.
-@elseif ($isPaid)
-We have received your payment for reservation **{{ $reservation->reservation_number }}**.
 @else
-We have received your booking **{{ $reservation->reservation_number }}**. Please complete the payment to confirm your reservation.
+We have received your payment for reservation **{{ $reservation->reservation_number }}**. Your booking is now confirmed.
 @endif
 
 ## Booking Details
@@ -45,19 +42,19 @@ We have received your booking **{{ $reservation->reservation_number }}**. Please
 > {{ $reservation->special_request }}
 @endif
 
-## Total {{ $isPaid ? 'Paid' : 'Due' }}
+## {{ $isComplimentary ? 'Total' : 'Amount Paid' }}
 
 **Rp{{ number_format($reservation->total_amount, 0, ',', '.') }}**
 
-@if (! $isPaid && ! $isComplimentary && ! empty($reservation->payment_url))
-@component('mail::button', ['url' => $reservation->payment_url])
-Pay Now
-@endcomponent
-@endif
-
-@component('mail::button', ['url' => $magicLinkUrl, 'color' => $isPaid ? 'primary' : 'secondary'])
+@component('mail::button', ['url' => $magicLinkUrl])
 View Booking Status
 @endcomponent
+
+@if (! empty($receiptUrl))
+@component('mail::button', ['url' => $receiptUrl, 'color' => 'secondary'])
+Download Receipt
+@endcomponent
+@endif
 
 @if (! empty($invoiceUrl))
 @component('mail::button', ['url' => $invoiceUrl, 'color' => 'secondary'])
@@ -67,11 +64,7 @@ Download Invoice
 
 ## Next Steps
 
-@if ($isPaid || $isComplimentary)
-Our team will coordinate with the partner hotel. Your check-in voucher will be emailed once confirmed by the hotel.
-@else
-Complete the payment via the link above. Once confirmed by our payment provider, we'll coordinate with the hotel and email your check-in voucher.
-@endif
+Our team will coordinate with the partner hotel. Your check-in voucher will be emailed once the booking is confirmed by the hotel.
 
 For any questions, please contact us at:
 - Email: {{ $reservation->hotel?->contact_email ?? 'support@pmone.id' }}

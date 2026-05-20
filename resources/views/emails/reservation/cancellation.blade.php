@@ -5,10 +5,22 @@ Hi {{ $reservation->guest_name }},
 
 Your reservation **{{ $reservation->reservation_number }}** has been cancelled.
 
+## Booking Details
+
+**Hotel:** {{ $reservation->hotel?->name }}
+
+@if ($reservation->event)
+**Event:** {{ $reservation->event->title }}
+@endif
+
+@foreach ($reservation->items as $item)
+- {{ $item->roomType?->name }} - {{ $item->qty }} room(s) - {{ \Illuminate\Support\Carbon::parse($item->check_in_date)->format('d M Y') }} to {{ \Illuminate\Support\Carbon::parse($item->check_out_date)->format('d M Y') }}
+@endforeach
+
 @if ($refundAmount > 0)
 ## Refund
 
-A refund of **Rp {{ number_format($refundAmount, 0, ',', '.') }}** is being processed back to your original payment method. Xendit refunds typically take 3-7 business days.
+A refund of **Rp{{ number_format($refundAmount, 0, ',', '.') }}** is being processed back to your original payment method. Refunds typically take 3-7 business days to appear.
 @else
 ## No Refund
 

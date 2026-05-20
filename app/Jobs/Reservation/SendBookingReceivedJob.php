@@ -4,6 +4,7 @@ namespace App\Jobs\Reservation;
 
 use App\Mail\Reservation\BookingReceivedMail;
 use App\Models\Reservation;
+use App\Services\Reservation\ReservationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -18,12 +19,9 @@ class SendBookingReceivedJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    public function __construct(
-        public int $reservationId,
-        public ?string $rawMagicLinkToken = null,
-    ) {}
+    public function __construct(public int $reservationId) {}
 
-    public function handle(): void
+    public function handle(ReservationService $reservations): void
     {
         $reservation = Reservation::query()
             ->with(['hotel', 'event', 'items.roomType', 'transfers'])
@@ -33,17 +31,25 @@ class SendBookingReceivedJob implements ShouldQueue
             return;
         }
 
+        // Roll a fresh magic-link token so the email's document links keep
+        // working long-term, mirroring SendHotelVoucherJob / SendCancellationJob.
+        // This job only ever runs once the reservation is already paid, so the
+        // success page (which resolves by reservation number) is unaffected.
+        [$rawToken, $hashedToken] = $reservations->generateMagicLinkToken();
+        $reservation->update([
+            'magic_link_token' => $hashedToken,
+            'magic_link_expires_at' => now()->addYear(),
+        ]);
+
         $frontendUrl = rtrim(config('app.frontend_url'), '/');
         $appUrl = rtrim(config('app.url'), '/');
 
-        $magicLinkUrl = $this->rawMagicLinkToken
-            ? "{$frontendUrl}/hotels/reservation/{$this->rawMagicLinkToken}"
-            : "{$frontendUrl}/hotels/success?ref=".$reservation->reservation_number;
-
-        $invoiceUrl = $this->rawMagicLinkToken
-            ? "{$appUrl}/api/public/reservations/magic/{$this->rawMagicLinkToken}/invoice.pdf"
+        $magicLinkUrl = "{$frontendUrl}/hotels/reservation/{$rawToken}";
+        $invoiceUrl = "{$appUrl}/api/public/reservations/magic/{$rawToken}/invoice.pdf";
+        $receiptUrl = $reservation->status->isPaid()
+            ? "{$appUrl}/api/public/reservations/magic/{$rawToken}/receipt.pdf"
             : null;
 
-        Mail::send(new BookingReceivedMail($reservation, $magicLinkUrl, $invoiceUrl));
+        Mail::send(new BookingReceivedMail($reservation, $magicLinkUrl, $invoiceUrl, $receiptUrl));
     }
 }

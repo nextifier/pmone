@@ -3,7 +3,7 @@
 
 Hi {{ $reservation->guest_name }},
 
-The check-in voucher for reservation **{{ $reservation->reservation_number }}** is ready and attached to this email.
+The check-in voucher for reservation **{{ $reservation->reservation_number }}** is ready. It is attached to this email, and you can also download it using the button below.
 
 ## Booking Details
 
@@ -44,11 +44,17 @@ Present the attached voucher at reception when you arrive at the hotel, along wi
 - Check-out time: 12:00
 - Hotel contact: {{ $reservation->hotel?->contact_phone ?? '-' }}
 
-@if (! empty($invoiceUrl) || ! empty($receiptUrl))
+@if (! empty($voucherUrl) || ! empty($invoiceUrl) || ! empty($receiptUrl))
 ## Documents
 
+@if (! empty($voucherUrl))
+@component('mail::button', ['url' => $voucherUrl])
+Download Hotel Voucher
+@endcomponent
+@endif
+
 @if (! empty($receiptUrl))
-@component('mail::button', ['url' => $receiptUrl])
+@component('mail::button', ['url' => $receiptUrl, 'color' => 'secondary'])
 Download Receipt
 @endcomponent
 @endif

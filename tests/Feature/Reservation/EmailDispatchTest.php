@@ -19,6 +19,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
@@ -79,21 +80,27 @@ test('public reservation with skip payment dispatches booking received job', fun
     Queue::assertPushed(SendBookingReceivedJob::class);
 });
 
-test('booking received job sends BookingReceivedMail', function () {
+test('booking received job rolls a magic token and includes document links', function () {
     Mail::fake();
 
-    $reservation = Reservation::factory()->create([
+    $reservation = Reservation::factory()->paid()->create([
         'hotel_id' => $this->hotel->id,
         'event_id' => $this->event->id,
         'guest_email' => 'guest@test.com',
     ]);
 
-    (new SendBookingReceivedJob($reservation->id, 'rawtoken123'))->handle();
+    app()->call([new SendBookingReceivedJob($reservation->id), 'handle']);
 
-    Mail::assertSent(BookingReceivedMail::class, fn ($mail) => $mail->reservation->id === $reservation->id);
+    expect($reservation->fresh()->magic_link_token)->not->toBeNull();
+
+    Mail::assertSent(BookingReceivedMail::class, function ($mail) use ($reservation) {
+        return $mail->reservation->id === $reservation->id
+            && str_contains((string) $mail->invoiceUrl, '/invoice.pdf')
+            && str_contains((string) $mail->receiptUrl, '/receipt.pdf');
+    });
 });
 
-test('hotel voucher job sends HotelVoucherMail', function () {
+test('hotel voucher job sends HotelVoucherMail with a voucher download link', function () {
     Mail::fake();
 
     $reservation = Reservation::factory()->paid()->create([
@@ -108,7 +115,43 @@ test('hotel voucher job sends HotelVoucherMail', function () {
 
     app()->call([new SendHotelVoucherJob($reservation->id), 'handle']);
 
-    Mail::assertSent(HotelVoucherMail::class);
+    Mail::assertSent(HotelVoucherMail::class, fn ($mail) => str_contains((string) $mail->voucherUrl, '/voucher'));
+});
+
+test('voucher magic link downloads the e-voucher file without an API key', function () {
+    Storage::fake('public');
+
+    $reservation = Reservation::factory()->paid()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+    ]);
+
+    $tmp = tempnam(sys_get_temp_dir(), 'voucher_').'.pdf';
+    file_put_contents($tmp, '%PDF-1.4 voucher contents');
+    $reservation->addMedia($tmp)->toMediaCollection('voucher');
+
+    $raw = Str::random(64);
+    $reservation->update([
+        'magic_link_token' => hash('sha256', $raw),
+        'magic_link_expires_at' => now()->addYear(),
+    ]);
+
+    $this->get("/api/public/reservations/magic/{$raw}/voucher")->assertOk();
+});
+
+test('voucher magic link returns 404 when no voucher uploaded', function () {
+    $reservation = Reservation::factory()->paid()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+    ]);
+
+    $raw = Str::random(64);
+    $reservation->update([
+        'magic_link_token' => hash('sha256', $raw),
+        'magic_link_expires_at' => now()->addYear(),
+    ]);
+
+    $this->get("/api/public/reservations/magic/{$raw}/voucher")->assertStatus(404);
 });
 
 test('hotel voucher attachment reads from the media disk', function () {
@@ -141,18 +184,22 @@ test('hotel voucher attachment reads from the media disk', function () {
         ->and($attachment->mime)->toBe('application/pdf');
 });
 
-test('cancellation job sends CancellationMail', function () {
+test('cancellation job sends CancellationMail keeping the receipt link for paid bookings', function () {
     Mail::fake();
 
     $reservation = Reservation::factory()->cancelled()->create([
         'hotel_id' => $this->hotel->id,
         'event_id' => $this->event->id,
         'guest_email' => 'cancel@test.com',
+        'paid_at' => now(),
     ]);
 
-    app()->call([new SendCancellationJob($reservation->id, 0.0), 'handle']);
+    app()->call([new SendCancellationJob($reservation->id, 500000.0), 'handle']);
 
-    Mail::assertSent(CancellationMail::class);
+    Mail::assertSent(CancellationMail::class, function ($mail) {
+        return str_contains((string) $mail->invoiceUrl, '/invoice.pdf')
+            && str_contains((string) $mail->receiptUrl, '/receipt.pdf');
+    });
 });
 
 test('send voucher endpoint dispatches job when voucher already uploaded', function () {
