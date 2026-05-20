@@ -34,20 +34,16 @@ class SendCancellationJob implements ShouldQueue
             return;
         }
 
-        [$rawToken, $hashedToken] = $reservations->generateMagicLinkToken();
-        $reservation->update([
-            'magic_link_token' => $hashedToken,
-            'magic_link_expires_at' => now()->addYear(),
-        ]);
+        $rawToken = $reservations->magicLinkTokenFor($reservation);
 
         $appUrl = rtrim(config('app.url'), '/');
-        $invoiceUrl = "{$appUrl}/api/public/reservations/magic/{$rawToken}/invoice.pdf";
-        // Receipt is proof of the original payment, so it stays available even
-        // after cancellation/refund - gate on whether payment ever happened.
+        // Only a receipt is relevant on a cancellation: it is proof of the
+        // payment now being refunded. Gate on whether payment ever happened so
+        // a never-paid cancelled booking gets no (meaningless) document link.
         $receiptUrl = $reservation->paid_at !== null
             ? "{$appUrl}/api/public/reservations/magic/{$rawToken}/receipt.pdf"
             : null;
 
-        Mail::send(new CancellationMail($reservation, $this->refundAmount, $invoiceUrl, $receiptUrl));
+        Mail::send(new CancellationMail($reservation, $this->refundAmount, $receiptUrl));
     }
 }

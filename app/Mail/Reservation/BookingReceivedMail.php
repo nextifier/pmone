@@ -17,7 +17,6 @@ class BookingReceivedMail extends Mailable
     public function __construct(
         public Reservation $reservation,
         public string $magicLinkUrl,
-        public ?string $invoiceUrl = null,
         public ?string $receiptUrl = null,
     ) {}
 
@@ -38,7 +37,6 @@ class BookingReceivedMail extends Mailable
             with: [
                 'reservation' => $this->reservation,
                 'magicLinkUrl' => $this->magicLinkUrl,
-                'invoiceUrl' => $this->invoiceUrl,
                 'receiptUrl' => $this->receiptUrl,
             ],
         );

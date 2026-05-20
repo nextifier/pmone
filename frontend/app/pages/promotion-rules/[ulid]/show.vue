@@ -6,22 +6,12 @@
       <div v-if="rule" class="flex flex-col">
         <div class="flex flex-wrap items-center gap-x-2.5 gap-y-2">
           <h1 class="page-title">{{ rule.name }}</h1>
-          <span
-            :class="[
-              'inline-flex items-center rounded-full px-2 py-0.5 text-xs sm:text-sm tracking-tight',
-              rule.kind === 'discount' ? 'bg-success/15 text-success-foreground' : 'bg-warning/15 text-warning-foreground',
-            ]"
-          >
-            {{ rule.kind_label }}
-          </span>
-          <span
-            :class="[
-              'inline-flex items-center rounded-full px-2 py-0.5 text-xs sm:text-sm tracking-tight',
-              rule.is_active ? 'bg-success/15 text-success-foreground' : 'bg-muted text-muted-foreground',
-            ]"
-          >
+          <Badge :variant="rule.kind === 'discount' ? 'success' : 'warning'">
+            {{ rule.kind_label || rule.kind }}
+          </Badge>
+          <Badge :variant="rule.is_active ? 'success' : 'muted'" with-icon plain>
             {{ rule.is_active ? "Active" : "Inactive" }}
-          </span>
+          </Badge>
         </div>
         <p v-if="rule.description" class="page-description mt-1.5">{{ rule.description }}</p>
       </div>
@@ -275,6 +265,7 @@
 
 <script setup>
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

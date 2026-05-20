@@ -28,7 +28,40 @@
       </div>
     </div>
 
+    <!-- Empty / unavailable state -->
+    <div
+      v-if="showEmptyState"
+      class="flex flex-col items-center justify-center gap-y-4 py-16 text-center"
+    >
+      <div
+        class="*:bg-background/80 *:squircle text-muted-foreground flex items-center -space-x-2 *:rounded-lg *:border *:p-3 *:backdrop-blur-sm [&_svg]:size-5"
+      >
+        <div class="translate-y-1.5 -rotate-6">
+          <Icon name="hugeicons:hotel-01" />
+        </div>
+        <div>
+          <Icon name="hugeicons:calendar-02" />
+        </div>
+        <div class="translate-y-1.5 rotate-6">
+          <Icon name="hugeicons:notebook-01" />
+        </div>
+      </div>
+      <div class="space-y-1">
+        <h3 class="font-semibold tracking-tight">
+          {{ isUnavailable ? "Hotel reservations unavailable" : "No reservations yet" }}
+        </h3>
+        <p class="text-muted-foreground max-w-sm text-sm tracking-tight">
+          {{
+            isUnavailable
+              ? "Enable hotel reservations for this event and make sure the project has an active payment gateway."
+              : "Hotel bookings for this event will appear here once guests start reserving."
+          }}
+        </p>
+      </div>
+    </div>
+
     <TableData
+      v-else
       ref="tableRef"
       :data="items"
       :columns="columns"
@@ -100,6 +133,7 @@
 </template>
 
 <script setup>
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -196,6 +230,23 @@ const meta = computed(
     }
 );
 
+// Feature is gated by the `hotel-reservation-enabled` middleware: the admin
+// reservations endpoint 404s when the toggle is off or the project has no
+// active payment gateway. Surface that clearly instead of a blank page.
+const isUnavailable = computed(() => !pending.value && !!error.value);
+
+// Full-page empty state only when the event genuinely has no reservations -
+// not when a search/filter simply returned nothing (TableData handles that).
+const isEmpty = computed(
+  () =>
+    !pending.value &&
+    !error.value &&
+    items.value.length === 0 &&
+    columnFilters.value.length === 0
+);
+
+const showEmptyState = computed(() => isUnavailable.value || isEmpty.value);
+
 watch([columnFilters, sorting, pagination], () => refresh(), { deep: true });
 
 const selectedStatuses = computed(() => {
@@ -223,16 +274,16 @@ const handleStatusToggle = ({ checked, value }) => {
 
 const formatRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
 
-const statusBadgeClass = (status) => {
+const statusVariant = (status) => {
   const map = {
-    pending_payment: "bg-warning/15 text-warning-foreground",
-    paid: "bg-info/15 text-info-foreground",
-    voucher_sent: "bg-success/15 text-success-foreground",
-    expired: "bg-muted text-muted-foreground",
-    cancelled: "bg-destructive/15 text-destructive",
-    refunded: "bg-destructive/15 text-destructive",
+    pending_payment: "warning",
+    paid: "success",
+    voucher_sent: "success",
+    expired: "muted",
+    cancelled: "destructive",
+    refunded: "destructive",
   };
-  return map[status] || "bg-muted text-muted-foreground";
+  return map[status] || "muted";
 };
 
 const tableRef = ref();
@@ -369,14 +420,14 @@ const columns = [
     accessorKey: "status",
     cell: ({ row }) =>
       h(
-        "span",
+        Badge,
+        { variant: statusVariant(row.original.status), withIcon: true, plain: true },
         {
-          class: [
-            "inline-flex items-center rounded-full px-2 py-0.5 text-xs tracking-tight whitespace-nowrap",
-            statusBadgeClass(row.original.status),
-          ],
-        },
-        row.original.status_label || statusLabelMap[row.original.status] || row.original.status
+          default: () =>
+            row.original.status_label ||
+            statusLabelMap[row.original.status] ||
+            row.original.status,
+        }
       ),
     size: 130,
     filterFn: (row, columnId, filterValue) => {
@@ -402,7 +453,8 @@ const columns = [
       h(PaymentMethodBadge, {
         channel: row.original.payment_channel,
         method: row.original.payment_method,
-        size: "sm",
+        size: "md",
+        iconOnly: true,
       }),
     size: 150,
   },

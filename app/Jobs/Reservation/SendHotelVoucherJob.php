@@ -36,18 +36,13 @@ class SendHotelVoucherJob implements ShouldQueue
             return;
         }
 
-        [$rawToken, $hashedToken] = $reservations->generateMagicLinkToken();
-        $reservation->update([
-            'magic_link_token' => $hashedToken,
-            'magic_link_expires_at' => now()->addYear(),
-        ]);
+        $rawToken = $reservations->magicLinkTokenFor($reservation);
 
         $appUrl = rtrim(config('app.url'), '/');
         $voucherUrl = "{$appUrl}/api/public/reservations/magic/{$rawToken}/voucher";
-        $invoiceUrl = "{$appUrl}/api/public/reservations/magic/{$rawToken}/invoice.pdf";
         $receiptUrl = "{$appUrl}/api/public/reservations/magic/{$rawToken}/receipt.pdf";
 
-        Mail::send(new HotelVoucherMail($reservation, $invoiceUrl, $receiptUrl, $voucherUrl));
+        Mail::send(new HotelVoucherMail($reservation, $receiptUrl, $voucherUrl));
 
         $reservation->update([
             'status' => ReservationStatus::VoucherSent,

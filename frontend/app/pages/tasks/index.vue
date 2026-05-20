@@ -162,7 +162,7 @@
               <div class="flex items-center gap-x-2">
                 <Icon name="hugeicons:loading-03" class="text-info-foreground size-4.5" />
                 <span class="text-sm font-medium tracking-tight">In Progress</span>
-                <Badge variant="secondary" class="h-4 px-1.5 text-[10px]">
+                <Badge variant="muted" class="h-4 px-1.5 text-[10px]">
                   {{ inProgressTasks.length }}
                 </Badge>
               </div>
@@ -206,7 +206,7 @@
               <div class="flex items-center gap-x-2">
                 <Icon name="hugeicons:task-daily-01" class="text-muted-foreground size-4.5" />
                 <span class="text-sm font-medium tracking-tight">To Do</span>
-                <Badge variant="secondary" class="h-4 px-1.5 text-[10px]">
+                <Badge variant="muted" class="h-4 px-1.5 text-[10px]">
                   {{ todoTasks.length }}
                 </Badge>
               </div>
@@ -266,7 +266,7 @@
                   class="text-success-foreground size-4.5"
                 />
                 <span class="text-sm font-medium tracking-tight">Completed</span>
-                <Badge variant="secondary" class="h-4 px-1.5 text-[10px]">
+                <Badge variant="muted" class="h-4 px-1.5 text-[10px]">
                   {{ completedTasks.length }}
                 </Badge>
                 <button

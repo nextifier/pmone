@@ -267,12 +267,18 @@ class ReservationService
                 $subtotalTransfer += (float) $option->price;
             }
 
-            [$rawToken, $hashedToken] = $this->generateMagicLinkToken();
+            // Magic-link token is derived deterministically from the reservation
+            // number (see magicLinkTokenFor) so later emails/jobs rebuild the
+            // identical link instead of rolling it - rolling would invalidate the
+            // token already embedded in the Xendit success_url. Only the hash is
+            // stored, matching resolveByToken().
+            $reservationNumber = $this->generateReservationNumber();
+            $rawToken = $this->magicLinkTokenForNumber($reservationNumber);
 
             // Initial pricing snapshot - tax/service/total will be recomputed by PricingService
             // after items, transfers, penalties, and promo code adjustments are attached.
             $reservation = Reservation::create([
-                'reservation_number' => $this->generateReservationNumber(),
+                'reservation_number' => $reservationNumber,
                 'event_id' => $data['event_id'],
                 'hotel_id' => $hotel->id,
                 'status' => $data['status'] ?? ReservationStatus::PendingPayment,
@@ -293,8 +299,11 @@ class ReservationService
                 'service_charge_amount' => 0,
                 'discount_amount' => 0,
                 'total_amount' => 0,
-                'magic_link_token' => $hashedToken,
-                'magic_link_expires_at' => now()->addDays(90),
+                'magic_link_token' => hash('sha256', $rawToken),
+                // Generous window: the token is no longer rolled per email, so
+                // this must outlast the whole booking lifecycle (booking far
+                // ahead of the event + post-stay access to invoice/receipt).
+                'magic_link_expires_at' => now()->addYears(2),
                 'source' => $data['source'] ?? ReservationSource::PublicWebsite,
                 'project_username' => $data['project_username'] ?? null,
                 'ip_address' => $data['ip_address'] ?? null,
@@ -444,7 +453,8 @@ class ReservationService
         }
 
         $frontendUrl = rtrim(config('app.frontend_url'), '/');
-        $successUrl = "{$frontendUrl}/hotels/success?ref={$reservation->reservation_number}";
+        $rawToken = $this->magicLinkTokenFor($reservation);
+        $successUrl = "{$frontendUrl}/hotels/success?ref={$reservation->reservation_number}&token={$rawToken}";
         $failureUrl = "{$frontendUrl}/hotels?failed={$reservation->reservation_number}";
 
         $invoice = $xenditClient->createInvoice($reservation, $successUrl, $failureUrl);
@@ -501,6 +511,7 @@ class ReservationService
         // receipt can render the correct bank/wallet logo instead of falling
         // back to the generic "Xendit" string.
         $invoiceId = $payload['id'] ?? $reservation->xendit_invoice_id;
+        $detail = null;
         if (empty($update['payment_channel']) && $invoiceId && $reservation->paymentGateway) {
             $detail = $this->xenditFor($reservation)->fetchInvoiceDetail($invoiceId);
             if ($detail) {
@@ -514,6 +525,23 @@ class ReservationService
                 }
                 if (! empty($detail['payment_id']) && empty($update['xendit_payment_id'])) {
                     $update['xendit_payment_id'] = $detail['payment_id'];
+                }
+            }
+        }
+
+        // Credit card payments all come back on the single CREDIT_CARD channel.
+        // Resolve the actual network (Visa/Mastercard/Amex/JCB) from the card
+        // charge so receipts and listings show the correct brand logo.
+        if (($update['payment_channel'] ?? null) === 'CREDIT_CARD' && $invoiceId && $reservation->paymentGateway) {
+            $chargeId = $payload['credit_card_charge_id'] ?? ($detail['credit_card_charge_id'] ?? null);
+            if (! $chargeId) {
+                $detail ??= $this->xenditFor($reservation)->fetchInvoiceDetail($invoiceId);
+                $chargeId = $detail['credit_card_charge_id'] ?? null;
+            }
+            if ($chargeId) {
+                $brand = $this->xenditFor($reservation)->fetchCardBrand((string) $chargeId);
+                if ($brand) {
+                    $update['payment_channel'] = $brand;
                 }
             }
         }
@@ -861,13 +889,21 @@ class ReservationService
     }
 
     /**
-     * @return array{0: string, 1: string} [raw, hashed]
+     * Deterministic magic-link token for a reservation.
+     *
+     * Derived via HMAC from the reservation's ULID and the app key, so any
+     * later process (payment webhook, voucher/cancellation jobs) can rebuild
+     * the identical token without rolling it. Only the SHA-256 hash is stored
+     * in `magic_link_token`; `resolveByToken()` hashes the incoming token the
+     * same way, so legacy random tokens keep resolving too.
      */
-    public function generateMagicLinkToken(): array
+    public function magicLinkTokenFor(Reservation $reservation): string
     {
-        $raw = Str::random(48);
-        $hashed = hash('sha256', $raw);
+        return $this->magicLinkTokenForNumber($reservation->reservation_number);
+    }
 
-        return [$raw, $hashed];
+    private function magicLinkTokenForNumber(string $reservationNumber): string
+    {
+        return hash_hmac('sha256', 'hotel-reservation-magic:'.$reservationNumber, config('app.key'));
     }
 }

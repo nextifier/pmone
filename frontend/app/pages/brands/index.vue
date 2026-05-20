@@ -184,6 +184,7 @@
 import BrandImportDialog from "@/components/brand/BrandImportDialog.vue";
 import BrandTableItem from "@/components/brand/TableItem.vue";
 import { TableData } from "@/components/ui/table-data";
+import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -372,16 +373,13 @@ const columns = computed(() => [
     accessorKey: "status",
     cell: ({ row }) => {
       const status = row.getValue("status");
-      const classes = {
-        active: "text-success-foreground",
-        inactive: "text-muted-foreground",
-      };
       return h(
-        "span",
+        Badge,
         {
-          class: `inline-flex items-center text-sm tracking-tight capitalize ${classes[status] || "text-muted-foreground"}`,
+          variant: status === "active" ? "success" : "muted",
+          plain: true,
         },
-        status
+        { default: () => status.charAt(0).toUpperCase() + status.slice(1) }
       );
     },
     size: 100,

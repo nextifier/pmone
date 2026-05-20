@@ -47,18 +47,12 @@ We have received your payment for reservation **{{ $reservation->reservation_num
 **Rp{{ number_format($reservation->total_amount, 0, ',', '.') }}**
 
 @component('mail::button', ['url' => $magicLinkUrl])
-View Booking Status
+View Booking Details
 @endcomponent
 
 @if (! empty($receiptUrl))
 @component('mail::button', ['url' => $receiptUrl, 'color' => 'secondary'])
 Download Receipt
-@endcomponent
-@endif
-
-@if (! empty($invoiceUrl))
-@component('mail::button', ['url' => $invoiceUrl, 'color' => 'secondary'])
-Download Invoice
 @endcomponent
 @endif
 

@@ -286,20 +286,6 @@
             </div>
           </div>
 
-          <div class="space-y-2">
-            <Label for="pg_currency">Default Currency</Label>
-            <Select v-model="form.config.currency">
-              <SelectTrigger id="pg_currency">
-                <SelectValue placeholder="Pick a currency" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="c in currencyOptions" :key="c.code" :value="c.code">
-                  {{ c.code }} - {{ c.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           <div class="flex justify-end gap-2 pt-2">
             <Button
               variant="outline"
@@ -437,16 +423,6 @@ const { hasPermission } = usePermission();
 const canUpdate = computed(() => hasPermission("payment_gateways.update"));
 const canDelete = computed(() => hasPermission("payment_gateways.delete"));
 
-const currencyOptions = [
-  { code: "IDR", name: "Indonesian Rupiah" },
-  { code: "USD", name: "US Dollar" },
-  { code: "SGD", name: "Singapore Dollar" },
-  { code: "MYR", name: "Malaysian Ringgit" },
-  { code: "PHP", name: "Philippine Peso" },
-  { code: "THB", name: "Thai Baht" },
-  { code: "VND", name: "Vietnamese Dong" },
-];
-
 const gateways = ref([]);
 const loading = ref(true);
 const saving = ref(false);
@@ -471,7 +447,7 @@ const form = reactive({
   mode: "live",
   secret_key: "",
   webhook_token: "",
-  config: { currency: "IDR" },
+  config: {},
 });
 
 function resetForm() {
@@ -480,7 +456,7 @@ function resetForm() {
   form.mode = "live";
   form.secret_key = "";
   form.webhook_token = "";
-  form.config = { currency: "IDR" };
+  form.config = {};
   editing.value = null;
   testResult.value = null;
 }
@@ -547,10 +523,7 @@ function openEditDialog(gateway) {
   form.provider = gateway.provider;
   form.label = gateway.label || "";
   form.mode = gateway.mode;
-  form.config = {
-    currency: gateway.config?.currency || "IDR",
-    ...gateway.config,
-  };
+  form.config = { ...(gateway.config || {}) };
   formDialogOpen.value = true;
 }
 

@@ -137,7 +137,7 @@
                 <code class="text-muted-foreground text-xs">{{ category.slug }}</code>
               </td>
               <td class="px-4 py-3">
-                <Badge variant="secondary" class="font-normal">
+                <Badge variant="muted" class="font-normal">
                   {{ category.products_count ?? 0 }} products
                 </Badge>
               </td>

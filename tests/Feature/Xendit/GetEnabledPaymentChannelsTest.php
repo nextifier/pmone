@@ -62,6 +62,37 @@ test('falls back to a minimal logo set when the API call fails', function () {
     expect($files)->toContain('bca.svg');
 });
 
+test('falls back to a minimal logo set when the API reports no activated channels', function () {
+    Http::fake([
+        'api.xendit.co/payment_channels' => Http::response([
+            ['channel_code' => 'BCA', 'is_activated' => false],
+        ], 200),
+    ]);
+
+    $gateway = ProjectPaymentGateway::factory()->create();
+    $logos = XenditService::forGateway($gateway)->getEnabledPaymentChannels();
+
+    // An invoice footer must never render empty - the absence of activated
+    // channels must still yield the static fallback set.
+    expect($logos)->not->toBeEmpty();
+    expect(array_column($logos, 'file'))->toContain('visa.svg');
+});
+
+test('handles a data-wrapped payment_channels response', function () {
+    Http::fake([
+        'api.xendit.co/payment_channels' => Http::response([
+            'data' => [
+                ['channel_code' => 'GOPAY', 'is_activated' => true],
+            ],
+        ], 200),
+    ]);
+
+    $gateway = ProjectPaymentGateway::factory()->create();
+    $logos = XenditService::forGateway($gateway)->getEnabledPaymentChannels();
+
+    expect(array_column($logos, 'file'))->toContain('gopay.svg');
+});
+
 test('updating the gateway flushes the cache via observer', function () {
     Http::fake([
         'api.xendit.co/payment_channels' => Http::response([

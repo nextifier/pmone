@@ -123,6 +123,7 @@
 
 <script setup>
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -432,16 +433,13 @@ const columns = [
     accessorKey: "is_active",
     cell: ({ row }) =>
       h(
-        "span",
+        Badge,
         {
-          class: [
-            "inline-flex items-center rounded-full px-2 py-0.5 text-xs tracking-tight sm:text-sm",
-            row.original.is_active
-              ? "bg-success/15 text-success-foreground"
-              : "bg-muted text-muted-foreground",
-          ],
+          variant: row.original.is_active ? "success" : "muted",
+          withIcon: true,
+          plain: true,
         },
-        row.original.is_active ? "Active" : "Inactive"
+        { default: () => (row.original.is_active ? "Active" : "Inactive") }
       ),
     size: 100,
     filterFn: (row, columnId, filterValue) => {

@@ -44,7 +44,7 @@ Present the attached voucher at reception when you arrive at the hotel, along wi
 - Check-out time: 12:00
 - Hotel contact: {{ $reservation->hotel?->contact_phone ?? '-' }}
 
-@if (! empty($voucherUrl) || ! empty($invoiceUrl) || ! empty($receiptUrl))
+@if (! empty($voucherUrl) || ! empty($receiptUrl))
 ## Documents
 
 @if (! empty($voucherUrl))
@@ -56,12 +56,6 @@ Download Hotel Voucher
 @if (! empty($receiptUrl))
 @component('mail::button', ['url' => $receiptUrl, 'color' => 'secondary'])
 Download Receipt
-@endcomponent
-@endif
-
-@if (! empty($invoiceUrl))
-@component('mail::button', ['url' => $invoiceUrl, 'color' => 'secondary'])
-Download Invoice
 @endcomponent
 @endif
 @endif

@@ -135,7 +135,7 @@
         >
           <Avatar :model="sharedUser" size="sm" class="size-5" />
           <span class="text-xs font-medium tracking-tight sm:text-sm">{{ sharedUser.name }}</span>
-          <Badge variant="secondary" class="h-4 px-1.5 text-[10px]">{{ sharedUser.role }}</Badge>
+          <Badge variant="muted" class="h-4 px-1.5 text-[10px]">{{ sharedUser.role }}</Badge>
         </div>
       </div>
     </div>

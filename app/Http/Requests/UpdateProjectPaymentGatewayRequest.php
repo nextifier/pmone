@@ -23,7 +23,6 @@ class UpdateProjectPaymentGatewayRequest extends FormRequest
             'public_key' => ['sometimes', 'nullable', 'string', 'max:500'],
             'webhook_token' => ['sometimes', 'nullable', 'string', 'max:500'],
             'config' => ['sometimes', 'nullable', 'array'],
-            'config.currency' => ['nullable', 'string', 'size:3'],
             'config.success_redirect_url' => ['nullable', 'url', 'max:500'],
             'config.failure_redirect_url' => ['nullable', 'url', 'max:500'],
         ];

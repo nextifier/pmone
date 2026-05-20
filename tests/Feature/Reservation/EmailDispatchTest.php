@@ -15,6 +15,7 @@ use App\Models\ProjectPaymentGateway;
 use App\Models\Reservation;
 use App\Models\RoomType;
 use App\Models\User;
+use App\Services\Reservation\ReservationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
@@ -80,7 +81,7 @@ test('public reservation with skip payment dispatches booking received job', fun
     Queue::assertPushed(SendBookingReceivedJob::class);
 });
 
-test('booking received job rolls a magic token and includes document links', function () {
+test('booking received email includes document links without rolling the magic token', function () {
     Mail::fake();
 
     $reservation = Reservation::factory()->paid()->create([
@@ -88,16 +89,31 @@ test('booking received job rolls a magic token and includes document links', fun
         'event_id' => $this->event->id,
         'guest_email' => 'guest@test.com',
     ]);
+    $rawToken = app(ReservationService::class)->magicLinkTokenFor($reservation);
+    $reservation->update(['magic_link_token' => hash('sha256', $rawToken)]);
+    $tokenBefore = $reservation->fresh()->magic_link_token;
 
     app()->call([new SendBookingReceivedJob($reservation->id), 'handle']);
 
-    expect($reservation->fresh()->magic_link_token)->not->toBeNull();
+    // The token embedded in the Xendit success_url must survive the email job.
+    expect($reservation->fresh()->magic_link_token)->toBe($tokenBefore);
 
     Mail::assertSent(BookingReceivedMail::class, function ($mail) use ($reservation) {
         return $mail->reservation->id === $reservation->id
-            && str_contains((string) $mail->invoiceUrl, '/invoice.pdf')
             && str_contains((string) $mail->receiptUrl, '/receipt.pdf');
     });
+});
+
+test('deterministic magic token resolves via the public reservation endpoint', function () {
+    $reservation = Reservation::factory()->paid()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+    ]);
+    $rawToken = app(ReservationService::class)->magicLinkTokenFor($reservation);
+    $reservation->update(['magic_link_token' => hash('sha256', $rawToken)]);
+
+    $this->getJson("/api/public/reservations/magic/{$rawToken}", $this->headers)
+        ->assertOk();
 });
 
 test('hotel voucher job sends HotelVoucherMail with a voucher download link', function () {
@@ -197,8 +213,7 @@ test('cancellation job sends CancellationMail keeping the receipt link for paid 
     app()->call([new SendCancellationJob($reservation->id, 500000.0), 'handle']);
 
     Mail::assertSent(CancellationMail::class, function ($mail) {
-        return str_contains((string) $mail->invoiceUrl, '/invoice.pdf')
-            && str_contains((string) $mail->receiptUrl, '/receipt.pdf');
+        return str_contains((string) $mail->receiptUrl, '/receipt.pdf');
     });
 });
 

@@ -215,7 +215,7 @@
     @foreach ($rows as $row)
         <div class="flex flex-wrap gap-1 justify-center-safe">
             @foreach ($row as $logo)
-                <img src="{{ public_path('images/payment-methods/' . $logo['file']) }}" alt="{{ $logo['alt'] }}" class="aspect-3/2 h-10">
+                <img src="{{ public_path('images/payment-methods/' . $logo['file']) }}" alt="{{ $logo['alt'] }}" class="h-10 w-auto">
             @endforeach
         </div>
     @endforeach

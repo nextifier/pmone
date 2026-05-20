@@ -167,17 +167,21 @@
             <div class="text-[13px] font-semibold text-black tracking-tight mb-2">Paid with:</div>
             <table class="mt-1.5 border-collapse">
                 <tr>
-                    @if ($channelLogo)
-                        <td class="align-middle pr-3.5 p-0">
-                            <img src="{{ public_path('images/payment-methods/' . $channelLogo) }}" height="32" alt="{{ $channelBadge['channel'] ?? '' }}">
-                        </td>
-                    @endif
                     <td class="align-middle p-0">
-                        <div class="text-[14px] font-semibold text-black tracking-tight leading-tight">{{ $channelBadge['channel'] ?? $r->payment_method?->label() ?? '-' }}</div>
-                        @if ($r->payment_destination)
-                            <div class="text-[12px] text-gray-600 mt-1 leading-none">VA: {{ $r->payment_destination }}</div>
+                        @if ($channelLogo)
+                            {{-- Size via a CSS class, not the HTML height attribute:
+                                 Tailwind's preflight `img { height: auto }` overrides
+                                 the attribute and the logo renders at its full size. --}}
+                            <img src="{{ public_path('images/payment-methods/' . $channelLogo) }}" alt="{{ $channelBadge['channel'] ?? '' }}" class="h-12 w-auto">
+                        @else
+                            <div class="text-[14px] font-semibold text-black tracking-tight leading-tight">{{ $channelBadge['channel'] ?? $r->payment_method?->label() ?? '-' }}</div>
                         @endif
                     </td>
+                    @if ($r->payment_destination)
+                        <td class="align-middle pl-4 p-0">
+                            <div class="text-[12px] text-gray-600 leading-none">VA: {{ $r->payment_destination }}</div>
+                        </td>
+                    @endif
                 </tr>
             </table>
         </td>

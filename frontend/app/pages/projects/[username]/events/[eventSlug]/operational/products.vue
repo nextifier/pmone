@@ -179,7 +179,7 @@
                   <Badge
                     v-for="type in product.booth_types"
                     :key="type"
-                    variant="secondary"
+                    variant="muted"
                     class="text-xs font-normal"
                   >
                     {{ boothTypeLabel(type) }}

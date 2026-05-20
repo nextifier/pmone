@@ -50,6 +50,7 @@
 </template>
 
 <script setup>
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 definePageMeta({
@@ -143,16 +144,12 @@ const columns = [
     accessorKey: "kind",
     cell: ({ row }) => {
       const kind = row.original.kind;
-      const color =
-        kind === "discount"
-          ? "bg-success/15 text-success-foreground"
-          : "bg-warning/15 text-warning-foreground";
       return h(
-        "span",
+        Badge,
         {
-          class: `inline-flex items-center rounded-full px-2 py-0.5 text-xs sm:text-sm tracking-tight ${color}`,
+          variant: kind === "discount" ? "success" : "warning",
         },
-        row.original.kind_label || kind,
+        { default: () => row.original.kind_label || kind },
       );
     },
     size: 120,
@@ -185,15 +182,13 @@ const columns = [
     accessorKey: "is_active",
     cell: ({ row }) =>
       h(
-        "span",
+        Badge,
         {
-          class: `inline-flex items-center rounded-full px-2 py-0.5 text-xs sm:text-sm tracking-tight ${
-            row.original.is_active
-              ? "bg-success/15 text-success-foreground"
-              : "bg-muted text-muted-foreground"
-          }`,
+          variant: row.original.is_active ? "success" : "muted",
+          withIcon: true,
+          plain: true,
         },
-        row.original.is_active ? "Active" : "Inactive",
+        { default: () => (row.original.is_active ? "Active" : "Inactive") },
       ),
     size: 100,
   },

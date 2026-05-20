@@ -31,25 +31,20 @@ class SendBookingReceivedJob implements ShouldQueue
             return;
         }
 
-        // Roll a fresh magic-link token so the email's document links keep
-        // working long-term, mirroring SendHotelVoucherJob / SendCancellationJob.
-        // This job only ever runs once the reservation is already paid, so the
-        // success page (which resolves by reservation number) is unaffected.
-        [$rawToken, $hashedToken] = $reservations->generateMagicLinkToken();
-        $reservation->update([
-            'magic_link_token' => $hashedToken,
-            'magic_link_expires_at' => now()->addYear(),
-        ]);
+        // Reuse the reservation's stable magic-link token so the email links
+        // match the token already embedded in the Xendit success_url.
+        $rawToken = $reservations->magicLinkTokenFor($reservation);
 
         $frontendUrl = rtrim(config('app.frontend_url'), '/');
         $appUrl = rtrim(config('app.url'), '/');
 
         $magicLinkUrl = "{$frontendUrl}/hotels/reservation/{$rawToken}";
-        $invoiceUrl = "{$appUrl}/api/public/reservations/magic/{$rawToken}/invoice.pdf";
+        // The reservation is already paid by the time this email is sent, so a
+        // receipt (proof of payment) is the relevant document - not an invoice.
         $receiptUrl = $reservation->status->isPaid()
             ? "{$appUrl}/api/public/reservations/magic/{$rawToken}/receipt.pdf"
             : null;
 
-        Mail::send(new BookingReceivedMail($reservation, $magicLinkUrl, $invoiceUrl, $receiptUrl));
+        Mail::send(new BookingReceivedMail($reservation, $magicLinkUrl, $receiptUrl));
     }
 }

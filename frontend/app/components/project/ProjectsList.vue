@@ -115,24 +115,9 @@
       </div>
 
       <div class="mt-2 flex shrink-0 flex-col items-end gap-y-1.5">
-        <span
-          class="flex items-center gap-x-1 rounded-full px-2 py-0.5 text-xs font-medium tracking-tight capitalize"
-          :class="{
-            'bg-success/10 text-success-foreground': project.status === 'active',
-            'bg-warning/10 text-warning-foreground': project.status === 'draft',
-            'bg-muted text-muted-foreground': project.status === 'archived',
-          }"
-        >
-          <span
-            class="size-1.5 rounded-full"
-            :class="{
-              'bg-success': project.status === 'active',
-              'bg-warning': project.status === 'draft',
-              'bg-muted-foreground': project.status === 'archived',
-            }"
-          ></span>
+        <Badge :variant="projectStatusVariant[project.status] ?? 'muted'" class="capitalize">
           {{ project.status }}
-        </span>
+        </Badge>
 
         <Popover
           :open="openPopoverId[project.id] ?? false"
@@ -155,6 +140,7 @@
 </template>
 
 <script setup>
+import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const props = defineProps({
@@ -197,6 +183,12 @@ const props = defineProps({
 });
 
 const isInitialLoading = computed(() => props.pending && props.projects.length === 0);
+
+const projectStatusVariant = {
+  active: "success",
+  draft: "warning",
+  archived: "muted",
+};
 
 const projectsListEl = ref(null);
 

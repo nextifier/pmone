@@ -265,6 +265,54 @@ class XenditService
         }
     }
 
+    /**
+     * Resolve the card network (VISA / MASTERCARD / AMEX / JCB) behind a paid
+     * credit-card invoice. Xendit reports every card payment on the single
+     * `CREDIT_CARD` channel; the actual brand lives on the credit card charge,
+     * referenced by the invoice's `credit_card_charge_id`.
+     *
+     * Returns null when the charge can't be fetched or the brand is unknown,
+     * so callers keep the generic `CREDIT_CARD` value.
+     */
+    public function fetchCardBrand(string $creditCardChargeId): ?string
+    {
+        $this->requireGateway();
+
+        try {
+            $response = Http::withBasicAuth($this->secretKey, '')
+                ->acceptJson()
+                ->timeout(10)
+                ->connectTimeout(5)
+                ->get('https://api.xendit.co/credit_card_charges/'.urlencode($creditCardChargeId));
+
+            if (! $response->successful()) {
+                Log::info('Xendit fetchCardBrand non-2xx', [
+                    'status' => $response->status(),
+                    'charge_id' => $creditCardChargeId,
+                ]);
+
+                return null;
+            }
+
+            $brand = strtoupper(trim((string) $response->json('card_brand')));
+
+            return match ($brand) {
+                'VISA' => 'VISA',
+                'MASTERCARD' => 'MASTERCARD',
+                'JCB' => 'JCB',
+                'AMEX', 'AMERICAN EXPRESS' => 'AMEX',
+                default => null,
+            };
+        } catch (\Throwable $e) {
+            Log::warning('Xendit fetchCardBrand failed', [
+                'message' => $e->getMessage(),
+                'charge_id' => $creditCardChargeId,
+            ]);
+
+            return null;
+        }
+    }
+
     public function createInvoice(
         Reservation $reservation,
         ?string $successUrl = null,
@@ -360,10 +408,14 @@ class XenditService
         return $this->gateway;
     }
 
+    /**
+     * Xendit invoice currency. PM One prices everything in IDR (room rates,
+     * taxes, transfers - no FX conversion anywhere), so this is fixed at the
+     * app level and intentionally not configurable per gateway.
+     */
     protected function resolveCurrency(): string
     {
-        return $this->gateway?->config['currency']
-            ?? config('xendit.currency', 'IDR');
+        return config('xendit.currency', 'IDR');
     }
 
     protected function touchGatewayUsage(): void
@@ -405,19 +457,20 @@ class XenditService
             return $this->fallbackLogos();
         }
 
-        $cached = Cache::remember(
+        // Cache the raw channel codes (`[]` on failure) so a degraded Xendit
+        // response doesn't make every invoice render re-hit the API.
+        $codes = Cache::remember(
             $cacheKey,
             self::PAYMENT_CHANNELS_CACHE_TTL,
-            fn () => $this->fetchEnabledChannelCodes(),
+            fn () => $this->fetchEnabledChannelCodes() ?? [],
         );
 
-        if ($cached === null) {
-            Cache::forget($cacheKey);
+        $logos = $this->mapCodesToLogos(is_array($codes) ? $codes : []);
 
-            return $this->fallbackLogos();
-        }
-
-        return $this->mapCodesToLogos($cached);
+        // An invoice must never render with zero payment logos: fall back to a
+        // sensible static set when the live list is unavailable, empty, or none
+        // of the returned codes have a known logo asset.
+        return $logos !== [] ? $logos : $this->fallbackLogos();
     }
 
     /**
@@ -566,7 +619,12 @@ class XenditService
                 return null;
             }
 
-            $channels = $response->json();
+            $payload = $response->json();
+            // Xendit has returned both a bare array and a `{ data: [...] }`
+            // envelope for this endpoint across API versions - accept either.
+            $channels = (is_array($payload) && is_array($payload['data'] ?? null))
+                ? $payload['data']
+                : $payload;
             if (! is_array($channels)) {
                 return null;
             }

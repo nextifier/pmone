@@ -50,14 +50,9 @@
         <div class="frame-header">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="frame-title">Booking Summary</div>
-            <span
-              :class="[
-                'inline-flex w-fit shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-medium tracking-tight sm:text-sm',
-                statusClass,
-              ]"
-            >
+            <Badge :variant="statusVariant" with-icon plain>
               {{ reservation.status_label }}
-            </span>
+            </Badge>
           </div>
         </div>
         <div class="frame-panel space-y-4">
@@ -91,7 +86,9 @@
           </div>
 
           <div class="flex items-baseline justify-between border-t pt-3">
-            <span class="text-muted-foreground text-sm tracking-tight">Total paid</span>
+            <span class="text-muted-foreground text-sm tracking-tight">
+              {{ isPaid ? "Total paid" : "Total" }}
+            </span>
             <span class="text-base font-semibold tabular-nums tracking-tight sm:text-lg">
               Rp{{ formatRupiah(reservation.amounts?.total ?? 0) }}
             </span>
@@ -107,7 +104,7 @@
         </div>
         <div class="frame-panel">
           <div class="flex flex-wrap items-center justify-center gap-2">
-            <Button as-child variant="outline" size="sm">
+            <Button v-if="!isPaid" as-child variant="outline" size="sm">
               <a :href="invoicePdfUrl" target="_blank" rel="noopener">
                 <Icon name="hugeicons:invoice-03" class="size-4 shrink-0" />
                 Download Invoice
@@ -192,9 +189,10 @@
 </template>
 
 <script setup>
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { computed, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -210,16 +208,23 @@ const magicToken = computed(() => route.query.token);
 // token is missing (Xendit sometimes redirects with `?ref=` only), fall back
 // to a lightweight status lookup by reservation_number so step badges still
 // reflect the real payment state instead of looking stuck at "incomplete".
-const { data, pending } = await useLazyAsyncData(
+const { data, pending, refresh } = await useLazyAsyncData(
   () => `reservation-success-${magicToken.value || bookingRef.value || "none"}`,
-  () => {
+  async () => {
     if (magicToken.value) {
-      return $fetch(`/api/hotels/reservation/${magicToken.value}`).catch(() => null);
+      const byToken = await $fetch(`/api/hotels/reservation/${magicToken.value}`).catch(
+        () => null
+      );
+      if (byToken) return byToken;
     }
+    // Fall back to a status lookup by reservation number so the page still
+    // reflects the real payment state even if the magic token can't resolve.
     if (bookingRef.value) {
-      return $fetch(`/api/hotels/reservation/status/${bookingRef.value}`).catch(() => null);
+      return await $fetch(`/api/hotels/reservation/status/${bookingRef.value}`).catch(
+        () => null
+      );
     }
-    return Promise.resolve(null);
+    return null;
   }
 );
 
@@ -240,6 +245,27 @@ const isPending = computed(() => reservation.value?.status === "pending_payment"
 // booking" state — don't speculate "Payment successful" while the steps
 // below still show step 1 as incomplete.
 const isUnknownStatus = computed(() => !reservation.value);
+
+// Right after an Xendit redirect the payment webhook may not have landed yet,
+// so poll briefly so the page flips to "Payment successful" on its own.
+const pollTimer = ref(null);
+onMounted(() => {
+  if (isPaid.value) return;
+  let attempts = 0;
+  pollTimer.value = setInterval(async () => {
+    attempts += 1;
+    await refresh();
+    if (isPaid.value || attempts >= 10) {
+      clearInterval(pollTimer.value);
+      pollTimer.value = null;
+    }
+  }, 3000);
+});
+onBeforeUnmount(() => {
+  if (pollTimer.value) {
+    clearInterval(pollTimer.value);
+  }
+});
 
 const heroIcon = computed(() => {
   if (isPaid.value) return "hugeicons:checkmark-circle-02";
@@ -270,16 +296,16 @@ const heroDescription = computed(() => {
   return "Thank you. We've received your booking and will email a confirmation shortly.";
 });
 
-const statusClass = computed(() => {
+const statusVariant = computed(() => {
   const map = {
-    pending_payment: "bg-warning/15 text-warning-foreground",
-    paid: "bg-info/15 text-info-foreground",
-    voucher_sent: "bg-success/15 text-success-foreground",
-    expired: "bg-muted text-muted-foreground",
-    cancelled: "bg-destructive/15 text-destructive",
-    refunded: "bg-destructive/15 text-destructive",
+    pending_payment: "warning",
+    paid: "success",
+    voucher_sent: "success",
+    expired: "muted",
+    cancelled: "destructive",
+    refunded: "destructive",
   };
-  return map[reservation.value?.status] || "bg-muted text-muted-foreground";
+  return map[reservation.value?.status] || "muted";
 });
 
 const firstCheckIn = computed(() => {

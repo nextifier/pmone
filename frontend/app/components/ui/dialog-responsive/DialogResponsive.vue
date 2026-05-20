@@ -297,16 +297,14 @@ const onPopState = () => {
 };
 
 watch(isOpen, (newVal, oldVal) => {
-  if (!isDesktop.value) {
-    if (newVal && !oldVal) {
-      window.history.pushState({ drawerOpen: true }, "");
-      pushedHistoryState.value = true;
-      window.addEventListener("popstate", onPopState, { once: true });
-    } else if (!newVal && oldVal && pushedHistoryState.value) {
-      pushedHistoryState.value = false;
-      window.removeEventListener("popstate", onPopState);
-      window.history.back();
-    }
+  if (newVal && !oldVal) {
+    window.history.pushState({ drawerOpen: true }, "");
+    pushedHistoryState.value = true;
+    window.addEventListener("popstate", onPopState, { once: true });
+  } else if (!newVal && oldVal && pushedHistoryState.value) {
+    pushedHistoryState.value = false;
+    window.removeEventListener("popstate", onPopState);
+    window.history.back();
   }
 });
 

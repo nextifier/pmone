@@ -136,7 +136,7 @@ const fullAddress = computed(() => {
           <Badge
             v-for="facility in (hotel.facilities ?? []).slice(0, 4)"
             :key="facility"
-            variant="secondary"
+            variant="muted"
             class="text-xs"
           >
             {{ facility }}

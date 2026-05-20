@@ -27,14 +27,9 @@
           <h1 class="page-title">Booking {{ reservation.reservation_number }}</h1>
           <p class="text-muted-foreground text-sm tracking-tight">{{ reservation.hotel?.name }}</p>
         </div>
-        <span
-          :class="[
-            'inline-flex items-center rounded-full px-3 py-1 text-xs tracking-tight sm:text-sm',
-            statusClass,
-          ]"
-        >
+        <Badge :variant="statusVariant" with-icon plain>
           {{ reservation.status_label }}
-        </span>
+        </Badge>
       </div>
 
       <div class="frame">
@@ -122,14 +117,11 @@
           <div class="space-y-1.5 border-t pt-3 text-sm tracking-tight">
             <div class="text-muted-foreground flex justify-between">
               <span>Subtotal</span>
-              <span class="tabular-nums">
-                Rp
-                {{
-                  formatRupiah(
-                    reservation.amounts.subtotal_rooms + reservation.amounts.subtotal_transfer
-                  )
-                }}
-              </span>
+              <span class="tabular-nums">Rp{{
+                formatRupiah(
+                  reservation.amounts.subtotal_rooms + reservation.amounts.subtotal_transfer
+                )
+              }}</span>
             </div>
             <div class="text-muted-foreground flex justify-between">
               <span>Tax</span>
@@ -253,6 +245,7 @@
 </template>
 
 <script setup>
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
@@ -300,16 +293,16 @@ usePageMeta(null, {
   title: computed(() => `Booking ${reservation.value?.reservation_number ?? ""}`),
 });
 
-const statusClass = computed(() => {
+const statusVariant = computed(() => {
   const map = {
-    pending_payment: "bg-warning/15 text-warning-foreground",
-    paid: "bg-info/15 text-info-foreground",
-    voucher_sent: "bg-success/15 text-success-foreground",
-    expired: "bg-muted text-muted-foreground",
-    cancelled: "bg-destructive/15 text-destructive",
-    refunded: "bg-destructive/15 text-destructive",
+    pending_payment: "warning",
+    paid: "success",
+    voucher_sent: "success",
+    expired: "muted",
+    cancelled: "destructive",
+    refunded: "destructive",
   };
-  return map[reservation.value?.status] || "bg-muted text-muted-foreground";
+  return map[reservation.value?.status] || "muted";
 });
 
 const isPaid = computed(() => ["paid", "voucher_sent"].includes(reservation.value?.status));

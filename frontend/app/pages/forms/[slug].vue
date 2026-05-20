@@ -92,7 +92,7 @@ usePageMeta(null, {
 const statusVariant = (status) => {
   switch (status) {
     case "draft":
-      return "secondary";
+      return "muted";
     case "published":
       return "default";
     case "closed":

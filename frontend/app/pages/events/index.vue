@@ -97,6 +97,7 @@
 
 <script setup>
 import { TableData } from "@/components/ui/table-data";
+import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -231,6 +232,14 @@ const statusConfig = {
   no_date: { label: "No date", class: "text-muted-foreground" },
 };
 
+// Event status -> Badge variant
+const eventStatusVariant = {
+  published: "success",
+  draft: "warning",
+  archived: "muted",
+  cancelled: "destructive",
+};
+
 // Table columns
 const columns = [
   {
@@ -277,7 +286,7 @@ const columns = [
                     "span",
                     {
                       class:
-                        "text-warning-foreground text-xs font-medium tracking-tight",
+                        "text-warning-foreground text-sm font-medium tracking-tight",
                     },
                     "Draft"
                   ),
@@ -289,7 +298,7 @@ const columns = [
                   h(
                     "span",
                     {
-                      class: `text-xs font-medium tracking-tight ${statusConfig[event.time_status]?.class || statusConfig.no_date.class}`,
+                      class: `text-sm font-medium tracking-tight ${statusConfig[event.time_status]?.class || statusConfig.no_date.class}`,
                     },
                     event.time_status === "upcoming" && event.start_date
                       ? `Starts ${$dayjs(event.start_date).fromNow()}`
@@ -301,15 +310,9 @@ const columns = [
             ...(event.is_active
               ? [
                   h(
-                    "span",
-                    {
-                      class:
-                        "inline-flex shrink-0 items-center gap-x-1.5 text-xs font-medium tracking-tight text-muted-foreground",
-                    },
-                    [
-                      h("span", { class: "size-2 rounded-full bg-green-500" }),
-                      "Active",
-                    ]
+                    Badge,
+                    { variant: "success", withIcon: true, plain: true },
+                    { default: () => "Active" }
                   ),
                 ]
               : []),
@@ -366,9 +369,13 @@ const columns = [
     cell: ({ row }) => {
       const status = row.getValue("status");
       return h(
-        "span",
-        { class: "text-muted-foreground text-sm tracking-tight capitalize" },
-        status
+        Badge,
+        {
+          variant: eventStatusVariant[status] ?? "muted",
+          withIcon: true,
+          plain: true,
+        },
+        { default: () => status.charAt(0).toUpperCase() + status.slice(1) }
       );
     },
     size: 100,

@@ -22,7 +22,40 @@
       </div>
     </div>
 
+    <!-- Empty / unavailable state -->
+    <div
+      v-if="showEmptyState"
+      class="flex flex-col items-center justify-center gap-y-4 py-16 text-center"
+    >
+      <div
+        class="*:bg-background/80 *:squircle text-muted-foreground flex items-center -space-x-2 *:rounded-lg *:border *:p-3 *:backdrop-blur-sm [&_svg]:size-5"
+      >
+        <div class="translate-y-1.5 -rotate-6">
+          <Icon name="hugeicons:bed-single-01" />
+        </div>
+        <div>
+          <Icon name="hugeicons:hotel-01" />
+        </div>
+        <div class="translate-y-1.5 rotate-6">
+          <Icon name="hugeicons:link-04" />
+        </div>
+      </div>
+      <div class="space-y-1">
+        <h3 class="font-semibold tracking-tight">
+          {{ isUnavailable ? "Hotel reservations unavailable" : "No hotels yet" }}
+        </h3>
+        <p class="text-muted-foreground max-w-sm text-sm tracking-tight">
+          {{
+            isUnavailable
+              ? "Enable hotel reservations for this event and make sure the project has an active payment gateway."
+              : "Add a new hotel with its rooms and rates, or attach a hotel that already exists in another event."
+          }}
+        </p>
+      </div>
+    </div>
+
     <TableData
+      v-else
       ref="tableRef"
       :data="hotels"
       :columns="columns"
@@ -129,6 +162,7 @@
 <script setup>
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import HotelPicker from "@/components/hotel/HotelPicker.vue";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -214,6 +248,23 @@ const meta = computed(
       total: 0,
     }
 );
+
+// Feature is gated by the `hotel-reservation-enabled` middleware: the admin
+// hotels endpoint 404s when the toggle is off or the project has no active
+// payment gateway. Surface that as a clear state instead of a blank page.
+const isUnavailable = computed(() => !pending.value && !!error.value);
+
+// Full-page empty state only when the event genuinely has no hotels - not
+// when a search/filter simply returned nothing (TableData handles that).
+const isEmpty = computed(
+  () =>
+    !pending.value &&
+    !error.value &&
+    hotels.value.length === 0 &&
+    columnFilters.value.length === 0
+);
+
+const showEmptyState = computed(() => isUnavailable.value || isEmpty.value);
 
 watch([columnFilters, sorting, pagination], () => refresh(), { deep: true });
 
@@ -449,16 +500,13 @@ const columns = [
     accessorKey: "is_active",
     cell: ({ row }) =>
       h(
-        "span",
+        Badge,
         {
-          class: [
-            "inline-flex items-center rounded-full px-2 py-0.5 text-xs tracking-tight",
-            row.original.is_active
-              ? "bg-success/15 text-success-foreground"
-              : "bg-muted text-muted-foreground",
-          ],
+          variant: row.original.is_active ? "success" : "muted",
+          withIcon: true,
+          plain: true,
         },
-        row.original.is_active ? "Active" : "Inactive"
+        { default: () => (row.original.is_active ? "Active" : "Inactive") }
       ),
     size: 100,
     filterFn: (row, columnId, filterValue) => {

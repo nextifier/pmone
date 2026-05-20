@@ -362,7 +362,7 @@
                   </div>
                 </td>
                 <td class="px-4 py-3">
-                  <Badge variant="secondary" class="font-normal">
+                  <Badge variant="muted" class="font-normal">
                     {{ documentTypeLabel(doc.document_type) }}
                   </Badge>
                 </td>
@@ -373,7 +373,7 @@
                   {{ doc.blocks_next_step ? "Yes" : "No" }}
                 </td>
                 <td class="px-4 py-3">
-                  <Badge variant="secondary" class="font-mono text-xs font-normal">
+                  <Badge variant="muted" class="font-mono text-xs font-normal">
                     v{{ doc.content_version }}
                   </Badge>
                 </td>
@@ -680,7 +680,7 @@ function documentTypeLabel(type) {
 
 function documentTypeBadgeVariant(type) {
   if (type === "checkbox_agreement") return "default";
-  if (type === "file_upload") return "secondary";
+  if (type === "file_upload") return "muted";
   return "outline";
 }
 

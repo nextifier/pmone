@@ -18,7 +18,6 @@ class HotelVoucherMail extends Mailable
 
     public function __construct(
         public Reservation $reservation,
-        public ?string $invoiceUrl = null,
         public ?string $receiptUrl = null,
         public ?string $voucherUrl = null,
     ) {}
@@ -37,7 +36,6 @@ class HotelVoucherMail extends Mailable
             markdown: 'emails.reservation.hotel-voucher',
             with: [
                 'reservation' => $this->reservation,
-                'invoiceUrl' => $this->invoiceUrl,
                 'receiptUrl' => $this->receiptUrl,
                 'voucherUrl' => $this->voucherUrl,
             ],

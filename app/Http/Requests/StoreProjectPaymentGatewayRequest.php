@@ -23,7 +23,6 @@ class StoreProjectPaymentGatewayRequest extends FormRequest
             'public_key' => ['nullable', 'string', 'max:500'],
             'webhook_token' => ['nullable', 'string', 'max:500'],
             'config' => ['nullable', 'array'],
-            'config.currency' => ['nullable', 'string', 'size:3'],
             'config.success_redirect_url' => ['nullable', 'url', 'max:500'],
             'config.failure_redirect_url' => ['nullable', 'url', 'max:500'],
         ];

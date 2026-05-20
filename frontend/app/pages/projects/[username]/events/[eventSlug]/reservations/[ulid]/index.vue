@@ -6,15 +6,9 @@
         <h1 class="page-title font-mono text-base sm:text-lg">
           {{ reservation?.reservation_number ?? "Reservation" }}
         </h1>
-        <span
-          v-if="reservation"
-          :class="[
-            'inline-flex items-center rounded-full px-2 py-0.5 text-xs tracking-tight sm:text-sm',
-            statusBadge,
-          ]"
-        >
+        <Badge v-if="reservation" :variant="statusVariant" with-icon plain>
           {{ reservation.status_label }}
-        </span>
+        </Badge>
       </div>
     </div>
 
@@ -432,6 +426,8 @@
           <PaymentMethodBadge
             :channel="reservation.payment.channel"
             :method="reservation.payment.method"
+            icon-only
+            size="lg"
           />
         </div>
         <div class="grid grid-cols-2 gap-2">
@@ -673,6 +669,7 @@
 <script setup>
 import InputFile from "@/components/InputFile.vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
@@ -775,16 +772,16 @@ const formatDateTime = (iso) => (iso ? new Date(iso).toLocaleString("id-ID") : "
 const formatBytes = (b) =>
   b > 1024 * 1024 ? `${(b / (1024 * 1024)).toFixed(1)} MB` : `${Math.round(b / 1024)} KB`;
 
-const statusBadge = computed(() => {
+const statusVariant = computed(() => {
   const map = {
-    pending_payment: "bg-warning/15 text-warning-foreground",
-    paid: "bg-info/15 text-info-foreground",
-    voucher_sent: "bg-success/15 text-success-foreground",
-    expired: "bg-muted text-muted-foreground",
-    cancelled: "bg-destructive/15 text-destructive",
-    refunded: "bg-muted text-muted-foreground border border-destructive/30",
+    pending_payment: "warning",
+    paid: "success",
+    voucher_sent: "success",
+    expired: "muted",
+    cancelled: "destructive",
+    refunded: "destructive",
   };
-  return map[reservation.value?.status] || "bg-muted text-muted-foreground";
+  return map[reservation.value?.status] || "muted";
 });
 
 const voucherDialogOpen = ref(false);

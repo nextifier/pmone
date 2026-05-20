@@ -37,6 +37,7 @@
 </template>
 
 <script setup>
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 definePageMeta({
@@ -195,17 +196,11 @@ const columns = [
       const r = row.original;
       const isExhausted = r.is_exhausted;
       const label = !r.is_active ? "Inactive" : isExhausted ? "Exhausted" : "Active";
-      const cls = !r.is_active
-        ? "bg-muted text-muted-foreground"
-        : isExhausted
-          ? "bg-warning/15 text-warning-foreground"
-          : "bg-success/15 text-success-foreground";
+      const variant = !r.is_active ? "muted" : isExhausted ? "warning" : "success";
       return h(
-        "span",
-        {
-          class: `inline-flex items-center rounded-full px-2 py-0.5 text-xs sm:text-sm tracking-tight ${cls}`,
-        },
-        label,
+        Badge,
+        { variant, withIcon: true, plain: true },
+        { default: () => label },
       );
     },
     size: 110,

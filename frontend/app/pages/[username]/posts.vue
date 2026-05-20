@@ -23,7 +23,7 @@
           <span class="text-muted-foreground text-xs">@{{ targetUser.username }}</span>
         </div>
         <div class="ml-auto">
-          <Badge variant="secondary">
+          <Badge variant="muted">
             {{ meta?.total || 0 }} {{ (meta?.total || 0) === 1 ? "post" : "posts" }}
           </Badge>
         </div>

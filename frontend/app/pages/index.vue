@@ -113,7 +113,7 @@
             :key="item.title"
             class="bg-card ring-border rounded-xl p-6 ring-1"
           >
-            <Badge variant="secondary">Coming soon</Badge>
+            <Badge variant="muted">Coming soon</Badge>
             <div class="bg-muted mt-4 flex size-10 items-center justify-center rounded-lg">
               <Icon :name="item.icon" class="text-muted-foreground size-5" />
             </div>

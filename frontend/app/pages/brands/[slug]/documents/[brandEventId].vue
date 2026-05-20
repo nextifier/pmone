@@ -59,7 +59,7 @@
                   Blocks
                 </Badge>
               </div>
-              <Badge variant="secondary" class="text-xs font-normal">
+              <Badge variant="muted" class="text-xs font-normal">
                 {{ documentTypeLabel(item.document.document_type) }}
               </Badge>
             </div>

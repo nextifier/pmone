@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { DialogRoot } from "reka-ui";
+import { onBeforeUnmount, ref, watch } from "vue";
 import type { LightboxEmits, LightboxProps } from "./interface";
 import { useProvideLightbox } from "./useLightbox";
 
@@ -35,6 +36,30 @@ const currentIndex = state.index;
 function open() {
   isOpen.value = true;
 }
+
+// Back button/gesture closes lightbox instead of navigating away
+const pushedHistoryState = ref(false);
+
+const onPopState = () => {
+  pushedHistoryState.value = false;
+  isOpen.value = false;
+};
+
+watch(isOpen, (newVal, oldVal) => {
+  if (newVal && !oldVal) {
+    window.history.pushState({ lightboxOpen: true }, "");
+    pushedHistoryState.value = true;
+    window.addEventListener("popstate", onPopState, { once: true });
+  } else if (!newVal && oldVal && pushedHistoryState.value) {
+    pushedHistoryState.value = false;
+    window.removeEventListener("popstate", onPopState);
+    window.history.back();
+  }
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("popstate", onPopState);
+});
 
 defineExpose({
   open: isOpen,

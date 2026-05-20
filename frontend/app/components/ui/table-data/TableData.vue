@@ -264,7 +264,7 @@
                   v-for="row in table.getRowModel().rows"
                   :key="row.id"
                   :data-state="row.getIsSelected() && 'selected'"
-                  class="tracking-tight"
+                  class="group tracking-tight"
                 >
                   <TableCell
                     v-for="cell in row.getVisibleCells()"

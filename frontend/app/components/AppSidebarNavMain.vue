@@ -488,14 +488,6 @@ const navMainGroups = computed(() => {
     },
   ];
 
-  if (hasRole("master") || hasRole("admin")) {
-    otherItems.push({
-      label: "Database Diagram",
-      path: "/database-diagram",
-      iconName: "hugeicons:structure-03",
-    });
-  }
-
   groups.push({
     label: "Others",
     items: otherItems,
