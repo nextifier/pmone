@@ -134,7 +134,8 @@ class TransientReservationBuilder
         $reservation->discount_amount = 0;
         $reservation->tax_amount = 0;
         $reservation->service_charge_amount = 0;
-        $reservation->total_amount = $subtotalRooms + $subtotalTransfer + $surchargeAmount;
+        // Surcharge is already folded into $subtotalRooms - do not add it again.
+        $reservation->total_amount = $subtotalRooms + $subtotalTransfer;
 
         $reservation->setRelation('hotel', $hotel);
         $reservation->setRelation('items', $items);

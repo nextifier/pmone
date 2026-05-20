@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exports\PromotionRulesExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PromotionRule\StorePromotionRuleRequest;
 use App\Http\Requests\PromotionRule\UpdatePromotionRuleRequest;
@@ -12,6 +13,8 @@ use App\Models\PromotionRule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PromotionRuleController extends Controller
 {
@@ -141,6 +144,78 @@ class PromotionRuleController extends Controller
                     'total_amount' => (float) ($appliedStats->total_amount ?? 0),
                 ],
             ],
+        ]);
+    }
+
+    public function export(Request $request): BinaryFileResponse
+    {
+        $this->authorizePermission('promotion_rules.read');
+
+        $filters = [];
+
+        if ($search = $request->input('filter_search')) {
+            $filters['search'] = $search;
+        }
+
+        if ($kind = $request->input('filter_kind')) {
+            $filters['kind'] = $kind;
+        }
+
+        if ($request->input('filter_is_active') !== null) {
+            $filters['is_active'] = $request->input('filter_is_active');
+        }
+
+        if ($eventId = $request->input('filter_event_id')) {
+            $filters['event_id'] = $eventId;
+        }
+
+        if ($triggerType = $request->input('filter_trigger_type')) {
+            $filters['trigger_type'] = $triggerType;
+        }
+
+        $sort = $request->input('sort', '-created_at');
+        $filename = 'promotion_rules_'.now()->format('Y-m-d_His').'.xlsx';
+
+        activity()
+            ->causedBy($request->user())
+            ->event('exported')
+            ->withProperties(['model_type' => 'PromotionRule', 'filename' => $filename])
+            ->log('Exported promotion rules');
+
+        return Excel::download(new PromotionRulesExport($filters, $sort), $filename);
+    }
+
+    public function bulkDestroy(Request $request): JsonResponse
+    {
+        $this->authorizePermission('promotion_rules.delete');
+
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer', 'exists:promotion_rules,id'],
+        ]);
+
+        $deletedCount = 0;
+
+        PromotionRule::query()
+            ->whereIn('id', $validated['ids'])
+            ->get()
+            ->each(function (PromotionRule $rule) use (&$deletedCount) {
+                $rule->delete();
+                $deletedCount++;
+            });
+
+        if ($deletedCount > 0) {
+            activity()
+                ->causedBy($request->user())
+                ->event('bulk_deleted')
+                ->withProperties(['deleted_count' => $deletedCount, 'model_type' => 'PromotionRule'])
+                ->log("Bulk deleted {$deletedCount} promotion rule(s)");
+        }
+
+        return response()->json([
+            'message' => "{$deletedCount} promotion rule(s) deleted",
+            'deleted_count' => $deletedCount,
+            'errors' => [],
         ]);
     }
 

@@ -253,13 +253,15 @@ class ReservationController extends Controller
         // Preserves total_amount so refund calculation is correct.
         $this->promoCodes->voidAllOnCancel($reservation);
 
-        // Apply any cancellation_window penalty rule that matches. The penalty
-        // is recorded as an AppliedAdjustment for audit, but the refund still
-        // uses the hardcoded tier formula in calculateRefund() unless caller
-        // supplied an explicit refund_amount.
-        $this->penalties->applyCancellationFee($reservation->fresh(['items', 'transfers', 'adjustments', 'hotel']));
-
+        // Lock in the refund from what the guest actually paid - BEFORE applying
+        // any cancellation fee. applyCancellationFee() records a penalty
+        // adjustment that recalculates total_amount upward; computing the refund
+        // first keeps it tied to the amount paid, never inflated by the fee.
         $refundAmount = $data['refund_amount'] ?? $this->reservations->calculateRefund($reservation->fresh());
+
+        // Apply any cancellation_window penalty rule that matches - recorded as
+        // an AppliedAdjustment for audit only; it does not affect the refund.
+        $this->penalties->applyCancellationFee($reservation->fresh(['items', 'transfers', 'adjustments', 'hotel']));
 
         $reservation->update([
             'status' => ReservationStatus::Cancelled,

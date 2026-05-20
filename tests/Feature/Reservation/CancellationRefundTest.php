@@ -1,7 +1,10 @@
 <?php
 
+use App\Enums\AdjustmentValueType;
+use App\Enums\PenaltyTriggerType;
 use App\Enums\ReservationStatus;
 use App\Models\Hotel;
+use App\Models\PromotionRule;
 use App\Models\Reservation;
 use App\Models\ReservationItem;
 use App\Models\RoomType;
@@ -106,6 +109,49 @@ test('admin can cancel reservation with custom refund amount', function () {
     $reservation->refresh();
     expect($reservation->status)->toBe(ReservationStatus::Cancelled);
     expect((float) $reservation->refund_amount)->toBe(750000.0);
+});
+
+test('cancellation fee does not inflate the refund', function () {
+    Queue::fake();
+
+    // A cancellation-window penalty rule that fires for this reservation.
+    PromotionRule::factory()->penalty()->create([
+        'trigger_type' => PenaltyTriggerType::CancellationWindow->value,
+        'trigger_config' => ['min_days' => 30, 'operator' => 'lt'],
+        'value_type' => AdjustmentValueType::FixedAmount->value,
+        'value' => 500000,
+    ]);
+
+    $hotel = Hotel::factory()->create();
+    $room = RoomType::factory()->create(['hotel_id' => $hotel->id]);
+
+    $reservation = Reservation::factory()->paid()->create([
+        'hotel_id' => $hotel->id,
+        'total_amount' => 1000000,
+        'xendit_invoice_id' => 'inv_test',
+    ]);
+    ReservationItem::factory()->create([
+        'reservation_id' => $reservation->id,
+        'room_type_id' => $room->id,
+        'check_in_date' => Carbon::now()->addDays(20),
+        'check_out_date' => Carbon::now()->addDays(22),
+    ]);
+
+    $response = $this->postJson("/api/events/{$reservation->event_id}/reservations/{$reservation->ulid}/cancel", [
+        'reason' => 'Customer requested',
+        'process_refund' => false,
+    ]);
+
+    $response->assertSuccessful();
+
+    // The cancellation fee penalty must actually have been applied - otherwise
+    // this test would not exercise the order-dependent bug at all.
+    expect($reservation->fresh()->adjustments()->count())->toBe(1);
+
+    // Guest paid 1,000,000 (H-20 -> 100% tier). The refund must equal that
+    // exactly - never inflated by the 500,000 cancellation fee.
+    expect((float) $response->json('refund_amount'))->toBe(1000000.0);
+    expect((float) $reservation->fresh()->refund_amount)->toBe(1000000.0);
 });
 
 test('cancel rejects already-cancelled reservation (T4 idempotency)', function () {

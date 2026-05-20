@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exports\PromoCodesExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PromoCode\BulkGeneratePromoCodeRequest;
 use App\Http\Requests\PromoCode\StorePromoCodeRequest;
@@ -14,6 +15,8 @@ use App\Models\PromotionRule;
 use App\Services\Promotion\PromoCodeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PromoCodeController extends Controller
 {
@@ -128,6 +131,110 @@ class PromoCodeController extends Controller
                 'per_page' => $items->perPage(),
                 'total' => $items->total(),
             ],
+        ]);
+    }
+
+    public function export(Request $request): BinaryFileResponse
+    {
+        $this->authorizePermission('promo_codes.read');
+
+        $filters = [];
+
+        if ($search = $request->input('filter_search')) {
+            $filters['search'] = $search;
+        }
+
+        if ($ruleId = $request->input('filter_rule_id')) {
+            $filters['rule_id'] = $ruleId;
+        }
+
+        if ($eventId = $request->input('filter_event_id')) {
+            $filters['event_id'] = $eventId;
+        }
+
+        if ($request->input('filter_is_active') !== null) {
+            $filters['is_active'] = $request->input('filter_is_active');
+        }
+
+        if ($request->boolean('filter_exhausted')) {
+            $filters['exhausted'] = true;
+        }
+
+        $sort = $request->input('sort', '-created_at');
+        $filename = 'promo_codes_'.now()->format('Y-m-d_His').'.xlsx';
+
+        activity()
+            ->causedBy($request->user())
+            ->event('exported')
+            ->withProperties(['model_type' => 'PromoCode', 'filename' => $filename])
+            ->log('Exported promo codes');
+
+        return Excel::download(new PromoCodesExport($filters, $sort), $filename);
+    }
+
+    public function bulkDestroy(Request $request): JsonResponse
+    {
+        $this->authorizePermission('promo_codes.delete');
+
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer', 'exists:promo_codes,id'],
+        ]);
+
+        $deletedCount = 0;
+
+        PromoCode::query()
+            ->whereIn('id', $validated['ids'])
+            ->get()
+            ->each(function (PromoCode $code) use (&$deletedCount) {
+                $code->delete();
+                $deletedCount++;
+            });
+
+        if ($deletedCount > 0) {
+            activity()
+                ->causedBy($request->user())
+                ->event('bulk_deleted')
+                ->withProperties(['deleted_count' => $deletedCount, 'model_type' => 'PromoCode'])
+                ->log("Bulk deleted {$deletedCount} promo code(s)");
+        }
+
+        return response()->json([
+            'message' => "{$deletedCount} promo code(s) deleted",
+            'deleted_count' => $deletedCount,
+            'errors' => [],
+        ]);
+    }
+
+    public function trash(Request $request): JsonResponse
+    {
+        $this->authorizePermission('promo_codes.delete');
+
+        $items = PromoCode::onlyTrashed()
+            ->with('promotionRule:id,ulid,name,kind,value_type,value')
+            ->orderByDesc('deleted_at')
+            ->paginate((int) $request->input('per_page', 15));
+
+        return response()->json([
+            'data' => PromoCodeIndexResource::collection($items)->resolve(),
+            'meta' => [
+                'current_page' => $items->currentPage(),
+                'last_page' => $items->lastPage(),
+                'per_page' => $items->perPage(),
+                'total' => $items->total(),
+            ],
+        ]);
+    }
+
+    public function restore(string $ulid): JsonResponse
+    {
+        $this->authorizePermission('promo_codes.restore');
+
+        $code = PromoCode::onlyTrashed()->where('ulid', $ulid)->firstOrFail();
+        $code->restore();
+
+        return response()->json([
+            'message' => 'Promo code restored',
         ]);
     }
 

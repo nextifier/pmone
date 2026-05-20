@@ -396,9 +396,11 @@ class Reservation extends Model implements HasMedia, Purchasable
     public function pricingLines(): array
     {
         return [
+            // `subtotal_rooms` already includes the per-allotment surcharge folded
+            // into the room price, so surcharge must NOT be a separate line here -
+            // that would double-count it in the subtotal and total.
             ['key' => 'rooms', 'amount' => (float) $this->subtotal_rooms, 'taxable' => true],
             ['key' => 'transfer', 'amount' => (float) $this->subtotal_transfer, 'taxable' => true],
-            ['key' => 'surcharge', 'amount' => (float) $this->surcharge_amount, 'taxable' => true],
         ];
     }
 
@@ -418,7 +420,9 @@ class Reservation extends Model implements HasMedia, Purchasable
 
     public function subtotalForDiscountBase(): float
     {
-        return (float) ($this->subtotal_rooms + $this->subtotal_transfer + $this->surcharge_amount);
+        // `subtotal_rooms` already includes the folded-in allotment surcharge -
+        // adding `surcharge_amount` again would double-count it in the base.
+        return (float) ($this->subtotal_rooms + $this->subtotal_transfer);
     }
 
     public function customerEmail(): ?string

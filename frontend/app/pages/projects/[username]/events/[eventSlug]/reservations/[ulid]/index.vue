@@ -279,13 +279,6 @@
             >
           </div>
           <div
-            v-if="reservation.amounts.surcharge > 0"
-            class="text-muted-foreground flex justify-between"
-          >
-            <span>Surcharge</span
-            ><span class="tabular-nums">Rp{{ formatRupiah(reservation.amounts.surcharge) }}</span>
-          </div>
-          <div
             v-if="reservation.amounts.penalty > 0"
             class="text-warning-foreground flex justify-between"
           >

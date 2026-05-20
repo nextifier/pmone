@@ -191,12 +191,6 @@
                     <td class="text-right pr-6 text-gray-600 text-[13px] py-1">Subtotal</td>
                     <td class="text-right text-black text-[13px] py-1 w-[36%]">Rp{{ number_format($r->subtotal_rooms + $r->subtotal_transfer, 0, ',', '.') }}</td>
                 </tr>
-                @if ($r->surcharge_amount > 0)
-                <tr>
-                    <td class="text-right pr-6 text-gray-600 text-[13px] py-1">Surcharge</td>
-                    <td class="text-right text-black text-[13px] py-1 w-[36%]">Rp{{ number_format($r->surcharge_amount, 0, ',', '.') }}</td>
-                </tr>
-                @endif
                 @if ($r->relationLoaded('adjustments') ? $r->adjustments->whereNull('voided_at')->where('kind', \App\Enums\AdjustmentKind::Penalty)->count() : false)
                     @foreach ($r->adjustments->whereNull('voided_at')->where('kind', \App\Enums\AdjustmentKind::Penalty) as $adj)
                     <tr>

@@ -332,6 +332,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::prefix('promotion-rules')->group(function () {
         Route::get('/', [PromotionRuleController::class, 'index'])->name('promotion-rules.index');
         Route::get('/trash', [PromotionRuleController::class, 'trash'])->name('promotion-rules.trash');
+        Route::get('/export', [PromotionRuleController::class, 'export'])->name('promotion-rules.export');
+        Route::delete('/bulk', [PromotionRuleController::class, 'bulkDestroy'])->name('promotion-rules.bulk-destroy');
         Route::post('/', [PromotionRuleController::class, 'store'])->name('promotion-rules.store');
         Route::get('/{rule:ulid}', [PromotionRuleController::class, 'show'])->name('promotion-rules.show');
         Route::patch('/{rule:ulid}', [PromotionRuleController::class, 'update'])->name('promotion-rules.update');
@@ -344,10 +346,14 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::prefix('promo-codes')->group(function () {
         Route::get('/', [PromoCodeController::class, 'index'])->name('promo-codes.index');
+        Route::get('/export', [PromoCodeController::class, 'export'])->name('promo-codes.export');
+        Route::delete('/bulk', [PromoCodeController::class, 'bulkDestroy'])->name('promo-codes.bulk-destroy');
+        Route::get('/trash', [PromoCodeController::class, 'trash'])->name('promo-codes.trash');
         Route::get('/{code:ulid}', [PromoCodeController::class, 'show'])->name('promo-codes.show');
         Route::patch('/{code:ulid}', [PromoCodeController::class, 'update'])->name('promo-codes.update');
         Route::delete('/{code:ulid}', [PromoCodeController::class, 'destroy'])->name('promo-codes.destroy');
         Route::get('/{code:ulid}/usages', [PromoCodeController::class, 'usages'])->name('promo-codes.usages');
+        Route::post('/{ulid}/restore', [PromoCodeController::class, 'restore'])->name('promo-codes.restore');
     });
 
     // Brand management endpoints (nested under project events)
