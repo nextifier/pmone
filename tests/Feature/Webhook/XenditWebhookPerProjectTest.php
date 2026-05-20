@@ -2,6 +2,7 @@
 
 use App\Enums\ReservationStatus;
 use App\Jobs\Reservation\SendBookingReceivedJob;
+use App\Models\Event;
 use App\Models\Hotel;
 use App\Models\Project;
 use App\Models\ProjectPaymentGateway;
@@ -287,4 +288,81 @@ it('unknown event with no recognizable shape returns 200 to prevent retry', func
         ['x-callback-token' => 'good-token']
     )->assertSuccessful()
         ->assertJsonPath('message', 'Webhook received but no action taken');
+});
+
+it('generic webhook resolves project from refund payload nested data.invoice_id', function () {
+    // Refund webhooks hit the generic URL (`/api/webhooks/xendit`) and carry
+    // the invoice id NESTED inside `data` — `data.invoice_id`. The project is
+    // resolved from the reservation that owns that Xendit invoice.
+    $gateway = ProjectPaymentGateway::factory()->for($this->project)->create([
+        'webhook_token' => 'good-token',
+    ]);
+
+    $event = Event::factory()->withoutPaymentGateway()->create([
+        'project_id' => $this->project->id,
+    ]);
+    $hotel = Hotel::factory()->create();
+    $reservation = Reservation::factory()->create([
+        'event_id' => $event->id,
+        'hotel_id' => $hotel->id,
+        'status' => ReservationStatus::Paid,
+        'paid_at' => now()->subDays(2),
+        'xendit_invoice_id' => 'inv_generic_refund_nested',
+        'payment_gateway_id' => $gateway->id,
+        'refunded_at' => null,
+    ]);
+
+    $this->postJson(
+        '/api/webhooks/xendit',
+        [
+            'event' => 'refund.succeeded',
+            'data' => [
+                'id' => 'rfd_generic_nested',
+                'invoice_id' => 'inv_generic_refund_nested',
+                'amount' => 1200000,
+                'status' => 'SUCCEEDED',
+            ],
+        ],
+        ['x-callback-token' => 'good-token']
+    )->assertSuccessful();
+
+    $reservation->refresh();
+    expect($reservation->status)->toBe(ReservationStatus::Refunded);
+    expect($reservation->xendit_refund_id)->toBe('rfd_generic_nested');
+    expect($reservation->refunded_at)->not->toBeNull();
+});
+
+it('generic webhook with /invoice suffix routes to generic handler', function () {
+    // Legacy Xendit dashboard suffixes `/invoice` on the configured base URL.
+    // The `{segment}` route must treat a non-project segment as a no-op marker
+    // and fall through to generic project resolution via external_id.
+    $gateway = ProjectPaymentGateway::factory()->for($this->project)->create([
+        'webhook_token' => 'good-token',
+    ]);
+
+    $event = Event::factory()->withoutPaymentGateway()->create([
+        'project_id' => $this->project->id,
+    ]);
+    $hotel = Hotel::factory()->create();
+    $reservation = Reservation::factory()->create([
+        'event_id' => $event->id,
+        'hotel_id' => $hotel->id,
+        'status' => ReservationStatus::PendingPayment,
+        'reservation_number' => 'HTL-LEGACY-SUFFIX-01',
+        'xendit_invoice_id' => null,
+        'payment_gateway_id' => $gateway->id,
+    ]);
+
+    $this->postJson(
+        '/api/webhooks/xendit/invoice',
+        [
+            'external_id' => 'HTL-LEGACY-SUFFIX-01',
+            'id' => 'inv_legacy_suffix',
+            'status' => 'PAID',
+            'payment_channel' => 'BCA',
+        ],
+        ['x-callback-token' => 'good-token']
+    )->assertSuccessful();
+
+    expect($reservation->fresh()->status)->toBe(ReservationStatus::Paid);
 });

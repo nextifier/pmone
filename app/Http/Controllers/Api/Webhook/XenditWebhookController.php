@@ -77,10 +77,12 @@ class XenditWebhookController extends Controller
 
     /**
      * Generic webhook entry — used when several PM One projects share the
-     * same Xendit account and therefore can only register ONE Invoice-Paid
-     * URL in the Xendit dashboard. Resolves the owning project from the
-     * payload's `external_id` (reservation_number) via the reservation
-     * lookup, then enforces the same token check as the per-project route.
+     * same Xendit account and therefore can only register ONE webhook URL
+     * in the Xendit dashboard. Resolves the owning project from the payload:
+     *   - Invoice events: `external_id` (= reservation_number).
+     *   - Refund events: `invoice_id`, which Xendit NESTS under `data` —
+     *     `data.invoice_id` — so both shapes must be probed.
+     * Then enforces the same token check as the per-project route.
      */
     public function invoiceGeneric(Request $request): JsonResponse
     {
@@ -89,11 +91,13 @@ class XenditWebhookController extends Controller
 
         $project = $this->resolveProjectFromPayload($payload);
 
-        // Refund payloads identify the reservation via `invoice_id` instead
-        // of `external_id`; resolve from that field when present.
-        if (! $project && ! empty($payload['invoice_id'])) {
+        // Refund payloads identify the reservation via `invoice_id`. Xendit
+        // puts it inside the `data` object for refund.* events, but older
+        // shapes had it top-level — check both.
+        $invoiceId = $payload['invoice_id'] ?? $payload['data']['invoice_id'] ?? null;
+        if (! $project && $invoiceId) {
             $reservation = Reservation::query()
-                ->where('xendit_invoice_id', $payload['invoice_id'])
+                ->where('xendit_invoice_id', $invoiceId)
                 ->first();
             $project = $reservation?->event?->project;
         }
@@ -101,11 +105,12 @@ class XenditWebhookController extends Controller
         if (! $project) {
             Log::warning('Xendit webhook (generic) could not resolve project', [
                 'external_id' => $payload['external_id'] ?? null,
-                'invoice_id' => $payload['invoice_id'] ?? null,
+                'invoice_id' => $invoiceId,
+                'event' => $payload['event'] ?? null,
                 'ip' => $request->ip(),
             ]);
 
-            return response()->json(['message' => 'Reservation not found'], 404);
+            return response()->json(['message' => 'Reservation not found (acknowledged)']);
         }
 
         $gateway = $callbackToken !== ''
@@ -266,11 +271,20 @@ class XenditWebhookController extends Controller
      * Idempotent: matches reservation by `invoice_id` and only updates fields
      * that are still null/missing. Useful when refund settles asynchronously
      * (bank transfer can take 2-7 days).
+     *
+     * Xendit nests the refund fields (`id`, `invoice_id`, `amount`,
+     * `failure_reason`) inside a `data` object for `refund.*` events. Older
+     * payload shapes had them top-level — read `data` first, fall back to
+     * the root so both are handled.
      */
     private function handleRefundEvent(array $payload, string $event): JsonResponse
     {
-        $invoiceId = $payload['invoice_id'] ?? $payload['data']['invoice_id'] ?? null;
-        $payloadRefundId = $payload['id'] ?? null;
+        $data = is_array($payload['data'] ?? null) ? $payload['data'] : $payload;
+
+        $invoiceId = $data['invoice_id'] ?? $payload['invoice_id'] ?? null;
+        $payloadRefundId = $data['id'] ?? $payload['id'] ?? null;
+        $refundAmount = $data['amount'] ?? $payload['amount'] ?? null;
+        $failureReason = $data['failure_reason'] ?? $payload['failure_reason'] ?? null;
 
         if (! $invoiceId) {
             Log::info('Xendit refund webhook missing invoice_id', ['payload_keys' => array_keys($payload)]);
@@ -278,7 +292,7 @@ class XenditWebhookController extends Controller
             return response()->json(['message' => 'Missing invoice_id (no action)']);
         }
 
-        return DB::transaction(function () use ($payload, $event, $invoiceId, $payloadRefundId) {
+        return DB::transaction(function () use ($event, $invoiceId, $payloadRefundId, $refundAmount, $failureReason) {
             $reservation = Reservation::query()
                 ->where('xendit_invoice_id', $invoiceId)
                 ->lockForUpdate()
@@ -287,13 +301,13 @@ class XenditWebhookController extends Controller
             if (! $reservation) {
                 Log::warning('Xendit refund webhook: reservation not found', ['xendit_invoice_id' => $invoiceId]);
 
-                return response()->json(['message' => 'Reservation not found']);
+                return response()->json(['message' => 'Reservation not found (acknowledged)']);
             }
 
             if ($event === 'refund.failed') {
                 Log::error('Xendit refund failed (webhook)', [
                     'reservation_id' => $reservation->id,
-                    'reason' => $payload['failure_reason'] ?? null,
+                    'reason' => $failureReason,
                 ]);
 
                 activity()
@@ -302,7 +316,7 @@ class XenditWebhookController extends Controller
                     ->withProperties([
                         'project_id' => $reservation->event?->project_id,
                         'reservation_id' => $reservation->id,
-                        'failure_reason' => $payload['failure_reason'] ?? null,
+                        'failure_reason' => $failureReason,
                         'refund_id' => $payloadRefundId,
                     ])
                     ->log('Xendit refund failed');
@@ -327,8 +341,8 @@ class XenditWebhookController extends Controller
                 $update['refunded_at'] = now();
                 $update['status'] = ReservationStatus::Refunded;
             }
-            if (empty($reservation->refund_amount) && ! empty($payload['amount'])) {
-                $update['refund_amount'] = $payload['amount'];
+            if (empty($reservation->refund_amount) && ! empty($refundAmount)) {
+                $update['refund_amount'] = $refundAmount;
             }
 
             if (! empty($update)) {
