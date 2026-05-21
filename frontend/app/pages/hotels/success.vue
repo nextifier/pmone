@@ -189,9 +189,9 @@
 </template>
 
 <script setup>
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Skeleton } from "../../components/ui/skeleton";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { toast } from "vue-sonner";
 

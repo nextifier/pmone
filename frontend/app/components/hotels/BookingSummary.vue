@@ -1,11 +1,11 @@
 <script setup>
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { useBookingStore } from "@/stores/booking";
+} from "../ui/collapsible";
+import { useBookingStore } from "../../stores/booking";
 import { computed, ref } from "vue";
 
 const bookingStore = useBookingStore();

@@ -177,14 +177,14 @@
 </template>
 
 <script setup>
-import BookingStep1Dates from "@/components/hotels/BookingStep1Dates.vue";
-import BookingStep2Addons from "@/components/hotels/BookingStep2Addons.vue";
-import BookingStep3Guest from "@/components/hotels/BookingStep3Guest.vue";
-import BookingStep4Review from "@/components/hotels/BookingStep4Review.vue";
-import BookingStepper from "@/components/hotels/BookingStepper.vue";
-import BookingSummary from "@/components/hotels/BookingSummary.vue";
-import HotelHeroCollapsible from "@/components/hotels/HotelHeroCollapsible.vue";
-import MobileBottomCTA from "@/components/hotels/MobileBottomCTA.vue";
+import BookingStep1Dates from "../../../../components/hotels/BookingStep1Dates.vue";
+import BookingStep2Addons from "../../../../components/hotels/BookingStep2Addons.vue";
+import BookingStep3Guest from "../../../../components/hotels/BookingStep3Guest.vue";
+import BookingStep4Review from "../../../../components/hotels/BookingStep4Review.vue";
+import BookingStepper from "../../../../components/hotels/BookingStepper.vue";
+import BookingSummary from "../../../../components/hotels/BookingSummary.vue";
+import HotelHeroCollapsible from "../../../../components/hotels/HotelHeroCollapsible.vue";
+import MobileBottomCTA from "../../../../components/hotels/MobileBottomCTA.vue";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -192,7 +192,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+} from "../../../../components/ui/breadcrumb";
 import {
   Empty,
   EmptyContent,
@@ -200,9 +200,9 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@/components/ui/empty";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useBookingStore } from "@/stores/booking";
+} from "../../../../components/ui/empty";
+import { Skeleton } from "../../../../components/ui/skeleton";
+import { useBookingStore } from "../../../../stores/booking";
 import { toast } from "vue-sonner";
 import { computed, onMounted, ref, watch } from "vue";
 
@@ -289,13 +289,12 @@ async function tryPrefillFromUser() {
   ) {
     return;
   }
-  // Use the sanctum composable instead of $fetch — it routes through the
-  // configured backend baseUrl with the credentials cookie. `useSanctumAuth`
-  // already initializes once at app bootstrap; reading `user.value` is a
-  // pure ref read and produces no extra network call, so public visitors
-  // (no session) get a clean null without the console-noisy 404 we used to
-  // hit on `/api/sanctum/user`.
-  const { user } = useSanctumAuth();
+  // `useOptionalUser` resolves the logged-in user when an auth system is
+  // available (pmone admin, backed by Sanctum) and a null ref otherwise
+  // (public event sites in pmone-events). Reading `user.value` is a pure
+  // ref read — no network call — so visitors without a session get a clean
+  // null. Keeping this call identical lets the page copy-paste across repos.
+  const { user } = useOptionalUser();
   const u = user.value;
   if (u?.email) {
     bookingStore.setGuest({

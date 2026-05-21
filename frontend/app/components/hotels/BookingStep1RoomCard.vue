@@ -1,10 +1,10 @@
 <script setup>
-import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Lightbox } from "@/components/ui/lightbox";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "../ui/button";
+import { ButtonGroup } from "../ui/button-group";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Lightbox } from "../ui/lightbox";
+import { Textarea } from "../ui/textarea";
 import { computed } from "vue";
 
 const props = defineProps({

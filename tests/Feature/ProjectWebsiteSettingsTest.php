@@ -180,3 +180,111 @@ it('clears public rundown cache when settings change', function () {
         ->getJson($publicEndpoint)
         ->assertJsonPath('data.settings.show_search_bar', false);
 });
+
+it('persists show_hotel_section_on_home_page flag', function () {
+    $this->actingAs($this->user);
+
+    $response = $this->patchJson($this->endpoint, [
+        'hotels' => [
+            'show_hotel_section_on_home_page' => true,
+        ],
+    ]);
+
+    $response->assertSuccessful()
+        ->assertJsonPath('data.website_settings.hotels.show_hotel_section_on_home_page', true);
+
+    $this->project->refresh();
+    expect(data_get($this->project->settings, 'website_settings.hotels.show_hotel_section_on_home_page'))->toBeTrue();
+    // Confirm unrelated settings remain intact
+    expect(data_get($this->project->settings, 'website_settings.rundown.show_search_bar'))->toBeTrue();
+});
+
+it('exposes show_hotel_section_on_home_page in public website-settings response', function () {
+    ApiConsumer::factory()->create([
+        'api_key' => 'pk_test_hotel_flag',
+        'is_active' => true,
+    ]);
+
+    $publicEndpoint = "/api/public/projects/{$this->project->username}/website-settings";
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_hotel_flag'])
+        ->getJson($publicEndpoint)
+        ->assertJsonPath('data.settings.hotels.show_hotel_section_on_home_page', false);
+
+    $this->actingAs($this->user);
+    $this->patchJson($this->endpoint, [
+        'hotels' => ['show_hotel_section_on_home_page' => true],
+    ])->assertSuccessful();
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_hotel_flag'])
+        ->getJson($publicEndpoint)
+        ->assertJsonPath('data.settings.hotels.show_hotel_section_on_home_page', true);
+});
+
+it('persists hotel notification email config', function () {
+    $this->actingAs($this->user);
+
+    $response = $this->patchJson($this->endpoint, [
+        'hotels' => [
+            'notification_email' => [
+                'to' => ['staff@example.com', 'manager@example.com'],
+                'cc' => ['cc@example.com'],
+                'bcc' => [],
+                'subject' => 'Booking {status}: {reservation_number}',
+            ],
+        ],
+    ]);
+
+    $response->assertSuccessful();
+
+    $this->project->refresh();
+    $config = data_get($this->project->settings, 'website_settings.hotels.notification_email');
+
+    expect($config['to'])->toBe(['staff@example.com', 'manager@example.com']);
+    expect($config['cc'])->toBe(['cc@example.com']);
+    expect($config['subject'])->toBe('Booking {status}: {reservation_number}');
+});
+
+it('replaces hotel notification recipients wholesale instead of merging by index', function () {
+    $this->actingAs($this->user);
+
+    $this->patchJson($this->endpoint, [
+        'hotels' => [
+            'notification_email' => [
+                'to' => ['first@example.com', 'second@example.com'],
+                'cc' => [],
+                'bcc' => [],
+                'subject' => '',
+            ],
+        ],
+    ])->assertSuccessful();
+
+    // Removing the second recipient must not be resurrected by a recursive merge.
+    $this->patchJson($this->endpoint, [
+        'hotels' => [
+            'notification_email' => [
+                'to' => ['first@example.com'],
+                'cc' => [],
+                'bcc' => [],
+                'subject' => '',
+            ],
+        ],
+    ])->assertSuccessful();
+
+    $this->project->refresh();
+
+    expect(data_get($this->project->settings, 'website_settings.hotels.notification_email.to'))
+        ->toBe(['first@example.com']);
+});
+
+it('rejects invalid hotel notification recipient emails', function () {
+    $this->actingAs($this->user);
+
+    $this->patchJson($this->endpoint, [
+        'hotels' => [
+            'notification_email' => [
+                'to' => ['not-an-email'],
+            ],
+        ],
+    ])->assertUnprocessable();
+});

@@ -1,9 +1,9 @@
 <script setup>
-import TermsCheckbox from "@/components/hotels/TermsCheckbox.vue";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
-import { useBookingStore } from "@/stores/booking";
+import TermsCheckbox from "./TermsCheckbox.vue";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { InputErrorMessage } from "../ui/input-error-message";
+import { useBookingStore } from "../../stores/booking";
 import { useTimeoutFn } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
 import { toast } from "vue-sonner";

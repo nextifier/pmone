@@ -322,11 +322,29 @@ class ProjectController extends Controller
             'rundown.show_rundown_on_home_page' => ['sometimes', 'boolean'],
             'brands' => ['sometimes', 'array'],
             'brands.show_brand_preview_on_home_page' => ['sometimes', 'boolean'],
+            'hotels' => ['sometimes', 'array'],
+            'hotels.show_hotel_section_on_home_page' => ['sometimes', 'boolean'],
+            'hotels.notification_email' => ['sometimes', 'array'],
+            'hotels.notification_email.to' => ['sometimes', 'array'],
+            'hotels.notification_email.to.*' => ['nullable', 'email'],
+            'hotels.notification_email.cc' => ['sometimes', 'array'],
+            'hotels.notification_email.cc.*' => ['nullable', 'email'],
+            'hotels.notification_email.bcc' => ['sometimes', 'array'],
+            'hotels.notification_email.bcc.*' => ['nullable', 'email'],
+            'hotels.notification_email.subject' => ['sometimes', 'nullable', 'string', 'max:255'],
         ]);
 
         $settings = $project->settings ?? [];
         $current = data_get($settings, 'website_settings', []);
         $merged = array_replace_recursive($current, $validated);
+
+        // array_replace_recursive merges list arrays by index, which would
+        // resurrect recipients the user just removed. Replace the hotel
+        // notification email block wholesale whenever it is part of the payload.
+        if (array_key_exists('notification_email', $validated['hotels'] ?? [])) {
+            data_set($merged, 'hotels.notification_email', $validated['hotels']['notification_email']);
+        }
+
         data_set($settings, 'website_settings', $merged);
 
         $project->settings = $settings;

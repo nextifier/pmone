@@ -1,10 +1,10 @@
 <script setup>
-import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { PricingCalendar } from "@/components/ui/pricing-calendar";
+import { Button } from "../ui/button";
+import { ButtonGroup } from "../ui/button-group";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { PricingCalendar } from "../ui/pricing-calendar";
 import BookingStep1RoomCard from "./BookingStep1RoomCard.vue";
 import {
   CalendarDate,

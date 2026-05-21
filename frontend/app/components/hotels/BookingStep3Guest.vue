@@ -3,21 +3,21 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Input } from "@/components/ui/input";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
-import { InputPhone } from "@/components/ui/input-phone";
-import { Label } from "@/components/ui/label";
-import { LocationCombobox } from "@/components/ui/location-combobox";
+} from "../ui/collapsible";
+import { Input } from "../ui/input";
+import { InputErrorMessage } from "../ui/input-error-message";
+import { InputPhone } from "../ui/input-phone";
+import { Label } from "../ui/label";
+import { LocationCombobox } from "../ui/location-combobox";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import countries from "@/data/countries.json";
+} from "../ui/select";
+import { Textarea } from "../ui/textarea";
+import countries from "../../data/countries.json";
 import { computed, ref, watch } from "vue";
 
 const props = defineProps({

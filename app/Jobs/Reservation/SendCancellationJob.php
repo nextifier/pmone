@@ -45,5 +45,9 @@ class SendCancellationJob implements ShouldQueue
             : null;
 
         Mail::send(new CancellationMail($reservation, $this->refundAmount, $receiptUrl));
+
+        // Notify project staff that a booking is cancelled (recipients are
+        // configured per project in Website Settings).
+        SendStaffReservationNotificationJob::dispatch($reservation->id, 'cancelled');
     }
 }

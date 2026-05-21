@@ -551,4 +551,23 @@ class Project extends Model implements HasMedia, Sortable
             'body' => 'We have received your message and will get back to you soon.',
         ]);
     }
+
+    /**
+     * Get the hotel reservation staff-notification email configuration.
+     *
+     * Recipients notified when a hotel booking is confirmed or cancelled.
+     *
+     * @return array{to: list<string>, cc: list<string>, bcc: list<string>, subject: string|null}
+     */
+    public function getHotelNotificationEmailConfig(): array
+    {
+        $config = data_get($this->settings, 'website_settings.hotels.notification_email', []);
+
+        return [
+            'to' => array_values(array_filter($config['to'] ?? [])),
+            'cc' => array_values(array_filter($config['cc'] ?? [])),
+            'bcc' => array_values(array_filter($config['bcc'] ?? [])),
+            'subject' => $config['subject'] ?? null,
+        ];
+    }
 }

@@ -59,9 +59,9 @@
 </template>
 
 <script setup>
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import DialogResponsive from '@/components/ui/dialog-responsive/DialogResponsive.vue'
+import { Button } from '../ui/button'
+import { Checkbox } from '../ui/checkbox'
+import DialogResponsive from '../ui/dialog-responsive/DialogResponsive.vue'
 import { ref } from 'vue'
 
 defineProps({

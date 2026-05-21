@@ -46,5 +46,9 @@ class SendBookingReceivedJob implements ShouldQueue
             : null;
 
         Mail::send(new BookingReceivedMail($reservation, $magicLinkUrl, $receiptUrl));
+
+        // Notify project staff that a booking is confirmed (recipients are
+        // configured per project in Website Settings).
+        SendStaffReservationNotificationJob::dispatch($reservation->id, 'confirmed');
     }
 }

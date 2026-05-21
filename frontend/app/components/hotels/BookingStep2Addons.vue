@@ -1,7 +1,7 @@
 <script setup>
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Textarea } from "@/components/ui/textarea";
+import { Label } from "../ui/label";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Textarea } from "../ui/textarea";
 
 const props = defineProps({
   options: { type: Array, default: () => [] },

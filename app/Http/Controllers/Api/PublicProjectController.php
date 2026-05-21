@@ -430,6 +430,7 @@ class PublicProjectController extends Controller
         $settings = data_get($project->settings, 'website_settings', []);
         $rundown = data_get($settings, 'rundown', []);
         $brands = data_get($settings, 'brands', []);
+        $hotels = data_get($settings, 'hotels', []);
 
         return response()->json([
             'data' => [
@@ -442,6 +443,9 @@ class PublicProjectController extends Controller
                     ],
                     'brands' => [
                         'show_brand_preview_on_home_page' => (bool) ($brands['show_brand_preview_on_home_page'] ?? false),
+                    ],
+                    'hotels' => [
+                        'show_hotel_section_on_home_page' => (bool) ($hotels['show_hotel_section_on_home_page'] ?? false),
                     ],
                 ],
             ],

@@ -1,7 +1,7 @@
 <script setup>
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { Lightbox } from "@/components/ui/lightbox";
+import { Skeleton } from "../ui/skeleton";
+import { Badge } from "../ui/badge";
+import { Lightbox } from "../ui/lightbox";
 import { computed } from "vue";
 
 const props = defineProps({
