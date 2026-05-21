@@ -221,7 +221,7 @@ return [
             'label' => 'Payment Gateways',
             'description' => 'Manage per-project payment gateway credentials (Xendit, etc.)',
             'model' => ProjectPaymentGateway::class,
-            'actions' => ['create', 'read', 'update', 'delete'],
+            'actions' => ['create', 'read', 'update', 'delete', 'view_balance', 'view_transactions', 'view_webhook_events', 'view_reconciliation', 'view_settlement'],
         ],
         'promotion_rules' => [
             'label' => 'Promotion Rules',

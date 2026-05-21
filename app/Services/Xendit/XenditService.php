@@ -2,10 +2,25 @@
 
 namespace App\Services\Xendit;
 
+use App\Contracts\Payment\PaymentProvider;
+use App\Contracts\Payment\ProvidesBalance;
+use App\Contracts\Payment\ProvidesSettlements;
+use App\Contracts\Payment\ProvidesTransactions;
+use App\DTOs\Payment\BalanceAccount;
+use App\DTOs\Payment\BalanceSnapshot;
+use App\DTOs\Payment\SettlementBucket;
+use App\DTOs\Payment\SettlementSummary;
+use App\DTOs\Payment\TransactionEntry;
+use App\DTOs\Payment\TransactionPage;
+use App\DTOs\Payment\TransactionQuery;
+use App\Enums\PaymentCapability;
+use App\Exceptions\Payment\PaymentProviderException;
 use App\Models\ProjectPaymentGateway;
 use App\Models\Reservation;
 use GuzzleHttp\Client as GuzzleClient;
+use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -15,7 +30,7 @@ use Xendit\Invoice\InvoiceApi;
 use Xendit\Refund\CreateRefund;
 use Xendit\Refund\RefundApi;
 
-class XenditService
+class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlements, ProvidesTransactions
 {
     /**
      * Cache TTL for payment channel listings (24 hours).
@@ -406,6 +421,351 @@ class XenditService
     public function gateway(): ?ProjectPaymentGateway
     {
         return $this->gateway;
+    }
+
+    public function provider(): string
+    {
+        return 'xendit';
+    }
+
+    /**
+     * Capabilities this provider exposes. Payouts is added here when that
+     * phase lands.
+     *
+     * @return array<int, PaymentCapability>
+     */
+    public function capabilities(): array
+    {
+        return [
+            PaymentCapability::Invoicing,
+            PaymentCapability::Refunds,
+            PaymentCapability::Balance,
+            PaymentCapability::Transactions,
+            PaymentCapability::Settlement,
+        ];
+    }
+
+    public function supports(PaymentCapability $capability): bool
+    {
+        return in_array($capability, $this->capabilities(), true);
+    }
+
+    /**
+     * Fetch the bound account's balance from Xendit.
+     *
+     * CASH is the primary spendable balance and a failure there is fatal.
+     * HOLDING is supplementary — skipped silently if the account is not
+     * available on this Xendit plan or the call fails.
+     */
+    public function getBalance(): BalanceSnapshot
+    {
+        $this->requireGateway();
+
+        $currency = $this->resolveCurrency();
+        $accounts = [
+            new BalanceAccount('CASH', $this->fetchAccountBalance('CASH'), $currency),
+        ];
+
+        try {
+            $accounts[] = new BalanceAccount('HOLDING', $this->fetchAccountBalance('HOLDING'), $currency);
+        } catch (PaymentProviderException $e) {
+            Log::info('Xendit HOLDING balance unavailable, skipped', [
+                'gateway_id' => $this->gateway?->id,
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        $this->touchGatewayUsage();
+
+        return new BalanceSnapshot(
+            available: $accounts[0]->balance,
+            currency: $currency,
+            accounts: $accounts,
+            fetchedAt: now(),
+        );
+    }
+
+    /**
+     * Call Xendit `GET /balance` for one account type. Throws a
+     * PaymentProviderException already mapped to a user-safe code on any
+     * non-2xx response or transport failure.
+     */
+    protected function fetchAccountBalance(string $accountType): float
+    {
+        try {
+            $response = Http::withBasicAuth($this->secretKey, '')
+                ->acceptJson()
+                ->timeout(10)
+                ->connectTimeout(5)
+                ->get('https://api.xendit.co/balance', ['account_type' => $accountType]);
+        } catch (\Throwable $e) {
+            $mapped = XenditErrorMapper::map($e);
+
+            throw new PaymentProviderException(
+                $mapped['message'],
+                $mapped['error_code'],
+                $mapped['http_status'],
+                $e,
+            );
+        }
+
+        if ($response->successful()) {
+            return (float) ($response->json('balance') ?? 0);
+        }
+
+        throw $this->mapProviderApiError($response, 'balance:'.$accountType);
+    }
+
+    /**
+     * List transactions on the bound Xendit account, one cursor page at a time.
+     */
+    public function listTransactions(TransactionQuery $query): TransactionPage
+    {
+        $this->requireGateway();
+
+        $params = ['limit' => $query->limit];
+
+        if ($query->afterId !== null) {
+            $params['after_id'] = $query->afterId;
+        }
+        if ($query->type !== null) {
+            $params['types'] = strtoupper($query->type);
+        }
+        if ($query->status !== null) {
+            $params['statuses'] = strtoupper($query->status);
+        }
+        if ($query->dateFrom !== null) {
+            $params['created']['gte'] = Carbon::parse($query->dateFrom)->startOfDay()->toIso8601String();
+        }
+        if ($query->dateTo !== null) {
+            $params['created']['lte'] = Carbon::parse($query->dateTo)->endOfDay()->toIso8601String();
+        }
+
+        try {
+            $response = Http::withBasicAuth($this->secretKey, '')
+                ->acceptJson()
+                ->timeout(15)
+                ->connectTimeout(5)
+                ->get('https://api.xendit.co/transactions', $params);
+        } catch (\Throwable $e) {
+            $mapped = XenditErrorMapper::map($e);
+
+            throw new PaymentProviderException(
+                $mapped['message'],
+                $mapped['error_code'],
+                $mapped['http_status'],
+                $e,
+            );
+        }
+
+        if (! $response->successful()) {
+            throw $this->mapProviderApiError($response, 'transactions');
+        }
+
+        $this->touchGatewayUsage();
+
+        return $this->mapTransactionsResponse($response->json());
+    }
+
+    /**
+     * Map Xendit's `/transactions` payload to a normalized TransactionPage.
+     * Xendit uses cursor pagination: the cursor for the next page is the id of
+     * the last row, surfaced only when `has_more` is true.
+     */
+    protected function mapTransactionsResponse(mixed $payload): TransactionPage
+    {
+        $rows = (is_array($payload) && is_array($payload['data'] ?? null)) ? $payload['data'] : [];
+        $hasMore = is_array($payload) && ($payload['has_more'] ?? false) === true;
+
+        $entries = [];
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $entries[] = new TransactionEntry(
+                id: (string) ($row['id'] ?? ''),
+                type: (string) ($row['type'] ?? ''),
+                status: (string) ($row['status'] ?? ''),
+                channelCode: $this->normalizeChannelCode($row['channel_code'] ?? null),
+                channelCategory: isset($row['channel_category']) ? (string) $row['channel_category'] : null,
+                amount: (float) ($row['amount'] ?? 0),
+                netAmount: isset($row['net_amount']) ? (float) $row['net_amount'] : null,
+                currency: (string) ($row['currency'] ?? $this->resolveCurrency()),
+                reference: isset($row['reference_id']) ? (string) $row['reference_id'] : null,
+                createdAt: isset($row['created']) ? Carbon::parse($row['created']) : null,
+                settlementStatus: isset($row['settlement_status']) ? (string) $row['settlement_status'] : null,
+                estimatedSettlementTime: isset($row['estimated_settlement_time'])
+                    ? Carbon::parse($row['estimated_settlement_time'])
+                    : null,
+            );
+        }
+
+        $nextCursor = ($hasMore && $entries !== []) ? end($entries)->id : null;
+
+        return new TransactionPage($entries, $hasMore, $nextCursor);
+    }
+
+    /**
+     * Xendit transaction channel codes carry a country prefix on e-wallets
+     * (ID_OVO, ID_DANA, ID_SHOPEEPAY, ...). Strip it so the code matches the
+     * shared payment-method logo map used across the app.
+     */
+    protected function normalizeChannelCode(mixed $code): ?string
+    {
+        if (! is_string($code) || $code === '') {
+            return null;
+        }
+
+        return preg_replace('/^ID_/', '', $code);
+    }
+
+    /**
+     * Summarize settlement progress by walking successful payments and reading
+     * each transaction's `settlement_status` / `estimated_settlement_time`.
+     * Pending amounts are bucketed by their estimated settlement date.
+     */
+    public function getSettlementSummary(string $dateFrom, string $dateTo): SettlementSummary
+    {
+        $this->requireGateway();
+
+        $pendingAmount = 0.0;
+        $pendingCount = 0;
+        $settledAmount = 0.0;
+        $settledCount = 0;
+        /** @var array<string, array{amount: float, count: int}> $buckets */
+        $buckets = [];
+
+        $cursor = null;
+        $truncated = true;
+        $maxPages = 40;
+
+        for ($i = 0; $i < $maxPages; $i++) {
+            $page = $this->listTransactions(new TransactionQuery(
+                limit: 50,
+                afterId: $cursor,
+                type: 'payment',
+                status: 'success',
+                dateFrom: $dateFrom,
+                dateTo: $dateTo,
+            ));
+
+            foreach ($page->entries as $txn) {
+                $status = strtoupper((string) $txn->settlementStatus);
+
+                if ($status === 'PENDING') {
+                    $pendingAmount += $txn->amount;
+                    $pendingCount++;
+                    $key = $txn->estimatedSettlementTime?->toDateString() ?? '';
+                    $buckets[$key]['amount'] = ($buckets[$key]['amount'] ?? 0) + $txn->amount;
+                    $buckets[$key]['count'] = ($buckets[$key]['count'] ?? 0) + 1;
+                } elseif ($status === 'SETTLED' || $status === 'EARLY_SETTLED') {
+                    $settledAmount += $txn->amount;
+                    $settledCount++;
+                }
+            }
+
+            if (! $page->hasMore || $page->nextCursor === null) {
+                $truncated = false;
+                break;
+            }
+            $cursor = $page->nextCursor;
+        }
+
+        ksort($buckets);
+        $upcoming = [];
+        $unscheduled = null;
+        foreach ($buckets as $date => $data) {
+            $bucket = new SettlementBucket(
+                date: $date !== '' ? $date : null,
+                amount: $data['amount'],
+                count: $data['count'],
+            );
+            if ($date === '') {
+                $unscheduled = $bucket;
+            } else {
+                $upcoming[] = $bucket;
+            }
+        }
+        if ($unscheduled !== null) {
+            $upcoming[] = $unscheduled;
+        }
+
+        return new SettlementSummary(
+            pendingAmount: $pendingAmount,
+            pendingCount: $pendingCount,
+            settledAmount: $settledAmount,
+            settledCount: $settledCount,
+            currency: $this->resolveCurrency(),
+            upcoming: $upcoming,
+            truncated: $truncated,
+        );
+    }
+
+    /**
+     * Translate a non-2xx Xendit response into a PaymentProviderException with
+     * a stable error code. Mirrors the status taxonomy used by
+     * testCredentials() so the admin UI surfaces consistent messages.
+     */
+    protected function mapProviderApiError(Response $response, string $context): PaymentProviderException
+    {
+        $body = $response->json();
+        $providerCode = is_array($body) ? (string) ($body['error_code'] ?? '') : '';
+        $providerMsg = is_array($body) ? (string) ($body['message'] ?? '') : '';
+        $status = $response->status();
+
+        Log::warning('Xendit API returned non-2xx', [
+            'status' => $status,
+            'context' => $context,
+            'gateway_id' => $this->gateway?->id,
+            'error_code' => $providerCode,
+        ]);
+
+        if ($providerCode === 'IP_NOT_ALLOWED' || str_contains(strtolower($providerMsg), 'ip allowlist')) {
+            return new PaymentProviderException(
+                'Xendit blocked this request. Add the server IP to the Xendit IP allowlist (Settings → Developers → IP Allowlist).',
+                'PAYMENT_GATEWAY_IP_NOT_ALLOWED',
+                502,
+            );
+        }
+
+        if ($status === 401 || $providerCode === 'INVALID_API_KEY') {
+            return new PaymentProviderException(
+                'Xendit rejected the secret key for this gateway. Check the credentials in payment gateway settings.',
+                'PAYMENT_GATEWAY_MISCONFIGURED',
+                502,
+            );
+        }
+
+        if ($status === 429) {
+            return new PaymentProviderException(
+                'Too many requests to Xendit. Wait a minute and try again.',
+                'PAYMENT_GATEWAY_RATE_LIMITED',
+                429,
+            );
+        }
+
+        if ($status === 403) {
+            return new PaymentProviderException(
+                'Xendit refused the request. The account may be suspended or the key may lack permission.',
+                'PAYMENT_GATEWAY_FORBIDDEN',
+                502,
+            );
+        }
+
+        if ($status >= 500) {
+            return new PaymentProviderException(
+                'Xendit reported a server error. Try again in a few minutes.',
+                'PAYMENT_GATEWAY_SERVER_ERROR',
+                502,
+            );
+        }
+
+        return new PaymentProviderException(
+            'Xendit could not complete the request (status '.$status.').',
+            'PAYMENT_GATEWAY_UNAVAILABLE',
+            502,
+        );
     }
 
     /**

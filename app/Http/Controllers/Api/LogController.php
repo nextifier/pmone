@@ -3,6 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\BrandEvent;
+use App\Models\Event;
+use App\Models\EventProduct;
+use App\Models\Order;
+use App\Models\ProjectPaymentGateway;
+use App\Models\PromotionPost;
+use App\Models\Reservation;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,6 +20,24 @@ use Spatie\Activitylog\Models\Activity;
 class LogController extends Controller
 {
     use AuthorizesRequests;
+
+    /**
+     * Fields too technical or internal to surface in the activity feed
+     * (raw IDs, gateway tokens, URLs). Hidden from both descriptions and changes.
+     */
+    private const HIDDEN_CHANGE_FIELDS = [
+        'updated_at',
+        'updated_by',
+        'created_at',
+        'created_by',
+        'xendit_invoice_id',
+        'xendit_payment_id',
+        'xendit_refund_id',
+        'payment_url',
+        'payment_destination',
+        'payment_method',
+        'magic_link_token',
+    ];
 
     public function index(Request $request): JsonResponse
     {
@@ -28,7 +55,7 @@ class LogController extends Controller
         $from = $request->input('from');
         $to = $request->input('to');
 
-        $query = Activity::with(['causer', 'causer.media', 'subject'])
+        $query = self::eagerLoadActivity(Activity::query())
             ->orderBy('created_at', 'desc');
 
         if ($search) {
@@ -102,7 +129,10 @@ class LogController extends Controller
         ]);
     }
 
-    public function logNames(Request $request): JsonResponse
+    /**
+     * Return all filter options (log names, events, causers) in a single request.
+     */
+    public function filterOptions(Request $request): JsonResponse
     {
         if (! $request->user()->hasRole(['master', 'admin'])) {
             return response()->json([
@@ -110,37 +140,24 @@ class LogController extends Controller
             ], 403);
         }
 
-        $logNames = Activity::distinct()->pluck('log_name')->filter()->values();
+        $logNames = Activity::query()
+            ->distinct()
+            ->whereNotNull('log_name')
+            ->pluck('log_name')
+            ->filter()
+            ->sort()
+            ->values();
 
-        return response()->json([
-            'data' => $logNames,
-        ]);
-    }
+        $events = Activity::query()
+            ->distinct()
+            ->whereNotNull('event')
+            ->pluck('event')
+            ->filter()
+            ->sort()
+            ->values();
 
-    public function events(Request $request): JsonResponse
-    {
-        if (! $request->user()->hasRole(['master', 'admin'])) {
-            return response()->json([
-                'message' => 'Unauthorized. Only master and admin roles can access logs.',
-            ], 403);
-        }
-
-        $events = Activity::distinct()->whereNotNull('event')->pluck('event')->filter()->values();
-
-        return response()->json([
-            'data' => $events,
-        ]);
-    }
-
-    public function causers(Request $request): JsonResponse
-    {
-        if (! $request->user()->hasRole(['master', 'admin'])) {
-            return response()->json([
-                'message' => 'Unauthorized. Only master and admin roles can access logs.',
-            ], 403);
-        }
-
-        $causers = Activity::whereNotNull('causer_id')
+        $causers = Activity::query()
+            ->whereNotNull('causer_id')
             ->with('causer:id,name')
             ->select('causer_id')
             ->distinct()
@@ -152,13 +169,16 @@ class LogController extends Controller
             ->values();
 
         // Prepend "System" option for activities without a causer
-        $hasSystemActivities = Activity::whereNull('causer_id')->exists();
-        if ($hasSystemActivities) {
+        if (Activity::query()->whereNull('causer_id')->exists()) {
             $causers->prepend(['id' => 'system', 'name' => 'System']);
         }
 
         return response()->json([
-            'data' => $causers,
+            'data' => [
+                'log_names' => $logNames,
+                'events' => $events,
+                'causers' => $causers,
+            ],
         ]);
     }
 
@@ -181,6 +201,30 @@ class LogController extends Controller
         return response()->json([
             'message' => 'Logs cleared successfully',
             'deleted_count' => $deletedCount,
+        ]);
+    }
+
+    /**
+     * Eager load the causer and polymorphic subject relations needed to
+     * resolve subject names and URLs. morphWith prevents N+1 queries on
+     * the nested relations accessed per subject type.
+     */
+    public static function eagerLoadActivity(Builder $query): Builder
+    {
+        return $query->with([
+            'causer',
+            'causer.media',
+            'subject' => function (MorphTo $morphTo) {
+                $morphTo->morphWith([
+                    BrandEvent::class => ['brand', 'event.project'],
+                    Event::class => ['project'],
+                    PromotionPost::class => ['brandEvent.brand', 'brandEvent.event.project'],
+                    EventProduct::class => ['event.project'],
+                    Reservation::class => ['event.project'],
+                    Order::class => ['brandEvent.event.project'],
+                    ProjectPaymentGateway::class => ['project'],
+                ]);
+            },
         ]);
     }
 
@@ -228,7 +272,11 @@ class LogController extends Controller
             // Try to get name from properties (for deleted subjects)
             $attrs = $activity->properties['attributes'] ?? $activity->properties['old'] ?? [];
 
-            return $attrs['name'] ?? $attrs['title'] ?? null;
+            return $attrs['name']
+                ?? $attrs['title']
+                ?? $attrs['reservation_number']
+                ?? $attrs['code']
+                ?? null;
         }
 
         // User model: always use name (title = job title, not identifier)
@@ -254,6 +302,16 @@ class LogController extends Controller
             $formData = $subject->form_data ?? [];
 
             return $formData['name'] ?? $formData['email'] ?? null;
+        }
+
+        // Reservation: identified by its booking reference number
+        if ($subjectType === 'Reservation') {
+            return $subject->reservation_number;
+        }
+
+        // PromoCode: the code string is the identifier
+        if ($subjectType === 'PromoCode') {
+            return $subject->code;
         }
 
         // Other models: prefer title, then name, then slug
@@ -287,6 +345,8 @@ class LogController extends Controller
             'Order' => self::getOrderUrl($subject),
             'Announcement' => $subject->id ? "/announcements/{$subject->id}/edit" : null,
             'Partner' => $subject->slug ? "/partners/{$subject->slug}/edit" : null,
+            'PromotionRule' => $subject->ulid ? "/promotion-rules/{$subject->ulid}/show" : null,
+            'PromoCode' => $subject->ulid ? "/promo-codes/{$subject->ulid}/show" : null,
             'ProjectPaymentGateway' => self::getPaymentGatewayUrl($subject),
             'Hotel' => $subject->slug ? "/hotels?search={$subject->slug}" : null,
             'GaProperty' => '/web-analytics',
@@ -500,9 +560,18 @@ class LogController extends Controller
                 return "{$userName} changed status to \"{$status}\" for {$count} {$modelType}(s)";
 
             case 'exported':
+                $count = $activity->properties['count'] ?? null;
+                $countLabel = is_numeric($count)
+                    ? ' ('.number_format((int) $count).' '.((int) $count === 1 ? 'row' : 'rows').')'
+                    : '';
+
+                if ($description) {
+                    return "{$userName} ".lcfirst($description).$countLabel;
+                }
+
                 $modelType = $activity->properties['model_type'] ?? 'data';
 
-                return "{$userName} exported {$modelType}";
+                return "{$userName} exported {$modelType}{$countLabel}";
 
             case 'api_key_regenerated':
                 $consumerName = $activity->properties['consumer_name'] ?? $subjectName ?? 'unknown';
@@ -511,7 +580,7 @@ class LogController extends Controller
 
             case 'payment_paid':
                 $amount = $activity->properties['amount'] ?? null;
-                $amountLabel = $amount ? ' ('.number_format((float) $amount).')' : '';
+                $amountLabel = $amount ? ' ('.self::formatCurrency($amount).')' : '';
 
                 return $subjectName
                     ? "Payment received for reservation \"{$subjectName}\"{$amountLabel}"
@@ -524,7 +593,7 @@ class LogController extends Controller
 
             case 'refund_initiated':
                 $amount = $activity->properties['refund_amount'] ?? null;
-                $amountLabel = $amount ? ' ('.number_format((float) $amount).')' : '';
+                $amountLabel = $amount ? ' ('.self::formatCurrency($amount).')' : '';
 
                 return $subjectName
                     ? "Refund initiated for reservation \"{$subjectName}\"{$amountLabel}"
@@ -556,7 +625,7 @@ class LogController extends Controller
             case 'adjustment_applied':
                 $kind = $activity->properties['kind'] ?? 'adjustment';
                 $amount = $activity->properties['amount'] ?? null;
-                $amountLabel = $amount ? ' ('.number_format((float) $amount).')' : '';
+                $amountLabel = $amount ? ' ('.self::formatCurrency($amount).')' : '';
                 $modelLabel = $subjectType ? self::humanizeModelName($subjectType) : 'record';
 
                 return $subjectName
@@ -677,7 +746,10 @@ class LogController extends Controller
         $attributes = $activity->properties['attributes'] ?? [];
         $fields = array_keys($attributes);
 
-        $fields = array_filter($fields, fn ($f) => ! in_array($f, ['updated_at', 'updated_by', 'created_at', 'created_by']));
+        // array_values re-indexes so the count === 1 branch can safely use $labels[0].
+        $fields = array_values(
+            array_filter($fields, fn ($f) => ! in_array($f, self::HIDDEN_CHANGE_FIELDS, true))
+        );
 
         if (empty($fields)) {
             return null;
@@ -722,6 +794,9 @@ class LogController extends Controller
             'rate_limit' => 'rate limit',
             'brand_event_id' => 'brand event',
             'event_id' => 'event',
+            'payment_gateway_id' => 'payment gateway',
+            'payment_channel' => 'payment method',
+            'promo_code_applied' => 'promo code',
         ];
 
         return $map[$field] ?? str_replace('_', ' ', $field);
@@ -755,7 +830,7 @@ class LogController extends Controller
         $old = $properties['old'] ?? [];
 
         foreach ($attributes as $field => $newValue) {
-            if (in_array($field, ['updated_at', 'updated_by', 'created_at', 'created_by'])) {
+            if (in_array($field, self::HIDDEN_CHANGE_FIELDS, true)) {
                 continue;
             }
 
@@ -766,18 +841,33 @@ class LogController extends Controller
                 continue;
             }
 
+            // Resolve the payment gateway to its owning project name; a raw id is meaningless.
+            if ($field === 'payment_gateway_id') {
+                $projectName = $activity->subject?->event?->project?->name;
+                if ($projectName) {
+                    $changes[] = [
+                        'field' => self::humanizeFieldName($field),
+                        'old' => null,
+                        'new' => $projectName,
+                    ];
+                }
+
+                continue;
+            }
+
+            $isCurrency = self::isCurrencyField($field);
             $changes[] = [
-                'field' => str_replace('_', ' ', $field),
-                'old' => $oldValue,
-                'new' => $newValue,
+                'field' => self::humanizeFieldName($field),
+                'old' => $isCurrency ? self::formatCurrencyValue($oldValue) : $oldValue,
+                'new' => $isCurrency ? self::formatCurrencyValue($newValue) : $newValue,
             ];
         }
 
         // For custom events without attributes/old structure, show relevant properties
         if (empty($changes) && ! isset($properties['attributes'])) {
-            $skip = ['project_id'];
+            $skip = array_merge(['project_id'], self::HIDDEN_CHANGE_FIELDS);
             foreach ($properties->toArray() as $key => $value) {
-                if (in_array($key, $skip)) {
+                if (in_array($key, $skip, true)) {
                     continue;
                 }
                 // Skip null/empty values for custom events too
@@ -785,14 +875,59 @@ class LogController extends Controller
                     continue;
                 }
                 $changes[] = [
-                    'field' => str_replace('_', ' ', $key),
+                    'field' => self::humanizeFieldName($key),
                     'old' => null,
-                    'new' => $value,
+                    'new' => self::isCurrencyField($key) ? self::formatCurrencyValue($value) : $value,
                 ];
             }
         }
 
         return $changes;
+    }
+
+    /**
+     * Format a numeric amount as Indonesian Rupiah (e.g. "Rp9.952.250").
+     */
+    private static function formatCurrency(int|float|string $amount): string
+    {
+        return 'Rp'.number_format((float) $amount, 0, ',', '.');
+    }
+
+    /**
+     * Format a value as currency when numeric; otherwise return it unchanged
+     * so null old-values stay null for the frontend's "added" rendering.
+     */
+    private static function formatCurrencyValue(mixed $value): mixed
+    {
+        return is_numeric($value) ? self::formatCurrency($value) : $value;
+    }
+
+    /**
+     * Determine whether a change field holds a monetary (Rupiah) value.
+     * Uses an explicit allowlist plus safe suffixes; percentage/rate and
+     * count fields are intentionally excluded.
+     */
+    private static function isCurrencyField(string $field): bool
+    {
+        $field = strtolower($field);
+
+        $exact = [
+            'amount', 'amount_discounted', 'base_rate', 'base_rate_override',
+            'price', 'rate_per_night', 'subtotal', 'subtotal_rooms',
+            'subtotal_transfer', 'total',
+        ];
+
+        if (in_array($field, $exact, true)) {
+            return true;
+        }
+
+        foreach (['_amount', '_price', '_total'] as $suffix) {
+            if (str_ends_with($field, $suffix)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

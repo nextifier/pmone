@@ -337,23 +337,31 @@ class ReservationService
             $reservation = $reservation->fresh(['items', 'transfers', 'event', 'hotel']);
             $this->penalties->evaluateAndApply($reservation);
 
-            // Apply promo code if supplied. Throws ValidationException on invalid code,
-            // aborting the entire transaction. Frontend should validate via
-            // POST /api/public/promo-codes/validate BEFORE submitting.
-            if (! empty($data['promo_code'])) {
-                $this->promoCodes->applyByCode(
-                    (string) $data['promo_code'],
-                    $reservation->fresh(['items', 'transfers', 'adjustments.promotionRule']),
-                    (string) ($data['guest_email'] ?? ''),
-                    auth()->id(),
-                );
-                $reservation->forceFill([
-                    'promo_code_applied' => strtoupper(trim((string) $data['promo_code'])),
-                ])->save();
-            }
+            // Apply promo code + finalize pricing. Both run as part of creating
+            // the reservation, so they are wrapped in withoutLogs: the "created"
+            // activity already records the reservation. Logging these would emit
+            // misleading "updated total amount: Rp0 -> ..." entries at creation.
+            // Throws ValidationException on invalid code, aborting the transaction.
+            // Frontend should validate via POST /api/public/promo-codes/validate
+            // BEFORE submitting.
+            activity()->withoutLogs(function () use ($data, $reservation): void {
+                if (! empty($data['promo_code'])) {
+                    $this->promoCodes->applyByCode(
+                        (string) $data['promo_code'],
+                        $reservation->fresh(['items', 'transfers', 'adjustments.promotionRule']),
+                        (string) ($data['guest_email'] ?? ''),
+                        auth()->id(),
+                    );
+                    $reservation->forceFill([
+                        'promo_code_applied' => strtoupper(trim((string) $data['promo_code'])),
+                    ])->save();
+                }
 
-            // Final recalculate + persist with all adjustments applied.
-            $this->pricing->recalculateAndPersist($reservation->fresh(['items', 'transfers', 'adjustments', 'hotel']));
+                // Final recalculate + persist with all adjustments applied.
+                $this->pricing->recalculateAndPersist(
+                    $reservation->fresh(['items', 'transfers', 'adjustments', 'hotel'])
+                );
+            });
 
             $reservation = $reservation->fresh(['items', 'transfers', 'adjustments', 'hotel', 'event']);
             $reservation->magicLinkRaw = $rawToken;

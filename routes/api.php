@@ -39,6 +39,11 @@ use App\Http\Controllers\Api\OrderAdjustmentController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PartnerCategoryController;
 use App\Http\Controllers\Api\PartnerController;
+use App\Http\Controllers\Api\Payment\PaymentGatewayBalanceController;
+use App\Http\Controllers\Api\Payment\PaymentGatewayReconciliationController;
+use App\Http\Controllers\Api\Payment\PaymentGatewaySettlementController;
+use App\Http\Controllers\Api\Payment\PaymentGatewayTransactionController;
+use App\Http\Controllers\Api\Payment\PaymentGatewayWebhookEventController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\PostAutosaveController;
 use App\Http\Controllers\Api\PostController;
@@ -584,9 +589,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Log management endpoints (master and admin only)
     Route::prefix('logs')->group(function () {
         Route::get('/', [LogController::class, 'index']);
-        Route::get('/log-names', [LogController::class, 'logNames']);
-        Route::get('/events', [LogController::class, 'events']);
-        Route::get('/causers', [LogController::class, 'causers']);
+        Route::get('/filter-options', [LogController::class, 'filterOptions']);
         Route::delete('/clear', [LogController::class, 'clear']);
     });
 
@@ -1027,6 +1030,26 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/{paymentGateway}', [ProjectPaymentGatewayController::class, 'show'])->name('projects.payment-gateways.show');
         Route::patch('/{paymentGateway}', [ProjectPaymentGatewayController::class, 'update'])->name('projects.payment-gateways.update');
         Route::delete('/{paymentGateway}', [ProjectPaymentGatewayController::class, 'destroy'])->name('projects.payment-gateways.destroy');
+
+        // Provider money operations - keyed by the gateway record, provider-agnostic.
+        Route::get('/{paymentGateway}/balance', [PaymentGatewayBalanceController::class, 'show'])
+            ->middleware('throttle:60,1')
+            ->name('projects.payment-gateways.balance');
+        Route::get('/{paymentGateway}/transactions', [PaymentGatewayTransactionController::class, 'index'])
+            ->middleware('throttle:60,1')
+            ->name('projects.payment-gateways.transactions');
+        Route::get('/{paymentGateway}/transactions/export', [PaymentGatewayTransactionController::class, 'export'])
+            ->middleware('throttle:20,1')
+            ->name('projects.payment-gateways.transactions.export');
+        Route::get('/{paymentGateway}/webhook-events', [PaymentGatewayWebhookEventController::class, 'index'])
+            ->middleware('throttle:60,1')
+            ->name('projects.payment-gateways.webhook-events');
+        Route::get('/{paymentGateway}/reconciliation', [PaymentGatewayReconciliationController::class, 'index'])
+            ->middleware('throttle:20,1')
+            ->name('projects.payment-gateways.reconciliation');
+        Route::get('/{paymentGateway}/settlement', [PaymentGatewaySettlementController::class, 'show'])
+            ->middleware('throttle:30,1')
+            ->name('projects.payment-gateways.settlement');
     });
 });
 
@@ -1176,6 +1199,8 @@ Route::prefix('public')->group(function () {
 // One handler entry point keeps the resolution rules in one place — adding new
 // Xendit event types later requires no route changes.
 Route::post('/webhooks/xendit', [XenditWebhookController::class, 'invoiceGeneric'])
+    ->middleware('log-payment-webhook:xendit')
     ->name('webhooks.xendit.invoice-generic');
 Route::post('/webhooks/xendit/{segment}', [XenditWebhookController::class, 'invoiceWithSegment'])
+    ->middleware('log-payment-webhook:xendit')
     ->name('webhooks.xendit.invoice');

@@ -29,7 +29,7 @@ class ProjectActivityController extends Controller
         $perPage = min($request->input('per_page', 20), 100);
         $search = $request->input('search');
 
-        $query = Activity::with(['causer', 'causer.media', 'subject'])
+        $query = LogController::eagerLoadActivity(Activity::query())
             ->where('properties->project_id', $project->id)
             ->orderBy('created_at', 'desc');
 

@@ -49,6 +49,19 @@
       </div>
     </div>
 
+    <!-- Error -->
+    <div
+      v-else-if="error"
+      class="text-muted-foreground flex flex-col items-center justify-center py-12 text-center text-sm tracking-tight"
+    >
+      <Icon name="hugeicons:alert-02" class="text-destructive mb-2 size-8 shrink-0 opacity-70" />
+      <span>Failed to load activity. Please try again.</span>
+      <Button variant="outline" size="sm" class="mt-3 active:scale-98" @click="$emit('retry')">
+        <Icon name="hugeicons:reload" class="size-4 shrink-0" />
+        <span>Retry</span>
+      </Button>
+    </div>
+
     <!-- Empty -->
     <div
       v-else-if="!activities.length"
@@ -470,13 +483,14 @@ const props = defineProps({
   activities: { type: Array, default: () => [] },
   meta: { type: Object, default: null },
   loading: { type: Boolean, default: false },
+  error: { type: Boolean, default: false },
   searchPlaceholder: { type: String, default: "Search activity..." },
   perPage: { type: Number, default: 20 },
   pageSizes: { type: Array, default: () => [10, 20, 50, 100] },
   initialSearch: { type: String, default: "" },
 });
 
-const emit = defineEmits(["search", "page", "perPageChange"]);
+const emit = defineEmits(["search", "page", "perPageChange", "retry"]);
 
 const { $dayjs } = useNuxtApp();
 
@@ -507,6 +521,14 @@ const NuxtLink = resolveComponent("NuxtLink");
 
 // Group consecutive similar activities
 const expandedGroups = ref(new Set());
+
+// Reset expanded state when the underlying activities change (page/filter change)
+watch(
+  () => props.activities,
+  () => {
+    expandedGroups.value = new Set();
+  }
+);
 
 const groupedActivities = computed(() => {
   const groups = [];
@@ -640,11 +662,20 @@ const isDatetimeString = (value) => {
   return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value);
 };
 
+// Matches lowercase snake_case / single-word enum tokens (e.g. "pending_payment",
+// "expired") so they can be shown as readable text. IDs, emails, URLs and
+// already-formatted values (uppercase start, dots, slashes) intentionally fail.
+const ENUM_TOKEN_RE = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
+
 const formatValue = (value) => {
   if (value === null || value === undefined) return "-";
   if (typeof value === "boolean") return value ? "Yes" : "No";
   if (typeof value === "object") return JSON.stringify(value);
   if (isDatetimeString(value)) return $dayjs(value).format("MMM D, YYYY h:mm A");
+  if (typeof value === "string" && ENUM_TOKEN_RE.test(value)) {
+    const words = value.replace(/_/g, " ");
+    return words.charAt(0).toUpperCase() + words.slice(1);
+  }
   return String(value);
 };
 

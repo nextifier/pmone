@@ -12,6 +12,7 @@
           variant="outline"
           size="sm"
           class="active:scale-98 max-sm:size-8 max-sm:px-0"
+          aria-label="Refresh"
           :disabled="loading || clearing"
           @click="fetchActivities"
         >
@@ -45,12 +46,14 @@
       :activities="activities"
       :meta="meta"
       :loading="loading"
+      :error="error"
       :per-page="perPage"
       :initial-search="search"
       search-placeholder="Search in description, user, or event..."
       @search="onSearch"
       @page="onPage"
       @per-page-change="onPerPageChange"
+      @retry="fetchActivities"
     >
       <template v-if="activeChips.length > 0" #chips>
         <div class="flex flex-wrap items-center gap-2">
@@ -84,6 +87,7 @@
               variant="outline"
               size="default"
               class="relative shrink-0 rounded-lg active:scale-98 max-sm:w-9 max-sm:px-0"
+              aria-label="Filter"
             >
               <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
               <span class="hidden sm:flex">Filter</span>
@@ -171,9 +175,9 @@
                     />
                     <Label
                       :for="`logname-${i}`"
-                      class="grow cursor-pointer font-normal tracking-tight capitalize"
+                      class="grow cursor-pointer font-normal tracking-tight"
                     >
-                      {{ option }}
+                      {{ humanize(option) }}
                     </Label>
                   </div>
                 </div>
@@ -185,9 +189,16 @@
                 <div class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
                   Event
                 </div>
-                <div class="space-y-2">
+                <Input
+                  v-if="eventOptions.length > 8"
+                  v-model="eventSearch"
+                  type="text"
+                  placeholder="Search events..."
+                  class="h-8 rounded-lg text-sm"
+                />
+                <div class="max-h-56 space-y-2 overflow-y-auto pr-1">
                   <div
-                    v-for="(option, i) in eventOptions"
+                    v-for="(option, i) in filteredEventOptions"
                     :key="option"
                     class="flex items-center gap-2"
                   >
@@ -198,11 +209,17 @@
                     />
                     <Label
                       :for="`event-${i}`"
-                      class="grow cursor-pointer font-normal tracking-tight capitalize"
+                      class="grow cursor-pointer font-normal tracking-tight"
                     >
-                      {{ option }}
+                      {{ humanize(option) }}
                     </Label>
                   </div>
+                  <p
+                    v-if="filteredEventOptions.length === 0"
+                    class="text-muted-foreground py-1 text-xs tracking-tight"
+                  >
+                    No events match.
+                  </p>
                 </div>
               </div>
 
@@ -258,6 +275,7 @@
 
 <script setup>
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -291,6 +309,7 @@ const router = useRouter();
 const activities = ref([]);
 const meta = ref(null);
 const loading = ref(true);
+const error = ref(false);
 const clearing = ref(false);
 const clearDialogOpen = ref(false);
 
@@ -309,6 +328,26 @@ const dateTo = ref(typeof q.to === "string" ? $dayjs(q.to).toDate() : null);
 const logNameOptions = ref([]);
 const eventOptions = ref([]);
 const causerOptions = ref([]);
+const eventSearch = ref("");
+
+/**
+ * Convert a raw snake_case option (e.g. "payment_gateway_added")
+ * into a readable label (e.g. "Payment gateway added").
+ */
+function humanize(value) {
+  const str = String(value ?? "")
+    .replace(/_/g, " ")
+    .trim();
+  return str ? str.charAt(0).toUpperCase() + str.slice(1) : str;
+}
+
+const filteredEventOptions = computed(() => {
+  const query = eventSearch.value.trim().toLowerCase();
+  if (!query) {
+    return eventOptions.value;
+  }
+  return eventOptions.value.filter((option) => humanize(option).toLowerCase().includes(query));
+});
 
 const totalActiveFilters = computed(() => {
   let count = selectedLogNames.value.length + selectedEvents.value.length;
@@ -386,7 +425,7 @@ const activeChips = computed(() => {
     chips.push({
       key: `log_name:${name}`,
       label: "Log",
-      value: name,
+      value: humanize(name),
       clear: () => toggleFilter("log_name", name, false),
     });
   }
@@ -394,7 +433,7 @@ const activeChips = computed(() => {
     chips.push({
       key: `event:${ev}`,
       label: "Event",
-      value: ev,
+      value: humanize(ev),
       clear: () => toggleFilter("event", ev, false),
     });
   }
@@ -422,9 +461,12 @@ function syncUrl() {
   router.replace({ query });
 }
 
+let fetchSeq = 0;
+
 async function fetchActivities() {
   syncUrl();
   loading.value = true;
+  const seq = ++fetchSeq;
   try {
     const params = new URLSearchParams();
     params.append("page", page.value);
@@ -441,26 +483,29 @@ async function fetchActivities() {
     }
 
     const res = await client(`/api/logs?${params.toString()}`);
+    // Ignore stale responses from superseded requests (rapid filtering).
+    if (seq !== fetchSeq) return;
     activities.value = res.data || [];
     meta.value = res.meta || null;
+    error.value = false;
   } catch (err) {
+    if (seq !== fetchSeq) return;
     console.error("Error loading activity logs:", err);
     activities.value = [];
+    meta.value = null;
+    error.value = true;
   } finally {
-    loading.value = false;
+    if (seq === fetchSeq) loading.value = false;
   }
 }
 
 async function loadFilterOptions() {
   try {
-    const [logNamesRes, eventsRes, causersRes] = await Promise.all([
-      client("/api/logs/log-names"),
-      client("/api/logs/events"),
-      client("/api/logs/causers"),
-    ]);
-    logNameOptions.value = logNamesRes.data || [];
-    eventOptions.value = eventsRes.data || [];
-    causerOptions.value = causersRes.data || [];
+    const res = await client("/api/logs/filter-options");
+    const data = res.data || {};
+    logNameOptions.value = data.log_names || [];
+    eventOptions.value = data.events || [];
+    causerOptions.value = data.causers || [];
   } catch (err) {
     console.error("Error loading filter options:", err);
   }

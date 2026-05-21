@@ -51,7 +51,55 @@
               />
             </div>
 
-            <div v-if="canUpdate || canDelete" class="flex items-center gap-x-1">
+            <div
+              v-if="canUpdate || canDelete || hasDataViews(gateway)"
+              class="flex items-center gap-x-1"
+            >
+              <DropdownMenu v-if="hasDataViews(gateway)" :modal="false">
+                <DropdownMenuTrigger as-child>
+                  <button
+                    v-tippy="'Insights &amp; logs'"
+                    type="button"
+                    class="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md p-1.5 transition"
+                  >
+                    <Icon name="hugeicons:more-horizontal" class="size-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" class="w-48">
+                  <DropdownMenuItem
+                    v-if="canViewTransactions && gateway.capabilities?.includes('transactions')"
+                    class="gap-x-2"
+                    @click="openTransactions(gateway)"
+                  >
+                    <Icon name="hugeicons:invoice-01" class="size-4" />
+                    Transactions
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    v-if="canViewSettlement && gateway.capabilities?.includes('settlement')"
+                    class="gap-x-2"
+                    @click="openSettlement(gateway)"
+                  >
+                    <Icon name="hugeicons:money-receive-01" class="size-4" />
+                    Settlement
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    v-if="canViewReconciliation && gateway.capabilities?.includes('transactions')"
+                    class="gap-x-2"
+                    @click="openReconciliation(gateway)"
+                  >
+                    <Icon name="hugeicons:checkmark-circle-02" class="size-4" />
+                    Reconciliation
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    v-if="canViewWebhookEvents"
+                    class="gap-x-2"
+                    @click="openWebhookEvents(gateway)"
+                  >
+                    <Icon name="hugeicons:notification-01" class="size-4" />
+                    Webhook events
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <button
                 v-if="canUpdate"
                 type="button"
@@ -119,6 +167,13 @@
             </dd>
           </template>
         </dl>
+
+        <ProjectPaymentGatewayBalanceCard
+          v-if="canViewBalance && gateway.capabilities?.includes('balance')"
+          :project-username="projectUsername"
+          :gateway-id="gateway.id"
+          class="-mx-3 -mb-3"
+        />
       </div>
     </div>
 
@@ -238,9 +293,7 @@
               <div class="flex items-start gap-2">
                 <Icon
                   :name="
-                    testResult.success
-                      ? 'hugeicons:checkmark-circle-02'
-                      : 'hugeicons:alert-circle'
+                    testResult.success ? 'hugeicons:checkmark-circle-02' : 'hugeicons:alert-circle'
                   "
                   :class="[
                     'mt-0.5 size-4 shrink-0',
@@ -341,12 +394,7 @@
           </p>
         </div>
         <div class="mt-4 flex justify-end gap-2">
-          <Button
-            variant="outline"
-            type="button"
-            :disabled="togglePending"
-            @click="cancelToggle"
-          >
+          <Button variant="outline" type="button" :disabled="togglePending" @click="cancelToggle">
             Cancel
           </Button>
           <Button
@@ -395,11 +443,45 @@
         </div>
       </div>
     </DialogResponsive>
+
+    <!-- Transactions -->
+    <ProjectPaymentGatewayTransactionsDialog
+      v-model:open="transactionsDialogOpen"
+      :project-username="projectUsername"
+      :gateway="transactionsGateway"
+    />
+
+    <!-- Webhook events -->
+    <ProjectPaymentGatewayWebhookEventsDialog
+      v-model:open="webhookEventsDialogOpen"
+      :project-username="projectUsername"
+      :gateway="webhookEventsGateway"
+    />
+
+    <!-- Reconciliation -->
+    <ProjectPaymentGatewayReconciliationDialog
+      v-model:open="reconciliationDialogOpen"
+      :project-username="projectUsername"
+      :gateway="reconciliationGateway"
+    />
+
+    <!-- Settlement -->
+    <ProjectPaymentGatewaySettlementDialog
+      v-model:open="settlementDialogOpen"
+      :project-username="projectUsername"
+      :gateway="settlementGateway"
+    />
   </div>
 </template>
 
 <script setup>
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -422,6 +504,62 @@ const { hasPermission } = usePermission();
 
 const canUpdate = computed(() => hasPermission("payment_gateways.update"));
 const canDelete = computed(() => hasPermission("payment_gateways.delete"));
+const canViewBalance = computed(() => hasPermission("payment_gateways.view_balance"));
+const canViewTransactions = computed(() =>
+  hasPermission("payment_gateways.view_transactions")
+);
+const canViewWebhookEvents = computed(() =>
+  hasPermission("payment_gateways.view_webhook_events")
+);
+const canViewReconciliation = computed(() =>
+  hasPermission("payment_gateways.view_reconciliation")
+);
+const canViewSettlement = computed(() =>
+  hasPermission("payment_gateways.view_settlement")
+);
+
+// Whether the gateway has at least one data/insight view to surface in the menu.
+function hasDataViews(gateway) {
+  const caps = gateway.capabilities || [];
+  return (
+    (canViewTransactions.value && caps.includes("transactions")) ||
+    (canViewSettlement.value && caps.includes("settlement")) ||
+    (canViewReconciliation.value && caps.includes("transactions")) ||
+    canViewWebhookEvents.value
+  );
+}
+
+const transactionsDialogOpen = ref(false);
+const transactionsGateway = ref(null);
+
+function openTransactions(gateway) {
+  transactionsGateway.value = gateway;
+  transactionsDialogOpen.value = true;
+}
+
+const webhookEventsDialogOpen = ref(false);
+const webhookEventsGateway = ref(null);
+
+function openWebhookEvents(gateway) {
+  webhookEventsGateway.value = gateway;
+  webhookEventsDialogOpen.value = true;
+}
+
+const reconciliationDialogOpen = ref(false);
+const reconciliationGateway = ref(null);
+
+function openReconciliation(gateway) {
+  reconciliationGateway.value = gateway;
+  reconciliationDialogOpen.value = true;
+}
+
+const settlementDialogOpen = ref(false);
+const settlementGateway = ref(null);
+
+function openSettlement(gateway) {
+  settlementGateway.value = gateway;
+  settlementDialogOpen.value = true;
+}
 
 const gateways = ref([]);
 const loading = ref(true);

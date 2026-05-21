@@ -1,21 +1,21 @@
 <script lang="ts" setup>
-import { buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { reactiveOmit } from '@vueuse/core'
-import type { RangeCalendarCellTriggerProps } from 'reka-ui'
-import { RangeCalendarCellTrigger, useForwardProps } from 'reka-ui'
-import type { HTMLAttributes } from 'vue'
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { reactiveOmit } from "@vueuse/core";
+import type { RangeCalendarCellTriggerProps } from "reka-ui";
+import { RangeCalendarCellTrigger, useForwardProps } from "reka-ui";
+import type { HTMLAttributes } from "vue";
 
 const props = withDefaults(
-  defineProps<RangeCalendarCellTriggerProps & { class?: HTMLAttributes['class'] }>(),
+  defineProps<RangeCalendarCellTriggerProps & { class?: HTMLAttributes["class"] }>(),
   {
-    as: 'button'
+    as: "button",
   }
-)
+);
 
-const delegatedProps = reactiveOmit(props, 'class')
+const delegatedProps = reactiveOmit(props, "class");
 
-const forwardedProps = useForwardProps(delegatedProps)
+const forwardedProps = useForwardProps(delegatedProps);
 </script>
 
 <template>
@@ -27,7 +27,7 @@ const forwardedProps = useForwardProps(delegatedProps)
         'relative size-8 cursor-pointer p-0 font-normal aria-selected:opacity-100',
         '[&[data-today]:not([data-selected])]:bg-muted [&[data-today]:not([data-selected])]:text-foreground',
         // Selected (entire range)
-        'data-[selected]:text-primary-foreground data-[selected]:hover:text-primary-foreground data-[selected]:focus:text-primary-foreground data-[selected]:opacity-100',
+        'data-[selected]:text-primary-foreground data-[selected]:hover:bg-primary data-[selected]:hover:text-primary-foreground data-[selected]:focus:text-primary-foreground data-[selected]:opacity-100',
         // Selection Start
         'data-[selection-start]:bg-primary data-[selection-start]:text-primary-foreground data-[selection-start]:hover:bg-primary data-[selection-start]:hover:text-primary-foreground data-[selection-start]:focus:bg-primary data-[selection-start]:focus:text-primary-foreground',
         // Selection End

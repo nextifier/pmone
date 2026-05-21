@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Validation\ValidationException;
+use Spatie\Activitylog\Models\Activity;
 
 uses(RefreshDatabase::class);
 
@@ -282,6 +283,54 @@ test('dynamic pricing stacks percentage allotment surcharge per night', function
 
     expect((float) $reservation->subtotal_rooms)->toBe(4400000.0);
     expect((float) $reservation->surcharge_amount)->toBe(400000.0);
+});
+
+test('reservation creation does not log a misleading total amount update', function () {
+    $roomType = RoomType::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'base_rate' => 1500000,
+        'pricing_type' => PricingType::Flat,
+    ]);
+
+    HotelEventAllotment::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'room_type_id' => $roomType->id,
+        'quantity' => 10,
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-06-30',
+        'is_active' => true,
+    ]);
+
+    $reservation = app(ReservationService::class)->createReservation([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'guest_name' => 'Log',
+        'guest_email' => 'log@test.com',
+        'guest_phone' => '0',
+        'guest_identity_type' => 'nik',
+        'guest_identity_number' => '1',
+        'items' => [[
+            'room_type_id' => $roomType->id,
+            'check_in_date' => '2026-06-02',
+            'check_out_date' => '2026-06-04',
+            'qty' => 1,
+        ]],
+    ]);
+
+    // The pricing recalculation during creation must not surface as an
+    // "updated total amount: Rp0 -> ..." activity log entry.
+    $updateLogs = Activity::query()
+        ->where('subject_type', $reservation->getMorphClass())
+        ->where('subject_id', $reservation->id)
+        ->where('event', 'updated')
+        ->get();
+
+    foreach ($updateLogs as $log) {
+        expect(array_keys($log->properties['attributes'] ?? []))
+            ->not->toContain('total_amount');
+    }
+
+    expect((float) $reservation->total_amount)->toBeGreaterThan(0);
 });
 
 test('previewSubtotal returns same numbers as createReservation', function () {
