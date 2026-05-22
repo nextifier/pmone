@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Payment\CheckoutMethod;
 use App\Observers\ProjectPaymentGatewayObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,6 +18,7 @@ use Illuminate\Support\Str;
  * @property string $provider
  * @property string|null $label
  * @property string $mode
+ * @property CheckoutMethod $checkout_method
  * @property bool $is_active
  * @property string|null $secret_key
  * @property string|null $public_key
@@ -67,6 +69,7 @@ class ProjectPaymentGateway extends Model
         'provider',
         'label',
         'mode',
+        'checkout_method',
         'is_active',
         'secret_key',
         'public_key',
@@ -107,6 +110,7 @@ class ProjectPaymentGateway extends Model
     {
         return [
             'is_active' => 'boolean',
+            'checkout_method' => CheckoutMethod::class,
             'secret_key' => 'encrypted',
             'public_key' => 'encrypted',
             'webhook_token' => 'encrypted',

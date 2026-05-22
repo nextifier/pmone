@@ -406,10 +406,14 @@ class ReservationService
                 $frontendUrl = rtrim(config('app.frontend_url'), '/');
                 $successUrl = "{$frontendUrl}/hotels/success?ref={$reservation->reservation_number}&token={$rawToken}";
                 $failureUrl = "{$frontendUrl}/hotels?failed=".$reservation->reservation_number;
-                $invoice = $xenditClient->createInvoice($reservation, $successUrl, $failureUrl);
+                // createCheckout() dispatches to the Sessions API or the legacy
+                // Invoices API depending on the gateway's checkout_method.
+                // `xendit_invoice_id` therefore holds either an `inv-` invoice
+                // id or a `ps-` Payment Session id.
+                $checkout = $xenditClient->createCheckout($reservation, $successUrl, $failureUrl);
                 $reservation->update([
-                    'xendit_invoice_id' => $invoice['invoice_id'],
-                    'payment_url' => $invoice['invoice_url'],
+                    'xendit_invoice_id' => $checkout['reference'],
+                    'payment_url' => $checkout['payment_url'],
                     'payment_method' => PaymentMethod::Xendit,
                     'payment_gateway_id' => $xenditClient->gateway()?->id,
                 ]);
@@ -465,11 +469,11 @@ class ReservationService
         $successUrl = "{$frontendUrl}/hotels/success?ref={$reservation->reservation_number}&token={$rawToken}";
         $failureUrl = "{$frontendUrl}/hotels?failed={$reservation->reservation_number}";
 
-        $invoice = $xenditClient->createInvoice($reservation, $successUrl, $failureUrl);
+        $checkout = $xenditClient->createCheckout($reservation, $successUrl, $failureUrl);
 
         $reservation->update([
-            'xendit_invoice_id' => $invoice['invoice_id'],
-            'payment_url' => $invoice['invoice_url'],
+            'xendit_invoice_id' => $checkout['reference'],
+            'payment_url' => $checkout['payment_url'],
             'payment_method' => PaymentMethod::Xendit,
             'payment_gateway_id' => $xenditClient->gateway()?->id,
         ]);

@@ -52,6 +52,13 @@ class ReservationController extends Controller
 
         $items = $query->paginate((int) $request->input('per_page', 15));
 
+        $availablePaymentChannels = Reservation::query()
+            ->where('event_id', $event->id)
+            ->whereNotNull('payment_channel')
+            ->distinct()
+            ->orderBy('payment_channel')
+            ->pluck('payment_channel');
+
         return response()->json([
             'data' => ReservationIndexResource::collection($items)->resolve(),
             'meta' => [
@@ -59,6 +66,7 @@ class ReservationController extends Controller
                 'last_page' => $items->lastPage(),
                 'per_page' => $items->perPage(),
                 'total' => $items->total(),
+                'payment_channels' => $availablePaymentChannels,
             ],
         ]);
     }
@@ -116,6 +124,207 @@ class ReservationController extends Controller
         $reservation->delete();
 
         return response()->json(['message' => 'Reservation deleted successfully']);
+    }
+
+    public function bulkDestroy(Request $request, Event $event): JsonResponse
+    {
+        if (! auth()->user()?->can('reservations.delete')) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer', 'exists:reservations,id'],
+        ]);
+
+        $deletedCount = 0;
+
+        Reservation::query()
+            ->whereIn('id', $validated['ids'])
+            ->where('event_id', $event->id)
+            ->get()
+            ->each(function (Reservation $reservation) use (&$deletedCount) {
+                $reservation->delete();
+                $deletedCount++;
+            });
+
+        if ($deletedCount > 0) {
+            activity()
+                ->causedBy($request->user())
+                ->event('bulk_deleted')
+                ->withProperties([
+                    'project_id' => $event->project_id,
+                    'event_id' => $event->id,
+                    'deleted_count' => $deletedCount,
+                    'model_type' => 'Reservation',
+                ])
+                ->log("Bulk deleted {$deletedCount} reservation(s)");
+        }
+
+        return response()->json([
+            'message' => "{$deletedCount} reservation(s) deleted",
+            'deleted_count' => $deletedCount,
+            'errors' => [],
+        ]);
+    }
+
+    public function trash(Request $request, Event $event): JsonResponse
+    {
+        if (! auth()->user()?->can('reservations.delete')) {
+            abort(403);
+        }
+
+        $query = Reservation::onlyTrashed()
+            ->where('event_id', $event->id)
+            ->with(['hotel', 'event', 'items.roomType', 'media', 'paymentGateway']);
+
+        $this->applyFilters($query, $request);
+        $this->applySorting($query, $request);
+
+        $items = $query->paginate((int) $request->input('per_page', 15));
+
+        $availablePaymentChannels = Reservation::onlyTrashed()
+            ->where('event_id', $event->id)
+            ->whereNotNull('payment_channel')
+            ->distinct()
+            ->orderBy('payment_channel')
+            ->pluck('payment_channel');
+
+        return response()->json([
+            'data' => ReservationIndexResource::collection($items)->resolve(),
+            'meta' => [
+                'current_page' => $items->currentPage(),
+                'last_page' => $items->lastPage(),
+                'per_page' => $items->perPage(),
+                'total' => $items->total(),
+                'payment_channels' => $availablePaymentChannels,
+            ],
+        ]);
+    }
+
+    public function restore(Event $event, int $id): JsonResponse
+    {
+        if (! auth()->user()?->can('reservations.delete')) {
+            abort(403);
+        }
+
+        $reservation = Reservation::onlyTrashed()
+            ->where('event_id', $event->id)
+            ->findOrFail($id);
+
+        $reservation->restore();
+
+        return response()->json(['message' => 'Reservation restored successfully']);
+    }
+
+    public function bulkRestore(Request $request, Event $event): JsonResponse
+    {
+        if (! auth()->user()?->can('reservations.delete')) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer', 'exists:reservations,id'],
+        ]);
+
+        $restoredCount = 0;
+
+        Reservation::onlyTrashed()
+            ->whereIn('id', $validated['ids'])
+            ->where('event_id', $event->id)
+            ->get()
+            ->each(function (Reservation $reservation) use (&$restoredCount) {
+                $reservation->restore();
+                $restoredCount++;
+            });
+
+        if ($restoredCount > 0) {
+            activity()
+                ->causedBy($request->user())
+                ->event('bulk_restored')
+                ->withProperties([
+                    'project_id' => $event->project_id,
+                    'event_id' => $event->id,
+                    'restored_count' => $restoredCount,
+                    'model_type' => 'Reservation',
+                ])
+                ->log("Bulk restored {$restoredCount} reservation(s)");
+        }
+
+        return response()->json([
+            'message' => "{$restoredCount} reservation(s) restored",
+            'restored_count' => $restoredCount,
+            'errors' => [],
+        ]);
+    }
+
+    public function forceDestroy(Request $request, Event $event, int $id): JsonResponse
+    {
+        if (! auth()->user()?->can('reservations.delete')) {
+            abort(403);
+        }
+
+        $reservation = Reservation::onlyTrashed()
+            ->where('event_id', $event->id)
+            ->findOrFail($id);
+
+        activity()
+            ->causedBy($request->user())
+            ->event('force_deleted')
+            ->withProperties([
+                'project_id' => $event->project_id,
+                'event_id' => $event->id,
+                'reservation_id' => $reservation->id,
+                'reservation_number' => $reservation->reservation_number,
+            ])
+            ->log('Reservation permanently deleted');
+
+        $reservation->forceDelete();
+
+        return response()->json(['message' => 'Reservation permanently deleted']);
+    }
+
+    public function bulkForceDestroy(Request $request, Event $event): JsonResponse
+    {
+        if (! auth()->user()?->can('reservations.delete')) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer', 'exists:reservations,id'],
+        ]);
+
+        $deletedCount = 0;
+
+        Reservation::onlyTrashed()
+            ->whereIn('id', $validated['ids'])
+            ->where('event_id', $event->id)
+            ->get()
+            ->each(function (Reservation $reservation) use (&$deletedCount) {
+                $reservation->forceDelete();
+                $deletedCount++;
+            });
+
+        if ($deletedCount > 0) {
+            activity()
+                ->causedBy($request->user())
+                ->event('bulk_force_deleted')
+                ->withProperties([
+                    'project_id' => $event->project_id,
+                    'event_id' => $event->id,
+                    'deleted_count' => $deletedCount,
+                    'model_type' => 'Reservation',
+                ])
+                ->log("Bulk permanently deleted {$deletedCount} reservation(s)");
+        }
+
+        return response()->json([
+            'message' => "{$deletedCount} reservation(s) permanently deleted",
+            'deleted_count' => $deletedCount,
+            'errors' => [],
+        ]);
     }
 
     public function storeManual(StoreManualReservationRequest $request, Event $event): JsonResponse
@@ -425,6 +634,8 @@ class ReservationController extends Controller
         $filters = array_filter([
             'search' => $request->input('filter_search'),
             'status' => $request->input('filter_status'),
+            'payment_channel' => $request->input('filter_payment_channel'),
+            'mode' => $request->input('filter_mode'),
             'event_id' => $event->id,
             'hotel_id' => $request->input('filter_hotel_id'),
             'date_from' => $request->input('filter_date_from'),
@@ -497,6 +708,20 @@ class ReservationController extends Controller
             $query->whereIn('status', array_filter($statuses));
         }
 
+        if ($paymentChannel = $request->input('filter_payment_channel')) {
+            $channels = array_filter(is_array($paymentChannel) ? $paymentChannel : explode(',', $paymentChannel));
+            if ($channels) {
+                $query->whereIn('payment_channel', $channels);
+            }
+        }
+
+        if ($mode = $request->input('filter_mode')) {
+            $modes = array_filter(is_array($mode) ? $mode : explode(',', $mode));
+            if ($modes) {
+                $query->whereHas('paymentGateway', fn ($q) => $q->whereIn('mode', $modes));
+            }
+        }
+
         if ($hotelId = $request->input('filter_hotel_id')) {
             $query->where('hotel_id', $hotelId);
         }
@@ -523,6 +748,7 @@ class ReservationController extends Controller
             'created_at' => 'created_at',
             'paid_at' => 'paid_at',
             'status' => 'status',
+            'deleted_at' => 'deleted_at',
         ];
 
         if (isset($fieldMap[$field])) {

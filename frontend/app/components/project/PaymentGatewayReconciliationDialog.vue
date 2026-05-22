@@ -98,7 +98,7 @@
                 <TableRow>
                   <TableHead class="whitespace-nowrap">Issue</TableHead>
                   <TableHead class="whitespace-nowrap">Reference</TableHead>
-                  <TableHead class="whitespace-nowrap text-right">Xendit</TableHead>
+                  <TableHead class="whitespace-nowrap text-right">Provider</TableHead>
                   <TableHead class="whitespace-nowrap text-right">Reservation</TableHead>
                   <TableHead class="whitespace-nowrap">Detail</TableHead>
                 </TableRow>

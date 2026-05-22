@@ -76,9 +76,9 @@ test('reservation creation persists payment_gateway_id when xendit invoice succe
     ]);
 
     $xendit = mock(XenditService::class);
-    $xendit->shouldReceive('createInvoice')->andReturn([
-        'invoice_id' => 'inv_persist_test',
-        'invoice_url' => 'https://checkout.xendit.co/web/inv_persist_test',
+    $xendit->shouldReceive('createCheckout')->andReturn([
+        'reference' => 'inv_persist_test',
+        'payment_url' => 'https://checkout.xendit.co/web/inv_persist_test',
     ]);
     $xendit->shouldReceive('gateway')->andReturn($gateway);
     $this->app->instance(XenditService::class, $xendit);
@@ -121,9 +121,9 @@ test('xenditFor uses test gateway when APP_ENV is testing', function () {
     ]);
 
     $xendit = mock(XenditService::class);
-    $xendit->shouldReceive('createInvoice')->andReturn([
-        'invoice_id' => 'inv_test_mode',
-        'invoice_url' => 'https://x',
+    $xendit->shouldReceive('createCheckout')->andReturn([
+        'reference' => 'inv_test_mode',
+        'payment_url' => 'https://x',
     ]);
     $xendit->shouldReceive('gateway')->andReturn($testGateway);
     $this->app->instance(XenditService::class, $xendit);

@@ -3,7 +3,7 @@
     <div class="space-y-1">
       <h2 class="page-title">Payment Gateways</h2>
       <p class="page-description">
-        Manage payment provider credentials per project. Each project can have its own Xendit
+        Manage payment provider credentials per project. Each project can use its own provider
         account so settlements stay separated.
       </p>
     </div>

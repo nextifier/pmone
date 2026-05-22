@@ -107,7 +107,7 @@ it('QA-K3: create reservation with valid promo records adjustment + usage', func
     PromoCode::factory()->for($rule, 'promotionRule')->create(['code' => 'CREATE10']);
 
     $xendit = Mockery::mock(XenditService::class);
-    $xendit->shouldReceive('createInvoice')->andReturn(['invoice_id' => 'inv-1', 'invoice_url' => 'https://x']);
+    $xendit->shouldReceive('createCheckout')->andReturn(['reference' => 'inv-1', 'payment_url' => 'https://x']);
     $xendit->shouldReceive('gateway')->andReturn(null);
     $this->app->instance(XenditService::class, $xendit);
 
@@ -178,7 +178,7 @@ it('QA-K5: 100% discount -> Paid + Complimentary, Xendit not called', function (
     PromoCode::factory()->for($rule, 'promotionRule')->create(['code' => 'FREE']);
 
     $xendit = Mockery::mock(XenditService::class);
-    $xendit->shouldNotReceive('createInvoice');
+    $xendit->shouldNotReceive('createCheckout');
     $this->app->instance(XenditService::class, $xendit);
 
     $response = $this->postJson('/api/public/reservations', [

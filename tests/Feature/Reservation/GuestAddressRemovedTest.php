@@ -50,9 +50,9 @@ test('public reservation succeeds without guest_address field', function () {
     Queue::fake();
 
     $xendit = mock(XenditService::class);
-    $xendit->shouldReceive('createInvoice')->andReturn([
-        'invoice_id' => 'inv_noaddr',
-        'invoice_url' => 'https://checkout.xendit.co/web/inv_noaddr',
+    $xendit->shouldReceive('createCheckout')->andReturn([
+        'reference' => 'inv_noaddr',
+        'payment_url' => 'https://checkout.xendit.co/web/inv_noaddr',
     ]);
     $xendit->shouldReceive('gateway')->andReturnNull();
     $this->app->instance(XenditService::class, $xendit);
@@ -86,9 +86,9 @@ test('reservation payload ignores guest_address even when provided', function ()
     Queue::fake();
 
     $xendit = mock(XenditService::class);
-    $xendit->shouldReceive('createInvoice')->andReturn([
-        'invoice_id' => 'inv_ignore',
-        'invoice_url' => 'https://checkout.xendit.co/web/inv_ignore',
+    $xendit->shouldReceive('createCheckout')->andReturn([
+        'reference' => 'inv_ignore',
+        'payment_url' => 'https://checkout.xendit.co/web/inv_ignore',
     ]);
     $xendit->shouldReceive('gateway')->andReturnNull();
     $this->app->instance(XenditService::class, $xendit);

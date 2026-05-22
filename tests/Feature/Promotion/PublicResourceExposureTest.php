@@ -43,7 +43,7 @@ it('PublicReservationResource exposes discount + surcharge + promo_code_applied'
     PromoCode::factory()->for($rule, 'promotionRule')->create(['code' => 'PUBVIEW']);
 
     $xendit = Mockery::mock(XenditService::class);
-    $xendit->shouldReceive('createInvoice')->andReturn(['invoice_id' => 'inv-1', 'invoice_url' => 'https://x/inv-1']);
+    $xendit->shouldReceive('createCheckout')->andReturn(['reference' => 'inv-1', 'payment_url' => 'https://x/inv-1']);
     $xendit->shouldReceive('gateway')->andReturn(null);
 
     $reservation = app(ReservationService::class)->createReservation([

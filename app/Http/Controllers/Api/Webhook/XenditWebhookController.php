@@ -93,13 +93,24 @@ class XenditWebhookController extends Controller
 
         // Refund payloads identify the reservation via `invoice_id`. Xendit
         // puts it inside the `data` object for refund.* events, but older
-        // shapes had it top-level — check both.
-        $invoiceId = $payload['invoice_id'] ?? $payload['data']['invoice_id'] ?? null;
+        // shapes had it top-level. Session events instead carry the session
+        // id at `data.id`, which reservations store in `xendit_invoice_id`.
+        $invoiceId = $payload['invoice_id']
+            ?? $payload['data']['invoice_id']
+            ?? $payload['data']['id']
+            ?? $payload['id']
+            ?? null;
         if (! $project && $invoiceId) {
             $reservation = Reservation::query()
                 ->where('xendit_invoice_id', $invoiceId)
                 ->first();
             $project = $reservation?->event?->project;
+        }
+
+        // QR Code events (qr.payment / qr.refund) carry no external_id or
+        // invoice_id — resolve the project from the QR payment / refund ids.
+        if (! $project) {
+            $project = $this->resolveProjectFromQrPayload($payload);
         }
 
         if (! $project) {
@@ -134,7 +145,13 @@ class XenditWebhookController extends Controller
      */
     private function resolveProjectFromPayload(array $payload): ?Project
     {
-        $externalId = $payload['external_id'] ?? null;
+        // Invoice webhooks carry `external_id` at the root; Session webhooks
+        // carry `reference_id` nested under `data`. Both equal the
+        // reservation_number.
+        $externalId = $payload['external_id']
+            ?? $payload['data']['reference_id']
+            ?? $payload['reference_id']
+            ?? null;
         if (! $externalId) {
             return null;
         }
@@ -144,6 +161,48 @@ class XenditWebhookController extends Controller
             ->first();
 
         return $reservation?->event?->project;
+    }
+
+    /**
+     * Resolve the owning project for a QR Code webhook (qr.payment / qr.refund).
+     * These payloads nest everything under `data` and have no external_id, so
+     * we match on the QR payment id (`qrpy_`) / refund id (`qrrf_`) PM One
+     * stores on the reservation, falling back to `reference_id`.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function resolveProjectFromQrPayload(array $payload): ?Project
+    {
+        $data = is_array($payload['data'] ?? null) ? $payload['data'] : $payload;
+
+        // qr.refund: `id` is the qrrf_ refund id, `qrpy_id` the QR payment id.
+        // qr.payment: `id` is the qrpy_ payment id.
+        $ids = array_filter([
+            $data['qrpy_id'] ?? null,
+            $data['id'] ?? null,
+        ], fn ($id) => is_string($id) && $id !== '');
+
+        foreach ($ids as $id) {
+            $reservation = Reservation::query()
+                ->where('xendit_payment_id', $id)
+                ->orWhere('xendit_refund_id', $id)
+                ->first();
+
+            if ($reservation) {
+                return $reservation->event?->project;
+            }
+        }
+
+        $referenceId = $data['reference_id'] ?? null;
+        if (is_string($referenceId) && $referenceId !== '') {
+            $reservation = Reservation::query()
+                ->where('reservation_number', $referenceId)
+                ->first();
+
+            return $reservation?->event?->project;
+        }
+
+        return null;
     }
 
     private function dispatch(Request $request, ?Project $project): JsonResponse
@@ -156,6 +215,19 @@ class XenditWebhookController extends Controller
             return $this->handleRefundEvent($payload, $event);
         }
 
+        // QR Code events. QRIS payments made through a Xendit invoice still
+        // produce a QR payment object; refunding one emits `qr.refund` to the
+        // "QR code paid & refunded" webhook URL.
+        if ($event === 'qr.refund') {
+            return $this->handleQrRefundEvent($payload);
+        }
+
+        // The matching invoice.paid event already settles the reservation, so
+        // qr.payment needs no action — acknowledge so Xendit does not retry.
+        if ($event === 'qr.payment') {
+            return response()->json(['message' => 'QR payment acknowledged (settled via invoice)']);
+        }
+
         // Payment Method events (saved tokens) - Phase 4 will implement
         if (str_starts_with($event, 'payment_method.')) {
             Log::info('Xendit payment_method webhook received (Phase 4 not implemented)', [
@@ -165,6 +237,14 @@ class XenditWebhookController extends Controller
             ]);
 
             return response()->json(['message' => 'Acknowledged (no action)']);
+        }
+
+        // Payment Session events (Sessions API) - identified by the
+        // `payment_session.` event prefix. The legacy invoice branch below
+        // keys off a root-level `status`, which session payloads never carry
+        // (their status lives under `data`), so the two never collide.
+        if (str_starts_with($event, 'payment_session.')) {
+            return $this->handleSessionEvent($payload, $event);
         }
 
         // Invoice events - identified by `status` field
@@ -362,5 +442,258 @@ class XenditWebhookController extends Controller
 
             return response()->json(['message' => 'Refund finalized synced']);
         });
+    }
+
+    /**
+     * Handle Xendit QR Code refund webhook (`qr.refund`).
+     *
+     * Xendit only emits this callback when a QR refund settles — there is no
+     * "failed" QR refund callback in normal operation. The reservation is
+     * matched by the refund id (`qrrf_`) PM One stored when it initiated the
+     * refund, falling back to the QR payment id (`qrpy_`).
+     *
+     * Idempotent: ProcessXenditRefundJob already flips the reservation to
+     * Refunded when it initiates the refund, so this webhook is normally a
+     * confirmation. It still finalises the state as a backstop and records the
+     * settlement in the activity log.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function handleQrRefundEvent(array $payload): JsonResponse
+    {
+        $data = is_array($payload['data'] ?? null) ? $payload['data'] : $payload;
+
+        $refundId = $data['id'] ?? null;          // qrrf_...
+        $qrPaymentId = $data['qrpy_id'] ?? null;  // qrpy_...
+        $status = strtoupper((string) ($data['status'] ?? ''));
+
+        if (! $refundId && ! $qrPaymentId) {
+            Log::info('Xendit qr.refund webhook missing identifiers', ['payload_keys' => array_keys($payload)]);
+
+            return response()->json(['message' => 'Missing QR refund identifiers (no action)']);
+        }
+
+        return DB::transaction(function () use ($refundId, $qrPaymentId, $status) {
+            $reservation = Reservation::query()
+                ->where(function ($query) use ($refundId, $qrPaymentId) {
+                    if ($refundId) {
+                        $query->orWhere('xendit_refund_id', $refundId);
+                    }
+                    if ($qrPaymentId) {
+                        $query->orWhere('xendit_payment_id', $qrPaymentId);
+                    }
+                })
+                ->lockForUpdate()
+                ->first();
+
+            if (! $reservation) {
+                Log::warning('Xendit qr.refund webhook: reservation not found', [
+                    'xendit_refund_id' => $refundId,
+                    'xendit_payment_id' => $qrPaymentId,
+                ]);
+
+                return response()->json(['message' => 'Reservation not found (acknowledged)']);
+            }
+
+            // A qr.refund callback should only ever touch a reservation already
+            // in the refund flow. Guard against a stray event flipping a still
+            // paid/active reservation.
+            if (! in_array($reservation->status, [ReservationStatus::Cancelled, ReservationStatus::Refunded], true)) {
+                Log::warning('Xendit qr.refund webhook for reservation not in refund flow', [
+                    'reservation_id' => $reservation->id,
+                    'status' => $reservation->status->value,
+                ]);
+
+                return response()->json(['message' => 'Reservation not in refund flow (acknowledged)']);
+            }
+
+            if ($status === 'FAILED') {
+                Log::error('Xendit QR refund failed (webhook)', [
+                    'reservation_id' => $reservation->id,
+                    'xendit_refund_id' => $refundId,
+                ]);
+
+                activity()
+                    ->performedOn($reservation)
+                    ->event('refund_failed')
+                    ->withProperties([
+                        'project_id' => $reservation->event?->project_id,
+                        'reservation_id' => $reservation->id,
+                        'xendit_refund_id' => $refundId,
+                    ])
+                    ->log('Xendit QR refund failed');
+
+                return response()->json(['message' => 'QR refund failure logged']);
+            }
+
+            if ($reservation->status === ReservationStatus::Refunded && $reservation->refunded_at !== null) {
+                return response()->json(['message' => 'QR refund already synced']);
+            }
+
+            $reservation->update([
+                'status' => ReservationStatus::Refunded,
+                'refunded_at' => now(),
+                'xendit_refund_id' => $refundId ?? $reservation->xendit_refund_id,
+            ]);
+
+            activity()
+                ->performedOn($reservation)
+                ->event('refund_settled')
+                ->withProperties([
+                    'project_id' => $reservation->event?->project_id,
+                    'reservation_id' => $reservation->id,
+                    'xendit_refund_id' => $refundId ?? $reservation->xendit_refund_id,
+                ])
+                ->log('Xendit QR refund settled');
+
+            return response()->json(['message' => 'QR refund settled']);
+        });
+    }
+
+    /**
+     * Handle Xendit Payment Session webhook events (payment_session.completed /
+     * payment_session.expired).
+     *
+     * Mirrors handleInvoiceEvent() but reads the Sessions payload shape: the
+     * session object lives under `data`, the reservation is identified by
+     * `data.reference_id` (= reservation_number), and the session id is
+     * `data.id` (a `ps-` value) which the reservation stores in
+     * `xendit_invoice_id`.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function handleSessionEvent(array $payload, string $event): JsonResponse
+    {
+        $data = is_array($payload['data'] ?? null) ? $payload['data'] : $payload;
+
+        $referenceId = $data['reference_id'] ?? $payload['reference_id'] ?? null;
+        $sessionId = $data['id'] ?? $payload['id'] ?? null;
+        $status = strtoupper((string) ($data['status'] ?? ''));
+
+        if (! $referenceId && ! $sessionId) {
+            Log::info('Xendit session webhook missing identifiers', ['event' => $event]);
+
+            return response()->json(['message' => 'Missing session identifiers (no action)']);
+        }
+
+        return DB::transaction(function () use ($data, $event, $referenceId, $sessionId, $status) {
+            $reservation = Reservation::query()
+                ->when(
+                    $referenceId,
+                    fn ($query) => $query->where('reservation_number', $referenceId),
+                    fn ($query) => $query->where('xendit_invoice_id', $sessionId),
+                )
+                ->lockForUpdate()
+                ->first();
+
+            if (! $reservation) {
+                // Acknowledge with 200 so Xendit does not retry — same rationale
+                // as handleInvoiceEvent (synthetic "Test and save" payloads, or
+                // a webhook racing our create transaction).
+                Log::warning('Xendit session webhook: reservation not found', [
+                    'reference_id' => $referenceId,
+                    'session_id' => $sessionId,
+                ]);
+
+                return response()->json(['message' => 'Reservation not found (acknowledged)']);
+            }
+
+            $isCompleted = $event === 'payment_session.completed' || $status === 'COMPLETED';
+            $isExpired = $event === 'payment_session.expired' || $status === 'EXPIRED';
+
+            if ($isCompleted) {
+                if ($reservation->status->isPaid()) {
+                    return response()->json(['message' => 'Reservation already paid']);
+                }
+
+                if ($reservation->status->isFinal()) {
+                    Log::warning('Xendit session webhook: completed event for final-state reservation', [
+                        'reservation_id' => $reservation->id,
+                        'status' => $reservation->status->value,
+                    ]);
+
+                    return response()->json(['message' => 'Reservation already in final state'], 409);
+                }
+
+                $this->reservations->markAsPaid($reservation, $this->sessionPaidPayload($data, $sessionId, $reservation));
+
+                activity()
+                    ->performedOn($reservation)
+                    ->event('payment_paid')
+                    ->withProperties([
+                        'project_id' => $reservation->event?->project_id,
+                        'reservation_id' => $reservation->id,
+                        'amount' => $data['amount'] ?? null,
+                        'session_id' => $sessionId,
+                        'payment_request_id' => $data['payment_request_id'] ?? null,
+                    ])
+                    ->log('Payment received via Xendit');
+
+                return response()->json(['message' => 'Reservation marked as paid']);
+            }
+
+            if ($isExpired) {
+                if ($reservation->status !== ReservationStatus::PendingPayment) {
+                    return response()->json(['message' => 'Reservation not eligible for expiry']);
+                }
+
+                $this->reservations->expireReservation($reservation);
+
+                activity()
+                    ->performedOn($reservation)
+                    ->event('payment_expired')
+                    ->withProperties([
+                        'project_id' => $reservation->event?->project_id,
+                        'reservation_id' => $reservation->id,
+                        'session_id' => $sessionId,
+                    ])
+                    ->log('Xendit payment session expired');
+
+                return response()->json(['message' => 'Reservation expired']);
+            }
+
+            // payment_session.canceled and any other sub-event: acknowledge only.
+            Log::info('Xendit session webhook with no mapped action', [
+                'event' => $event,
+                'status' => $status,
+                'reservation_id' => $reservation->id,
+            ]);
+
+            return response()->json(['message' => 'Webhook received but no action taken']);
+        });
+    }
+
+    /**
+     * Map a Xendit Payment Session `data` object into the array shape
+     * ReservationService::markAsPaid() consumes.
+     *
+     * The session id is kept as the reservation's payment reference, and the
+     * underlying payment request id is the closest Sessions-era equivalent of
+     * the legacy `payment_id`. The session.completed payload documents only
+     * `allowed_payment_channels`, not the channel actually used — a concrete
+     * channel is forwarded when present, otherwise the receipt degrades to a
+     * generic label (cosmetic only).
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function sessionPaidPayload(array $data, ?string $sessionId, Reservation $reservation): array
+    {
+        $out = [
+            'id' => $sessionId ?: $reservation->xendit_invoice_id,
+        ];
+
+        if (! empty($data['payment_request_id'])) {
+            $out['payment_id'] = $data['payment_request_id'];
+        }
+
+        foreach (['payment_channel', 'channel_code'] as $key) {
+            if (! empty($data[$key]) && is_string($data[$key])) {
+                $out['payment_channel'] = $data[$key];
+                break;
+            }
+        }
+
+        return $out;
     }
 }

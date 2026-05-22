@@ -46,7 +46,7 @@ beforeEach(function () {
 
 test('reservation survives when Xendit invoice creation fails', function () {
     $xendit = mock(XenditService::class);
-    $xendit->shouldReceive('createInvoice')->andThrow(new RuntimeException('Xendit API down'));
+    $xendit->shouldReceive('createCheckout')->andThrow(new RuntimeException('Xendit API down'));
     $this->app->instance(XenditService::class, $xendit);
 
     $payload = [

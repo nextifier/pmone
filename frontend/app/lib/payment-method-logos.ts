@@ -34,12 +34,13 @@ const CHANNEL_LOGO_MAP: Record<string, { file: string; label: string }> = {
   BRI_DIRECT_DEBIT: { file: "dd-bri.svg", label: "BRI Direct Debit" },
 };
 
-// `xendit` is the gateway, not the channel the customer actually paid with.
-// When the webhook hasn't carried back the specific channel (e.g. BCA, OVO),
-// we fall back to a generic "Online Payment" label rather than exposing the
-// internal gateway name to staff or guests.
+// `xendit` is the gateway, not a channel the customer actually paid with, so it
+// has no displayable label of its own and is deliberately absent here. A Xendit
+// reservation with no channel yet (typically still unpaid) resolves to an empty
+// state in the Payment column — the Status column already conveys whether
+// payment has happened. Only methods meaningful without a channel (manual
+// transfer, complimentary) carry a label.
 const METHOD_LABEL_MAP: Record<string, string> = {
-  xendit: "Online Payment",
   manual_bank_transfer: "Manual Bank Transfer",
   complimentary: "Complimentary",
 };
@@ -64,5 +65,5 @@ export function getPaymentChannelLabel(channel?: string | null): string | null {
 
 export function getPaymentMethodLabel(method?: string | null): string | null {
   if (!method) return null;
-  return METHOD_LABEL_MAP[method.toLowerCase()] ?? method;
+  return METHOD_LABEL_MAP[method.toLowerCase()] ?? null;
 }

@@ -23,7 +23,7 @@ class PromoCodeResource extends JsonResource
             'issued_to_email' => $this->issued_to_email,
             'metadata' => $this->metadata,
             'event_id' => $this->event_id,
-            'is_exhausted' => $this->isExhausted(),
+            'is_fully_used' => $this->isFullyUsed(),
             'promotion_rule' => $this->whenLoaded('promotionRule', fn () => (new PromotionRuleIndexResource($this->promotionRule))->resolve()),
             'event' => $this->whenLoaded('event', fn () => [
                 'id' => $this->event->id,

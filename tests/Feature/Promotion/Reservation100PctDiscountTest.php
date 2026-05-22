@@ -50,7 +50,7 @@ it('skips Xendit and sets status to Paid with Complimentary when 100% fixed_amou
 
     // Mock Xendit so test fails loud if it gets called
     $xenditMock = Mockery::mock(XenditService::class);
-    $xenditMock->shouldNotReceive('createInvoice');
+    $xenditMock->shouldNotReceive('createCheckout');
     $this->app->instance(XenditService::class, $xenditMock);
 
     $reservation = app(ReservationService::class)->createReservation([
@@ -90,7 +90,7 @@ it('sets total 0 and skips Xendit when percentage discount makes total exactly z
     PromoCode::factory()->for($rule, 'promotionRule')->create(['code' => 'FULLOFF']);
 
     $xenditMock = Mockery::mock(XenditService::class);
-    $xenditMock->shouldNotReceive('createInvoice');
+    $xenditMock->shouldNotReceive('createCheckout');
     $this->app->instance(XenditService::class, $xenditMock);
 
     $reservation = app(ReservationService::class)->createReservation([
@@ -125,9 +125,9 @@ it('still generates Xendit invoice when partial discount leaves nonzero total', 
     PromoCode::factory()->for($rule, 'promotionRule')->create(['code' => 'HALFOFF']);
 
     $xenditMock = Mockery::mock(XenditService::class);
-    $xenditMock->shouldReceive('createInvoice')
+    $xenditMock->shouldReceive('createCheckout')
         ->once()
-        ->andReturn(['invoice_id' => 'inv-123', 'invoice_url' => 'https://xendit/inv-123']);
+        ->andReturn(['reference' => 'inv-123', 'payment_url' => 'https://xendit/inv-123']);
     $xenditMock->shouldReceive('gateway')->andReturn(null);
     $this->app->instance(XenditService::class, $xenditMock);
 

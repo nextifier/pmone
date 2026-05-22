@@ -963,6 +963,24 @@ Route::middleware(['auth:sanctum', 'verified', 'hotel-reservation-enabled'])->pr
         Route::post('/manual', [ReservationController::class, 'storeManual'])
             ->middleware('can:reservations.manual_entry')
             ->name('events.reservations.store-manual');
+        Route::delete('/bulk', [ReservationController::class, 'bulkDestroy'])
+            ->middleware('can:reservations.delete')
+            ->name('events.reservations.bulk-destroy');
+        Route::get('/trash', [ReservationController::class, 'trash'])
+            ->middleware('can:reservations.delete')
+            ->name('events.reservations.trash');
+        Route::post('/trash/restore/bulk', [ReservationController::class, 'bulkRestore'])
+            ->middleware('can:reservations.delete')
+            ->name('events.reservations.bulk-restore');
+        Route::post('/trash/{id}/restore', [ReservationController::class, 'restore'])
+            ->middleware('can:reservations.delete')
+            ->name('events.reservations.restore');
+        Route::delete('/trash/bulk', [ReservationController::class, 'bulkForceDestroy'])
+            ->middleware('can:reservations.delete')
+            ->name('events.reservations.bulk-force-destroy');
+        Route::delete('/trash/{id}', [ReservationController::class, 'forceDestroy'])
+            ->middleware('can:reservations.delete')
+            ->name('events.reservations.force-destroy');
         Route::get('/{reservation}', [ReservationController::class, 'show'])
             ->middleware('can:reservations.read')
             ->name('events.reservations.show');

@@ -156,8 +156,8 @@ class PromoCodeController extends Controller
             $filters['is_active'] = $request->input('filter_is_active');
         }
 
-        if ($request->boolean('filter_exhausted')) {
-            $filters['exhausted'] = true;
+        if ($request->boolean('filter_fully_used')) {
+            $filters['fully_used'] = true;
         }
 
         $sort = $request->input('sort', '-created_at');
@@ -266,7 +266,7 @@ class PromoCodeController extends Controller
             $query->where('is_active', filter_var($request->input('filter_is_active'), FILTER_VALIDATE_BOOLEAN));
         }
 
-        if ($request->boolean('filter_exhausted')) {
+        if ($request->boolean('filter_fully_used')) {
             $query->whereColumn('usage_count', '>=', 'usage_limit')->whereNotNull('usage_limit');
         }
     }

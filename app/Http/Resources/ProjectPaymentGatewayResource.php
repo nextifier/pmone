@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources;
 
+use App\Contracts\Payment\SupportsCheckoutMethods;
+use App\Enums\Payment\CheckoutMethod;
 use App\Enums\PaymentCapability;
 use App\Models\ProjectPaymentGateway;
 use App\Services\Payment\PaymentProviderFactory;
@@ -24,6 +26,8 @@ class ProjectPaymentGatewayResource extends JsonResource
             'provider' => $this->provider,
             'label' => $this->label,
             'mode' => $this->mode,
+            'checkout_method' => $this->checkout_method?->value,
+            'available_checkout_methods' => $this->resolveCheckoutMethods(),
             'is_active' => $this->is_active,
             'secret_key_masked' => ProjectPaymentGateway::mask($this->secret_key),
             'webhook_token_masked' => ProjectPaymentGateway::mask($this->webhook_token),
@@ -67,6 +71,39 @@ class ProjectPaymentGatewayResource extends JsonResource
             return array_map(
                 fn (PaymentCapability $capability): string => $capability->value,
                 $provider->capabilities(),
+            );
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /**
+     * Checkout methods this gateway's provider exposes, each with display
+     * metadata, so the frontend can render the selector — including disabled
+     * "coming soon" options — without hardcoding provider knowledge.
+     *
+     * Returns an empty list when the provider does not offer a choice of
+     * checkout methods or cannot be resolved.
+     *
+     * @return array<int, array{value: string, label: string, description: string, available: bool}>
+     */
+    private function resolveCheckoutMethods(): array
+    {
+        try {
+            $provider = app(PaymentProviderFactory::class)->make($this->resource);
+
+            if (! $provider instanceof SupportsCheckoutMethods) {
+                return [];
+            }
+
+            return array_map(
+                fn (CheckoutMethod $method): array => [
+                    'value' => $method->value,
+                    'label' => $method->label(),
+                    'description' => $method->description(),
+                    'available' => $provider->supportsCheckoutMethod($method),
+                ],
+                $provider->checkoutMethods(),
             );
         } catch (\Throwable) {
             return [];

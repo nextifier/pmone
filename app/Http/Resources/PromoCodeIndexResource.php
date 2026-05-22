@@ -21,7 +21,7 @@ class PromoCodeIndexResource extends JsonResource
             'is_active' => (bool) $this->is_active,
             'issued_to_email' => $this->issued_to_email,
             'event_id' => $this->event_id,
-            'is_exhausted' => $this->isExhausted(),
+            'is_fully_used' => $this->isFullyUsed(),
             'promotion_rule' => $this->whenLoaded('promotionRule', fn () => [
                 'id' => $this->promotionRule->id,
                 'ulid' => $this->promotionRule->ulid,

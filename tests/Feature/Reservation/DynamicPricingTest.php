@@ -22,9 +22,9 @@ beforeEach(function () {
     Queue::fake();
 
     $xendit = mock(XenditService::class);
-    $xendit->shouldReceive('createInvoice')->andReturn([
-        'invoice_id' => 'inv_x',
-        'invoice_url' => 'https://x',
+    $xendit->shouldReceive('createCheckout')->andReturn([
+        'reference' => 'inv_x',
+        'payment_url' => 'https://x',
     ]);
     $this->app->instance(XenditService::class, $xendit);
 

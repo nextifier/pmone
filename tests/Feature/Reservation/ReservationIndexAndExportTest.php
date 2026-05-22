@@ -90,6 +90,86 @@ test('reservation list is filtered by search', function () {
         ->assertJsonPath('data.0.guest_name', 'Alice Wonderland');
 });
 
+test('reservation list is filtered by payment channel', function () {
+    Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_channel' => 'BCA',
+        'guest_name' => 'BCA Guest',
+    ]);
+    Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_channel' => 'QRIS',
+        'guest_name' => 'QRIS Guest',
+    ]);
+
+    $this->actingAs($this->reader);
+
+    $response = $this->getJson("/api/events/{$this->event->id}/reservations?filter_payment_channel=QRIS");
+
+    $response->assertSuccessful()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.guest_name', 'QRIS Guest');
+});
+
+test('reservation list exposes the distinct payment channels in meta', function () {
+    Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_channel' => 'QRIS',
+    ]);
+    Reservation::factory()->count(2)->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_channel' => 'BCA',
+    ]);
+    Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_channel' => null,
+    ]);
+
+    $this->actingAs($this->reader);
+
+    $response = $this->getJson("/api/events/{$this->event->id}/reservations");
+
+    $response->assertSuccessful();
+    expect($response->json('meta.payment_channels'))->toBe(['BCA', 'QRIS']);
+});
+
+test('reservation list is filtered by payment mode', function () {
+    $liveGateway = ProjectPaymentGateway::factory()->create(['mode' => 'live']);
+    $testGateway = ProjectPaymentGateway::factory()->create(['mode' => 'test']);
+
+    Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_gateway_id' => $liveGateway->id,
+        'guest_name' => 'Live Guest',
+    ]);
+    Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_gateway_id' => $testGateway->id,
+        'guest_name' => 'Test Guest',
+    ]);
+    Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_gateway_id' => null,
+        'guest_name' => 'No Gateway Guest',
+    ]);
+
+    $this->actingAs($this->reader);
+
+    $response = $this->getJson("/api/events/{$this->event->id}/reservations?filter_mode=test");
+
+    $response->assertSuccessful()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.guest_name', 'Test Guest');
+});
+
 test('reservation list pagination respects per_page', function () {
     Reservation::factory()->count(5)->create([
         'hotel_id' => $this->hotel->id,
@@ -312,6 +392,72 @@ test('export map renders nullable financial and ops fields as dash placeholders'
     expect($assoc['Payment Destination'])->toBe('-');
     expect($assoc['Cancellation Reason'])->toBe('-');
     expect($assoc['Refund Reason'])->toBe('-');
+});
+
+test('export method column is blank for gateway payments and labelled for others', function () {
+    $xendit = Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_method' => 'xendit',
+        'payment_channel' => 'BCA',
+    ]);
+    $complimentary = Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_method' => 'complimentary',
+    ]);
+
+    $xendit->load(['hotel', 'event', 'creator', 'items.roomType', 'transfers']);
+    $complimentary->load(['hotel', 'event', 'creator', 'items.roomType', 'transfers']);
+
+    $export = new ReservationsExport;
+    $headings = $export->headings();
+
+    expect(array_combine($headings, $export->map($xendit))['Payment Method'])->toBe('-');
+    expect(array_combine($headings, $export->map($complimentary))['Payment Method'])
+        ->toBe('Complimentary');
+});
+
+test('export honours payment channel filter', function () {
+    Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_channel' => 'BCA',
+        'guest_name' => 'BCA Guest',
+    ]);
+    Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_channel' => 'QRIS',
+        'guest_name' => 'QRIS Guest',
+    ]);
+
+    $rows = (new ReservationsExport(['event_id' => $this->event->id, 'payment_channel' => 'BCA']))->collection();
+
+    expect($rows)->toHaveCount(1);
+    expect($rows->first()->guest_name)->toBe('BCA Guest');
+});
+
+test('export honours payment mode filter', function () {
+    $testGateway = ProjectPaymentGateway::factory()->create(['mode' => 'test']);
+
+    Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_gateway_id' => $testGateway->id,
+        'guest_name' => 'Test Mode Guest',
+    ]);
+    Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_gateway_id' => null,
+        'guest_name' => 'No Gateway Guest',
+    ]);
+
+    $rows = (new ReservationsExport(['event_id' => $this->event->id, 'mode' => 'test']))->collection();
+
+    expect($rows)->toHaveCount(1);
+    expect($rows->first()->guest_name)->toBe('Test Mode Guest');
 });
 
 test('export forbidden without reservations.export permission', function () {

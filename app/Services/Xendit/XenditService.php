@@ -6,6 +6,7 @@ use App\Contracts\Payment\PaymentProvider;
 use App\Contracts\Payment\ProvidesBalance;
 use App\Contracts\Payment\ProvidesSettlements;
 use App\Contracts\Payment\ProvidesTransactions;
+use App\Contracts\Payment\SupportsCheckoutMethods;
 use App\DTOs\Payment\BalanceAccount;
 use App\DTOs\Payment\BalanceSnapshot;
 use App\DTOs\Payment\SettlementBucket;
@@ -13,6 +14,7 @@ use App\DTOs\Payment\SettlementSummary;
 use App\DTOs\Payment\TransactionEntry;
 use App\DTOs\Payment\TransactionPage;
 use App\DTOs\Payment\TransactionQuery;
+use App\Enums\Payment\CheckoutMethod;
 use App\Enums\PaymentCapability;
 use App\Exceptions\Payment\PaymentProviderException;
 use App\Models\ProjectPaymentGateway;
@@ -30,7 +32,7 @@ use Xendit\Invoice\InvoiceApi;
 use Xendit\Refund\CreateRefund;
 use Xendit\Refund\RefundApi;
 
-class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlements, ProvidesTransactions
+class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlements, ProvidesTransactions, SupportsCheckoutMethods
 {
     /**
      * Cache TTL for payment channel listings (24 hours).
@@ -102,22 +104,29 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
 
     /**
      * Payment channel codes (uppercase, matching Xendit's payment_channel value)
-     * that support refunds via Xendit's /refunds API. Everything not in this list
-     * — notably Virtual Accounts and retail outlets — requires the admin to
-     * refund manually (bank transfer to guest, etc.).
+     * that can be refunded automatically. Everything not in this list — notably
+     * Virtual Accounts and retail outlets — requires the admin to refund
+     * manually (bank transfer to guest, etc.).
      *
-     * Source: Xendit's "Unified Refunds (BETA)" channel matrix.
+     * Two API routes are involved, picked by {@see ProcessXenditRefundJob}:
+     *  - Cards, e-wallets and direct debit go through the unified Refund API
+     *    ({@see refundInvoice}), keyed by invoice id.
+     *  - QRIS does NOT support the unified Refund API (it returns
+     *    REFUND_NOT_SUPPORTED). It must use the dedicated QR Code Refund
+     *    endpoint ({@see refundQrPayment}), keyed by the qrpy_ payment id, and
+     *    only succeeds for the supported QRIS issuers (DANA, OVO, ShopeePay,
+     *    LinkAja, Mandiri, Permata, CIMB, Jenius/BTPN, BSI).
      *
      * @var array<int, string>
      */
     public const REFUNDABLE_CHANNELS = [
-        // Cards (fully refundable via API)
+        // Cards (fully refundable via the unified Refund API)
         'CREDIT_CARD',
         'VISA',
         'MASTERCARD',
         'AMEX',
         'JCB',
-        // E-wallets (most support refunds via API)
+        // E-wallets (most support refunds via the unified Refund API)
         'OVO',
         'DANA',
         'SHOPEEPAY',
@@ -126,8 +135,9 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
         'ASTRAPAY',
         'JENIUSPAY',
         'NEXCASH',
-        // QR + direct debit
+        // QRIS — refunded via the dedicated QR Code Refund endpoint, not /refunds
         'QRIS',
+        // Direct debit
         'DD_BRI',
         'BRI_DIRECT_DEBIT',
     ];
@@ -365,6 +375,208 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
     }
 
     /**
+     * Create a payment for a reservation using whichever checkout method the
+     * bound gateway is configured for (see ProjectPaymentGateway::$checkout_method).
+     *
+     * Returns a method-agnostic shape so callers (ReservationService) never need
+     * to know whether the Sessions API or the legacy Invoices API ran.
+     *
+     * @return array{reference: string, payment_url: string, checkout_method: string}
+     */
+    public function createCheckout(
+        Reservation $reservation,
+        ?string $successUrl = null,
+        ?string $failureUrl = null,
+    ): array {
+        $this->requireGateway();
+
+        $method = $this->gateway->checkout_method ?? CheckoutMethod::PaymentLinkLegacy;
+
+        if ($method === CheckoutMethod::SessionsComponents) {
+            throw new PaymentProviderException(
+                'Sessions - Components checkout is not available yet.',
+                'PAYMENT_GATEWAY_MISCONFIGURED',
+                422,
+            );
+        }
+
+        if ($method === CheckoutMethod::SessionsPaymentLink) {
+            $session = $this->createSession($reservation, $successUrl, $failureUrl);
+
+            return [
+                'reference' => $session['session_id'],
+                'payment_url' => $session['payment_url'],
+                'checkout_method' => $method->value,
+            ];
+        }
+
+        // CheckoutMethod::PaymentLinkLegacy — the legacy Invoices API.
+        $invoice = $this->createInvoice($reservation, $successUrl, $failureUrl);
+
+        return [
+            'reference' => $invoice['invoice_id'],
+            'payment_url' => $invoice['invoice_url'],
+            'checkout_method' => $method->value,
+        ];
+    }
+
+    /**
+     * Create a Xendit Payment Session in PAYMENT_LINK mode for a reservation.
+     *
+     * The Sessions API is the modern replacement for the Invoices API;
+     * PAYMENT_LINK mode returns a Xendit-hosted checkout URL — the Sessions-era
+     * equivalent of createInvoice(). The installed xendit/xendit-php SDK has no
+     * Sessions client, so this calls the REST endpoint directly with the same
+     * Basic-auth pattern as getBalance().
+     *
+     * @return array{session_id: string, payment_url: string, status: string}
+     */
+    public function createSession(
+        Reservation $reservation,
+        ?string $successUrl = null,
+        ?string $failureUrl = null,
+    ): array {
+        $this->requireGateway();
+
+        $success = $successUrl ?? (config('xendit.success_redirect_url').'?ref='.$reservation->reservation_number);
+        $cancel = $failureUrl ?? (config('xendit.failure_redirect_url').'?ref='.$reservation->reservation_number);
+
+        $customer = [
+            'reference_id' => $reservation->reservation_number.'-cust',
+            'type' => 'INDIVIDUAL',
+            'individual_detail' => [
+                'given_names' => $reservation->guest_name ?: 'Guest',
+            ],
+        ];
+
+        if (filled($reservation->guest_email)) {
+            $customer['email'] = $reservation->guest_email;
+        }
+
+        // Sessions validates mobile_number strictly as E.164. PM One guest
+        // phones are free-form, so only forward a conforming value; otherwise
+        // omit it rather than have Xendit reject the whole request.
+        $mobile = $this->toE164($reservation->guest_phone);
+        if ($mobile !== null) {
+            $customer['mobile_number'] = $mobile;
+        }
+
+        $payload = [
+            'reference_id' => $reservation->reservation_number,
+            'session_type' => 'PAY',
+            'mode' => 'PAYMENT_LINK',
+            'currency' => $this->resolveCurrency(),
+            // IDR has no minor units — Xendit expects a whole-rupiah integer.
+            'amount' => (int) round((float) $reservation->total_amount),
+            'country' => 'ID',
+            'locale' => 'id',
+            'customer' => $customer,
+            'description' => "Hotel reservation {$reservation->reservation_number} - {$reservation->hotel?->name}",
+            // Sessions default to a 30-minute expiry; align it with the
+            // app-wide payment window so the hosted page does not die early.
+            'expires_at' => now()->addSeconds((int) config('xendit.invoice_duration', 86400))->toIso8601String(),
+            'success_return_url' => $success,
+            'cancel_return_url' => $cancel,
+        ];
+
+        try {
+            $response = Http::withBasicAuth($this->secretKey, '')
+                ->acceptJson()
+                ->timeout(15)
+                ->connectTimeout(5)
+                ->post('https://api.xendit.co/sessions', $payload);
+        } catch (\Throwable $e) {
+            $mapped = XenditErrorMapper::map($e);
+
+            throw new PaymentProviderException(
+                $mapped['message'],
+                $mapped['error_code'],
+                $mapped['http_status'],
+                $e,
+            );
+        }
+
+        if (! $response->successful()) {
+            throw $this->mapProviderApiError($response, 'sessions');
+        }
+
+        $this->touchGatewayUsage();
+
+        // The create response is the session object. Xendit has used both
+        // `payment_session_id` and the bare `id` for it across API revisions —
+        // accept either so a field rename upstream does not break checkout.
+        $sessionId = (string) ($response->json('payment_session_id') ?? $response->json('id') ?? '');
+        $paymentUrl = (string) ($response->json('payment_link_url') ?? '');
+
+        if ($paymentUrl === '') {
+            throw new PaymentProviderException(
+                'Xendit created the session but returned no payment link URL.',
+                'PAYMENT_GATEWAY_UNAVAILABLE',
+                502,
+            );
+        }
+
+        return [
+            'session_id' => $sessionId,
+            'payment_url' => $paymentUrl,
+            'status' => (string) ($response->json('status') ?? ''),
+        ];
+    }
+
+    /**
+     * Fetch a Xendit Payment Session by id. Used by the webhook handler to
+     * backfill the payment channel when the session.completed payload omits it.
+     * Returns null on any failure so callers degrade gracefully.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function fetchSessionDetail(string $sessionId): ?array
+    {
+        $this->requireGateway();
+
+        try {
+            $response = Http::withBasicAuth($this->secretKey, '')
+                ->acceptJson()
+                ->timeout(10)
+                ->connectTimeout(5)
+                ->get('https://api.xendit.co/sessions/'.urlencode($sessionId));
+
+            if (! $response->successful()) {
+                Log::info('Xendit fetchSessionDetail non-2xx', [
+                    'status' => $response->status(),
+                    'session_id' => $sessionId,
+                ]);
+
+                return null;
+            }
+
+            $payload = $response->json();
+
+            return is_array($payload) ? $payload : null;
+        } catch (\Throwable $e) {
+            Log::warning('Xendit fetchSessionDetail failed', [
+                'message' => $e->getMessage(),
+                'session_id' => $sessionId,
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Return the phone number if it is already valid E.164 (`+` then 7-15
+     * digits), otherwise null. The Sessions API rejects malformed mobile
+     * numbers, so a non-conforming value is dropped rather than risking the
+     * whole request.
+     */
+    protected function toE164(?string $phone): ?string
+    {
+        $phone = trim((string) $phone);
+
+        return preg_match('/^\+[1-9]\d{6,14}$/', $phone) === 1 ? $phone : null;
+    }
+
+    /**
      * Xendit refund `reason` accepts only a fixed set of enum values. Anything
      * outside this list gets rejected by Xendit with "Failed to validate the
      * request". We preserve the user-supplied free text on the Reservation
@@ -380,22 +592,33 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
     ];
 
     /**
-     * Refund a Xendit invoice (partial or full).
+     * Coerce a free-text cancellation reason into one of Xendit's accepted
+     * refund enum values, defaulting to CANCELLATION. The human-readable reason
+     * is preserved separately on the Reservation model (`refund_reason`).
+     */
+    private function normalizeRefundReason(string $reason): string
+    {
+        $normalized = strtoupper($reason);
+
+        return in_array($normalized, self::REFUND_REASONS, true) ? $normalized : 'CANCELLATION';
+    }
+
+    /**
+     * Refund a Xendit invoice (partial or full) through the unified Refund API.
+     *
+     * Works for cards, e-wallets and direct debit. Does NOT work for QRIS —
+     * Xendit rejects QRIS invoices here with REFUND_NOT_SUPPORTED; use
+     * {@see refundQrPayment} for those.
      */
     public function refundInvoice(string $invoiceId, float $amount, string $reason = 'CANCELLATION'): string
     {
         $this->requireGateway();
         $api = new RefundApi($this->httpClient());
 
-        $normalizedReason = strtoupper($reason);
-        if (! in_array($normalizedReason, self::REFUND_REASONS, true)) {
-            $normalizedReason = 'CANCELLATION';
-        }
-
         $payload = new CreateRefund([
             'invoice_id' => $invoiceId,
             'amount' => $amount,
-            'reason' => $normalizedReason,
+            'reason' => $this->normalizeRefundReason($reason),
         ]);
 
         $refund = $api->createRefund(null, null, $payload);
@@ -403,6 +626,70 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
         $this->touchGatewayUsage();
 
         return $refund->getId();
+    }
+
+    /**
+     * Refund a QRIS payment through Xendit's dedicated QR Code Refund endpoint.
+     *
+     * QRIS cannot be refunded via the unified Refund API ({@see refundInvoice}).
+     * This endpoint is keyed by the QR payment id (`qrpy_...`) — Xendit reports
+     * it as `payment_id` on the paid invoice, and PM One stores it on the
+     * reservation as `xendit_payment_id`.
+     *
+     * The call returns immediately with status PENDING; Xendit then sends a
+     * `qr.refund` webhook once the refund settles. Refunds only succeed for the
+     * supported QRIS issuers — unsupported ones (e.g. GoPay) return a 4xx and
+     * must be refunded manually.
+     *
+     * @return array{id: string, status: string, refund_amount: int|null, channel_code: string|null}
+     *
+     * @throws PaymentProviderException on any non-2xx response (4xx = permanent)
+     */
+    public function refundQrPayment(string $qrPaymentId, float $amount, string $reason = 'CANCELLATION'): array
+    {
+        $this->requireGateway();
+
+        try {
+            $response = Http::withBasicAuth($this->secretKey, '')
+                ->acceptJson()
+                ->asJson()
+                ->timeout(15)
+                ->connectTimeout(5)
+                ->post('https://api.xendit.co/qr_codes/payments/'.urlencode($qrPaymentId).'/refunds', [
+                    'amount' => (int) round($amount),
+                    'reason' => $this->normalizeRefundReason($reason),
+                ]);
+        } catch (\Throwable $e) {
+            // Network/timeout — transient, let the caller retry.
+            throw new PaymentProviderException(
+                'Xendit QR refund request failed: '.$e->getMessage(),
+                'QR_REFUND_REQUEST_FAILED',
+                503,
+                $e,
+            );
+        }
+
+        if (! $response->successful()) {
+            $body = $response->json();
+            $errorCode = is_array($body) ? (string) ($body['error_code'] ?? 'QR_REFUND_FAILED') : 'QR_REFUND_FAILED';
+            $message = is_array($body)
+                ? (string) ($body['message'] ?? 'Xendit QR refund failed')
+                : 'Xendit QR refund failed';
+
+            throw new PaymentProviderException($message, $errorCode, $response->status());
+        }
+
+        $this->touchGatewayUsage();
+
+        $body = $response->json();
+        $body = is_array($body) ? $body : [];
+
+        return [
+            'id' => (string) ($body['id'] ?? ''),
+            'status' => strtoupper((string) ($body['status'] ?? 'PENDING')),
+            'refund_amount' => isset($body['refund_amount']) ? (int) $body['refund_amount'] : null,
+            'channel_code' => isset($body['channel_code']) ? (string) $body['channel_code'] : null,
+        ];
     }
 
     /**
@@ -448,6 +735,27 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
     public function supports(PaymentCapability $capability): bool
     {
         return in_array($capability, $this->capabilities(), true);
+    }
+
+    /**
+     * Checkout integrations Xendit exposes, in display order. Includes methods
+     * that are not implemented yet (CheckoutMethod::available() === false) so
+     * the admin UI can render them disabled.
+     *
+     * @return array<int, CheckoutMethod>
+     */
+    public function checkoutMethods(): array
+    {
+        return [
+            CheckoutMethod::SessionsPaymentLink,
+            CheckoutMethod::SessionsComponents,
+            CheckoutMethod::PaymentLinkLegacy,
+        ];
+    }
+
+    public function supportsCheckoutMethod(CheckoutMethod $method): bool
+    {
+        return in_array($method, $this->checkoutMethods(), true) && $method->available();
     }
 
     /**
@@ -725,6 +1033,14 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
             return new PaymentProviderException(
                 'Xendit blocked this request. Add the server IP to the Xendit IP allowlist (Settings → Developers → IP Allowlist).',
                 'PAYMENT_GATEWAY_IP_NOT_ALLOWED',
+                502,
+            );
+        }
+
+        if ($providerCode === 'INVALID_URL') {
+            return new PaymentProviderException(
+                'Xendit rejected a checkout URL. The Sessions API requires publicly reachable success/cancel URLs — localhost URLs are not accepted. Set FRONTEND_URL to a public domain.',
+                'PAYMENT_GATEWAY_MISCONFIGURED',
                 502,
             );
         }

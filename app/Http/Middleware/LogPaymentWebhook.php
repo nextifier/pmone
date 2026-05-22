@@ -86,6 +86,9 @@ class LogPaymentWebhook
         $candidate = $payload['external_id']
             ?? $payload['invoice_id']
             ?? $payload['data']['invoice_id']
+            ?? $payload['data']['reference_id']
+            ?? $payload['data']['qrpy_id']
+            ?? $payload['data']['id']
             ?? null;
 
         return is_string($candidate) && $candidate !== '' ? $candidate : null;
@@ -100,6 +103,8 @@ class LogPaymentWebhook
         $reservation = Reservation::query()
             ->where('reservation_number', $externalId)
             ->orWhere('xendit_invoice_id', $externalId)
+            ->orWhere('xendit_payment_id', $externalId)
+            ->orWhere('xendit_refund_id', $externalId)
             ->first();
 
         return $reservation?->event?->project_id;

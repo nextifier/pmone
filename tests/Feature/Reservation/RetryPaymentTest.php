@@ -89,9 +89,9 @@ test('retry regenerates payment_url when gateway is active', function () {
 
     $xendit = mock(XenditService::class);
     $xendit->shouldReceive('gateway')->andReturn($gateway);
-    $xendit->shouldReceive('createInvoice')->once()->andReturn([
-        'invoice_id' => 'inv-retry-success',
-        'invoice_url' => 'https://checkout.xendit.co/web/retry-ok',
+    $xendit->shouldReceive('createCheckout')->once()->andReturn([
+        'reference' => 'inv-retry-success',
+        'payment_url' => 'https://checkout.xendit.co/web/retry-ok',
     ]);
     $this->app->instance(XenditService::class, $xendit);
 
@@ -122,7 +122,7 @@ test('retry returns 503 when Xendit invoice creation throws', function () {
 
     $xendit = mock(XenditService::class);
     $xendit->shouldReceive('gateway')->andReturn((object) ['id' => 1]);
-    $xendit->shouldReceive('createInvoice')->andThrow(new RuntimeException('Xendit API down'));
+    $xendit->shouldReceive('createCheckout')->andThrow(new RuntimeException('Xendit API down'));
     $this->app->instance(XenditService::class, $xendit);
 
     $this->postJson("/api/public/reservations/magic/{$rawToken}/retry-payment", [], $this->headers)

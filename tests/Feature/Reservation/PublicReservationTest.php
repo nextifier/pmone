@@ -220,9 +220,9 @@ test('public reservation creation creates pending_payment reservation', function
     Queue::fake();
 
     $xendit = mock(XenditService::class);
-    $xendit->shouldReceive('createInvoice')->andReturn([
-        'invoice_id' => 'inv_test_123',
-        'invoice_url' => 'https://checkout.xendit.co/web/inv_test_123',
+    $xendit->shouldReceive('createCheckout')->andReturn([
+        'reference' => 'inv_test_123',
+        'payment_url' => 'https://checkout.xendit.co/web/inv_test_123',
     ]);
     $xendit->shouldReceive('gateway')->andReturnNull();
     $this->app->instance(XenditService::class, $xendit);
@@ -285,7 +285,7 @@ test('reservation fails when no allotment available', function () {
     HotelEventAllotment::query()->update(['quantity' => 0]);
 
     $xendit = mock(XenditService::class);
-    $xendit->shouldReceive('createInvoice')->andReturn(['invoice_id' => 'x', 'invoice_url' => 'x']);
+    $xendit->shouldReceive('createCheckout')->andReturn(['reference' => 'x', 'payment_url' => 'x']);
     $this->app->instance(XenditService::class, $xendit);
 
     $response = $this->postJson('/api/public/reservations', [
@@ -311,7 +311,7 @@ test('reservation fails when no allotment available', function () {
 test('availability decreases after reservation is created', function () {
     Queue::fake();
     $xendit = mock(XenditService::class);
-    $xendit->shouldReceive('createInvoice')->andReturn(['invoice_id' => 'inv_x', 'invoice_url' => 'x']);
+    $xendit->shouldReceive('createCheckout')->andReturn(['reference' => 'inv_x', 'payment_url' => 'x']);
     $xendit->shouldReceive('gateway')->andReturnNull();
     $this->app->instance(XenditService::class, $xendit);
 
@@ -346,9 +346,9 @@ test('transfer price is server-resolved (T5: client price tampering ignored)', f
     ]);
 
     $xendit = mock(XenditService::class);
-    $xendit->shouldReceive('createInvoice')->andReturn([
-        'invoice_id' => 'inv_t5',
-        'invoice_url' => 'https://checkout.xendit.co/web/inv_t5',
+    $xendit->shouldReceive('createCheckout')->andReturn([
+        'reference' => 'inv_t5',
+        'payment_url' => 'https://checkout.xendit.co/web/inv_t5',
     ]);
     $xendit->shouldReceive('gateway')->andReturnNull();
     $this->app->instance(XenditService::class, $xendit);
@@ -394,7 +394,7 @@ test('transfer rejected when option belongs to different hotel (C2)', function (
     $foreignOption = HotelTransferOption::factory()->for($otherHotel)->create(['is_active' => true]);
 
     $xendit = mock(XenditService::class);
-    $xendit->shouldReceive('createInvoice')->andReturn(['invoice_id' => 'x', 'invoice_url' => 'x']);
+    $xendit->shouldReceive('createCheckout')->andReturn(['reference' => 'x', 'payment_url' => 'x']);
     $xendit->shouldReceive('gateway')->andReturnNull();
     $this->app->instance(XenditService::class, $xendit);
 

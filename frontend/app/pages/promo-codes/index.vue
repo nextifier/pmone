@@ -106,15 +106,15 @@
                 <div class="text-muted-foreground text-xs font-medium">Usage</div>
                 <div class="flex items-center gap-2">
                   <Checkbox
-                    id="filter-exhausted"
-                    :model-value="filterState.exhausted"
-                    @update:model-value="handleExhaustedChange"
+                    id="filter-fully-used"
+                    :model-value="filterState.fullyUsed"
+                    @update:model-value="handleFullyUsedChange"
                   />
                   <Label
-                    for="filter-exhausted"
+                    for="filter-fully-used"
                     class="grow cursor-pointer font-normal tracking-tight"
                   >
-                    Exhausted only
+                    Fully used only
                   </Label>
                 </div>
               </div>
@@ -207,7 +207,7 @@ const filterState = reactive({
   rule_id: route.query.filter_rule_id || null,
   event_id: null,
   is_active: [],
-  exhausted: false,
+  fullyUsed: false,
 });
 
 const buildQueryParams = () => {
@@ -229,8 +229,8 @@ const buildQueryParams = () => {
   if (filterState.is_active.length === 1) {
     params.append("filter_is_active", filterState.is_active[0] === "active");
   }
-  if (filterState.exhausted) {
-    params.append("filter_exhausted", "true");
+  if (filterState.fullyUsed) {
+    params.append("filter_fully_used", "true");
   }
 
   const sortField = sorting.value[0]?.id || "created_at";
@@ -275,7 +275,7 @@ const clearSelection = () => tableRef.value?.resetRowSelection();
 const totalActiveFilters = computed(() => {
   let count = 0;
   if (filterState.is_active.length === 1) count++;
-  if (filterState.exhausted) count++;
+  if (filterState.fullyUsed) count++;
   return count;
 });
 
@@ -292,8 +292,8 @@ const handleFilterChange = (key, { checked, value }) => {
   resetToFirstPage();
 };
 
-const handleExhaustedChange = (checked) => {
-  filterState.exhausted = !!checked;
+const handleFullyUsedChange = (checked) => {
+  filterState.fullyUsed = !!checked;
   resetToFirstPage();
 };
 
@@ -317,8 +317,8 @@ const handleExport = async () => {
     if (filterState.is_active.length === 1) {
       params.append("filter_is_active", filterState.is_active[0] === "active");
     }
-    if (filterState.exhausted) {
-      params.append("filter_exhausted", "true");
+    if (filterState.fullyUsed) {
+      params.append("filter_fully_used", "true");
     }
 
     const sortField = sorting.value[0]?.id || "created_at";
@@ -497,9 +497,9 @@ const columns = [
     accessorKey: "is_active",
     cell: ({ row }) => {
       const r = row.original;
-      const isExhausted = r.is_exhausted;
-      const label = !r.is_active ? "Inactive" : isExhausted ? "Exhausted" : "Active";
-      const variant = !r.is_active ? "muted" : isExhausted ? "warning" : "success";
+      const isFullyUsed = r.is_fully_used;
+      const label = !r.is_active ? "Inactive" : isFullyUsed ? "Fully Used" : "Active";
+      const variant = !r.is_active ? "muted" : isFullyUsed ? "warning" : "success";
       return h(
         Badge,
         { variant, withIcon: true, plain: true },

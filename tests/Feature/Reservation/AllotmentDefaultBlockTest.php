@@ -96,9 +96,9 @@ test('public reservation succeeds when allow_unlimited_booking flag set', functi
     $this->hotel->update(['settings' => ['allow_unlimited_booking' => true]]);
 
     $xendit = mock(XenditService::class);
-    $xendit->shouldReceive('createInvoice')->andReturn([
-        'invoice_id' => 'inv_test_unlimited',
-        'invoice_url' => 'https://checkout.xendit.co/web/inv_test_unlimited',
+    $xendit->shouldReceive('createCheckout')->andReturn([
+        'reference' => 'inv_test_unlimited',
+        'payment_url' => 'https://checkout.xendit.co/web/inv_test_unlimited',
     ]);
     $this->app->instance(XenditService::class, $xendit);
 

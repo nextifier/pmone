@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\ReservationStatus;
+use App\Exceptions\Payment\PaymentProviderException;
 use App\Jobs\Reservation\ProcessXenditRefundJob;
 use App\Models\Hotel;
 use App\Models\ProjectPaymentGateway;
@@ -143,4 +144,106 @@ test('refund job rethrows 5xx Xendit errors so queue retries', function () {
     $job = new ProcessXenditRefundJob($reservation->id, 1000000.0, 'Cancellation');
 
     expect(fn () => $job->handle())->toThrow(XenditSdkException::class);
+});
+
+test('refund job uses the QR Code refund endpoint for QRIS payments', function () {
+    $hotel = Hotel::factory()->create();
+    $reservation = Reservation::factory()->paid()->create([
+        'hotel_id' => $hotel->id,
+        'total_amount' => 1160,
+        'xendit_invoice_id' => 'inv_qris',
+        'xendit_payment_id' => 'qrpy_f0798900',
+        'payment_channel' => 'QRIS',
+    ]);
+
+    $mock = bindMockXenditForReservation($reservation);
+    $mock->shouldNotReceive('refundInvoice');
+    $mock->shouldReceive('refundQrPayment')
+        ->once()
+        ->with('qrpy_f0798900', 1160.0, 'Testing')
+        ->andReturn([
+            'id' => 'qrrf_new_789',
+            'status' => 'PENDING',
+            'refund_amount' => 1160,
+            'channel_code' => 'ID_DANA',
+        ]);
+
+    $job = new ProcessXenditRefundJob($reservation->id, 1160.0, 'Testing');
+    $job->handle();
+
+    $reservation->refresh();
+    expect($reservation->xendit_refund_id)->toBe('qrrf_new_789')
+        ->and($reservation->status)->toBe(ReservationStatus::Refunded)
+        ->and((float) $reservation->refund_amount)->toBe(1160.0);
+});
+
+test('refund job flags manual refund when a QRIS reservation has no qrpy payment id', function () {
+    $hotel = Hotel::factory()->create();
+    $reservation = Reservation::factory()->paid()->create([
+        'hotel_id' => $hotel->id,
+        'total_amount' => 1160,
+        'xendit_invoice_id' => 'inv_qris_no_payment_id',
+        'xendit_payment_id' => null,
+        'payment_channel' => 'QRIS',
+    ]);
+
+    $mock = bindMockXenditForReservation($reservation);
+    $mock->shouldNotReceive('refundInvoice');
+    $mock->shouldNotReceive('refundQrPayment');
+
+    $job = new ProcessXenditRefundJob($reservation->id, 1160.0, 'Testing');
+    $job->handle();
+
+    $reservation->refresh();
+    expect($reservation->xendit_refund_id)->toBeNull()
+        ->and($reservation->status)->not->toBe(ReservationStatus::Refunded);
+});
+
+test('refund job swallows a 4xx QR refund error and leaves it for manual handling', function () {
+    $hotel = Hotel::factory()->create();
+    $reservation = Reservation::factory()->paid()->create([
+        'hotel_id' => $hotel->id,
+        'total_amount' => 1160,
+        'xendit_invoice_id' => 'inv_qris_unsupported_issuer',
+        'xendit_payment_id' => 'qrpy_gopay',
+        'payment_channel' => 'QRIS',
+    ]);
+
+    $mock = bindMockXenditForReservation($reservation);
+    $mock->shouldReceive('refundQrPayment')
+        ->once()
+        ->andThrow(new PaymentProviderException(
+            'Refund request failed because refunds are not supported for this channel.',
+            'REFUND_NOT_SUPPORTED',
+            400,
+        ));
+
+    $job = new ProcessXenditRefundJob($reservation->id, 1160.0, 'Testing');
+
+    // Must NOT throw — a 4xx (unsupported QRIS issuer) is permanent.
+    $job->handle();
+
+    $reservation->refresh();
+    expect($reservation->xendit_refund_id)->toBeNull()
+        ->and($reservation->status)->not->toBe(ReservationStatus::Refunded);
+});
+
+test('refund job rethrows a 5xx QR refund error so the queue retries', function () {
+    $hotel = Hotel::factory()->create();
+    $reservation = Reservation::factory()->paid()->create([
+        'hotel_id' => $hotel->id,
+        'total_amount' => 1160,
+        'xendit_invoice_id' => 'inv_qris_xendit_down',
+        'xendit_payment_id' => 'qrpy_dana',
+        'payment_channel' => 'QRIS',
+    ]);
+
+    $mock = bindMockXenditForReservation($reservation);
+    $mock->shouldReceive('refundQrPayment')
+        ->once()
+        ->andThrow(new PaymentProviderException('Internal server error', 'QR_REFUND_FAILED', 503));
+
+    $job = new ProcessXenditRefundJob($reservation->id, 1160.0, 'Testing');
+
+    expect(fn () => $job->handle())->toThrow(PaymentProviderException::class);
 });

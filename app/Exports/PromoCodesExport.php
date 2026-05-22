@@ -65,7 +65,7 @@ class PromoCodesExport extends BaseExport
             $query->where('is_active', filter_var($this->filters['is_active'], FILTER_VALIDATE_BOOLEAN));
         }
 
-        if (! empty($this->filters['exhausted'])) {
+        if (! empty($this->filters['fully_used'])) {
             $query->whereColumn('usage_count', '>=', 'usage_limit')->whereNotNull('usage_limit');
         }
     }

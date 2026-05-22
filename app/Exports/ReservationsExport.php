@@ -253,6 +253,20 @@ class ReservationsExport extends BaseExport implements WithColumnWidths, WithEve
             $this->applyStatusFilter($query, is_array($status) ? implode(',', $status) : $status);
         }
 
+        if ($paymentChannel = $this->filters['payment_channel'] ?? null) {
+            $channels = array_filter(is_array($paymentChannel) ? $paymentChannel : explode(',', $paymentChannel));
+            if ($channels) {
+                $query->whereIn('payment_channel', $channels);
+            }
+        }
+
+        if ($mode = $this->filters['mode'] ?? null) {
+            $modes = array_filter(is_array($mode) ? $mode : explode(',', $mode));
+            if ($modes) {
+                $query->whereHas('paymentGateway', fn ($q) => $q->whereIn('mode', $modes));
+            }
+        }
+
         if ($eventId = $this->filters['event_id'] ?? null) {
             $query->where('event_id', $eventId);
         }

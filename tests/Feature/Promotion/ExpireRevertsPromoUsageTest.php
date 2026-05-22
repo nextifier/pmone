@@ -44,7 +44,7 @@ function setupReservationWithCode(int $usageLimit = 1, bool $revertOnCancel = tr
     ]);
 
     $xendit = Mockery::mock(XenditService::class);
-    $xendit->shouldReceive('createInvoice')->andReturn(['invoice_id' => 'inv-x', 'invoice_url' => 'https://x']);
+    $xendit->shouldReceive('createCheckout')->andReturn(['reference' => 'inv-x', 'payment_url' => 'https://x']);
     $xendit->shouldReceive('gateway')->andReturn(null);
 
     $reservation = app(ReservationService::class)->createReservation([

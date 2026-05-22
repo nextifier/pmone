@@ -4,26 +4,15 @@
       class="flex flex-col gap-x-2.5 gap-y-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
     >
       <div class="flex shrink-0 items-center gap-x-2.5">
-        <Icon name="hugeicons:calendar-02" class="size-5 sm:size-6" />
-        <h1 class="page-title">Reservations</h1>
+        <Icon name="hugeicons:delete-02" class="size-5 sm:size-6" />
+        <h1 class="page-title">Reservations Trash</h1>
       </div>
 
       <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <Button variant="outline" size="sm" :disabled="exportPending" @click="handleExport">
-          <Spinner v-if="exportPending" class="size-4 shrink-0" />
-          <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
-          <span>Export</span>
-        </Button>
-        <Button v-if="canDelete" variant="outline" size="sm" as-child>
-          <NuxtLink :to="`${eventBase}/reservations/trash`">
-            <Icon name="hugeicons:delete-02" class="size-4 shrink-0" />
-            <span>Trash</span>
-          </NuxtLink>
-        </Button>
-        <Button v-if="canCreate" as-child size="sm">
-          <NuxtLink :to="`${eventBase}/reservations/create`">
-            <Icon name="lucide:plus" class="size-4 shrink-0" />
-            <span>Create</span>
+        <Button variant="outline" size="sm" as-child>
+          <NuxtLink :to="`${eventBase}/reservations`">
+            <Icon name="hugeicons:arrow-left-02" class="size-4 shrink-0" />
+            <span>All Reservations</span>
           </NuxtLink>
         </Button>
       </div>
@@ -36,47 +25,14 @@
       </div>
     </div>
 
-    <!-- Empty / unavailable state -->
-    <div
-      v-if="showEmptyState"
-      class="flex flex-col items-center justify-center gap-y-4 py-16 text-center"
-    >
-      <div
-        class="*:bg-background/80 *:squircle text-muted-foreground flex items-center -space-x-2 *:rounded-lg *:border *:p-3 *:backdrop-blur-sm [&_svg]:size-5"
-      >
-        <div class="translate-y-1.5 -rotate-6">
-          <Icon name="hugeicons:hotel-01" />
-        </div>
-        <div>
-          <Icon name="hugeicons:calendar-02" />
-        </div>
-        <div class="translate-y-1.5 rotate-6">
-          <Icon name="hugeicons:notebook-01" />
-        </div>
-      </div>
-      <div class="space-y-1">
-        <h3 class="font-semibold tracking-tight">
-          {{ isUnavailable ? "Hotel reservations unavailable" : "No reservations yet" }}
-        </h3>
-        <p class="text-muted-foreground max-w-sm text-sm tracking-tight">
-          {{
-            isUnavailable
-              ? "Enable hotel reservations for this event and make sure the project has an active payment gateway."
-              : "Hotel bookings for this event will appear here once guests start reserving."
-          }}
-        </p>
-      </div>
-    </div>
-
     <TableData
-      v-else
       ref="tableRef"
       :data="items"
       :columns="columns"
       :meta="meta"
       :pending="pending"
       :error="error"
-      model="reservations"
+      model="reservations-trash"
       label="Reservation"
       :client-only="false"
       :show-add-button="false"
@@ -108,29 +64,23 @@
               </button>
             </PopoverTrigger>
             <PopoverContent class="w-auto min-w-52 space-y-4 p-3" align="start">
-              <div v-for="group in filterGroups" :key="group.id" class="space-y-2">
-                <div class="text-muted-foreground text-xs font-medium">
-                  {{ group.label }}
-                </div>
+              <div class="space-y-2">
+                <div class="text-muted-foreground text-xs font-medium">Status</div>
                 <div class="space-y-2">
                   <div
-                    v-for="opt in group.options"
+                    v-for="opt in statusOptions"
                     :key="opt.value"
                     class="flex items-center gap-2"
                   >
                     <Checkbox
-                      :id="`reservations-${group.id}-${opt.value}`"
-                      :model-value="selectedFilter(group.id).includes(opt.value)"
+                      :id="`trash-status-${opt.value}`"
+                      :model-value="selectedStatuses.includes(opt.value)"
                       @update:model-value="
-                        (checked) =>
-                          handleFilterToggle(group.id, {
-                            checked: !!checked,
-                            value: opt.value,
-                          })
+                        (checked) => handleStatusToggle({ checked: !!checked, value: opt.value })
                       "
                     />
                     <Label
-                      :for="`reservations-${group.id}-${opt.value}`"
+                      :for="`trash-status-${opt.value}`"
                       class="grow cursor-pointer font-normal tracking-tight"
                     >
                       {{ opt.label }}
@@ -145,8 +95,8 @@
 
       <template #actions="{ selectedRows }">
         <DialogResponsive
-          v-if="canDelete && selectedRows.length > 0"
-          v-model:open="deleteDialogOpen"
+          v-if="selectedRows.length > 0"
+          v-model:open="restoreDialogOpen"
           class="h-full"
         >
           <template #trigger="{ open }">
@@ -154,8 +104,8 @@
               class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
               @click="open()"
             >
-              <Icon name="lucide:trash" class="size-4 shrink-0" />
-              <span class="text-sm tracking-tight">Delete</span>
+              <Icon name="hugeicons:undo-02" class="size-4 shrink-0" />
+              <span class="text-sm tracking-tight">Restore</span>
               <span
                 class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
               >
@@ -165,9 +115,61 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+              <div class="text-primary text-lg font-semibold tracking-tight">
+                Restore reservations?
+              </div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
-                This will delete {{ selectedRows.length }} selected
+                This will restore {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "reservation" : "reservations" }}.
+              </p>
+              <div class="mt-3 flex justify-end gap-2">
+                <button
+                  class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  @click="restoreDialogOpen = false"
+                  :disabled="restorePending"
+                >
+                  Cancel
+                </button>
+                <button
+                  @click="handleRestoreRows(selectedRows)"
+                  :disabled="restorePending"
+                  class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Spinner v-if="restorePending" class="size-4 text-white" />
+                  <span v-else>Restore</span>
+                </button>
+              </div>
+            </div>
+          </template>
+        </DialogResponsive>
+
+        <DialogResponsive
+          v-if="selectedRows.length > 0"
+          v-model:open="deleteDialogOpen"
+          class="h-full"
+        >
+          <template #trigger="{ open }">
+            <button
+              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
+              @click="open()"
+            >
+              <Icon name="hugeicons:delete-02" class="size-4 shrink-0" />
+              <span class="text-sm tracking-tight">Delete Permanently</span>
+              <span
+                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
+              >
+                {{ selectedRows.length }}
+              </span>
+            </button>
+          </template>
+          <template #default>
+            <div class="px-4 pb-10 md:px-6 md:py-5">
+              <div class="text-primary text-lg font-semibold tracking-tight">
+                Are you absolutely sure?
+              </div>
+              <p class="text-body mt-1.5 text-sm tracking-tight">
+                This action can't be undone. This will permanently delete
+                {{ selectedRows.length }} selected
                 {{ selectedRows.length === 1 ? "reservation" : "reservations" }}.
               </p>
               <div class="mt-3 flex justify-end gap-2">
@@ -179,12 +181,12 @@
                   Cancel
                 </button>
                 <button
-                  @click="handleDeleteRows(selectedRows)"
+                  @click="handleForceDeleteRows(selectedRows)"
                   :disabled="deletePending"
                   class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Spinner v-if="deletePending" class="size-4 text-white" />
-                  <span v-else>Delete</span>
+                  <span v-else>Delete Permanently</span>
                 </button>
               </div>
             </div>
@@ -200,8 +202,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { PaymentMethodBadge } from "@/components/ui/payment-method-badge";
-import { getPaymentChannelLabel } from "@/lib/payment-method-logos";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
 import { TableData } from "@/components/ui/table-data";
@@ -220,7 +220,7 @@ import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: ["sanctum:auth", "permission"],
-  permissions: ["reservations.read"],
+  permissions: ["reservations.delete"],
   layout: "app",
 });
 
@@ -237,13 +237,10 @@ const eventBase = computed(
 );
 
 usePageMeta(null, {
-  title: computed(() => `Reservations · ${props.event?.title || "Event"}`),
+  title: computed(() => `Trash · Reservations · ${props.event?.title || "Event"}`),
 });
 
 const client = useSanctumClient();
-const { hasPermission } = usePermission();
-const canCreate = computed(() => hasPermission("reservations.manual_entry"));
-const canDelete = computed(() => hasPermission("reservations.delete"));
 
 const statusOptions = [
   { label: "Pending Payment", value: "pending_payment" },
@@ -256,37 +253,22 @@ const statusOptions = [
 
 const statusLabelMap = Object.fromEntries(statusOptions.map((s) => [s.value, s.label]));
 
-const modeOptions = [
-  { label: "Live", value: "live" },
-  { label: "Test", value: "test" },
-];
-
-// Static `columnFilters` id → backend `filter_*` param mapping. Drives the list
-// query and the export. Kept separate from `filterGroups` (which carries the
-// rendered options) because the Payment options come from data loaded below.
-const filterParams = [
-  { id: "status", param: "filter_status" },
-  { id: "payment", param: "filter_payment_channel" },
-  { id: "mode", param: "filter_mode" },
-];
-
 const columnFilters = ref([]);
 const pagination = ref({ pageIndex: 0, pageSize: 15 });
-const sorting = ref([{ id: "created_at", desc: true }]);
+const sorting = ref([{ id: "deleted_at", desc: true }]);
 
-const selectedFilter = (id) => {
-  const filter = columnFilters.value.find((f) => f.id === id);
+const selectedStatuses = computed(() => {
+  const filter = columnFilters.value.find((f) => f.id === "status");
   return Array.isArray(filter?.value) ? filter.value : [];
-};
+});
 
-// Shared by the list query and the export request so both honour the same
-// active filters. Multi-select values go out comma-separated.
+const totalActiveFilters = computed(() => selectedStatuses.value.length);
+
 const appendFilters = (params) => {
   const search = columnFilters.value.find((f) => f.id === "reservation_number");
   if (search?.value) params.append("filter_search", search.value);
-  for (const { id, param } of filterParams) {
-    const values = selectedFilter(id);
-    if (values.length) params.append(param, values.join(","));
+  if (selectedStatuses.value.length) {
+    params.append("filter_status", selectedStatuses.value.join(","));
   }
 };
 
@@ -297,7 +279,7 @@ const buildQueryParams = () => {
 
   appendFilters(params);
 
-  const sortField = sorting.value[0]?.id || "created_at";
+  const sortField = sorting.value[0]?.id || "deleted_at";
   const sortDirection = sorting.value[0]?.desc ? "desc" : "asc";
   params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
 
@@ -305,9 +287,9 @@ const buildQueryParams = () => {
 };
 
 const { data, pending, error, refresh } = await useLazySanctumFetch(
-  () => `/api/events/${props.event?.id}/reservations?${buildQueryParams()}`,
+  () => `/api/events/${props.event?.id}/reservations/trash?${buildQueryParams()}`,
   {
-    key: () => `reservations-list-${props.event?.id}`,
+    key: () => `reservations-trash-${props.event?.id}`,
     watch: false,
   }
 );
@@ -320,60 +302,20 @@ const meta = computed(
       last_page: 1,
       per_page: 15,
       total: 0,
-      payment_channels: [],
     }
 );
 
-// Payment filter options are data-driven: only the channels (BCA, QRIS, Visa,
-// ...) actually present in this event's reservations are offered, so the list
-// stays relevant and grows automatically as new channels are used.
-const paymentChannelOptions = computed(() =>
-  (meta.value.payment_channels ?? []).map((channel) => ({
-    value: channel,
-    label: getPaymentChannelLabel(channel) ?? channel,
-  }))
-);
-
-// Rendered filter groups. The Payment group is omitted entirely when this event
-// has no channelled payments yet, rather than showing an empty heading.
-const filterGroups = computed(() => {
-  const groups = [{ id: "status", label: "Status", options: statusOptions }];
-  if (paymentChannelOptions.value.length) {
-    groups.push({ id: "payment", label: "Payment", options: paymentChannelOptions.value });
-  }
-  groups.push({ id: "mode", label: "Mode", options: modeOptions });
-  return groups;
-});
-
-// Feature is gated by the `hotel-reservation-enabled` middleware: the admin
-// reservations endpoint 404s when the toggle is off or the project has no
-// active payment gateway. Surface that clearly instead of a blank page.
-const isUnavailable = computed(() => !pending.value && !!error.value);
-
-// Full-page empty state only when the event genuinely has no reservations -
-// not when a search/filter simply returned nothing (TableData handles that).
-const isEmpty = computed(
-  () =>
-    !pending.value && !error.value && items.value.length === 0 && columnFilters.value.length === 0
-);
-
-const showEmptyState = computed(() => isUnavailable.value || isEmpty.value);
-
 watch([columnFilters, sorting, pagination], () => refresh(), { deep: true });
 
-const totalActiveFilters = computed(() =>
-  filterParams.reduce((sum, { id }) => sum + selectedFilter(id).length, 0)
-);
-
-const handleFilterToggle = (id, { checked, value }) => {
-  const current = selectedFilter(id);
+const handleStatusToggle = ({ checked, value }) => {
+  const current = selectedStatuses.value;
   const updated = checked ? [...current, value] : current.filter((v) => v !== value);
-  const existingIndex = columnFilters.value.findIndex((f) => f.id === id);
+  const existingIndex = columnFilters.value.findIndex((f) => f.id === "status");
   if (updated.length) {
     if (existingIndex >= 0) {
       columnFilters.value[existingIndex].value = updated;
     } else {
-      columnFilters.value.push({ id, value: updated });
+      columnFilters.value.push({ id: "status", value: updated });
     }
   } else if (existingIndex >= 0) {
     columnFilters.value.splice(existingIndex, 1);
@@ -395,13 +337,6 @@ const statusVariant = (status) => {
   return map[status] || "muted";
 };
 
-// Payment environment of the reservation, derived from the linked gateway's
-// `mode`. Provider-agnostic, so a future Midtrans gateway resolves here too.
-const modeMeta = {
-  live: { label: "Live", variant: "success", icon: "hugeicons:rocket-01" },
-  test: { label: "Test", variant: "warning", icon: "hugeicons:test-tube-01" },
-};
-
 const tableRef = ref();
 
 const hasSelectedRows = computed(
@@ -409,25 +344,70 @@ const hasSelectedRows = computed(
 );
 const clearSelection = () => tableRef.value?.resetRowSelection();
 
+const restoreDialogOpen = ref(false);
+const restorePending = ref(false);
+
+const handleRestoreRows = async (selectedRows) => {
+  const ids = selectedRows.map((row) => row.original.id);
+  try {
+    restorePending.value = true;
+    const result = await client(
+      `/api/events/${props.event.id}/reservations/trash/restore/bulk`,
+      { method: "POST", body: { ids } }
+    );
+    await refresh();
+    restoreDialogOpen.value = false;
+    tableRef.value?.resetRowSelection();
+    toast.success(result.message || "Reservations restored", {
+      description: `${result.restored_count} reservation(s) restored`,
+    });
+  } catch (err) {
+    toast.error("Failed to restore reservations", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+  } finally {
+    restorePending.value = false;
+  }
+};
+
+const handleRestoreSingleRow = async (id) => {
+  try {
+    restorePending.value = true;
+    const result = await client(
+      `/api/events/${props.event.id}/reservations/trash/${id}/restore`,
+      { method: "POST" }
+    );
+    await refresh();
+    tableRef.value?.resetRowSelection();
+    toast.success(result.message || "Reservation restored");
+  } catch (err) {
+    toast.error("Failed to restore reservation", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+  } finally {
+    restorePending.value = false;
+  }
+};
+
 const deleteDialogOpen = ref(false);
 const deletePending = ref(false);
 
-const handleDeleteRows = async (selectedRows) => {
+const handleForceDeleteRows = async (selectedRows) => {
   const ids = selectedRows.map((row) => row.original.id);
   try {
     deletePending.value = true;
-    const result = await client(`/api/events/${props.event.id}/reservations/bulk`, {
+    const result = await client(`/api/events/${props.event.id}/reservations/trash/bulk`, {
       method: "DELETE",
       body: { ids },
     });
     await refresh();
     deleteDialogOpen.value = false;
     tableRef.value?.resetRowSelection();
-    toast.success(result.message || "Reservations deleted", {
-      description: `${result.deleted_count} reservation(s) deleted`,
+    toast.success(result.message || "Reservations permanently deleted", {
+      description: `${result.deleted_count} reservation(s) permanently deleted`,
     });
   } catch (err) {
-    toast.error("Failed to delete reservations", {
+    toast.error("Failed to permanently delete reservations", {
       description: err?.data?.message || err?.message || "An error occurred",
     });
   } finally {
@@ -435,17 +415,17 @@ const handleDeleteRows = async (selectedRows) => {
   }
 };
 
-const handleDeleteSingleRow = async (ulid) => {
+const handleForceDeleteSingleRow = async (id) => {
   try {
     deletePending.value = true;
-    const result = await client(`/api/events/${props.event.id}/reservations/${ulid}`, {
+    const result = await client(`/api/events/${props.event.id}/reservations/trash/${id}`, {
       method: "DELETE",
     });
     await refresh();
     tableRef.value?.resetRowSelection();
-    toast.success(result.message || "Reservation deleted");
+    toast.success(result.message || "Reservation permanently deleted");
   } catch (err) {
-    toast.error("Failed to delete reservation", {
+    toast.error("Failed to permanently delete reservation", {
       description: err?.data?.message || err?.message || "An error occurred",
     });
   } finally {
@@ -456,7 +436,9 @@ const handleDeleteSingleRow = async (ulid) => {
 const RowActions = defineComponent({
   props: { reservation: { type: Object, required: true } },
   setup(p) {
-    const dialogOpen = ref(false);
+    const restoreOpen = ref(false);
+    const deleteOpen = ref(false);
+    const singleRestorePending = ref(false);
     const singleDeletePending = ref(false);
     return () =>
       h("div", { class: "flex justify-end" }, [
@@ -476,18 +458,13 @@ const RowActions = defineComponent({
                         class:
                           "hover:bg-muted data-[state=open]:bg-muted inline-flex size-8 items-center justify-center rounded-md",
                       },
-                      [
-                        h(resolveComponent("Icon"), {
-                          name: "lucide:ellipsis",
-                          class: "size-4",
-                        }),
-                      ]
+                      [h(resolveComponent("Icon"), { name: "lucide:ellipsis", class: "size-4" })]
                     ),
                 }
               ),
               h(
                 PopoverContent,
-                { align: "end", class: "w-40 p-1" },
+                { align: "end", class: "w-44 p-1" },
                 {
                   default: () =>
                     h("div", { class: "flex flex-col" }, [
@@ -497,48 +474,44 @@ const RowActions = defineComponent({
                         {
                           default: () =>
                             h(
-                              resolveComponent("NuxtLink"),
+                              "button",
                               {
-                                to: `${eventBase.value}/reservations/${p.reservation.ulid}`,
                                 class:
                                   "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                onClick: () => (restoreOpen.value = true),
                               },
-                              {
-                                default: () => [
-                                  h(resolveComponent("Icon"), {
-                                    name: "hugeicons:eye",
-                                    class: "size-4 shrink-0",
-                                  }),
-                                  h("span", {}, "View"),
-                                ],
-                              }
+                              [
+                                h(resolveComponent("Icon"), {
+                                  name: "lucide:undo-2",
+                                  class: "size-4 shrink-0",
+                                }),
+                                h("span", {}, "Restore"),
+                              ]
                             ),
                         }
                       ),
-                      canDelete.value
-                        ? h(
-                            PopoverClose,
-                            { asChild: true },
-                            {
-                              default: () =>
-                                h(
-                                  "button",
-                                  {
-                                    class:
-                                      "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                    onClick: () => (dialogOpen.value = true),
-                                  },
-                                  [
-                                    h(resolveComponent("Icon"), {
-                                      name: "lucide:trash",
-                                      class: "size-4 shrink-0",
-                                    }),
-                                    h("span", {}, "Delete"),
-                                  ]
-                                ),
-                            }
-                          )
-                        : null,
+                      h(
+                        PopoverClose,
+                        { asChild: true },
+                        {
+                          default: () =>
+                            h(
+                              "button",
+                              {
+                                class:
+                                  "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                onClick: () => (deleteOpen.value = true),
+                              },
+                              [
+                                h(resolveComponent("Icon"), {
+                                  name: "lucide:trash",
+                                  class: "size-4 shrink-0",
+                                }),
+                                h("span", {}, "Delete Permanently"),
+                              ]
+                            ),
+                        }
+                      ),
                     ]),
                 }
               ),
@@ -548,8 +521,8 @@ const RowActions = defineComponent({
         h(
           DialogResponsive,
           {
-            open: dialogOpen.value,
-            "onUpdate:open": (value) => (dialogOpen.value = value),
+            open: restoreOpen.value,
+            "onUpdate:open": (value) => (restoreOpen.value = value),
           },
           {
             default: () =>
@@ -557,12 +530,12 @@ const RowActions = defineComponent({
                 h(
                   "div",
                   { class: "text-primary text-lg font-semibold tracking-tight" },
-                  "Are you sure?"
+                  "Restore reservation?"
                 ),
                 h(
                   "p",
                   { class: "text-body mt-1.5 text-sm tracking-tight" },
-                  "This will delete this reservation."
+                  "This will restore this reservation."
                 ),
                 h("div", { class: "mt-3 flex justify-end gap-2" }, [
                   h(
@@ -570,7 +543,61 @@ const RowActions = defineComponent({
                     {
                       class:
                         "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
-                      onClick: () => (dialogOpen.value = false),
+                      onClick: () => (restoreOpen.value = false),
+                      disabled: singleRestorePending.value,
+                    },
+                    "Cancel"
+                  ),
+                  h(
+                    "button",
+                    {
+                      class:
+                        "bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50",
+                      disabled: singleRestorePending.value,
+                      onClick: async () => {
+                        singleRestorePending.value = true;
+                        try {
+                          await handleRestoreSingleRow(p.reservation.id);
+                          restoreOpen.value = false;
+                        } finally {
+                          singleRestorePending.value = false;
+                        }
+                      },
+                    },
+                    singleRestorePending.value
+                      ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
+                      : "Restore"
+                  ),
+                ]),
+              ]),
+          }
+        ),
+        h(
+          DialogResponsive,
+          {
+            open: deleteOpen.value,
+            "onUpdate:open": (value) => (deleteOpen.value = value),
+          },
+          {
+            default: () =>
+              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
+                h(
+                  "div",
+                  { class: "text-primary text-lg font-semibold tracking-tight" },
+                  "Are you absolutely sure?"
+                ),
+                h(
+                  "p",
+                  { class: "text-body mt-1.5 text-sm tracking-tight" },
+                  "This action can't be undone. This will permanently delete this reservation."
+                ),
+                h("div", { class: "mt-3 flex justify-end gap-2" }, [
+                  h(
+                    "button",
+                    {
+                      class:
+                        "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
+                      onClick: () => (deleteOpen.value = false),
                       disabled: singleDeletePending.value,
                     },
                     "Cancel"
@@ -584,8 +611,8 @@ const RowActions = defineComponent({
                       onClick: async () => {
                         singleDeletePending.value = true;
                         try {
-                          await handleDeleteSingleRow(p.reservation.ulid);
-                          dialogOpen.value = false;
+                          await handleForceDeleteSingleRow(p.reservation.id);
+                          deleteOpen.value = false;
                         } finally {
                           singleDeletePending.value = false;
                         }
@@ -593,7 +620,7 @@ const RowActions = defineComponent({
                     },
                     singleDeletePending.value
                       ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
-                      : "Delete"
+                      : "Delete Permanently"
                   ),
                 ]),
               ]),
@@ -627,28 +654,14 @@ const columns = [
   {
     header: "Number",
     accessorKey: "reservation_number",
-    cell: ({ row }) => {
-      const r = row.original;
-      return h(
-        resolveComponent("NuxtLink"),
-        {
-          to: `${eventBase.value}/reservations/${r.ulid}`,
-          class: "font-mono text-xs sm:text-sm tracking-tight text-primary hover:underline",
-        },
-        { default: () => r.reservation_number }
-      );
-    },
+    cell: ({ row }) =>
+      h(
+        "span",
+        { class: "font-mono text-xs sm:text-sm tracking-tight" },
+        row.original.reservation_number
+      ),
     size: 165,
     enableHiding: false,
-    filterFn: (row, columnId, filterValue) => {
-      const v = filterValue.toLowerCase();
-      const r = row.original;
-      return (
-        r.reservation_number?.toLowerCase().includes(v) ||
-        r.guest_name?.toLowerCase().includes(v) ||
-        r.guest_email?.toLowerCase().includes(v)
-      );
-    },
   },
   {
     header: "Guest",
@@ -680,14 +693,12 @@ const columns = [
         { variant: statusVariant(row.original.status), withIcon: true, plain: true },
         {
           default: () =>
-            row.original.status_label || statusLabelMap[row.original.status] || row.original.status,
+            row.original.status_label ||
+            statusLabelMap[row.original.status] ||
+            row.original.status,
         }
       ),
-    size: 165,
-    filterFn: (row, columnId, filterValue) => {
-      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
-      return filterValue.includes(row.getValue(columnId));
-    },
+    size: 150,
   },
   {
     header: "Total",
@@ -701,53 +712,21 @@ const columns = [
     size: 120,
   },
   {
-    header: "Payment",
-    accessorKey: "payment_channel",
-    cell: ({ row }) =>
-      h(PaymentMethodBadge, {
-        channel: row.original.payment_channel,
-        method: row.original.payment_method,
-        size: "md",
-        iconOnly: true,
-      }),
-    size: 105,
-  },
-  {
-    header: "Mode",
-    accessorKey: "payment_mode",
+    header: "Deleted",
+    accessorKey: "deleted_at",
     cell: ({ row }) => {
-      const mode = row.original.payment_mode;
-      const meta = mode ? modeMeta[mode] : null;
-      if (!meta) {
-        return h("span", { class: "text-muted-foreground text-sm tracking-tight" }, "-");
-      }
-      const provider = row.original.payment_provider;
-      const tooltip = provider
-        ? `${meta.label} mode · ${provider.charAt(0).toUpperCase()}${provider.slice(1)}`
-        : `${meta.label} mode`;
-      return withDirectives(
-        h(
-          Badge,
-          { variant: meta.variant, icon: meta.icon, plain: false },
-          { default: () => meta.label }
-        ),
-        [[resolveDirective("tippy"), tooltip]]
-      );
-    },
-    size: 110,
-  },
-  {
-    header: "Created",
-    accessorKey: "created_at",
-    cell: ({ row }) => {
-      const date = row.getValue("created_at");
+      const date = row.getValue("deleted_at");
       if (!date) return h("span", { class: "text-muted-foreground" }, "-");
       return withDirectives(
-        h("div", { class: "text-muted-foreground text-sm tracking-tight" }, $dayjs(date).fromNow()),
+        h(
+          "div",
+          { class: "text-muted-foreground text-sm tracking-tight" },
+          $dayjs(date).fromNow()
+        ),
         [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
       );
     },
-    size: 110,
+    size: 120,
   },
   {
     id: "actions",
@@ -762,32 +741,4 @@ const columns = [
     enableHiding: false,
   },
 ];
-
-const exportPending = ref(false);
-const handleExport = async () => {
-  exportPending.value = true;
-  try {
-    const params = new URLSearchParams();
-    appendFilters(params);
-    const blob = await client(
-      `/api/events/${props.event.id}/reservations/export?${params.toString()}`,
-      { responseType: "blob" }
-    );
-    const url = URL.createObjectURL(
-      new Blob([blob], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      })
-    );
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `reservations_${new Date().toISOString().slice(0, 10)}.xlsx`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success("Export downloaded");
-  } catch (err) {
-    toast.error("Export failed", { description: err?.data?.message || err?.message });
-  } finally {
-    exportPending.value = false;
-  }
-};
 </script>

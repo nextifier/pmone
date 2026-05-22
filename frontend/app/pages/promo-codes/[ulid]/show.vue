@@ -8,11 +8,11 @@
           <h1 class="page-title font-mono">{{ code.code }}</h1>
           <ButtonCopy :text="code.code" />
           <Badge
-            :variant="!code.is_active ? 'muted' : code.is_exhausted ? 'warning' : 'success'"
+            :variant="!code.is_active ? 'muted' : code.is_fully_used ? 'warning' : 'success'"
             with-icon
             plain
           >
-            {{ !code.is_active ? "Inactive" : code.is_exhausted ? "Exhausted" : "Active" }}
+            {{ !code.is_active ? "Inactive" : code.is_fully_used ? "Fully Used" : "Active" }}
           </Badge>
         </div>
         <NuxtLink

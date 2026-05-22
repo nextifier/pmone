@@ -167,3 +167,28 @@ it('QA-L7: GET /api/promo-codes/{ulid}/usages paginates', function () {
         ->assertJsonCount(3, 'data')
         ->assertJsonPath('meta.total', 5);
 });
+
+// =====================================================
+// L8. Fully-used flag + filter
+// =====================================================
+it('QA-L8: GET /api/promo-codes exposes is_fully_used and filter_fully_used filters', function () {
+    $rule = PromotionRule::factory()->percentage(10)->create();
+    PromoCode::factory()->for($rule, 'promotionRule')->create([
+        'code' => 'FULLYUSED', 'usage_limit' => 2, 'usage_count' => 2,
+    ]);
+    PromoCode::factory()->for($rule, 'promotionRule')->create([
+        'code' => 'AVAILABLE', 'usage_limit' => 5, 'usage_count' => 1,
+    ]);
+
+    $all = $this->actingAs($this->admin)->getJson('/api/promo-codes');
+    $all->assertOk();
+    $byCode = collect($all->json('data'))->keyBy('code');
+    expect($byCode['FULLYUSED']['is_fully_used'])->toBeTrue()
+        ->and($byCode['AVAILABLE']['is_fully_used'])->toBeFalse();
+
+    $filtered = $this->actingAs($this->admin)->getJson('/api/promo-codes?filter_fully_used=true');
+    $filtered->assertOk();
+    $codes = collect($filtered->json('data'))->pluck('code');
+    expect($codes)->toContain('FULLYUSED')
+        ->and($codes)->not->toContain('AVAILABLE');
+});

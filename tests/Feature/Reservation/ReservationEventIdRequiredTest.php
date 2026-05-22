@@ -100,9 +100,9 @@ test('service createReservation requires explicit event_id', function () {
 
 test('service createReservation succeeds when event is active and attached', function () {
     $xendit = mock(XenditService::class);
-    $xendit->shouldReceive('createInvoice')->andReturn([
-        'invoice_id' => 'inv-success',
-        'invoice_url' => 'https://example/inv',
+    $xendit->shouldReceive('createCheckout')->andReturn([
+        'reference' => 'inv-success',
+        'payment_url' => 'https://example/inv',
     ]);
     $xendit->shouldReceive('gateway')->andReturn(null);
     $this->app->instance(XenditService::class, $xendit);

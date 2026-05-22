@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Payment\CheckoutMethod;
 use App\Models\Project;
 use App\Models\ProjectPaymentGateway;
 use App\Models\User;
@@ -73,7 +74,10 @@ it('masks credentials in api response', function () {
 });
 
 it('listing gateways returns masked values only', function () {
-    ProjectPaymentGateway::factory()->for($this->project)->count(2)->create();
+    // Distinct mode+label so the (project, provider, mode, label) unique
+    // constraint can never collide on the factory's random values.
+    ProjectPaymentGateway::factory()->for($this->project)->create(['mode' => 'live', 'label' => 'Production']);
+    ProjectPaymentGateway::factory()->for($this->project)->create(['mode' => 'test', 'label' => 'Sandbox']);
 
     $response = $this->getJson("/api/projects/{$this->project->username}/payment-gateways");
 
@@ -307,4 +311,65 @@ it('test-connection flags short webhook tokens', function () {
     $response->assertOk()
         ->assertJsonPath('success', true)
         ->assertJsonPath('webhook_token.ok', false);
+});
+
+it('stores a gateway with the requested checkout_method', function () {
+    $response = $this->postJson("/api/projects/{$this->project->username}/payment-gateways", [
+        'provider' => 'xendit',
+        'mode' => 'test',
+        'secret_key' => 'xnd_test_SECRETVALUE123456789',
+        'checkout_method' => 'sessions_payment_link',
+    ]);
+
+    $response->assertCreated()
+        ->assertJsonPath('data.checkout_method', 'sessions_payment_link');
+});
+
+it('defaults checkout_method to payment_link_legacy when omitted', function () {
+    $response = $this->postJson("/api/projects/{$this->project->username}/payment-gateways", [
+        'provider' => 'xendit',
+        'mode' => 'test',
+        'secret_key' => 'xnd_test_SECRETVALUE123456789',
+    ]);
+
+    $response->assertCreated()
+        ->assertJsonPath('data.checkout_method', 'payment_link_legacy');
+});
+
+it('rejects a not-yet-available checkout_method', function () {
+    $response = $this->postJson("/api/projects/{$this->project->username}/payment-gateways", [
+        'provider' => 'xendit',
+        'mode' => 'test',
+        'secret_key' => 'xnd_test_SECRETVALUE123456789',
+        'checkout_method' => 'sessions_components',
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors('checkout_method');
+});
+
+it('can switch checkout_method via update', function () {
+    $gateway = ProjectPaymentGateway::factory()->for($this->project)->paymentLinkLegacy()->create();
+
+    $this->patchJson(
+        "/api/projects/{$this->project->username}/payment-gateways/{$gateway->id}",
+        ['checkout_method' => 'sessions_payment_link'],
+    )->assertSuccessful()
+        ->assertJsonPath('data.checkout_method', 'sessions_payment_link');
+
+    expect($gateway->fresh()->checkout_method)->toBe(CheckoutMethod::SessionsPaymentLink);
+});
+
+it('exposes available_checkout_methods with components disabled', function () {
+    $gateway = ProjectPaymentGateway::factory()->for($this->project)->create();
+
+    $response = $this->getJson("/api/projects/{$this->project->username}/payment-gateways/{$gateway->id}");
+
+    $response->assertSuccessful();
+
+    $methods = collect($response->json('data.available_checkout_methods'));
+    expect($methods)->toHaveCount(3);
+    expect($methods->firstWhere('value', 'sessions_payment_link')['available'])->toBeTrue();
+    expect($methods->firstWhere('value', 'sessions_components')['available'])->toBeFalse();
+    expect($methods->firstWhere('value', 'payment_link_legacy')['available'])->toBeTrue();
 });

@@ -18,7 +18,7 @@
       </div>
       <p class="text-sm font-medium tracking-tight">No payment gateways configured</p>
       <p class="text-muted-foreground text-sm tracking-tight">
-        Add a Xendit gateway to start collecting payments for this project.
+        Add a payment gateway to start collecting payments for this project.
       </p>
     </div>
 
@@ -223,6 +223,32 @@
           </div>
 
           <div class="space-y-2">
+            <Label for="pg_checkout_method">Checkout Method</Label>
+            <Select v-model="form.checkout_method">
+              <SelectTrigger id="pg_checkout_method">
+                <SelectValue placeholder="Select checkout method" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="method in checkoutMethodOptions"
+                  :key="method.value"
+                  :value="method.value"
+                  :disabled="!method.available"
+                >
+                  {{ method.label
+                  }}<template v-if="!method.available"> · Coming soon</template>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p
+              v-if="selectedCheckoutMethod"
+              class="text-muted-foreground text-xs tracking-tight sm:text-sm"
+            >
+              {{ selectedCheckoutMethod.description }}
+            </p>
+          </div>
+
+          <div class="space-y-2">
             <Label for="pg_label">Label</Label>
             <Input
               id="pg_label"
@@ -265,7 +291,7 @@
               <div class="text-sm tracking-tight">
                 <p class="font-medium">Test Connection</p>
                 <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-                  Verify credentials with Xendit before saving.
+                  Verify credentials with the provider before saving.
                 </p>
               </div>
               <Button
@@ -323,7 +349,7 @@
                     {{ testResult.channels_count }} payment channel{{
                       testResult.channels_count === 1 ? "" : "s"
                     }}
-                    active on this Xendit account.
+                    active on this account.
                   </p>
                   <p
                     v-if="testResult.webhook_token"
@@ -583,18 +609,52 @@ const form = reactive({
   provider: "xendit",
   label: "",
   mode: "live",
+  checkout_method: "sessions_payment_link",
   secret_key: "",
   webhook_token: "",
   config: {},
 });
 
+// Checkout-method options. The backend is the source of truth — each gateway
+// resource ships `available_checkout_methods` — and this mirrors the
+// CheckoutMethod enum as the fallback for the create form, where no gateway
+// exists yet to read the list from.
+const DEFAULT_CHECKOUT_METHODS = [
+  {
+    value: "sessions_payment_link",
+    label: "Sessions - Payment Link",
+    description: "Provider-hosted checkout. Fastest and least effort to integrate.",
+    available: true,
+  },
+  {
+    value: "sessions_components",
+    label: "Sessions - Components",
+    description: "Embed the payment UI in your own checkout page.",
+    available: false,
+  },
+  {
+    value: "payment_link_legacy",
+    label: "Payment Link (Legacy)",
+    description: "The old checkout page. Not recommended for new gateways.",
+    available: true,
+  },
+];
+
+const checkoutMethodOptions = ref(DEFAULT_CHECKOUT_METHODS);
+
+const selectedCheckoutMethod = computed(() =>
+  checkoutMethodOptions.value.find((m) => m.value === form.checkout_method)
+);
+
 function resetForm() {
   form.provider = "xendit";
   form.label = "";
   form.mode = "live";
+  form.checkout_method = "sessions_payment_link";
   form.secret_key = "";
   form.webhook_token = "";
   form.config = {};
+  checkoutMethodOptions.value = DEFAULT_CHECKOUT_METHODS;
   editing.value = null;
   testResult.value = null;
 }
@@ -661,7 +721,11 @@ function openEditDialog(gateway) {
   form.provider = gateway.provider;
   form.label = gateway.label || "";
   form.mode = gateway.mode;
+  form.checkout_method = gateway.checkout_method || "payment_link_legacy";
   form.config = { ...(gateway.config || {}) };
+  if (gateway.available_checkout_methods?.length) {
+    checkoutMethodOptions.value = gateway.available_checkout_methods;
+  }
   formDialogOpen.value = true;
 }
 
@@ -672,6 +736,7 @@ async function saveGateway() {
     const body = {
       label: form.label || null,
       mode: form.mode,
+      checkout_method: form.checkout_method,
       config: form.config,
     };
 

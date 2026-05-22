@@ -159,7 +159,7 @@ class PromoCode extends Model
             });
     }
 
-    public function isExhausted(): bool
+    public function isFullyUsed(): bool
     {
         return $this->usage_limit !== null && $this->usage_count >= $this->usage_limit;
     }
