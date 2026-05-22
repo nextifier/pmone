@@ -36,6 +36,12 @@ class SendHotelVoucherJob implements ShouldQueue
             return;
         }
 
+        // Reservation may have been cancelled, expired, or refunded between
+        // dispatch and execution — never send a voucher for a non-active booking.
+        if (! $reservation->status->isPaid()) {
+            return;
+        }
+
         $rawToken = $reservations->magicLinkTokenFor($reservation);
 
         $appUrl = rtrim(config('app.url'), '/');

@@ -36,7 +36,7 @@ class PublicReservationResource extends JsonResource
             'hotel' => $this->whenLoaded('hotel', fn () => [
                 'name' => $this->hotel->name,
                 'slug' => $this->hotel->slug,
-                'address' => $this->hotel->address,
+                'address' => $this->hotel->street,
                 'contact_email' => $this->hotel->contact_email,
                 'contact_phone' => $this->hotel->contact_phone,
                 'cancellation_policy' => $this->hotel->cancellation_policy,

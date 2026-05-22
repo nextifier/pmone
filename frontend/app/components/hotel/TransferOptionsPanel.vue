@@ -71,10 +71,10 @@
               </div>
             </div>
 
-            <label class="flex items-center gap-2 text-sm tracking-tight">
-              <Checkbox v-model="form.is_active" />
-              <span>Active</span>
-            </label>
+            <div class="flex items-center gap-2">
+              <Switch id="transfer-active" v-model="form.is_active" />
+              <Label for="transfer-active" class="cursor-pointer">Active</Label>
+            </div>
 
             <div class="flex justify-end gap-2 pt-2">
               <Button variant="outline" type="button" @click="dialogOpen = false">Cancel</Button>
@@ -115,7 +115,7 @@
 <script setup>
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

@@ -8,7 +8,7 @@ The check-in voucher for reservation **{{ $reservation->reservation_number }}** 
 ## Booking Details
 
 **Hotel:** {{ $reservation->hotel?->name }}
-**Address:** {{ $reservation->hotel?->address }}, {{ $reservation->hotel?->city }}
+**Address:** {{ collect([$reservation->hotel?->street, $reservation->hotel?->city])->filter()->implode(', ') }}
 
 @foreach ($reservation->items as $item)
 - {{ $item->roomType?->name }} - {{ $item->qty }} room(s) - {{ \Illuminate\Support\Carbon::parse($item->check_in_date)->format('d M Y') }} to {{ \Illuminate\Support\Carbon::parse($item->check_out_date)->format('d M Y') }}

@@ -94,7 +94,7 @@ const fmtRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
               :src="heroImage"
               :alt="room.name"
               loading="lazy"
-              class="size-full cursor-zoom-in object-cover transition-transform duration-200 hover:scale-105"
+              class="size-full cursor-zoom-in object-cover"
             />
             <span
               v-if="room.gallery.length > 1"

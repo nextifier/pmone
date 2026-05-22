@@ -72,3 +72,64 @@ test('admin can download receipt after payment', function () {
     $response->assertSuccessful();
     expect($response->headers->get('Content-Type'))->toContain('application/pdf');
 });
+
+function renderInvoiceHtml(Reservation $reservation): string
+{
+    $reservation->loadMissing(['hotel', 'event', 'items.roomType', 'transfers', 'adjustments']);
+
+    return view('pdf.reservation.invoice', [
+        'r' => $reservation,
+        'branding' => [],
+        'invoiceNumber' => 'INV/TEST/0001',
+        'enabledPaymentLogos' => [],
+    ])->render();
+}
+
+test('invoice pdf shows the pay button while pending payment', function () {
+    $reservation = Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_url' => 'https://checkout.xendit.co/web/test-invoice',
+    ]);
+    ReservationItem::factory()->create([
+        'reservation_id' => $reservation->id,
+        'room_type_id' => $this->room->id,
+    ]);
+
+    expect(renderInvoiceHtml($reservation))->toContain('Click here to pay');
+});
+
+test('invoice pdf hides the pay button once paid', function () {
+    $reservation = Reservation::factory()->paid()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_url' => 'https://checkout.xendit.co/web/test-invoice',
+    ]);
+    ReservationItem::factory()->create([
+        'reservation_id' => $reservation->id,
+        'room_type_id' => $this->room->id,
+    ]);
+
+    expect(renderInvoiceHtml($reservation))->not->toContain('Click here to pay');
+});
+
+test('invoice pdf shows tax and service charge percentages', function () {
+    $hotel = Hotel::factory()->withEvent($this->event)->create([
+        'tax_percentage' => 11,
+        'service_charge_percentage' => 5,
+    ]);
+    $room = RoomType::factory()->create(['hotel_id' => $hotel->id]);
+    $reservation = Reservation::factory()->create([
+        'hotel_id' => $hotel->id,
+        'event_id' => $this->event->id,
+        'service_charge_amount' => 32500,
+    ]);
+    ReservationItem::factory()->create([
+        'reservation_id' => $reservation->id,
+        'room_type_id' => $room->id,
+    ]);
+
+    expect(renderInvoiceHtml($reservation))
+        ->toContain('Tax (PPN 11%)')
+        ->toContain('Service Charge (5%)');
+});

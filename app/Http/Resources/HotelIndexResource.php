@@ -15,6 +15,7 @@ class HotelIndexResource extends JsonResource
             'slug' => $this->slug,
             'name' => $this->name,
             'city' => $this->city,
+            'province' => $this->province,
             'country' => $this->country,
             'commission_rate' => (float) $this->commission_rate,
             'is_active' => $this->is_active,

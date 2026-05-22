@@ -109,13 +109,13 @@ const KEYBOARD_HINTS = [
               v-for="(item, i) in images.slice(0, 5)"
               :key="i"
               type="button"
-              class="group border-border bg-card hover:border-primary/40 flex flex-col gap-2 rounded-xl border p-2 text-left transition"
+              class="border-border bg-card hover:border-primary/40 flex flex-col gap-2 rounded-xl border p-2 text-left transition"
               @click="openAt(i)"
             >
               <img
                 :src="item.sm"
                 :alt="item.name"
-                class="aspect-square w-full rounded-lg object-cover transition group-hover:scale-[1.02]"
+                class="aspect-square w-full rounded-lg object-cover"
                 loading="lazy"
               />
               <span class="text-xs font-medium tracking-tight">{{ item.name }}</span>

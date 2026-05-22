@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ReservationStatus;
 use App\Jobs\Reservation\SendBookingReceivedJob;
 use App\Jobs\Reservation\SendCancellationJob;
 use App\Jobs\Reservation\SendHotelVoucherJob;
@@ -240,6 +241,104 @@ test('send voucher endpoint dispatches job when voucher already uploaded', funct
 
     $response->assertSuccessful();
     Queue::assertPushed(SendHotelVoucherJob::class);
+});
+
+test('hotel voucher job skips sending when reservation is cancelled', function () {
+    Mail::fake();
+
+    $reservation = Reservation::factory()->cancelled()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'guest_email' => 'voucher@test.com',
+    ]);
+
+    $tmp = tempnam(sys_get_temp_dir(), 'voucher_').'.pdf';
+    file_put_contents($tmp, '%PDF-1.4 fake');
+    $reservation->addMedia($tmp)->toMediaCollection('voucher');
+
+    app()->call([new SendHotelVoucherJob($reservation->id), 'handle']);
+
+    Mail::assertNothingSent();
+    expect($reservation->fresh()->status)->toBe(ReservationStatus::Cancelled);
+});
+
+test('send voucher endpoint rejects when reservation is not paid', function () {
+    Queue::fake();
+
+    foreach (['reservations.read', 'reservations.send_voucher'] as $p) {
+        Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']);
+    }
+    $admin = User::factory()->create(['email_verified_at' => now()]);
+    $admin->givePermissionTo(['reservations.read', 'reservations.send_voucher']);
+    $this->actingAs($admin);
+
+    $reservation = Reservation::factory()->cancelled()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+    ]);
+
+    $tmp = tempnam(sys_get_temp_dir(), 'voucher_').'.pdf';
+    file_put_contents($tmp, '%PDF-1.4 fake');
+    $reservation->addMedia($tmp)->toMediaCollection('voucher');
+
+    $response = $this->postJson("/api/events/{$this->event->id}/reservations/{$reservation->ulid}/send-voucher");
+
+    $response->assertStatus(422);
+    Queue::assertNotPushed(SendHotelVoucherJob::class);
+});
+
+test('send voucher endpoint allows resending after voucher already sent', function () {
+    Queue::fake();
+
+    foreach (['reservations.read', 'reservations.send_voucher'] as $p) {
+        Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']);
+    }
+    $admin = User::factory()->create(['email_verified_at' => now()]);
+    $admin->givePermissionTo(['reservations.read', 'reservations.send_voucher']);
+    $this->actingAs($admin);
+
+    $reservation = Reservation::factory()->paid()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'voucher_sent_at' => now()->subDay(),
+    ]);
+
+    $tmp = tempnam(sys_get_temp_dir(), 'voucher_').'.pdf';
+    file_put_contents($tmp, '%PDF-1.4 fake');
+    $reservation->addMedia($tmp)->toMediaCollection('voucher');
+
+    $response = $this->postJson("/api/events/{$this->event->id}/reservations/{$reservation->ulid}/send-voucher");
+
+    $response->assertSuccessful();
+    Queue::assertPushed(SendHotelVoucherJob::class);
+});
+
+test('send voucher endpoint rate limits repeated sends', function () {
+    Queue::fake();
+
+    foreach (['reservations.read', 'reservations.send_voucher'] as $p) {
+        Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']);
+    }
+    $admin = User::factory()->create(['email_verified_at' => now()]);
+    $admin->givePermissionTo(['reservations.read', 'reservations.send_voucher']);
+    $this->actingAs($admin);
+
+    $reservation = Reservation::factory()->paid()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+    ]);
+
+    $tmp = tempnam(sys_get_temp_dir(), 'voucher_').'.pdf';
+    file_put_contents($tmp, '%PDF-1.4 fake');
+    $reservation->addMedia($tmp)->toMediaCollection('voucher');
+
+    $url = "/api/events/{$this->event->id}/reservations/{$reservation->ulid}/send-voucher";
+
+    $this->postJson($url)->assertSuccessful();
+
+    $this->postJson($url)
+        ->assertStatus(429)
+        ->assertJsonStructure(['message', 'retry_after']);
 });
 
 test('send voucher endpoint rejects when no voucher uploaded yet', function () {

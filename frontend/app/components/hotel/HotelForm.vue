@@ -68,34 +68,49 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="grid gap-4 lg:grid-cols-2">
+          <div class="space-y-2">
+            <Label>Country</Label>
+            <LocationCombobox
+              v-model="form.address.country"
+              :options="countries"
+              :pinned="['Indonesia']"
+              placeholder="Select country"
+            />
+            <InputErrorMessage :errors="errors['address.country']" />
+          </div>
+
+          <div v-if="isIndonesia" class="grid gap-4 lg:grid-cols-2">
             <div class="space-y-2">
-              <Label>Country</Label>
+              <Label>Province</Label>
               <LocationCombobox
-                v-model="form.country"
-                :options="countries"
-                :pinned="['Indonesia']"
-                placeholder="Select country"
+                v-model="form.address.province"
+                :options="provinceOptions"
+                :pinned="['DKI Jakarta']"
+                placeholder="Select province"
               />
-              <InputErrorMessage :errors="errors.country" />
+              <InputErrorMessage :errors="errors['address.province']" />
             </div>
             <div class="space-y-2">
               <Label>City</Label>
               <LocationCombobox
-                v-model="form.city"
+                v-model="form.address.city"
                 :options="cityOptions"
-                :pinned="['Jakarta']"
-                :disabled="!isIndonesia && !form.country"
+                :disabled="!form.address.province"
                 placeholder="Select city"
               />
-              <InputErrorMessage :errors="errors.city" />
+              <InputErrorMessage :errors="errors['address.city']" />
             </div>
           </div>
 
           <div class="space-y-2">
-            <Label for="address">Address</Label>
-            <Textarea id="address" v-model="form.address" rows="2" placeholder="Full address" />
-            <InputErrorMessage :errors="errors.address" />
+            <Label for="address_street">Street Address</Label>
+            <Textarea
+              id="address_street"
+              v-model="form.address.street"
+              rows="2"
+              placeholder="Street, building, area"
+            />
+            <InputErrorMessage :errors="errors['address.street']" />
           </div>
 
           <div class="space-y-2">
@@ -211,9 +226,15 @@
             </div>
           </div>
 
-          <div class="flex items-center gap-2">
-            <Checkbox id="is_active" v-model="form.is_active" />
-            <Label for="is_active" class="cursor-pointer font-normal">Active</Label>
+          <div class="flex items-center justify-between gap-3">
+            <div class="space-y-1">
+              <Label for="is_active" class="cursor-pointer">Hotel is active</Label>
+              <p class="text-muted-foreground text-xs sm:text-sm">
+                Inactive hotels are hidden from all event websites and cannot be booked by
+                customers.
+              </p>
+            </div>
+            <Switch id="is_active" v-model="form.is_active" />
           </div>
           <InputErrorMessage :errors="errors.is_active" />
         </div>
@@ -297,11 +318,11 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch } from "vue";
+import { computed, nextTick, reactive, ref, watch } from "vue";
 import InputFile from "@/components/InputFile.vue";
 import InputFileImage from "@/components/InputFileImage.vue";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { InputErrorMessage } from "@/components/ui/input-error-message";
 import { InputPhone } from "@/components/ui/input-phone";
@@ -325,6 +346,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import countries from "@/data/countries.json";
 import indonesiaCities from "@/data/indonesia-cities.json";
+import indonesiaProvinces from "@/data/indonesia-provinces.json";
 
 const props = defineProps({
   initial: { type: Object, default: () => ({}) },
@@ -339,9 +361,12 @@ const form = reactive({
   name: "",
   description: "",
   star_rating: null,
-  address: "",
-  city: "",
-  country: "Indonesia",
+  address: {
+    street: "",
+    city: "",
+    province: "",
+    country: "Indonesia",
+  },
   google_maps_link: "",
   google_maps_embed_src: "",
   facilities: [],
@@ -378,27 +403,49 @@ const removeGalleryItem = async (item) => {
   }
 };
 
-const isIndonesia = computed(() => form.country === "Indonesia");
+const isIndonesia = computed(() => form.address.country === "Indonesia");
+
+const provinceOptions = computed(() => indonesiaProvinces);
 
 const cityOptions = computed(() => {
-  if (!isIndonesia.value) return [];
-  const labels = (indonesiaCities ?? [])
-    .map((c) => (typeof c === "string" ? c : c?.label))
-    .filter(Boolean);
-  return Array.from(new Set(labels)).sort();
+  const prov = indonesiaProvinces.find((p) => p.label === form.address.province);
+  if (!prov) return [];
+  return indonesiaCities.filter((c) => c.province === prov.value);
 });
+
+// Guard to prevent cascading reset during programmatic form sync (edit mode)
+let skipCascadeReset = false;
+
+watch(
+  () => form.address.country,
+  (_, oldVal) => {
+    if (skipCascadeReset) return;
+    if (oldVal) {
+      form.address.province = "";
+      form.address.city = "";
+    }
+  },
+);
+
+watch(
+  () => form.address.province,
+  (_, oldVal) => {
+    if (skipCascadeReset) return;
+    if (oldVal) {
+      form.address.city = "";
+    }
+  },
+);
 
 watch(
   () => props.initial,
   (val) => {
     if (!val) return;
+    skipCascadeReset = true;
     Object.assign(form, {
       name: val.name ?? "",
       description: val.description ?? "",
       star_rating: val.star_rating ?? null,
-      address: val.address ?? "",
-      city: val.city ?? "",
-      country: val.country ?? "Indonesia",
       google_maps_link: val.google_maps_link ?? "",
       google_maps_embed_src: val.google_maps_embed_src ?? "",
       facilities: Array.isArray(val.facilities) ? [...val.facilities] : [],
@@ -410,8 +457,17 @@ watch(
       service_charge_percentage: val.service_charge_percentage ?? 0,
       is_active: val.is_active ?? true,
     });
+    form.address = {
+      street: val.address ?? "",
+      city: val.city ?? "",
+      province: val.province ?? "",
+      country: val.country ?? "Indonesia",
+    };
     initialFeatured.value = val.featured?.original ?? val.featured?.url ?? null;
     existingGallery.value = Array.isArray(val.gallery) ? [...val.gallery] : [];
+    nextTick(() => {
+      skipCascadeReset = false;
+    });
   },
   { immediate: true, deep: true },
 );

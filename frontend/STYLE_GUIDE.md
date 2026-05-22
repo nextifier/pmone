@@ -297,6 +297,8 @@ Hindari:
 - Hover text destructive: `hover:text-destructive`.
 - Transition: `transition` atau `transition-colors` untuk perubahan warna. `transition-all` hanya kalau memang banyak property berubah.
 - Active state: `active:scale-98` untuk tombol yang ditekan (sudah jadi pattern di app).
+- **DILARANG efek scale/zoom saat hover, terutama pada image.** Jangan pakai `hover:scale-*` atau `group-hover:scale-*` pada `<img>` (thumbnail card, galeri, foto hotel/guest/brand) atau pada card. Foto dan card tetap statis saat hover. Efek `transition-transform` + `scale` untuk "zoom halus" hanya membuat UI terasa templated dan tidak menambah kejelasan apa pun. Affordance untuk card yang bisa diklik cukup dari perubahan warna/border yang halus, bukan transform. Catatan: `active:scale-98` pada tombol yang ditekan tetap boleh - itu feedback klik, bukan dekorasi hover.
+- **Hindari transition dekoratif.** Transition hanya untuk perubahan yang fungsional (warna, border, background, opacity). Jangan menganimasikan `transform`/`scale` cuma supaya UI terasa "hidup".
 - Focus ring: sudah otomatis via base layer (`focus-visible:ring-ring`). Jangan override kecuali memang perlu.
 
 ---
@@ -412,6 +414,7 @@ Padding default `p-6 md:p-12`. Container icon `bg-muted size-12 rounded-full`. B
 - Banyak library icon di satu page.
 - Shadow tebal (`shadow-2xl`) di komponen biasa.
 - Border radius yang tidak konsisten dengan skala (jangan tiba-tiba `rounded-3xl` di satu card sedang yang lain `rounded-xl`).
+- Efek `hover:scale-*` / `group-hover:scale-*` pada image atau card (zoom/scale-up on hover). Image tetap statis.
 
 ---
 

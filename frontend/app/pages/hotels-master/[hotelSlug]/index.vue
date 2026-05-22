@@ -180,7 +180,7 @@
                   :src="item.sm || item.md || item.url"
                   :alt="hotel.name"
                   loading="lazy"
-                  class="size-full cursor-zoom-in object-cover transition-transform duration-300 hover:scale-[1.04]"
+                  class="size-full cursor-zoom-in object-cover"
                 />
                 <span
                   v-if="i === 7 && galleryThumbs.length > 8"
@@ -243,7 +243,7 @@
                       :src="room.gallery[0].md || room.gallery[0].sm || room.gallery[0].url"
                       :alt="room.name"
                       loading="lazy"
-                      class="size-full cursor-zoom-in object-cover transition-transform duration-300 hover:scale-[1.03]"
+                      class="size-full cursor-zoom-in object-cover"
                     />
                     <span
                       v-if="room.gallery.length > 1"

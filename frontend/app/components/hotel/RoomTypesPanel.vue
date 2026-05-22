@@ -251,10 +251,10 @@
                   </div>
                 </div>
                 <div class="flex items-center justify-between pt-1">
-                  <label class="flex items-center gap-2 text-xs sm:text-sm tracking-tight">
-                    <Checkbox v-model="period.is_active" />
-                    <span>Active</span>
-                  </label>
+                  <div class="flex items-center gap-2">
+                    <Switch :id="`period-active-${idx}`" v-model="period.is_active" />
+                    <Label :for="`period-active-${idx}`" class="cursor-pointer">Active</Label>
+                  </div>
                   <Button
                     type="button"
                     variant="ghost"
@@ -316,19 +316,19 @@
               </div>
             </div>
 
-            <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <label class="flex items-center gap-2 text-sm tracking-tight">
-                <Checkbox v-model="form.breakfast_included" />
-                <span>Breakfast included</span>
-              </label>
-              <label class="flex items-center gap-2 text-sm tracking-tight">
-                <Checkbox v-model="form.smoking_allowed" />
-                <span>Smoking allowed</span>
-              </label>
-              <label class="flex items-center gap-2 text-sm tracking-tight">
-                <Checkbox v-model="form.is_active" />
-                <span>Active</span>
-              </label>
+            <div class="flex flex-wrap gap-x-6 gap-y-3">
+              <div class="flex items-center gap-2">
+                <Switch id="room-breakfast" v-model="form.breakfast_included" />
+                <Label for="room-breakfast" class="cursor-pointer">Breakfast included</Label>
+              </div>
+              <div class="flex items-center gap-2">
+                <Switch id="room-smoking" v-model="form.smoking_allowed" />
+                <Label for="room-smoking" class="cursor-pointer">Smoking allowed</Label>
+              </div>
+              <div class="flex items-center gap-2">
+                <Switch id="room-active" v-model="form.is_active" />
+                <Label for="room-active" class="cursor-pointer">Active</Label>
+              </div>
             </div>
 
             <div class="flex justify-end gap-2 pt-2">
@@ -368,7 +368,7 @@ import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive
 import { Lightbox } from "@/components/ui/lightbox";
 import InputFile from "@/components/InputFile.vue";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

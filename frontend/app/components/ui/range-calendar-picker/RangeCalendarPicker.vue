@@ -10,7 +10,7 @@
       <Button
         variant="outline"
         type="button"
-        size="sm"
+        :size="size"
         :disabled="disabled"
         :class="
           cn(
@@ -66,6 +66,7 @@ const props = withDefaults(
     numberOfMonths?: number;
     min?: Date | null;
     max?: Date | null;
+    size?: "default" | "sm" | "lg";
   }>(),
   {
     modelValue: null,
@@ -74,6 +75,7 @@ const props = withDefaults(
     numberOfMonths: 2,
     min: null,
     max: null,
+    size: "sm",
   }
 );
 

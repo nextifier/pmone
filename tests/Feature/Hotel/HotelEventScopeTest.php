@@ -74,7 +74,7 @@ test('nested event hotel store creates global hotel + pivot row', function () {
 
     $response = $this->postJson("/api/events/{$event->id}/hotels", [
         'name' => 'Nested Hotel',
-        'city' => 'Bandung',
+        'address' => ['city' => 'Bandung'],
     ]);
 
     $response->assertStatus(201);

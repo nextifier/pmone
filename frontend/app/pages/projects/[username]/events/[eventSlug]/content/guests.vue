@@ -223,7 +223,7 @@
         :key="guest.id"
         :data-guest-id="guest.id"
         :class="[
-          'group border-border bg-card relative flex flex-col overflow-hidden rounded-2xl border transition-all hover:border-foreground/20 hover:shadow-sm',
+          'border-border bg-card relative flex flex-col overflow-hidden rounded-2xl border transition-all hover:border-foreground/20 hover:shadow-sm',
           isSelected(guest.id) && 'ring-primary border-primary ring-2',
         ]"
       >
@@ -237,7 +237,7 @@
             v-if="guest.profile_image?.md || guest.profile_image?.sm"
             :src="guest.profile_image.md ?? guest.profile_image.sm"
             :alt="guest.name"
-            class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            class="size-full object-cover"
             loading="lazy"
           />
           <div

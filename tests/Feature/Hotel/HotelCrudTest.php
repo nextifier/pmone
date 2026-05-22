@@ -42,7 +42,7 @@ test('admin can list hotels', function () {
 test('admin can create a hotel and attach to event', function () {
     $response = $this->postJson("/api/events/{$this->event->id}/hotels", [
         'name' => 'Grand Test Hotel',
-        'city' => 'Jakarta',
+        'address' => ['city' => 'Jakarta', 'country' => 'Indonesia'],
         'commission_rate' => 12.5,
         'tax_percentage' => 11,
     ]);
@@ -53,7 +53,7 @@ test('admin can create a hotel and attach to event', function () {
 
     $this->assertDatabaseHas('hotels', [
         'name' => 'Grand Test Hotel',
-        'city' => 'Jakarta',
+        'address->city' => 'Jakarta',
     ]);
 
     $hotel = Hotel::where('name', 'Grand Test Hotel')->first();

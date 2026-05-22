@@ -3,6 +3,7 @@
 use App\Models\ApiConsumer;
 use App\Models\Event;
 use App\Models\Hotel;
+use App\Models\HotelTransferOption;
 use App\Models\Project;
 use App\Models\ProjectPaymentGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -104,6 +105,29 @@ test('hotels hidden when project gateway is inactive', function () {
         ->all();
 
     expect($names)->not->toContain('Hotel InactiveGw');
+});
+
+test('index exposes event venue, hall, poster and hotel transfer options', function () {
+    $event = Event::factory()->create([
+        'project_id' => $this->projectA->id,
+        'is_active' => true,
+        'location' => 'JIExpo Kemayoran',
+        'location_link' => 'https://maps.google.com/?q=JIExpo+Kemayoran',
+        'hall' => 'Hall A',
+    ]);
+    $hotel = Hotel::factory()->withEvent($event)->create(['name' => 'Hotel Venue']);
+    HotelTransferOption::factory()->for($hotel)->create(['is_active' => true]);
+
+    $response = $this->getJson("/api/public/hotels?event_slug={$event->slug}", $this->headers);
+
+    $response->assertSuccessful()
+        ->assertJsonPath('data.0.event.location', 'JIExpo Kemayoran')
+        ->assertJsonPath('data.0.event.location_link', 'https://maps.google.com/?q=JIExpo+Kemayoran')
+        ->assertJsonPath('data.0.event.hall', 'Hall A')
+        ->assertJsonCount(1, 'data.0.transfer_options')
+        ->assertJsonStructure([
+            'data' => [['transfer_options', 'event' => ['location', 'location_link', 'hall', 'poster']]],
+        ]);
 });
 
 test('hotels hidden when project gateway secret_key is placeholder', function () {

@@ -174,12 +174,12 @@
                     @endforeach
                 @endif
                 <tr>
-                    <td class="text-right pr-6 text-gray-600 text-[13px] py-1">Tax (PPN)</td>
+                    <td class="text-right pr-6 text-gray-600 text-[13px] py-1">Tax (PPN {{ (float) ($r->hotel?->tax_percentage ?? 11) }}%)</td>
                     <td class="text-right text-black text-[13px] py-1 w-[36%]">Rp{{ number_format($r->tax_amount, 0, ',', '.') }}</td>
                 </tr>
                 @if ($r->service_charge_amount > 0)
                 <tr>
-                    <td class="text-right pr-6 text-gray-600 text-[13px] py-1">Service Charge</td>
+                    <td class="text-right pr-6 text-gray-600 text-[13px] py-1">Service Charge ({{ (float) ($r->hotel?->service_charge_percentage ?? 0) }}%)</td>
                     <td class="text-right text-black text-[13px] py-1 w-[36%]">Rp{{ number_format($r->service_charge_amount, 0, ',', '.') }}</td>
                 </tr>
                 @endif
@@ -192,8 +192,8 @@
     </tr>
 </table>
 
-{{-- ─── Payment CTA ─── --}}
-@if ($r->payment_url)
+{{-- ─── Payment CTA (only while the invoice is still awaiting payment) ─── --}}
+@if ($r->payment_url && $r->status === \App\Enums\ReservationStatus::PendingPayment)
 <div class="mt-4">
     <a href="{{ $r->payment_url }}" class="inline-block bg-black text-white no-underline py-3 px-5 rounded-md text-[13px] font-semibold tracking-tight leading-none align-middle">Click here to pay →</a>
 </div>

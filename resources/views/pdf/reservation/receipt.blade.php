@@ -65,7 +65,7 @@
                 <tr>
                     <td class="text-[13px] font-semibold tracking-tight text-black pr-4 align-middle">Status</td>
                     <td class="text-right align-middle">
-                        <span class="inline-block bg-green-600 text-white text-[11px] font-bold tracking-wider px-2 py-0.5 rounded leading-none align-middle">PAID</span>
+                        <span class="text-[13px] font-semibold tracking-normal text-green-600 align-middle">PAID</span>
                     </td>
                 </tr>
             </table>
@@ -208,12 +208,12 @@
                     @endforeach
                 @endif
                 <tr>
-                    <td class="text-right pr-6 text-gray-600 text-[13px] py-1">Tax (PPN)</td>
+                    <td class="text-right pr-6 text-gray-600 text-[13px] py-1">Tax (PPN {{ (float) ($r->hotel?->tax_percentage ?? 11) }}%)</td>
                     <td class="text-right text-black text-[13px] py-1 w-[36%]">Rp{{ number_format($r->tax_amount, 0, ',', '.') }}</td>
                 </tr>
                 @if ($r->service_charge_amount > 0)
                 <tr>
-                    <td class="text-right pr-6 text-gray-600 text-[13px] py-1">Service Charge</td>
+                    <td class="text-right pr-6 text-gray-600 text-[13px] py-1">Service Charge ({{ (float) ($r->hotel?->service_charge_percentage ?? 0) }}%)</td>
                     <td class="text-right text-black text-[13px] py-1 w-[36%]">Rp{{ number_format($r->service_charge_amount, 0, ',', '.') }}</td>
                 </tr>
                 @endif

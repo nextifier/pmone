@@ -23,11 +23,7 @@
       @refresh="refresh"
     />
 
-    <DialogResponsive
-      v-model:open="dialogOpen"
-      dialog-max-width="30rem"
-      :overflow-content="true"
-    >
+    <DialogResponsive v-model:open="dialogOpen" dialog-max-width="30rem" :overflow-content="true">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">
@@ -52,33 +48,43 @@
               </Select>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-x-2">
               <div class="space-y-2">
-                <Label>Start Date</Label>
-                <DatePicker
-                  :model-value="form._start_date_obj"
-                  placeholder="Pick start date"
-                  @update:model-value="(d) => (form._start_date_obj = d)"
+                <Label>Date Range</Label>
+                <RangeCalendarPicker
+                  size="default"
+                  placeholder="Pick date range"
+                  :model-value="{ start: form._start_date_obj, end: form._end_date_obj }"
+                  @update:model-value="onDateRangeUpdate"
                 />
               </div>
               <div class="space-y-2">
-                <Label>End Date</Label>
-                <DatePicker
-                  :model-value="form._end_date_obj"
-                  placeholder="Pick end date"
-                  :min="form._start_date_obj"
-                  @update:model-value="(d) => (form._end_date_obj = d)"
-                />
+                <Label>Quantity</Label>
+                <Input v-model.number="form.quantity" type="number" min="1" required />
               </div>
             </div>
 
             <div class="space-y-2">
-              <Label>Quantity</Label>
-              <Input v-model.number="form.quantity" type="number" min="1" required />
-            </div>
-
-            <div class="space-y-2">
-              <Label>Custom base rate (override)</Label>
+              <div class="flex items-center gap-1.5 leading-none">
+                <Label>Custom base rate (override)</Label>
+                <Tippy>
+                  <button
+                    type="button"
+                    aria-label="More information"
+                    class="text-muted-foreground hover:text-foreground inline-flex cursor-help rounded-full align-middle transition-colors"
+                  >
+                    <Icon name="lucide:info" class="size-4" />
+                  </button>
+                  <template #content>
+                    <span
+                      class="block max-w-[20rem] p-2.5 text-left text-sm leading-normal tracking-tight"
+                    >
+                      When set, this rate replaces the room type's default base rate for this event.
+                      Dynamic pricing periods still take precedence when they apply.
+                    </span>
+                  </template>
+                </Tippy>
+              </div>
               <Input
                 v-model.number="form.base_rate_override"
                 type="number"
@@ -86,15 +92,31 @@
                 min="0"
                 placeholder="Leave empty to use room type's default base rate"
               />
-              <p class="text-muted-foreground text-xs tracking-tight">
-                When set, this rate replaces the room type's default base rate for this event.
-                Dynamic pricing periods still take precedence when they apply.
-              </p>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-x-2">
               <div class="space-y-2">
-                <Label for="surcharge_type">Surcharge Type</Label>
+                <div class="flex items-center gap-1.5 leading-none">
+                  <Label for="surcharge_type">Surcharge Type</Label>
+                  <Tippy>
+                    <button
+                      type="button"
+                      aria-label="More information"
+                      class="text-muted-foreground hover:text-foreground inline-flex cursor-help rounded-full align-middle transition-colors"
+                    >
+                      <Icon name="lucide:info" class="size-4" />
+                    </button>
+                    <template #content>
+                      <span
+                        class="block max-w-[20rem] p-2.5 text-left text-sm leading-normal tracking-tight"
+                      >
+                        Optional extra fee added on top of the room rate for this allotment, charged
+                        per room per night (e.g. a peak-period or event-week surcharge). Fixed adds
+                        a flat IDR amount; Percentage adds a percentage of each night's rate.
+                      </span>
+                    </template>
+                  </Tippy>
+                </div>
                 <Select
                   :model-value="form.surcharge_type ?? 'none'"
                   @update:model-value="(v) => (form.surcharge_type = v === 'none' ? null : v)"
@@ -131,10 +153,10 @@
               />
             </div>
 
-            <label class="flex items-center gap-2 text-sm tracking-tight">
-              <Checkbox v-model="form.is_active" />
-              <span>Active</span>
-            </label>
+            <div class="flex items-center gap-2">
+              <Switch id="allotment-active" v-model="form.is_active" />
+              <Label for="allotment-active" class="cursor-pointer">Active</Label>
+            </div>
 
             <div class="flex justify-end gap-2 pt-2">
               <Button variant="outline" type="button" @click="dialogOpen = false">Cancel</Button>
@@ -171,13 +193,13 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
+import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { RangeCalendarPicker } from "@/components/ui/range-calendar-picker";
 import {
   Select,
   SelectContent,
@@ -186,6 +208,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import { Switch } from "@/components/ui/switch";
 import { TableData } from "@/components/ui/table-data";
 import { parseLocalDateString, toLocalDateString, toLocalDateTimeString } from "@/lib/utils";
 import { PopoverClose } from "reka-ui";
@@ -197,9 +220,7 @@ const props = defineProps({
   hotelSlug: { type: String, required: true },
 });
 
-const baseUrl = computed(
-  () => `/api/events/${props.eventId}/hotels/${props.hotelSlug}/allotments`
-);
+const baseUrl = computed(() => `/api/events/${props.eventId}/hotels/${props.hotelSlug}/allotments`);
 const roomsUrl = computed(
   () => `/api/events/${props.eventId}/hotels/${props.hotelSlug}/room-types`
 );
@@ -218,7 +239,13 @@ const { data, pending, refresh } = await useLazySanctumFetch(
 
 const allotments = computed(() => data.value?.data ?? []);
 const meta = computed(
-  () => data.value?.meta ?? { current_page: 1, last_page: 1, per_page: 50, total: allotments.value.length }
+  () =>
+    data.value?.meta ?? {
+      current_page: 1,
+      last_page: 1,
+      per_page: 50,
+      total: allotments.value.length,
+    }
 );
 
 const { data: roomsData } = await useLazySanctumFetch(() => `${roomsUrl.value}?per_page=100`, {
@@ -288,6 +315,11 @@ const openEditDialog = (a) => {
     _release_at_obj: a.release_at ? new Date(a.release_at) : null,
   });
   dialogOpen.value = true;
+};
+
+const onDateRangeUpdate = (range) => {
+  form._start_date_obj = range?.start ?? null;
+  form._end_date_obj = range?.end ?? null;
 };
 
 const handleSubmit = async () => {
@@ -453,11 +485,7 @@ const columns = [
     header: "Room Type",
     accessorKey: "room_type",
     cell: ({ row }) =>
-      h(
-        "span",
-        { class: "font-medium tracking-tight" },
-        row.original.room_type?.name || "-"
-      ),
+      h("span", { class: "font-medium tracking-tight" }, row.original.room_type?.name || "-"),
     size: 200,
     enableHiding: false,
   },

@@ -33,9 +33,7 @@ use Spatie\Tags\Tag;
  * @property string $slug
  * @property string $name
  * @property string|null $description
- * @property string|null $address
- * @property string|null $city
- * @property string|null $country
+ * @property array<array-key, mixed>|null $address
  * @property string|null $contact_email
  * @property string|null $contact_phone
  * @property numeric $commission_rate
@@ -56,6 +54,10 @@ use Spatie\Tags\Tag;
  * @property array<array-key, mixed>|null $settings
  * @property array<array-key, mixed>|null $more_details
  * @property int|null $order_column
+ * @property-read string|null $street
+ * @property-read string|null $city
+ * @property-read string|null $province
+ * @property-read string|null $country
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read Collection<int, HotelEventAllotment> $allotments
@@ -85,11 +87,9 @@ use Spatie\Tags\Tag;
  * @method static Builder<static>|Hotel query()
  * @method static Builder<static>|Hotel whereAddress($value)
  * @method static Builder<static>|Hotel whereCancellationPolicy($value)
- * @method static Builder<static>|Hotel whereCity($value)
  * @method static Builder<static>|Hotel whereCommissionRate($value)
  * @method static Builder<static>|Hotel whereContactEmail($value)
  * @method static Builder<static>|Hotel whereContactPhone($value)
- * @method static Builder<static>|Hotel whereCountry($value)
  * @method static Builder<static>|Hotel whereCreatedAt($value)
  * @method static Builder<static>|Hotel whereCreatedBy($value)
  * @method static Builder<static>|Hotel whereDeletedAt($value)
@@ -141,8 +141,6 @@ class Hotel extends Model implements HasMedia, Sortable
         'description',
         'star_rating',
         'address',
-        'city',
-        'country',
         'google_maps_link',
         'google_maps_embed_src',
         'contact_email',
@@ -164,6 +162,7 @@ class Hotel extends Model implements HasMedia, Sortable
     protected function casts(): array
     {
         return [
+            'address' => 'array',
             'commission_rate' => 'decimal:2',
             'tax_percentage' => 'decimal:2',
             'service_charge_percentage' => 'decimal:2',
@@ -172,6 +171,31 @@ class Hotel extends Model implements HasMedia, Sortable
             'settings' => 'array',
             'more_details' => 'array',
         ];
+    }
+
+    /**
+     * Location sub-fields read from the JSONB `address` column. These keep
+     * `$hotel->city` / `$hotel->country` / `$hotel->street` working as plain
+     * string accessors; writes always go through the `address` array.
+     */
+    public function getStreetAttribute(): ?string
+    {
+        return $this->address['street'] ?? null;
+    }
+
+    public function getCityAttribute(): ?string
+    {
+        return $this->address['city'] ?? null;
+    }
+
+    public function getProvinceAttribute(): ?string
+    {
+        return $this->address['province'] ?? null;
+    }
+
+    public function getCountryAttribute(): ?string
+    {
+        return $this->address['country'] ?? null;
     }
 
     protected static function responseCacheTags(): array

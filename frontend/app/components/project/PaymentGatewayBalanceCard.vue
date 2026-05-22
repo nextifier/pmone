@@ -1,7 +1,11 @@
 <template>
   <div class="bg-muted/40 border-border rounded-lg border p-3 sm:p-4">
     <div class="flex items-center justify-between gap-2">
-      <span class="text-muted-foreground text-sm tracking-tight">Account balance</span>
+      <div
+        class="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-lg"
+      >
+        <Icon name="hugeicons:money-receive-01" class="text-success size-4.5" />
+      </div>
       <button
         type="button"
         v-tippy="'Refresh balance'"
@@ -12,6 +16,8 @@
         <Icon name="hugeicons:refresh" class="size-3.5" :class="loading ? 'animate-spin' : ''" />
       </button>
     </div>
+
+    <span class="text-muted-foreground mt-2 block text-sm tracking-tight">Account balance</span>
 
     <div class="mt-1.5">
       <Skeleton v-if="loading && !balance" class="h-7 w-36" />

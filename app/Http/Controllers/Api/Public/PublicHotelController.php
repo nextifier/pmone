@@ -52,12 +52,14 @@ class PublicHotelController extends Controller
                 },
                 'events.project:id,username,name',
                 'events.project.paymentGateways',
+                'events.media',
                 'media',
                 'tags',
                 'roomTypes' => fn ($q) => $q->active()->with([
                     'tags',
                     'pricingPeriods' => fn ($p) => $p->active()->orderBy('start_date'),
                 ]),
+                'transferOptions' => fn ($q) => $q->active(),
             ])
             ->whereHas('events', function ($q) use ($eventSlug, $projectSlug, $includeInactive) {
                 if (! $includeInactive) {

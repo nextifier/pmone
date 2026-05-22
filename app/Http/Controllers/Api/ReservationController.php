@@ -25,6 +25,7 @@ use App\Services\Reservation\DocumentService;
 use App\Services\Reservation\ReservationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
@@ -218,10 +219,23 @@ class ReservationController extends Controller
             return response()->json(['message' => 'Voucher must be uploaded first'], 422);
         }
 
-        // H4: Idempotency — guard against duplicate dispatch that overwrites voucher_sent_at.
-        if ($reservation->voucher_sent_at !== null) {
-            abort(422, 'Voucher already sent at '.$reservation->voucher_sent_at->toDateTimeString().'.');
+        if (! $reservation->status->isPaid()) {
+            abort(422, 'Voucher can only be sent for a paid reservation.');
         }
+
+        // Throttle to one send per minute per reservation to prevent the
+        // admin spamming the "Resend Voucher" button.
+        $rateLimitKey = 'send-voucher:'.$reservation->id;
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 1)) {
+            $seconds = RateLimiter::availableIn($rateLimitKey);
+
+            return response()->json([
+                'message' => "Please wait {$seconds} seconds before resending the voucher.",
+                'retry_after' => $seconds,
+            ], 429);
+        }
+
+        RateLimiter::hit($rateLimitKey, 60);
 
         SendHotelVoucherJob::dispatch($reservation->id);
 
@@ -235,7 +249,7 @@ class ReservationController extends Controller
             ])
             ->log('Hotel voucher sent to guest');
 
-        return response()->json(['message' => 'Voucher email queued']);
+        return response()->json(['message' => 'Voucher email sent']);
     }
 
     public function cancel(CancelReservationRequest $request, Event $event, Reservation $reservation): JsonResponse

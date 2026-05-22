@@ -1,40 +1,34 @@
 <template>
-  <div class="container-wider">
-    <header class="flex flex-col items-center text-center">
+  <section id="hotels">
+    <div class="flex flex-col items-center text-center">
       <component :is="tag" class="section-title">Hotels</component>
-      <p class="section-description mt-3">
-        Browse our partner hotels for the event and book your stay with secure
-        online payment. Your check-in voucher is sent straight to your email.
+      <p class="section-description mt-2">
+        Browse our partner hotels for the event and book your stay with secure online payment.
       </p>
-    </header>
+    </div>
 
-    <div v-if="pending" class="mt-10 space-y-12 sm:mt-12">
+    <div v-if="pending" class="mt-8 space-y-12 sm:mt-12">
       <section v-for="i in 2" :key="i" class="space-y-5">
-        <div class="flex items-end justify-between gap-3 border-b pb-3">
+        <div class="flex items-center gap-3 border-b pb-4">
+          <Skeleton class="aspect-4/5 w-16 shrink-0 rounded-lg sm:w-20" />
           <div class="space-y-2">
+            <Skeleton class="h-3.5 w-24" />
             <Skeleton class="h-6 w-48" />
-            <Skeleton class="h-4 w-32" />
+            <Skeleton class="h-3.5 w-56" />
           </div>
-          <Skeleton class="h-4 w-16" />
         </div>
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <div
-            v-for="j in 4"
-            :key="j"
-            class="bg-card overflow-hidden rounded-2xl border"
-          >
-            <Skeleton class="aspect-4/5 w-full rounded-none" />
-            <div class="space-y-2 p-4">
-              <Skeleton class="h-5 w-3/4" />
-              <Skeleton class="h-3.5 w-full" />
-              <Skeleton class="h-4 w-1/2" />
-            </div>
+        <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
+          <div v-for="j in 4" :key="j" class="grid grid-cols-1 gap-y-2">
+            <Skeleton class="aspect-19/20 w-full rounded-2xl" />
+            <Skeleton class="h-4 w-3/4" />
+            <Skeleton class="h-3.5 w-1/2" />
+            <Skeleton class="h-4 w-2/5" />
           </div>
         </div>
       </section>
     </div>
 
-    <Empty v-else-if="!hotels.length" class="mt-10 border sm:mt-12">
+    <Empty v-else-if="!hotels.length" class="mt-8 border sm:mt-12">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <Icon name="hugeicons:hotel-01" />
@@ -46,89 +40,109 @@
       </EmptyHeader>
     </Empty>
 
-    <div v-else class="mt-10 space-y-12 sm:mt-12">
-      <section
-        v-for="group in groupedHotels"
-        :key="group.event.id"
-        class="space-y-5"
-      >
-        <div class="flex items-end justify-between gap-3 border-b pb-3">
+    <div v-else class="mt-8 space-y-12 sm:mt-12">
+      <section v-for="group in groupedHotels" :key="group.event.id" class="space-y-5">
+        <div class="flex items-center gap-3 border-b pb-4">
+          <div class="bg-muted aspect-4/5 w-18 shrink-0 overflow-hidden rounded-lg border sm:w-20">
+            <img
+              v-if="group.event.poster?.md"
+              :src="group.event.poster.md"
+              :alt="`${group.event.title} poster`"
+              class="size-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+            <div v-else class="from-muted to-muted/40 size-full bg-gradient-to-br" />
+          </div>
           <div class="min-w-0">
-            <h3 class="truncate text-lg font-semibold tracking-tighter sm:text-xl">
+            <p
+              v-if="group.event.project?.name"
+              class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm"
+            >
+              {{ group.event.project.name }}
+            </p>
+            <h3 class="mt-0.5 truncate text-lg font-semibold tracking-tighter sm:text-xl">
               {{ group.event.title }}
             </h3>
-            <p
-              v-if="group.event.start_date || group.event.end_date"
-              class="text-muted-foreground mt-0.5 text-xs tracking-tight sm:text-sm"
+            <div
+              v-if="formatEventDates(group.event) || eventVenue(group.event)"
+              class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs tracking-tight sm:text-sm"
             >
-              {{ formatEventDates(group.event) }}
-            </p>
+              <span v-if="formatEventDates(group.event)" class="inline-flex items-center gap-1.5">
+                <Icon name="hugeicons:calendar-03" class="size-4 shrink-0" />
+                {{ formatEventDates(group.event) }}
+              </span>
+              <template v-if="eventVenue(group.event)">
+                <a
+                  v-if="group.event.location_link"
+                  :href="group.event.location_link"
+                  target="_blank"
+                  rel="noopener"
+                  class="hover:text-foreground inline-flex min-w-0 items-center gap-1.5 transition-colors"
+                >
+                  <Icon name="hugeicons:location-04" class="size-4 shrink-0" />
+                  <span class="truncate">{{ eventVenue(group.event) }}</span>
+                </a>
+                <span v-else class="inline-flex min-w-0 items-center gap-1.5">
+                  <Icon name="hugeicons:location-04" class="size-4 shrink-0" />
+                  <span class="truncate">{{ eventVenue(group.event) }}</span>
+                </span>
+              </template>
+            </div>
           </div>
-          <span
-            class="text-muted-foreground shrink-0 text-xs tracking-tight sm:text-sm"
-          >
-            {{ group.hotels.length }} hotel{{ group.hotels.length > 1 ? "s" : "" }}
-          </span>
         </div>
 
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
           <NuxtLink
             v-for="hotel in group.hotels"
             :key="hotel.id"
             :to="`/hotels/${group.event.slug}/${hotel.slug}`"
-            class="group bg-card hover:border-foreground/20 flex flex-col overflow-hidden rounded-2xl border tracking-tight transition-colors"
+            class="grid grid-cols-1 gap-y-2 tracking-tight"
           >
-            <div class="bg-muted aspect-4/5 overflow-hidden">
+            <div class="bg-muted aspect-19/20 overflow-hidden rounded-2xl">
               <img
                 v-if="hotel.featured?.md"
                 :src="hotel.featured.md"
                 :alt="hotel.name"
-                class="size-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                class="size-full object-cover"
                 loading="lazy"
                 decoding="async"
               />
-              <div
-                v-else
-                class="from-muted to-muted/40 size-full bg-gradient-to-br"
-              />
+              <div v-else class="from-muted to-muted/40 size-full bg-gradient-to-br" />
             </div>
-            <div class="flex flex-1 flex-col gap-1 p-4">
-              <h4 class="line-clamp-1 text-base font-semibold tracking-tighter">
+            <div class="flex flex-1 flex-col gap-1">
+              <h4 class="line-clamp-2 text-sm font-semibold tracking-tighter sm:text-base">
                 {{ hotel.name }}
               </h4>
               <p
-                class="text-muted-foreground line-clamp-1 text-xs tracking-tight sm:text-sm"
+                v-if="hotel.star_rating"
+                class="text-muted-foreground flex items-center gap-1 text-xs tracking-tight sm:text-sm"
               >
-                {{ [hotel.address, hotel.city].filter(Boolean).join(", ") }}
+                <Icon
+                  name="material-symbols:star-rounded"
+                  class="text-foreground size-4 shrink-0"
+                />
+                {{ hotel.star_rating }}-star
               </p>
-              <p
-                v-if="cheapestRate(hotel)"
-                class="mt-auto pt-2 text-sm tracking-tight"
-              >
-                <span class="text-muted-foreground">From</span>
-                <span class="text-foreground mx-1 font-medium tabular-nums">
+              <p class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm">
+                {{ [hotel.city].filter(Boolean).join(", ") }}
+              </p>
+              <p v-if="cheapestRate(hotel)" class="mt-0.5 text-sm tracking-tight">
+                <span class="text-muted-foreground">From </span>
+                <span class="text-foreground text-base font-semibold">
                   Rp{{ formatRupiah(cheapestRate(hotel)) }}
                 </span>
-                <span class="text-muted-foreground">/ night</span>
+                <span class="text-muted-foreground"> / night</span>
               </p>
             </div>
           </NuxtLink>
         </div>
       </section>
     </div>
-  </div>
+  </section>
 </template>
 
 <script setup>
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "./ui/empty";
-import { Skeleton } from "./ui/skeleton";
-
 defineProps({
   tag: {
     type: String,
@@ -136,9 +150,7 @@ defineProps({
   },
 });
 
-const { data, pending } = useAsyncData("public-hotels", () =>
-  $fetch("/api/hotels"),
-);
+const { data, pending } = useAsyncData("public-hotels", () => $fetch("/api/hotels"));
 
 const hotels = computed(() => data.value?.data ?? []);
 
@@ -163,6 +175,8 @@ const cheapestRate = (hotel) => {
   }
   return Math.min(...hotel.room_types.map((r) => r.base_rate));
 };
+
+const eventVenue = (ev) => [ev.location, ev.hall].filter(Boolean).join(" · ");
 
 const formatRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
 

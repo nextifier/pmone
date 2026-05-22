@@ -339,15 +339,22 @@ class HotelController extends Controller
     private function applyFilters($query, Request $request): void
     {
         if ($search = $request->input('filter_search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'ilike', "%{$search}%")
-                    ->orWhere('city', 'ilike', "%{$search}%");
+            $likeOperator = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where(function ($q) use ($search, $likeOperator) {
+                $q->where('name', $likeOperator, "%{$search}%")
+                    ->orWhereRaw("address->>'city' {$likeOperator} ?", ["%{$search}%"]);
             });
         }
 
         if ($city = $request->input('filter_city')) {
-            $cities = is_array($city) ? $city : explode(',', $city);
-            $query->whereIn('city', array_filter($cities));
+            $cities = array_filter(is_array($city) ? $city : explode(',', $city));
+            if (! empty($cities)) {
+                $query->where(function ($q) use ($cities) {
+                    foreach ($cities as $c) {
+                        $q->orWhereRaw("address->>'city' = ?", [$c]);
+                    }
+                });
+            }
         }
 
         if ($request->has('filter_is_active') && $request->input('filter_is_active') !== '') {
@@ -361,9 +368,14 @@ class HotelController extends Controller
         $direction = str_starts_with($sortField, '-') ? 'desc' : 'asc';
         $field = ltrim($sortField, '-');
 
+        if ($field === 'city') {
+            $query->orderByRaw("address->>'city' {$direction}");
+
+            return;
+        }
+
         $fieldMap = [
             'name' => 'name',
-            'city' => 'city',
             'created_at' => 'created_at',
             'commission_rate' => 'commission_rate',
         ];

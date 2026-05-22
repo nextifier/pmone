@@ -94,7 +94,7 @@
         </div>
 
         <div class="flex items-center gap-x-2">
-          <Checkbox id="hotel-picker-active" v-model="form.is_active" />
+          <Switch id="hotel-picker-active" v-model="form.is_active" />
           <Label for="hotel-picker-active" class="text-sm font-normal tracking-tight">
             Active for this event
           </Label>
@@ -126,7 +126,7 @@
 <script setup>
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
