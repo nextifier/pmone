@@ -564,6 +564,48 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
     }
 
     /**
+     * Fetch a Xendit v3 Payment Request by id. A completed Payment Session
+     * exposes the underlying `payment_request_id`; the payment request is the
+     * only place the channel actually used (QRIS, OVO, a specific VA bank, ...)
+     * is recorded. Returns null on any failure so callers degrade gracefully.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function fetchPaymentRequestDetail(string $paymentRequestId): ?array
+    {
+        $this->requireGateway();
+
+        try {
+            $response = Http::withBasicAuth($this->secretKey, '')
+                ->withHeaders(['api-version' => '2024-11-11'])
+                ->acceptJson()
+                ->timeout(10)
+                ->connectTimeout(5)
+                ->get('https://api.xendit.co/v3/payment_requests/'.urlencode($paymentRequestId));
+
+            if (! $response->successful()) {
+                Log::info('Xendit fetchPaymentRequestDetail non-2xx', [
+                    'status' => $response->status(),
+                    'payment_request_id' => $paymentRequestId,
+                ]);
+
+                return null;
+            }
+
+            $payload = $response->json();
+
+            return is_array($payload) ? $payload : null;
+        } catch (\Throwable $e) {
+            Log::warning('Xendit fetchPaymentRequestDetail failed', [
+                'message' => $e->getMessage(),
+                'payment_request_id' => $paymentRequestId,
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
      * Return the phone number if it is already valid E.164 (`+` then 7-15
      * digits), otherwise null. The Sessions API rejects malformed mobile
      * numbers, so a non-conforming value is dropped rather than risking the

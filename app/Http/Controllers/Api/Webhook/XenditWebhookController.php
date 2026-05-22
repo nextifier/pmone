@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\Reservation;
 use App\Services\Payment\PaymentGatewayResolver;
 use App\Services\Reservation\ReservationService;
+use App\Services\Xendit\XenditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -615,7 +616,11 @@ class XenditWebhookController extends Controller
                     return response()->json(['message' => 'Reservation already in final state'], 409);
                 }
 
-                $this->reservations->markAsPaid($reservation, $this->sessionPaidPayload($data, $sessionId, $reservation));
+                $channel = $this->resolveSessionChannel($data, $reservation);
+                $this->reservations->markAsPaid(
+                    $reservation,
+                    $this->sessionPaidPayload($data, $sessionId, $reservation, $channel),
+                );
 
                 activity()
                     ->performedOn($reservation)
@@ -669,15 +674,13 @@ class XenditWebhookController extends Controller
      *
      * The session id is kept as the reservation's payment reference, and the
      * underlying payment request id is the closest Sessions-era equivalent of
-     * the legacy `payment_id`. The session.completed payload documents only
-     * `allowed_payment_channels`, not the channel actually used — a concrete
-     * channel is forwarded when present, otherwise the receipt degrades to a
-     * generic label (cosmetic only).
+     * the legacy `payment_id`. The channel is resolved separately (see
+     * resolveSessionChannel) because the session payload never carries it.
      *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
-    private function sessionPaidPayload(array $data, ?string $sessionId, Reservation $reservation): array
+    private function sessionPaidPayload(array $data, ?string $sessionId, Reservation $reservation, ?string $channel): array
     {
         $out = [
             'id' => $sessionId ?: $reservation->xendit_invoice_id,
@@ -687,13 +690,50 @@ class XenditWebhookController extends Controller
             $out['payment_id'] = $data['payment_request_id'];
         }
 
-        foreach (['payment_channel', 'channel_code'] as $key) {
-            if (! empty($data[$key]) && is_string($data[$key])) {
-                $out['payment_channel'] = $data[$key];
-                break;
-            }
+        if ($channel !== null && $channel !== '') {
+            $out['payment_channel'] = $channel;
         }
 
         return $out;
+    }
+
+    /**
+     * Resolve the payment channel (QRIS, OVO, a VA bank, ...) for a completed
+     * Payment Session. The session.completed payload only lists
+     * `allowed_payment_channels`, not the channel actually used, so this fetches
+     * the underlying v3 payment request and normalises its `channel_code` to
+     * the vocabulary the rest of the app keys on (receipt logos, reconciliation).
+     *
+     * Returns null when it cannot be resolved — the receipt then degrades to a
+     * generic label rather than failing the webhook.
+     *
+     * @param  array<string, mixed>  $data  The session object (webhook `data`).
+     */
+    private function resolveSessionChannel(array $data, Reservation $reservation): ?string
+    {
+        $paymentRequestId = $data['payment_request_id'] ?? null;
+        $gateway = $reservation->paymentGateway;
+
+        if (! is_string($paymentRequestId) || $paymentRequestId === '' || ! $gateway) {
+            return null;
+        }
+
+        $detail = XenditService::forGateway($gateway)->fetchPaymentRequestDetail($paymentRequestId);
+        $code = $detail['channel_code'] ?? null;
+
+        if (! is_string($code) || $code === '') {
+            return null;
+        }
+
+        // v3 channel codes differ from the legacy/transaction codes the receipt
+        // logo map keys on: cards arrive as "CARDS", virtual accounts as
+        // "<BANK>_VIRTUAL_ACCOUNT". Normalise to the shared vocabulary.
+        $code = strtoupper($code);
+
+        if ($code === 'CARDS') {
+            return 'CREDIT_CARD';
+        }
+
+        return (string) preg_replace('/_VIRTUAL_ACCOUNT$/', '', $code);
     }
 }

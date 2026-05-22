@@ -6,6 +6,7 @@ use App\Models\PaymentWebhookEvent;
 use App\Models\ProjectPaymentGateway;
 use App\Models\Reservation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 
 uses(RefreshDatabase::class);
@@ -426,6 +427,49 @@ test('payment_session webhook is idempotent for an already-paid reservation', fu
 
     $response->assertSuccessful()
         ->assertJsonPath('message', 'Reservation already paid');
+});
+
+test('payment_session.completed records the payment channel from the v3 payment request', function () {
+    Http::fake([
+        'api.xendit.co/v3/payment_requests/*' => Http::response(['channel_code' => 'QRIS'], 200),
+    ]);
+
+    $hotel = Hotel::factory()->create();
+    $reservation = Reservation::factory()->create([
+        'hotel_id' => $hotel->id,
+        'status' => ReservationStatus::PendingPayment,
+        'reservation_number' => 'HTL-20260101-SCHN',
+        'xendit_invoice_id' => 'ps-channel-session',
+    ]);
+    $gateway = ProjectPaymentGateway::factory()->create([
+        'project_id' => $reservation->event->project->id,
+        'provider' => 'xendit',
+        'mode' => 'test',
+        'is_active' => true,
+        'webhook_token' => 'test-callback-token',
+    ]);
+    $reservation->update(['payment_gateway_id' => $gateway->id]);
+
+    $response = $this->postJson(
+        "/api/webhooks/xendit/{$reservation->event->project->username}",
+        [
+            'event' => 'payment_session.completed',
+            'data' => [
+                'id' => 'ps-channel-session',
+                'reference_id' => 'HTL-20260101-SCHN',
+                'status' => 'COMPLETED',
+                'payment_request_id' => 'pr-channel-test',
+            ],
+        ],
+        ['x-callback-token' => 'test-callback-token'],
+    );
+
+    $response->assertSuccessful();
+
+    $reservation->refresh();
+    expect($reservation->status)->toBe(ReservationStatus::Paid);
+    expect($reservation->payment_channel)->toBe('QRIS');
+    expect($reservation->xendit_payment_id)->toBe('pr-channel-test');
 });
 
 test('generic webhook resolves the project from a payment_session payload', function () {
