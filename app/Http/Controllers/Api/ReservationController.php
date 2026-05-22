@@ -45,7 +45,7 @@ class ReservationController extends Controller
     {
         $query = Reservation::query()
             ->where('event_id', $event->id)
-            ->with(['hotel', 'event', 'items.roomType', 'media']);
+            ->with(['hotel', 'event', 'items.roomType', 'media', 'paymentGateway']);
 
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);

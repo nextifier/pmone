@@ -127,12 +127,15 @@
               <p class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm">
                 {{ [hotel.city].filter(Boolean).join(", ") }}
               </p>
-              <p v-if="cheapestRate(hotel)" class="mt-0.5 text-sm tracking-tight">
-                <span class="text-muted-foreground">From </span>
-                <span class="text-foreground text-base font-semibold">
+              <p
+                v-if="cheapestRate(hotel)"
+                class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm"
+              >
+                <span>From </span>
+                <span class="text-foreground text-sm font-semibold tracking-tighter sm:text-base">
                   Rp{{ formatRupiah(cheapestRate(hotel)) }}
                 </span>
-                <span class="text-muted-foreground"> / night</span>
+                <span> / night</span>
               </p>
             </div>
           </NuxtLink>

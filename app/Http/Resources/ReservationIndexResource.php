@@ -22,6 +22,8 @@ class ReservationIndexResource extends JsonResource
             'total_amount' => (float) $this->total_amount,
             'payment_method' => $this->payment_method?->value,
             'payment_channel' => $this->payment_channel,
+            'payment_mode' => $this->paymentGateway?->mode,
+            'payment_provider' => $this->paymentGateway?->provider,
             'paid_at' => $this->paid_at?->toIso8601String(),
             'voucher_sent_at' => $this->voucher_sent_at?->toIso8601String(),
             'source' => $this->source?->value,

@@ -286,6 +286,13 @@ const statusVariant = (status) => {
   return map[status] || "muted";
 };
 
+// Payment environment of the reservation, derived from the linked gateway's
+// `mode`. Provider-agnostic, so a future Midtrans gateway resolves here too.
+const modeMeta = {
+  live: { label: "Live", variant: "success", icon: "hugeicons:rocket-01" },
+  test: { label: "Test", variant: "warning", icon: "hugeicons:test-tube-01" },
+};
+
 const tableRef = ref();
 
 const RowActions = defineComponent({
@@ -457,6 +464,30 @@ const columns = [
         iconOnly: true,
       }),
     size: 150,
+  },
+  {
+    header: "Mode",
+    accessorKey: "payment_mode",
+    cell: ({ row }) => {
+      const mode = row.original.payment_mode;
+      const meta = mode ? modeMeta[mode] : null;
+      if (!meta) {
+        return h("span", { class: "text-muted-foreground text-sm tracking-tight" }, "-");
+      }
+      const provider = row.original.payment_provider;
+      const tooltip = provider
+        ? `${meta.label} mode · ${provider.charAt(0).toUpperCase()}${provider.slice(1)}`
+        : `${meta.label} mode`;
+      return withDirectives(
+        h(
+          Badge,
+          { variant: meta.variant, icon: meta.icon, plain: true },
+          { default: () => meta.label }
+        ),
+        [[resolveDirective("tippy"), tooltip]]
+      );
+    },
+    size: 110,
   },
   {
     header: "Created",

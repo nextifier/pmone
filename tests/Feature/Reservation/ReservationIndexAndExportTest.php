@@ -4,6 +4,7 @@ use App\Enums\ReservationStatus;
 use App\Exports\ReservationsExport;
 use App\Models\Event;
 use App\Models\Hotel;
+use App\Models\ProjectPaymentGateway;
 use App\Models\Reservation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -103,6 +104,45 @@ test('reservation list pagination respects per_page', function () {
         ->assertJsonCount(2, 'data')
         ->assertJsonPath('meta.current_page', 2)
         ->assertJsonPath('meta.per_page', 2);
+});
+
+test('reservation list exposes payment mode and provider from the linked gateway', function () {
+    $liveGateway = ProjectPaymentGateway::factory()->create(['mode' => 'live', 'provider' => 'xendit']);
+    $testGateway = ProjectPaymentGateway::factory()->create(['mode' => 'test', 'provider' => 'xendit']);
+
+    Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_gateway_id' => $liveGateway->id,
+        'guest_name' => 'Live Guest',
+    ]);
+    Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_gateway_id' => $testGateway->id,
+        'guest_name' => 'Test Guest',
+    ]);
+    Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_gateway_id' => null,
+        'guest_name' => 'Manual Guest',
+    ]);
+
+    $this->actingAs($this->reader);
+
+    $response = $this->getJson("/api/events/{$this->event->id}/reservations");
+
+    $response->assertSuccessful();
+
+    $byName = collect($response->json('data'))->keyBy('guest_name');
+
+    expect($byName['Live Guest']['payment_mode'])->toBe('live');
+    expect($byName['Live Guest']['payment_provider'])->toBe('xendit');
+    expect($byName['Test Guest']['payment_mode'])->toBe('test');
+    expect($byName['Test Guest']['payment_provider'])->toBe('xendit');
+    expect($byName['Manual Guest']['payment_mode'])->toBeNull();
+    expect($byName['Manual Guest']['payment_provider'])->toBeNull();
 });
 
 test('user without reservations.read permission cannot list', function () {
