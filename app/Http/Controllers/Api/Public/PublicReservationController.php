@@ -112,17 +112,9 @@ class PublicReservationController extends Controller
         ], 201);
     }
 
-    public function showByMagicLink(string $token, Request $request): JsonResponse
+    public function showByMagicLink(string $token): JsonResponse
     {
         $reservation = $this->resolveByToken($token);
-
-        // A pending COMPONENTS-mode reservation needs a fresh SDK key on each
-        // page load (the previous one is short-lived). The service no-ops for
-        // any other state, so the call is safe to make unconditionally.
-        $reservation = $this->reservations->refreshComponentsSession(
-            $reservation,
-            $this->originsFromRequest($request),
-        );
 
         return response()->json([
             'data' => (new PublicReservationResource($reservation))->resolve(),

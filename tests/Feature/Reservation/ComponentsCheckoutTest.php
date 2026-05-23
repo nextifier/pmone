@@ -85,6 +85,7 @@ test('public reservation POST with a Components gateway returns the SDK key and 
         'guest_email' => 'components@test.com',
         'xendit_invoice_id' => 'ps-create-test',
         'payment_url' => null,
+        'components_sdk_key' => 'sdk-create-1',
         'payment_gateway_id' => $this->gateway->id,
     ]);
 
@@ -97,37 +98,32 @@ test('public reservation POST with a Components gateway returns the SDK key and 
     });
 });
 
-test('magic-link GET on a pending Components reservation regenerates the session and exposes the new SDK key', function () {
+test('magic-link GET serves the persisted Components SDK key without minting a new session', function () {
+    Http::fake();
+
     $reservation = Reservation::factory()->create([
         'event_id' => $this->event->id,
         'hotel_id' => $this->hotel->id,
         'status' => ReservationStatus::PendingPayment,
-        'xendit_invoice_id' => 'ps-stale-session',
+        'xendit_invoice_id' => 'ps-stored-session',
         'payment_url' => null,
+        'components_sdk_key' => 'sdk-stored-key',
         'payment_gateway_id' => $this->gateway->id,
     ]);
-    // Reservation factory hashes a random token; mint a fresh raw token whose
-    // hash we know so we can pass it through the public endpoint.
     $rawToken = bin2hex(random_bytes(32));
     $reservation->update(['magic_link_token' => hash('sha256', $rawToken)]);
-
-    Http::fake([
-        'api.xendit.co/sessions' => Http::response([
-            'payment_session_id' => 'ps-refreshed',
-            'components_sdk_key' => 'sdk-refreshed-2',
-            'status' => 'ACTIVE',
-        ], 201),
-    ]);
 
     $response = $this->getJson("/api/public/reservations/magic/{$rawToken}", $this->headers);
 
     $response->assertSuccessful()
-        ->assertJsonPath('data.components_sdk_key', 'sdk-refreshed-2');
+        ->assertJsonPath('data.components_sdk_key', 'sdk-stored-key');
 
-    expect($reservation->fresh()->xendit_invoice_id)->toBe('ps-refreshed');
+    // No new session — Xendit Sessions rejects a second create on the same
+    // reference_id, so persist-and-serve avoids that whole class of failure.
+    Http::assertNothingSent();
 });
 
-test('magic-link GET on a non-Components pending reservation does not touch Xendit', function () {
+test('magic-link GET never touches Xendit regardless of gateway type', function () {
     Http::fake();
 
     $legacyGateway = ProjectPaymentGateway::factory()->for($this->project)->create([
@@ -152,4 +148,39 @@ test('magic-link GET on a non-Components pending reservation does not touch Xend
         ->assertSuccessful();
 
     Http::assertNothingSent();
+});
+
+test('explicit retry-payment mints a fresh Components session and replaces the stored key', function () {
+    Http::fake([
+        'api.xendit.co/sessions' => Http::response([
+            'payment_session_id' => 'ps-retry-fresh',
+            'components_sdk_key' => 'sdk-retry-3',
+            'status' => 'ACTIVE',
+        ], 201),
+    ]);
+
+    $reservation = Reservation::factory()->create([
+        'event_id' => $this->event->id,
+        'hotel_id' => $this->hotel->id,
+        'status' => ReservationStatus::PendingPayment,
+        'xendit_invoice_id' => 'ps-old-session',
+        'payment_url' => null,
+        'components_sdk_key' => 'sdk-old-key',
+        'payment_gateway_id' => $this->gateway->id,
+    ]);
+    $rawToken = bin2hex(random_bytes(32));
+    $reservation->update(['magic_link_token' => hash('sha256', $rawToken)]);
+
+    $response = $this->postJson(
+        "/api/public/reservations/magic/{$rawToken}/retry-payment",
+        [],
+        $this->headers,
+    );
+
+    $response->assertSuccessful()
+        ->assertJsonPath('data.components_sdk_key', 'sdk-retry-3');
+
+    $fresh = $reservation->fresh();
+    expect($fresh->xendit_invoice_id)->toBe('ps-retry-fresh');
+    expect($fresh->components_sdk_key)->toBe('sdk-retry-3');
 });

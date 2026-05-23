@@ -170,14 +170,6 @@ class Reservation extends Model implements HasMedia, Purchasable
      */
     public ?string $magicLinkRaw = null;
 
-    /**
-     * Short-lived Xendit Components SDK key handed back to the booking client.
-     * Only set in-memory after createReservation / refreshComponentsSession;
-     * never persisted to the database. Exposed via ReservationResource so the
-     * frontend can mount xendit-components-web without round-tripping again.
-     */
-    public ?string $components_sdk_key = null;
-
     protected $fillable = [
         'reservation_number',
         'event_id',
@@ -207,6 +199,7 @@ class Reservation extends Model implements HasMedia, Purchasable
         'total_amount',
         'xendit_invoice_id',
         'xendit_payment_id',
+        'components_sdk_key',
         'payment_url',
         'payment_method',
         'payment_gateway_id',

@@ -2,7 +2,6 @@
 
 namespace App\Services\Reservation;
 
-use App\Enums\Payment\CheckoutMethod;
 use App\Enums\PaymentMethod;
 use App\Enums\PricingType;
 use App\Enums\ReservationSource;
@@ -422,10 +421,14 @@ class ReservationService
                 $reservation->update([
                     'xendit_invoice_id' => $checkout['reference'],
                     'payment_url' => $checkout['payment_url'],
+                    // Persist the Components SDK key so subsequent magic-link
+                    // page loads can re-mount the same embedded checkout
+                    // without re-creating the Xendit session (which the
+                    // Sessions API rejects on duplicate reference_id).
+                    'components_sdk_key' => $checkout['components_sdk_key'] ?? null,
                     'payment_method' => PaymentMethod::Xendit,
                     'payment_gateway_id' => $xenditClient->gateway()?->id,
                 ]);
-                $componentsSdkKey = $checkout['components_sdk_key'] ?? null;
             } catch (\Throwable $e) {
                 $mapped = XenditErrorMapper::map($e);
                 Log::log($mapped['log_level'], 'Xendit invoice creation failed - reservation kept for retry', [
@@ -447,14 +450,6 @@ class ReservationService
 
         $fresh = $reservation->fresh(['items', 'transfers', 'hotel', 'event']);
         $fresh->magicLinkRaw = $rawToken;
-
-        // `fresh()` reloads from DB and drops in-memory attributes, so the
-        // short-lived Components SDK key is attached AFTER the refresh.
-        // It is transient: never persisted, only exposed via the API response
-        // for the booking flow to hand off to the embedded SDK.
-        if (! empty($componentsSdkKey ?? null)) {
-            $fresh->components_sdk_key = $componentsSdkKey;
-        }
 
         return $fresh;
     }
@@ -494,48 +489,12 @@ class ReservationService
         $reservation->update([
             'xendit_invoice_id' => $checkout['reference'],
             'payment_url' => $checkout['payment_url'],
+            'components_sdk_key' => $checkout['components_sdk_key'] ?? null,
             'payment_method' => PaymentMethod::Xendit,
             'payment_gateway_id' => $xenditClient->gateway()?->id,
         ]);
 
-        $fresh = $reservation->fresh();
-
-        if (! empty($checkout['components_sdk_key'] ?? null)) {
-            $fresh->components_sdk_key = $checkout['components_sdk_key'];
-        }
-
-        return $fresh;
-    }
-
-    /**
-     * Mint a fresh Xendit Payment Session in COMPONENTS mode for a
-     * still-pending reservation. The previous session id stored on the
-     * reservation (`xendit_invoice_id`) is replaced — the previous session
-     * becomes an orphan that auto-expires at Xendit. Returns the reservation
-     * with `components_sdk_key` attached in-memory for the resource to expose.
-     *
-     * Only valid for `SessionsComponents` gateways with `PendingPayment`
-     * status; other combinations short-circuit and return the reservation
-     * unchanged so callers can fall back to whichever flow already applied.
-     *
-     * @param  array<int, string>|null  $origins
-     */
-    public function refreshComponentsSession(Reservation $reservation, ?array $origins = null): Reservation
-    {
-        if ($reservation->status !== ReservationStatus::PendingPayment) {
-            return $reservation;
-        }
-
-        $gateway = $reservation->paymentGateway;
-        if (! $gateway || $gateway->checkout_method !== CheckoutMethod::SessionsComponents) {
-            return $reservation;
-        }
-
-        return $this->retryXenditInvoice(
-            $reservation,
-            XenditService::forGateway($gateway),
-            $origins,
-        );
+        return $reservation->fresh();
     }
 
     /**
@@ -558,6 +517,9 @@ class ReservationService
             'paid_at' => now(),
             'xendit_invoice_id' => $payload['id'] ?? $reservation->xendit_invoice_id,
             'payment_method' => $reservation->payment_method ?? PaymentMethod::Xendit,
+            // SDK key is only useful while pending; clear on transition to
+            // paid so it can't be served by the magic-link GET afterwards.
+            'components_sdk_key' => null,
         ];
 
         if (! empty($payload['payment_channel'])) {
@@ -642,6 +604,7 @@ class ReservationService
 
         $reservation->update([
             'status' => ReservationStatus::Expired,
+            'components_sdk_key' => null,
         ]);
     }
 
