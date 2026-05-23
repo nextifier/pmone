@@ -94,6 +94,15 @@ async function init() {
     });
 
     on("init", () => {
+      // Only `createChannelPickerComponent` is allowed pre-init; everything
+      // else (action container, channel components) must wait until the SDK
+      // has loaded session data. Mounting them outside this handler triggers
+      // a fatal-error: "The session data is not loaded".
+      const actionEl = xenditInstance.createActionContainerComponent?.({});
+      if (actionEl && actionContainer.value) {
+        actionContainer.value.appendChild(actionEl);
+        mountedElements.push(actionEl);
+      }
       loading.value = false;
     });
     on("submission-ready", () => {
@@ -125,18 +134,14 @@ async function init() {
         e?.message || "Terjadi kesalahan pada komponen pembayaran.";
     });
 
-    // Mount the built-in channel picker (mirrors xendit/demo-store).
+    // The channel picker is the ONLY component the SDK lets us mount before
+    // the `init` event fires (per SDK API); everything else is mounted inside
+    // the init handler above.
     await nextTick();
     const pickerEl = xenditInstance.createChannelPickerComponent?.();
     if (pickerEl && pickerContainer.value) {
       pickerContainer.value.appendChild(pickerEl);
       mountedElements.push(pickerEl);
-    }
-
-    const actionEl = xenditInstance.createActionContainerComponent?.({});
-    if (actionEl && actionContainer.value) {
-      actionContainer.value.appendChild(actionEl);
-      mountedElements.push(actionEl);
     }
 
     // Defensive fallback — if `init` never fires (e.g. SDK API rev change),
