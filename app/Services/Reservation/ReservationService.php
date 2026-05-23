@@ -2,6 +2,7 @@
 
 namespace App\Services\Reservation;
 
+use App\Enums\Payment\CheckoutMethod;
 use App\Enums\PaymentMethod;
 use App\Enums\PricingType;
 use App\Enums\ReservationSource;
@@ -410,13 +411,21 @@ class ReservationService
                 // Invoices API depending on the gateway's checkout_method.
                 // `xendit_invoice_id` therefore holds either an `inv-` invoice
                 // id or a `ps-` Payment Session id.
-                $checkout = $xenditClient->createCheckout($reservation, $successUrl, $failureUrl);
+                // `$data['origins']` is forwarded so a COMPONENTS-mode session
+                // gets a usable `components_configuration.origins`.
+                $checkout = $xenditClient->createCheckout(
+                    $reservation,
+                    $successUrl,
+                    $failureUrl,
+                    $data['origins'] ?? null,
+                );
                 $reservation->update([
                     'xendit_invoice_id' => $checkout['reference'],
                     'payment_url' => $checkout['payment_url'],
                     'payment_method' => PaymentMethod::Xendit,
                     'payment_gateway_id' => $xenditClient->gateway()?->id,
                 ]);
+                $componentsSdkKey = $checkout['components_sdk_key'] ?? null;
             } catch (\Throwable $e) {
                 $mapped = XenditErrorMapper::map($e);
                 Log::log($mapped['log_level'], 'Xendit invoice creation failed - reservation kept for retry', [
@@ -439,6 +448,14 @@ class ReservationService
         $fresh = $reservation->fresh(['items', 'transfers', 'hotel', 'event']);
         $fresh->magicLinkRaw = $rawToken;
 
+        // `fresh()` reloads from DB and drops in-memory attributes, so the
+        // short-lived Components SDK key is attached AFTER the refresh.
+        // It is transient: never persisted, only exposed via the API response
+        // for the booking flow to hand off to the embedded SDK.
+        if (! empty($componentsSdkKey ?? null)) {
+            $fresh->components_sdk_key = $componentsSdkKey;
+        }
+
         return $fresh;
     }
 
@@ -452,8 +469,11 @@ class ReservationService
      *
      * @throws HttpException
      */
-    public function retryXenditInvoice(Reservation $reservation, ?XenditService $xendit = null): Reservation
-    {
+    public function retryXenditInvoice(
+        Reservation $reservation,
+        ?XenditService $xendit = null,
+        ?array $origins = null,
+    ): Reservation {
         if ($reservation->status !== ReservationStatus::PendingPayment) {
             abort(422, 'Only pending payments can be retried.');
         }
@@ -469,7 +489,7 @@ class ReservationService
         $successUrl = "{$frontendUrl}/hotels/success?ref={$reservation->reservation_number}&token={$rawToken}";
         $failureUrl = "{$frontendUrl}/hotels?failed={$reservation->reservation_number}";
 
-        $checkout = $xenditClient->createCheckout($reservation, $successUrl, $failureUrl);
+        $checkout = $xenditClient->createCheckout($reservation, $successUrl, $failureUrl, $origins);
 
         $reservation->update([
             'xendit_invoice_id' => $checkout['reference'],
@@ -478,7 +498,44 @@ class ReservationService
             'payment_gateway_id' => $xenditClient->gateway()?->id,
         ]);
 
-        return $reservation->fresh();
+        $fresh = $reservation->fresh();
+
+        if (! empty($checkout['components_sdk_key'] ?? null)) {
+            $fresh->components_sdk_key = $checkout['components_sdk_key'];
+        }
+
+        return $fresh;
+    }
+
+    /**
+     * Mint a fresh Xendit Payment Session in COMPONENTS mode for a
+     * still-pending reservation. The previous session id stored on the
+     * reservation (`xendit_invoice_id`) is replaced — the previous session
+     * becomes an orphan that auto-expires at Xendit. Returns the reservation
+     * with `components_sdk_key` attached in-memory for the resource to expose.
+     *
+     * Only valid for `SessionsComponents` gateways with `PendingPayment`
+     * status; other combinations short-circuit and return the reservation
+     * unchanged so callers can fall back to whichever flow already applied.
+     *
+     * @param  array<int, string>|null  $origins
+     */
+    public function refreshComponentsSession(Reservation $reservation, ?array $origins = null): Reservation
+    {
+        if ($reservation->status !== ReservationStatus::PendingPayment) {
+            return $reservation;
+        }
+
+        $gateway = $reservation->paymentGateway;
+        if (! $gateway || $gateway->checkout_method !== CheckoutMethod::SessionsComponents) {
+            return $reservation;
+        }
+
+        return $this->retryXenditInvoice(
+            $reservation,
+            XenditService::forGateway($gateway),
+            $origins,
+        );
     }
 
     /**

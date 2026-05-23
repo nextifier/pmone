@@ -78,6 +78,7 @@
           :can-step2="bookingStore.canProceedStep1"
           :can-step3="bookingStore.canProceedStep1"
           :can-step4="bookingStore.canProceedStep3"
+          :has-addons="hasAddons"
         />
 
         <div class="grid items-start gap-6 lg:grid-cols-[1fr_360px]">
@@ -228,6 +229,10 @@ usePageMeta(null, {
 
 const bookingStore = useBookingStore();
 
+const hasAddons = computed(
+  () => (hotel.value?.transfer_options?.length ?? 0) > 0
+);
+
 const currentStep = computed({
   get: () => bookingStore.currentStep,
   set: (v) => {
@@ -275,7 +280,13 @@ onMounted(async () => {
 
   const stepParam = Number(route.query.step);
   if (stepParam >= 1 && stepParam <= 4) {
-    bookingStore.setStep(stepParam);
+    // If the URL deep-links to the add-ons step but this hotel has no
+    // transfer options, jump straight to the guest info step instead.
+    if (stepParam === 2 && !hasAddons.value) {
+      bookingStore.setStep(3);
+    } else {
+      bookingStore.setStep(stepParam);
+    }
   }
 
   await tryPrefillFromUser();
@@ -331,6 +342,19 @@ watch(
   { immediate: true, flush: "post" }
 );
 
+// If the persisted step (from a prior session) lands the user on the
+// add-ons step but this hotel has no transfer options, bounce them forward
+// to guest info. Skipped on step 1 so first-time visitors stay on dates.
+watch(
+  [hasAddons, () => bookingStore.currentStep],
+  ([addons, step]) => {
+    if (!addons && step === 2) {
+      currentStep.value = 3;
+    }
+  },
+  { flush: "post" }
+);
+
 watch(
   [() => bookingStore.checkIn, () => bookingStore.checkOut, hotel],
   async () => {
@@ -361,6 +385,11 @@ function onMonthChange({ start, end }) {
 }
 
 function goToStep(n) {
+  // Skip the add-ons step entirely when the hotel has no transfer options.
+  if (n === 2 && !hasAddons.value) {
+    currentStep.value = 3;
+    return;
+  }
   currentStep.value = n;
 }
 
@@ -403,7 +432,12 @@ const mobileTotal = computed(() => {
 function handlePrimary() {
   if (currentStep.value < 4) {
     if (!ctaEnabled.value) return;
-    currentStep.value = currentStep.value + 1;
+    let next = currentStep.value + 1;
+    // Skip the add-ons step entirely when the hotel has no transfer options.
+    if (next === 2 && !hasAddons.value) {
+      next = 3;
+    }
+    currentStep.value = next;
     return;
   }
   handleSubmit();

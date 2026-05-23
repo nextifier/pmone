@@ -336,12 +336,12 @@ it('defaults checkout_method to payment_link_legacy when omitted', function () {
         ->assertJsonPath('data.checkout_method', 'payment_link_legacy');
 });
 
-it('rejects a not-yet-available checkout_method', function () {
+it('rejects an unknown checkout_method value', function () {
     $response = $this->postJson("/api/projects/{$this->project->username}/payment-gateways", [
         'provider' => 'xendit',
         'mode' => 'test',
         'secret_key' => 'xnd_test_SECRETVALUE123456789',
-        'checkout_method' => 'sessions_components',
+        'checkout_method' => 'totally_not_a_method',
     ]);
 
     $response->assertStatus(422)
@@ -360,7 +360,7 @@ it('can switch checkout_method via update', function () {
     expect($gateway->fresh()->checkout_method)->toBe(CheckoutMethod::SessionsPaymentLink);
 });
 
-it('exposes available_checkout_methods with components disabled', function () {
+it('exposes available_checkout_methods with all three options enabled', function () {
     $gateway = ProjectPaymentGateway::factory()->for($this->project)->create();
 
     $response = $this->getJson("/api/projects/{$this->project->username}/payment-gateways/{$gateway->id}");
@@ -370,6 +370,6 @@ it('exposes available_checkout_methods with components disabled', function () {
     $methods = collect($response->json('data.available_checkout_methods'));
     expect($methods)->toHaveCount(3);
     expect($methods->firstWhere('value', 'sessions_payment_link')['available'])->toBeTrue();
-    expect($methods->firstWhere('value', 'sessions_components')['available'])->toBeFalse();
+    expect($methods->firstWhere('value', 'sessions_components')['available'])->toBeTrue();
     expect($methods->firstWhere('value', 'payment_link_legacy')['available'])->toBeTrue();
 });

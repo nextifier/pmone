@@ -147,9 +147,21 @@
           <div class="frame-title">Payment Pending</div>
         </div>
         <div class="frame-panel space-y-3">
-          <template v-if="reservation.payment_url">
+          <template v-if="reservation.components_sdk_key">
+            <p v-if="expiresAtLabel" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+              Payment session expires on {{ expiresAtLabel }}.
+            </p>
+            <ClientOnly>
+              <HotelsComponentsCheckout
+                :components-sdk-key="reservation.components_sdk_key"
+                :reservation-number="reservation.reservation_number"
+                :magic-link-token="token"
+              />
+            </ClientOnly>
+          </template>
+          <template v-else-if="reservation.payment_url">
             <p class="text-sm tracking-tight">
-              Payment has not been received yet. Please continue via Xendit:
+              Payment has not been received yet. Please continue to checkout:
             </p>
             <p v-if="expiresAtLabel" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
               Payment link expires on {{ expiresAtLabel }}.

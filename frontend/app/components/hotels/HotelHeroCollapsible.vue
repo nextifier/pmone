@@ -2,12 +2,30 @@
 import { Skeleton } from "../ui/skeleton";
 import { Badge } from "../ui/badge";
 import { Lightbox } from "../ui/lightbox";
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 
 const props = defineProps({
   hotel: { type: Object, default: null },
   collapsed: { type: Boolean, default: false },
 });
+
+// When `collapsed` (driven by booking step), the hero swaps to a compact
+// summary card pattern (Booking.com / Airbnb style): small thumbnail + name
+// + key context + a "View details" toggle that lets the user expand the full
+// hero in-place without leaving their step.
+const userExpanded = ref(false);
+
+// Reset the user's expand override whenever the booking step transitions
+// (i.e. `collapsed` prop flips). Stops a stale "expanded" state leaking
+// across navigations.
+watch(
+  () => props.collapsed,
+  () => {
+    userExpanded.value = false;
+  }
+);
+
+const isCompact = computed(() => props.collapsed && !userExpanded.value);
 
 const eventDateRange = computed(() => {
   const ev = props.hotel?.event;
@@ -67,13 +85,26 @@ const fullAddress = computed(() => {
   if (!hotel) return "";
   return [hotel.address, hotel.city, hotel.country].filter(Boolean).join(", ");
 });
+
+const compactThumb = computed(() => {
+  const first = galleryItems.value[0];
+  if (!first) return null;
+  return first.sm || first.md || first.url;
+});
+
+const cityLabel = computed(() => {
+  const hotel = props.hotel;
+  if (!hotel) return "";
+  return hotel.city || hotel.country || "";
+});
+
+function toggleExpand() {
+  userExpanded.value = !userExpanded.value;
+}
 </script>
 
 <template>
-  <section
-    class="overflow-hidden transition-all duration-300"
-    :class="collapsed ? 'max-h-56' : 'max-h-[700px]'"
-  >
+  <section>
     <div v-if="!hotel" class="grid gap-4 sm:grid-cols-[160px_1fr]">
       <Skeleton class="aspect-4/5 w-full" />
       <div class="space-y-2">
@@ -81,7 +112,62 @@ const fullAddress = computed(() => {
         <Skeleton class="h-4 w-1/2" />
       </div>
     </div>
-    <div v-else class="grid items-start gap-4 sm:grid-cols-[160px_1fr] lg:grid-cols-[160px_1fr_220px]">
+
+    <!-- Compact summary card: shown on steps 2-4 by default so the booking
+         form gets the vertical space. Click to expand back to full hero. -->
+    <div
+      v-else-if="isCompact"
+      class="bg-card flex items-center gap-3 rounded-xl border p-2 sm:p-3"
+    >
+      <div class="bg-muted relative size-14 shrink-0 overflow-hidden rounded-lg sm:size-16">
+        <img
+          v-if="compactThumb"
+          :src="compactThumb"
+          :alt="hotel.name"
+          class="size-full object-cover"
+          loading="lazy"
+        />
+        <div
+          v-else
+          class="from-muted to-muted/40 size-full bg-gradient-to-br"
+        />
+      </div>
+      <div class="min-w-0 flex-1 space-y-0.5">
+        <p class="truncate text-sm font-medium tracking-tight sm:text-base">
+          {{ hotel.name }}
+        </p>
+        <div
+          class="text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs tracking-tight sm:text-sm"
+        >
+          <span v-if="hotel.star_rating" class="inline-flex items-center gap-0.5">
+            <Icon
+              name="material-symbols:star-rounded"
+              class="text-primary size-3.5"
+            />
+            <span>{{ hotel.star_rating }}-star</span>
+          </span>
+          <span v-if="hotel.star_rating && cityLabel" aria-hidden="true">·</span>
+          <span v-if="cityLabel" class="truncate">{{ cityLabel }}</span>
+          <span v-if="(hotel.star_rating || cityLabel) && eventDateRange" aria-hidden="true">·</span>
+          <span v-if="eventDateRange" class="truncate">{{ eventDateRange }}</span>
+        </div>
+      </div>
+      <button
+        type="button"
+        class="text-primary hover:bg-muted shrink-0 rounded-lg px-2.5 py-1 text-xs font-medium tracking-tight transition active:scale-95 sm:text-sm"
+        @click="toggleExpand"
+      >
+        <span class="hidden sm:inline">View details</span>
+        <Icon name="hugeicons:arrow-down-01" class="size-4 sm:hidden" />
+      </button>
+    </div>
+
+    <!-- Full hero: shown on step 1, or whenever the user clicks "View details"
+         on a later step. Same DOM as before — only the wrapper changed. -->
+    <div
+      v-else
+      class="grid items-start gap-4 sm:grid-cols-[160px_1fr] lg:grid-cols-[160px_1fr_220px]"
+    >
       <div class="bg-muted relative overflow-hidden rounded-xl">
         <Lightbox
           v-if="galleryItems.length"
@@ -143,20 +229,20 @@ const fullAddress = computed(() => {
           </Badge>
         </div>
         <p
-          v-if="!collapsed && fullAddress"
+          v-if="fullAddress"
           class="text-muted-foreground flex items-start gap-1.5 pt-1 text-sm tracking-tight"
         >
           <Icon name="hugeicons:location-04" class="mt-0.5 size-4 shrink-0" />
           <span>{{ fullAddress }}</span>
         </p>
         <p
-          v-if="!collapsed && hotel.description"
+          v-if="hotel.description"
           class="text-muted-foreground line-clamp-3 pt-1 text-sm tracking-tight"
         >
           {{ hotel.description }}
         </p>
         <div
-          v-if="!collapsed && (hotel.contact_email || hotel.contact_phone)"
+          v-if="hotel.contact_email || hotel.contact_phone"
           class="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 pt-2 text-sm tracking-tight"
         >
           <a
@@ -176,9 +262,21 @@ const fullAddress = computed(() => {
             <span>{{ hotel.contact_phone }}</span>
           </a>
         </div>
+        <!-- Only surfaced when the user has manually expanded a collapsed
+             step (collapsed prop true) — gives them a clear way to re-collapse. -->
+        <div v-if="collapsed && userExpanded" class="pt-2">
+          <button
+            type="button"
+            class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-xs font-medium tracking-tight sm:text-sm"
+            @click="toggleExpand"
+          >
+            <Icon name="hugeicons:arrow-up-01" class="size-4" />
+            <span>Hide details</span>
+          </button>
+        </div>
       </div>
       <div
-        v-if="!collapsed && mapEmbedUrl"
+        v-if="mapEmbedUrl"
         class="bg-muted relative aspect-4/5 w-full overflow-hidden rounded-xl lg:aspect-auto lg:h-full lg:min-h-[220px]"
       >
         <iframe
@@ -191,6 +289,5 @@ const fullAddress = computed(() => {
         />
       </div>
     </div>
-
   </section>
 </template>

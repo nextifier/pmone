@@ -18,6 +18,7 @@ use App\Services\Reservation\ReservationService;
 use App\Services\Reservation\TransientReservationBuilder;
 use App\Services\Xendit\XenditErrorMapper;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
@@ -78,6 +79,9 @@ class PublicReservationController extends Controller
         $data = $request->validated();
         $data['ip_address'] = $request->ip();
         $data['user_agent'] = $request->userAgent();
+        // COMPONENTS-mode sessions need allowed iframe origins. Derive from
+        // the request's Origin header; ignored for hosted/legacy flows.
+        $data['origins'] = $this->originsFromRequest($request);
 
         $hotel = Hotel::query()->findOrFail($data['hotel_id']);
         $event = Event::query()->findOrFail($data['event_id']);
@@ -97,6 +101,10 @@ class PublicReservationController extends Controller
                 'reservation_number' => $reservation->reservation_number,
                 'magic_link_token' => $reservation->magicLinkRaw,
                 'payment_url' => $reservation->payment_url,
+                // Short-lived Xendit Components SDK key; non-null only for a
+                // COMPONENTS-mode gateway. Frontend uses it to mount the
+                // embedded checkout directly without an extra round-trip.
+                'components_sdk_key' => $reservation->components_sdk_key,
                 'status' => $reservation->status?->value,
                 'total_amount' => (float) $reservation->total_amount,
             ],
@@ -104,9 +112,17 @@ class PublicReservationController extends Controller
         ], 201);
     }
 
-    public function showByMagicLink(string $token): JsonResponse
+    public function showByMagicLink(string $token, Request $request): JsonResponse
     {
         $reservation = $this->resolveByToken($token);
+
+        // A pending COMPONENTS-mode reservation needs a fresh SDK key on each
+        // page load (the previous one is short-lived). The service no-ops for
+        // any other state, so the call is safe to make unconditionally.
+        $reservation = $this->reservations->refreshComponentsSession(
+            $reservation,
+            $this->originsFromRequest($request),
+        );
 
         return response()->json([
             'data' => (new PublicReservationResource($reservation))->resolve(),
@@ -139,12 +155,16 @@ class PublicReservationController extends Controller
         ]);
     }
 
-    public function retryPaymentByMagicLink(string $token): JsonResponse
+    public function retryPaymentByMagicLink(string $token, Request $request): JsonResponse
     {
         $reservation = $this->resolveByToken($token);
 
         try {
-            $reservation = $this->reservations->retryXenditInvoice($reservation);
+            $reservation = $this->reservations->retryXenditInvoice(
+                $reservation,
+                null,
+                $this->originsFromRequest($request),
+            );
         } catch (HttpException $e) {
             throw $e;
         } catch (\Throwable $e) {
@@ -202,6 +222,34 @@ class PublicReservationController extends Controller
             $media->getPathRelativeToRoot(),
             $media->file_name,
         );
+    }
+
+    /**
+     * Collect candidate origins that the Xendit Components SDK may load from.
+     * The Origin header is preferred (it identifies the actual calling
+     * website); the configured frontend URL is appended as a fallback so
+     * server-to-server callers without an Origin still get a usable list.
+     *
+     * Xendit validates these and rejects unknown values, so anything malformed
+     * is dropped — XenditService::normaliseOrigins handles final filtering.
+     *
+     * @return array<int, string>
+     */
+    private function originsFromRequest(Request $request): array
+    {
+        $origins = [];
+
+        $origin = (string) $request->header('Origin');
+        if ($origin !== '') {
+            $origins[] = $origin;
+        }
+
+        $frontend = (string) config('app.frontend_url');
+        if ($frontend !== '') {
+            $origins[] = $frontend;
+        }
+
+        return $origins;
     }
 
     /**

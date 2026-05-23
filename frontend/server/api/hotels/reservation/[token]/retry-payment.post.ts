@@ -5,10 +5,17 @@ export default defineEventHandler(async (event) => {
   const baseUrl = (config.public as any).apiUrl || "http://localhost:8000";
   const apiKey = (config as any).pmOneApiKey;
 
+  // Forward Origin so a Sessions - Components retry mints a key bound to
+  // this caller's origin.
+  const origin = getRequestHeader(event, "origin");
+
   try {
     return await $fetch(`${baseUrl}/api/public/reservations/magic/${token}/retry-payment`, {
       method: "POST",
-      headers: { "X-API-Key": apiKey },
+      headers: {
+        "X-API-Key": apiKey,
+        ...(origin ? { Origin: origin } : {}),
+      },
     });
   } catch (err: any) {
     throw createError({

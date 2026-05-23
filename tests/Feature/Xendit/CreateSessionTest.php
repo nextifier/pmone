@@ -127,11 +127,66 @@ test('createCheckout dispatches to the Sessions API for a sessions_payment_link 
     Http::assertSent(fn ($request) => str_contains($request->url(), '/sessions'));
 });
 
-test('createCheckout throws for the not-yet-available components method', function () {
-    $reservation = Reservation::factory()->create();
+test('createCheckout dispatches to the Sessions API in COMPONENTS mode for a sessions_components gateway', function () {
+    Http::fake([
+        'api.xendit.co/sessions' => Http::response([
+            'payment_session_id' => 'ps-components-x',
+            'components_sdk_key' => 'sdk-key-test-789',
+            'status' => 'ACTIVE',
+        ], 201),
+    ]);
+
+    $reservation = Reservation::factory()->create(['total_amount' => 500000]);
     $gateway = ProjectPaymentGateway::factory()->create([
         'checkout_method' => CheckoutMethod::SessionsComponents,
     ]);
 
-    XenditService::forGateway($gateway)->createCheckout($reservation);
-})->throws(PaymentProviderException::class);
+    $result = XenditService::forGateway($gateway)->createCheckout(
+        $reservation,
+        null,
+        null,
+        ['https://app.test'],
+    );
+
+    expect($result['reference'])->toBe('ps-components-x');
+    expect($result['payment_url'])->toBeNull();
+    expect($result['components_sdk_key'])->toBe('sdk-key-test-789');
+    expect($result['checkout_method'])->toBe('sessions_components');
+
+    Http::assertSent(function ($request) {
+        $body = $request->data();
+
+        return $body['mode'] === 'COMPONENTS'
+            && $body['components_configuration']['origins'] === ['https://app.test']
+            && $body['allow_save_payment_method'] === 'DISABLED';
+    });
+});
+
+test('createSession in COMPONENTS mode returns the SDK key and falls back to frontend_url when no origins provided', function () {
+    config(['app.frontend_url' => 'https://fallback.test']);
+    Http::fake([
+        'api.xendit.co/sessions' => Http::response([
+            'payment_session_id' => 'ps-fallback',
+            'components_sdk_key' => 'sdk-fb-1',
+            'status' => 'ACTIVE',
+        ], 201),
+    ]);
+
+    $reservation = Reservation::factory()->create(['total_amount' => 100000]);
+    $gateway = ProjectPaymentGateway::factory()->create([
+        'checkout_method' => CheckoutMethod::SessionsComponents,
+    ]);
+
+    $result = XenditService::forGateway($gateway)->createSession(
+        $reservation,
+        null,
+        null,
+        'COMPONENTS',
+        null,
+    );
+
+    expect($result['components_sdk_key'])->toBe('sdk-fb-1');
+    expect($result['payment_url'])->toBeNull();
+
+    Http::assertSent(fn ($request) => $request->data()['components_configuration']['origins'] === ['https://fallback.test']);
+});

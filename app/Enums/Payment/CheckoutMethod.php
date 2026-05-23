@@ -61,8 +61,7 @@ enum CheckoutMethod: string
     public function available(): bool
     {
         return match ($this) {
-            self::SessionsPaymentLink, self::PaymentLinkLegacy => true,
-            self::SessionsComponents => false,
+            self::SessionsPaymentLink, self::SessionsComponents, self::PaymentLinkLegacy => true,
         };
     }
 

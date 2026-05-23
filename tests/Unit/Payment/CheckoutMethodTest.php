@@ -8,14 +8,14 @@ test('values lists every case', function () {
         ->toContain('sessions_payment_link', 'sessions_components', 'payment_link_legacy');
 });
 
-test('availableValues excludes the not-yet-implemented components method', function () {
+test('availableValues lists every case once components is enabled', function () {
     expect(CheckoutMethod::availableValues())
-        ->toContain('sessions_payment_link', 'payment_link_legacy')
-        ->not->toContain('sessions_components');
+        ->toContain('sessions_payment_link', 'sessions_components', 'payment_link_legacy')
+        ->toHaveCount(3);
 });
 
-test('only sessions_components is unavailable', function () {
-    expect(CheckoutMethod::SessionsComponents->available())->toBeFalse();
+test('all three checkout methods are available', function () {
+    expect(CheckoutMethod::SessionsComponents->available())->toBeTrue();
     expect(CheckoutMethod::SessionsPaymentLink->available())->toBeTrue();
     expect(CheckoutMethod::PaymentLinkLegacy->available())->toBeTrue();
 });
