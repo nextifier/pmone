@@ -86,10 +86,19 @@ export default defineNuxtConfig({
       ],
     },
     server: {
+      // Configure Vite for running behind the Cloudflare named tunnel
+      // (https://dev.pmone.id -> http://localhost:3000). Without these
+      // settings Vite generates `<link rel="modulepreload">` and HMR
+      // WebSocket URLs pointing at `localhost:3000` instead of the public
+      // tunnel host, which breaks both preload (browser cancels streams
+      // and falls back to import() racing with preload) and HMR.
+      origin: "https://dev.pmone.id",
       hmr: {
-        timeout: 60000, // Increase HMR timeout to 60 seconds
+        host: "dev.pmone.id",
+        protocol: "wss",
+        clientPort: 443,
+        timeout: 60000,
       },
-      // Increase header timeout to prevent timeout errors
       headers: {
         "Keep-Alive": "timeout=600",
         // Prevent Cloudflare (and any intermediate) from caching dev assets.

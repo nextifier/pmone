@@ -525,7 +525,14 @@ async function handleSubmit() {
 
     if (result?.magic_link_token) {
       bookingStore.reset();
-      await navigateTo(`/hotels/reservation/${result.magic_link_token}`);
+      // Components (SDK key issued, no hosted payment URL) → dedicated
+      // checkout page that mounts the inline Xendit Components SDK.
+      // Other flows (paid-on-arrival, retry-needed) fall back to the full
+      // reservation detail page where the user can see status + retry.
+      const target = result.components_sdk_key
+        ? `/hotels/checkout/${result.magic_link_token}`
+        : `/hotels/reservation/${result.magic_link_token}`;
+      await navigateTo(target);
       return;
     }
 
