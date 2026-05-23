@@ -93,17 +93,24 @@ async function init() {
       componentsSdkKey: props.componentsSdkKey,
     });
 
-    on("init", () => {
-      // Only `createChannelPickerComponent` is allowed pre-init; everything
-      // else (action container, channel components) must wait until the SDK
-      // has loaded session data. Mounting them outside this handler triggers
-      // a fatal-error: "The session data is not loaded".
+    on("init", async () => {
+      // Flip loading off first so Vue renders the v-else block that owns the
+      // pickerContainer / actionContainer refs, then wait one tick so the refs
+      // are populated before we appendChild into them.
+      loading.value = false;
+      await nextTick();
+
+      const pickerEl = xenditInstance.createChannelPickerComponent?.();
+      if (pickerEl && pickerContainer.value) {
+        pickerContainer.value.appendChild(pickerEl);
+        mountedElements.push(pickerEl);
+      }
+
       const actionEl = xenditInstance.createActionContainerComponent?.({});
       if (actionEl && actionContainer.value) {
         actionContainer.value.appendChild(actionEl);
         mountedElements.push(actionEl);
       }
-      loading.value = false;
     });
     on("submission-ready", () => {
       ready.value = true;
@@ -134,15 +141,9 @@ async function init() {
         e?.message || "Terjadi kesalahan pada komponen pembayaran.";
     });
 
-    // The channel picker is the ONLY component the SDK lets us mount before
-    // the `init` event fires (per SDK API); everything else is mounted inside
-    // the init handler above.
-    await nextTick();
-    const pickerEl = xenditInstance.createChannelPickerComponent?.();
-    if (pickerEl && pickerContainer.value) {
-      pickerContainer.value.appendChild(pickerEl);
-      mountedElements.push(pickerEl);
-    }
+    // Picker + action container are now mounted inside the `init` handler
+    // above — that's the only point where the v-else block has rendered
+    // (loading just flipped off) AND the SDK has session data ready.
 
     // Defensive fallback — if `init` never fires (e.g. SDK API rev change),
     // flip loading off after 2s so the picker is at least visible. The actual

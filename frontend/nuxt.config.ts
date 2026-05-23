@@ -56,7 +56,13 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {
+      // Bumping this forces Vite to compute a new `?v=` hash on the next
+      // dev start, busting any stale browser-cached modules from previous
+      // runs (especially useful behind a CDN tunnel where intermediate
+      // caches respect Vite's `immutable` cache-control).
+      force: true,
       include: [
+        "nanoid",
         "embla-carousel-wheel-gestures",
         "vue-json-pretty",
         "vue-scrollto",
@@ -86,7 +92,19 @@ export default defineNuxtConfig({
       // Increase header timeout to prevent timeout errors
       headers: {
         "Keep-Alive": "timeout=600",
+        // Prevent Cloudflare (and any intermediate) from caching dev assets.
+        // Vite serves the same URL with different Content-Type based on the
+        // request's Accept header (CSS-as-JS-module vs raw CSS), and CF only
+        // caches by URL — so one stale cached response can break module
+        // imports. `no-store` forces every dev hit to revalidate against Vite.
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        "CDN-Cache-Control": "no-store",
+        "Cloudflare-CDN-Cache-Control": "no-store",
       },
+      // Allow the Cloudflare named-tunnel hostname (see ~/.cloudflared/config.yml).
+      // Vite's default host check rejects anything other than localhost. Listing
+      // tunnel hosts here lets dev.pmone.id (-> http://localhost:3000) load.
+      allowedHosts: ["dev.pmone.id", ".pmone.id"],
     },
   },
 
