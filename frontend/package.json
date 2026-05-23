@@ -6,7 +6,9 @@
     "dev": "NODE_OPTIONS='--max-old-space-size=8192' nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "build:dev-tunnel": "NUXT_PUBLIC_SITE_URL=https://dev.pmone.id NUXT_PUBLIC_API_URL=https://dev-api.pmone.id NODE_OPTIONS='--max-old-space-size=8192' nuxt build",
+    "start:dev-tunnel": "NUXT_PUBLIC_SITE_URL=https://dev.pmone.id NUXT_PUBLIC_API_URL=https://dev-api.pmone.id node .output/server/index.mjs"
   },
   "devDependencies": {
     "@fingerprintjs/fingerprintjs": "^5.1.0",

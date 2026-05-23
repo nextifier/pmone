@@ -86,6 +86,16 @@ const fullAddress = computed(() => {
   return [hotel.address, hotel.city, hotel.country].filter(Boolean).join(", ");
 });
 
+const mapsLinkUrl = computed(() => {
+  const hotel = props.hotel;
+  if (!hotel) return null;
+  const query = [hotel.name, hotel.address, hotel.city, hotel.country]
+    .filter(Boolean)
+    .join(", ");
+  if (!query) return null;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+});
+
 const compactThumb = computed(() => {
   const first = galleryItems.value[0];
   if (!first) return null;
@@ -228,40 +238,22 @@ function toggleExpand() {
             {{ facility }}
           </Badge>
         </div>
-        <p
-          v-if="fullAddress"
-          class="text-muted-foreground flex items-start gap-1.5 pt-1 text-sm tracking-tight"
+        <a
+          v-if="fullAddress && mapsLinkUrl"
+          :href="mapsLinkUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-muted-foreground hover:text-foreground flex items-start gap-1.5 pt-1 text-sm tracking-tight"
         >
           <Icon name="hugeicons:location-04" class="mt-0.5 size-4 shrink-0" />
           <span>{{ fullAddress }}</span>
-        </p>
+        </a>
         <p
           v-if="hotel.description"
           class="text-muted-foreground line-clamp-3 pt-1 text-sm tracking-tight"
         >
           {{ hotel.description }}
         </p>
-        <div
-          v-if="hotel.contact_email || hotel.contact_phone"
-          class="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 pt-2 text-sm tracking-tight"
-        >
-          <a
-            v-if="hotel.contact_email"
-            :href="`mailto:${hotel.contact_email}`"
-            class="hover:text-foreground inline-flex items-center gap-1.5"
-          >
-            <Icon name="hugeicons:mail-01" class="size-4 shrink-0" />
-            <span class="truncate">{{ hotel.contact_email }}</span>
-          </a>
-          <a
-            v-if="hotel.contact_phone"
-            :href="`tel:${hotel.contact_phone}`"
-            class="hover:text-foreground inline-flex items-center gap-1.5"
-          >
-            <Icon name="hugeicons:call-02" class="size-4 shrink-0" />
-            <span>{{ hotel.contact_phone }}</span>
-          </a>
-        </div>
         <!-- Only surfaced when the user has manually expanded a collapsed
              step (collapsed prop true) — gives them a clear way to re-collapse. -->
         <div v-if="collapsed && userExpanded" class="pt-2">
@@ -277,7 +269,7 @@ function toggleExpand() {
       </div>
       <div
         v-if="mapEmbedUrl"
-        class="bg-muted relative aspect-4/5 w-full overflow-hidden rounded-xl lg:aspect-auto lg:h-full lg:min-h-[220px]"
+        class="bg-muted relative hidden aspect-4/5 w-full overflow-hidden rounded-xl lg:block lg:aspect-auto lg:h-full lg:min-h-[220px]"
       >
         <iframe
           :src="mapEmbedUrl"

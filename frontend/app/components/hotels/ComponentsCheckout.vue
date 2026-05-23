@@ -46,7 +46,6 @@
     <div v-else class="space-y-3">
       <p class="text-sm font-medium tracking-tight">Pilih metode pembayaran</p>
       <div ref="pickerContainer" class="min-h-12"></div>
-      <div ref="actionContainer" class="min-h-12"></div>
       <Button class="w-full" :disabled="!ready || submitting" @click="onSubmit">
         <Spinner v-if="submitting" />
         {{ submitting ? "Memproses..." : "Bayar sekarang" }}
@@ -70,7 +69,6 @@ const submitting = ref(false);
 const refreshing = ref(false);
 const errorMessage = ref("");
 const pickerContainer = ref(null);
-const actionContainer = ref(null);
 
 let xenditInstance = null;
 const listeners = [];
@@ -95,8 +93,8 @@ async function init() {
 
     on("init", async () => {
       // Flip loading off first so Vue renders the v-else block that owns the
-      // pickerContainer / actionContainer refs, then wait one tick so the refs
-      // are populated before we appendChild into them.
+      // pickerContainer ref, then wait one tick so the ref is populated before
+      // we appendChild into it.
       loading.value = false;
       await nextTick();
 
@@ -106,11 +104,15 @@ async function init() {
         mountedElements.push(pickerEl);
       }
 
-      const actionEl = xenditInstance.createActionContainerComponent?.({});
-      if (actionEl && actionContainer.value) {
-        actionContainer.value.appendChild(actionEl);
-        mountedElements.push(actionEl);
-      }
+      // We deliberately do NOT call `createActionContainerComponent` here.
+      // The official xendit/demo-store reference integration (src/integrations/
+      // XenditComponents.tsx) only mounts the channel picker — the SDK then
+      // renders QR / 3DS / VA action overlays as portal modals into document.body
+      // automatically. Those modals include the test-mode "I've made this
+      // payment" confirmation button that fires the `payment_session.completed`
+      // webhook. If we mount an inline action container, the SDK suppresses
+      // the modal flow and the test confirmation button never appears, so
+      // sandbox payments stay stuck in pending forever.
     });
     on("submission-ready", () => {
       ready.value = true;
