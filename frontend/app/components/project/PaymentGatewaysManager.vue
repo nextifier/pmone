@@ -609,7 +609,7 @@ const form = reactive({
   provider: "xendit",
   label: "",
   mode: "live",
-  checkout_method: "sessions_payment_link",
+  checkout_method: "payment_link_sessions",
   secret_key: "",
   webhook_token: "",
   config: {},
@@ -621,22 +621,17 @@ const form = reactive({
 // exists yet to read the list from.
 const DEFAULT_CHECKOUT_METHODS = [
   {
-    value: "sessions_payment_link",
-    label: "Sessions - Payment Link",
-    description: "Provider-hosted checkout. Fastest and least effort to integrate.",
-    available: true,
-  },
-  {
-    value: "sessions_components",
-    label: "Sessions - Components",
+    value: "payment_link_sessions",
+    label: "Payment Link - Sessions",
     description:
-      "Embed the payment UI in your own checkout page. Saat ini hanya mendukung Kartu Kredit/Debit, E-Wallet, dan QRIS - Virtual Account / Transfer Bank belum tersedia di Xendit Components SDK.",
+      "Provider-hosted checkout via the Sessions API. Fastest and least effort to integrate.",
     available: true,
   },
   {
     value: "payment_link_legacy",
-    label: "Payment Link (Legacy)",
-    description: "The old checkout page. Not recommended for new gateways.",
+    label: "Payment Link - Legacy",
+    description:
+      "The legacy Invoices API checkout page. Kept for backwards compatibility; not recommended for new gateways.",
     available: true,
   },
 ];
@@ -651,7 +646,7 @@ function resetForm() {
   form.provider = "xendit";
   form.label = "";
   form.mode = "live";
-  form.checkout_method = "sessions_payment_link";
+  form.checkout_method = "payment_link_sessions";
   form.secret_key = "";
   form.webhook_token = "";
   form.config = {};

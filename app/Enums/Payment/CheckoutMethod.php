@@ -5,10 +5,10 @@ namespace App\Enums\Payment;
 /**
  * Which checkout integration a payment gateway uses to collect a payment.
  *
- * The cases map to Xendit's three integration styles (see demo-store.xendit.co).
- * The concept is intentionally provider-agnostic: a future provider (Midtrans)
- * either reuses these cases or adds its own, and reports which ones it supports
- * through the App\Contracts\Payment\SupportsCheckoutMethods interface.
+ * The cases map to Xendit's two hosted-checkout integration styles. The
+ * concept is intentionally provider-agnostic: a future provider (Midtrans)
+ * either reuses these cases or adds its own, and reports which ones it
+ * supports through the App\Contracts\Payment\SupportsCheckoutMethods interface.
  */
 enum CheckoutMethod: string
 {
@@ -16,13 +16,7 @@ enum CheckoutMethod: string
      * Xendit Sessions API in PAYMENT_LINK mode — Xendit-hosted checkout page.
      * Fastest, least effort, the modern default.
      */
-    case SessionsPaymentLink = 'sessions_payment_link';
-
-    /**
-     * Xendit Sessions API in COMPONENTS mode — payment UI embedded in our own
-     * checkout page. Not implemented yet; surfaced in the UI as "coming soon".
-     */
-    case SessionsComponents = 'sessions_components';
+    case PaymentLinkSessions = 'payment_link_sessions';
 
     /**
      * Xendit Invoices API — the legacy hosted checkout. Kept for backwards
@@ -36,9 +30,8 @@ enum CheckoutMethod: string
     public function label(): string
     {
         return match ($this) {
-            self::SessionsPaymentLink => 'Sessions - Payment Link',
-            self::SessionsComponents => 'Sessions - Components',
-            self::PaymentLinkLegacy => 'Payment Link (Legacy)',
+            self::PaymentLinkSessions => 'Payment Link - Sessions',
+            self::PaymentLinkLegacy => 'Payment Link - Legacy',
         };
     }
 
@@ -48,9 +41,8 @@ enum CheckoutMethod: string
     public function description(): string
     {
         return match ($this) {
-            self::SessionsPaymentLink => 'Provider-hosted checkout. Fastest and least effort to integrate.',
-            self::SessionsComponents => 'Embed the payment UI in your own checkout page. Saat ini hanya mendukung Kartu Kredit/Debit, E-Wallet, dan QRIS - Virtual Account / Transfer Bank belum tersedia di Xendit Components SDK.',
-            self::PaymentLinkLegacy => 'The old checkout page. Not recommended for new gateways.',
+            self::PaymentLinkSessions => 'Provider-hosted checkout via the Sessions API. Fastest and least effort to integrate.',
+            self::PaymentLinkLegacy => 'The legacy Invoices API checkout page. Kept for backwards compatibility; not recommended for new gateways.',
         };
     }
 
@@ -61,7 +53,7 @@ enum CheckoutMethod: string
     public function available(): bool
     {
         return match ($this) {
-            self::SessionsPaymentLink, self::SessionsComponents, self::PaymentLinkLegacy => true,
+            self::PaymentLinkSessions, self::PaymentLinkLegacy => true,
         };
     }
 
@@ -70,7 +62,7 @@ enum CheckoutMethod: string
      */
     public static function default(): self
     {
-        return self::SessionsPaymentLink;
+        return self::PaymentLinkSessions;
     }
 
     /**

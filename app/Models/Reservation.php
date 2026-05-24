@@ -199,7 +199,6 @@ class Reservation extends Model implements HasMedia, Purchasable
         'total_amount',
         'xendit_invoice_id',
         'xendit_payment_id',
-        'components_sdk_key',
         'payment_url',
         'payment_method',
         'payment_gateway_id',

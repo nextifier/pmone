@@ -318,11 +318,11 @@ it('stores a gateway with the requested checkout_method', function () {
         'provider' => 'xendit',
         'mode' => 'test',
         'secret_key' => 'xnd_test_SECRETVALUE123456789',
-        'checkout_method' => 'sessions_payment_link',
+        'checkout_method' => 'payment_link_sessions',
     ]);
 
     $response->assertCreated()
-        ->assertJsonPath('data.checkout_method', 'sessions_payment_link');
+        ->assertJsonPath('data.checkout_method', 'payment_link_sessions');
 });
 
 it('defaults checkout_method to payment_link_legacy when omitted', function () {
@@ -353,14 +353,14 @@ it('can switch checkout_method via update', function () {
 
     $this->patchJson(
         "/api/projects/{$this->project->username}/payment-gateways/{$gateway->id}",
-        ['checkout_method' => 'sessions_payment_link'],
+        ['checkout_method' => 'payment_link_sessions'],
     )->assertSuccessful()
-        ->assertJsonPath('data.checkout_method', 'sessions_payment_link');
+        ->assertJsonPath('data.checkout_method', 'payment_link_sessions');
 
-    expect($gateway->fresh()->checkout_method)->toBe(CheckoutMethod::SessionsPaymentLink);
+    expect($gateway->fresh()->checkout_method)->toBe(CheckoutMethod::PaymentLinkSessions);
 });
 
-it('exposes available_checkout_methods with all three options enabled', function () {
+it('exposes available_checkout_methods with both options enabled', function () {
     $gateway = ProjectPaymentGateway::factory()->for($this->project)->create();
 
     $response = $this->getJson("/api/projects/{$this->project->username}/payment-gateways/{$gateway->id}");
@@ -368,8 +368,7 @@ it('exposes available_checkout_methods with all three options enabled', function
     $response->assertSuccessful();
 
     $methods = collect($response->json('data.available_checkout_methods'));
-    expect($methods)->toHaveCount(3);
-    expect($methods->firstWhere('value', 'sessions_payment_link')['available'])->toBeTrue();
-    expect($methods->firstWhere('value', 'sessions_components')['available'])->toBeTrue();
+    expect($methods)->toHaveCount(2);
+    expect($methods->firstWhere('value', 'payment_link_sessions')['available'])->toBeTrue();
     expect($methods->firstWhere('value', 'payment_link_legacy')['available'])->toBeTrue();
 });

@@ -42,7 +42,7 @@ class ProjectPaymentGatewayFactory extends Factory
 
     public function sessionsPaymentLink(): self
     {
-        return $this->state(['checkout_method' => CheckoutMethod::SessionsPaymentLink]);
+        return $this->state(['checkout_method' => CheckoutMethod::PaymentLinkSessions]);
     }
 
     public function paymentLinkLegacy(): self

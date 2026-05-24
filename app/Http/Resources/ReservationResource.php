@@ -52,11 +52,6 @@ class ReservationResource extends JsonResource
                 'xendit_invoice_id' => $this->xendit_invoice_id,
                 'xendit_payment_id' => $this->xendit_payment_id,
                 'payment_url' => $this->payment_url,
-                // Short-lived Xendit Components SDK key, only present for a
-                // pending COMPONENTS-mode reservation. Frontend hands this to
-                // xendit-components-web to mount the embedded checkout. Absent
-                // for hosted / legacy flows.
-                'components_sdk_key' => $this->whenNotNull($this->components_sdk_key),
                 'method' => $this->payment_method?->value,
                 'method_label' => $this->payment_method?->label(),
                 'channel' => $this->payment_channel,

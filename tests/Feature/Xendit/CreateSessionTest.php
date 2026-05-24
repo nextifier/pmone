@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\Payment\CheckoutMethod;
 use App\Exceptions\Payment\PaymentProviderException;
 use App\Models\ProjectPaymentGateway;
 use App\Models\Reservation;
@@ -106,7 +105,7 @@ test('createSession maps a 401 response to a provider exception', function () {
     XenditService::forGateway($gateway)->createSession($reservation);
 })->throws(PaymentProviderException::class);
 
-test('createCheckout dispatches to the Sessions API for a sessions_payment_link gateway', function () {
+test('createCheckout dispatches to the Sessions API for a payment_link_sessions gateway', function () {
     Http::fake([
         'api.xendit.co/sessions' => Http::response([
             'payment_session_id' => 'ps-dispatch',
@@ -122,71 +121,28 @@ test('createCheckout dispatches to the Sessions API for a sessions_payment_link 
 
     expect($result['reference'])->toBe('ps-dispatch');
     expect($result['payment_url'])->toBe('https://checkout.xendit.co/web/ps-dispatch');
-    expect($result['checkout_method'])->toBe('sessions_payment_link');
+    expect($result['checkout_method'])->toBe('payment_link_sessions');
 
     Http::assertSent(fn ($request) => str_contains($request->url(), '/sessions'));
 });
 
-test('createCheckout dispatches to the Sessions API in COMPONENTS mode for a sessions_components gateway', function () {
+test('createSession suppresses the installment dropdown by sending an empty allowed_installment_program_ids array', function () {
     Http::fake([
         'api.xendit.co/sessions' => Http::response([
-            'payment_session_id' => 'ps-components-x',
-            'components_sdk_key' => 'sdk-key-test-789',
-            'status' => 'ACTIVE',
-        ], 201),
-    ]);
-
-    $reservation = Reservation::factory()->create(['total_amount' => 500000]);
-    $gateway = ProjectPaymentGateway::factory()->create([
-        'checkout_method' => CheckoutMethod::SessionsComponents,
-    ]);
-
-    $result = XenditService::forGateway($gateway)->createCheckout(
-        $reservation,
-        null,
-        null,
-        ['https://app.test'],
-    );
-
-    expect($result['reference'])->toBe('ps-components-x');
-    expect($result['payment_url'])->toBeNull();
-    expect($result['components_sdk_key'])->toBe('sdk-key-test-789');
-    expect($result['checkout_method'])->toBe('sessions_components');
-
-    Http::assertSent(function ($request) {
-        $body = $request->data();
-
-        return $body['mode'] === 'COMPONENTS'
-            && $body['components_configuration']['origins'] === ['https://app.test']
-            && $body['allow_save_payment_method'] === 'DISABLED';
-    });
-});
-
-test('createSession in COMPONENTS mode returns the SDK key and falls back to frontend_url when no origins provided', function () {
-    config(['app.frontend_url' => 'https://fallback.test']);
-    Http::fake([
-        'api.xendit.co/sessions' => Http::response([
-            'payment_session_id' => 'ps-fallback',
-            'components_sdk_key' => 'sdk-fb-1',
+            'payment_session_id' => 'ps-no-installments',
+            'payment_link_url' => 'https://checkout.xendit.co/web/ps-no-installments',
             'status' => 'ACTIVE',
         ], 201),
     ]);
 
     $reservation = Reservation::factory()->create(['total_amount' => 100000]);
-    $gateway = ProjectPaymentGateway::factory()->create([
-        'checkout_method' => CheckoutMethod::SessionsComponents,
-    ]);
+    $gateway = ProjectPaymentGateway::factory()->sessionsPaymentLink()->create();
 
-    $result = XenditService::forGateway($gateway)->createSession(
-        $reservation,
-        null,
-        null,
-        'COMPONENTS',
-        null,
-    );
+    XenditService::forGateway($gateway)->createSession($reservation);
 
-    expect($result['components_sdk_key'])->toBe('sdk-fb-1');
-    expect($result['payment_url'])->toBeNull();
+    Http::assertSent(function ($request) {
+        $body = $request->data();
 
-    Http::assertSent(fn ($request) => $request->data()['components_configuration']['origins'] === ['https://fallback.test']);
+        return ($body['channel_properties']['cards']['allowed_installment_program_ids'] ?? null) === [];
+    });
 });

@@ -147,28 +147,7 @@
           <div class="frame-title">Payment Pending</div>
         </div>
         <div class="frame-panel space-y-3">
-          <template v-if="reservation.components_sdk_key">
-            <!-- Components flow lives on the dedicated /hotels/checkout page
-                 so the SDK isn't competing with reservation detail for screen
-                 real estate. Surface a clear hand-off CTA here for users who
-                 land on the receipt view while still pending. -->
-            <p class="text-sm tracking-tight">
-              Your booking is held. Continue to the secure checkout to complete payment.
-            </p>
-            <p
-              v-if="expiresAtLabel"
-              class="text-muted-foreground text-xs tracking-tight sm:text-sm"
-            >
-              Payment session expires on {{ expiresAtLabel }}.
-            </p>
-            <Button as-child>
-              <NuxtLink :to="`/hotels/checkout/${token}`">
-                <Icon name="hugeicons:credit-card" class="size-4 shrink-0" />
-                Continue to checkout
-              </NuxtLink>
-            </Button>
-          </template>
-          <template v-else-if="reservation.payment_url">
+          <template v-if="reservation.payment_url">
             <p class="text-sm tracking-tight">
               Payment has not been received yet. Please continue to checkout:
             </p>

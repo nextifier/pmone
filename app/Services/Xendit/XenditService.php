@@ -380,41 +380,24 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
      *
      * Returns a method-agnostic shape so callers (ReservationService) never need
      * to know whether the Sessions API or the legacy Invoices API ran.
-     * `payment_url` is null in COMPONENTS mode (no redirect — the SDK key is the
-     * handoff); `components_sdk_key` is null for hosted / legacy flows.
      *
-     * @param  array<int, string>|null  $origins  Allowed origins for embedded
-     *                                            Components SDK (required only for COMPONENTS mode).
-     * @return array{reference: string, payment_url: ?string, components_sdk_key: ?string, checkout_method: string}
+     * @return array{reference: string, payment_url: string, checkout_method: string}
      */
     public function createCheckout(
         Reservation $reservation,
         ?string $successUrl = null,
         ?string $failureUrl = null,
-        ?array $origins = null,
     ): array {
         $this->requireGateway();
 
         $method = $this->gateway->checkout_method ?? CheckoutMethod::PaymentLinkLegacy;
 
-        if ($method === CheckoutMethod::SessionsComponents) {
-            $session = $this->createSession($reservation, $successUrl, $failureUrl, 'COMPONENTS', $origins);
-
-            return [
-                'reference' => $session['session_id'],
-                'payment_url' => null,
-                'components_sdk_key' => $session['components_sdk_key'],
-                'checkout_method' => $method->value,
-            ];
-        }
-
-        if ($method === CheckoutMethod::SessionsPaymentLink) {
+        if ($method === CheckoutMethod::PaymentLinkSessions) {
             $session = $this->createSession($reservation, $successUrl, $failureUrl);
 
             return [
                 'reference' => $session['session_id'],
                 'payment_url' => $session['payment_url'],
-                'components_sdk_key' => null,
                 'checkout_method' => $method->value,
             ];
         }
@@ -425,36 +408,24 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
         return [
             'reference' => $invoice['invoice_id'],
             'payment_url' => $invoice['invoice_url'],
-            'components_sdk_key' => null,
             'checkout_method' => $method->value,
         ];
     }
 
     /**
-     * Create a Xendit Payment Session for a reservation.
-     *
-     * `$mode` selects the integration:
-     *   - "PAYMENT_LINK" (default): Xendit-hosted checkout, returns
-     *     `payment_url` for redirect. `components_sdk_key` is null.
-     *   - "COMPONENTS": embedded checkout, returns `components_sdk_key` for the
-     *     frontend xendit-components-web SDK. `payment_url` is null.
+     * Create a Xendit Payment Session (PAYMENT_LINK mode) for a reservation
+     * and return the hosted checkout URL.
      *
      * The installed xendit/xendit-php SDK has no Sessions client, so this calls
      * the REST endpoint directly with the same Basic-auth pattern as
      * getBalance().
      *
-     * @param  string  $mode  "PAYMENT_LINK" or "COMPONENTS"
-     * @param  array<int, string>|null  $origins  Origins that may load the
-     *                                            embedded SDK. Required for COMPONENTS mode; ignored otherwise.
-     *                                            Defaults to `[config('app.frontend_url')]` when null.
-     * @return array{session_id: string, payment_url: ?string, components_sdk_key: ?string, status: string}
+     * @return array{session_id: string, payment_url: string, status: string}
      */
     public function createSession(
         Reservation $reservation,
         ?string $successUrl = null,
         ?string $failureUrl = null,
-        string $mode = 'PAYMENT_LINK',
-        ?array $origins = null,
     ): array {
         $this->requireGateway();
 
@@ -484,7 +455,7 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
         $payload = [
             'reference_id' => $reservation->reservation_number,
             'session_type' => 'PAY',
-            'mode' => $mode,
+            'mode' => 'PAYMENT_LINK',
             'currency' => $this->resolveCurrency(),
             // IDR has no minor units — Xendit expects a whole-rupiah integer.
             'amount' => (int) round((float) $reservation->total_amount),
@@ -513,15 +484,6 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
             ],
         ];
 
-        if ($mode === 'COMPONENTS') {
-            $allowedOrigins = $this->normaliseOrigins($origins);
-
-            $payload['components_configuration'] = ['origins' => $allowedOrigins];
-            // Hotel bookings are one-off; saving payment methods adds Payment
-            // Methods V2 webhook surface we have not yet implemented.
-            $payload['allow_save_payment_method'] = 'DISABLED';
-        }
-
         try {
             $response = Http::withBasicAuth($this->secretKey, '')
                 ->acceptJson()
@@ -549,22 +511,9 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
         // `payment_session_id` and the bare `id` for it across API revisions —
         // accept either so a field rename upstream does not break checkout.
         $sessionId = (string) ($response->json('payment_session_id') ?? $response->json('id') ?? '');
-        $paymentUrl = $mode === 'COMPONENTS'
-            ? null
-            : (string) ($response->json('payment_link_url') ?? '');
-        $componentsSdkKey = $mode === 'COMPONENTS'
-            ? (string) ($response->json('components_sdk_key') ?? '')
-            : null;
+        $paymentUrl = (string) ($response->json('payment_link_url') ?? '');
 
-        if ($mode === 'COMPONENTS' && $componentsSdkKey === '') {
-            throw new PaymentProviderException(
-                'Xendit created the session but returned no components SDK key.',
-                'PAYMENT_GATEWAY_UNAVAILABLE',
-                502,
-            );
-        }
-
-        if ($mode !== 'COMPONENTS' && $paymentUrl === '') {
+        if ($paymentUrl === '') {
             throw new PaymentProviderException(
                 'Xendit created the session but returned no payment link URL.',
                 'PAYMENT_GATEWAY_UNAVAILABLE',
@@ -575,46 +524,8 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
         return [
             'session_id' => $sessionId,
             'payment_url' => $paymentUrl,
-            'components_sdk_key' => $componentsSdkKey,
             'status' => (string) ($response->json('status') ?? ''),
         ];
-    }
-
-    /**
-     * Filter the supplied origins down to valid http(s) URLs and fall back to
-     * the configured frontend URL when nothing usable is provided. Xendit
-     * requires `components_configuration.origins` for COMPONENTS sessions and
-     * rejects malformed entries.
-     *
-     * @param  array<int, string>|null  $origins
-     * @return array<int, string>
-     */
-    protected function normaliseOrigins(?array $origins): array
-    {
-        $valid = [];
-        foreach ((array) $origins as $origin) {
-            if (! is_string($origin) || $origin === '') {
-                continue;
-            }
-            $parts = parse_url($origin);
-            if (! is_array($parts) || empty($parts['host']) || empty($parts['scheme'])) {
-                continue;
-            }
-            if (! in_array(strtolower($parts['scheme']), ['http', 'https'], true)) {
-                continue;
-            }
-            $port = isset($parts['port']) ? ':'.$parts['port'] : '';
-            $valid[] = strtolower($parts['scheme']).'://'.$parts['host'].$port;
-        }
-
-        if ($valid === []) {
-            $fallback = (string) config('app.frontend_url');
-            if ($fallback !== '') {
-                $valid[] = rtrim($fallback, '/');
-            }
-        }
-
-        return array_values(array_unique($valid));
     }
 
     /**
@@ -883,8 +794,7 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
     public function checkoutMethods(): array
     {
         return [
-            CheckoutMethod::SessionsPaymentLink,
-            CheckoutMethod::SessionsComponents,
+            CheckoutMethod::PaymentLinkSessions,
             CheckoutMethod::PaymentLinkLegacy,
         ];
     }

@@ -406,26 +406,18 @@ class ReservationService
                 $frontendUrl = rtrim(config('app.frontend_url'), '/');
                 $successUrl = "{$frontendUrl}/hotels/success?ref={$reservation->reservation_number}&token={$rawToken}";
                 $failureUrl = "{$frontendUrl}/hotels?failed=".$reservation->reservation_number;
-                // createCheckout() dispatches to the Sessions API or the legacy
-                // Invoices API depending on the gateway's checkout_method.
-                // `xendit_invoice_id` therefore holds either an `inv-` invoice
-                // id or a `ps-` Payment Session id.
-                // `$data['origins']` is forwarded so a COMPONENTS-mode session
-                // gets a usable `components_configuration.origins`.
+                // createCheckout() dispatches to the Sessions API (Payment Link
+                // mode) or the legacy Invoices API depending on the gateway's
+                // checkout_method. `xendit_invoice_id` therefore holds either
+                // an `inv-` invoice id or a `ps-` Payment Session id.
                 $checkout = $xenditClient->createCheckout(
                     $reservation,
                     $successUrl,
                     $failureUrl,
-                    $data['origins'] ?? null,
                 );
                 $reservation->update([
                     'xendit_invoice_id' => $checkout['reference'],
                     'payment_url' => $checkout['payment_url'],
-                    // Persist the Components SDK key so subsequent magic-link
-                    // page loads can re-mount the same embedded checkout
-                    // without re-creating the Xendit session (which the
-                    // Sessions API rejects on duplicate reference_id).
-                    'components_sdk_key' => $checkout['components_sdk_key'] ?? null,
                     'payment_method' => PaymentMethod::Xendit,
                     'payment_gateway_id' => $xenditClient->gateway()?->id,
                 ]);
@@ -467,7 +459,6 @@ class ReservationService
     public function retryXenditInvoice(
         Reservation $reservation,
         ?XenditService $xendit = null,
-        ?array $origins = null,
     ): Reservation {
         if ($reservation->status !== ReservationStatus::PendingPayment) {
             abort(422, 'Only pending payments can be retried.');
@@ -484,12 +475,11 @@ class ReservationService
         $successUrl = "{$frontendUrl}/hotels/success?ref={$reservation->reservation_number}&token={$rawToken}";
         $failureUrl = "{$frontendUrl}/hotels?failed={$reservation->reservation_number}";
 
-        $checkout = $xenditClient->createCheckout($reservation, $successUrl, $failureUrl, $origins);
+        $checkout = $xenditClient->createCheckout($reservation, $successUrl, $failureUrl);
 
         $reservation->update([
             'xendit_invoice_id' => $checkout['reference'],
             'payment_url' => $checkout['payment_url'],
-            'components_sdk_key' => $checkout['components_sdk_key'] ?? null,
             'payment_method' => PaymentMethod::Xendit,
             'payment_gateway_id' => $xenditClient->gateway()?->id,
         ]);
@@ -517,9 +507,6 @@ class ReservationService
             'paid_at' => now(),
             'xendit_invoice_id' => $payload['id'] ?? $reservation->xendit_invoice_id,
             'payment_method' => $reservation->payment_method ?? PaymentMethod::Xendit,
-            // SDK key is only useful while pending; clear on transition to
-            // paid so it can't be served by the magic-link GET afterwards.
-            'components_sdk_key' => null,
         ];
 
         if (! empty($payload['payment_channel'])) {
@@ -604,7 +591,6 @@ class ReservationService
 
         $reservation->update([
             'status' => ReservationStatus::Expired,
-            'components_sdk_key' => null,
         ]);
     }
 

@@ -92,8 +92,7 @@
     "vue-sonner": "^2.0.9",
     "vue-stick-to-bottom": "^1.0.0",
     "vue-stream-markdown": "^0.6.5",
-    "vue-tippy": "^6.7.1",
-    "xendit-components-web": "^0.0.22"
+    "vue-tippy": "^6.7.1"
   },
   "overrides": {
     "vue": "latest",

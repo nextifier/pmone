@@ -33,11 +33,6 @@ class PublicReservationResource extends JsonResource
             ],
             'promo_code_applied' => $this->promo_code_applied,
             'payment_url' => $this->payment_url,
-            // Short-lived Xendit Components SDK key, only present for a
-            // pending COMPONENTS-mode reservation (set transient by
-            // ReservationService). Frontend hands it to xendit-components-web
-            // to mount the embedded checkout.
-            'components_sdk_key' => $this->components_sdk_key,
             'hotel' => $this->whenLoaded('hotel', fn () => [
                 'name' => $this->hotel->name,
                 'slug' => $this->hotel->slug,
