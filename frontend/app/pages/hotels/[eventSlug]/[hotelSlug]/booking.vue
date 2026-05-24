@@ -1,5 +1,5 @@
 <script setup>
-definePageMeta({ layout: "default" });
+definePageMeta({ layout: "default", noFooter: true });
 
 const route = useRoute();
 const eventSlug = route.params.eventSlug;

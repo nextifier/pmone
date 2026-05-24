@@ -30,6 +30,8 @@ See `DEPLOY.md` for production deploy + seeder runbook.
 
 ## Dev Tunnel (Xendit testing)
 
+Full workflow (kenapa, setup, command sehari-hari, gotcha) ada di `DEV_TUNNEL.md` di root repo. Section ini cuma rangkuman buat orientasi cepat - kalau ada yang belum jelas, baca `DEV_TUNNEL.md` dulu.
+
 Xendit can't reach `localhost` (Components origins, payment-link return URLs, webhook callbacks). The dev tunnel exposes the local Laravel + Nuxt stack at stable public hostnames so we can iterate on Components/Sessions/webhook flows without pushing to real production every time.
 
 **Architecture (chosen because Vite dev mode + CF named tunnel breaks on HTTP/2 stream cancellation during the ESM module fan-out):**

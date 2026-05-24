@@ -181,7 +181,7 @@ import { useBookingStore } from "../../../../stores/booking";
 import { toast } from "vue-sonner";
 import { computed, onMounted, ref, watch } from "vue";
 
-definePageMeta({ layout: "default" });
+definePageMeta({ layout: "default", noFooter: true });
 
 const route = useRoute();
 const router = useRouter();

@@ -49,7 +49,7 @@ enum CheckoutMethod: string
     {
         return match ($this) {
             self::SessionsPaymentLink => 'Provider-hosted checkout. Fastest and least effort to integrate.',
-            self::SessionsComponents => 'Embed the payment UI in your own checkout page.',
+            self::SessionsComponents => 'Embed the payment UI in your own checkout page. Saat ini hanya mendukung Kartu Kredit/Debit, E-Wallet, dan QRIS - Virtual Account / Transfer Bank belum tersedia di Xendit Components SDK.',
             self::PaymentLinkLegacy => 'The old checkout page. Not recommended for new gateways.',
         };
     }

@@ -39,6 +39,12 @@ _ide_helper_models.php
 /frontend/dist
 /frontend/.env
 /frontend/temp
+# .npmrc is local-only: node-linker=hoisted is required for the dev tunnel
+# prod-build workflow (see CLAUDE.md "Dev Tunnel") to work around a Rollup
+# pnpm-symlink resolution bug. Cloudflare Pages must NOT see this file -
+# its build pipeline already handles pnpm symlinks correctly with the
+# default layout, and forcing hoisted there broke CF Pages builds.
+/frontend/.npmrc
 
 **/caddy
 frankenphp

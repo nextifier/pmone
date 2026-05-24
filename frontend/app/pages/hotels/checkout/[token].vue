@@ -162,6 +162,7 @@ import { Spinner } from "../../../components/ui/spinner";
 
 definePageMeta({
   layout: "default",
+  noFooter: true,
 });
 
 const route = useRoute();

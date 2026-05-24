@@ -629,8 +629,9 @@ const DEFAULT_CHECKOUT_METHODS = [
   {
     value: "sessions_components",
     label: "Sessions - Components",
-    description: "Embed the payment UI in your own checkout page.",
-    available: false,
+    description:
+      "Embed the payment UI in your own checkout page. Saat ini hanya mendukung Kartu Kredit/Debit, E-Wallet, dan QRIS - Virtual Account / Transfer Bank belum tersedia di Xendit Components SDK.",
+    available: true,
   },
   {
     value: "payment_link_legacy",

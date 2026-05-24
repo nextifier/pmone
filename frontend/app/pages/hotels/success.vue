@@ -197,6 +197,7 @@ import { toast } from "vue-sonner";
 
 definePageMeta({
   layout: "default",
+  noFooter: true,
 });
 
 const route = useRoute();

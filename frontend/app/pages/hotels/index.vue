@@ -5,6 +5,8 @@
 </template>
 
 <script setup>
+definePageMeta({ noFooter: true });
+
 usePageMeta(null, {
   title: "Hotels",
   description:
