@@ -134,8 +134,8 @@
             Detach hotel from event?
           </div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
-            "{{ deletingHotel?.name }}" will be detached from this event. The hotel record stays
-            in the master list and remains attached to any other events.
+            "{{ deletingHotel?.name }}" will be detached from this event. The hotel record stays in
+            the master list and remains attached to any other events.
           </p>
           <div class="mt-3 flex justify-end gap-2">
             <Button variant="outline" type="button" @click="deleteDialogOpen = false">
@@ -160,17 +160,26 @@
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import HotelPicker from "@/components/hotel/HotelPicker.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
 import { TableData } from "@/components/ui/table-data";
 import { PopoverClose } from "reka-ui";
-import { computed, defineComponent, h, ref, resolveComponent, resolveDirective, watch, withDirectives } from "vue";
+import {
+  computed,
+  defineComponent,
+  h,
+  ref,
+  resolveComponent,
+  resolveDirective,
+  watch,
+  withDirectives,
+} from "vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -230,13 +239,10 @@ const {
   pending,
   error,
   refresh,
-} = await useLazySanctumFetch(
-  () => `/api/events/${props.event?.id}/hotels?${buildQueryParams()}`,
-  {
-    key: () => `hotels-admin-list-${props.event?.id}`,
-    watch: false,
-  }
-);
+} = await useLazySanctumFetch(() => `/api/events/${props.event?.id}/hotels?${buildQueryParams()}`, {
+  key: () => `hotels-admin-list-${props.event?.id}`,
+  watch: false,
+});
 
 const hotels = computed(() => hotelsResponse.value?.data ?? []);
 const meta = computed(
@@ -258,10 +264,7 @@ const isUnavailable = computed(() => !pending.value && !!error.value);
 // when a search/filter simply returned nothing (TableData handles that).
 const isEmpty = computed(
   () =>
-    !pending.value &&
-    !error.value &&
-    hotels.value.length === 0 &&
-    columnFilters.value.length === 0
+    !pending.value && !error.value && hotels.value.length === 0 && columnFilters.value.length === 0
 );
 
 const showEmptyState = computed(() => isUnavailable.value || isEmpty.value);
@@ -305,10 +308,9 @@ const handleDelete = async () => {
   if (!deletingHotel.value) return;
   deleting.value = true;
   try {
-    await client(
-      `/api/events/${props.event.id}/hotels/${deletingHotel.value.slug}`,
-      { method: "DELETE" }
-    );
+    await client(`/api/events/${props.event.id}/hotels/${deletingHotel.value.slug}`, {
+      method: "DELETE",
+    });
     toast.success("Hotel detached from event");
     deleteDialogOpen.value = false;
     await refresh();
@@ -460,8 +462,7 @@ const columns = [
             h(
               "div",
               {
-                class:
-                  "bg-muted relative size-12 shrink-0 overflow-hidden rounded-md border",
+                class: "bg-muted relative size-12 shrink-0 overflow-hidden rounded-md border",
               },
               hotel.featured?.sm || hotel.featured?.md
                 ? h("img", {
@@ -478,8 +479,22 @@ const columns = [
               h("div", { class: "font-medium tracking-tight truncate" }, hotel.name),
               h(
                 "div",
-                { class: "text-muted-foreground text-xs tracking-tight truncate" },
-                hotel.city || "-"
+                {
+                  class: "text-muted-foreground flex items-center gap-x-1 text-sm tracking-tight",
+                },
+                [
+                  hotel.star_rating
+                    ? h("span", { class: "flex items-center gap-x-1 shrink-0" }, [
+                        h(resolveComponent("Icon"), {
+                          name: "material-symbols:star-rounded",
+                          class: "text-foreground size-4 shrink-0",
+                        }),
+                        h("span", {}, `${hotel.star_rating}-star`),
+                      ])
+                    : null,
+                  hotel.star_rating && hotel.city ? h("span", { class: "shrink-0" }, "·") : null,
+                  h("span", { class: "truncate" }, hotel.city || (hotel.star_rating ? "" : "-")),
+                ]
               ),
             ]),
           ],
@@ -516,27 +531,6 @@ const columns = [
     },
   },
   {
-    header: "Rating",
-    accessorKey: "star_rating",
-    cell: ({ row }) => {
-      const rating = row.original.star_rating;
-      if (!rating) {
-        return h("span", { class: "text-muted-foreground text-sm tracking-tight" }, "-");
-      }
-      return h(
-        "div",
-        { class: "flex items-center gap-0.5" },
-        Array.from({ length: rating }, () =>
-          h(resolveComponent("Icon"), {
-            name: "hugeicons:star",
-            class: "size-3.5 text-warning-foreground",
-          })
-        )
-      );
-    },
-    size: 110,
-  },
-  {
     header: "Room types",
     accessorKey: "room_types_count",
     cell: ({ row }) => {
@@ -559,13 +553,8 @@ const columns = [
         return h("span", { class: "text-muted-foreground text-sm tracking-tight" }, "-");
       }
       const ratio = sold / total;
-      const variant =
-        ratio >= 0.8 ? "destructive" : ratio >= 0.5 ? "warning" : "success";
-      return h(
-        Badge,
-        { variant, plain: true },
-        { default: () => `${sold}/${total}` }
-      );
+      const variant = ratio >= 0.8 ? "destructive" : ratio >= 0.5 ? "warning" : "success";
+      return h(Badge, { variant, plain: true }, { default: () => `${sold}/${total}` });
     },
     size: 110,
   },
@@ -577,11 +566,7 @@ const columns = [
       if (count === 0) {
         return h("span", { class: "text-muted-foreground text-sm tracking-tight" }, "-");
       }
-      return h(
-        "span",
-        { class: "tabular-nums text-sm tracking-tight" },
-        `${count} paid`
-      );
+      return h("span", { class: "tabular-nums text-sm tracking-tight" }, `${count} paid`);
     },
     size: 100,
   },
@@ -593,20 +578,17 @@ const columns = [
       if (amount === 0) {
         return h("span", { class: "text-muted-foreground text-sm tracking-tight" }, "-");
       }
-      // Indonesian compact: rb (ribu), jt (juta), M (miliar)
+      // Indonesian compact: rb (ribu), jt (juta), M (miliar). No space
+      // after `Rp` per the project's Rupiah formatting convention.
       const formatted =
         amount >= 1_000_000_000
-          ? `Rp ${(amount / 1_000_000_000).toFixed(1)}M`
+          ? `Rp${(amount / 1_000_000_000).toFixed(1)}M`
           : amount >= 1_000_000
-            ? `Rp ${(amount / 1_000_000).toFixed(1)}jt`
+            ? `Rp${(amount / 1_000_000).toFixed(1)}jt`
             : amount >= 1_000
-              ? `Rp ${Math.round(amount / 1_000)}rb`
-              : `Rp ${amount}`;
-      return h(
-        "span",
-        { class: "tabular-nums text-sm tracking-tight font-medium" },
-        formatted
-      );
+              ? `Rp${Math.round(amount / 1_000)}rb`
+              : `Rp${amount}`;
+      return h("span", { class: "tabular-nums text-sm tracking-tight font-medium" }, formatted);
     },
     size: 120,
   },
@@ -625,12 +607,8 @@ const columns = [
           : n >= 1_000
             ? `${Math.round(n / 1_000)}rb`
             : `${n}`;
-      const label = min === max ? `Rp ${fmt(min)}` : `Rp ${fmt(min)} – ${fmt(max)}`;
-      return h(
-        "span",
-        { class: "tabular-nums text-sm tracking-tight" },
-        `${label} /night`
-      );
+      const label = min === max ? `Rp${fmt(min)}` : `Rp${fmt(min)} – ${fmt(max)}`;
+      return h("span", { class: "tabular-nums text-sm tracking-tight" }, `${label} /night`);
     },
     size: 160,
   },
@@ -671,11 +649,7 @@ const columns = [
       const date = row.getValue("created_at");
       if (!date) return h("span", { class: "text-muted-foreground" }, "-");
       return withDirectives(
-        h(
-          "div",
-          { class: "text-muted-foreground text-sm tracking-tight" },
-          $dayjs(date).fromNow()
-        ),
+        h("div", { class: "text-muted-foreground text-sm tracking-tight" }, $dayjs(date).fromNow()),
         [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
       );
     },
