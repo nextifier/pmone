@@ -1,10 +1,18 @@
 import VueTippy from "vue-tippy";
 import type { TippyPluginOptions } from "vue-tippy";
 
-import "tippy.js/animations/scale.css";
-import "tippy.js/animations/shift-away.css";
-import "tippy.js/animations/shift-toward.css";
-import "tippy.js/animations/perspective.css";
+// Animation CSS imports temporarily disabled — re-enabling them crashes the
+// Cloudflare Pages SSR runtime with "500 undefined" on every route (the
+// `<link rel="stylesheet">` resolution path the cloudflare-pages preset uses
+// for plugin CSS hits an `undefined` codepath inside Nuxt's render layer).
+// Originally documented during dev-tunnel work as a Vite SSR + CDN-tunnel
+// MIME-mismatch issue, but production hits the same crash. Until a proper
+// fix lands, tooltip animations gracefully degrade to default browser
+// transitions.
+// import "tippy.js/animations/scale.css";
+// import "tippy.js/animations/shift-away.css";
+// import "tippy.js/animations/shift-toward.css";
+// import "tippy.js/animations/perspective.css";
 
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.use(VueTippy, {

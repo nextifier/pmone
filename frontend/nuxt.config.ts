@@ -69,6 +69,36 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      // Force-bundle list that the previous working production build
+      // depended on. Some of these packages (notably `nanoid` and the
+      // dayjs plugin paths) get tree-shaken away in the cloudflare-pages
+      // SSR output if Vite is left to auto-detect, which crashes the
+      // worker at runtime with "500 undefined" on every route.
+      include: [
+        "nanoid",
+        "embla-carousel-wheel-gestures",
+        "vue-json-pretty",
+        "vue-scrollto",
+        "v-wave",
+        "dayjs",
+        "dayjs/plugin/relativeTime",
+        "dayjs/plugin/customParseFormat",
+        "vue-tippy",
+        "@number-flow/vue",
+        "class-variance-authority",
+        "vue-sonner",
+        "reka-ui",
+        "clsx",
+        "tailwind-merge",
+        "lucide-vue-next",
+        "vaul-vue",
+        "shiki",
+        "dompurify",
+        "@vue/devtools-core",
+        "@vue/devtools-kit",
+      ],
+    },
   },
 
   modules: [
