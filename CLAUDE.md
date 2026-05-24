@@ -28,47 +28,6 @@ Returns 404 with `error_code: HOTEL_RESERVATION_DISABLED`. Magic-link endpoints 
 
 See `DEPLOY.md` for production deploy + seeder runbook.
 
-## Dev Tunnel (Xendit testing)
-
-Full workflow (kenapa, setup, command sehari-hari, gotcha) ada di `DEV_TUNNEL.md` di root repo. Section ini cuma rangkuman buat orientasi cepat - kalau ada yang belum jelas, baca `DEV_TUNNEL.md` dulu.
-
-Xendit can't reach `localhost` (Components origins, payment-link return URLs, webhook callbacks). The dev tunnel exposes the local Laravel + Nuxt stack at stable public hostnames so we can iterate on Components/Sessions/webhook flows without pushing to real production every time.
-
-**Architecture (chosen because Vite dev mode + CF named tunnel breaks on HTTP/2 stream cancellation during the ESM module fan-out):**
-
-| Hostname | → | Local port | Process |
-| --- | --- | --- | --- |
-| `dev.pmone.id` | → | `:3000` | Nuxt **prod-build** output (`node .output/server/index.mjs`) |
-| `dev-api.pmone.id` | → | `:8000` | `php artisan serve` |
-
-Cloudflared named tunnel config at `~/.cloudflared/config.yml` (tunnel id `cb80aced-...`). Both hostnames have CNAMEs pointing at the tunnel.
-
-**Per-session workflow:**
-
-```bash
-# Terminal 1 — cloudflared (foreground or background, doesn't matter)
-cloudflared tunnel run
-
-# Terminal 2 — Laravel backend
-cd ~/Herd/pmone
-php artisan serve  # listens on :8000
-
-# Terminal 3 — Nuxt frontend in prod-build mode
-cd ~/Herd/pmone/frontend
-pnpm build:dev-tunnel    # builds with dev.pmone.id / dev-api.pmone.id baked in
-pnpm start:dev-tunnel    # serves .output bundle on :3000
-```
-
-The `build:dev-tunnel` / `start:dev-tunnel` scripts set `NUXT_PUBLIC_SITE_URL` + `NUXT_PUBLIC_API_URL`, which override `runtimeConfig.public.{siteUrl,apiUrl}` and `sanctum.baseUrl` in `nuxt.config.ts`. Without them the bundle bakes in real prod URLs because `nuxi build` sets `NODE_ENV=production`.
-
-**`.env` on the Laravel side:** set `APP_URL=https://dev-api.pmone.id` and `FRONTEND_URL=https://dev.pmone.id` while the tunnel is in use. Reset to localhost when going back to pure local dev.
-
-**Xendit dashboard webhook URL:** `https://dev-api.pmone.id/api/webhooks/xendit` (stays stable across sessions, no reconfiguring per restart).
-
-**Iteration cycle:** edit code → Ctrl-C the Nuxt server → re-run `pnpm build && node .output/server/index.mjs` (≈30s rebuild). No HMR — that's the deliberate trade for tunnel stability. Use this mode for payment-flow testing only; for UI iteration that doesn't need a public URL, keep using `pnpm dev` on plain `localhost:3000`.
-
-**Don't use Vite dev (`pnpm dev`) behind the CF named tunnel.** The HTTP/2 stream cancellations on parallel ESM module loads make hydration fail unpredictably; this isn't something we can config our way out of at the Vite layer.
-
 <laravel-boost-guidelines>
 === foundation rules ===
 
