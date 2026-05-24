@@ -1,14 +1,11 @@
 import VueTippy from "vue-tippy";
 import type { TippyPluginOptions } from "vue-tippy";
 
-// Animation CSS imports temporarily disabled — re-enabling them crashes the
-// Cloudflare Pages SSR runtime with "500 undefined" on every route (the
-// `<link rel="stylesheet">` resolution path the cloudflare-pages preset uses
-// for plugin CSS hits an `undefined` codepath inside Nuxt's render layer).
-// Originally documented during dev-tunnel work as a Vite SSR + CDN-tunnel
-// MIME-mismatch issue, but production hits the same crash. Until a proper
-// fix lands, tooltip animations gracefully degrade to default browser
-// transitions.
+// Animation CSS imports temporarily disabled — Vite's dev SSR emits these as
+// duplicated <link rel="stylesheet"> + modulepreload tags (with and without
+// the @fs/ path prefix), and one variant's MIME mismatches when the dev page
+// is loaded behind a CDN tunnel, breaking hydration. Tooltip animations gracefully
+// degrade to default browser transitions until we revisit.
 // import "tippy.js/animations/scale.css";
 // import "tippy.js/animations/shift-away.css";
 // import "tippy.js/animations/shift-toward.css";

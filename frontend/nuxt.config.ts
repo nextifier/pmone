@@ -3,21 +3,6 @@ import { fileURLToPath } from "node:url";
 
 const noopMock = fileURLToPath(new URL("./mock/noop.mjs", import.meta.url));
 
-// URL resolution for three environments:
-//   - real production       (NODE_ENV=production, no override) → pmone.id / api.pmone.id
-//   - dev tunnel prod-build (NUXT_PUBLIC_* env set)            → dev.pmone.id / dev-api.pmone.id
-//   - local dev             (NODE_ENV=development)             → localhost
-// The dev tunnel scenario builds with NODE_ENV=production for the bundled
-// output (avoids the Vite ESM fan-out that breaks the CF named tunnel) while
-// pointing at the dev tunnel hostnames so Xendit webhooks reach the local
-// Laravel server. See the "Dev Tunnel" section in CLAUDE.md for the full
-// workflow.
-const isProd = process.env.NODE_ENV === "production";
-const defaultSiteUrl = isProd ? "https://pmone.id" : "http://localhost:3000";
-const defaultApiUrl = isProd ? "https://api.pmone.id" : "http://localhost:8000";
-const siteUrl = process.env.NUXT_PUBLIC_SITE_URL || defaultSiteUrl;
-const apiUrl = process.env.NUXT_PUBLIC_API_URL || defaultApiUrl;
-
 export default defineNuxtConfig({
   devtools: {
     enabled: true,
@@ -32,8 +17,9 @@ export default defineNuxtConfig({
 
     // Public keys that are exposed to the client
     public: {
-      siteUrl,
-      apiUrl,
+      siteUrl: process.env.NODE_ENV === "production" ? "https://pmone.id" : "http://localhost:3000",
+      apiUrl:
+        process.env.NODE_ENV === "production" ? "https://api.pmone.id" : "http://localhost:8000",
       blogUsernames: "", // Empty string means show all posts (no author filter)
     },
   },
@@ -70,11 +56,11 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {
-      // Force-bundle list that the previous working production build
-      // depended on. Some of these packages (notably `nanoid` and the
-      // dayjs plugin paths) get tree-shaken away in the cloudflare-pages
-      // SSR output if Vite is left to auto-detect, which crashes the
-      // worker at runtime with "500 undefined" on every route.
+      // Bumping this forces Vite to compute a new `?v=` hash on the next
+      // dev start, busting any stale browser-cached modules from previous
+      // runs (especially useful behind a CDN tunnel where intermediate
+      // caches respect Vite's `immutable` cache-control).
+      force: true,
       include: [
         "nanoid",
         "embla-carousel-wheel-gestures",
@@ -99,6 +85,36 @@ export default defineNuxtConfig({
         "@vue/devtools-kit",
       ],
     },
+    server: {
+      // Configure Vite for running behind the Cloudflare named tunnel
+      // (https://dev.pmone.id -> http://localhost:3000). Without these
+      // settings Vite generates `<link rel="modulepreload">` and HMR
+      // WebSocket URLs pointing at `localhost:3000` instead of the public
+      // tunnel host, which breaks both preload (browser cancels streams
+      // and falls back to import() racing with preload) and HMR.
+      origin: "https://dev.pmone.id",
+      hmr: {
+        host: "dev.pmone.id",
+        protocol: "wss",
+        clientPort: 443,
+        timeout: 60000,
+      },
+      headers: {
+        "Keep-Alive": "timeout=600",
+        // Prevent Cloudflare (and any intermediate) from caching dev assets.
+        // Vite serves the same URL with different Content-Type based on the
+        // request's Accept header (CSS-as-JS-module vs raw CSS), and CF only
+        // caches by URL — so one stale cached response can break module
+        // imports. `no-store` forces every dev hit to revalidate against Vite.
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        "CDN-Cache-Control": "no-store",
+        "Cloudflare-CDN-Cache-Control": "no-store",
+      },
+      // Allow the Cloudflare named-tunnel hostname (see ~/.cloudflared/config.yml).
+      // Vite's default host check rejects anything other than localhost. Listing
+      // tunnel hosts here lets dev.pmone.id (-> http://localhost:3000) load.
+      allowedHosts: ["dev.pmone.id", ".pmone.id"],
+    },
   },
 
   modules: [
@@ -118,9 +134,8 @@ export default defineNuxtConfig({
   ],
 
   sanctum: {
-    // Same resolution chain as runtimeConfig.public.apiUrl so the dev tunnel
-    // build can point Sanctum at dev-api.pmone.id without code changes.
-    baseUrl: apiUrl,
+    baseUrl:
+      process.env.NODE_ENV === "production" ? "https://api.pmone.id" : "http://localhost:8000",
     mode: "cookie",
     userStateKey: "sanctum.user.identity",
     redirectIfAuthenticated: true,
@@ -220,7 +235,7 @@ export default defineNuxtConfig({
 
   site: {
     name: "PM One",
-    url: siteUrl,
+    url: process.env.NODE_ENV === "production" ? "https://pmone.id" : "http://localhost:3000",
   },
 
   ogImage: {
