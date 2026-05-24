@@ -731,7 +731,28 @@ class XenditWebhookController extends Controller
         $code = strtoupper($code);
 
         if ($code === 'CARDS') {
-            return 'CREDIT_CARD';
+            // The v3 payment_requests payload nests the card brand under
+            // channel_properties.card_details. Field name varies by API
+            // generation, so probe the usual suspects and fall back to the
+            // generic CREDIT_CARD logo when nothing usable is returned.
+            $cardDetails = data_get($detail, 'channel_properties.card_details', []);
+            $brand = strtoupper((string) (
+                ($cardDetails['network'] ?? null)
+                ?? ($cardDetails['card_network'] ?? null)
+                ?? ($cardDetails['brand'] ?? null)
+                ?? ($cardDetails['card_brand'] ?? null)
+                ?? data_get($detail, 'payment_method.card.network')
+                ?? data_get($detail, 'payment_method.card.brand')
+                ?? ''
+            ));
+
+            return match ($brand) {
+                'VISA' => 'VISA',
+                'MASTERCARD' => 'MASTERCARD',
+                'JCB' => 'JCB',
+                'AMEX', 'AMERICAN EXPRESS' => 'AMEX',
+                default => 'CREDIT_CARD',
+            };
         }
 
         return (string) preg_replace('/_VIRTUAL_ACCOUNT$/', '', $code);

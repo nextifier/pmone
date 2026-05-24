@@ -271,7 +271,7 @@ const filterParams = [
 ];
 
 const columnFilters = ref([]);
-const pagination = ref({ pageIndex: 0, pageSize: 15 });
+const pagination = ref({ pageIndex: 0, pageSize: 50 });
 const sorting = ref([{ id: "created_at", desc: true }]);
 
 const selectedFilter = (id) => {
@@ -318,7 +318,7 @@ const meta = computed(
     data.value?.meta || {
       current_page: 1,
       last_page: 1,
-      per_page: 15,
+      per_page: 50,
       total: 0,
       payment_channels: [],
     }
