@@ -891,8 +891,13 @@ Route::middleware(['auth:sanctum', 'verified', 'hotel-reservation-enabled'])->pr
             ->middleware('can:hotels.update')
             ->name('events.hotels.media.reorder');
 
-        // Nested room types
-        Route::prefix('/{hotel}/room-types')->group(function () {
+        // Nested room types — `scopeBindings()` so `{roomType}` is resolved
+        // against the parent `{hotel}` relation, not by global slug lookup.
+        // Without it, two hotels under the same project that both have a
+        // "Deluxe" room (slug `deluxe`) collide: Laravel returns whichever
+        // RoomType it finds first, and the hotel-id mismatch in the
+        // controller surfaces as a misleading 404 on update/show/delete.
+        Route::prefix('/{hotel}/room-types')->scopeBindings()->group(function () {
             Route::get('/', [RoomTypeController::class, 'index'])
                 ->middleware('can:room_types.read')
                 ->name('events.hotels.room-types.index');
@@ -913,8 +918,9 @@ Route::middleware(['auth:sanctum', 'verified', 'hotel-reservation-enabled'])->pr
                 ->name('events.hotels.room-types.media.reorder');
         });
 
-        // Nested allotments
-        Route::prefix('/{hotel}/allotments')->group(function () {
+        // Nested allotments — scopeBindings prevents allotment slug
+        // collisions across hotels from resolving to the wrong record.
+        Route::prefix('/{hotel}/allotments')->scopeBindings()->group(function () {
             Route::get('/', [AllotmentController::class, 'index'])
                 ->middleware('can:allotments.read')
                 ->name('events.hotels.allotments.index');
@@ -932,8 +938,8 @@ Route::middleware(['auth:sanctum', 'verified', 'hotel-reservation-enabled'])->pr
                 ->name('events.hotels.allotments.destroy');
         });
 
-        // Nested transfer options
-        Route::prefix('/{hotel}/transfer-options')->group(function () {
+        // Nested transfer options — scopeBindings: same rationale.
+        Route::prefix('/{hotel}/transfer-options')->scopeBindings()->group(function () {
             Route::get('/', [HotelTransferOptionController::class, 'index'])
                 ->middleware('can:hotels.read')
                 ->name('events.hotels.transfer-options.index');
