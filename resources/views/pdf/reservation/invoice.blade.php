@@ -44,12 +44,15 @@
             <div class="text-[13px] text-black pb-1">{{ $r->guest_phone }}</div>
         </td>
         <td class="w-1/2 align-top pl-4">
+            @php
+                $isPaid = $r->status?->isPaid();
+                $statusLabel = $r->status?->label() ?? '-';
+            @endphp
             @foreach ([
                 ['Reservation #', $r->reservation_number],
                 ['Invoice #', $invoiceNumber],
                 ['Invoice Date', $r->created_at?->format('d M Y') ?? '-'],
                 ['Due Date', $r->payment_expires_at?->format('d M Y') ?? '-'],
-                ['Status', $r->status?->label() ?? '-'],
             ] as [$key, $value])
                 <table class="w-full py-1">
                     <tr>
@@ -58,6 +61,18 @@
                     </tr>
                 </table>
             @endforeach
+            <table class="w-full py-1">
+                <tr>
+                    <td class="text-[13px] font-semibold tracking-tight text-black pr-4 align-middle">Status</td>
+                    <td class="text-right align-middle">
+                        @if ($isPaid)
+                            <span class="text-[13px] font-semibold tracking-normal text-green-600 align-middle">{{ strtoupper($statusLabel) }}</span>
+                        @else
+                            <span class="text-[13px] text-black align-middle">{{ $statusLabel }}</span>
+                        @endif
+                    </td>
+                </tr>
+            </table>
         </td>
     </tr>
 </table>
