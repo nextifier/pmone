@@ -231,6 +231,38 @@
     --xendit-qr-foreground-color: oklch(0.13 0 0);
     --xendit-qr-background-color: oklch(1 0 0);
   }
+
+  /*
+    SDK base CSS hardcodes `background-color: rgb(255,255,255)` on
+    `.xendit-form-field-inner` (the wrapper around card iframes + input
+    + country dropdown), ignoring the `--xendit-color-background` variable.
+    Override here so dark mode reads correctly. The form fields themselves
+    use bg-card so they still contrast against the accordion bg in light
+    mode (white) and read as proper inputs in dark mode (oklch ~0.17).
+    Brand logos (`.xendit-card-brand-logo`) stay white because every Visa/
+    Mastercard/JCB/Amex asset is designed for a white surface.
+  */
+  .xendit-form-field-inner {
+    background-color: var(--card) !important;
+    color: var(--foreground) !important;
+    border-color: var(--border) !important;
+  }
+  .xendit-form-field-inner.xendit-dropdown {
+    color: var(--foreground) !important;
+  }
+  /* Accordion item header chevron, prevented input outline mismatch */
+  .xendit-input,
+  .xendit-input:focus {
+    background-color: transparent !important;
+    color: var(--foreground) !important;
+  }
+  /* SDK dialog (action modal: QR/VA/3DS overlay): keep light surface for
+     QR scannability + brand-aligned look, but invert text + close-button
+     contrast so it remains readable on dark sites. */
+  .xendit-dialog-body {
+    background-color: oklch(1 0 0) !important;
+    color: oklch(0.13 0 0) !important;
+  }
 }
 
 @theme inline {

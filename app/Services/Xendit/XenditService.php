@@ -489,7 +489,7 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
             // IDR has no minor units — Xendit expects a whole-rupiah integer.
             'amount' => (int) round((float) $reservation->total_amount),
             'country' => 'ID',
-            'locale' => 'id',
+            'locale' => 'en',
             'customer' => $customer,
             'description' => "Hotel reservation {$reservation->reservation_number} - {$reservation->hotel?->name}",
             // Sessions default to a 30-minute expiry; align it with the
@@ -497,6 +497,20 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
             'expires_at' => now()->addSeconds((int) config('xendit.invoice_duration', 86400))->toIso8601String(),
             'success_return_url' => $success,
             'cancel_return_url' => $cancel,
+            // Suppress the "Installment Plan" dropdown on the hosted Sessions
+            // Payment Link page. Hotel bookings are one-off and we have no
+            // installment programs to offer — the dropdown would otherwise
+            // render a useless single "Pay in Full" option (or worse, an empty
+            // combobox if the merchant account hasn't configured any programs).
+            // Undocumented in the Sessions API spec but verified empirically:
+            // Xendit reads this field at the session level and excludes the
+            // installment selector from the Card payment form when the array
+            // is empty.
+            'channel_properties' => [
+                'cards' => [
+                    'allowed_installment_program_ids' => [],
+                ],
+            ],
         ];
 
         if ($mode === 'COMPONENTS') {
