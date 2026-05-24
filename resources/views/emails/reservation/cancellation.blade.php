@@ -1,3 +1,11 @@
+@php
+    $project = $reservation->event?->project;
+    $signature = $project?->name ?? 'PM One Team';
+    $supportEmail = $reservation->hotel?->contact_email ?? $project?->email ?? 'support@pmone.id';
+
+    $methodLabel = $reservation->payment_method?->label();
+    $paymentDisplay = $reservation->payment_channel ?: $methodLabel;
+@endphp
 @component('mail::message')
 # Booking Cancelled
 
@@ -16,6 +24,16 @@ Your reservation **{{ $reservation->reservation_number }}** has been cancelled.
 @foreach ($reservation->items as $item)
 - {{ $item->roomType?->name }} - {{ $item->qty }} room(s) - {{ \Illuminate\Support\Carbon::parse($item->check_in_date)->format('d M Y') }} to {{ \Illuminate\Support\Carbon::parse($item->check_out_date)->format('d M Y') }}
 @endforeach
+
+@if ($reservation->paid_at)
+## Original Payment
+
+**Amount:** Rp{{ number_format($reservation->total_amount, 0, ',', '.') }}
+@if (! empty($paymentDisplay))
+**Paid via:** {{ $paymentDisplay }}
+@endif
+**Paid on:** {{ $reservation->paid_at->format('d M Y, H:i') }}
+@endif
 
 @if ($refundAmount > 0)
 ## Refund
@@ -41,9 +59,12 @@ Download Receipt
 @endcomponent
 @endif
 
-For any questions, please contact us:
-- Email: support@pmone.id
+For any questions, please contact:
+- Email: {{ $supportEmail }}
+@if ($reservation->hotel?->contact_phone)
+- Phone: {{ $reservation->hotel->contact_phone }}
+@endif
 
 Best regards,
-PM One Team
+{{ $signature }}
 @endcomponent

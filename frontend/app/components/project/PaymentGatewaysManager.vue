@@ -127,11 +127,14 @@
           <span v-if="gateway.label" class="text-muted-foreground text-sm tracking-tight">
             · {{ gateway.label }}
           </span>
-          <span
-            class="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs font-medium tracking-tight capitalize sm:text-sm"
+          <Badge
+            v-if="modeMeta[gateway.mode]"
+            :variant="modeMeta[gateway.mode].variant"
+            :icon="modeMeta[gateway.mode].icon"
+            :plain="false"
           >
-            {{ gateway.mode }}
-          </span>
+            {{ modeMeta[gateway.mode].label }}
+          </Badge>
         </div>
 
         <dl
@@ -501,6 +504,7 @@
 </template>
 
 <script setup>
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -519,6 +523,13 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "vue-sonner";
+
+// Mirrors the badge meta used in the Reservations Mode column so a gateway's
+// environment reads the same way wherever it surfaces in the admin.
+const modeMeta = {
+  live: { label: "Live", variant: "success", icon: "hugeicons:rocket-01" },
+  test: { label: "Test", variant: "warning", icon: "hugeicons:test-tube-01" },
+};
 
 const props = defineProps({
   projectUsername: { type: String, required: true },

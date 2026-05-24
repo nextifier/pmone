@@ -24,9 +24,14 @@ class HotelVoucherMail extends Mailable
 
     public function envelope(): Envelope
     {
+        $project = $this->reservation->event?->project;
+        $subject = $project
+            ? $project->renderEmailSubject('guest_voucher', $this->reservation)
+            : "Hotel Voucher: {$this->reservation->reservation_number}";
+
         return new Envelope(
             to: $this->reservation->guest_email,
-            subject: 'Hotel Voucher - '.$this->reservation->reservation_number,
+            subject: $subject,
         );
     }
 

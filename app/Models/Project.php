@@ -557,7 +557,7 @@ class Project extends Model implements HasMedia, Sortable
      *
      * Recipients notified when a hotel booking is confirmed or cancelled.
      *
-     * @return array{to: list<string>, cc: list<string>, bcc: list<string>, subject: string|null}
+     * @return array{to: list<string>, cc: list<string>, bcc: list<string>}
      */
     public function getHotelNotificationEmailConfig(): array
     {
@@ -567,7 +567,66 @@ class Project extends Model implements HasMedia, Sortable
             'to' => array_values(array_filter($config['to'] ?? [])),
             'cc' => array_values(array_filter($config['cc'] ?? [])),
             'bcc' => array_values(array_filter($config['bcc'] ?? [])),
-            'subject' => $config['subject'] ?? null,
         ];
+    }
+
+    /**
+     * Per-email-type subject templates that admins can override from
+     * Website Settings. Resolution: if an entry exists at
+     * `website_settings.email_subjects.{$key}` and is a non-empty string,
+     * return that. Otherwise fall back to the default template for the key.
+     *
+     * Supported keys (also drives validation + frontend form):
+     *  - guest_paid       — sent to guest after payment is received
+     *  - guest_voucher    — sent to guest when the hotel voucher is ready
+     *  - guest_cancelled  — sent to guest when their reservation is cancelled
+     *  - staff_confirmed  — sent to project staff when a booking is confirmed
+     *  - staff_cancelled  — sent to project staff when a booking is cancelled
+     *
+     * Defaults intentionally suffix the project name (admin can edit it out
+     * via Website Settings) and use `:` after the action label per the
+     * agreed format with the team.
+     */
+    public function getEmailSubjectTemplate(string $key): string
+    {
+        $templates = data_get($this->settings, 'website_settings.email_subjects', []);
+        $custom = $templates[$key] ?? null;
+
+        if (is_string($custom) && trim($custom) !== '') {
+            return trim($custom);
+        }
+
+        return match ($key) {
+            'guest_paid' => 'Hotel Booking Confirmed: {reservation_number} - {project}',
+            'guest_voucher' => 'Hotel Voucher: {reservation_number} - {project}',
+            'guest_cancelled' => 'Hotel Booking Cancelled: {reservation_number} - {project}',
+            'staff_confirmed' => 'Hotel Booking Confirmed: {reservation_number} - {hotel} - {project}',
+            'staff_cancelled' => 'Hotel Booking Cancelled: {reservation_number} - {hotel} - {project}',
+            default => '',
+        };
+    }
+
+    /**
+     * Render the subject template for the given key against a reservation.
+     * Placeholders: `{reservation_number}`, `{hotel}`, `{event}`, `{guest}`,
+     * `{project}`, `{status}` (Confirmed / Cancelled — staff keys only).
+     * Missing values render as `-` so the subject is never empty.
+     */
+    public function renderEmailSubject(string $key, Reservation $reservation): string
+    {
+        $template = $this->getEmailSubjectTemplate($key);
+
+        $statusLabel = str_starts_with($key, 'staff_')
+            ? (str_ends_with($key, 'cancelled') ? 'Cancelled' : 'Confirmed')
+            : '';
+
+        return strtr($template, [
+            '{reservation_number}' => (string) $reservation->reservation_number,
+            '{hotel}' => $reservation->hotel?->name ?? '-',
+            '{event}' => $reservation->event?->title ?? '-',
+            '{guest}' => $reservation->guest_name ?? '-',
+            '{project}' => $this->name,
+            '{status}' => $statusLabel,
+        ]);
     }
 }

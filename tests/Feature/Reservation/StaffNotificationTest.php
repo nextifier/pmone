@@ -23,7 +23,19 @@ function configureHotelNotification(Reservation $reservation, array $config): vo
     $project->update(['settings' => $settings]);
 }
 
-it('emails staff when a booking is confirmed', function () {
+/**
+ * Configure the reservation's owning project with a custom subject template
+ * for one of the `email_subjects.*` keys.
+ */
+function configureEmailSubjectTemplate(Reservation $reservation, string $key, string $template): void
+{
+    $project = $reservation->event->project;
+    $settings = $project->settings ?? [];
+    data_set($settings, "website_settings.email_subjects.{$key}", $template);
+    $project->update(['settings' => $settings]);
+}
+
+it('emails staff with a custom subject template when configured', function () {
     Mail::fake();
 
     $reservation = Reservation::factory()->paid()->create();
@@ -31,8 +43,12 @@ it('emails staff when a booking is confirmed', function () {
         'to' => ['staff@example.com'],
         'cc' => ['cc@example.com'],
         'bcc' => ['bcc@example.com'],
-        'subject' => 'Booking {status} for {project}: {reservation_number}',
     ]);
+    configureEmailSubjectTemplate(
+        $reservation,
+        'staff_confirmed',
+        'Booking {status} for {project}: {reservation_number}',
+    );
 
     (new SendStaffReservationNotificationJob($reservation->id, 'confirmed'))->handle();
 
@@ -57,16 +73,17 @@ it('emails staff with the default subject when a booking is cancelled', function
         'to' => ['staff@example.com'],
         'cc' => [],
         'bcc' => [],
-        'subject' => '',
     ]);
 
     (new SendStaffReservationNotificationJob($reservation->id, 'cancelled'))->handle();
 
-    Mail::assertSent(StaffReservationNotificationMail::class, function ($mail) use ($reservation) {
+    $projectName = $reservation->event->project->name;
+
+    Mail::assertSent(StaffReservationNotificationMail::class, function ($mail) use ($reservation, $projectName) {
         $mail->render();
 
         return $mail->hasTo('staff@example.com')
-            && $mail->emailSubject === "Hotel booking Cancelled: {$reservation->reservation_number} - {$reservation->hotel->name}";
+            && $mail->emailSubject === "Hotel Booking Cancelled: {$reservation->reservation_number} - {$reservation->hotel->name} - {$projectName}";
     });
 });
 
@@ -78,7 +95,6 @@ it('does not email staff when no recipients are configured', function () {
         'to' => [],
         'cc' => [],
         'bcc' => [],
-        'subject' => '',
     ]);
 
     (new SendStaffReservationNotificationJob($reservation->id, 'confirmed'))->handle();

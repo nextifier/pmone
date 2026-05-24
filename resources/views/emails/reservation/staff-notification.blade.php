@@ -1,6 +1,10 @@
 @php
     $isCancelled = $eventType === 'cancelled';
     $project = $reservation->event?->project;
+
+    $methodLabel = $reservation->payment_method?->label();
+    $paymentDisplay = $reservation->payment_channel ?: $methodLabel;
+    $checkoutMethod = $reservation->paymentGateway?->checkout_method?->label();
 @endphp
 @component('mail::message')
 # Booking {{ $isCancelled ? 'Cancelled' : 'Confirmed' }}
@@ -20,6 +24,8 @@ A hotel booking has been **confirmed** and payment received.
 @if ($reservation->event)
 **Event:** {{ $reservation->event->title }}
 @endif
+
+**Booked at:** {{ $reservation->created_at?->format('d M Y, H:i') ?? '-' }}
 
 **Guest:** {{ $reservation->guest_name }}
 
@@ -48,6 +54,18 @@ A hotel booking has been **confirmed** and payment received.
 ## {{ $isCancelled ? 'Refund Amount' : 'Amount Paid' }}
 
 **Rp{{ number_format($isCancelled ? (float) ($reservation->refund_amount ?? 0) : (float) $reservation->total_amount, 0, ',', '.') }}**
+
+@if (! $isCancelled && (! empty($paymentDisplay) || $reservation->paid_at))
+@if (! empty($paymentDisplay))
+**Paid via:** {{ $paymentDisplay }}
+@endif
+@if ($checkoutMethod)
+**Checkout method:** {{ $checkoutMethod }}
+@endif
+@if ($reservation->paid_at)
+**Paid on:** {{ $reservation->paid_at->format('d M Y, H:i') }}
+@endif
+@endif
 
 @if ($isCancelled && ! empty($reservation->cancellation_reason))
 **Cancellation Reason:** {{ $reservation->cancellation_reason }}

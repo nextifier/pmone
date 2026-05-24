@@ -110,6 +110,15 @@ const dailyAggregate = computed(() => {
 });
 
 const hasSelection = computed(() => props.checkIn && props.checkOut && roomLines.value.length > 0);
+
+// At the Review step the "Confirm & Pay" button is disabled until the user
+// ticks the agreement checkbox at the bottom of the review form. The
+// checkbox sits below the sidebar, so a user focused on the sticky summary
+// can click the button and get nothing back — no visual feedback. Surface
+// an inline alert above the button so the next action is clear.
+const needsAgreement = computed(
+  () => props.step === 4 && !bookingStore.acceptTerms && bookingStore.canProceedStep3
+);
 </script>
 
 <template>
@@ -187,6 +196,23 @@ const hasSelection = computed(() => props.checkIn && props.checkOut && roomLines
         <div class="flex justify-between border-t pt-1.5 text-base font-semibold">
           <span>Total</span>
           <span class="tabular-nums">Rp{{ fmtRupiah(displayTotal) }}</span>
+        </div>
+      </div>
+
+      <div
+        v-if="needsAgreement"
+        class="border-warning/40 bg-warning/10 flex items-start gap-3 rounded-md border p-3"
+      >
+        <Icon
+          name="hugeicons:alert-circle"
+          class="text-warning-foreground mt-0.5 size-4 shrink-0"
+        />
+        <div class="flex-1 text-sm tracking-tight">
+          <p class="text-warning-foreground font-medium">Agreement required</p>
+          <p class="text-muted-foreground mt-1 text-xs tracking-tight sm:text-sm">
+            Tick "I agree to the terms &amp; conditions" below the booking
+            review before continuing.
+          </p>
         </div>
       </div>
 

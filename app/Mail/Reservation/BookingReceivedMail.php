@@ -22,11 +22,14 @@ class BookingReceivedMail extends Mailable
 
     public function envelope(): Envelope
     {
-        $isComplimentary = $this->reservation->payment_method?->value === 'complimentary';
+        $project = $this->reservation->event?->project;
+        $subject = $project
+            ? $project->renderEmailSubject('guest_paid', $this->reservation)
+            : "Hotel Booking Confirmed: {$this->reservation->reservation_number}";
 
         return new Envelope(
             to: $this->reservation->guest_email,
-            subject: ($isComplimentary ? 'Booking Confirmed - ' : 'Payment Confirmed - ').$this->reservation->reservation_number,
+            subject: $subject,
         );
     }
 

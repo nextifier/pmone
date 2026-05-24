@@ -1,5 +1,19 @@
 @php
     $isComplimentary = $reservation->payment_method?->value === 'complimentary';
+    $project = $reservation->event?->project;
+    $signature = $project?->name ?? 'PM One Team';
+
+    // For Xendit payments, the method itself ("Xendit") is the gateway, not
+    // a guest-facing label — the channel (BCA, QRIS, …) is what they
+    // recognize. For manual bank transfer / complimentary, the enum's own
+    // label is meaningful.
+    $methodLabel = $reservation->payment_method?->label();
+    $paymentDisplay = $reservation->payment_channel ?: $methodLabel;
+
+    $hotelAddress = collect([
+        $reservation->hotel?->street,
+        $reservation->hotel?->city,
+    ])->filter()->implode(', ');
 @endphp
 @component('mail::message')
 # Thank you, {{ $reservation->guest_name }}!
@@ -13,6 +27,9 @@ We have received your payment for reservation **{{ $reservation->reservation_num
 ## Booking Details
 
 **Hotel:** {{ $reservation->hotel?->name }}
+@if (! empty($hotelAddress))
+**Address:** {{ $hotelAddress }}
+@endif
 
 @if ($reservation->event)
 **Event:** {{ $reservation->event->title }}
@@ -46,6 +63,15 @@ We have received your payment for reservation **{{ $reservation->reservation_num
 
 **Rp{{ number_format($reservation->total_amount, 0, ',', '.') }}**
 
+@if (! $isComplimentary && (! empty($paymentDisplay) || $reservation->paid_at))
+@if (! empty($paymentDisplay))
+**Paid via:** {{ $paymentDisplay }}
+@endif
+@if ($reservation->paid_at)
+**Paid on:** {{ $reservation->paid_at->format('d M Y, H:i') }}
+@endif
+@endif
+
 @component('mail::button', ['url' => $magicLinkUrl])
 View Booking Details
 @endcomponent
@@ -60,10 +86,16 @@ Download Receipt
 
 Our team will coordinate with the partner hotel. Your check-in voucher will be emailed once the booking is confirmed by the hotel.
 
-For any questions, please contact us at:
+@if (! empty($reservation->hotel?->cancellation_policy))
+### Cancellation Policy
+
+{{ \Illuminate\Support\Str::limit($reservation->hotel->cancellation_policy, 220) }}
+@endif
+
+For any questions, please contact:
 - Email: {{ $reservation->hotel?->contact_email ?? 'support@pmone.id' }}
 - Phone: {{ $reservation->hotel?->contact_phone ?? '-' }}
 
 Best regards,
-PM One Team
+{{ $signature }}
 @endcomponent

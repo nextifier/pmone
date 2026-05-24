@@ -1,3 +1,12 @@
+@php
+    $project = $reservation->event?->project;
+    $signature = $project?->name ?? 'PM One Team';
+    $supportEmail = $reservation->hotel?->contact_email ?? $project?->email ?? 'support@pmone.id';
+    $hotelAddress = collect([
+        $reservation->hotel?->street,
+        $reservation->hotel?->city,
+    ])->filter()->implode(', ');
+@endphp
 @component('mail::message')
 # Your Check-in Voucher
 
@@ -7,8 +16,12 @@ The check-in voucher for reservation **{{ $reservation->reservation_number }}** 
 
 ## Booking Details
 
+**Reservation Number:** {{ $reservation->reservation_number }}
+
 **Hotel:** {{ $reservation->hotel?->name }}
-**Address:** {{ collect([$reservation->hotel?->street, $reservation->hotel?->city])->filter()->implode(', ') }}
+@if (! empty($hotelAddress))
+**Address:** {{ $hotelAddress }}
+@endif
 
 @foreach ($reservation->items as $item)
 - {{ $item->roomType?->name }} - {{ $item->qty }} room(s) - {{ \Illuminate\Support\Carbon::parse($item->check_in_date)->format('d M Y') }} to {{ \Illuminate\Support\Carbon::parse($item->check_out_date)->format('d M Y') }}
@@ -33,6 +46,10 @@ The check-in voucher for reservation **{{ $reservation->reservation_number }}** 
 
 > {{ $reservation->special_request }}
 @endif
+
+## Total Paid
+
+**Rp{{ number_format($reservation->total_amount, 0, ',', '.') }}**
 
 ## How to Check In
 
@@ -60,11 +77,20 @@ Download Receipt
 @endif
 @endif
 
-For any questions, please contact us:
-- Email: support@pmone.id
+@if (! empty($reservation->hotel?->cancellation_policy))
+### Cancellation Policy
+
+{{ \Illuminate\Support\Str::limit($reservation->hotel->cancellation_policy, 220) }}
+@endif
+
+For any questions, please contact:
+- Email: {{ $supportEmail }}
+@if ($reservation->hotel?->contact_phone)
+- Phone: {{ $reservation->hotel->contact_phone }}
+@endif
 
 Enjoy your stay!
 
 Best regards,
-PM One Team
+{{ $signature }}
 @endcomponent

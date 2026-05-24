@@ -22,9 +22,14 @@ class CancellationMail extends Mailable
 
     public function envelope(): Envelope
     {
+        $project = $this->reservation->event?->project;
+        $subject = $project
+            ? $project->renderEmailSubject('guest_cancelled', $this->reservation)
+            : "Hotel Booking Cancelled: {$this->reservation->reservation_number}";
+
         return new Envelope(
             to: $this->reservation->guest_email,
-            subject: 'Booking Cancelled - '.$this->reservation->reservation_number,
+            subject: $subject,
         );
     }
 

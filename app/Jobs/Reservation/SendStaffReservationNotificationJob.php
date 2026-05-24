@@ -49,7 +49,7 @@ class SendStaffReservationNotificationJob implements ShouldQueue
             return;
         }
 
-        $statusLabel = $this->eventType === 'cancelled' ? 'Cancelled' : 'Confirmed';
+        $subjectKey = $this->eventType === 'cancelled' ? 'staff_cancelled' : 'staff_confirmed';
 
         // Link staff to the admin reservation page where they can manage it.
         $reservationUrl = rtrim(config('app.frontend_url'), '/')
@@ -58,7 +58,7 @@ class SendStaffReservationNotificationJob implements ShouldQueue
         $mailable = new StaffReservationNotificationMail(
             reservation: $reservation,
             eventType: $this->eventType,
-            emailSubject: $this->resolveSubject($config['subject'], $reservation, $statusLabel),
+            emailSubject: $project->renderEmailSubject($subjectKey, $reservation),
             reservationUrl: $reservationUrl,
         );
 
@@ -73,28 +73,5 @@ class SendStaffReservationNotificationJob implements ShouldQueue
         }
 
         Mail::send($mailable);
-    }
-
-    /**
-     * Resolve the email subject from the project's configured template,
-     * substituting booking placeholders. Falls back to a sensible default
-     * when no custom subject is configured.
-     */
-    private function resolveSubject(?string $template, Reservation $reservation, string $statusLabel): string
-    {
-        $template = trim((string) $template);
-
-        if ($template === '') {
-            $template = 'Hotel booking {status}: {reservation_number} - {hotel}';
-        }
-
-        return strtr($template, [
-            '{status}' => $statusLabel,
-            '{reservation_number}' => (string) $reservation->reservation_number,
-            '{hotel}' => $reservation->hotel?->name ?? '-',
-            '{event}' => $reservation->event?->title ?? '-',
-            '{guest}' => $reservation->guest_name ?? '-',
-            '{project}' => $reservation->event?->project?->name ?? '-',
-        ]);
     }
 }

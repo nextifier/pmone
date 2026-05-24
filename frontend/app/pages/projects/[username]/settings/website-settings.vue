@@ -276,19 +276,95 @@
                 </button>
               </div>
 
-              <div class="space-y-2">
-                <Label for="hotel-notification-subject">Email Subject</Label>
-                <Input
-                  id="hotel-notification-subject"
-                  v-model="form.hotel_notification.subject"
-                  type="text"
-                  placeholder="Hotel booking {status}: {reservation_number} - {hotel}"
-                  @blur="save"
-                />
-                <p class="text-muted-foreground text-xs tracking-tight">
-                  Optional. Leave blank to use the default subject. Placeholders:
-                  {status}, {reservation_number}, {hotel}, {event}, {guest}, {project}
-                </p>
+              <div class="space-y-4 border-t pt-5">
+                <div class="space-y-1">
+                  <h4 class="text-sm font-medium tracking-tight">Email subject templates</h4>
+                  <p class="text-muted-foreground text-xs tracking-tight">
+                    Customize the subject for each hotel reservation email.
+                    Leave a field blank to use the default. Placeholders:
+                    <code class="bg-muted text-foreground rounded px-1 py-0.5 font-mono">{reservation_number}</code>,
+                    <code class="bg-muted text-foreground rounded px-1 py-0.5 font-mono">{hotel}</code>,
+                    <code class="bg-muted text-foreground rounded px-1 py-0.5 font-mono">{event}</code>,
+                    <code class="bg-muted text-foreground rounded px-1 py-0.5 font-mono">{guest}</code>,
+                    <code class="bg-muted text-foreground rounded px-1 py-0.5 font-mono">{project}</code>,
+                    <code class="bg-muted text-foreground rounded px-1 py-0.5 font-mono">{status}</code> (staff only).
+                  </p>
+                </div>
+
+                <div class="space-y-2">
+                  <Label for="email-subject-guest-paid">Guest — Booking Confirmed</Label>
+                  <Input
+                    id="email-subject-guest-paid"
+                    v-model="form.email_subjects.guest_paid"
+                    type="text"
+                    placeholder="Hotel Booking Confirmed: {reservation_number} - {project}"
+                    maxlength="120"
+                    @blur="save"
+                  />
+                  <p class="text-muted-foreground text-xs tracking-tight">
+                    Sent to the guest after their payment is received.
+                  </p>
+                </div>
+
+                <div class="space-y-2">
+                  <Label for="email-subject-guest-voucher">Guest — Hotel Voucher</Label>
+                  <Input
+                    id="email-subject-guest-voucher"
+                    v-model="form.email_subjects.guest_voucher"
+                    type="text"
+                    placeholder="Hotel Voucher: {reservation_number} - {project}"
+                    maxlength="120"
+                    @blur="save"
+                  />
+                  <p class="text-muted-foreground text-xs tracking-tight">
+                    Sent to the guest once the hotel voucher is ready.
+                  </p>
+                </div>
+
+                <div class="space-y-2">
+                  <Label for="email-subject-guest-cancelled">Guest — Booking Cancelled</Label>
+                  <Input
+                    id="email-subject-guest-cancelled"
+                    v-model="form.email_subjects.guest_cancelled"
+                    type="text"
+                    placeholder="Hotel Booking Cancelled: {reservation_number} - {project}"
+                    maxlength="120"
+                    @blur="save"
+                  />
+                  <p class="text-muted-foreground text-xs tracking-tight">
+                    Sent to the guest when their reservation is cancelled.
+                  </p>
+                </div>
+
+                <div class="space-y-2">
+                  <Label for="email-subject-staff-confirmed">Staff — Booking Confirmed</Label>
+                  <Input
+                    id="email-subject-staff-confirmed"
+                    v-model="form.email_subjects.staff_confirmed"
+                    type="text"
+                    placeholder="Hotel Booking Confirmed: {reservation_number} - {hotel} - {project}"
+                    maxlength="120"
+                    @blur="save"
+                  />
+                  <p class="text-muted-foreground text-xs tracking-tight">
+                    Sent to staff recipients (above) when a booking is confirmed.
+                  </p>
+                </div>
+
+                <div class="space-y-2">
+                  <Label for="email-subject-staff-cancelled">Staff — Booking Cancelled</Label>
+                  <Input
+                    id="email-subject-staff-cancelled"
+                    v-model="form.email_subjects.staff_cancelled"
+                    type="text"
+                    placeholder="Hotel Booking Cancelled: {reservation_number} - {hotel} - {project}"
+                    maxlength="120"
+                    @blur="save"
+                  />
+                  <p class="text-muted-foreground text-xs tracking-tight">
+                    Sent to staff recipients (above) when a booking is cancelled.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -328,7 +404,13 @@ const form = ref({
     to: [],
     cc: [],
     bcc: [],
-    subject: "",
+  },
+  email_subjects: {
+    guest_paid: "",
+    guest_voucher: "",
+    guest_cancelled: "",
+    staff_confirmed: "",
+    staff_cancelled: "",
   },
 });
 
@@ -362,8 +444,14 @@ function buildPayload() {
         bcc: form.value.hotel_notification.bcc
           .map((email) => email.trim())
           .filter(Boolean),
-        subject: form.value.hotel_notification.subject.trim(),
       },
+    },
+    email_subjects: {
+      guest_paid: form.value.email_subjects.guest_paid.trim(),
+      guest_voucher: form.value.email_subjects.guest_voucher.trim(),
+      guest_cancelled: form.value.email_subjects.guest_cancelled.trim(),
+      staff_confirmed: form.value.email_subjects.staff_confirmed.trim(),
+      staff_cancelled: form.value.email_subjects.staff_cancelled.trim(),
     },
   };
 }
@@ -377,6 +465,7 @@ async function load() {
     const brands = settings.website_settings?.brands ?? {};
     const hotels = settings.website_settings?.hotels ?? {};
     const hotelNotification = hotels.notification_email ?? {};
+    const emailSubjects = settings.website_settings?.email_subjects ?? {};
 
     form.value = {
       show_rundown_on_home_page: rundown.show_rundown_on_home_page ?? false,
@@ -391,7 +480,13 @@ async function load() {
         to: [...(hotelNotification.to ?? [])],
         cc: [...(hotelNotification.cc ?? [])],
         bcc: [...(hotelNotification.bcc ?? [])],
-        subject: hotelNotification.subject ?? "",
+      },
+      email_subjects: {
+        guest_paid: emailSubjects.guest_paid ?? "",
+        guest_voucher: emailSubjects.guest_voucher ?? "",
+        guest_cancelled: emailSubjects.guest_cancelled ?? "",
+        staff_confirmed: emailSubjects.staff_confirmed ?? "",
+        staff_cancelled: emailSubjects.staff_cancelled ?? "",
       },
     };
     lastSavedSnapshot = JSON.stringify(buildPayload());

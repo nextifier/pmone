@@ -331,7 +331,15 @@ class ProjectController extends Controller
             'hotels.notification_email.cc.*' => ['nullable', 'email'],
             'hotels.notification_email.bcc' => ['sometimes', 'array'],
             'hotels.notification_email.bcc.*' => ['nullable', 'email'],
-            'hotels.notification_email.subject' => ['sometimes', 'nullable', 'string', 'max:255'],
+            // Per-email-type subject templates. Null/empty = use default.
+            // Max 120 chars matches the average Gmail/Outlook subject preview
+            // budget after the recipient prefix collapses long inbox lines.
+            'email_subjects' => ['sometimes', 'array'],
+            'email_subjects.guest_paid' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'email_subjects.guest_voucher' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'email_subjects.guest_cancelled' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'email_subjects.staff_confirmed' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'email_subjects.staff_cancelled' => ['sometimes', 'nullable', 'string', 'max:120'],
         ]);
 
         $settings = $project->settings ?? [];
