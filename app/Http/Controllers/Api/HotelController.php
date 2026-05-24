@@ -24,9 +24,50 @@ class HotelController extends Controller
 
     public function index(Request $request, Event $event): JsonResponse
     {
+        // Aggregate per-hotel data that the admin Hotels table renders as
+        // columns: allotment total/sold, paid reservation count + revenue,
+        // last booking, price range, pricing mode. Each scoped to the current
+        // event so two events sharing the same hotel still report distinct
+        // utilization. `allotment_sold` is a raw correlated subquery against
+        // `reservation_items` because it's a join through Reservation that
+        // `withSum` cannot express in one go.
         $query = $event->hotels()
             ->with(['media'])
-            ->withCount(['roomTypes']);
+            ->withCount(['roomTypes'])
+            ->withSum(['allotments as allotment_total' => fn ($q) => $q
+                ->where('event_id', $event->id)
+                ->where('is_active', true),
+            ], 'quantity')
+            ->withCount(['reservations as paid_reservations_count' => fn ($q) => $q
+                ->where('event_id', $event->id)
+                ->where('status', 'paid'),
+            ])
+            ->withSum(['reservations as revenue' => fn ($q) => $q
+                ->where('event_id', $event->id)
+                ->where('status', 'paid'),
+            ], 'total_amount')
+            ->withMax(['reservations as last_booking_at' => fn ($q) => $q
+                ->where('event_id', $event->id),
+            ], 'created_at')
+            ->withMin(['roomTypes as price_min' => fn ($q) => $q
+                ->where('is_active', true),
+            ], 'base_rate')
+            ->withMax(['roomTypes as price_max' => fn ($q) => $q
+                ->where('is_active', true),
+            ], 'base_rate')
+            ->addSelect([
+                'allotment_sold' => DB::table('reservation_items as ri')
+                    ->join('reservations as r', 'ri.reservation_id', '=', 'r.id')
+                    ->whereColumn('r.hotel_id', 'hotels.id')
+                    ->where('r.event_id', $event->id)
+                    ->where('r.status', 'paid')
+                    ->selectRaw('COALESCE(SUM(ri.qty), 0)'),
+                'has_dynamic_pricing' => DB::table('room_types as rt')
+                    ->whereColumn('rt.hotel_id', 'hotels.id')
+                    ->where('rt.pricing_type', 'dynamic')
+                    ->whereNull('rt.deleted_at')
+                    ->selectRaw('COUNT(*) > 0'),
+            ]);
 
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
@@ -378,6 +419,16 @@ class HotelController extends Controller
             'name' => 'name',
             'created_at' => 'created_at',
             'commission_rate' => 'commission_rate',
+            'star_rating' => 'star_rating',
+            // Aliases below resolve to subquery columns added in index().
+            // They sort by the aggregated value within the current event.
+            'allotment_total' => 'allotment_total',
+            'allotment_sold' => 'allotment_sold',
+            'paid_reservations_count' => 'paid_reservations_count',
+            'revenue' => 'revenue',
+            'last_booking_at' => 'last_booking_at',
+            'price_min' => 'price_min',
+            'price_max' => 'price_max',
         ];
 
         if (isset($fieldMap[$field])) {

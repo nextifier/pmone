@@ -354,7 +354,7 @@ const RowActions = defineComponent({
               ),
               h(
                 PopoverContent,
-                { align: "end", class: "w-40 p-1" },
+                { align: "end", class: "w-auto min-w-40 p-1 whitespace-nowrap" },
                 {
                   default: () =>
                     h("div", { class: "flex flex-col" }, [
@@ -516,26 +516,153 @@ const columns = [
     },
   },
   {
-    header: "Rooms",
-    accessorKey: "room_types_count",
-    cell: ({ row }) =>
-      h(
-        "span",
-        { class: "tabular-nums text-sm tracking-tight" },
-        row.original.room_types_count ?? 0
-      ),
-    size: 80,
+    header: "Rating",
+    accessorKey: "star_rating",
+    cell: ({ row }) => {
+      const rating = row.original.star_rating;
+      if (!rating) {
+        return h("span", { class: "text-muted-foreground text-sm tracking-tight" }, "-");
+      }
+      return h(
+        "div",
+        { class: "flex items-center gap-0.5" },
+        Array.from({ length: rating }, () =>
+          h(resolveComponent("Icon"), {
+            name: "hugeicons:star",
+            class: "size-3.5 text-warning-foreground",
+          })
+        )
+      );
+    },
+    size: 110,
   },
   {
-    header: "Commission",
-    accessorKey: "commission_rate",
-    cell: ({ row }) =>
-      h(
+    header: "Room types",
+    accessorKey: "room_types_count",
+    cell: ({ row }) => {
+      const count = row.original.room_types_count ?? 0;
+      return h(
         "span",
         { class: "tabular-nums text-sm tracking-tight" },
-        `${Number(row.original.commission_rate || 0).toFixed(2)}%`
-      ),
+        `${count} type${count === 1 ? "" : "s"}`
+      );
+    },
+    size: 100,
+  },
+  {
+    header: "Allotment",
+    accessorKey: "allotment_sold",
+    cell: ({ row }) => {
+      const sold = Number(row.original.allotment_sold ?? 0);
+      const total = Number(row.original.allotment_total ?? 0);
+      if (total === 0) {
+        return h("span", { class: "text-muted-foreground text-sm tracking-tight" }, "-");
+      }
+      const ratio = sold / total;
+      const variant =
+        ratio >= 0.8 ? "destructive" : ratio >= 0.5 ? "warning" : "success";
+      return h(
+        Badge,
+        { variant, plain: true },
+        { default: () => `${sold}/${total}` }
+      );
+    },
     size: 110,
+  },
+  {
+    header: "Bookings",
+    accessorKey: "paid_reservations_count",
+    cell: ({ row }) => {
+      const count = Number(row.original.paid_reservations_count ?? 0);
+      if (count === 0) {
+        return h("span", { class: "text-muted-foreground text-sm tracking-tight" }, "-");
+      }
+      return h(
+        "span",
+        { class: "tabular-nums text-sm tracking-tight" },
+        `${count} paid`
+      );
+    },
+    size: 100,
+  },
+  {
+    header: "Revenue",
+    accessorKey: "revenue",
+    cell: ({ row }) => {
+      const amount = Number(row.original.revenue ?? 0);
+      if (amount === 0) {
+        return h("span", { class: "text-muted-foreground text-sm tracking-tight" }, "-");
+      }
+      // Indonesian compact: rb (ribu), jt (juta), M (miliar)
+      const formatted =
+        amount >= 1_000_000_000
+          ? `Rp ${(amount / 1_000_000_000).toFixed(1)}M`
+          : amount >= 1_000_000
+            ? `Rp ${(amount / 1_000_000).toFixed(1)}jt`
+            : amount >= 1_000
+              ? `Rp ${Math.round(amount / 1_000)}rb`
+              : `Rp ${amount}`;
+      return h(
+        "span",
+        { class: "tabular-nums text-sm tracking-tight font-medium" },
+        formatted
+      );
+    },
+    size: 120,
+  },
+  {
+    header: "Price range",
+    accessorKey: "price_min",
+    cell: ({ row }) => {
+      const min = Number(row.original.price_min ?? 0);
+      const max = Number(row.original.price_max ?? 0);
+      if (min === 0 && max === 0) {
+        return h("span", { class: "text-muted-foreground text-sm tracking-tight" }, "-");
+      }
+      const fmt = (n) =>
+        n >= 1_000_000
+          ? `${(n / 1_000_000).toFixed(1)}jt`
+          : n >= 1_000
+            ? `${Math.round(n / 1_000)}rb`
+            : `${n}`;
+      const label = min === max ? `Rp ${fmt(min)}` : `Rp ${fmt(min)} – ${fmt(max)}`;
+      return h(
+        "span",
+        { class: "tabular-nums text-sm tracking-tight" },
+        `${label} /night`
+      );
+    },
+    size: 160,
+  },
+  {
+    header: "Pricing",
+    accessorKey: "has_dynamic_pricing",
+    cell: ({ row }) => {
+      const isDynamic = row.original.has_dynamic_pricing;
+      return h(
+        Badge,
+        { variant: isDynamic ? "info" : "muted", plain: true },
+        { default: () => (isDynamic ? "Dynamic" : "Flat") }
+      );
+    },
+    size: 100,
+  },
+  {
+    header: "Last booking",
+    accessorKey: "last_booking_at",
+    cell: ({ row }) => {
+      const date = row.original.last_booking_at;
+      if (!date) return h("span", { class: "text-muted-foreground text-sm tracking-tight" }, "-");
+      return withDirectives(
+        h(
+          "span",
+          { class: "text-muted-foreground text-sm tracking-tight" },
+          $dayjs(date).fromNow()
+        ),
+        [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
+      );
+    },
+    size: 130,
   },
   {
     header: "Created",

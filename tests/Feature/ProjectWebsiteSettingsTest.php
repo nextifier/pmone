@@ -230,8 +230,10 @@ it('persists hotel notification email config', function () {
                 'to' => ['staff@example.com', 'manager@example.com'],
                 'cc' => ['cc@example.com'],
                 'bcc' => [],
-                'subject' => 'Booking {status}: {reservation_number}',
             ],
+        ],
+        'email_subjects' => [
+            'staff_confirmed' => 'Booking {status}: {reservation_number}',
         ],
     ]);
 
@@ -239,10 +241,11 @@ it('persists hotel notification email config', function () {
 
     $this->project->refresh();
     $config = data_get($this->project->settings, 'website_settings.hotels.notification_email');
+    $subjects = data_get($this->project->settings, 'website_settings.email_subjects');
 
     expect($config['to'])->toBe(['staff@example.com', 'manager@example.com']);
     expect($config['cc'])->toBe(['cc@example.com']);
-    expect($config['subject'])->toBe('Booking {status}: {reservation_number}');
+    expect($subjects['staff_confirmed'])->toBe('Booking {status}: {reservation_number}');
 });
 
 it('replaces hotel notification recipients wholesale instead of merging by index', function () {
