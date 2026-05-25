@@ -40,8 +40,14 @@ function onError() {
 
 function onClick(event: MouseEvent) {
   event.stopPropagation();
-  if (isActive.value && state.props.zoomable) {
-    state.toggleZoom();
+  if (!isActive.value) return;
+  if (!state.isMultiple.value) return;
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  if (x < rect.width / 2) {
+    state.prev();
+  } else {
+    state.next();
   }
 }
 
@@ -86,7 +92,7 @@ const isZoomed = computed(() => state.isZoomed.value && isActive.value);
             ? 'opacity-100 scale-100'
             : 'opacity-0 scale-[0.98]',
           isZoomed && 'cursor-zoom-out scale-[1.6]',
-          !isZoomed && isActive && state.props.zoomable && 'cursor-zoom-in',
+          !isZoomed && isActive && state.isMultiple.value && 'cursor-pointer',
         )
       "
       @load="onLoad"

@@ -1,7 +1,7 @@
 <template>
   <div>
     <Sidebar
-      v-if="['news-slug'].includes(route.name) && post"
+      v-if="getRouteBaseName(route) === 'news-slug'"
       side="right"
       variant="sidebar"
       class="top-(--navbar-height-desktop) border-transparent"
@@ -37,8 +37,8 @@
 
     <div v-if="pending" class="min-h-screen-offset grid place-items-center">
       <div class="flex items-center gap-2">
-        <Spinner class="size-4" />
-        <span class="tracking-tight">Loading</span>
+        <Spinner class="size-4 text-primary" />
+        <span class="tracking-tight">{{ $t('ui.loading') }}</span>
       </div>
     </div>
 
@@ -76,19 +76,16 @@
                     <div
                       class="border-background bg-muted flex size-10 items-center justify-center overflow-hidden rounded-full border-2"
                     >
-                      <NuxtImg
+                      <img
                         v-if="author.profile_image"
                         :src="
                           author.profile_image?.sm ||
-                          author.profile_image?.original ||
-                          author.profile_image
+                          author.profile_image?.original
                         "
                         class="size-full object-cover"
                         width="56"
                         height="56"
-                        sizes="120px"
                         loading="lazy"
-                        format="webp"
                       />
                     </div>
                   </div>
@@ -127,13 +124,13 @@
                 v-if="post.published_at"
                 v-tippy="$dayjs(post.published_at).format('MMM D, YYYY h:mm A')"
               >
-                Posted {{ $dayjs(post.published_at).fromNow() }}
+                {{ $t('ui.posted') }} {{ $dayjs(post.published_at).fromNow() }}
               </span>
 
               <span v-if="post.reading_time" class="flex items-center gap-x-1.5">
                 <Icon name="lucide:clock-fading" class="size-4 shrink-0" />
                 <span
-                  >{{ post.reading_time }} min<span v-if="post.reading_time > 1">s</span> read</span
+                  >{{ $t('ui.readingTime', post.reading_time, { n: post.reading_time }) }}</span
                 >
               </span>
             </div>
@@ -192,12 +189,12 @@
 
           <div class="mt-10 flex flex-col items-center gap-y-4">
             <span class="text-primary text-center text-lg font-semibold tracking-tighter sm:text-xl"
-              >Share this post</span
+              >{{ $t('ui.shareThisPost') }}</span
             >
             <SharePage
               model="post"
               :title="post.title"
-              :url="`${useAppConfig().app.url}/news/${post.slug}`"
+              :url="`${useAppConfig().app.url}${localePath(`/news/${post.slug}`)}`"
             />
           </div>
         </main>
@@ -207,7 +204,7 @@
         variant="grid"
         class="container-wider mt-10 transition-all duration-200 ease-linear"
         :class="{
-          'pr-(--sidebar-width)': isMounted && open && !isMobile,
+          'pr-(--sidebar-width)': open && !isMobile,
         }"
       />
     </div>
@@ -216,25 +213,26 @@
 
 <script setup>
 const route = useRoute();
+const localePath = useLocalePath();
+const getRouteBaseName = useRouteBaseName();
 
 const { $dayjs } = useNuxtApp();
 
 import { useSidebar } from "@/components/ui/sidebar/utils";
 const { open, isMobile, setOpenMobile } = useSidebar();
 
-// Always try public API first (SSR-safe, no hydration issues)
-const { data, pending: fetchPending } = await useFetch(`/api/blog/posts/${route.params.slug}`);
+// Set OG image state before async boundary so DevTools can detect it during Suspense
+if (import.meta.dev) {
+  useState(`og-image:ssr-exists:${route.path}`, () => false).value = true;
+}
 
-// For authenticated users viewing private/members_only posts, fallback to authenticated API
-const { isAuthenticated } = useSanctumAuth();
-const authData = ref(null);
-const authPending = ref(!data.value?.data && isAuthenticated.value);
-const pending = computed(() => fetchPending.value || authPending.value);
+// Call local Nuxt server API (which proxies to PM One API)
+// API key is kept secure on the server, not exposed to browser
+const { data, pending, error } = await useFetch(`/api/blog/posts/${route.params.slug}`);
 
-const post = computed(() => data.value?.data || authData.value?.data);
+const post = computed(() => data?.value?.data);
 
-// Only throw 404 for unauthenticated users when public API returns no data
-if (!data.value?.data && !isAuthenticated.value) {
+if (!post.value) {
   throw createError({
     statusCode: 404,
     statusMessage: "Page not found",
@@ -277,7 +275,7 @@ const { processedHtml } = useProcessedContent(rawHtml);
 
 // Apply LQIP blur effect to content images
 const articleSelector = computed(() => (post.value?.slug ? `#${post.value.slug}` : null));
-const { reprocess: reprocessContentImages } = useContentImageBlur(articleSelector);
+useContentImageBlur(articleSelector);
 
 const foundHeadings = ref([]);
 
@@ -285,24 +283,7 @@ const onHeadingsFound = (headings) => {
   foundHeadings.value = headings;
 };
 
-const isMounted = ref(false);
-
 onMounted(async () => {
-  isMounted.value = true;
-  // If public API returned no data and user is authenticated, try authenticated API
-  if (!post.value && isAuthenticated.value) {
-    try {
-      const client = useSanctumClient();
-      authData.value = await client(`/api/posts/${route.params.slug}`);
-      // Re-process content images after auth data loads
-      reprocessContentImages();
-    } catch {
-      showError({ statusCode: 404, statusMessage: "Page not found" });
-    } finally {
-      authPending.value = false;
-    }
-  }
-
   // Tunggu DOM di-hydrate sepenuhnya
   await nextTick();
 

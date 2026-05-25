@@ -18,7 +18,7 @@ const state = useLightbox();
     :disabled="!state.props.loop && !state.canPrev.value"
     :class="
       cn(
-        'group hover:bg-white/15 focus-visible:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/40 absolute top-1/2 left-3 z-30 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/5 text-white backdrop-blur-sm transition-colors focus:outline-hidden disabled:opacity-30 disabled:pointer-events-none sm:size-12 sm:left-5',
+        'group flex size-10 items-center justify-center rounded-full bg-white/5 text-white backdrop-blur-sm transition-colors hover:bg-white/15 focus:outline-hidden focus-visible:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/40 active:scale-98 disabled:pointer-events-none disabled:opacity-30 sm:size-12',
         props.class,
       )
     "
@@ -26,8 +26,8 @@ const state = useLightbox();
   >
     <slot>
       <Icon
-        name="lucide:chevron-left"
-        class="size-5 opacity-80 transition-opacity group-hover:opacity-100 sm:size-6"
+        name="material-symbols:chevron-left"
+        class="size-6 opacity-80 transition-opacity group-hover:opacity-100 sm:size-7"
       />
     </slot>
     <span class="sr-only">Previous</span>

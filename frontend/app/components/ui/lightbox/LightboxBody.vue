@@ -43,10 +43,12 @@ const { items, close, props: lightboxProps } = state;
 const { $wheelGesturesPlugin } = useNuxtApp();
 
 const autoplayDelay = computed(() =>
-  typeof lightboxProps.autoplay === "number" ? lightboxProps.autoplay : 0
+  typeof lightboxProps.autoplay === "number" ? lightboxProps.autoplay : 0,
 );
 
-const autoplayPlugin = autoplayDelay.value ? createAutoplayPlugin(autoplayDelay.value) : null;
+const autoplayPlugin = autoplayDelay.value
+  ? createAutoplayPlugin(autoplayDelay.value)
+  : null;
 
 const wheelPlugin: LightboxEmblaPlugin | null =
   typeof $wheelGesturesPlugin === "function"
@@ -67,7 +69,7 @@ const [mainRef, mainApi] = emblaCarouselVue(
     containScroll: false,
     ...(lightboxProps.emblaOpts || {}),
   },
-  emblaPlugins
+  emblaPlugins,
 );
 
 const autoplayProgress = ref(0);
@@ -145,7 +147,7 @@ watch(
     if (mainApi.value && mainApi.value.selectedScrollSnap() !== i) {
       mainApi.value.scrollTo(i);
     }
-  }
+  },
 );
 
 watch(
@@ -167,17 +169,23 @@ watch(
       autoplayPlugin.stop();
       stopAutoplayTimer();
     }
-  }
+  },
 );
 
 function onSlideBackdropClick(event: MouseEvent) {
-  if (event.target === event.currentTarget && lightboxProps.closeOnBackdropClick) {
+  if (
+    event.target === event.currentTarget &&
+    lightboxProps.closeOnBackdropClick
+  ) {
     close();
   }
 }
 
 function onViewportBackdropClick(event: MouseEvent) {
-  if (event.target === event.currentTarget && lightboxProps.closeOnBackdropClick) {
+  if (
+    event.target === event.currentTarget &&
+    lightboxProps.closeOnBackdropClick
+  ) {
     close();
   }
 }
@@ -243,12 +251,19 @@ const overlayStyle = computed(() => ({
   transition: dragging.value ? "none" : "opacity 200ms ease-out",
 }));
 
-const autoplayProgressVisible = computed(() => !!autoplayDelay.value && state.open.value);
+const autoplayProgressVisible = computed(
+  () => !!autoplayDelay.value && state.open.value,
+);
 </script>
 
 <template>
   <div
-    :class="cn('flex h-full w-full flex-col pb-[env(safe-area-inset-bottom)]', props.class)"
+    :class="
+      cn(
+        'flex h-full w-full flex-col pb-[env(safe-area-inset-bottom)]',
+        props.class,
+      )
+    "
     :style="dragStyle"
     @pointerdown="onPointerDown"
     @pointermove="onPointerMove"
@@ -261,7 +276,10 @@ const autoplayProgressVisible = computed(() => !!autoplayDelay.value && state.op
     >
       <div
         class="h-full bg-white/70"
-        :style="{ width: `${autoplayProgress * 100}%`, transition: 'width 80ms linear' }"
+        :style="{
+          width: `${autoplayProgress * 100}%`,
+          transition: 'width 80ms linear',
+        }"
       />
     </div>
 
@@ -307,12 +325,6 @@ const autoplayProgressVisible = computed(() => !!autoplayDelay.value && state.op
           </div>
         </div>
       </div>
-      <slot name="previous">
-        <LightboxPrevious v-if="showNavButtons" />
-      </slot>
-      <slot name="next">
-        <LightboxNext v-if="showNavButtons" />
-      </slot>
     </div>
 
     <div v-if="showCaption" class="px-4 pt-3 sm:pt-4" :style="overlayStyle">
@@ -321,7 +333,24 @@ const autoplayProgressVisible = computed(() => !!autoplayDelay.value && state.op
       </slot>
     </div>
 
-    <div v-if="showThumbnails" class="px-2 pt-3 pb-4 sm:pb-6" :style="overlayStyle">
+    <div
+      v-if="showNavButtons && state.isMultiple.value"
+      class="flex items-center justify-center gap-x-2 px-4 pt-3"
+      :style="overlayStyle"
+    >
+      <slot name="previous">
+        <LightboxPrevious />
+      </slot>
+      <slot name="next">
+        <LightboxNext />
+      </slot>
+    </div>
+
+    <div
+      v-if="showThumbnails"
+      class="px-2 pt-3 pb-4 sm:pb-6"
+      :style="overlayStyle"
+    >
       <slot name="thumbnails">
         <LightboxThumbnails />
       </slot>

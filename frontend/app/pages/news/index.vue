@@ -2,8 +2,12 @@
   <div id="blog-page" class="min-h-screen-offset pt-4 pb-24 lg:pt-8">
     <div class="container-wider">
       <div class="@container">
-        <div class="flex flex-col gap-x-6 gap-y-6 lg:flex-row lg:items-end lg:justify-between">
-          <h1 class="text-primary text-4xl font-medium tracking-[-0.06em] sm:text-5xl">
+        <div
+          class="flex flex-col gap-x-6 gap-y-6 lg:flex-row lg:items-end lg:justify-between"
+        >
+          <h1
+            class="text-primary text-4xl font-medium tracking-[-0.06em] sm:text-5xl"
+          >
             Latest updates
           </h1>
 
@@ -17,8 +21,7 @@
                 placeholder="Search posts"
               />
 
-              <Icon
-                name="hugeicons:search-01"
+              <Icon name="hugeicons:search-01"
                 class="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-400 peer-focus:text-gray-400"
               />
 
@@ -38,14 +41,17 @@
                 "
                 class="absolute top-1/2 right-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full bg-gray-100 transition-colors peer-placeholder-shown:hidden hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800"
               >
-                <Icon name="lucide:x" class="h-3" />
+                <IconClose class="h-3" />
               </button>
             </div>
           </div>
         </div>
 
         <div class="mt-8 sm:mt-10">
-          <div v-if="!pending && posts?.length" class="text-muted-foreground mb-4 tracking-tight">
+          <div
+            v-if="!pending && posts?.length"
+            class="text-muted-foreground mb-4 tracking-tight"
+          >
             <span v-if="isSearching">
               Showing {{ meta.total }} posts for
               <span class="font-medium text-gray-700 italic dark:text-gray-300"
@@ -59,25 +65,37 @@
             v-if="pending"
             class="grid grid-cols-1 gap-x-4 gap-y-8 @xl:grid-cols-2 @4xl:grid-cols-12"
           >
-            <BlogPostCardSkeleton v-for="(_, index) in 16" :key="index" :class="postCardClasses" />
+            <BlogPostCardSkeleton
+              v-for="(_, index) in 16"
+              :key="index"
+              :class="postCardClasses"
+            />
           </div>
 
-          <div v-else-if="error" class="flex items-center justify-center text-center">
+          <div
+            v-else-if="error"
+            class="flex items-center justify-center text-center"
+          >
             <span class="text-primary text-2xl font-semibold tracking-tighter"
               >Failed to get the data.</span
             >
           </div>
 
           <!-- Search results with no matches (must be before generic "No posts" check) -->
-          <div v-else-if="isSearching && posts?.length === 0" class="flex flex-col gap-y-4">
+          <div
+            v-else-if="isSearching && posts?.length === 0"
+            class="flex flex-col gap-y-4"
+          >
             <span class="text-4xl font-semibold tracking-tighter sm:text-5xl"
               >No results found for
-              <span class="font-bold italic">"{{ debouncedSearchInput }}"</span></span
+              <span class="font-bold italic"
+                >"{{ debouncedSearchInput }}"</span
+              ></span
             >
 
             <span class="text-base tracking-tight sm:text-lg"
-              >Maybe try a different keyword, or explore other topics. We're sure you'll find
-              something awesome!</span
+              >Maybe try a different keyword, or explore other topics. We're
+              sure you'll find something awesome!</span
             >
           </div>
 
@@ -88,30 +106,39 @@
             >
               Page {{ currentPage }} doesn't exist
             </h2>
-            <p class="text-muted-foreground mt-4 text-base tracking-tight sm:text-lg">
+            <p
+              class="text-muted-foreground mt-4 text-base tracking-tight sm:text-lg"
+            >
               There are only {{ meta.last_page }} pages available.
             </p>
 
             <div class="mt-6 flex items-center gap-3">
-              <Button @click="currentPage = meta.last_page"> Go to last page </Button>
+              <Button @click="currentPage = meta.last_page">
+                Go to last page
+              </Button>
               <Button variant="outline" @click="currentPage = 1">
-                <Icon name="lucide:chevron-left" class="size-4" />
+                <IconChevronLeft class="size-4" />
                 Back to first page
               </Button>
             </div>
           </div>
 
           <!-- No posts at all (not searching) -->
-          <div v-else-if="posts?.length === 0" class="flex flex-col items-start">
+          <div
+            v-else-if="posts?.length === 0"
+            class="flex flex-col items-start"
+          >
             <h2
               class="text-4xl font-bold tracking-tighter text-black sm:text-4xl xl:text-5xl dark:text-white"
             >
               No posts yet
             </h2>
-            <p class="mt-4 text-base tracking-tight sm:text-lg">Please come back later</p>
+            <p class="mt-4 text-base tracking-tight sm:text-lg">
+              Please come back later
+            </p>
 
             <Button as="a" href="/" class="mt-4">
-              <Icon name="lucide:chevron-left" class="size-4" />
+              <IconChevronLeft class="size-4" />
               Back to Home
             </Button>
           </div>
@@ -151,7 +178,8 @@
 <script setup>
 usePageMeta(null, {
   title: "News",
-  description: "Articles and updates covering events, exhibitions, and industry news.",
+  description:
+    "Articles and updates covering events, exhibitions, and industry news.",
 });
 defineOptions({
   name: "news",
@@ -161,7 +189,7 @@ const route = useRoute();
 const router = useRouter();
 
 const postCardClasses = ref(
-  "@xl:first:col-span-2 @4xl:col-span-4 @4xl:first:col-span-6 @4xl:nth-2:col-span-6 @5xl:col-span-3 @[90rem]:col-span-3 @7xl:[&:nth-child(-n+3)]:col-span-4"
+  "@xl:first:col-span-2 @4xl:col-span-4 @4xl:first:col-span-6 @4xl:nth-2:col-span-6 @5xl:col-span-3 @[90rem]:col-span-3 @7xl:[&:nth-child(-n+3)]:col-span-4",
 );
 
 const postStore = usePostStore();
@@ -191,7 +219,7 @@ const isPageOutOfRange = computed(
     !isSearching.value &&
     currentPage.value > 1 &&
     meta.value.last_page >= 1 &&
-    currentPage.value > meta.value.last_page
+    currentPage.value > meta.value.last_page,
 );
 
 // Initial SSR fetch
@@ -243,7 +271,7 @@ watch(
     }
 
     window.scrollTo({ top: 0 });
-  }
+  },
 );
 
 const searchInputEl = ref();

@@ -1,78 +1,76 @@
 <template>
-  <Pagination
-    v-model:page="currentPage"
-    :itemsPerPage="props.itemsPerPage"
-    :total="props.total"
-    v-slot="{ page }"
-    :showEdges="true"
-    :siblingCount="props.siblingCount"
-  >
-    <PaginationContent
-      class="text-foreground flex w-full items-center justify-center-safe gap-x-0.5 overflow-auto rounded-full text-sm *:shrink-0 sm:gap-x-1"
-      v-slot="{ items }"
+  <ButtonGroup class="mx-auto w-fit">
+    <Button
+      variant="outline"
+      size="icon"
+      class="xs:flex hidden"
+      :disabled="currentPage === 1"
+      aria-label="First page"
+      @click="go(1)"
     >
-      <PaginationFirst as-child>
-        <button
-          class="border-border hover:bg-muted xs:flex hidden size-8 items-center justify-center rounded-lg text-center shadow-none transition focus-visible:z-10 active:scale-98 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
-        >
-          <Icon name="lucide:chevron-first" class="size-4 shrink-0" />
-        </button>
-      </PaginationFirst>
-      <PaginationPrevious as-child>
-        <button
-          class="border-border hover:bg-muted flex size-8 items-center justify-center rounded-lg text-center shadow-none transition focus-visible:z-10 active:scale-98 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
-        >
-          <Icon name="lucide:chevron-left" class="size-4 shrink-0" />
-        </button>
-      </PaginationPrevious>
-      <template v-for="item in items">
-        <PaginationItem v-if="item.type === 'page'" :value="item.value" asChild>
-          <button
-            class="border-primary/20 hover:bg-muted flex size-8 items-center justify-center rounded-lg text-center shadow-none transition focus-visible:z-10 active:scale-98 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
-            :class="{
-              'border font-medium': item.value === page,
-            }"
-          >
-            {{ item.value }}
-          </button>
-        </PaginationItem>
-        <PaginationEllipsis v-if="item.type === 'ellipsis'" as-child>
-          <button
-            class="flex size-8 cursor-default items-center justify-center rounded-lg text-center shadow-none focus-visible:z-10 active:scale-98 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
-          >
-            <Icon name="lucide:ellipsis" class="size-4 shrink-0" />
-          </button>
-        </PaginationEllipsis>
-      </template>
-      <PaginationNext as-child>
-        <button
-          class="border-border hover:bg-muted flex size-8 items-center justify-center rounded-lg text-center shadow-none transition focus-visible:z-10 active:scale-98 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
-        >
-          <Icon name="lucide:chevron-right" class="size-4 shrink-0" />
-        </button>
-      </PaginationNext>
-      <PaginationLast as-child>
-        <button
-          class="border-border hover:bg-muted xs:flex hidden size-8 items-center justify-center rounded-lg text-center shadow-none transition focus-visible:z-10 active:scale-98 aria-disabled:pointer-events-none [&[aria-disabled]>svg]:opacity-50"
-        >
-          <Icon name="lucide:chevron-last" class="size-4 shrink-0" />
-        </button>
-      </PaginationLast>
-    </PaginationContent>
-  </Pagination>
+      <Icon name="lucide:chevron-first" class="size-4 shrink-0" />
+    </Button>
+    <Button
+      variant="outline"
+      size="icon"
+      :disabled="currentPage === 1"
+      aria-label="Previous page"
+      @click="go(currentPage - 1)"
+    >
+      <Icon name="lucide:chevron-left" class="size-4 shrink-0" />
+    </Button>
+
+    <template v-for="item in items" :key="item.key">
+      <Button
+        v-if="item.type === 'page'"
+        :variant="item.value === currentPage ? 'default' : 'outline'"
+        size="icon"
+        :aria-current="item.value === currentPage ? 'page' : undefined"
+        @click="go(item.value!)"
+      >
+        {{ item.value }}
+      </Button>
+      <Button
+        v-else
+        variant="outline"
+        size="icon"
+        disabled
+        aria-hidden="true"
+        tabindex="-1"
+      >
+        <Icon name="lucide:ellipsis" class="size-4 shrink-0" />
+      </Button>
+    </template>
+
+    <Button
+      variant="outline"
+      size="icon"
+      :disabled="currentPage === pageCount"
+      aria-label="Next page"
+      @click="go(currentPage + 1)"
+    >
+      <Icon name="lucide:chevron-right" class="size-4 shrink-0" />
+    </Button>
+    <Button
+      variant="outline"
+      size="icon"
+      class="xs:flex hidden"
+      :disabled="currentPage === pageCount"
+      aria-label="Last page"
+      @click="go(pageCount)"
+    >
+      <Icon name="lucide:chevron-last" class="size-4 shrink-0" />
+    </Button>
+  </ButtonGroup>
 </template>
 
 <script setup lang="ts">
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationFirst,
-  PaginationItem,
-  PaginationLast,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
+
+type PaginationItem =
+  | { type: "page"; value: number; key: string }
+  | { type: "ellipsis"; key: string };
 
 const currentPage = defineModel<number>("page", { default: 1 });
 
@@ -87,4 +85,55 @@ const props = withDefaults(
     siblingCount: 1,
   }
 );
+
+const pageCount = computed(() =>
+  Math.max(1, Math.ceil(props.total / props.itemsPerPage))
+);
+
+const items = computed<PaginationItem[]>(() => {
+  const total = pageCount.value;
+  const page = currentPage.value;
+  const sibling = props.siblingCount;
+  const totalNumbers = sibling * 2 + 5;
+
+  if (total <= totalNumbers) {
+    return Array.from({ length: total }, (_, i) => ({
+      type: "page" as const,
+      value: i + 1,
+      key: `p${i + 1}`,
+    }));
+  }
+
+  const left = Math.max(page - sibling, 1);
+  const right = Math.min(page + sibling, total);
+  const showLeftEllipsis = left > 2;
+  const showRightEllipsis = right < total - 1;
+
+  const result: PaginationItem[] = [
+    { type: "page", value: 1, key: "p1" },
+  ];
+
+  if (showLeftEllipsis) {
+    result.push({ type: "ellipsis", key: "el" });
+  }
+
+  const start = showLeftEllipsis ? left : 2;
+  const end = showRightEllipsis ? right : total - 1;
+  for (let i = start; i <= end; i++) {
+    result.push({ type: "page", value: i, key: `p${i}` });
+  }
+
+  if (showRightEllipsis) {
+    result.push({ type: "ellipsis", key: "er" });
+  }
+
+  result.push({ type: "page", value: total, key: `p${total}` });
+  return result;
+});
+
+function go(p: number) {
+  const clamped = Math.min(Math.max(p, 1), pageCount.value);
+  if (clamped === currentPage.value) return;
+  currentPage.value = clamped;
+}
 </script>
