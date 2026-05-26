@@ -1,32 +1,81 @@
 <template>
   <div class="mx-auto max-w-6xl px-4 pt-4 pb-24 lg:pb-12">
-    <div v-if="pending && !hotel" class="space-y-6">
-      <!-- Hero skeleton -->
-      <div class="grid items-start gap-4 sm:grid-cols-[200px_1fr]">
-        <Skeleton class="aspect-video w-full rounded-xl sm:h-32 sm:aspect-auto" />
+    <div v-if="pending && !hotel" class="space-y-4">
+      <!-- Hero skeleton: mirror HotelHeroCollapsible full state -->
+      <div
+        class="grid items-start gap-4 sm:grid-cols-[160px_1fr] lg:grid-cols-[160px_1fr_220px]"
+      >
+        <Skeleton class="aspect-4/5 w-full rounded-xl" />
         <div class="space-y-2">
-          <Skeleton class="h-4 w-40" />
-          <Skeleton class="h-8 w-3/4" />
-          <div class="flex gap-2 pt-1">
+          <Skeleton class="h-4 w-56 sm:h-5" />
+          <Skeleton class="h-8 w-3/4 sm:h-9" />
+          <div class="flex flex-wrap gap-1.5 pt-1">
             <Skeleton class="h-5 w-16 rounded-full" />
             <Skeleton class="h-5 w-20 rounded-full" />
+            <Skeleton class="h-5 w-14 rounded-full" />
           </div>
-          <Skeleton class="h-4 w-1/2 pt-2" />
+          <Skeleton class="mt-1 h-4 w-2/3 sm:h-5" />
+          <div class="space-y-1.5 pt-1">
+            <Skeleton class="h-3.5 w-full" />
+            <Skeleton class="h-3.5 w-11/12" />
+            <Skeleton class="h-3.5 w-3/4" />
+          </div>
         </div>
+        <Skeleton
+          class="hidden aspect-4/5 w-full rounded-xl lg:block lg:aspect-auto lg:h-full lg:min-h-[220px]"
+        />
       </div>
 
-      <!-- Stepper skeleton -->
-      <div class="flex items-center gap-3">
-        <Skeleton v-for="i in 4" :key="`step-${i}`" class="h-8 flex-1 rounded-full" />
+      <!-- Stepper skeleton: mirror BookingStepper -->
+      <div class="bg-background/95 sticky top-0 z-30 -mx-4 border-b px-4 py-3">
+        <div class="mx-auto flex max-w-5xl items-center justify-between gap-2 sm:gap-4">
+          <div
+            v-for="i in 4"
+            :key="`step-${i}`"
+            class="flex flex-1 items-center justify-center gap-2 sm:justify-start"
+          >
+            <Skeleton class="size-7 shrink-0 rounded-full" />
+            <Skeleton class="hidden h-4 w-24 sm:block" />
+            <Skeleton v-if="i < 4" class="hidden h-px flex-1 sm:block" />
+          </div>
+        </div>
       </div>
 
       <!-- Step 1 layout: form + summary panel -->
       <div class="grid items-start gap-6 lg:grid-cols-[1fr_360px]">
-        <div class="space-y-4">
-          <Skeleton class="h-12 w-full" />
-          <Skeleton v-for="i in 3" :key="`room-${i}`" class="h-32 w-full rounded-xl" />
+        <div class="space-y-6">
+          <div class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end sm:gap-4">
+            <div class="space-y-1.5">
+              <Skeleton class="h-3.5 w-32 sm:h-4" />
+              <Skeleton class="h-9 w-full rounded-md" />
+            </div>
+            <div class="space-y-1.5">
+              <Skeleton class="h-3.5 w-14 sm:h-4" />
+              <Skeleton class="h-9 w-32 rounded-md" />
+            </div>
+          </div>
+          <div class="space-y-3">
+            <Skeleton class="h-5 w-28" />
+            <Skeleton
+              v-for="i in 3"
+              :key="`room-${i}`"
+              class="h-32 w-full rounded-xl"
+            />
+          </div>
         </div>
-        <Skeleton class="h-72 rounded-xl" />
+        <div class="hidden space-y-4 rounded-2xl border p-4 lg:block lg:p-5">
+          <Skeleton class="h-5 w-32" />
+          <div class="space-y-2">
+            <Skeleton class="h-3 w-16" />
+            <Skeleton class="h-4 w-40" />
+            <Skeleton class="h-3 w-28" />
+          </div>
+          <div class="space-y-1.5 border-t pt-3">
+            <Skeleton class="h-4 w-full" />
+            <Skeleton class="h-4 w-5/6" />
+          </div>
+          <Skeleton class="h-9 w-full rounded-md" />
+        </div>
       </div>
     </div>
 

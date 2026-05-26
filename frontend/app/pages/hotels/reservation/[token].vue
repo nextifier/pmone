@@ -1,16 +1,18 @@
 <template>
   <div class="mx-auto max-w-3xl space-y-6 px-4 pt-4 pb-16">
     <div v-if="pending" class="space-y-6">
+      <Skeleton class="h-9 w-24 rounded-md" />
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="space-y-2">
-          <Skeleton class="h-8 w-72" />
+          <Skeleton class="h-8 w-72 sm:h-9" />
           <Skeleton class="h-4 w-48" />
         </div>
         <Skeleton class="h-6 w-28 rounded-full" />
       </div>
-      <Skeleton class="h-36 w-full" />
-      <Skeleton class="h-48 w-full" />
-      <Skeleton class="h-32 w-full" />
+      <Skeleton class="h-36 w-full rounded-xl" />
+      <Skeleton class="h-56 w-full rounded-xl" />
+      <Skeleton class="h-28 w-full rounded-xl" />
+      <Skeleton class="h-32 w-full rounded-xl" />
     </div>
 
     <div

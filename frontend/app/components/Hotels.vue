@@ -17,12 +17,15 @@
             <Skeleton class="h-3.5 w-56" />
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
-          <div v-for="j in 4" :key="j" class="grid grid-cols-1 gap-y-2">
+        <div
+          class="grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]"
+        >
+          <div v-for="j in 4" :key="j" class="row-span-5 grid grid-rows-subgrid gap-y-1">
             <Skeleton class="aspect-19/20 w-full rounded-2xl" />
-            <Skeleton class="h-4 w-3/4" />
-            <Skeleton class="h-3.5 w-1/2" />
-            <Skeleton class="h-4 w-2/5" />
+            <Skeleton class="mt-1 h-9 w-4/5 self-start sm:h-11" />
+            <Skeleton class="h-3.5 w-14 self-start sm:h-4" />
+            <Skeleton class="h-3.5 w-2/3 self-start sm:h-4" />
+            <Skeleton class="h-4 w-3/5 self-start sm:h-5" />
           </div>
         </div>
       </section>
@@ -52,7 +55,7 @@
               loading="lazy"
               decoding="async"
             />
-            <div v-else class="from-muted to-muted/40 size-full bg-gradient-to-br" />
+            <div v-else class="from-muted to-muted/40 size-full bg-linear-to-br" />
           </div>
           <div class="min-w-0">
             <p
@@ -92,12 +95,14 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
+        <div
+          class="grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]"
+        >
           <NuxtLink
             v-for="hotel in group.hotels"
             :key="hotel.id"
             :to="`/hotels/${group.event.slug}/${hotel.slug}`"
-            class="grid grid-cols-1 gap-y-2 tracking-tight"
+            class="row-span-5 grid grid-rows-subgrid gap-y-1 tracking-tight"
           >
             <div class="bg-muted aspect-19/20 overflow-hidden rounded-2xl">
               <img
@@ -108,36 +113,36 @@
                 loading="lazy"
                 decoding="async"
               />
-              <div v-else class="from-muted to-muted/40 size-full bg-gradient-to-br" />
+              <div v-else class="from-muted to-muted/40 size-full bg-linear-to-br" />
             </div>
-            <div class="flex flex-1 flex-col gap-1">
-              <h4 class="line-clamp-2 text-sm font-semibold tracking-tighter sm:text-base">
-                {{ hotel.name }}
-              </h4>
-              <p
-                v-if="hotel.star_rating"
-                class="text-muted-foreground flex items-center gap-1 text-xs tracking-tight sm:text-sm"
-              >
+            <h4
+              class="mt-1 line-clamp-2 self-start text-sm leading-snug font-semibold tracking-tighter sm:text-base"
+            >
+              {{ hotel.name }}
+            </h4>
+            <p
+              class="text-muted-foreground flex items-center gap-1 self-start text-xs tracking-tight sm:text-sm"
+            >
+              <template v-if="hotel.star_rating">
                 <Icon
                   name="material-symbols:star-rounded"
                   class="text-foreground size-4 shrink-0"
                 />
                 {{ hotel.star_rating }}-star
-              </p>
-              <p class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm">
-                {{ [hotel.city].filter(Boolean).join(", ") }}
-              </p>
-              <p
-                v-if="cheapestRate(hotel)"
-                class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm"
-              >
+              </template>
+            </p>
+            <p class="text-muted-foreground self-start truncate text-xs tracking-tight sm:text-sm">
+              {{ [hotel.city].filter(Boolean).join(", ") }}
+            </p>
+            <p class="text-muted-foreground self-start truncate text-xs tracking-tight sm:text-sm">
+              <template v-if="cheapestRate(hotel)">
                 <span>From </span>
                 <span class="text-foreground text-sm font-semibold tracking-tighter sm:text-base">
                   Rp{{ formatRupiah(cheapestRate(hotel)) }}
                 </span>
                 <span> / night</span>
-              </p>
-            </div>
+              </template>
+            </p>
           </NuxtLink>
         </div>
       </section>

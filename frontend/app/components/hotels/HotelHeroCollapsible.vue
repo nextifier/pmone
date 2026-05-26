@@ -139,7 +139,7 @@ function toggleExpand() {
         />
         <div
           v-else
-          class="from-muted to-muted/40 size-full bg-gradient-to-br"
+          class="from-muted to-muted/40 size-full bg-linear-to-br"
         />
       </div>
       <div class="min-w-0 flex-1 space-y-0.5">
@@ -209,7 +209,7 @@ function toggleExpand() {
         </Lightbox>
         <div
           v-else
-          class="from-muted to-muted/40 aspect-4/5 w-full bg-gradient-to-br"
+          class="from-muted to-muted/40 aspect-4/5 w-full bg-linear-to-br"
         />
       </div>
       <div class="space-y-1.5">

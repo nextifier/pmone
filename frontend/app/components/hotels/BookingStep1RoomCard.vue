@@ -108,7 +108,7 @@ const fmtRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
       </Lightbox>
       <div
         v-else
-        class="from-muted to-muted/40 aspect-[4/3] w-full bg-gradient-to-br sm:aspect-auto sm:h-full sm:min-h-[8rem]"
+        class="from-muted to-muted/40 aspect-[4/3] w-full bg-linear-to-br sm:aspect-auto sm:h-full sm:min-h-[8rem]"
       />
 
       <div class="flex flex-col gap-2 p-3 sm:gap-2.5 sm:p-4">

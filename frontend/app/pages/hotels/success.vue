@@ -2,14 +2,17 @@
   <div class="mx-auto max-w-3xl space-y-6 px-4 pt-4 pb-16">
     <!-- Loading skeleton while reservation summary is fetching -->
     <div v-if="pending && !reservation" class="space-y-6">
-      <div class="space-y-3 text-center">
-        <Skeleton class="mx-auto h-12 w-12 rounded-full" />
-        <Skeleton class="mx-auto h-7 w-56" />
-        <Skeleton class="mx-auto h-4 w-72" />
+      <div class="space-y-4 pt-4 text-center">
+        <Skeleton class="mx-auto size-14 rounded-full" />
+        <div class="space-y-1.5">
+          <Skeleton class="mx-auto h-8 w-56 sm:h-9" />
+          <Skeleton class="mx-auto h-4 w-72" />
+        </div>
+        <Skeleton class="mx-auto h-9 w-40 rounded-md" />
       </div>
-      <Skeleton class="h-32 w-full" />
-      <Skeleton class="h-24 w-full" />
-      <Skeleton class="h-28 w-full" />
+      <Skeleton class="h-44 w-full rounded-xl" />
+      <Skeleton class="h-24 w-full rounded-xl" />
+      <Skeleton class="h-44 w-full rounded-xl" />
     </div>
 
     <template v-else>
