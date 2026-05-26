@@ -9,7 +9,7 @@
 
     <div v-if="pending" class="mt-8 space-y-12 sm:mt-12">
       <section v-for="i in 2" :key="i" class="space-y-5">
-        <div class="flex items-center gap-3 border-b pb-4">
+        <div v-if="showEventHeader" class="flex items-center gap-3 border-b pb-4">
           <Skeleton class="aspect-4/5 w-16 shrink-0 rounded-lg sm:w-20" />
           <div class="space-y-2">
             <Skeleton class="h-3.5 w-24" />
@@ -45,7 +45,7 @@
 
     <div v-else class="mt-8 space-y-12 sm:mt-12">
       <section v-for="group in groupedHotels" :key="group.event.id" class="space-y-5">
-        <div class="flex items-center gap-3 border-b pb-4">
+        <div v-if="showEventHeader" class="flex items-center gap-3 border-b pb-4">
           <div class="bg-muted aspect-4/5 w-18 shrink-0 overflow-hidden rounded-lg border sm:w-20">
             <img
               v-if="group.event.poster?.md"
@@ -155,6 +155,10 @@ defineProps({
   tag: {
     type: String,
     default: "h2",
+  },
+  showEventHeader: {
+    type: Boolean,
+    default: true,
   },
 });
 
