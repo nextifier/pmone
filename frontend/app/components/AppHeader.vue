@@ -31,17 +31,6 @@
       </template>
 
       <div class="ml-auto flex h-full shrink-0 items-center gap-x-1 sm:gap-x-2">
-        <Button
-          v-if="!hideSidebar"
-          to="/docs"
-          variant="outline"
-          size="sm"
-          class="mr-1 text-base tracking-tighter"
-          v-ripple
-        >
-          <span>Docs</span>
-        </Button>
-
         <LanguageSwitcher v-if="isExhibitor" />
 
         <KeyboardShortcutsDialog class="hidden sm:flex" />
