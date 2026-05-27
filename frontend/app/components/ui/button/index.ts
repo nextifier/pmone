@@ -8,12 +8,15 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/80",
-        destructive: "bg-destructive text-white shadow-xs hover:bg-destructive/90",
+        default:
+          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/80",
+        destructive:
+          "bg-destructive text-white shadow-xs hover:bg-destructive/90",
         outline: "border bg-background hover:bg-muted border-border",
         "outline-destructive":
           "border bg-background hover:bg-muted border-border text-destructive-foreground",
-        secondary: "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/70",
+        secondary:
+          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/70",
         ghost: "hover:bg-muted hover:text-foreground font-normal",
         link: "text-primary underline-offset-4 hover:underline",
       },
@@ -29,7 +32,7 @@ export const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 export type ButtonVariants = VariantProps<typeof buttonVariants>;
