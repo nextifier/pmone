@@ -57,6 +57,10 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  excludeSelector: {
+    type: String,
+    default: "",
+  },
 });
 
 const headings = ref([]);
@@ -130,6 +134,9 @@ onMounted(async () => {
   const headingNodes = contentElement.querySelectorAll("h2, h3, h4, h5, h6");
   const foundHeadings = [];
   headingNodes.forEach((node, index) => {
+    if (props.excludeSelector && node.closest(props.excludeSelector)) {
+      return;
+    }
     const id = createUniqueId(node.innerText, index);
     node.id = id;
     foundHeadings.push({ id, text: node.innerText, tag: node.tagName });
