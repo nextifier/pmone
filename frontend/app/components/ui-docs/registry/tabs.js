@@ -1,13 +1,6 @@
-import Variants from "../examples/tabs/variants.vue";
-import VariantsSrc from "../examples/tabs/variants.vue?raw";
-import Sizes from "../examples/tabs/sizes.vue";
-import SizesSrc from "../examples/tabs/sizes.vue?raw";
-import Controlled from "../examples/tabs/controlled.vue";
-import ControlledSrc from "../examples/tabs/controlled.vue?raw";
-import Swipe from "../examples/tabs/swipe.vue";
-import SwipeSrc from "../examples/tabs/swipe.vue?raw";
+import { defineComponentDoc } from "./define";
 
-export default {
+export default defineComponentDoc({
   name: "tabs",
   title: "Tabs",
   description:
@@ -22,26 +15,30 @@ export default {
       title: "Variants",
       description:
         "Pill for compact pickers in a toolbar, segmented for equivalent groupings, underline for longer section navigation.",
-      examples: [{ component: Variants, source: VariantsSrc, align: "start" }],
+      examples: ["variants"],
+      align: "start",
     },
     {
       id: "sizes",
       title: "Sizes",
       description: "sm (h-7), md (h-8, default), lg (h-10).",
-      examples: [{ component: Sizes, source: SizesSrc, align: "start" }],
+      examples: ["sizes"],
+      align: "start",
     },
     {
       id: "controlled",
       title: "Controlled",
       description: "Drive the active tab from outside with v-model.",
-      examples: [{ component: Controlled, source: ControlledSrc, align: "start" }],
+      examples: ["controlled"],
+      align: "start",
     },
     {
       id: "swipe",
       title: "Swipe (mobile)",
       description:
         "swipe enables left/right gestures to change tabs. Carousels, tables, and nested tablists are excluded automatically.",
-      examples: [{ component: Swipe, source: SwipeSrc, align: "start" }],
+      examples: ["swipe"],
+      align: "start",
     },
   ],
   apiReference: [
@@ -87,4 +84,4 @@ export default {
       ],
     },
   ],
-};
+});

@@ -1,28 +1,13 @@
-import badge from "./badge.vue";
-import button from "./button.vue";
-import card from "./card.vue";
-import dialog from "./dialog.vue";
-import dialogResponsive from "./dialog-responsive.vue";
-import field from "./field.vue";
-import input from "./input.vue";
-import select from "./select.vue";
-import table from "./table.vue";
-import tabs from "./tabs.vue";
-import introduction from "./introduction.vue";
+const modules = import.meta.glob("./*.vue", { eager: true });
 
-export const illustrations = {
-  badge,
-  button,
-  card,
-  dialog,
-  "dialog-responsive": dialogResponsive,
-  field,
-  input,
-  select,
-  table,
-  tabs,
-  introduction,
-};
+export const illustrations = Object.fromEntries(
+  Object.entries(modules)
+    .filter(([path]) => !path.endsWith("/IllustrationFrame.vue"))
+    .map(([path, mod]) => {
+      const name = path.replace(/^\.\//, "").replace(/\.vue$/, "");
+      return [name, mod.default];
+    }),
+);
 
 export function getIllustration(name) {
   return illustrations[name] || null;

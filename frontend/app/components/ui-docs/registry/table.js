@@ -1,11 +1,6 @@
-import Default from "../examples/table/default.vue";
-import DefaultSrc from "../examples/table/default.vue?raw";
-import WithBadge from "../examples/table/with-badge.vue";
-import WithBadgeSrc from "../examples/table/with-badge.vue?raw";
-import Empty from "../examples/table/empty.vue";
-import EmptySrc from "../examples/table/empty.vue?raw";
+import { defineComponentDoc } from "./define";
 
-export default {
+export default defineComponentDoc({
   name: "table",
   title: "Table",
   description:
@@ -29,19 +24,22 @@ export default {
       id: "default",
       title: "Default",
       description: "Table with Header and Body.",
-      examples: [{ component: Default, source: DefaultSrc, align: "start" }],
+      examples: ["default"],
+      align: "start",
     },
     {
       id: "with-badge",
       title: "Status with Badge",
       description: "Common pattern: status column uses Badge plain so it does not dominate the row.",
-      examples: [{ component: WithBadge, source: WithBadgeSrc, align: "start" }],
+      examples: ["with-badge"],
+      align: "start",
     },
     {
       id: "empty",
       title: "Empty state",
       description: "Use TableEmpty when there is no data. The colspan must match the column count.",
-      examples: [{ component: Empty, source: EmptySrc, align: "start" }],
+      examples: ["empty"],
+      align: "start",
     },
   ],
   apiReference: [
@@ -79,4 +77,4 @@ export default {
       ],
     },
   ],
-};
+});

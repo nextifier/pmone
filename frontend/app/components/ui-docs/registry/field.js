@@ -1,13 +1,6 @@
-import Basic from "../examples/field/basic.vue";
-import BasicSrc from "../examples/field/basic.vue?raw";
-import WithError from "../examples/field/with-error.vue";
-import WithErrorSrc from "../examples/field/with-error.vue?raw";
-import Horizontal from "../examples/field/horizontal.vue";
-import HorizontalSrc from "../examples/field/horizontal.vue?raw";
-import Group from "../examples/field/group.vue";
-import GroupSrc from "../examples/field/group.vue?raw";
+import { defineComponentDoc } from "./define";
 
-export default {
+export default defineComponentDoc({
   name: "field",
   title: "Field",
   description:
@@ -31,29 +24,32 @@ export default {
     {
       id: "basic",
       title: "Basic",
-      description:
-        "Standard layout: FieldLabel above, control in the middle, FieldDescription below.",
-      examples: [{ component: Basic, source: BasicSrc, align: "center" }],
+      description: "Standard layout: FieldLabel above, control in the middle, FieldDescription below.",
+      examples: ["basic"],
+      align: "center",
     },
     {
       id: "with-error",
       title: "Error state",
       description:
         "Set data-invalid on Field, aria-invalid on the control, then use FieldError for the message.",
-      examples: [{ component: WithError, source: WithErrorSrc, align: "center" }],
+      examples: ["with-error"],
+      align: "center",
     },
     {
       id: "horizontal",
       title: "Horizontal orientation",
       description: "Label and control on one row. Suits short forms and setting toggles.",
-      examples: [{ component: Horizontal, source: HorizontalSrc, align: "center" }],
+      examples: ["horizontal"],
+      align: "center",
     },
     {
       id: "group",
       title: "FieldSet and FieldGroup",
       description:
         "Wrap related fields together. FieldLegend gives the section a heading; FieldGroup is a vertical container between fields.",
-      examples: [{ component: Group, source: GroupSrc, align: "center" }],
+      examples: ["group"],
+      align: "center",
     },
   ],
   apiReference: [
@@ -97,4 +93,4 @@ export default {
       ],
     },
   ],
-};
+});

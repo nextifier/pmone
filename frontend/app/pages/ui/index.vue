@@ -88,17 +88,32 @@ import { getIllustration } from "@/components/ui-docs/illustrations";
 
 definePageMeta({ layout: "empty" });
 
-const items = computed(() =>
+// useState makes the metadata list survive Nuxt SSR → client hydration even if
+// Vite's dev SSR module cache is out of sync with the client (which happens
+// when registry files are added/removed without a dev-server restart). The
+// server serialises the list once; the client reads it from payload instead
+// of re-evaluating Object.keys(registry).
+const itemMeta = useState("ui-cards", () =>
   flatNav
     .filter((item) => item.group === "Components")
     .map((item) => {
       const entry = getEntry(item.name);
       return {
-        ...item,
+        name: item.name,
+        title: item.title,
         description: entry?.description || "",
-        illustration: getIllustration(item.name),
       };
     }),
+);
+
+// Illustration is a Vue component (not serialisable), resolved per-render.
+// If a stale cache means the illustration isn't found, the slot stays empty
+// without breaking hydration.
+const items = computed(() =>
+  itemMeta.value.map((item) => ({
+    ...item,
+    illustration: getIllustration(item.name),
+  })),
 );
 
 usePageMeta(null, {

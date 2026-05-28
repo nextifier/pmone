@@ -1,11 +1,6 @@
-import Default from "../examples/card/default.vue";
-import DefaultSrc from "../examples/card/default.vue?raw";
-import WithFooter from "../examples/card/with-footer.vue";
-import WithFooterSrc from "../examples/card/with-footer.vue?raw";
-import Grid from "../examples/card/grid.vue";
-import GridSrc from "../examples/card/grid.vue?raw";
+import { defineComponentDoc } from "./define";
 
-export default {
+export default defineComponentDoc({
   name: "card",
   title: "Card",
   description:
@@ -27,20 +22,23 @@ export default {
       id: "default",
       title: "Default",
       description: "Header with title and description, body in CardContent.",
-      examples: [{ component: Default, source: DefaultSrc, align: "center" }],
+      examples: ["default"],
+      align: "center",
     },
     {
       id: "with-footer",
       title: "With footer",
       description: "Add CardFooter to place action buttons at the bottom.",
-      examples: [{ component: WithFooter, source: WithFooterSrc, align: "center" }],
+      examples: ["with-footer"],
+      align: "center",
     },
     {
       id: "grid",
       title: "Card grid",
       description:
         "Common dashboard pattern: a row of stats cards in a responsive grid with gap-x-2 gap-y-6.",
-      examples: [{ component: Grid, source: GridSrc, align: "start" }],
+      examples: ["grid"],
+      align: "start",
     },
   ],
   apiReference: [
@@ -89,4 +87,4 @@ export default {
       ],
     },
   ],
-};
+});

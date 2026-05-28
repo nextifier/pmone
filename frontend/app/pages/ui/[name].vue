@@ -6,19 +6,7 @@
       <div class="min-h-screen-offset">
         <div class="container-wider">
           <div class="min-w-0 flex-1">
-            <div v-if="!entry" class="my-6 min-w-0 flex-1 sm:p-10">
-              <div class="mx-auto max-w-3xl text-center">
-                <h1 class="text-primary text-3xl font-semibold tracking-tighter">
-                  Component not found
-                </h1>
-                <p class="text-muted-foreground mt-3 tracking-tight">
-                  This component is not in the registry yet.
-                </p>
-                <Button to="/ui" variant="outline" class="mt-6 tracking-tight">
-                  Back to library
-                </Button>
-              </div>
-            </div>
+            <DocsNotFound v-if="!entry" />
 
             <div v-else class="relative flex items-start gap-x-4">
               <main class="mt-6 mb-24 min-w-0 flex-1 sm:p-10 sm:pb-32">
@@ -28,7 +16,6 @@
                   >
                     {{ entry.title }}
                   </h1>
-
                   <p
                     v-if="entry.description"
                     class="text-muted-foreground mt-3 text-base tracking-tight text-pretty sm:text-lg"
@@ -68,9 +55,13 @@
                     >
                       {{ section.description }}
                     </p>
-                    <div v-for="(example, index) in section.examples" :key="index" class="pt-2">
-                      <ComponentPreview :code="example.source" :align="example.align || 'start'">
-                        <component :is="example.component" />
+                    <div v-for="exampleId in section.examples" :key="exampleId" class="pt-2">
+                      <ComponentPreview
+                        v-if="resolveExample(exampleId).component"
+                        :code="resolveExample(exampleId).source"
+                        :align="section.align || 'start'"
+                      >
+                        <component :is="resolveExample(exampleId).component" />
                       </ComponentPreview>
                     </div>
                   </section>
@@ -92,117 +83,22 @@
                     <div v-for="ref in entry.apiReference" :key="ref.component" class="space-y-3">
                       <h3 class="font-mono text-base tracking-tight">{{ ref.component }}</h3>
 
-                      <div v-if="ref.props?.length">
-                        <p class="text-muted-foreground mb-2 text-sm tracking-tight">Props</p>
-                        <div class="overflow-hidden rounded-xl border">
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead class="w-[140px]">Prop</TableHead>
-                                <TableHead>Type</TableHead>
-                                <TableHead class="w-[100px]">Default</TableHead>
-                                <TableHead>Description</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              <TableRow v-for="prop in ref.props" :key="prop.name">
-                                <TableCell class="font-mono text-xs sm:text-sm">
-                                  {{ prop.name }}
-                                </TableCell>
-                                <TableCell class="font-mono text-xs">
-                                  <span class="text-muted-foreground">{{ prop.type }}</span>
-                                </TableCell>
-                                <TableCell class="font-mono text-xs">
-                                  {{ prop.default }}
-                                </TableCell>
-                                <TableCell class="text-sm tracking-tight">
-                                  {{ prop.description }}
-                                </TableCell>
-                              </TableRow>
-                            </TableBody>
-                          </Table>
-                        </div>
-                      </div>
-
-                      <div v-if="ref.events?.length">
-                        <p class="text-muted-foreground mt-3 mb-2 text-sm tracking-tight">Events</p>
-                        <div class="overflow-hidden rounded-xl border">
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead class="w-[180px]">Event</TableHead>
-                                <TableHead>Description</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              <TableRow v-for="event in ref.events" :key="event.name">
-                                <TableCell class="font-mono text-xs sm:text-sm">
-                                  {{ event.name }}
-                                </TableCell>
-                                <TableCell class="text-sm tracking-tight">
-                                  {{ event.description }}
-                                </TableCell>
-                              </TableRow>
-                            </TableBody>
-                          </Table>
-                        </div>
-                      </div>
-
-                      <div v-if="ref.slots?.length">
-                        <p class="text-muted-foreground mt-3 mb-2 text-sm tracking-tight">Slots</p>
-                        <div class="overflow-hidden rounded-xl border">
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead class="w-[180px]">Slot</TableHead>
-                                <TableHead>Description</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              <TableRow v-for="slot in ref.slots" :key="slot.name">
-                                <TableCell class="font-mono text-xs sm:text-sm">
-                                  {{ slot.name }}
-                                </TableCell>
-                                <TableCell class="text-sm tracking-tight">
-                                  {{ slot.description }}
-                                </TableCell>
-                              </TableRow>
-                            </TableBody>
-                          </Table>
-                        </div>
-                      </div>
+                      <ApiReferenceTable label="Props" :columns="propColumns" :rows="ref.props" />
+                      <ApiReferenceTable
+                        label="Events"
+                        :columns="eventColumns"
+                        :rows="ref.events"
+                      />
+                      <ApiReferenceTable label="Slots" :columns="slotColumns" :rows="ref.slots" />
                     </div>
                   </section>
                 </div>
 
-                <div
-                  v-if="prevEntry || nextEntry"
-                  class="mx-auto mt-12 flex max-w-3xl items-center justify-between gap-x-2"
-                >
-                  <Button
-                    v-if="prevEntry"
-                    :to="`/ui/${prevEntry.name}`"
-                    variant="secondary"
-                  >
-                    <Icon name="lucide:chevron-left" />
-                    {{ prevEntry.title }}
-                  </Button>
-                  <div v-else />
-
-                  <Button
-                    v-if="nextEntry"
-                    :to="`/ui/${nextEntry.name}`"
-                    variant="secondary"
-                    class="ml-auto"
-                  >
-                    {{ nextEntry.title }}
-                    <Icon name="lucide:chevron-right" />
-                  </Button>
-                </div>
+                <DocsPrevNext :prev="prevEntry" :next="nextEntry" />
               </main>
 
               <aside
-                class="sticky top-[var(--navbar-height-desktop)] hidden h-[calc(100vh-var(--navbar-height-desktop))] w-[220px] shrink-0 overflow-y-auto py-8 xl:block"
+                class="sticky top-(--navbar-height-desktop) hidden h-[calc(100vh-var(--navbar-height-desktop))] w-55 shrink-0 overflow-y-auto py-8 xl:block"
               >
                 <ScrollSpy
                   :key="contentId"
@@ -219,35 +115,47 @@
 </template>
 
 <script setup>
+import ApiReferenceTable from "@/components/ui-docs/ApiReferenceTable.vue";
 import ComponentPreview from "@/components/ui-docs/ComponentPreview.vue";
-import { getGuide } from "@/components/ui-docs/guides";
-import { getEntry } from "@/components/ui-docs/registry";
+import DocsNotFound from "@/components/ui-docs/DocsNotFound.vue";
+import DocsPrevNext from "@/components/ui-docs/DocsPrevNext.vue";
+import { getExample } from "@/components/ui-docs/examples-loader";
+import { getDocsEntry } from "@/components/ui-docs/lookup";
 import { findAdjacent } from "@/components/ui-docs/sidebar-nav";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
 definePageMeta({ layout: "empty" });
 
 const route = useRoute();
 const currentName = computed(() => route.params.name || "");
 
-const entry = computed(() => {
-  const name = currentName.value;
-  if (!name) return null;
-  return getEntry(name) || getGuide(name) || null;
-});
+const entry = computed(() => (currentName.value ? getDocsEntry(currentName.value) : null));
 
 const contentId = computed(() => `ui-${currentName.value}`);
 
 const adjacent = computed(() => findAdjacent(currentName.value));
 const prevEntry = computed(() => adjacent.value.prev);
 const nextEntry = computed(() => adjacent.value.next);
+
+const propColumns = [
+  { key: "name", label: "Prop", width: "140px", mono: true },
+  { key: "type", label: "Type", monoSmall: true },
+  { key: "default", label: "Default", width: "100px", monoSmall: true },
+  { key: "description", label: "Description" },
+];
+
+const eventColumns = [
+  { key: "name", label: "Event", width: "180px", mono: true },
+  { key: "description", label: "Description" },
+];
+
+const slotColumns = [
+  { key: "name", label: "Slot", width: "180px", mono: true },
+  { key: "description", label: "Description" },
+];
+
+function resolveExample(exampleId) {
+  return getExample(currentName.value, exampleId);
+}
 
 usePageMeta(null, {
   title: computed(() => (entry.value ? `${entry.value.title} · UI Library` : "UI Library")),

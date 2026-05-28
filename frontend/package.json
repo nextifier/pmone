@@ -98,6 +98,8 @@
     "esm-env": "npm:esm-env-runtime@^0.1.1"
   },
   "dependencies": {
-    "@takumi-rs/core": "^1.5.0"
+    "@takumi-rs/core": "^1.5.0",
+    "vee-validate": "^4.15.1",
+    "vue-input-otp": "^0.3.2"
   }
 }

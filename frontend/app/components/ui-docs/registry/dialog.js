@@ -1,11 +1,6 @@
-import Default from "../examples/dialog/default.vue";
-import DefaultSrc from "../examples/dialog/default.vue?raw";
-import Controlled from "../examples/dialog/controlled.vue";
-import ControlledSrc from "../examples/dialog/controlled.vue?raw";
-import WithForm from "../examples/dialog/with-form.vue";
-import WithFormSrc from "../examples/dialog/with-form.vue?raw";
+import { defineComponentDoc } from "./define";
 
-export default {
+export default defineComponentDoc({
   name: "dialog",
   title: "Dialog",
   description:
@@ -28,19 +23,23 @@ export default {
       id: "default",
       title: "Default",
       description: "Standard confirmation dialog. Trigger opens, Close dismisses.",
-      examples: [{ component: Default, source: DefaultSrc, align: "center" }],
+      examples: ["default"],
+      align: "center",
     },
     {
       id: "with-form",
       title: "With form",
       description: "Common layout: header, body with Field and Input, footer with action buttons.",
-      examples: [{ component: WithForm, source: WithFormSrc, align: "center" }],
+      examples: ["with-form"],
+      align: "center",
     },
     {
       id: "controlled",
       title: "Controlled",
-      description: "Drive the open state externally via v-model:open. Use when the dialog is triggered by a non-button event.",
-      examples: [{ component: Controlled, source: ControlledSrc, align: "center" }],
+      description:
+        "Drive the open state externally via v-model:open. Use when the dialog is triggered by a non-button event.",
+      examples: ["controlled"],
+      align: "center",
     },
   ],
   apiReference: [
@@ -84,4 +83,4 @@ export default {
       ],
     },
   ],
-};
+});

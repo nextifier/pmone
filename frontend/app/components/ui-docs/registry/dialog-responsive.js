@@ -1,11 +1,6 @@
-import Default from "../examples/dialog-responsive/default.vue";
-import DefaultSrc from "../examples/dialog-responsive/default.vue?raw";
-import WithForm from "../examples/dialog-responsive/with-form.vue";
-import WithFormSrc from "../examples/dialog-responsive/with-form.vue?raw";
-import PreventClose from "../examples/dialog-responsive/prevent-close.vue";
-import PreventCloseSrc from "../examples/dialog-responsive/prevent-close.vue?raw";
+import { defineComponentDoc } from "./define";
 
-export default {
+export default defineComponentDoc({
   name: "dialog-responsive",
   title: "Dialog Responsive",
   description:
@@ -25,33 +20,31 @@ export default {
       title: "Default",
       description:
         "Use the trigger slot for the opener, the default slot for the content. Open state is controlled with v-model:open.",
-      examples: [{ component: Default, source: DefaultSrc, align: "center" }],
+      examples: ["default"],
+      align: "center",
     },
     {
       id: "with-form",
       title: "With form",
       description:
         "Form pattern inside DialogResponsive: padding handled with a wrapper div, action buttons at the end.",
-      examples: [{ component: WithForm, source: WithFormSrc, align: "center" }],
+      examples: ["with-form"],
+      align: "center",
     },
     {
       id: "prevent-close",
       title: "Prevent close",
       description:
         "preventClose blocks overlay clicks and Escape. The close-prevented event lets you show a confirmation prompt.",
-      examples: [{ component: PreventClose, source: PreventCloseSrc, align: "center" }],
+      examples: ["prevent-close"],
+      align: "center",
     },
   ],
   apiReference: [
     {
       component: "DialogResponsive",
       props: [
-        {
-          name: "open",
-          type: "boolean",
-          default: "—",
-          description: "Open state. Supports v-model:open.",
-        },
+        { name: "open", type: "boolean", default: "—", description: "Open state. Supports v-model:open." },
         {
           name: "isResponsive",
           type: "boolean",
@@ -82,12 +75,7 @@ export default {
           default: "false",
           description: "Show a close button on the mobile drawer (default is swipe only).",
         },
-        {
-          name: "hideOverlay",
-          type: "boolean",
-          default: "false",
-          description: "Hide the dark backdrop.",
-        },
+        { name: "hideOverlay", type: "boolean", default: "false", description: "Hide the dark backdrop." },
         {
           name: "flushContent",
           type: "boolean",
@@ -103,7 +91,10 @@ export default {
       ],
       events: [
         { name: "update:open", description: "Fires when the open state changes." },
-        { name: "close-prevented", description: "Fires when the user tries to close with preventClose enabled." },
+        {
+          name: "close-prevented",
+          description: "Fires when the user tries to close with preventClose enabled.",
+        },
       ],
       slots: [
         { name: "trigger", description: "The opener button. Receives open from the scope." },
@@ -113,4 +104,4 @@ export default {
       ],
     },
   ],
-};
+});

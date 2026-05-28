@@ -1,11 +1,6 @@
-import Default from "../examples/select/default.vue";
-import DefaultSrc from "../examples/select/default.vue?raw";
-import WithGroup from "../examples/select/with-group.vue";
-import WithGroupSrc from "../examples/select/with-group.vue?raw";
-import Disabled from "../examples/select/disabled.vue";
-import DisabledSrc from "../examples/select/disabled.vue?raw";
+import { defineComponentDoc } from "./define";
 
-export default {
+export default defineComponentDoc({
   name: "select",
   title: "Select",
   description:
@@ -28,20 +23,23 @@ export default {
       id: "default",
       title: "Default",
       description: "Trigger, value placeholder, then SelectItem rows inside Content.",
-      examples: [{ component: Default, source: DefaultSrc, align: "center" }],
+      examples: ["default"],
+      align: "center",
     },
     {
       id: "with-group",
       title: "With groups",
       description:
         "Group options with SelectGroup and SelectLabel. Labels are visual separators, not selectable.",
-      examples: [{ component: WithGroup, source: WithGroupSrc, align: "center" }],
+      examples: ["with-group"],
+      align: "center",
     },
     {
       id: "disabled",
       title: "Disabled",
       description: "The disabled attribute on the Select root disables the trigger.",
-      examples: [{ component: Disabled, source: DisabledSrc, align: "center" }],
+      examples: ["disabled"],
+      align: "center",
     },
   ],
   apiReference: [
@@ -80,4 +78,4 @@ export default {
       ],
     },
   ],
-};
+});

@@ -1,13 +1,6 @@
-import Variants from "../examples/badge/variants.vue";
-import VariantsSrc from "../examples/badge/variants.vue?raw";
-import WithIcon from "../examples/badge/with-icon.vue";
-import WithIconSrc from "../examples/badge/with-icon.vue?raw";
-import CustomIcon from "../examples/badge/custom-icon.vue";
-import CustomIconSrc from "../examples/badge/custom-icon.vue?raw";
-import Plain from "../examples/badge/plain.vue";
-import PlainSrc from "../examples/badge/plain.vue?raw";
+import { defineComponentDoc } from "./define";
 
-export default {
+export default defineComponentDoc({
   name: "badge",
   title: "Badge",
   description:
@@ -20,28 +13,33 @@ export default {
     {
       id: "variants",
       title: "Variants",
-      description: "Each variant gets a small dot indicator at the start of the label, except outline.",
-      examples: [{ component: Variants, source: VariantsSrc, align: "center" }],
+      description:
+        "Each variant gets a small dot indicator at the start of the label, except outline.",
+      examples: ["variants"],
+      align: "center",
     },
     {
       id: "with-icon",
       title: "With icon",
       description:
         "The withIcon prop swaps the dot for a default icon that matches the variant (info, success check, warning triangle, and so on).",
-      examples: [{ component: WithIcon, source: WithIconSrc, align: "center" }],
+      examples: ["with-icon"],
+      align: "center",
     },
     {
       id: "custom-icon",
       title: "Custom icon",
       description: "Pass any hugeicons or lucide name to icon to override the default.",
-      examples: [{ component: CustomIcon, source: CustomIconSrc, align: "center" }],
+      examples: ["custom-icon"],
+      align: "center",
     },
     {
       id: "plain",
       title: "Plain",
       description:
         "plain removes the border, padding, and radius. Good inside tables or inline with body text.",
-      examples: [{ component: Plain, source: PlainSrc, align: "center" }],
+      examples: ["plain"],
+      align: "center",
     },
   ],
   apiReference: [
@@ -81,4 +79,4 @@ export default {
       ],
     },
   ],
-};
+});
