@@ -26,6 +26,31 @@ export default defineNuxtConfig({
 
   routeRules: {
     "/docs": { redirect: { to: "/docs/staff-dashboard-overview", statusCode: 302 } },
+
+    // Admin / auth pages (everything behind sanctum): no OG image, excluded from
+    // the sitemap, and not indexed. This removes the build-time Takumi OG render
+    // fan-out across ~170 admin routes (the build hang) and keeps the dashboard
+    // out of search engines. Public, share-worthy routes are re-enabled below —
+    // more specific routeRules win over "/**".
+    "/**": { ogImage: false, sitemap: false, robots: false },
+
+    "/": { ogImage: true, sitemap: true, robots: true },
+    "/privacy": { ogImage: true, sitemap: true, robots: true },
+    "/terms": { ogImage: true, sitemap: true, robots: true },
+    "/news": { ogImage: true, sitemap: true, robots: true },
+    "/news/**": { ogImage: true, sitemap: true, robots: true },
+    "/docs/**": { ogImage: true, sitemap: true, robots: true },
+    "/p/**": { ogImage: true, sitemap: true, robots: true },
+    "/f/**": { ogImage: true, sitemap: true, robots: true },
+    "/forms/**": { ogImage: true, sitemap: true, robots: true },
+    "/hotels": { ogImage: true, sitemap: true, robots: true },
+    "/hotels/**": { ogImage: true, sitemap: true, robots: true },
+    "/accommodation": { ogImage: true, sitemap: true, robots: true },
+    "/accommodation/**": { ogImage: true, sitemap: true, robots: true },
+
+    // Guest auth pages: OG is fine (shareable) but keep them out of the index.
+    "/login": { ogImage: true, sitemap: false, robots: false },
+    "/signup": { ogImage: true, sitemap: false, robots: false },
   },
 
   app: {
@@ -55,6 +80,11 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    // Disable production sourcemaps — they are not used in prod and the
+    // @tailwindcss/vite plugin emitted 300+ "Sourcemap is likely to be
+    // incorrect" warnings that flooded the build log.
+    build: { sourcemap: false },
+    css: { devSourcemap: false },
     optimizeDeps: {
       // Bumping this forces Vite to compute a new `?v=` hash on the next
       // dev start, busting any stale browser-cached modules from previous
@@ -209,10 +239,19 @@ export default defineNuxtConfig({
   },
 
   ogImage: {
-    // Keep the Takumi wasm renderer out of the Cloudflare Pages Functions
-    // worker bundle (it adds ~5 MB and pushed us over the 25 MiB limit).
-    // OG images are now only generated at build time for prerendered routes.
+    // OG images are generated at build time only (prerendered public routes).
+    // The Takumi renderer runs in Node during the build via its native binding.
     zeroRuntime: true,
+    // Keep the Takumi wasm renderer OUT of the Cloudflare Pages Functions worker
+    // bundle. zeroRuntime alone only disables the satori/browser runtime
+    // renderers, not takumi — so on the cloudflare preset takumi still resolves
+    // to its ~5 MB wasm binding and pushes the worker over the 25 MiB limit.
+    // Forcing the runtime binding to false mocks it out of the deployed worker.
+    compatibility: {
+      runtime: {
+        takumi: false,
+      },
+    },
     defaults: {
       renderer: "takumi",
     },
@@ -297,6 +336,15 @@ export default defineNuxtConfig({
   nitro: {
     alias: {
       "vue-stream-markdown": noopMock,
+    },
+    prerender: {
+      // Do NOT crawl the app for routes to prerender. Crawling discovered the
+      // whole admin tree (~170 routes) and queued a build-time OG render for
+      // each — the cause of the build hang. Only the explicit public routes
+      // below are prerendered (and get a build-time Takumi OG image).
+      crawlLinks: false,
+      failOnError: false,
+      routes: ["/", "/privacy", "/terms", "/news", "/hotels", "/accommodation"],
     },
   },
 
