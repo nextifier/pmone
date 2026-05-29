@@ -16,6 +16,7 @@ const props = withDefaults(
       variant?: TabsVariant;
       size?: TabsSize;
       swipe?: boolean;
+      swipeable?: boolean;
       swipeExclude?: string[];
     }
   >(),
@@ -23,6 +24,7 @@ const props = withDefaults(
     variant: TABS_DEFAULTS.variant,
     size: TABS_DEFAULTS.size,
     swipe: false,
+    swipeable: false,
     swipeExclude: () => [
       "[aria-roledescription='carousel']",
       ".pswp",
@@ -36,8 +38,14 @@ const emits = defineEmits<TabsRootEmits>();
 
 const forwarded = useForwardPropsEmits(
   computed(() => {
-    const { variant: _v, size: _s, swipe: _sw, swipeExclude: _se, ...rest } =
-      props;
+    const {
+      variant: _v,
+      size: _s,
+      swipe: _sw,
+      swipeable: _swa,
+      swipeExclude: _se,
+      ...rest
+    } = props;
     return rest as TabsRootProps;
   }),
   emits,
@@ -46,6 +54,7 @@ const forwarded = useForwardPropsEmits(
 provide(TABS_CONTEXT, {
   variant: computed(() => props.variant),
   size: computed(() => props.size),
+  swipeable: computed(() => props.swipeable),
 });
 
 const tabsRootInstance = ref<InstanceType<typeof TabsRoot> | null>(null);

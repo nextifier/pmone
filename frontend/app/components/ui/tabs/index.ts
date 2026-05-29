@@ -1,5 +1,8 @@
 export { default as Tabs } from "./Tabs.vue";
+export { default as TabsCarousel } from "./TabsCarousel.vue";
+export { default as TabsCarouselPanel } from "./TabsCarouselPanel.vue";
 export { default as TabsContent } from "./TabsContent.vue";
 export { default as TabsIndicator } from "./TabsIndicator.vue";
 export { default as TabsList } from "./TabsList.vue";
+export { default as TabsSelectionIndicator } from "./TabsSelectionIndicator.vue";
 export { default as TabsTrigger } from "./TabsTrigger.vue";

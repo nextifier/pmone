@@ -477,6 +477,11 @@ const navMainGroups = computed(() => {
       iconName: "hugeicons:book-open-01",
     },
     {
+      label: "UI Components",
+      path: "/ui",
+      iconName: "hugeicons:material-and-texture",
+    },
+    {
       label: "Colors",
       path: "/colors",
       iconName: "hugeicons:paint-board",

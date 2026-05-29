@@ -7,7 +7,16 @@ export default defineComponentDoc({
     "View switcher with three visual variants (pill, segmented, underline) and three sizes. Optional swipe gesture on mobile and automatic horizontal overflow scroll.",
   installation: {
     importPath: "@/components/ui/tabs",
-    imports: ["Tabs", "TabsList", "TabsTrigger", "TabsContent", "TabsIndicator"],
+    imports: [
+      "Tabs",
+      "TabsList",
+      "TabsTrigger",
+      "TabsContent",
+      "TabsIndicator",
+      "TabsCarousel",
+      "TabsCarouselPanel",
+      "TabsSelectionIndicator",
+    ],
   },
   sections: [
     {
@@ -61,6 +70,14 @@ export default defineComponentDoc({
       examples: ["swipe"],
       align: "start",
     },
+    {
+      id: "swipeable",
+      title: "Swipeable carousel",
+      description:
+        "swipeable turns the panels into a horizontal scroll-snap carousel built with TabsCarousel and TabsCarouselPanel. The active tab follows the scroll position and a scroll-driven TabsSelectionIndicator tracks your finger where supported (Chrome 125+), falling back to the sliding TabsIndicator elsewhere. This is separate from the swipe gesture prop.",
+      examples: ["swipeable"],
+      align: "start",
+    },
   ],
   apiReference: [
     {
@@ -97,6 +114,13 @@ export default defineComponentDoc({
           description: "Enable left/right swipe to change tabs on mobile.",
         },
         {
+          name: "swipeable",
+          type: "boolean",
+          default: "false",
+          description:
+            "Enable the scroll-snap carousel mode. Use with TabsCarousel + TabsCarouselPanel and optionally TabsSelectionIndicator. Distinct from swipe.",
+        },
+        {
           name: "swipeExclude",
           type: "string[]",
           default: '["[aria-roledescription=carousel]", ".pswp", ...]',
@@ -124,6 +148,24 @@ export default defineComponentDoc({
       component: "TabsContent / TabsIndicator",
       props: [
         { name: "value", type: "string", default: "—", description: "(TabsContent) Panel shown for the matching trigger. TabsIndicator renders the sliding marker." },
+      ],
+    },
+    {
+      component: "TabsCarousel",
+      props: [
+        { name: "class", type: "string", default: "—", description: "Horizontal scroll-snap container. Wraps TabsCarouselPanel children and syncs the active tab with the scroll position. Requires swipeable on Tabs." },
+      ],
+    },
+    {
+      component: "TabsCarouselPanel",
+      props: [
+        { name: "value", type: "string", default: "—", description: "Carousel panel matched against the active tab value. Always mounted and laid out side by side." },
+      ],
+    },
+    {
+      component: "TabsSelectionIndicator",
+      props: [
+        { name: "class", type: "string", default: "—", description: "Scroll-driven marker that tracks the carousel position. Place inside TabsList; it measures the triggers automatically. Only visible where scroll-driven animations are supported (Chrome 125+)." },
       ],
     },
   ],

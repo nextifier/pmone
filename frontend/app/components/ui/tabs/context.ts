@@ -6,6 +6,7 @@ export type TabsSize = "sm" | "md" | "lg";
 export interface TabsContext {
   variant: ComputedRef<TabsVariant>;
   size: ComputedRef<TabsSize>;
+  swipeable: ComputedRef<boolean>;
 }
 
 export const TABS_CONTEXT: InjectionKey<TabsContext> = Symbol("TabsContext");
@@ -13,6 +14,7 @@ export const TABS_CONTEXT: InjectionKey<TabsContext> = Symbol("TabsContext");
 export const TABS_DEFAULTS = {
   variant: "pill" as const,
   size: "md" as const,
+  swipeable: false as const,
 };
 
 export const tabsListClasses: Record<TabsVariant, string> = {
