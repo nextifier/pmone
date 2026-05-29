@@ -29,7 +29,13 @@ watch(isOpen, (newVal, oldVal) => {
   } else if (!newVal && oldVal && pushedHistoryState.value) {
     pushedHistoryState.value = false
     window.removeEventListener('popstate', onPopState)
-    window.history.back()
+    // Only rewind the entry we pushed on open if we're still sitting on it
+    // (a normal dismiss). If a navigation has since moved past it - e.g.
+    // selecting a command-palette item - calling back() would undo that
+    // navigation and bounce the user back to where they started.
+    if (window.history.state?.dialogOpen) {
+      window.history.back()
+    }
   }
 })
 

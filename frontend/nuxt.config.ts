@@ -209,6 +209,10 @@ export default defineNuxtConfig({
   },
 
   ogImage: {
+    // Keep the Takumi wasm renderer out of the Cloudflare Pages Functions
+    // worker bundle (it adds ~5 MB and pushed us over the 25 MiB limit).
+    // OG images are now only generated at build time for prerendered routes.
+    zeroRuntime: true,
     defaults: {
       renderer: "takumi",
     },

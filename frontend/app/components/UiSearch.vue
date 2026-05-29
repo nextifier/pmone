@@ -39,9 +39,9 @@ const open = ref(false);
 const router = useRouter();
 const { metaSymbol } = useShortcuts();
 
-function navigateToItem(name) {
+async function navigateToItem(name) {
+  await router.push(`/ui/${name}`);
   open.value = false;
-  router.push(`/ui/${name}`);
 }
 
 defineShortcuts({

@@ -90,9 +90,9 @@ const groupedDocs = computed(() => {
   });
 });
 
-function navigateToDoc(slug) {
+async function navigateToDoc(slug) {
+  await router.push(`/docs/${slug}`);
   open.value = false;
-  router.push(`/docs/${slug}`);
 }
 
 // Keyboard shortcut: Cmd+K / Ctrl+K
