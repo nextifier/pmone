@@ -71,11 +71,26 @@ export default defineComponentDoc({
           description: "Strip border, padding, and radius. Keeps only the dot or icon and the label.",
         },
         {
+          name: "asChild",
+          type: "boolean",
+          default: "false",
+          description: "Merge props onto the child element instead of rendering a span. Forwards to reka-ui Primitive.",
+        },
+        {
+          name: "as",
+          type: "string | Component",
+          default: '"span"',
+          description: "Element or component to render as. Forwards to reka-ui Primitive.",
+        },
+        {
           name: "class",
           type: "string",
           default: "—",
           description: "Extra classes, merged with cn().",
         },
+      ],
+      slots: [
+        { name: "default", description: "Badge label content." },
       ],
     },
   ],

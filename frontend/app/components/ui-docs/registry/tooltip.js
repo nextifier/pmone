@@ -26,6 +26,15 @@ export default defineComponentDoc({
       props: [
         { name: "open", type: "boolean", default: "—", description: "Open state. Supports v-model:open." },
       ],
+      events: [
+        { name: "update:open", description: "Fires when the tooltip shows or hides. Enables v-model:open." },
+      ],
+    },
+    {
+      component: "TooltipTrigger",
+      props: [
+        { name: "asChild", type: "boolean", default: "false", description: "Merge props onto the child element instead of a wrapper." },
+      ],
     },
     {
       component: "TooltipContent",
@@ -35,4 +44,14 @@ export default defineComponentDoc({
       ],
     },
   ],
+  accessibility: {
+    keyboard: [
+      { keys: ["Tab"], description: "Moving focus onto the trigger shows the tooltip." },
+      { keys: ["Esc"], description: "Dismisses the tooltip while it is open." },
+    ],
+    notes: [
+      "Opens on keyboard focus, not only on pointer hover, so keyboard users get the same hint.",
+      "The tooltip content is non-focusable and is linked to the trigger via aria-describedby.",
+    ],
+  },
 });

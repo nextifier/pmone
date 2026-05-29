@@ -17,15 +17,30 @@ export default defineComponentDoc({
       examples: ["default"],
       align: "center",
     },
+    {
+      id: "with-label",
+      title: "With label",
+      description: "Pair with a Label for a complete form field.",
+      examples: ["with-label"],
+      align: "center",
+    },
+    {
+      id: "required",
+      title: "Required",
+      description: "Pass required to mark the inner input required.",
+      examples: ["required"],
+      align: "center",
+    },
   ],
   apiReference: [
     {
       component: "InputPhone",
       props: [
         { name: "modelValue", type: "string", default: '""', description: "E.164-formatted phone string. Supports v-model." },
-        { name: "defaultCountry", type: "string", default: '"US"', description: "ISO country code for the initial selection." },
         { name: "required", type: "boolean", default: "false", description: "Mark the inner input required." },
-        { name: "disabled", type: "boolean", default: "false", description: "Disable the control." },
+      ],
+      events: [
+        { name: "update:modelValue", description: "Fires with the parsed phone string. Enables v-model." },
       ],
     },
   ],

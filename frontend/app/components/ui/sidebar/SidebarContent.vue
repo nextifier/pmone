@@ -8,7 +8,7 @@ const props = defineProps<{
 </script>
 
 <template>
-  <ScrollArea type="hover" :scrollHideDelay="0" asChild>
+  <ScrollArea type="hover" :scrollHideDelay="0" viewport-class="scroll-fade-y" asChild>
     <div
       data-slot="sidebar-content"
       data-sidebar="content"

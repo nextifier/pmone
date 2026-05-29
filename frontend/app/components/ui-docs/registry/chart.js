@@ -38,6 +38,9 @@ export default defineComponentDoc({
         { name: "config", type: "ChartConfig", default: "—", description: "Map of dataKey → { label, color, icon }. Drives theming and legend." },
         { name: "class", type: "string", default: "—", description: "Extra classes for the wrapping div." },
       ],
+      slots: [
+        { name: "default", description: "Scoped slot exposing { id, config } for the chart leaf component." },
+      ],
     },
     {
       component: "ChartLineDefault",
@@ -53,6 +56,23 @@ export default defineComponentDoc({
         { name: "value", type: "number", default: "0", description: "Current value." },
         { name: "max", type: "number", default: "100", description: "Maximum value." },
         { name: "label", type: "string", default: "—", description: "Centre label." },
+      ],
+    },
+    {
+      component: "ChartLegendContent",
+      props: [
+        { name: "config", type: "ChartConfig", default: "—", description: "Theming map used to render legend swatches and labels." },
+        { name: "class", type: "string", default: "—", description: "Extra classes for the legend row." },
+      ],
+    },
+    {
+      component: "ChartTooltipContent",
+      props: [
+        { name: "config", type: "ChartConfig", default: "—", description: "Theming map for tooltip swatches and labels." },
+        { name: "hideLabel", type: "boolean", default: "false", description: "Hide the tooltip title row." },
+      ],
+      slots: [
+        { name: "default", description: "Override the tooltip body. Receives the hovered data point." },
       ],
     },
   ],

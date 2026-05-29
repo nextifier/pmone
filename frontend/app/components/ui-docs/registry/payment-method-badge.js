@@ -29,8 +29,11 @@ export default defineComponentDoc({
     {
       component: "PaymentMethodBadge",
       props: [
-        { name: "method", type: "string", default: "—", description: "Method id (visa, mastercard, amex, jcb, bca, mandiri, bni, bri, gopay, ovo, dana, qris)." },
+        { name: "channel", type: "string | null", default: "—", description: "Payment channel id; resolves the logo and label first (e.g. a gateway channel code)." },
+        { name: "method", type: "string | null", default: "—", description: "Method id fallback (visa, mastercard, amex, jcb, bca, mandiri, bni, bri, gopay, ovo, dana, qris)." },
         { name: "size", type: '"sm" | "md" | "lg"', default: '"md"', description: "Badge height." },
+        { name: "showLabel", type: "boolean", default: "true", description: "Show the text label next to the logo." },
+        { name: "iconOnly", type: "boolean", default: "false", description: "Render only the logo; falls back to the label when no logo exists." },
       ],
     },
   ],

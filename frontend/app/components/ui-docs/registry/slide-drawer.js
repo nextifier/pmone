@@ -29,14 +29,42 @@ export default defineComponentDoc({
       examples: ["default"],
       align: "center",
     },
+    {
+      id: "no-handle",
+      title: "Without handle",
+      description: "Set show-handle to false to hide the drag grabber.",
+      examples: ["no-handle"],
+      align: "center",
+    },
+    {
+      id: "with-form",
+      title: "With form",
+      description: "Labelled fields in the body with actions in the sticky footer.",
+      examples: ["with-form"],
+      align: "center",
+    },
   ],
   apiReference: [
     {
       component: "SlideDrawer",
       props: [
-        { name: "open", type: "boolean", default: "—", description: "Open state. Supports v-model:open." },
-        { name: "side", type: '"left" | "right"', default: '"right"', description: "Edge to slide in from." },
-        { name: "maxWidth", type: "string", default: '"480px"', description: "Max width of the drawer." },
+        { name: "open", type: "boolean", default: "false", description: "Open state. Supports v-model:open." },
+        { name: "showHandle", type: "boolean", default: "true", description: "Show the drag grabber at the top of the drawer." },
+      ],
+      events: [
+        { name: "update:open", description: "Fires when the drawer opens or closes. Enables v-model:open." },
+      ],
+    },
+    {
+      component: "SlideDrawerHeader / SlideDrawerBody / SlideDrawerFooter",
+      props: [
+        { name: "class", type: "string", default: "—", description: "Header and footer stay sticky; Body is the scrollable middle region." },
+      ],
+    },
+    {
+      component: "SlideDrawerTitle / SlideDrawerDescription",
+      props: [
+        { name: "class", type: "string", default: "—", description: "Typography for the drawer heading and supporting text." },
       ],
     },
   ],

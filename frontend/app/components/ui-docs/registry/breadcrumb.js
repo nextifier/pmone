@@ -54,6 +54,9 @@ export default defineComponentDoc({
       props: [
         { name: "class", type: "string", default: "—", description: "Override the default chevron or dots." },
       ],
+      slots: [
+        { name: "default", description: "Replace the built-in separator icon (chevron) or ellipsis with custom content." },
+      ],
     },
   ],
 });

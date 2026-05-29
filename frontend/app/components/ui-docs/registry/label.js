@@ -17,6 +17,20 @@ export default defineComponentDoc({
       examples: ["default"],
       align: "center",
     },
+    {
+      id: "with-checkbox",
+      title: "With checkbox",
+      description: "Pair with a Checkbox so the label toggles the control.",
+      examples: ["with-checkbox"],
+      align: "center",
+    },
+    {
+      id: "required",
+      title: "Required",
+      description: "Add a required marker inside the label.",
+      examples: ["required"],
+      align: "center",
+    },
   ],
   apiReference: [
     {

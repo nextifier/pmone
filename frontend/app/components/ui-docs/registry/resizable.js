@@ -24,6 +24,13 @@ export default defineComponentDoc({
       examples: ["vertical"],
       align: "start",
     },
+    {
+      id: "with-handle",
+      title: "With handle",
+      description: "Nested groups with visible drag handles via withHandle on each ResizableHandle.",
+      examples: ["with-handle"],
+      align: "start",
+    },
   ],
   apiReference: [
     {
@@ -32,6 +39,9 @@ export default defineComponentDoc({
         { name: "direction", type: '"horizontal" | "vertical"', default: '"horizontal"', description: "Split axis." },
         { name: "autoSaveId", type: "string", default: "—", description: "Persist layout to localStorage under this key." },
       ],
+      events: [
+        { name: "layout", description: "Fires with the array of panel sizes whenever the layout changes." },
+      ],
     },
     {
       component: "ResizablePanel",
@@ -39,12 +49,21 @@ export default defineComponentDoc({
         { name: "defaultSize", type: "number", default: "—", description: "Initial size percentage (0-100)." },
         { name: "minSize", type: "number", default: "—", description: "Minimum size percentage." },
         { name: "maxSize", type: "number", default: "—", description: "Maximum size percentage." },
+        { name: "collapsible", type: "boolean", default: "false", description: "Allow the panel to collapse past minSize." },
+      ],
+      events: [
+        { name: "resize", description: "Fires with the new size when this panel is resized." },
+        { name: "collapse", description: "Fires when the panel collapses." },
+        { name: "expand", description: "Fires when the panel expands from a collapsed state." },
       ],
     },
     {
       component: "ResizableHandle",
       props: [
         { name: "withHandle", type: "boolean", default: "false", description: "Render a visible drag handle marker." },
+      ],
+      events: [
+        { name: "dragging", description: "Fires with a boolean as the handle starts and stops dragging." },
       ],
     },
   ],

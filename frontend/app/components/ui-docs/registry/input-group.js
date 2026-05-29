@@ -34,6 +34,12 @@ export default defineComponentDoc({
   ],
   apiReference: [
     {
+      component: "InputGroup",
+      props: [
+        { name: "class", type: "string", default: "—", description: "Wrapper that flattens the seams between the input and its addons." },
+      ],
+    },
+    {
       component: "InputGroupAddon",
       props: [
         { name: "align", type: '"start" | "end"', default: '"start"', description: "Visual position relative to the input." },
@@ -44,6 +50,18 @@ export default defineComponentDoc({
       props: [
         { name: "variant", type: "ButtonVariants[\"variant\"]", default: '"ghost"', description: "Same enum as Button." },
         { name: "size", type: "ButtonVariants[\"size\"]", default: '"sm"', description: "Same enum as Button." },
+      ],
+    },
+    {
+      component: "InputGroupInput / InputGroupTextarea",
+      props: [
+        { name: "class", type: "string", default: "—", description: "Borderless input/textarea variants that sit flush inside the group." },
+      ],
+    },
+    {
+      component: "InputGroupText",
+      props: [
+        { name: "class", type: "string", default: "—", description: "Static text addon (currency symbol, unit, prefix label)." },
       ],
     },
   ],

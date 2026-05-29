@@ -34,6 +34,9 @@ export default defineComponentDoc({
         },
         { name: "disabled", type: "boolean", default: "false", description: "Disable input." },
       ],
+      events: [
+        { name: "update:modelValue", description: "Fires with the new checked state. Enables v-model." },
+      ],
     },
   ],
 });

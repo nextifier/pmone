@@ -17,6 +17,25 @@ export default defineComponentDoc({
       "CardAction",
     ],
   },
+  anatomy: {
+    tree: [
+      {
+        component: "Card",
+        children: [
+          {
+            component: "CardHeader",
+            children: [
+              { component: "CardTitle" },
+              { component: "CardDescription" },
+              { component: "CardAction" },
+            ],
+          },
+          { component: "CardContent" },
+          { component: "CardFooter" },
+        ],
+      },
+    ],
+  },
   sections: [
     {
       id: "default",
@@ -83,6 +102,17 @@ export default defineComponentDoc({
           type: "string",
           default: "—",
           description: "Body and action area. Padding is preset.",
+        },
+      ],
+    },
+    {
+      component: "CardAction",
+      props: [
+        {
+          name: "class",
+          type: "string",
+          default: "—",
+          description: "Placed inside CardHeader; grid-positions an action (button, menu) to the top-right.",
         },
       ],
     },

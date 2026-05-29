@@ -48,6 +48,20 @@ export default defineComponentDoc({
         { name: "disabled", type: "boolean", default: "false", description: "Disable input." },
         { name: "id", type: "string", default: "—", description: "Match with Label for prop." },
       ],
+      events: [
+        { name: "update:modelValue", description: "Fires with the new checked state. Enables v-model." },
+      ],
     },
   ],
+  accessibility: {
+    keyboard: [
+      { keys: ["Space"], description: "Toggles the checkbox when focused." },
+      { keys: ["Tab"], description: "Moves focus to or from the checkbox." },
+    ],
+    notes: [
+      "Uses role=checkbox with aria-checked reflecting the state.",
+      "Supports an indeterminate (mixed) state via aria-checked=\"mixed\".",
+      "Pair with a label so the control's purpose is announced.",
+    ],
+  },
 });

@@ -29,7 +29,8 @@ export default defineComponentDoc({
       props: [
         { name: "modelValue", type: "number", default: "0", description: "Progress percentage, 0-100. Supports v-model." },
         { name: "max", type: "number", default: "100", description: "Max value." },
-        { name: "class", type: "string", default: "—", description: "Override height or radius." },
+        { name: "class", type: "string", default: "—", description: "Override height or radius of the track." },
+        { name: "indicatorClass", type: "string", default: "—", description: "Override the colour or style of the filled bar." },
       ],
     },
   ],

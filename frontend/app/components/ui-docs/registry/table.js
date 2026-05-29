@@ -19,6 +19,16 @@ export default defineComponentDoc({
       "TableEmpty",
     ],
   },
+  anatomy: {
+    tree: [
+      { component: "Table", children: [
+        { component: "TableCaption" },
+        { component: "TableHeader", children: [ { component: "TableRow", children: [ { component: "TableHead" } ] } ] },
+        { component: "TableBody", children: [ { component: "TableRow", children: [ { component: "TableCell" } ] } ] },
+        { component: "TableFooter" },
+      ]},
+    ],
+  },
   sections: [
     {
       id: "default",
@@ -73,6 +83,17 @@ export default defineComponentDoc({
           type: "number",
           default: "1",
           description: "Must match the number of columns in the header.",
+        },
+      ],
+    },
+    {
+      component: "TableHeader / TableBody / TableFooter / TableRow / TableCaption",
+      props: [
+        {
+          name: "class",
+          type: "string",
+          default: "—",
+          description: "Semantic table sections. Render the matching thead/tbody/tfoot/tr/caption with design-system styling.",
         },
       ],
     },

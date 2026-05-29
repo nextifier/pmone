@@ -17,6 +17,20 @@ export default defineComponentDoc({
       examples: ["default"],
       align: "center",
     },
+    {
+      id: "profile",
+      title: "Profile",
+      description: "Show an avatar, name, and bio in a richer card layout.",
+      examples: ["profile"],
+      align: "center",
+    },
+    {
+      id: "sides",
+      title: "Sides",
+      description: "Set side to top, right, bottom, or left on the content.",
+      examples: ["sides"],
+      align: "center",
+    },
   ],
   apiReference: [
     {
@@ -25,6 +39,15 @@ export default defineComponentDoc({
         { name: "open", type: "boolean", default: "—", description: "Open state. Supports v-model:open." },
         { name: "openDelay", type: "number", default: "700", description: "Delay before opening (ms)." },
         { name: "closeDelay", type: "number", default: "300", description: "Delay before closing (ms)." },
+      ],
+      events: [
+        { name: "update:open", description: "Fires when the card opens or closes. Enables v-model:open." },
+      ],
+    },
+    {
+      component: "HoverCardTrigger",
+      props: [
+        { name: "asChild", type: "boolean", default: "false", description: "Merge props onto the child element instead of a wrapper." },
       ],
     },
     {
@@ -35,4 +58,14 @@ export default defineComponentDoc({
       ],
     },
   ],
+  accessibility: {
+    keyboard: [
+      { keys: ["Tab"], description: "Moving focus onto the trigger opens the card after openDelay." },
+      { keys: ["Esc"], description: "Dismisses the card while it is open." },
+    ],
+    notes: [
+      "Intended as a sighted-user hover preview; it opens on hover or focus of the trigger.",
+      "The content is not focus-trapped and the card is non-modal.",
+    ],
+  },
 });

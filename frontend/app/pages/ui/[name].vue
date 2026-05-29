@@ -1,12 +1,6 @@
 <template>
-  <SidebarProvider :style="{ '--sidebar-width': '18rem' }">
-    <UiSidebar :current-name="currentName" />
-    <SidebarInset>
-      <UiHeader />
-      <div class="min-h-screen-offset">
-        <div class="container-wider">
-          <div class="min-w-0 flex-1">
-            <DocsNotFound v-if="!entry" />
+  <div class="min-w-0 flex-1">
+    <DocsNotFound v-if="!entry" />
 
             <div v-else class="relative flex items-start gap-x-4">
               <main class="mt-6 mb-24 min-w-0 flex-1 sm:p-10 sm:pb-32">
@@ -38,6 +32,23 @@
                     >
                       {{ entry.whenToUse.description }}
                     </p>
+                  </section>
+
+                  <section
+                    v-if="entry.anatomy?.tree?.length"
+                    id="anatomy"
+                    class="scroll-mt-24 space-y-3"
+                  >
+                    <h2 class="text-xl font-semibold tracking-tighter sm:text-2xl">Anatomy</h2>
+                    <p class="text-muted-foreground text-base tracking-tight text-pretty sm:text-lg">
+                      Import all parts and piece them together.
+                    </p>
+                    <div class="pt-2">
+                      <AnatomyDiagram
+                        :tree="entry.anatomy.tree"
+                        :import-path="entry.installation?.importPath || `@/components/ui/${currentName}`"
+                      />
+                    </div>
                   </section>
 
                   <section
@@ -92,6 +103,23 @@
                       <ApiReferenceTable label="Slots" :columns="slotColumns" :rows="ref.slots" />
                     </div>
                   </section>
+
+                  <section
+                    v-if="entry.accessibility?.keyboard?.length || entry.accessibility?.notes?.length"
+                    id="accessibility"
+                    class="scroll-mt-24 space-y-3"
+                  >
+                    <h2 class="text-xl font-semibold tracking-tighter sm:text-2xl">Accessibility</h2>
+                    <p class="text-muted-foreground text-base tracking-tight sm:text-lg">
+                      Keyboard shortcuts and ARIA behavior.
+                    </p>
+                    <div class="pt-2">
+                      <AccessibilityTable
+                        :keyboard="entry.accessibility.keyboard"
+                        :notes="entry.accessibility.notes"
+                      />
+                    </div>
+                  </section>
                 </div>
 
                 <DocsPrevNext :prev="prevEntry" :next="nextEntry" />
@@ -107,14 +135,12 @@
                 />
               </aside>
             </div>
-          </div>
-        </div>
-      </div>
-    </SidebarInset>
-  </SidebarProvider>
+  </div>
 </template>
 
 <script setup>
+import AccessibilityTable from "@/components/ui-docs/AccessibilityTable.vue";
+import AnatomyDiagram from "@/components/ui-docs/AnatomyDiagram.vue";
 import ApiReferenceTable from "@/components/ui-docs/ApiReferenceTable.vue";
 import ComponentPreview from "@/components/ui-docs/ComponentPreview.vue";
 import DocsNotFound from "@/components/ui-docs/DocsNotFound.vue";
@@ -123,7 +149,7 @@ import { getExample } from "@/components/ui-docs/examples-loader";
 import { getDocsEntry } from "@/components/ui-docs/lookup";
 import { findAdjacent } from "@/components/ui-docs/sidebar-nav";
 
-definePageMeta({ layout: "empty" });
+definePageMeta({ layout: "ui" });
 
 const route = useRoute();
 const currentName = computed(() => route.params.name || "");

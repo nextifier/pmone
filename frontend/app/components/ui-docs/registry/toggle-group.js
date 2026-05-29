@@ -22,6 +22,9 @@ export default defineComponentDoc({
         { name: "variant", type: '"default" | "outline"', default: '"default"', description: "Same as Toggle." },
         { name: "size", type: '"sm" | "default" | "lg"', default: '"default"', description: "Same as Toggle." },
       ],
+      events: [
+        { name: "update:modelValue", description: "Fires when the pressed value(s) change. Enables v-model." },
+      ],
     },
     {
       component: "ToggleGroupItem",
@@ -31,4 +34,19 @@ export default defineComponentDoc({
       ],
     },
   ],
+  accessibility: {
+    keyboard: [
+      { keys: ["Tab"], description: "Moves focus into the group." },
+      { keys: ["←"], description: "Moves to the previous item." },
+      { keys: ["→"], description: "Moves to the next item." },
+      { keys: ["↑"], description: "Moves to the previous item." },
+      { keys: ["↓"], description: "Moves to the next item." },
+      { keys: ["Space"], description: "Toggles the focused item." },
+      { keys: ["Enter"], description: "Toggles the focused item." },
+    ],
+    notes: [
+      "Uses a roving tabindex; only one item is in the tab sequence at a time.",
+      "Single or multiple selection is conveyed via aria-pressed or aria-checked.",
+    ],
+  },
 });

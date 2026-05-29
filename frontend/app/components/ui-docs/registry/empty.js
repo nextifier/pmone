@@ -24,6 +24,13 @@ export default defineComponentDoc({
       examples: ["minimal"],
       align: "center",
     },
+    {
+      id: "with-action",
+      title: "With actions",
+      description: "EmptyContent holds one or more call-to-action buttons.",
+      examples: ["with-action"],
+      align: "center",
+    },
   ],
   apiReference: [
     {
@@ -40,6 +47,18 @@ export default defineComponentDoc({
           type: '"default" | "icon"',
           default: '"default"',
           description: "default for free-form illustrations, icon adds a circular muted background.",
+        },
+      ],
+    },
+    {
+      component: "EmptyHeader / EmptyTitle / EmptyDescription / EmptyContent",
+      props: [
+        {
+          name: "class",
+          type: "string",
+          default: "—",
+          description:
+            "Layout and typography wrappers. Header groups media + title + description; Content holds the call-to-action.",
         },
       ],
     },

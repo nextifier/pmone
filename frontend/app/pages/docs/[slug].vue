@@ -1,13 +1,6 @@
 <template>
-  <SidebarProvider :style="{ '--sidebar-width': '18rem' }">
-    <DocsSidebar :grouped-docs="groupedDocs" :current-slug="currentSlug" :pending="listPending" />
-    <SidebarInset>
-      <DocsHeader />
-      <div class="min-h-screen-offset">
-        <div class="container-wider">
-          <!-- Content area -->
-          <div class="min-w-0 flex-1">
-            <!-- Not found -->
+  <div class="min-w-0 flex-1">
+    <!-- Not found -->
             <div v-if="!doc && docStatus === 'success'" class="my-6 min-w-0 flex-1 sm:p-10">
               <div class="mx-auto max-w-2xl text-center">
                 <h1 class="text-primary text-3xl font-semibold tracking-tighter">Page not found</h1>
@@ -130,33 +123,25 @@
                 <ScrollSpy :content-selector="`#${contentId}`" />
               </aside>
             </div>
-          </div>
-        </div>
-      </div>
-    </SidebarInset>
-  </SidebarProvider>
+  </div>
 </template>
 
 <script setup>
 definePageMeta({
-  layout: "empty",
+  layout: "docs",
 });
 
-const route = useRoute();
-const currentSlug = computed(() => route.params.slug || "");
+// Shared docs nav (sidebar list + grouping); deduped with the docs layout.
+const { currentSlug, groupedDocs, flatDocs } = useDocsNav();
+
 const contentId = computed(() => `doc-${currentSlug.value}`);
-
-// Fetch all docs for sidebar
-const { data: listData, pending: listPending } = useLazyFetch("/api/docs");
-
-const allDocs = computed(() => listData.value?.data || []);
 
 // Redirect to first doc if no slug
 watch(
-  [allDocs, currentSlug],
-  ([docs, slug]) => {
-    if (!slug && docs?.length > 0) {
-      const firstDoc = groupedDocs.value?.[0]?.docs?.[0];
+  [groupedDocs, currentSlug],
+  ([groups, slug]) => {
+    if (!slug && groups?.length > 0) {
+      const firstDoc = groups?.[0]?.docs?.[0];
       if (firstDoc) {
         navigateTo(`/docs/${firstDoc.slug}`, { replace: true });
       }
@@ -179,59 +164,7 @@ usePageMeta(null, {
   description: computed(() => doc.value?.excerpt || ""),
 });
 
-// --- Sidebar nav grouping logic ---
-
-function mapToCategory(audience, section) {
-  if (audience === "staff" && section === "getting-started") return "getting-started";
-  if (audience === "staff") return "staff-guide";
-  return "exhibitor-guide";
-}
-
-const categoryOrder = ["getting-started", "staff-guide", "exhibitor-guide"];
-
-const categoryLabels = {
-  "getting-started": "Getting Started",
-  "staff-guide": "Staff Guide",
-  "exhibitor-guide": "Exhibitor Guide",
-};
-
-const groupedDocs = computed(() => {
-  if (!allDocs.value?.length) return [];
-
-  const groups = {};
-
-  allDocs.value.forEach((post) => {
-    const audience = post.settings?.docs_audience || "staff";
-    const section = post.settings?.docs_section || "general";
-    const order = post.settings?.docs_order ?? 999;
-    const category = mapToCategory(audience, section);
-
-    if (!groups[category]) {
-      groups[category] = {
-        label: categoryLabels[category] || category,
-        order: categoryOrder.indexOf(category),
-        docs: [],
-      };
-    }
-    groups[category].docs.push({
-      title: post.title,
-      slug: post.slug,
-      docsOrder: order,
-    });
-  });
-
-  // Sort docs within each group by order
-  Object.values(groups).forEach((g) => g.docs.sort((a, b) => a.docsOrder - b.docsOrder));
-
-  return Object.values(groups).sort((a, b) => {
-    const orderA = a.order === -1 ? 999 : a.order;
-    const orderB = b.order === -1 ? 999 : b.order;
-    return orderA - orderB;
-  });
-});
-
 // Prev/Next based on grouped order
-const flatDocs = computed(() => groupedDocs.value.flatMap((g) => g.docs));
 const currentFlatIndex = computed(() =>
   flatDocs.value.findIndex((d) => d.slug === currentSlug.value)
 );

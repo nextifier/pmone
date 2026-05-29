@@ -1,19 +1,40 @@
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import { CalendarDate, getLocalTimeZone, today as todayFn } from "@internationalized/date";
 import { PricingCalendar } from "@/components/ui/pricing-calendar";
 
-const date = ref();
-const prices = {
-  "2026-06-01": 120,
-  "2026-06-02": 120,
-  "2026-06-03": 145,
-  "2026-06-04": 145,
-  "2026-06-05": 180,
-  "2026-06-06": 220,
-  "2026-06-07": 220,
-};
+const today = todayFn(getLocalTimeZone());
+const placeholder = new CalendarDate(today.year, today.month, 1);
+const range = ref({ start: undefined, end: undefined });
+
+function buildMonth(year, month, soldOut = []) {
+  const map = {};
+  const lastDay = new Date(year, month, 0).getDate();
+  const pad = (n) => String(n).padStart(2, "0");
+  for (let d = 1; d <= lastDay; d++) {
+    const dow = new Date(year, month - 1, d).getDay();
+    const weekend = dow === 0 || dow === 6;
+    map[`${year}-${pad(month)}-${pad(d)}`] = {
+      rate: weekend ? 1_850_000 : 1_500_000,
+      available: soldOut.includes(d) ? 0 : weekend ? 3 : 8,
+    };
+  }
+  return map;
+}
+
+const pricing = computed(() => {
+  const next = placeholder.add({ months: 1 });
+  return { ...buildMonth(today.year, today.month), ...buildMonth(next.year, next.month) };
+});
 </script>
 
 <template>
-  <PricingCalendar v-model="date" :prices="prices" currency="USD" class="rounded-md border" />
+  <PricingCalendar
+    v-model="range"
+    :placeholder="placeholder"
+    :pricing-data="pricing"
+    :good-price-threshold="1_600_000"
+    :min-value="today"
+    class="rounded-md border"
+  />
 </template>

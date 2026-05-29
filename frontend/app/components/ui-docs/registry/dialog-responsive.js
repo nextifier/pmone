@@ -14,6 +14,16 @@ export default defineComponentDoc({
     description:
       "Default to DialogResponsive for any modal that has a form or scrollable content. Plain Dialog is fine for short confirmations (delete, log out) and small popovers that read well on mobile without becoming a drawer.",
   },
+  anatomy: {
+    tree: [
+      { component: "DialogResponsive", children: [
+        { component: "#trigger slot" },
+        { component: "#sticky-header slot" },
+        { component: "#default slot" },
+        { component: "#sticky-footer slot" },
+      ]},
+    ],
+  },
   sections: [
     {
       id: "default",
@@ -104,4 +114,18 @@ export default defineComponentDoc({
       ],
     },
   ],
+  accessibility: {
+    keyboard: [
+      { keys: ["Space"], description: "When focus is on the trigger, opens the dialog." },
+      { keys: ["Enter"], description: "When focus is on the trigger, opens the dialog." },
+      { keys: ["Tab"], description: "Moves focus to the next focusable element inside the content." },
+      { keys: ["Shift", "Tab"], description: "Moves focus to the previous focusable element." },
+      { keys: ["Esc"], description: "Closes the overlay and returns focus to the trigger." },
+    ],
+    notes: [
+      "Adapts to a Dialog on desktop and a Drawer on mobile, keeping the same accessibility contract.",
+      "Focus is trapped within the content while open and restored to the trigger on close.",
+      "Provide a title so screen readers can announce the dialog via aria-labelledby.",
+    ],
+  },
 });

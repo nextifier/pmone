@@ -10,11 +10,14 @@ import ScrollBar from "./ScrollBar.vue";
 import { cn } from "@/lib/utils";
 
 const props = defineProps<
-  ScrollAreaRootProps & { class?: HTMLAttributes["class"] }
+  ScrollAreaRootProps & {
+    class?: HTMLAttributes["class"];
+    viewportClass?: HTMLAttributes["class"];
+  }
 >();
 
 const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props;
+  const { class: _, viewportClass: __, ...delegated } = props;
 
   return delegated;
 });
@@ -26,7 +29,7 @@ const delegatedProps = computed(() => {
     :class="cn('relative overflow-hidden', props.class)"
   >
     <ScrollAreaViewport
-      class="h-full w-full rounded-[inherit] outline-hidden"
+      :class="cn('h-full w-full rounded-[inherit] outline-hidden', props.viewportClass)"
     >
       <slot />
     </ScrollAreaViewport>

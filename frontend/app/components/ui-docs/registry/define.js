@@ -19,14 +19,28 @@
  * @property {string} [description]
  * @property {string[]} examples - Example IDs that map to examples/{name}/{id}.vue
  *
+ * @typedef {Object} AnatomyNode
+ * @property {string} component
+ * @property {AnatomyNode[]} [children]
+ *
+ * @typedef {Object} KeyBinding
+ * @property {string[]} keys - e.g. ["Esc"] or ["Ctrl", "K"]
+ * @property {string} description
+ *
+ * @typedef {Object} Accessibility
+ * @property {KeyBinding[]} keyboard
+ * @property {string[]} [notes]
+ *
  * @typedef {Object} ComponentDoc
  * @property {string} name
  * @property {string} title
  * @property {string} description
  * @property {{ importPath: string, imports: string[] }} [installation]
  * @property {{ title: string, description: string }} [whenToUse]
+ * @property {{ tree: AnatomyNode[] }} [anatomy]
  * @property {Section[]} sections
  * @property {ApiRef[]} [apiReference]
+ * @property {Accessibility} [accessibility]
  *
  * @param {ComponentDoc} config
  * @returns {ComponentDoc}

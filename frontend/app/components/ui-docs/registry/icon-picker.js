@@ -17,13 +17,33 @@ export default defineComponentDoc({
       examples: ["default"],
       align: "center",
     },
+    {
+      id: "with-value",
+      title: "With value",
+      description: "Bind v-model to a preset icon name to start with a selection.",
+      examples: ["with-value"],
+      align: "center",
+    },
+    {
+      id: "custom-prefix",
+      title: "Custom prefix",
+      description: "Restrict the search to a single icon set with the prefix prop.",
+      examples: ["custom-prefix"],
+      align: "center",
+    },
   ],
   apiReference: [
     {
       component: "IconPicker",
       props: [
-        { name: "modelValue", type: "string", default: "—", description: "Selected icon name. Supports v-model." },
-        { name: "placeholder", type: "string", default: '"Pick icon"', description: "Trigger button label when no icon is selected." },
+        { name: "modelValue", type: "string | null", default: "null", description: "Selected icon name. Supports v-model." },
+        { name: "prefix", type: "string", default: '"hugeicons,lucide"', description: "Comma-separated icon set prefixes to search." },
+        { name: "placeholder", type: "string", default: '"Pick an icon"', description: "Trigger button label when no icon is selected." },
+        { name: "disabled", type: "boolean", default: "false", description: "Disable the trigger." },
+        { name: "popular", type: "string[]", default: "—", description: "Icon names shown before any search query." },
+      ],
+      events: [
+        { name: "update:modelValue", description: "Fires with the chosen icon name (or null). Enables v-model." },
       ],
     },
   ],

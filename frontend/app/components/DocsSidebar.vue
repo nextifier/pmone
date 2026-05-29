@@ -77,4 +77,6 @@ const props = defineProps({
     default: false,
   },
 });
+
+useSidebarAutoScroll();
 </script>

@@ -24,6 +24,13 @@ export default defineComponentDoc({
       examples: ["social"],
       align: "center",
     },
+    {
+      id: "with-label",
+      title: "With label",
+      description: "Pair with a Label for a complete form field.",
+      examples: ["with-label"],
+      align: "center",
+    },
   ],
   apiReference: [
     {
@@ -37,6 +44,9 @@ export default defineComponentDoc({
           description: "Determines the prefix and validation pattern.",
         },
         { name: "class", type: "string", default: "—", description: "Extra classes." },
+      ],
+      events: [
+        { name: "update:modelValue", description: "Fires with the full URL (prefix re-applied). Enables v-model." },
       ],
     },
   ],

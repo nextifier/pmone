@@ -17,6 +17,20 @@ export default defineComponentDoc({
       examples: ["default"],
       align: "center",
     },
+    {
+      id: "number-of-months",
+      title: "Multiple months",
+      description: "Render two months side by side for picking longer ranges.",
+      examples: ["number-of-months"],
+      align: "center",
+    },
+    {
+      id: "min-max",
+      title: "Min and max",
+      description: "Constrain selection with minValue and maxValue; dates outside are disabled.",
+      examples: ["min-max"],
+      align: "center",
+    },
   ],
   apiReference: [
     {
@@ -28,6 +42,30 @@ export default defineComponentDoc({
         { name: "maxValue", type: "DateValue", default: "—", description: "Latest selectable date." },
         { name: "locale", type: "string", default: '"en"', description: "Locale for month/day names." },
       ],
+      events: [
+        { name: "update:modelValue", description: "Fires when the range changes. Enables v-model." },
+        { name: "update:placeholder", description: "Fires when the focused month changes during navigation." },
+      ],
+      slots: [
+        { name: "calendar-heading", description: "Scoped slot to override the month/year heading. Receives { headingValue }." },
+      ],
     },
   ],
+  accessibility: {
+    keyboard: [
+      { keys: ["←"], description: "Moves to the previous day." },
+      { keys: ["→"], description: "Moves to the next day." },
+      { keys: ["↑"], description: "Moves to the same day in the previous week." },
+      { keys: ["↓"], description: "Moves to the same day in the next week." },
+      { keys: ["Page Up"], description: "Moves to the previous month." },
+      { keys: ["Page Down"], description: "Moves to the next month." },
+      { keys: ["Enter"], description: "Selects the focused date as a range endpoint." },
+      { keys: ["Space"], description: "Selects the focused date as a range endpoint." },
+    ],
+    notes: [
+      "The first Enter sets the range start; the second sets the range end.",
+      "Uses the grid pattern with a roving tabindex on the focused date.",
+      "Dates within the selection are conveyed via aria-selected.",
+    ],
+  },
 });

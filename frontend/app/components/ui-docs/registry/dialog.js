@@ -18,6 +18,18 @@ export default defineComponentDoc({
       "DialogClose",
     ],
   },
+  anatomy: {
+    tree: [
+      { component: "Dialog", children: [
+        { component: "DialogTrigger" },
+        { component: "DialogContent", children: [
+          { component: "DialogHeader", children: [ { component: "DialogTitle" }, { component: "DialogDescription" } ] },
+          { component: "DialogFooter" },
+          { component: "DialogClose" },
+        ]},
+      ]},
+    ],
+  },
   sections: [
     {
       id: "default",
@@ -59,6 +71,9 @@ export default defineComponentDoc({
           description: "Whether the dialog blocks outside interaction (focus trap and overlay click).",
         },
       ],
+      events: [
+        { name: "update:open", description: "Fires when the open state changes. Enables v-model:open." },
+      ],
     },
     {
       component: "DialogContent",
@@ -69,6 +84,25 @@ export default defineComponentDoc({
           default: "—",
           description: "Default width is sm:max-w-md. Override to go wider.",
         },
+      ],
+      events: [
+        { name: "escape-key-down", description: "Fires when Escape is pressed. Call preventDefault to keep it open." },
+        { name: "pointer-down-outside", description: "Fires on a pointer press outside the content." },
+        { name: "interact-outside", description: "Fires on any outside interaction (pointer or focus)." },
+      ],
+    },
+    {
+      component: "DialogScrollContent",
+      props: [
+        {
+          name: "class",
+          type: "string",
+          default: "—",
+          description: "Variant of DialogContent that scrolls the whole dialog (overlay + content) for very tall bodies.",
+        },
+      ],
+      events: [
+        { name: "escape-key-down", description: "Same outside-interaction events as DialogContent." },
       ],
     },
     {
@@ -83,4 +117,18 @@ export default defineComponentDoc({
       ],
     },
   ],
+  accessibility: {
+    keyboard: [
+      { keys: ["Space"], description: "When focus is on the trigger, opens the dialog." },
+      { keys: ["Enter"], description: "When focus is on the trigger, opens the dialog." },
+      { keys: ["Tab"], description: "Moves focus to the next focusable element inside the dialog." },
+      { keys: ["Shift", "Tab"], description: "Moves focus to the previous focusable element." },
+      { keys: ["Esc"], description: "Closes the dialog and returns focus to the trigger." },
+    ],
+    notes: [
+      "Focus is trapped within the content while open and restored to the trigger on close.",
+      "Built on reka-ui Dialog: content is labelled by DialogTitle and described by DialogDescription via aria-labelledby / aria-describedby.",
+      "Always include a DialogTitle (visually hidden if needed) so screen readers announce the dialog.",
+    ],
+  },
 });

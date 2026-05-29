@@ -104,6 +104,9 @@ export default defineComponentDoc({
           description: "Extra classes, merged with cn().",
         },
       ],
+      slots: [
+        { name: "default", description: "Button label and icons." },
+      ],
     },
   ],
 });

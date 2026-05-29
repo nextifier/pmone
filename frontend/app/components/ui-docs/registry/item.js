@@ -24,6 +24,13 @@ export default defineComponentDoc({
       examples: ["list"],
       align: "start",
     },
+    {
+      id: "variants",
+      title: "Variants",
+      description: "Item supports default, outline, and muted visual styles.",
+      examples: ["variants"],
+      align: "start",
+    },
   ],
   apiReference: [
     {
@@ -37,6 +44,24 @@ export default defineComponentDoc({
       component: "ItemMedia",
       props: [
         { name: "variant", type: '"default" | "icon" | "image"', default: '"default"', description: "Media presentation style." },
+      ],
+    },
+    {
+      component: "ItemContent / ItemTitle / ItemDescription",
+      props: [
+        { name: "class", type: "string", default: "—", description: "Text column of the row. Content stacks Title (font-medium) over Description (muted)." },
+      ],
+    },
+    {
+      component: "ItemActions / ItemHeader / ItemFooter",
+      props: [
+        { name: "class", type: "string", default: "—", description: "Trailing actions, and optional header/footer rows around the main content." },
+      ],
+    },
+    {
+      component: "ItemGroup / ItemSeparator",
+      props: [
+        { name: "class", type: "string", default: "—", description: "Group stacks multiple Items; Separator draws a divider between them." },
       ],
     },
   ],

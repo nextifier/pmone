@@ -74,6 +74,9 @@ export default defineComponentDoc({
           description: "HTML element when to is empty.",
         },
       ],
+      slots: [
+        { name: "default", description: "Button label and icons." },
+      ],
     },
   ],
 });

@@ -159,10 +159,12 @@ Done. Open `/ui/popover` in the browser. Sidebar updated, search included, Previ
 | `installation.importPath` | optional | Shown in the (removed) Import card — keep populated; future versions may surface it. |
 | `installation.imports` | optional | List of exported names from the index.ts. |
 | `whenToUse` | optional | `{ title, description }`. Use for components with siblings (Dialog vs DialogResponsive, Sonner vs Notifications). Rendered as a section before the first example. |
-| `sections[]` | yes | Ordered list. Each: `{ id, title, description?, examples: string[], align?: "start"\|"center" }`. |
+| `anatomy` | optional | `{ tree: AnatomyNode[] }` where `AnatomyNode = { component: string, children?: AnatomyNode[] }`. `AnatomyDiagram.vue` turns the tree into an `import { … } from "<importPath>"` + nested `<template>` Vue code snippet (Shiki-highlighted, like reka-ui's Anatomy), rendered between `whenToUse` and the sections. Imports come from `installation.importPath`. Use for composite components (Card, Dialog, Form, Sidebar, ...). Leaf nodes omit `children`. Slot-only components use slot labels as nodes (e.g. `"#trigger slot"` → renders `<template #trigger />`). |
+| `sections[]` | yes | Ordered list. Each: `{ id, title, description?, examples: string[], align?: "start"\|"center" }`. Aim for 3–7 sections on non-trivial components (default + variants/sizes/states/composition). Trivial ones (Spinner, Separator, Kbd, AspectRatio) may keep 1–2. |
 | `sections[].examples` | yes | Array of filename stems matching `examples/{name}/{id}.vue`. One section can show multiple examples; render order is array order. |
 | `sections[].align` | optional | `"start"` (default) for grids/tables/long content, `"center"` for compact previews (button, badge). |
 | `apiReference[]` | optional but expected | One entry per sub-component. Each: `{ component, props?, events?, slots? }`. Props rows: `{ name, type, default, description }`. Events/slots rows: `{ name, description }`. |
+| `accessibility` | optional | `{ keyboard: KeyBinding[], notes?: string[] }` where `KeyBinding = { keys: string[], description }`. Rendered by `AccessibilityTable.vue` as a Kbd-badge table + bullet notes, after API Reference. Add for interactive components (overlays, menus, listboxes, calendars, sliders, toggles). `keys` use short labels: `["Esc"]`, `["Shift","Tab"]`, `["↑"]`, `["Enter"]`. Base shortcuts on the underlying reka-ui/Radix primitive's documented keyboard behavior. |
 
 ---
 
@@ -170,7 +172,8 @@ Done. Open `/ui/popover` in the browser. Sidebar updated, search included, Previ
 
 - One file per section ID. Filename uses kebab-case and matches the `examples` string in the section. So `examples: ["with-icon"]` → `examples/{name}/with-icon.vue`.
 - Use `<script setup>` and explicit imports. Even though Nuxt auto-imports most components, **keep explicit imports** so the copied source code is self-documenting outside the project.
-- Generic content only — no project names ("UI Library" is the only acceptable brand mention, and only in the README/sidebar). Use shadcn-vue placeholder language: "Acme Inc", "olivia@example.com", "INV-001", "Edit profile".
+- **Generic content only — NO PM One / event / domain-specific context.** This is a reusable component library, not a PM One showcase. Banned in example data and copy: Indonesian/event brand names ("Air Minum Biru", "Burger Bangor", "Cheezy Coin", ...), exhibitor/event terms ("Booth", "Exhibitor", "Megabuild", category like "Food & Beverage"), hotel/reservation wording, Rupiah amounts, and any `*.id` project URLs. The only acceptable brand mention is "UI Library" (README/sidebar only).
+- **When porting an example from `app/pages/demo/*`, swap the demo's PM One data for generic placeholders** — do not copy its arrays verbatim. Use shadcn-vue placeholder language: companies "Acme Inc" / "Globex Corp" / "Initech" / "Umbrella Co", people "Olivia Martin" / "Jackson Lee", "olivia@example.com", "INV-001", "Edit profile", and neutral labels ("Item 1", "Photo 1", "Members", "Projects"). A pricing/inventory component's built-in currency formatting (e.g. Rupiah) is fine to leave — only the example's own content must be generic.
 - Avoid in-example logic that's not part of the demo. Refs, computed, or handlers should illustrate the component, not solve unrelated problems.
 - Keep examples short. 10–30 lines is the sweet spot. If you need 60+ lines, split into multiple examples or simplify.
 
@@ -243,6 +246,8 @@ These are non-negotiable since the docs are read across light/dark mode in multi
 | `ComponentPreview` | `@/components/ui-docs/ComponentPreview.vue` | Wraps each example. Tabs(Preview \| Code) using segmented variant. |
 | `CodeBlock` | `@/components/ui-docs/CodeBlock.vue` | Shiki dual-theme + line numbers + ButtonCopy. Used by ComponentPreview. |
 | `ApiReferenceTable` | `@/components/ui-docs/ApiReferenceTable.vue` | One table per Props/Events/Slots. Props: `label`, `columns` (`[{ key, label, width?, mono?, monoSmall? }]`), `rows`. |
+| `AnatomyDiagram` | `@/components/ui-docs/AnatomyDiagram.vue` | Renders the registry `anatomy.tree` as an import + nested `<template>` Vue code snippet via CodeBlock. Props: `tree` (AnatomyNode[]), `importPath`. |
+| `AccessibilityTable` | `@/components/ui-docs/AccessibilityTable.vue` | Keyboard shortcut table (Kbd badges) + ARIA notes. Props: `keyboard` (KeyBinding[]), `notes` (string[]). Driven by the registry `accessibility` field. |
 | `DocsPrevNext` | `@/components/ui-docs/DocsPrevNext.vue` | Bottom-of-page Button-based nav. |
 | `DocsNotFound` | `@/components/ui-docs/DocsNotFound.vue` | Used when route param doesn't match registry. |
 | `IllustrationFrame` | `@/components/ui-docs/illustrations/IllustrationFrame.vue` | Card-frame wrapper for illustrations. |
@@ -259,6 +264,8 @@ These are non-negotiable since the docs are read across light/dark mode in multi
 - **Heavy components** (TipTapEditor, Sidebar, Chart) — don't try to fit everything in one example. Pick 2–4 realistic configurations and link to a usage file in the codebase for advanced cases via a `note` in the description.
 - **introduction.vue illustration is intentionally absent**. The Introduction guide doesn't appear in the landing grid (filtered by `group === "Components"` in `pages/ui/index.vue`).
 - **ScrollSpy `excludeSelector="[role=tabpanel]"`** is passed from `[name].vue` so headings inside Preview content don't pollute the right-rail TOC. Don't remove this prop.
+- **CardNotch in a grid needs `items-start` on the container.** The notch is `position:absolute; bottom:0` of the card root. A grid's default `align-items: stretch` makes a short card's root taller than its body, so the notch detaches and floats below the content. Add `items-start` (or wrap each card in its own `<div>`) so each card sizes to its content.
+- **Verify example data is accurate against the real component.** Several registries/examples shipped props that don't exist (e.g. `notchSize`/`notchGap`, `minDate`/`maxDate`, `prices`/`currency` on PricingCalendar) or wrong item keys (carousel/lightbox use `src`/`alt` and lightbox grid reads `sm`/`lg`, not a stray `image`). Read the component's `defineProps` + `index.ts` and check the live preview renders before trusting copied code.
 
 ---
 

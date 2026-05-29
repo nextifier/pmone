@@ -20,6 +20,20 @@ export default defineComponentDoc({
         { name: "size", type: '"sm" | "default" | "lg"', default: '"default"', description: "Size variant." },
         { name: "disabled", type: "boolean", default: "false", description: "Disable input." },
       ],
+      events: [
+        { name: "update:modelValue", description: "Fires when the pressed state toggles. Enables v-model." },
+      ],
     },
   ],
+  accessibility: {
+    keyboard: [
+      { keys: ["Space"], description: "Toggles the pressed state when focused." },
+      { keys: ["Enter"], description: "Toggles the pressed state when focused." },
+      { keys: ["Tab"], description: "Moves focus to or from the toggle." },
+    ],
+    notes: [
+      "aria-pressed reflects the on/off state.",
+      "Provide accessible text or an aria-label when the toggle is icon-only.",
+    ],
+  },
 });

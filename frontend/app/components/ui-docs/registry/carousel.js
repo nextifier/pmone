@@ -16,6 +16,16 @@ export default defineComponentDoc({
       "CarouselDotButtons",
     ],
   },
+  anatomy: {
+    tree: [
+      { component: "Carousel", children: [
+        { component: "CarouselContent", children: [ { component: "CarouselItem" } ] },
+        { component: "CarouselPrevious" },
+        { component: "CarouselNext" },
+        { component: "CarouselDotButtons" },
+      ]},
+    ],
+  },
   sections: [
     {
       id: "default",
@@ -67,6 +77,37 @@ export default defineComponentDoc({
           name: "init-api",
           description: "Fired with the embla API once initialised. Use to control programmatically.",
         },
+      ],
+      slots: [
+        {
+          name: "default",
+          description:
+            "Scoped slot exposing { carouselApi, canScrollPrev, canScrollNext, scrollPrev, scrollNext, orientation }.",
+        },
+      ],
+    },
+    {
+      component: "CarouselContent / CarouselItem",
+      props: [
+        { name: "class", type: "string", default: "—", description: "Extra classes for the track and each slide." },
+      ],
+      slots: [
+        { name: "default", description: "CarouselItem slides, and slide content respectively." },
+      ],
+    },
+    {
+      component: "CarouselPrevious / CarouselNext",
+      props: [
+        { name: "class", type: "string", default: "—", description: "Extra classes for the navigation buttons." },
+      ],
+      slots: [
+        { name: "default", description: "Override the default arrow icon." },
+      ],
+    },
+    {
+      component: "CarouselDotButtons",
+      props: [
+        { name: "class", type: "string", default: "—", description: "Extra classes for the dot strip." },
       ],
     },
   ],

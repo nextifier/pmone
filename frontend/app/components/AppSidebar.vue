@@ -39,6 +39,9 @@
 import { useSidebar } from "@/components/ui/sidebar/utils";
 const { setOpenMobile } = useSidebar();
 const route = useRoute();
+
+useSidebarAutoScroll();
+
 const { hasRole, isStaffOrAbove } = usePermission();
 const isAiPage = computed(() => String(route.name) === "ai");
 const isExhibitor = computed(() => hasRole("exhibitor") && !isStaffOrAbove.value);

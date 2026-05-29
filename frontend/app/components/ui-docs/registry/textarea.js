@@ -19,6 +19,9 @@ export default defineComponentDoc({
         { name: "placeholder", type: "string", default: "—", description: "Placeholder text." },
         { name: "disabled", type: "boolean", default: "false", description: "Disable input." },
       ],
+      events: [
+        { name: "update:modelValue", description: "Fires on input. Enables v-model." },
+      ],
     },
   ],
 });

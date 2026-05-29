@@ -77,6 +77,9 @@ export default defineComponentDoc({
           description: "Extra classes, merged with cn().",
         },
       ],
+      events: [
+        { name: "update:modelValue", description: "Fires on input. Enables v-model. Native input events also bubble through." },
+      ],
     },
   ],
 });

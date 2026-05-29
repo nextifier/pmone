@@ -57,6 +57,18 @@ export default defineComponentDoc({
           default: "false",
           description: "Allow closing the only open panel (single mode).",
         },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description: "Disable every item at once. Forwards to reka-ui AccordionRoot.",
+        },
+      ],
+      events: [
+        { name: "update:modelValue", description: "Fires when the open panel(s) change. Enables v-model." },
+      ],
+      slots: [
+        { name: "default", description: "AccordionItem children." },
       ],
     },
     {
@@ -65,6 +77,53 @@ export default defineComponentDoc({
         { name: "value", type: "string", default: "—", description: "Unique value to track open state." },
         { name: "disabled", type: "boolean", default: "false", description: "Disable this item." },
       ],
+      slots: [
+        { name: "default", description: "AccordionTrigger and AccordionContent." },
+      ],
+    },
+    {
+      component: "AccordionTrigger",
+      props: [
+        {
+          name: "class",
+          type: "string",
+          default: "—",
+          description: "Extra classes, merged with cn(). Forwards remaining props to reka-ui AccordionTrigger.",
+        },
+      ],
+      slots: [
+        { name: "default", description: "Trigger label content." },
+        { name: "icon", description: "Override the trailing chevron. Defaults to a rotating ChevronDown." },
+      ],
+    },
+    {
+      component: "AccordionContent",
+      props: [
+        {
+          name: "forceMount",
+          type: "boolean",
+          default: "false",
+          description: "Keep content mounted while collapsed. Forwards to reka-ui AccordionContent.",
+        },
+      ],
+      slots: [
+        { name: "default", description: "Panel body revealed when open." },
+      ],
     },
   ],
+  accessibility: {
+    keyboard: [
+      { keys: ["Tab"], description: "Moves focus to the next trigger." },
+      { keys: ["Enter"], description: "Toggles the focused panel." },
+      { keys: ["Space"], description: "Toggles the focused panel." },
+      { keys: ["↑"], description: "Moves focus to the previous trigger." },
+      { keys: ["↓"], description: "Moves focus to the next trigger." },
+      { keys: ["Home"], description: "Moves focus to the first trigger." },
+      { keys: ["End"], description: "Moves focus to the last trigger." },
+    ],
+    notes: [
+      "Built on reka-ui; each trigger controls its region via aria-controls and aria-expanded.",
+      "Collapsed regions are hidden from assistive technology until expanded.",
+    ],
+  },
 });

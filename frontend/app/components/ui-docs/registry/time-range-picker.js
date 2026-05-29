@@ -40,6 +40,15 @@ export default defineComponentDoc({
         { name: "clearable", type: "boolean", default: "false", description: "Show a clear button when a value is set." },
         { name: "showCaret", type: "boolean", default: "false", description: "Show a blinking caret on the focused segment." },
       ],
+      events: [
+        { name: "update:modelValue", description: "Fires with the new { start, end } range. Enables v-model." },
+      ],
+    },
+    {
+      component: "TimeRangePickerInput",
+      props: [
+        { name: "class", type: "string", default: "—", description: "Single editable segment. Forwards to reka-ui TimeRangeFieldInput; usually rendered for you by TimeRangePicker." },
+      ],
     },
   ],
 });

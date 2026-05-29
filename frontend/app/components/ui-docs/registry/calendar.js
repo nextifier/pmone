@@ -9,6 +9,21 @@ export default defineComponentDoc({
     importPath: "@/components/ui/calendar",
     imports: ["Calendar"],
   },
+  anatomy: {
+    tree: [
+      { component: "Calendar", children: [
+        { component: "CalendarHeader", children: [
+          { component: "CalendarPrevButton" },
+          { component: "CalendarHeading" },
+          { component: "CalendarNextButton" },
+        ]},
+        { component: "CalendarGrid", children: [
+          { component: "CalendarGridHead", children: [ { component: "CalendarGridRow", children: [ { component: "CalendarHeadCell" } ] } ] },
+          { component: "CalendarGridBody", children: [ { component: "CalendarGridRow", children: [ { component: "CalendarCell", children: [ { component: "CalendarCellTrigger" } ] } ] } ] },
+        ]},
+      ]},
+    ],
+  },
   sections: [
     {
       id: "default",
@@ -55,6 +70,33 @@ export default defineComponentDoc({
         { name: "locale", type: "string", default: '"en"', description: "Locale for month/day names." },
         { name: "weekStartsOn", type: "number", default: "1", description: "0 = Sunday, 1 = Monday." },
       ],
+      events: [
+        { name: "update:modelValue", description: "Fires when the selection changes. Enables v-model." },
+        { name: "update:placeholder", description: "Fires when the focused month/year changes during navigation." },
+      ],
+      slots: [
+        { name: "calendar-heading", description: "Scoped slot to override the month/year heading. Receives { headingValue }." },
+        { name: "calendar-prev-icon", description: "Override the previous-month navigation icon." },
+        { name: "calendar-next-icon", description: "Override the next-month navigation icon." },
+      ],
     },
   ],
+  accessibility: {
+    keyboard: [
+      { keys: ["←"], description: "Moves to the previous day." },
+      { keys: ["→"], description: "Moves to the next day." },
+      { keys: ["↑"], description: "Moves to the same day in the previous week." },
+      { keys: ["↓"], description: "Moves to the same day in the next week." },
+      { keys: ["Home"], description: "Moves to the first day of the row." },
+      { keys: ["End"], description: "Moves to the last day of the row." },
+      { keys: ["Page Up"], description: "Moves to the previous month." },
+      { keys: ["Page Down"], description: "Moves to the next month." },
+      { keys: ["Enter"], description: "Selects the focused date." },
+      { keys: ["Space"], description: "Selects the focused date." },
+    ],
+    notes: [
+      "Uses the grid pattern; the focused date is the only tabbable cell (roving tabindex).",
+      "Selected and disabled dates are conveyed via aria-selected and aria-disabled.",
+    ],
+  },
 });

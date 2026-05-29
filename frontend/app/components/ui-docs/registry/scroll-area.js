@@ -32,6 +32,15 @@ export default defineComponentDoc({
         { name: "scrollHideDelay", type: "number", default: "600", description: "Hide scrollbar after this many ms of inactivity." },
         { name: "type", type: '"auto" | "always" | "scroll" | "hover"', default: '"hover"', description: "Scrollbar visibility behaviour." },
       ],
+      slots: [
+        { name: "default", description: "Scrollable content." },
+      ],
+    },
+    {
+      component: "ScrollBar",
+      props: [
+        { name: "orientation", type: '"vertical" | "horizontal"', default: '"vertical"', description: "Add a second ScrollBar with orientation=\"horizontal\" for sideways overflow." },
+      ],
     },
   ],
 });

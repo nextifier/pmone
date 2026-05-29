@@ -24,6 +24,13 @@ export default defineComponentDoc({
       examples: ["with-pinned"],
       align: "center",
     },
+    {
+      id: "disabled",
+      title: "Disabled",
+      description: "Pass disabled to block selection.",
+      examples: ["disabled"],
+      align: "center",
+    },
   ],
   apiReference: [
     {
@@ -34,6 +41,9 @@ export default defineComponentDoc({
         { name: "pinned", type: "string[]", default: "[]", description: "Values to surface at the top." },
         { name: "placeholder", type: "string", default: "—", description: "Placeholder text." },
         { name: "disabled", type: "boolean", default: "false", description: "Disable selection." },
+      ],
+      events: [
+        { name: "update:modelValue", description: "Fires with the selected value. Enables v-model." },
       ],
     },
   ],

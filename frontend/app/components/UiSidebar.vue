@@ -53,10 +53,12 @@ import { useSidebar } from "@/components/ui/sidebar/utils";
 
 const { setOpenMobile } = useSidebar();
 
-defineProps({
+const props = defineProps({
   currentName: {
     type: String,
     default: "",
   },
 });
+
+useSidebarAutoScroll();
 </script>

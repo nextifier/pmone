@@ -65,6 +65,10 @@ export default defineComponentDoc({
           description: "Disable the entire select.",
         },
       ],
+      events: [
+        { name: "update:modelValue", description: "Fires when the value changes. Enables v-model." },
+        { name: "update:open", description: "Fires when the dropdown opens or closes." },
+      ],
     },
     {
       component: "SelectTrigger / SelectContent",
@@ -77,5 +81,37 @@ export default defineComponentDoc({
         },
       ],
     },
+    {
+      component: "SelectItem",
+      props: [
+        { name: "value", type: "string", default: "—", description: "Value committed when selected." },
+        { name: "disabled", type: "boolean", default: "false", description: "Block selection of this item." },
+      ],
+      events: [
+        { name: "select", description: "Fires when the item is chosen." },
+      ],
+    },
+    {
+      component: "SelectGroup / SelectLabel / SelectValue / SelectSeparator",
+      props: [
+        { name: "placeholder", type: "string", default: "—", description: "(SelectValue) Text shown when nothing is selected. Group/Label organise items; Separator divides them." },
+      ],
+    },
   ],
+  accessibility: {
+    keyboard: [
+      { keys: ["Space"], description: "Opens the listbox when the trigger is focused." },
+      { keys: ["Enter"], description: "Opens the listbox, or selects the highlighted option." },
+      { keys: ["↑"], description: "Moves the highlight to the previous option." },
+      { keys: ["↓"], description: "Moves the highlight to the next option." },
+      { keys: ["Home"], description: "Moves the highlight to the first option." },
+      { keys: ["End"], description: "Moves the highlight to the last option." },
+      { keys: ["Esc"], description: "Closes the listbox and returns focus to the trigger." },
+    ],
+    notes: [
+      "Follows the listbox pattern; the trigger exposes aria-expanded and the active option via aria-activedescendant.",
+      "Type-ahead jumps to options whose label starts with the typed characters.",
+      "Selected option is marked with aria-selected.",
+    ],
+  },
 });

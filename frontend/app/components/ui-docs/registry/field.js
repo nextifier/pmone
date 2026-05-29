@@ -92,5 +92,17 @@ export default defineComponentDoc({
         },
       ],
     },
+    {
+      component: "FieldContent / FieldTitle / FieldSeparator",
+      props: [
+        {
+          name: "class",
+          type: "string",
+          default: "—",
+          description:
+            "FieldContent wraps the control area; FieldTitle is a heading for grouped controls; FieldSeparator draws a divider (optional label via the default slot).",
+        },
+      ],
+    },
   ],
 });

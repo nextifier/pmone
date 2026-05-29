@@ -20,6 +20,26 @@ export default defineComponentDoc({
         { name: "step", type: "number", default: "1", description: "Increment between values." },
         { name: "disabled", type: "boolean", default: "false", description: "Disable input." },
       ],
+      events: [
+        { name: "update:modelValue", description: "Fires continuously as a thumb moves. Enables v-model." },
+        { name: "value-commit", description: "Fires once when the user releases a thumb." },
+      ],
     },
   ],
+  accessibility: {
+    keyboard: [
+      { keys: ["←"], description: "Decreases the value by one step." },
+      { keys: ["↓"], description: "Decreases the value by one step." },
+      { keys: ["→"], description: "Increases the value by one step." },
+      { keys: ["↑"], description: "Increases the value by one step." },
+      { keys: ["Home"], description: "Sets the value to the minimum." },
+      { keys: ["End"], description: "Sets the value to the maximum." },
+      { keys: ["Page Up"], description: "Increases the value by a large step." },
+      { keys: ["Page Down"], description: "Decreases the value by a large step." },
+    ],
+    notes: [
+      "Each thumb has role=slider with aria-valuemin, aria-valuemax, and aria-valuenow.",
+      "Provide an accessible label so screen readers announce the slider's purpose.",
+    ],
+  },
 });

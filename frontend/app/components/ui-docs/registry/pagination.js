@@ -31,6 +31,20 @@ export default defineComponentDoc({
       examples: ["default"],
       align: "center",
     },
+    {
+      id: "with-edges",
+      title: "With edges",
+      description: "showEdges keeps the first and last page visible even on long ranges.",
+      examples: ["with-edges"],
+      align: "center",
+    },
+    {
+      id: "controlled",
+      title: "Controlled",
+      description: "Bind v-model:page to a ref so the active page is reflected outside the component.",
+      examples: ["controlled"],
+      align: "center",
+    },
   ],
   apiReference: [
     {
@@ -41,6 +55,30 @@ export default defineComponentDoc({
         { name: "itemsPerPage", type: "number", default: "10", description: "How many items per page." },
         { name: "siblingCount", type: "number", default: "1", description: "Sibling pages around the current page." },
         { name: "showEdges", type: "boolean", default: "false", description: "Always show first and last page numbers." },
+      ],
+      events: [
+        { name: "update:page", description: "Fires when the page changes. Enables v-model:page." },
+      ],
+      slots: [
+        { name: "default", description: "Scoped slot exposing { page, pageCount } to build the content row." },
+      ],
+    },
+    {
+      component: "PaginationContent / PaginationItem",
+      props: [
+        { name: "value", type: "number", default: "—", description: "(PaginationItem) Page number this button selects. Content lays out the items." },
+      ],
+    },
+    {
+      component: "PaginationFirst / PaginationPrevious / PaginationNext / PaginationLast",
+      props: [
+        { name: "class", type: "string", default: "—", description: "Edge navigation buttons. Default slot overrides the icon. Forwards to reka-ui." },
+      ],
+    },
+    {
+      component: "PaginationEllipsis",
+      props: [
+        { name: "class", type: "string", default: "—", description: "Placeholder shown where page numbers are collapsed." },
       ],
     },
   ],

@@ -19,6 +19,23 @@ export default defineComponentDoc({
         { name: "disabled", type: "boolean", default: "false", description: "Disable input." },
         { name: "id", type: "string", default: "—", description: "Match with a Label for prop." },
       ],
+      events: [
+        { name: "update:modelValue", description: "Fires with the new checked state. Enables v-model." },
+      ],
+      slots: [
+        { name: "thumb", description: "Override the sliding thumb content (e.g. an icon)." },
+      ],
     },
   ],
+  accessibility: {
+    keyboard: [
+      { keys: ["Space"], description: "Toggles the switch when focused." },
+      { keys: ["Enter"], description: "Toggles the switch when focused." },
+      { keys: ["Tab"], description: "Moves focus to or from the switch." },
+    ],
+    notes: [
+      "Uses role=switch with aria-checked reflecting the on/off state.",
+      "Pair with a label so the control's purpose is announced.",
+    ],
+  },
 });

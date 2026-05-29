@@ -16,14 +16,33 @@ export default defineComponentDoc({
       examples: ["default"],
       align: "center",
     },
+    {
+      id: "with-label",
+      title: "With label",
+      description: "Pair with a Label for a complete form field.",
+      examples: ["with-label"],
+      align: "center",
+    },
+    {
+      id: "disabled",
+      title: "Disabled",
+      description: "Pass disabled to block input and the reveal toggle.",
+      examples: ["disabled"],
+      align: "center",
+    },
   ],
   apiReference: [
     {
       component: "InputPassword",
       props: [
         { name: "modelValue", type: "string", default: '""', description: "Password value. Supports v-model." },
-        { name: "placeholder", type: "string", default: "—", description: "Placeholder text." },
-        { name: "disabled", type: "boolean", default: "false", description: "Disable input." },
+        { name: "showLabel", type: "string", default: '"Show password"', description: "aria-label / tooltip for the reveal toggle." },
+        { name: "hideLabel", type: "string", default: '"Hide password"', description: "aria-label / tooltip when the value is visible." },
+        { name: "placeholder", type: "string", default: "—", description: "Native placeholder, passed through to the input." },
+        { name: "disabled", type: "boolean", default: "false", description: "Native disabled attribute, passed through to the input." },
+      ],
+      events: [
+        { name: "update:modelValue", description: "Fires on input. Enables v-model." },
       ],
     },
   ],

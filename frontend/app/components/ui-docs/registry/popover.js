@@ -24,6 +24,13 @@ export default defineComponentDoc({
       examples: ["with-form"],
       align: "center",
     },
+    {
+      id: "sides",
+      title: "Sides",
+      description: "Set side to top, right, bottom, or left on the content.",
+      examples: ["sides"],
+      align: "center",
+    },
   ],
   apiReference: [
     {
@@ -31,6 +38,15 @@ export default defineComponentDoc({
       props: [
         { name: "open", type: "boolean", default: "—", description: "Open state. Supports v-model:open." },
         { name: "modal", type: "boolean", default: "false", description: "Trap focus and dim background." },
+      ],
+      events: [
+        { name: "update:open", description: "Fires when the popover opens or closes. Enables v-model:open." },
+      ],
+    },
+    {
+      component: "PopoverTrigger",
+      props: [
+        { name: "asChild", type: "boolean", default: "false", description: "Merge props onto the child element instead of a button." },
       ],
     },
     {
@@ -42,4 +58,17 @@ export default defineComponentDoc({
       ],
     },
   ],
+  accessibility: {
+    keyboard: [
+      { keys: ["Space"], description: "When focus is on the trigger, toggles the popover open or closed." },
+      { keys: ["Enter"], description: "When focus is on the trigger, toggles the popover open or closed." },
+      { keys: ["Tab"], description: "Moves through focusable elements inside the content, then out of the popover." },
+      { keys: ["Shift", "Tab"], description: "Moves focus to the previous focusable element." },
+      { keys: ["Esc"], description: "Closes the popover and returns focus to the trigger." },
+    ],
+    notes: [
+      "Focus moves into the content when the popover opens.",
+      "The trigger exposes aria-expanded and aria-controls linking it to the content.",
+    ],
+  },
 });

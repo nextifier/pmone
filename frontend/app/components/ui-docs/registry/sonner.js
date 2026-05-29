@@ -38,6 +38,12 @@ export default defineComponentDoc({
         { name: "richColors", type: "boolean", default: "false", description: "Use coloured variants instead of plain." },
         { name: "expand", type: "boolean", default: "false", description: "Expand stack on hover instead of overlapping." },
       ],
+      slots: [
+        { name: "info-icon", description: "Override the icon used for info toasts." },
+        { name: "success-icon", description: "Override the icon used for success toasts." },
+        { name: "warning-icon", description: "Override the icon used for warning toasts." },
+        { name: "error-icon", description: "Override the icon used for error toasts." },
+      ],
     },
     {
       component: "toast() (function)",

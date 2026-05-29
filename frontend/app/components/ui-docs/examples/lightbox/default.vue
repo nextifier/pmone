@@ -1,35 +1,22 @@
 <script setup>
-import { ref } from "vue";
 import { Lightbox } from "@/components/ui/lightbox";
 
-const open = ref(false);
-const index = ref(0);
-
-const images = [
-  { src: "https://images.unsplash.com/photo-1717689596878-aa7c61c20fbe?w=1200&q=80", alt: "Landscape" },
-  { src: "https://images.unsplash.com/photo-1735633568712-e0d57df85a37?w=1200&q=80", alt: "Mountain" },
-  { src: "https://images.unsplash.com/photo-1739267543141-fce8b71c63a4?w=1200&q=80", alt: "Forest" },
+const ids = [
+  "1540968221243-29f5d70540bf",
+  "1596135187959-562c650d98bc",
+  "1628944682084-831f35256163",
+  "1590013330451-3946e83e0392",
+  "1590421959604-741d0eec0a2e",
+  "1572613000712-eadc57acbecd",
 ];
 
-function openAt(i) {
-  index.value = i;
-  open.value = true;
-}
+const images = ids.map((id, i) => ({
+  sm: `https://images.unsplash.com/photo-${id}?w=400`,
+  lg: `https://images.unsplash.com/photo-${id}?w=1600`,
+  alt: `Photo ${i + 1}`,
+}));
 </script>
 
 <template>
-  <div>
-    <div class="grid grid-cols-3 gap-2">
-      <button
-        v-for="(img, i) in images"
-        :key="i"
-        type="button"
-        @click="openAt(i)"
-        class="overflow-hidden rounded-md"
-      >
-        <img :src="img.src" :alt="img.alt" class="aspect-square w-full object-cover" />
-      </button>
-    </div>
-    <Lightbox v-model:open="open" v-model:index="index" :items="images" />
-  </div>
+  <Lightbox :items="images" class="w-full" />
 </template>
