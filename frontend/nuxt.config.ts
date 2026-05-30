@@ -337,6 +337,15 @@ export default defineNuxtConfig({
     alias: {
       "vue-stream-markdown": noopMock,
     },
+    cloudflare: {
+      // Generate the Cloudflare deploy config (wrangler.json) at build time so
+      // the `nodejs_compat` flag + compatibility date are applied AUTOMATICALLY
+      // on every deploy. This removes the "[cloudflare] Node.js compatibility is
+      // not enabled" warning and avoids having to toggle the flag by hand in the
+      // Cloudflare Pages dashboard for each project.
+      deployConfig: true,
+      nodeCompat: true,
+    },
     prerender: {
       // Do NOT crawl the app for routes to prerender. Crawling discovered the
       // whole admin tree (~170 routes) and queued a build-time OG render for
