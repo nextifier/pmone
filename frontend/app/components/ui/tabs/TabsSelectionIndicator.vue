@@ -17,6 +17,8 @@ const indicatorRef = ref<HTMLElement | null>(null);
 const ctx = inject(TABS_CONTEXT, null);
 
 let animation: Animation | null = null;
+let textAnimations: Animation[] = [];
+let scrollTriggers: HTMLElement[] = [];
 let resizeObserver: ResizeObserver | null = null;
 
 // Drive the pill with a scroll-driven animation tied to the carousel. We
@@ -57,6 +59,35 @@ function buildAnimation(): void {
     fill: "both",
     easing: "linear",
   });
+
+  // Drive the trigger text colour on the same timeline so the muted->foreground
+  // crossfade tracks the scroll position in lockstep with the pill, instead of
+  // snapping discretely on scrollend. CSS resolves `--tab-active` to a colour
+  // via color-mix (see main.css), keeping it theme-proof.
+  textAnimations.forEach((a) => a.cancel());
+  textAnimations = [];
+
+  const inactive =
+    ctx?.variant.value === "pill"
+      ? "var(--muted-foreground)"
+      : "color-mix(in oklab, var(--muted-foreground) 80%, transparent)";
+
+  scrollTriggers = triggers;
+  triggers.forEach((trigger, j) => {
+    trigger.setAttribute("data-tab-scroll", "");
+    trigger.style.setProperty("--tab-inactive", inactive);
+    const colorKeyframes = triggers.map((_, i) => ({
+      offset: n > 1 ? i / (n - 1) : 0,
+      "--tab-active": i === j ? 1 : 0,
+    }));
+    textAnimations.push(
+      trigger.animate(colorKeyframes, {
+        timeline,
+        fill: "both",
+        easing: "linear",
+      }),
+    );
+  });
 }
 
 onMounted(async () => {
@@ -78,6 +109,13 @@ watch(
 onBeforeUnmount(() => {
   animation?.cancel();
   animation = null;
+  textAnimations.forEach((a) => a.cancel());
+  textAnimations = [];
+  scrollTriggers.forEach((trigger) => {
+    trigger.removeAttribute("data-tab-scroll");
+    trigger.style.removeProperty("--tab-inactive");
+  });
+  scrollTriggers = [];
   resizeObserver?.disconnect();
 });
 </script>

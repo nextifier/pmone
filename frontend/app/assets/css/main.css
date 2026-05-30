@@ -768,6 +768,30 @@
   scroll-timeline: --scrollFadeY y;
 }
 
+/*
+ * Scroll-driven trigger text colour for swipeable Tabs carousels.
+ * `--tab-active` (0..1) is animated per trigger along the carousel's
+ * ScrollTimeline in TabsSelectionIndicator.vue, so the text crossfade stays
+ * in lockstep with the sliding pill. Unlayered on purpose: it must win over
+ * the `data-[state=active]:text-foreground` utility (utilities layer).
+ */
+@property --tab-active {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@supports (animation-timeline: --x) {
+  [role="tab"][data-tab-scroll] {
+    color: color-mix(
+      in oklab,
+      var(--tab-inactive, var(--muted-foreground)),
+      var(--foreground) calc(var(--tab-active) * 100%)
+    );
+    transition: none;
+  }
+}
+
 @utility squircle {
   @apply !rounded-full [corner-shape:squircle];
 }
