@@ -20,47 +20,13 @@ export const usePageMeta = (pageKey, overrides = {}) => {
     twitterDescription: description,
   });
 
-  // Only generate OG images for genuinely public, share-worthy pages. Admin /
-  // auth pages (everything behind sanctum) must NOT register an OG image: it is
-  // wasted build-time Takumi rendering (the source of the build hang) and those
-  // pages are never shared publicly. We allowlist by path prefix because auth on
-  // nested admin routes is inherited from parent layouts (e.g.
-  // projects/[username].vue), so route.meta.middleware is not reliable on the leaf.
-  const PUBLIC_OG_PREFIXES = [
-    "/news",
-    "/docs",
-    "/hotels",
-    "/accommodation",
-    "/p",
-    "/f",
-    "/forms",
-    "/privacy",
-    "/terms",
-  ];
-  const isPublicOgRoute =
-    route.path === "/" ||
-    PUBLIC_OG_PREFIXES.some(
-      (prefix) => route.path === prefix || route.path.startsWith(prefix + "/"),
-    );
-
+  // A static OG image can still be set per page via `meta.ogImage`. We do NOT
+  // call `defineOgImage` (nuxt-og-image) because build-time OG generation
+  // requires prerendering, which is disabled — the whole app is SSR so the
+  // auth-aware header renders correctly per request.
   if (meta?.ogImage) {
     useSeoMeta({
       ogImage: meta.ogImage,
-    });
-  } else if (isPublicOgRoute) {
-    // Sanitize values for OG image URL to prevent unsafe attribute errors.
-    // nuxt-og-image v6 uses comma-separated URL params and doesn't properly
-    // encode special characters (?,!,commas) which breaks Vue server renderer.
-    const sanitize = (val) => (val || "").replace(/[?,!]/g, "").replace(/,/g, " ");
-    const ogTitle = computed(() => sanitize(toValue(title)));
-    const ogDescription = computed(() => sanitize(toValue(description)));
-
-    defineOgImage("Page", {
-      headline: useAppConfig().app.name,
-      pageTitle: ogTitle,
-      pageDescription: ogDescription,
-      title: ogTitle,
-      description: ogDescription,
     });
   }
 
