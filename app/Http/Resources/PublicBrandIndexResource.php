@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\Brand\BrandProfileScoreService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -10,6 +11,8 @@ class PublicBrandIndexResource extends JsonResource
     public function toArray(Request $request): array
     {
         $brand = $this->brand;
+
+        $profile = app(BrandProfileScoreService::class)->score($this->resource);
 
         return [
             'id' => $brand?->id,
@@ -24,6 +27,8 @@ class PublicBrandIndexResource extends JsonResource
             'booth_number' => $this->booth_number,
             'links' => $this->getActiveLinks(),
             'promotions' => $this->getPromotionPreviews(),
+            'score' => $profile['score'],
+            'score_breakdown' => $profile['breakdown'],
             'created_at' => $this->created_at?->toISOString(),
         ];
     }

@@ -2,18 +2,54 @@
 
 namespace App\Http\Resources;
 
+use App\Models\BrandEvent;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class PublicBrandDetailResource extends PublicBrandIndexResource
 {
+    /**
+     * Brand custom_fields keys that are safe to expose publicly, in display order.
+     */
+    private const PUBLIC_CUSTOM_FIELDS = [
+        'business_concept',
+        'establishment_year',
+        'branch_total',
+        'investment_fee',
+    ];
+
     public function toArray(Request $request): array
     {
         $brand = $this->brand;
 
         return array_merge(parent::toArray($request), [
             'brand_description' => $brand?->description,
+            'custom_fields' => $this->getPublicCustomFields(),
+            'event_title' => $this->event?->title,
+            'event_date_label' => $this->event?->date_label,
+            'event_poster' => $this->getEventPoster(),
+            'event_location' => $this->event?->location,
+            'event_hall' => $this->event?->hall,
             'promotions' => $this->getFullPromotions(),
+            'related_brands' => PublicBrandIndexResource::collection($this->getRelatedBrands())->resolve($request),
         ]);
+    }
+
+    /**
+     * Event poster image, ensuring the event media relation is loaded so the
+     * poster_image accessor can resolve without relying on controller eager loading.
+     */
+    private function getEventPoster(): ?array
+    {
+        $event = $this->event;
+
+        if (! $event) {
+            return null;
+        }
+
+        $event->loadMissing('media');
+
+        return $event->poster_image;
     }
 
     private function getFullPromotions(): array
@@ -31,5 +67,109 @@ class PublicBrandDetailResource extends PublicBrandIndexResource
             ])
             ->values()
             ->toArray();
+    }
+
+    /**
+     * Only the whitelisted custom fields, in defined order, dropping empty values.
+     */
+    private function getPublicCustomFields(): array
+    {
+        $fields = $this->brand?->custom_fields;
+
+        if (! is_array($fields)) {
+            return [];
+        }
+
+        $result = [];
+        foreach (self::PUBLIC_CUSTOM_FIELDS as $key) {
+            $value = $fields[$key] ?? null;
+            if ($value !== null && $value !== '') {
+                $result[$key] = $value;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Related brands at the same event, ranked by relevance: shared business
+     * categories first, then same cluster/hall, then profile completeness.
+     * Falls back to other brands at the event when there are too few matches.
+     */
+    private function getRelatedBrands(int $limit = 12): Collection
+    {
+        $brand = $this->brand;
+
+        if (! $brand || ! $this->event_id) {
+            return collect();
+        }
+
+        $eager = ['brand.media', 'brand.tags', 'brand.links', 'promotionPosts.media'];
+
+        $categoryTagIds = $brand->relationLoaded('tags')
+            ? $brand->tags
+                ->filter(fn ($tag) => str_starts_with($tag->type, 'business_category'))
+                ->pluck('id')
+                ->all()
+            : [];
+
+        $baseQuery = fn () => BrandEvent::query()
+            ->with($eager)
+            ->where('event_id', $this->event_id)
+            ->where('status', 'active')
+            ->where('id', '!=', $this->id)
+            ->whereHas('brand', fn ($q) => $q->where('status', 'active')->where('visibility', 'public'));
+
+        // Candidates that share at least one business category.
+        $candidates = collect();
+        if (! empty($categoryTagIds)) {
+            $candidates = $baseQuery()
+                ->whereHas('brand.tags', fn ($q) => $q->whereIn('tags.id', $categoryTagIds))
+                ->limit(40)
+                ->get();
+        }
+
+        $categorySet = array_flip($categoryTagIds);
+        $currentFields = $this->custom_fields ?? [];
+        $currentCluster = $currentFields['cluster'] ?? null;
+        $currentHall = $currentFields['hall'] ?? null;
+
+        $ranked = $candidates
+            ->map(function ($brandEvent) use ($categorySet, $currentCluster, $currentHall) {
+                $related = $brandEvent->brand;
+                $shared = $related && $related->relationLoaded('tags')
+                    ? $related->tags->filter(fn ($tag) => isset($categorySet[$tag->id]))->count()
+                    : 0;
+                $fields = $brandEvent->custom_fields ?? [];
+                $hasPromotions = $brandEvent->relationLoaded('promotionPosts')
+                    && $brandEvent->promotionPosts->isNotEmpty();
+
+                $score = $shared * 10
+                    + (($currentCluster && ($fields['cluster'] ?? null) === $currentCluster) ? 3 : 0)
+                    + (($currentHall && ($fields['hall'] ?? null) === $currentHall) ? 2 : 0)
+                    + ($hasPromotions ? 1 : 0);
+
+                return ['brand_event' => $brandEvent, 'score' => $score, 'order' => $brandEvent->order_column ?? PHP_INT_MAX];
+            })
+            ->sort(function ($a, $b) {
+                return $b['score'] <=> $a['score'] ?: $a['order'] <=> $b['order'];
+            })
+            ->pluck('brand_event')
+            ->take($limit)
+            ->values();
+
+        // Fill remaining slots with other brands at the same event.
+        if ($ranked->count() < $limit) {
+            $existingIds = $ranked->pluck('id')->all();
+            $fillers = $baseQuery()
+                ->when($existingIds, fn ($q) => $q->whereNotIn('id', $existingIds))
+                ->orderBy('order_column')
+                ->limit($limit - $ranked->count())
+                ->get();
+
+            $ranked = $ranked->concat($fillers);
+        }
+
+        return $ranked->values();
     }
 }

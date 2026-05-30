@@ -1,3 +1,4 @@
+// Component docs are auto-discovered from ./<name>.js via import.meta.glob.
 const modules = import.meta.glob("./*.js", { eager: true });
 
 export const registry = Object.fromEntries(

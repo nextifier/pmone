@@ -61,35 +61,96 @@
 
         <!-- Normal view -->
         <div class="frame mx-auto max-w-md" v-else>
-          <!-- Image grid -->
-          <div v-if="getAllImages(post).length" class="grid grid-cols-1 gap-2">
-            <div
-              v-for="(img, idx) in getAllImages(post)"
-              :key="idx"
-              class="group relative overflow-hidden rounded-lg"
+          <!-- Post head (mirrors public brand page) -->
+          <div v-if="getAllImages(post).length" class="mb-3 flex items-center gap-3">
+            <component
+              :is="brandInstagramLink ? 'nuxt-link' : 'div'"
+              :to="brandInstagramLink ? brandInstagramLink.url : undefined"
+              :target="brandInstagramLink ? '_blank' : undefined"
+              class="shrink-0"
             >
-              <a :href="img.url || img.original" target="_blank" class="block">
-                <img
-                  :src="img.md || img.url"
-                  class="outline-inside w-full transition-opacity group-hover:opacity-90"
-                />
-              </a>
-              <div
-                class="absolute top-2 left-2 z-10 transition-opacity"
-                :class="
-                  selectedImages[post.id]?.size
-                    ? 'opacity-100'
-                    : 'opacity-0 group-hover:opacity-100'
-                "
-              >
-                <Checkbox
-                  :model-value="selectedImages[post.id]?.has(img.id) || false"
-                  class="data-[state=checked]:!bg-primary data-[state=checked]:!border-primary !size-5 !rounded-md !border-white/80 !bg-black/30 !shadow-md"
-                  @update:model-value="toggleImageSelection(post.id, img.id)"
-                />
-              </div>
-            </div>
+              <Avatar
+                :model="{ name: brandName, profile_image: brandLogo }"
+                size="sm"
+                class="size-9"
+                rounded="rounded-full"
+                :colorful="false"
+                :gradient-frame="!!brandInstagramLink"
+              />
+            </component>
+
+            <component
+              :is="brandInstagramLink ? 'nuxt-link' : 'span'"
+              :to="brandInstagramLink ? brandInstagramLink.url : undefined"
+              :target="brandInstagramLink ? '_blank' : undefined"
+              class="text-foreground font-semibold tracking-tight"
+            >
+              {{ brandInstagramUsername ?? brandName }}
+            </component>
+
+            <span
+              v-if="post.created_at"
+              class="text-muted-foreground ml-auto text-sm tracking-tight"
+            >
+              {{ $dayjs(post.created_at).fromNow() }}
+            </span>
           </div>
+
+          <!-- Image grid (mirrors public: Lightbox + firstSpansLarge). All images stay
+               visible so per-image selection / download / delete keeps working. -->
+          <Lightbox
+            v-if="getAllImages(post).length"
+            :items="getAllImages(post)"
+            thumbnailKey="md"
+            fullKey="xl"
+            :first-spans-large="getAllImages(post).length > 2"
+            :gridClass="promoGridClass(getAllImages(post).length)"
+            rounded="rounded-2xl"
+            class="gap-1.5"
+            show-caption
+            show-counter
+            show-thumbnails
+          >
+            <template #trigger="{ openAt }">
+              <div :class="promoGridClass(getAllImages(post).length)">
+                <div
+                  v-for="(img, idx) in getAllImages(post)"
+                  :key="img.id"
+                  class="group/tile bg-muted relative overflow-hidden rounded-2xl"
+                  :class="promoThumbClass(idx, getAllImages(post).length)"
+                >
+                  <button
+                    type="button"
+                    class="block size-full cursor-zoom-in"
+                    @click="openAt(idx)"
+                  >
+                    <img
+                      :src="img.md || img.url"
+                      :alt="img.alt || ''"
+                      class="size-full object-cover transition-opacity group-hover/tile:opacity-90"
+                      loading="lazy"
+                    />
+                  </button>
+
+                  <div
+                    v-if="event?.can_edit"
+                    class="absolute top-2 left-2 z-10 transition-opacity"
+                    :class="
+                      selectedImages[post.id]?.size
+                        ? 'opacity-100'
+                        : 'opacity-0 group-hover/tile:opacity-100'
+                    "
+                  >
+                    <Checkbox
+                      :model-value="selectedImages[post.id]?.has(img.id) || false"
+                      class="data-[state=checked]:!bg-primary data-[state=checked]:!border-primary !size-5 !rounded-md !border-white/80 !bg-black/30 !shadow-md"
+                      @update:model-value="toggleImageSelection(post.id, img.id)"
+                    />
+                  </div>
+                </div>
+              </div>
+            </template>
+          </Lightbox>
 
           <div class="frame-panel">
             <!-- Inline add images form -->
@@ -419,6 +480,30 @@ const { metaSymbol } = useShortcuts();
 const route = useRoute();
 const client = useSanctumClient();
 const event = inject("event");
+const { $dayjs } = useNuxtApp();
+
+// --- Promotion display (mirrors the public brand page) ---
+const brandName = computed(() => props.brandEvent?.brand?.name ?? "Brand");
+const brandLogo = computed(() => props.brandEvent?.brand?.brand_logo ?? null);
+const brandInstagramLink = computed(() =>
+  (props.brandEvent?.brand?.links ?? []).find(
+    (l) => l.label?.toLowerCase() === "instagram"
+  )
+);
+const brandInstagramUsername = computed(() => {
+  if (!brandInstagramLink.value) return null;
+  try {
+    return new URL(brandInstagramLink.value.url).pathname.replace(/\//g, "") || null;
+  } catch {
+    return null;
+  }
+});
+
+const promoGridClass = (count) =>
+  count <= 1 ? "grid grid-cols-1" : "grid grid-cols-2 gap-1.5";
+
+const promoThumbClass = (index, total) =>
+  total > 2 && index === 0 ? "col-span-2 row-span-2 aspect-auto" : "aspect-square";
 
 // Settings
 const showSettings = ref(false);

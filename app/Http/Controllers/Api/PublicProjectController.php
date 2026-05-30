@@ -94,7 +94,12 @@ class PublicProjectController extends Controller
         $event = $this->findEvent($username, $eventSlug);
 
         $query = BrandEvent::query()
-            ->with(['brand.media', 'brand.tags'])
+            ->with(['brand.media', 'brand.tags', 'brand.links'])
+            ->withCount([
+                'promotionPosts',
+                'promotionPosts as posts_with_caption_count' => fn ($q) => $q->whereNotNull('caption')->where('caption', '!=', ''),
+                'promotionPosts as posts_with_image_count' => fn ($q) => $q->whereHas('media', fn ($m) => $m->where('collection_name', 'post_image')),
+            ])
             ->whereHas('brand')
             ->where('event_id', $event->id)
             ->where('status', 'active')

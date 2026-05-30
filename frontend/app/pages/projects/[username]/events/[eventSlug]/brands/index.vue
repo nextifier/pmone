@@ -310,6 +310,7 @@ import BrandImportDialog from "@/components/brand/EventBrandImportDialog.vue";
 import BrandTableItem from "@/components/brand/TableItem.vue";
 import { TableData } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
+import { CircularProgress } from "@/components/ui/circular-progress";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -516,6 +517,56 @@ const columns = [
       );
     },
     size: 150,
+  },
+  {
+    header: "Score",
+    accessorKey: "score",
+    cell: ({ row }) => {
+      const score = row.getValue("score") ?? 0;
+      const breakdown = row.original.score_breakdown || [];
+      const missing = breakdown.filter((b) => !b.filled).map((b) => b.label);
+      const ring = h(CircularProgress, { value: score, size: 36, strokeWidth: 4 });
+      const Tippy = resolveComponent("Tippy");
+
+      const content = missing.length
+        ? h(
+            "div",
+            {
+              class:
+                "max-w-[16rem] p-2.5 text-left text-sm leading-normal tracking-tight",
+            },
+            [
+              h("p", { class: "font-medium" }, "Complete profile:"),
+              h(
+                "ul",
+                { class: "mt-1 list-inside list-disc space-y-0.5" },
+                missing.map((label) => h("li", { key: label }, label))
+              ),
+            ]
+          )
+        : h(
+            "div",
+            { class: "flex items-center gap-1.5 p-2.5 text-sm tracking-tight" },
+            [
+              h(resolveComponent("Icon"), {
+                name: "hugeicons:checkmark-circle-03",
+                class: "text-success size-5 shrink-0",
+              }),
+              h("p", { class: "font-medium" }, "Profile complete"),
+            ]
+          );
+
+      return h(
+        Tippy,
+        {},
+        {
+          default: () => h("div", { class: "flex cursor-help" }, [ring]),
+          content: () => content,
+        }
+      );
+    },
+    size: 90,
+    enableSorting: true,
   },
   {
     header: "Promo Posts",
