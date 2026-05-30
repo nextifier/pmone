@@ -454,6 +454,12 @@ const navMainGroups = computed(() => {
       path: "/settings/branding",
     });
   }
+  if (hasPermission("admin.settings")) {
+    settingsItems.push({
+      label: "System",
+      path: "/settings/system",
+    });
+  }
   adminItems.push({
     label: "Settings",
     path: "/settings",

@@ -19,12 +19,14 @@ class PublicBlogController extends Controller
      */
     public function posts(Request $request): JsonResponse
     {
-        // Caching disabled - fetch fresh data on every request
+        // Responses are cached at the route level via the CacheResponse
+        // middleware ('blog-posts' tag) and invalidated by Post's
+        // ClearsResponseCache trait, so this method always fetches fresh data.
         return $this->fetchPosts($request);
     }
 
     /**
-     * Fetch posts from database (used by controller and background job)
+     * Fetch posts from database.
      */
     private function fetchPosts(Request $request): JsonResponse
     {

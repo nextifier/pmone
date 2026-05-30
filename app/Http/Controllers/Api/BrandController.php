@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\ResponseCache\Facades\ResponseCache;
 use Spatie\Tags\Tag;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -236,6 +237,11 @@ class BrandController extends Controller
                 ]);
             }
         }
+
+        // $brand->update() above fires the trait clear BEFORE categories, logo
+        // and links are written, so clear once more after all writes to avoid
+        // repopulating the cache with stale data on a concurrent public hit.
+        ResponseCache::clear(['brands']);
 
         $brand->load('media');
 
@@ -705,6 +711,11 @@ class BrandController extends Controller
         if ($request->has($deleteFieldName) && $request->input($deleteFieldName) === true) {
             $brand->clearMediaCollection($collection);
 
+            // MediaLibrary mutations do not fire the Brand saved event, so the
+            // ClearsResponseCache trait never runs. Bust the cache after the
+            // media change so the public brand payload reflects the removed logo.
+            ResponseCache::clear(['brands']);
+
             return;
         }
 
@@ -745,5 +756,10 @@ class BrandController extends Controller
             ->toMediaCollection($collection);
 
         Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
+
+        // MediaLibrary add runs after Brand::update() in update(), so the
+        // trait's earlier clear is repopulated with the old logo. Bust again
+        // here, after the new media is committed.
+        ResponseCache::clear(['brands']);
     }
 }

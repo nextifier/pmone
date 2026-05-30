@@ -6,9 +6,15 @@ use App\Models\ProjectPaymentGateway;
 use App\Services\Payment\PaymentBalanceCache;
 use App\Services\Xendit\XenditService;
 use Illuminate\Support\Facades\Cache;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 class ProjectPaymentGatewayObserver
 {
+    public function created(ProjectPaymentGateway $projectPaymentGateway): void
+    {
+        $this->forgetCaches($projectPaymentGateway);
+    }
+
     public function updated(ProjectPaymentGateway $projectPaymentGateway): void
     {
         $this->forgetCaches($projectPaymentGateway);
@@ -40,5 +46,10 @@ class ProjectPaymentGatewayObserver
         if ($gateway->provider === 'xendit') {
             Cache::forget(XenditService::PAYMENT_CHANNELS_CACHE_PREFIX."gateway:{$gateway->id}");
         }
+
+        // The public project payload exposes has_active_payment_gateway /
+        // has_xendit_gateway, derived from these rows. Gateway writes do not
+        // touch the Project model, so bust the 'projects'-tagged cache here.
+        ResponseCache::clear(['projects']);
     }
 }

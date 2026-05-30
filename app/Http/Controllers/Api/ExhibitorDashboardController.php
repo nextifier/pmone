@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\ResponseCache\Facades\ResponseCache;
 use Spatie\Tags\Tag;
 
 class ExhibitorDashboardController extends Controller
@@ -537,6 +538,9 @@ class ExhibitorDashboardController extends Controller
                 ->whereIn('id', $request->input('delete_media_ids'))
                 ->get()
                 ->each(fn ($media) => $media->delete());
+
+            // Media delete does not fire the PromotionPost saved event.
+            ResponseCache::clear(['brands', 'promotion-posts']);
         }
 
         $this->handleTemporaryUploads($request, $post, 'tmp_post_images', 'post_image');
@@ -589,6 +593,9 @@ class ExhibitorDashboardController extends Controller
         ]);
 
         Media::setNewOrder($validated['media_ids']);
+
+        // Media reorder does not fire the PromotionPost saved event.
+        ResponseCache::clear(['brands', 'promotion-posts']);
 
         $post->load('media');
 
@@ -1136,6 +1143,12 @@ class ExhibitorDashboardController extends Controller
         if ($request->has($deleteFieldName) && $request->input($deleteFieldName) === true) {
             $model->clearMediaCollection($collection);
 
+            // Brand logo appears on the cached public brand payloads; MediaLibrary
+            // does not fire the Brand saved event, so bust manually.
+            if ($collection === 'brand_logo') {
+                ResponseCache::clear(['brands']);
+            }
+
             return;
         }
 
@@ -1176,6 +1189,12 @@ class ExhibitorDashboardController extends Controller
             ->toMediaCollection($collection);
 
         Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
+
+        // Logo media is committed after the brand update, so bust again here to
+        // avoid repopulating the cache with the old logo.
+        if ($collection === 'brand_logo') {
+            ResponseCache::clear(['brands']);
+        }
     }
 
     /**
@@ -1220,5 +1239,9 @@ class ExhibitorDashboardController extends Controller
 
             Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
         }
+
+        // Promotion-post images surface on the public brand previews/detail.
+        // MediaLibrary add does not fire the PromotionPost saved event.
+        ResponseCache::clear(['brands', 'promotion-posts']);
     }
 }

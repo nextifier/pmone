@@ -63,6 +63,7 @@ use App\Http\Controllers\Api\PublicFormController;
 use App\Http\Controllers\Api\PublicProjectController;
 use App\Http\Controllers\Api\ReservationAdjustmentController;
 use App\Http\Controllers\Api\ReservationController;
+use App\Http\Controllers\Api\ResponseCacheController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\RolesPermissionsSyncController;
 use App\Http\Controllers\Api\RoomTypeController;
@@ -1037,6 +1038,11 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::put('/app-settings/{key}', [AppSettingController::class, 'update'])
         ->middleware('can:app_settings.update')
         ->name('app-settings.update');
+
+    // Flush the public response cache (post-deploy refresh, no SSH needed)
+    Route::post('/system/response-cache/clear', [ResponseCacheController::class, 'clear'])
+        ->middleware('can:admin.settings')
+        ->name('system.response-cache.clear');
 
     // Event Branding (per-event override)
     Route::get('/events/{event}/branding', [EventBrandingController::class, 'show'])->name('events.branding.show');

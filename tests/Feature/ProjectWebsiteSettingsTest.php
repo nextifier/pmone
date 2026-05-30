@@ -59,6 +59,27 @@ it('updates website rundown settings and merges into existing settings', functio
     expect(data_get($this->project->settings, 'contact_form.enabled'))->toBeTrue();
 });
 
+it('preserves website_settings when the general project update sends only contact_form', function () {
+    $this->actingAs($this->user);
+
+    // The admin edit form (FormProject) submits a settings payload carrying
+    // only contact_form. ProjectController@update must merge it into the
+    // existing settings column, not overwrite it - otherwise website_settings
+    // (and email_subjects/hotels) would be silently dropped.
+    $response = $this->putJson("/api/projects/{$this->project->username}", [
+        'settings' => ['contact_form' => ['enabled' => false]],
+    ]);
+
+    $response->assertSuccessful();
+
+    $this->project->refresh();
+    // contact_form was replaced with the submitted block...
+    expect(data_get($this->project->settings, 'contact_form.enabled'))->toBeFalse();
+    // ...while the untouched website_settings block survives (no data loss).
+    expect(data_get($this->project->settings, 'website_settings.rundown.show_search_bar'))->toBeTrue();
+    expect(data_get($this->project->settings, 'website_settings.rundown.show_all_rundown_details'))->toBeFalse();
+});
+
 it('persists show_rundown_on_home_page flag', function () {
     $this->actingAs($this->user);
 

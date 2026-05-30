@@ -158,6 +158,11 @@ class ProjectController extends Controller
 
         if (! empty($validated['member_ids'])) {
             $project->members()->attach($validated['member_ids']);
+
+            // Pivot attach runs after Project::create() fired its trait clear,
+            // and pivot writes do not fire the Project saved event. The public
+            // project payload embeds the member list, so bust again here.
+            ResponseCache::clear(['projects']);
         }
 
         // Handle links (skip Email/WhatsApp from form)
@@ -258,10 +263,33 @@ class ProjectController extends Controller
 
         $oldBio = $project->bio;
 
+        // Merge the incoming settings into the existing JSON column instead of
+        // overwriting it wholesale. The admin form only ever submits a single
+        // top-level block (e.g. contact_form), so a plain assignment would drop
+        // the other blocks (website_settings, email_subjects, hotels). A shallow
+        // top-level merge replaces only the submitted keys and preserves the
+        // rest. It is intentionally NOT recursive: list values like
+        // email_config.to/cc/bcc must be replaced wholesale, not index-merged.
+        if (array_key_exists('settings', $validated) && is_array($validated['settings'])) {
+            $validated['settings'] = array_merge($project->settings ?? [], $validated['settings']);
+        }
+
         $project->update($validated);
+
+        // website_settings (and its rundown/events display config) live in the
+        // settings JSON column. The Project trait only clears 'projects', so a
+        // save touching settings must also bust the dependent public-cache tags,
+        // mirroring updateWebsiteSettings().
+        if (array_key_exists('settings', $validated)) {
+            ResponseCache::clear(['rundown', 'events', 'website-settings']);
+        }
 
         if (isset($validated['member_ids'])) {
             $project->members()->sync($validated['member_ids']);
+
+            // Pivot sync does not fire the Project saved event; bust the cached
+            // public project payload (which embeds the member list) manually.
+            ResponseCache::clear(['projects']);
         }
 
         // Handle links
@@ -589,6 +617,10 @@ class ProjectController extends Controller
             $project->members()->attach($userId);
             $action = 'added';
         }
+
+        // Pivot attach/detach does not fire the Project saved event; the public
+        // project payload embeds the member list, so bust the cache manually.
+        ResponseCache::clear(['projects']);
 
         activity()
             ->performedOn($project)

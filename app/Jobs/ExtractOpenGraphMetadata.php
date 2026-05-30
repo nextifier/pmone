@@ -7,6 +7,7 @@ use App\Services\OpenGraph\OpenGraphExtractor;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
+use Spatie\ResponseCache\Facades\ResponseCache;
 use Throwable;
 
 class ExtractOpenGraphMetadata implements ShouldQueue
@@ -28,8 +29,7 @@ class ExtractOpenGraphMetadata implements ShouldQueue
      */
     public function __construct(
         public int $shortLinkId,
-    ) {
-    }
+    ) {}
 
     /**
      * Execute the job.
@@ -56,6 +56,12 @@ class ExtractOpenGraphMetadata implements ShouldQueue
                 'og_image' => $metadata['og_image'],
                 'og_type' => $metadata['og_type'],
             ]);
+
+            // updateQuietly() suppresses model events, so the ShortLink
+            // ClearsResponseCache trait never fires. The resolve endpoint
+            // returns these OG fields inline, so bust the cache manually.
+            // Tag must match ShortLink::responseCacheTags().
+            ResponseCache::clear(['short-links']);
 
             Log::info('OpenGraph metadata extracted successfully', [
                 'short_link_id' => $shortLink->id,

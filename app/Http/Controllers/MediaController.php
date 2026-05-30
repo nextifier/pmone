@@ -2,6 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Brand;
+use App\Models\Guest;
+use App\Models\Hotel;
+use App\Models\HotelTransferOption;
+use App\Models\Partner;
+use App\Models\Post;
+use App\Models\PromotionPost;
+use App\Models\RoomType;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,6 +19,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\InvalidCollection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\ResponseCache\Facades\ResponseCache;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -407,6 +416,10 @@ class MediaController extends Controller
                     ];
 
                     $media->delete();
+
+                    // Media ops bypass the owner's Eloquent events; bust its cache.
+                    $this->clearOwnerResponseCache($media);
+
                     $deletedMedia[] = $mediaInfo;
 
                 } catch (\Exception $e) {
@@ -461,6 +474,33 @@ class MediaController extends Controller
         return $disk->download($media->getPathRelativeToRoot(), $media->file_name);
     }
 
+    /**
+     * Bust the public response cache for the model that owns the given media.
+     *
+     * Spatie MediaLibrary delete only removes the Media row; it does not fire
+     * the owning model's Eloquent events, so the ClearsResponseCache trait
+     * never runs. Mirror that invalidation here for owners whose media is
+     * rendered in cached public responses (mirrors Link::booted()).
+     */
+    private function clearOwnerResponseCache(Media $media): void
+    {
+        $tags = match ($media->model_type) {
+            Hotel::class,
+            RoomType::class,
+            HotelTransferOption::class => ['hotels'],
+            Brand::class => ['brands'],
+            PromotionPost::class => ['brands', 'promotion-posts'],
+            Partner::class => ['partners'],
+            Guest::class => ['guests'],
+            Post::class => ['blog-posts'],
+            default => [],
+        };
+
+        if ($tags !== []) {
+            ResponseCache::clear($tags);
+        }
+    }
+
     public function delete(int $mediaId): JsonResponse
     {
         try {
@@ -482,6 +522,9 @@ class MediaController extends Controller
             ];
 
             $media->delete();
+
+            // Media ops bypass the owner's Eloquent events; bust its public cache.
+            $this->clearOwnerResponseCache($media);
 
             activity()
                 ->causedBy(auth()->user())

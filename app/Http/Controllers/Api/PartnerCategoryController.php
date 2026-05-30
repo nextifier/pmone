@@ -10,6 +10,7 @@ use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 class PartnerCategoryController extends Controller
 {
@@ -27,6 +28,18 @@ class PartnerCategoryController extends Controller
     private function resolveEvent(Project $project, string $eventSlug): Event
     {
         return $project->events()->where('slug', $eventSlug)->firstOrFail();
+    }
+
+    /**
+     * Invalidate the cached public partners responses.
+     *
+     * Pivot attach/detach and query-builder order updates bypass Eloquent
+     * model events, so the ClearsResponseCache trait on Partner/PartnerCategory
+     * never fires for those paths and must be cleared manually.
+     */
+    private function clearPartnersCache(): void
+    {
+        ResponseCache::clear(['partners']);
     }
 
     /**
@@ -131,6 +144,8 @@ class PartnerCategoryController extends Controller
                 ->update(['order_column' => $position + 1]);
         }
 
+        $this->clearPartnersCache();
+
         return response()->json(['message' => 'Category order updated']);
     }
 
@@ -166,6 +181,8 @@ class PartnerCategoryController extends Controller
             'order_column' => $maxOrder + 1,
         ]);
 
+        $this->clearPartnersCache();
+
         $partner->load('media');
 
         return response()->json([
@@ -194,6 +211,8 @@ class PartnerCategoryController extends Controller
             ->where('partner_category_id', $category->id)
             ->delete();
 
+        $this->clearPartnersCache();
+
         return response()->json(['message' => 'Partner removed from category']);
     }
 
@@ -217,6 +236,8 @@ class PartnerCategoryController extends Controller
                 ->where('partner_category_id', $category->id)
                 ->update(['order_column' => $position + 1]);
         }
+
+        $this->clearPartnersCache();
 
         return response()->json(['message' => 'Partner order updated']);
     }
@@ -262,6 +283,8 @@ class PartnerCategoryController extends Controller
 
             $copiedCategories++;
         }
+
+        $this->clearPartnersCache();
 
         return response()->json([
             'message' => "Copied {$copiedCategories} categories with {$copiedPartners} partners",

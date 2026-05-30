@@ -40,6 +40,7 @@ use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\ResponseCache\Facades\ResponseCache;
 use Spatie\Tags\Tag;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -492,6 +493,12 @@ class BrandEventController extends Controller
             }
         }
 
+        // The brand profile write touches scalar fields, logo, categories, links
+        // and custom fields in sequence; the logo-only path even skips the
+        // $brand->update() trait clear (empty $brandFields guard above). Clear
+        // once after all writes so the public brand payload is never stale.
+        ResponseCache::clear(['brands']);
+
         $brandEvent->load(['brand.media', 'brand.tags', 'brand.links', 'brand.creator', 'brand.updater', 'brand.users.media', 'sales', 'promotionPosts.media']);
 
         // Reload custom field data for response
@@ -619,6 +626,11 @@ class BrandEventController extends Controller
             "UPDATE brand_event SET order_column = CASE {$casesString} END WHERE id IN ({$idsString}) AND event_id = ?",
             [...$params, $event->id]
         );
+
+        // Raw SQL bypasses Eloquent events, so the BrandEvent ClearsResponseCache
+        // trait never fires. The public brand lists order by order_column, so the
+        // new order must invalidate the cache manually.
+        ResponseCache::clear(['brands', 'promotion-posts']);
 
         return response()->json([
             'message' => 'Brand order updated successfully.',
@@ -821,6 +833,9 @@ class BrandEventController extends Controller
                 ->whereIn('id', $request->input('delete_media_ids'))
                 ->get()
                 ->each(fn ($media) => $media->delete());
+
+            // Media delete does not fire the PromotionPost saved event.
+            ResponseCache::clear(['brands', 'promotion-posts']);
         }
 
         // Handle post image uploads
@@ -867,6 +882,10 @@ class BrandEventController extends Controller
 
         Media::setNewOrder($validated['media_ids']);
 
+        // Media reorder does not fire the PromotionPost saved event; the brand
+        // and promotion previews render media in order, so bust manually.
+        ResponseCache::clear(['brands', 'promotion-posts']);
+
         $post->load('media');
 
         return response()->json([
@@ -908,6 +927,10 @@ class BrandEventController extends Controller
             "UPDATE promotion_posts SET order_column = CASE {$casesString} END WHERE id IN ({$idsString}) AND brand_event_id = ?",
             [...$params, $brandEvent->id]
         );
+
+        // Raw SQL bypasses Eloquent events; promotion previews on the public
+        // brand payloads are ordered by order_column, so bust manually.
+        ResponseCache::clear(['brands', 'promotion-posts']);
 
         return response()->json([
             'message' => 'Promotion post order updated successfully.',
@@ -1052,6 +1075,10 @@ class BrandEventController extends Controller
         if ($request->has($deleteFieldName) && $request->input($deleteFieldName) === true) {
             $model->clearMediaCollection($collection);
 
+            // MediaLibrary mutations do not fire the model saved event, so the
+            // brand logo change must bust the cached public brand payloads here.
+            ResponseCache::clear(['brands']);
+
             return;
         }
 
@@ -1092,6 +1119,10 @@ class BrandEventController extends Controller
             ->toMediaCollection($collection);
 
         Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
+
+        // Logo media is committed after the caller's $brand->update(), so bust
+        // again here to avoid repopulating the cache with the old logo.
+        ResponseCache::clear(['brands']);
     }
 
     /**
@@ -1136,6 +1167,11 @@ class BrandEventController extends Controller
 
             Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
         }
+
+        // Promotion-post images appear in the public brand previews and detail
+        // payloads. MediaLibrary add does not fire the PromotionPost saved
+        // event, so bust the cache after committing the new images.
+        ResponseCache::clear(['brands', 'promotion-posts']);
     }
 
     /**

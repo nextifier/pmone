@@ -377,6 +377,11 @@ class EventController extends Controller
             [...$params, $project->id]
         );
 
+        // Raw SQL bypasses Eloquent events, so the Event ClearsResponseCache
+        // trait never fires. The public events list serializes/sorts by
+        // order_column, so the new order must invalidate the cache manually.
+        ResponseCache::clear(['events']);
+
         return response()->json([
             'message' => 'Event order updated successfully',
         ]);

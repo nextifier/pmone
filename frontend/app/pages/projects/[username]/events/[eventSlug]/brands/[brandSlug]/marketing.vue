@@ -62,7 +62,7 @@
         <!-- Normal view -->
         <div class="frame mx-auto max-w-md" v-else>
           <!-- Post head (mirrors public brand page) -->
-          <div v-if="getAllImages(post).length" class="mb-3 flex items-center gap-3">
+          <div v-if="getAllImages(post).length" class="m-4 flex items-center gap-3">
             <component
               :is="brandInstagramLink ? 'nuxt-link' : 'div'"
               :to="brandInstagramLink ? brandInstagramLink.url : undefined"
@@ -119,11 +119,7 @@
                   class="group/tile bg-muted relative overflow-hidden rounded-2xl"
                   :class="promoThumbClass(idx, getAllImages(post).length)"
                 >
-                  <button
-                    type="button"
-                    class="block size-full cursor-zoom-in"
-                    @click="openAt(idx)"
-                  >
+                  <button type="button" class="block size-full cursor-zoom-in" @click="openAt(idx)">
                     <img
                       :src="img.md || img.url"
                       :alt="img.alt || ''"
@@ -486,9 +482,7 @@ const { $dayjs } = useNuxtApp();
 const brandName = computed(() => props.brandEvent?.brand?.name ?? "Brand");
 const brandLogo = computed(() => props.brandEvent?.brand?.brand_logo ?? null);
 const brandInstagramLink = computed(() =>
-  (props.brandEvent?.brand?.links ?? []).find(
-    (l) => l.label?.toLowerCase() === "instagram"
-  )
+  (props.brandEvent?.brand?.links ?? []).find((l) => l.label?.toLowerCase() === "instagram")
 );
 const brandInstagramUsername = computed(() => {
   if (!brandInstagramLink.value) return null;
@@ -499,8 +493,7 @@ const brandInstagramUsername = computed(() => {
   }
 });
 
-const promoGridClass = (count) =>
-  count <= 1 ? "grid grid-cols-1" : "grid grid-cols-2 gap-1.5";
+const promoGridClass = (count) => (count <= 1 ? "grid grid-cols-1" : "grid grid-cols-2 gap-1.5");
 
 const promoThumbClass = (index, total) =>
   total > 2 && index === 0 ? "col-span-2 row-span-2 aspect-auto" : "aspect-square";

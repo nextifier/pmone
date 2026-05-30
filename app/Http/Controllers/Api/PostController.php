@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\ResponseCache\Facades\ResponseCache;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PostController extends Controller
@@ -444,6 +445,12 @@ class PostController extends Controller
             // Cleanup removed content images
             $this->cleanupRemovedContentImages($post, $oldContent);
 
+            // $post->update() above fires the trait clear BEFORE media, author
+            // (pivot) and tag changes are persisted, so a concurrent public hit
+            // could repopulate the cache with stale data. Clear once more after
+            // all writes. MediaLibrary + pivot sync do not fire the saved event.
+            ResponseCache::clear(['blog-posts']);
+
             $post->load(['creator', 'authors', 'tags', 'media']);
 
             return response()->json([
@@ -721,6 +728,10 @@ class PostController extends Controller
         $deletedCount = Post::whereIn('id', $request->ids)->delete();
 
         if ($deletedCount > 0) {
+            // Builder-level mass delete bypasses Eloquent events, so the Post
+            // ClearsResponseCache trait never fires; bust the cache manually.
+            ResponseCache::clear(['blog-posts']);
+
             activity()
                 ->causedBy(auth()->user())
                 ->event('bulk_deleted')
@@ -757,6 +768,10 @@ class PostController extends Controller
         $restoredCount = Post::onlyTrashed()->whereIn('id', $request->ids)->restore();
 
         if ($restoredCount > 0) {
+            // Builder-level mass restore bypasses Eloquent events, so the Post
+            // ClearsResponseCache trait never fires; bust the cache manually.
+            ResponseCache::clear(['blog-posts']);
+
             activity()
                 ->causedBy(auth()->user())
                 ->event('bulk_restored')
@@ -793,6 +808,10 @@ class PostController extends Controller
         $deletedCount = Post::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
 
         if ($deletedCount > 0) {
+            // Builder-level mass force-delete bypasses Eloquent events, so the
+            // Post ClearsResponseCache trait never fires; bust manually.
+            ResponseCache::clear(['blog-posts']);
+
             activity()
                 ->causedBy(auth()->user())
                 ->event('bulk_force_deleted')
