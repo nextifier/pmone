@@ -28,7 +28,7 @@
         </Button>
 
         <Button
-          v-if="user?.roles?.includes('master')"
+          v-if="canClearLogs"
           variant="outline-destructive"
           size="sm"
           class="active:scale-98"
@@ -300,7 +300,8 @@ defineOptions({
 
 usePageMeta(null, { title: "Activity Logs" });
 
-const { user } = useSanctumAuth();
+const { hasPermission } = usePermission();
+const canClearLogs = computed(() => hasPermission("admin.logs_clear"));
 const client = useSanctumClient();
 const { $dayjs } = useNuxtApp();
 const route = useRoute();

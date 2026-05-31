@@ -6,14 +6,44 @@
         <h1 class="page-title">Permissions</h1>
       </div>
 
-      <div v-if="hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
         <button
+          v-if="hasSelectedRows"
           @click="clearSelection"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
           <Icon name="lucide:x" class="size-4 shrink-0" />
           <span>Clear selection</span>
         </button>
+
+        <DialogResponsive v-if="canSync" v-model:open="syncDialogOpen" dialog-max-width="28rem">
+          <template #trigger="{ open }">
+            <Button variant="outline" size="sm" @click="open()">
+              <Icon name="hugeicons:reload" class="size-4" />
+              <span>Sync Permissions</span>
+            </Button>
+          </template>
+
+          <template #default>
+            <div class="px-4 pb-10 md:px-6 md:py-5">
+              <div class="text-primary text-lg font-semibold tracking-tight">Sync permissions?</div>
+              <p class="text-muted-foreground mt-1 text-sm tracking-tight">
+                This creates any new permissions defined in the code and re-grants them to the master
+                role. It is additive and safe to repeat - nothing is removed.
+              </p>
+
+              <div class="mt-6 flex justify-end gap-2">
+                <Button variant="outline" :disabled="syncing" @click="syncDialogOpen = false">
+                  Cancel
+                </Button>
+                <Button :disabled="syncing" @click="syncPermissions">
+                  <Spinner v-if="syncing" class="size-4" />
+                  <span v-else>Sync Permissions</span>
+                </Button>
+              </div>
+            </div>
+          </template>
+        </DialogResponsive>
       </div>
     </div>
 
@@ -143,6 +173,35 @@ const { hasPermission } = usePermission();
 // Permission checks
 const canCreate = computed(() => hasPermission("permissions.create"));
 const canDelete = computed(() => hasPermission("permissions.delete"));
+const canSync = computed(() => hasPermission("admin.settings"));
+
+// Sync permissions from config (runs `php artisan permissions:sync`, no SSH needed)
+const syncDialogOpen = ref(false);
+const syncing = ref(false);
+
+const syncPermissions = async () => {
+  if (syncing.value) {
+    return;
+  }
+
+  syncing.value = true;
+
+  try {
+    const client = useSanctumClient();
+    const res = await client("/api/system/permissions/sync", { method: "POST" });
+    syncDialogOpen.value = false;
+    await refresh();
+    toast.success("Permissions synced", {
+      description: res?.message || "New permissions are now available across roles.",
+    });
+  } catch (err) {
+    toast.error("Failed to sync permissions", {
+      description: err?.data?.message || err?.message,
+    });
+  } finally {
+    syncing.value = false;
+  }
+};
 
 // Create / Edit dialog
 const formDialogOpen = ref(false);

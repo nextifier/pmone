@@ -6,8 +6,8 @@
     </div>
 
     <p class="page-description mt-2 max-w-2xl">
-      Maintenance tools for the public event websites. Use these after a deploy that changes how
-      public pages look, sort, or what fields they show.
+      Maintenance tools you can run after a deploy without SSH - refresh the public cache or sync
+      newly added permissions so the rest of the app picks them up.
     </p>
 
     <div class="bg-card mt-6 space-y-4 rounded-xl border p-4 sm:p-5">
@@ -56,6 +56,50 @@
         </template>
       </DialogResponsive>
     </div>
+
+    <div class="bg-card mt-4 space-y-4 rounded-xl border p-4 sm:p-5">
+      <div class="flex flex-col">
+        <div class="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
+          <Icon name="hugeicons:shield-key" class="size-4" />
+        </div>
+        <div class="mt-2 text-lg font-medium tracking-tighter">Permissions</div>
+        <p class="text-muted-foreground mt-1 max-w-xl text-sm tracking-tight">
+          Permissions are defined in code and stored in the database. After a deploy that adds a new
+          permission, run a sync so the master role and the matching UI buttons pick it up - without
+          it, new permissions stay orphaned. This only creates missing permissions and never removes
+          existing ones, so it is safe to run anytime.
+        </p>
+      </div>
+
+      <DialogResponsive v-model:open="syncDialogOpen" dialog-max-width="28rem">
+        <template #trigger="{ open }">
+          <Button @click="open()">
+            <Icon name="hugeicons:reload" />
+            <span>Sync Permissions</span>
+          </Button>
+        </template>
+
+        <template #default>
+          <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="text-primary text-lg font-semibold tracking-tight">Sync permissions?</div>
+            <p class="text-muted-foreground mt-1 text-sm tracking-tight">
+              This creates any new permissions defined in the code and re-grants them to the master
+              role. It is additive and safe to repeat - nothing is removed.
+            </p>
+
+            <div class="mt-6 flex justify-end gap-2">
+              <Button variant="outline" :disabled="syncing" @click="syncDialogOpen = false">
+                Cancel
+              </Button>
+              <Button :disabled="syncing" @click="syncPermissions">
+                <Spinner v-if="syncing" class="size-4" />
+                <span v-else>Sync Permissions</span>
+              </Button>
+            </div>
+          </div>
+        </template>
+      </DialogResponsive>
+    </div>
   </div>
 </template>
 
@@ -73,6 +117,8 @@ usePageMeta(null, { title: "System · Settings" });
 const client = useSanctumClient();
 const dialogOpen = ref(false);
 const clearing = ref(false);
+const syncDialogOpen = ref(false);
+const syncing = ref(false);
 
 const clearCache = async () => {
   if (clearing.value) {
@@ -94,6 +140,28 @@ const clearCache = async () => {
     });
   } finally {
     clearing.value = false;
+  }
+};
+
+const syncPermissions = async () => {
+  if (syncing.value) {
+    return;
+  }
+
+  syncing.value = true;
+
+  try {
+    const res = await client("/api/system/permissions/sync", { method: "POST" });
+    syncDialogOpen.value = false;
+    toast.success("Permissions synced", {
+      description: res?.message || "New permissions are now available across roles.",
+    });
+  } catch (err) {
+    toast.error("Failed to sync permissions", {
+      description: err?.data?.message || err?.message,
+    });
+  } finally {
+    syncing.value = false;
   }
 };
 </script>

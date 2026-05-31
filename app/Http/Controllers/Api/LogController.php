@@ -41,12 +41,6 @@ class LogController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        if (! $request->user()->hasRole(['master', 'admin'])) {
-            return response()->json([
-                'message' => 'Unauthorized. Only master and admin roles can access logs.',
-            ], 403);
-        }
-
         $perPage = min($request->input('per_page', 50), 100);
         $search = $request->input('search');
         $logName = $request->input('log_name');
@@ -134,12 +128,6 @@ class LogController extends Controller
      */
     public function filterOptions(Request $request): JsonResponse
     {
-        if (! $request->user()->hasRole(['master', 'admin'])) {
-            return response()->json([
-                'message' => 'Unauthorized. Only master and admin roles can access logs.',
-            ], 403);
-        }
-
         $logNames = Activity::query()
             ->distinct()
             ->whereNotNull('log_name')
@@ -184,12 +172,6 @@ class LogController extends Controller
 
     public function clear(Request $request): JsonResponse
     {
-        if (! $request->user()->hasRole('master')) {
-            return response()->json([
-                'message' => 'Unauthorized. Only master role can clear logs.',
-            ], 403);
-        }
-
         $deletedCount = Activity::count();
         Activity::truncate();
 

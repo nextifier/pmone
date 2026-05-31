@@ -6,15 +6,13 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Spatie\Activitylog\Models\Activity;
-use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    // Create roles for testing
-    Role::create(['name' => 'user']);
-    Role::create(['name' => 'admin']);
-    Role::create(['name' => 'master']);
+    // Seed roles + permissions from config so the `can:` middleware on the
+    // logs routes resolves correctly (admin gets admin.logs, master gets all).
+    $this->artisan('db:seed', ['--class' => 'RoleAndPermissionSeeder']);
 });
 
 it('requires authentication to access logs', function () {
@@ -23,7 +21,7 @@ it('requires authentication to access logs', function () {
     $response->assertUnauthorized();
 });
 
-it('requires master or admin role to access logs', function () {
+it('forbids users without the admin.logs permission from accessing logs', function () {
     $user = User::factory()->create();
     $user->assignRole('user');
 
@@ -31,10 +29,7 @@ it('requires master or admin role to access logs', function () {
 
     $response = $this->getJson('/api/logs');
 
-    $response->assertForbidden()
-        ->assertJson([
-            'message' => 'Unauthorized. Only master and admin roles can access logs.',
-        ]);
+    $response->assertForbidden();
 });
 
 it('allows admin role to access logs', function () {
@@ -148,7 +143,7 @@ it('returns filter options for authorized users', function () {
         ]);
 });
 
-it('requires master or admin role to access filter options', function () {
+it('forbids users without the admin.logs permission from accessing filter options', function () {
     $user = User::factory()->create();
     $user->assignRole('user');
 
@@ -317,7 +312,7 @@ it('resolves payment gateway id to the project name and hides technical fields',
     expect($entry['human_description'])->toContain('payment gateway');
 });
 
-it('requires master role to clear logs', function () {
+it('forbids admins without the admin.logs_clear permission from clearing logs', function () {
     $user = User::factory()->create();
     $user->assignRole('admin');
 
@@ -325,10 +320,7 @@ it('requires master role to clear logs', function () {
 
     $response = $this->deleteJson('/api/logs/clear');
 
-    $response->assertForbidden()
-        ->assertJson([
-            'message' => 'Unauthorized. Only master role can clear logs.',
-        ]);
+    $response->assertForbidden();
 });
 
 it('allows master role to clear logs', function () {

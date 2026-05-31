@@ -254,6 +254,7 @@ return [
                 'admin.view' => 'Access admin dashboard',
                 'admin.settings' => 'Manage system settings',
                 'admin.logs' => 'View system logs',
+                'admin.logs_clear' => 'Clear all activity logs',
                 'admin.maintenance' => 'Put system in maintenance mode',
             ],
         ],

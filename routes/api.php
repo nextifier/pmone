@@ -70,6 +70,7 @@ use App\Http\Controllers\Api\RoomTypeController;
 use App\Http\Controllers\Api\RundownItemController;
 use App\Http\Controllers\Api\SheetsController;
 use App\Http\Controllers\Api\ShortLinkController;
+use App\Http\Controllers\Api\SyncPermissionsController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TemporaryUploadController;
@@ -587,11 +588,11 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/{form:slug}/responses/{ulid}', [FormResponseController::class, 'destroy'])->name('forms.responses.destroy');
     });
 
-    // Log management endpoints (master and admin only)
+    // Log management endpoints (permission-based)
     Route::prefix('logs')->group(function () {
-        Route::get('/', [LogController::class, 'index']);
-        Route::get('/filter-options', [LogController::class, 'filterOptions']);
-        Route::delete('/clear', [LogController::class, 'clear']);
+        Route::get('/', [LogController::class, 'index'])->middleware('can:admin.logs');
+        Route::get('/filter-options', [LogController::class, 'filterOptions'])->middleware('can:admin.logs');
+        Route::delete('/clear', [LogController::class, 'clear'])->middleware('can:admin.logs_clear');
     });
 
     // Short link management endpoints
@@ -1043,6 +1044,11 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/system/response-cache/clear', [ResponseCacheController::class, 'clear'])
         ->middleware('can:admin.settings')
         ->name('system.response-cache.clear');
+
+    // Sync permissions from config to database (post-deploy, no SSH needed)
+    Route::post('/system/permissions/sync', [SyncPermissionsController::class, 'sync'])
+        ->middleware('can:admin.settings')
+        ->name('system.permissions.sync');
 
     // Event Branding (per-event override)
     Route::get('/events/{event}/branding', [EventBrandingController::class, 'show'])->name('events.branding.show');
