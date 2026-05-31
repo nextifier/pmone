@@ -68,7 +68,7 @@
 import { useSidebar } from "@/components/ui/sidebar/utils";
 import { ChevronRight } from "lucide-vue-next";
 const { setOpenMobile } = useSidebar();
-const { hasPermission, hasRole, isStaffOrAbove } = usePermission();
+const { hasPermission, hasRole, hasAnyRole, isStaffOrAbove } = usePermission();
 const { t } = useI18n();
 
 const isExhibitor = computed(() => hasRole("exhibitor") && !isStaffOrAbove.value);
@@ -290,11 +290,14 @@ const navMainGroups = computed(() => {
     iconName: "hugeicons:qr-code",
   });
 
-  toolsItems.push({
-    label: "Print Test",
-    path: "/print-test",
-    iconName: "hugeicons:printer",
-  });
+  // Print Test - master & admin only
+  if (hasAnyRole(["master", "admin"])) {
+    toolsItems.push({
+      label: "Print Test",
+      path: "/print-test",
+      iconName: "hugeicons:printer",
+    });
+  }
 
   // Forms - requires forms.read permission
   if (hasPermission("forms.read")) {

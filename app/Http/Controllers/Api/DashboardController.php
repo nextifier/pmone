@@ -152,8 +152,8 @@ class DashboardController extends Controller
             })
             ->values();
 
-        // --- My Projects - all projects where user is member (or all for admin/staff) ---
-        $myProjectsQuery = $user->hasRole(['master', 'admin', 'staff'])
+        // --- My Projects - all projects for master/admin, only member projects for everyone else ---
+        $myProjectsQuery = $user->hasRole(['master', 'admin'])
             ? Project::query()
             : $user->projects();
 
